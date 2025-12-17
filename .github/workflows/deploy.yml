@@ -18,7 +18,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22 # Port SSH standar Domainesia
+          port: 2222 # Port SSH standar Domainesia
           script: |
             # Ganti 'username_anda' dengan user cPanel Anda yang sebenarnya
             # Ganti 'app.ruanglari.com' dengan nama folder root website Anda
