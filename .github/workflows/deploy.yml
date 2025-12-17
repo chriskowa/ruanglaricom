@@ -1,0 +1,33 @@
+name: Deploy RuangLari to Domainesia
+
+on:
+  push:
+    branches:
+      - main # Skrip ini jalan otomatis saat push ke branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22 # Port SSH standar Domainesia
+          script: |
+            # Ganti 'username_anda' dengan user cPanel Anda yang sebenarnya
+            # Ganti 'app.ruanglari.com' dengan nama folder root website Anda
+            cd /home/username_anda/public_html/app.ruanglari.com
+            
+            # Jika pertama kali, lakukan git init atau git clone. 
+            # Jika sudah ada isinya, cukup pull:
+            git pull origin main
+            
+            # Jika ini Laravel, aktifkan baris di bawah ini:
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
