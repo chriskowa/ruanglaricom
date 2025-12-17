@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velocity Pacer Listing - Complete</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                        neon: '#ccff00',
+                        accent: '#3b82f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .text-glow { text-shadow: 0 0 10px rgba(204, 255, 0, 0.3); }
+        
+        /* Animasi Modal */
+        .modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
+        .modal-enter-from, .modal-leave-to { opacity: 0; }
+        .modal-enter-active .modal-content, .modal-leave-active .modal-content { transition: transform 0.3s ease; }
+        .modal-enter-from .modal-content, .modal-leave-to .modal-content { transform: scale(0.95) translateY(20px); }
+    </style>
+</head>
+<body class="bg-dark text-white font-sans antialiased flex flex-col min-h-screen">
+
+    <div id="app" class="flex flex-col min-h-screen">
+        
+        <nav class="border-b border-slate-800 backdrop-blur-md fixed w-full z-40 bg-dark/80">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <div class="flex items-center gap-2 cursor-pointer" @click="resetFilter">
+                        <div class="w-3 h-8 bg-neon skew-x-[-12deg]"></div>
+                        <span class="text-2xl font-bold tracking-tighter">PACER<span class="text-neon">HUB</span></span>
+                    </div>
+                    <div class="hidden md:block">
+                        <a href="#" class="px-3 py-2 text-sm font-medium hover:text-neon transition">Events</a>
+                        <a href="#" class="px-3 py-2 text-sm font-medium hover:text-neon transition">Community</a>
+                        <a href="#" class="ml-4 px-4 py-2 border border-neon text-neon text-sm font-bold rounded hover:bg-neon hover:text-dark transition skew-x-[-12deg] inline-block">
+                            <span class="skew-x-[12deg] inline-block">LOGIN</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <header class="relative pt-32 pb-10 px-4 text-center overflow-hidden">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-accent/20 rounded-full blur-[120px] -z-10"></div>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
+                FIND YOUR <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">RHYTHM</span>
+            </h1>
+            
+            <div class="max-w-4xl mx-auto bg-card/50 backdrop-blur-xl border border-slate-700 p-2 rounded-2xl shadow-2xl flex flex-col md:flex-row gap-2 mt-10">
+                <div class="relative flex-grow">
+                    <input v-model="searchQuery" type="text" placeholder="Cari nama atau target waktu..." class="w-full bg-slate-900/50 text-white pl-6 pr-4 py-4 rounded-xl border border-transparent focus:border-neon outline-none transition">
+                </div>
+                <div class="flex bg-slate-900/50 rounded-xl p-1 overflow-x-auto">
+                    <button v-for="cat in categories" :key="cat" @click="selectedCategory = cat" :class="selectedCategory === cat ? 'bg-slate-700 text-neon shadow-lg' : 'text-slate-400 hover:text-white'" class="px-6 py-3 rounded-lg text-sm font-bold transition-all whitespace-nowrap">
+                        {{ cat }}
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 pb-20 flex-grow w-full">
+            <div class="mb-8 flex justify-between items-end border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Available Pacers</h2>
+                    <p class="text-slate-400 text-sm mt-1">Showing {{ filteredPacers.length }} professionals</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div v-for="pacer in filteredPacers" :key="pacer.id" class="group bg-card rounded-2xl overflow-hidden border border-slate-700 hover:border-neon/50 transition-all duration-300 hover:-translate-y-2 relative flex flex-col">
+                    <div class="absolute top-4 left-4 z-10">
+                        <span :class="pacer.available ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'" class="px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-sm uppercase">
+                            {{ pacer.available ? 'Available' : 'Booked' }}
+                        </span>
+                    </div>
+                    <div class="h-64 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent z-10"></div>
+                        <img :src="pacer.image" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-110">
+                        <div class="absolute bottom-4 right-4 z-20 bg-neon text-dark font-black text-xs px-3 py-1 skew-x-[-12deg]">{{ pacer.category }}</div>
+                    </div>
+                    <div class="p-6 pt-2 relative z-20 flex flex-col flex-grow">
+                        <div class="flex justify-between items-end mb-2">
+                            <div><p class="text-slate-400 text-xs uppercase mb-1">Pace</p><h3 class="font-mono text-4xl font-bold text-white group-hover:text-neon transition-colors text-glow">{{ pacer.pace }}</h3></div>
+                            <div class="text-right"><p class="text-slate-400 text-xs uppercase mb-1">Finish</p><p class="font-mono text-xl font-bold text-white">{{ pacer.finishTime }}</p></div>
+                        </div>
+                        <div class="h-px w-full bg-slate-700 my-4"></div>
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-lg text-white">{{ pacer.name }}</h4>
+                            <p class="text-neon text-sm italic">"{{ pacer.nickname }}"</p>
+                        </div>
+                        <button @click="openModal(pacer)" class="w-full mt-6 py-3 bg-slate-700 text-white font-bold rounded-lg group-hover:bg-neon group-hover:text-dark transition-all duration-300">
+                            LIHAT PROFIL
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-slate-900 border-t border-slate-800 pt-16 pb-8">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                    <div class="col-span-1 md:col-span-1">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-2 h-6 bg-neon skew-x-[-12deg]"></div>
+                            <span class="text-xl font-bold">PACER<span class="text-neon">HUB</span></span>
+                        </div>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Platform komunitas lari terbesar untuk menemukan pacer profesional. Lari lebih cepat, lari lebih jauh, lari bersama kami.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Explore</h4>
+                        <ul class="space-y-2 text-slate-400 text-sm">
+                            <li><a href="#" class="hover:text-neon transition">Cari Pacer</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Event Kalender</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Leaderboard</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Running Calculator</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Community</h4>
+                        <ul class="space-y-2 text-slate-400 text-sm">
+                            <li><a href="#" class="hover:text-neon transition">Tentang Kami</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Menjadi Pacer</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Blog & Tips</a></li>
+                            <li><a href="#" class="hover:text-neon transition">FaQ</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Stay Updated</h4>
+                        <p class="text-slate-400 text-xs mb-4">Dapatkan tips lari dan info event terbaru.</p>
+                        <div class="flex gap-2">
+                            <input type="email" placeholder="Email Anda" class="bg-slate-800 text-white text-sm px-4 py-2 rounded-lg border border-slate-700 w-full focus:border-neon outline-none">
+                            <button class="bg-neon text-dark font-bold px-4 py-2 rounded-lg hover:bg-white transition">→</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
+                    <p>&copy; 2024 PacerHub Indonesia. All rights reserved.</p>
+                    <div class="flex gap-6 mt-4 md:mt-0">
+                        <a href="#" class="hover:text-white">Privacy Policy</a>
+                        <a href="#" class="hover:text-white">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <transition name="modal">
+            <div v-if="selectedPacer" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div @click="closeModal" class="absolute inset-0 bg-dark/90 backdrop-blur-sm cursor-pointer"></div>
+                
+                <div class="bg-card w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-700 shadow-2xl relative z-10 modal-content flex flex-col md:flex-row overflow-hidden">
+                    
+                    <button @click="closeModal" class="absolute top-4 right-4 z-20 bg-black/50 hover:bg-neon hover:text-dark text-white p-2 rounded-full transition">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+
+                    <div class="w-full md:w-2/5 h-64 md:h-auto relative">
+                        <img :src="selectedPacer.image" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-card md:bg-gradient-to-r md:from-transparent md:to-card"></div>
+                    </div>
+
+                    <div class="w-full md:w-3/5 p-8 text-left">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-neon text-dark text-xs font-black px-2 py-1 uppercase">{{ selectedPacer.category }} Specialist</span>
+                            <span v-if="selectedPacer.available" class="text-green-400 text-xs font-bold flex items-center gap-1">● Available</span>
+                        </div>
+                        
+                        <h2 class="text-3xl font-bold text-white mb-1">{{ selectedPacer.name }}</h2>
+                        <p class="text-slate-400 italic mb-6">"{{ selectedPacer.bio }}"</p>
+
+                        <div class="grid grid-cols-3 gap-4 mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                            <div class="text-center">
+                                <p class="text-slate-500 text-xs uppercase">5K PB</p>
+                                <p class="font-mono font-bold text-neon">{{ selectedPacer.stats.pb5k }}</p>
+                            </div>
+                            <div class="text-center border-l border-slate-700">
+                                <p class="text-slate-500 text-xs uppercase">10K PB</p>
+                                <p class="font-mono font-bold text-white">{{ selectedPacer.stats.pb10k }}</p>
+                            </div>
+                            <div class="text-center border-l border-slate-700">
+                                <p class="text-slate-500 text-xs uppercase">Marathon</p>
+                                <p class="font-mono font-bold text-white">{{ selectedPacer.stats.pbfm }}</p>
+                            </div>
+                        </div>
+
+                        <h3 class="text-white font-bold mb-3 text-sm uppercase tracking-wider">Tentang Saya</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-8">
+                            Berpengalaman menjadi pacer resmi di Borobudur Marathon dan Jakarta Marathon. Saya fokus pada split negatif agar pelari bisa finish strong tanpa kehabisan tenaga di km-km terakhir.
+                        </p>
+
+                        <div class="flex gap-4">
+                            <button class="flex-1 bg-neon text-dark font-bold py-3 rounded-lg hover:bg-white transition flex justify-center items-center gap-2">
+                                BOOK NOW
+                            </button>
+                            <button class="px-4 py-3 border border-slate-600 rounded-lg hover:border-white text-white transition">
+                                <span class="font-mono">Strava ↗</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    searchQuery: '',
+                    selectedCategory: 'All',
+                    selectedPacer: null, // State untuk Modal
+                    categories: ['All', 'HM (21K)', 'FM (42K)', '10K'],
+                    pacers: [
+                        { 
+                            id: 1, name: 'Budi Santoso', nickname: 'The Rocket', pace: '04:15', finishTime: 'Sub 1:30', category: 'HM (21K)', available: true, image: 'https://images.unsplash.com/photo-1552674605-5d28c4e1902c?auto=format&fit=crop&q=80&w=800',
+                            bio: 'Konsistensi adalah kunci. Saya akan menjaga tempo Anda tetap stabil dari start hingga finish.',
+                            stats: { pb5k: '18:30', pb10k: '38:45', pbfm: '3:05:00' }
+                        },
+                        { 
+                            id: 2, name: 'Siti Aminah', nickname: 'Diesel Engine', pace: '06:00', finishTime: 'Sub 2:10', category: 'HM (21K)', available: true, image: 'https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=800',
+                            bio: 'Lari dengan senyum. Kita akan finish strong tanpa cedera.',
+                            stats: { pb5k: '25:00', pb10k: '55:20', pbfm: '4:15:00' }
+                        },
+                        { 
+                            id: 3, name: 'Andi Pratama', nickname: 'Pace Master', pace: '05:00', finishTime: 'Sub 3:30', category: 'FM (42K)', available: false, image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800',
+                            bio: 'Spesialis Full Marathon. Saya tahu kapan harus menahan diri dan kapan harus gas pol.',
+                            stats: { pb5k: '19:10', pb10k: '40:00', pbfm: '3:10:00' }
+                        },
+                        { 
+                            id: 4, name: 'Diana Rose', nickname: 'Cruiser', pace: '07:00', finishTime: 'Sub 1:10', category: '10K', available: true, image: 'https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&q=80&w=800',
+                            bio: 'Cocok untuk pemula yang ingin memecahkan rekor 10K pertamanya.',
+                            stats: { pb5k: '32:00', pb10k: '01:05:00', pbfm: '-' }
+                        },
+                        { 
+                            id: 5, name: 'Eko Yulianto', nickname: 'Speedster', pace: '03:55', finishTime: 'Sub 2:50', category: 'FM (42K)', available: true, image: 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=800',
+                            bio: 'Mengejar Boston Qualifier? Mari berlatih keras bersama saya.',
+                            stats: { pb5k: '16:40', pb10k: '34:50', pbfm: '2:42:00' }
+                        },
+                        { 
+                            id: 6, name: 'Rina Marlina', nickname: 'Consistent', pace: '05:30', finishTime: 'Sub 0:55', category: '10K', available: true, image: 'https://images.unsplash.com/photo-1594882645126-14020914d58d?auto=format&fit=crop&q=80&w=800',
+                            bio: 'Pace metronome. Tidak lebih cepat, tidak lebih lambat. Tepat waktu.',
+                            stats: { pb5k: '22:15', pb10k: '48:30', pbfm: '3:50:00' }
+                        },
+                    ]
+                }
+            },
+            computed: {
+                filteredPacers() {
+                    return this.pacers.filter(pacer => {
+                        const catMatch = this.selectedCategory === 'All' || pacer.category === this.selectedCategory;
+                        const searchLower = this.searchQuery.toLowerCase();
+                        const searchMatch = pacer.name.toLowerCase().includes(searchLower) || 
+                                          pacer.nickname.toLowerCase().includes(searchLower) ||
+                                          pacer.pace.includes(searchLower);
+                        return catMatch && searchMatch;
+                    });
+                }
+            },
+            methods: {
+                resetFilter() {
+                    this.searchQuery = '';
+                    this.selectedCategory = 'All';
+                },
+                openModal(pacer) {
+                    this.selectedPacer = pacer;
+                    document.body.style.overflow = 'hidden'; // Stop scroll belakang
+                },
+                closeModal() {
+                    this.selectedPacer = null;
+                    document.body.style.overflow = 'auto'; // Restore scroll
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

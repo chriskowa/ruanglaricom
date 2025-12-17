@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruang Lari - Revolusi Lari Anda</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',    // Slate 900
+                        card: '#1e293b',    // Slate 800
+                        primary: '#ccff00', // Neon Green (Warna Utama)
+                        secondary: '#3b82f6' // Blue Accent
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'hero-glow': 'radial-gradient(circle at center, rgba(204, 255, 0, 0.15) 0%, transparent 70%)', // Glow Neon
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Utilities */
+        .text-stroke { -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2); color: transparent; }
+        .clip-path-slant { clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(204, 255, 0, 0.2); border-color: #ccff00; }
+        
+        /* Loader */
+        .loader-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
+        
+        /* Neon Button Hover Effect */
+        .btn-neon { background-color: #ccff00; color: #0f172a; }
+        .btn-neon:hover { background-color: #b3e600; box-shadow: 0 0 20px rgba(204, 255, 0, 0.5); }
+    </style>
+</head>
+<body class="bg-dark text-white font-sans overflow-x-hidden selection:bg-primary selection:text-dark">
+
+    <div id="loader" class="loader-overlay">
+        <div class="text-4xl font-black italic tracking-tighter animate-pulse">
+            RUANG<span class="text-primary">LARI</span>
+        </div>
+    </div>
+
+    <div id="app">
+        
+        <nav class="fixed w-full z-50 transition-all duration-300" :class="scrolled ? 'bg-dark/90 backdrop-blur-md border-b border-white/5 py-4' : 'bg-transparent py-6'">
+            <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+                <a href="#" class="text-2xl font-black italic tracking-tighter flex items-center gap-2">
+                    <div class="w-3 h-8 bg-primary skew-x-[-12deg]"></div>
+                    RUANG<span class="text-primary">LARI</span>
+                </a>
+                
+                <div class="hidden md:flex gap-8 text-sm font-medium text-slate-300">
+                    <a href="#events" class="hover:text-primary transition">Events</a>
+                    <a href="#community" class="hover:text-primary transition">Community</a>
+                    <a href="/pacer" class="hover:text-primary transition">Pacers</a>
+                    <a href="#pricing" class="hover:text-primary transition">Membership</a>
+                    <a href="#blog" class="hover:text-primary transition">Blog</a>
+                </div>
+
+                <div class="flex gap-4">
+                    <a href="/login" class="hidden md:block text-sm font-bold hover:text-white transition">Masuk</a>
+                    <a href="/register" class="bg-white text-dark px-5 py-2 rounded-full text-sm font-bold hover:bg-primary hover:text-dark transition transform hover:scale-105 border border-transparent hover:border-primary">
+                        Daftar Gratis
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <header class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+            <div class="absolute inset-0 bg-hero-glow"></div>
+            <div class="absolute top-1/4 -left-20 w-72 h-72 bg-primary/10 rounded-full blur-[100px]"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-[100px]"></div>
+
+            <div class="max-w-7xl mx-auto px-4 relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                <div class="hero-text opacity-0 translate-y-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-bold mb-6">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                        Komunitas Lari #1 Indonesia
+                    </div>
+                    <h1 class="text-6xl md:text-8xl font-black leading-tight mb-6">
+                        LARI TANPA <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-400">BATAS.</span>
+                    </h1>
+                    <p class="text-slate-400 text-lg mb-8 max-w-md leading-relaxed">
+                        Platform all-in-one untuk pelari, pacer, dan pelatih. Temukan event, pantau progres, dan raih personal best Anda bersama Ruang Lari.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="px-8 py-4 btn-neon rounded-full font-black text-dark transition transform hover:-translate-y-1">
+                            Mulai Sekarang
+                        </button>
+                        <button class="px-8 py-4 border border-slate-700 rounded-full font-bold hover:bg-white/5 hover:border-primary/50 hover:text-primary transition flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Tonton Video
+                        </button>
+                    </div>
+                    
+                    <div class="mt-12 flex items-center gap-4">
+                        <div class="flex -space-x-3">
+                            <img class="w-10 h-10 rounded-full border-2 border-dark" src="https://i.pravatar.cc/100?img=11" alt="">
+                            <img class="w-10 h-10 rounded-full border-2 border-dark" src="https://i.pravatar.cc/100?img=12" alt="">
+                            <img class="w-10 h-10 rounded-full border-2 border-dark" src="https://i.pravatar.cc/100?img=33" alt="">
+                            <div class="w-10 h-10 rounded-full border-2 border-dark bg-card flex items-center justify-center text-xs font-bold text-primary">+2k</div>
+                        </div>
+                        <p class="text-sm text-slate-500">Pelari telah bergabung</p>
+                    </div>
+                </div>
+
+                <div class="hero-image relative opacity-0 scale-90">
+                    <div class="relative z-10 rounded-[3rem] overflow-hidden border-8 border-card shadow-2xl rotate-3 hover:rotate-0 transition duration-500 group">
+                        <img src="https://images.unsplash.com/photo-1552674605-5d28c4e1902c?auto=format&fit=crop&q=80&w=800" alt="Runner" class="w-full h-auto object-cover group-hover:scale-105 transition duration-700">
+                    </div>
+                    <div class="absolute -top-10 -right-10 w-28 h-28 bg-primary rounded-full flex items-center justify-center text-dark font-black text-center text-xs p-2 rotate-12 z-20 animate-bounce shadow-[0_0_30px_#ccff00]">
+                        JOIN THE <br>MOVEMENT
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="py-10 border-y border-white/5 bg-card/30">
+            <div class="max-w-7xl mx-auto px-4 flex flex-wrap justify-center md:justify-between items-center gap-8 opacity-40 grayscale hover:grayscale-0 transition duration-500">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/New_Balance_logo.svg/2560px-New_Balance_logo.svg.png" class="h-6 md:h-8 invert">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png" class="h-6 md:h-8 invert">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/2560px-Adidas_Logo.svg.png" class="h-8 md:h-10 invert">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Under_armour_logo.svg/2560px-Under_armour_logo.svg.png" class="h-6 md:h-8 invert">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Reebok_logo19.svg/2560px-Reebok_logo19.svg.png" class="h-6 md:h-8 invert">
+            </div>
+        </section>
+
+        <section id="community" class="py-24 relative">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <h2 class="text-primary font-mono font-bold tracking-widest uppercase mb-2">Community Elite</h2>
+                    <h3 class="text-4xl md:text-5xl font-black text-white">HALL OF <span class="text-stroke">FAME</span></h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <div class="group bg-card border border-slate-700 rounded-3xl p-2 relative overflow-hidden card-hover transition duration-300" data-aos="fade-up" data-aos-delay="100">
+                        <div class="absolute top-0 left-0 bg-primary text-dark text-xs font-bold px-4 py-2 rounded-br-2xl z-20">TOP RUNNER</div>
+                        <div class="h-64 rounded-2xl overflow-hidden mb-4 relative">
+                            <img src="https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 grayscale group-hover:grayscale-0">
+                            <div class="absolute bottom-4 left-4">
+                                <h4 class="text-2xl font-black uppercase italic drop-shadow-md">Sarah <br>Jenner</h4>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <div class="flex justify-between items-end border-b border-white/10 pb-4 mb-4">
+                                <div>
+                                    <p class="text-slate-400 text-xs uppercase">Total Distance</p>
+                                    <p class="text-xl font-mono font-bold text-white">2,450 KM</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-slate-400 text-xs uppercase">Avg Pace</p>
+                                    <p class="text-xl font-mono font-bold text-primary">4:15</p>
+                                </div>
+                            </div>
+                            <button class="w-full py-3 rounded-xl border border-slate-700 hover:bg-primary hover:text-dark hover:border-primary transition font-bold text-sm">Lihat Profil</button>
+                        </div>
+                    </div>
+
+                    <div class="group bg-card border border-slate-700 rounded-3xl p-2 relative overflow-hidden card-hover transition duration-300" data-aos="fade-up" data-aos-delay="200">
+                        <div class="absolute top-0 left-0 bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-br-2xl z-20">TOP PACER</div>
+                        <div class="h-64 rounded-2xl overflow-hidden mb-4 relative">
+                            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 grayscale group-hover:grayscale-0">
+                            <div class="absolute bottom-4 left-4">
+                                <h4 class="text-2xl font-black uppercase italic drop-shadow-md">Budi <br>Santoso</h4>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <div class="flex justify-between items-end border-b border-white/10 pb-4 mb-4">
+                                <div>
+                                    <p class="text-slate-400 text-xs uppercase">Events Paced</p>
+                                    <p class="text-xl font-mono font-bold text-white">15 Races</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-slate-400 text-xs uppercase">Precision</p>
+                                    <p class="text-xl font-mono font-bold text-blue-400">99.8%</p>
+                                </div>
+                            </div>
+                            <button class="w-full py-3 rounded-xl border border-slate-700 hover:bg-primary hover:text-dark hover:border-primary transition font-bold text-sm">Book Pacer</button>
+                        </div>
+                    </div>
+
+                    <div class="group bg-card border border-slate-700 rounded-3xl p-2 relative overflow-hidden card-hover transition duration-300" data-aos="fade-up" data-aos-delay="300">
+                        <div class="absolute top-0 left-0 bg-white text-dark text-xs font-bold px-4 py-2 rounded-br-2xl z-20">TOP COACH</div>
+                        <div class="h-64 rounded-2xl overflow-hidden mb-4 relative">
+                            <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-110 transition duration-700 grayscale group-hover:grayscale-0">
+                            <div class="absolute bottom-4 left-4">
+                                <h4 class="text-2xl font-black uppercase italic drop-shadow-md">Coach <br>Indra</h4>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <div class="flex justify-between items-end border-b border-white/10 pb-4 mb-4">
+                                <div>
+                                    <p class="text-slate-400 text-xs uppercase">Students</p>
+                                    <p class="text-xl font-mono font-bold text-white">120+</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-slate-400 text-xs uppercase">PB Broken</p>
+                                    <p class="text-xl font-mono font-bold text-white">50+</p>
+                                </div>
+                            </div>
+                            <button class="w-full py-3 rounded-xl border border-slate-700 hover:bg-primary hover:text-dark hover:border-primary transition font-bold text-sm">Join Class</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="events" class="py-24 bg-card clip-path-slant pb-40 border-t border-slate-800">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                    <div>
+                        <h2 class="text-4xl font-black text-white">RACE CALENDAR</h2>
+                        <p class="text-slate-400 mt-2">Jangan lewatkan event lari terbesar tahun ini.</p>
+                    </div>
+                    <div class="flex gap-2 mt-4 md:mt-0 bg-dark p-1 rounded-lg border border-slate-700">
+                        <button @click="activeTab = 'recent'" :class="activeTab === 'recent' ? 'bg-primary text-dark' : 'text-slate-400 hover:text-white'" class="px-6 py-2 rounded-md text-sm font-bold transition">Recent</button>
+                        <button @click="activeTab = 'top'" :class="activeTab === 'top' ? 'bg-primary text-dark' : 'text-slate-400 hover:text-white'" class="px-6 py-2 rounded-md text-sm font-bold transition">Top Events</button>
+                    </div>
+                </div>
+                <div id="homeEvents" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+                
+                <div class="text-center mt-12">
+                    <a href="/events" class="inline-block border-b-2 border-primary text-primary font-bold hover:text-white hover:border-white transition pb-1">Lihat Semua Event →</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="pricing" class="py-24 relative -mt-20">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="bg-gradient-to-br from-primary via-green-500 to-emerald-600 rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden shadow-[0_20px_60px_-15px_rgba(204,255,0,0.3)]" data-aos="zoom-in">
+                    
+                    <div class="absolute top-0 left-0 w-64 h-64 bg-white/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+                    <div class="absolute bottom-0 right-0 w-64 h-64 bg-black/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+                    
+                    <h2 class="text-3xl md:text-5xl font-black text-dark mb-6">UNLOCK PREMIUM FEATURES</h2>
+                    <p class="text-dark/80 text-lg mb-10 max-w-2xl mx-auto font-medium">
+                        Dapatkan akses ke rencana latihan eksklusif, analisis performa mendalam, dan diskon pendaftaran event.
+                    </p>
+                    
+                    <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
+                        <div class="bg-dark/90 backdrop-blur-sm p-8 rounded-3xl border border-white/10 hover:border-primary transition group">
+                            <h3 class="text-xl font-bold text-white mb-2">Starter</h3>
+                            <p class="text-3xl font-black text-white mb-6">Rp 0</p>
+                            <ul class="space-y-3 text-sm text-slate-300 mb-8">
+                                <li class="flex gap-2"><span class="text-primary">✓</span> Basic Tracking</li>
+                                <li class="flex gap-2"><span class="text-primary">✓</span> Community Access</li>
+                            </ul>
+                            <button class="w-full py-3 rounded-xl bg-slate-800 hover:bg-white hover:text-dark font-bold transition text-white">Current Plan</button>
+                        </div>
+
+                        <div class="bg-white text-dark p-8 rounded-3xl transform scale-105 shadow-2xl relative">
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-dark text-primary border border-primary text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">Most Popular</div>
+                            <h3 class="text-xl font-bold mb-2">Pro Runner</h3>
+                            <p class="text-3xl font-black mb-6">Rp 49k<span class="text-sm font-medium text-slate-500">/bln</span></p>
+                            <ul class="space-y-3 text-sm font-medium mb-8">
+                                <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Advanced Analytics</li>
+                                <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Training Plans</li>
+                                <li class="flex gap-2"><span class="text-green-600 font-bold">✓</span> Event Discounts</li>
+                            </ul>
+                            <button class="w-full py-3 rounded-xl bg-primary text-dark hover:brightness-90 font-black transition shadow-lg">Upgrade Now</button>
+                        </div>
+
+                        <div class="bg-dark/90 backdrop-blur-sm p-8 rounded-3xl border border-white/10 hover:border-primary transition">
+                            <h3 class="text-xl font-bold text-white mb-2">Elite Coach</h3>
+                            <p class="text-3xl font-black text-white mb-6">Rp 199k<span class="text-sm text-slate-400">/bln</span></p>
+                            <ul class="space-y-3 text-sm text-slate-300 mb-8">
+                                <li class="flex gap-2"><span class="text-primary">✓</span> All Pro Features</li>
+                                <li class="flex gap-2"><span class="text-primary">✓</span> Manage Students</li>
+                                <li class="flex gap-2"><span class="text-primary">✓</span> Verified Badge</li>
+                            </ul>
+                            <button class="w-full py-3 rounded-xl bg-slate-800 hover:bg-white hover:text-dark font-bold transition text-white">Contact Sales</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="blog" class="py-24 bg-dark">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex justify-between items-end mb-12">
+                    <h2 class="text-4xl font-black text-white">LATEST <span class="text-stroke">NEWS</span></h2>
+                    <a href="https://ruanglari.com/blog/" target="_blank" rel="noopener" class="text-sm font-bold text-primary hover:text-white transition">Read Blog →</a>
+                </div>
+
+                <div id="blogCards" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+            </div>
+        </section>
+
+        <footer class="border-t border-slate-800 pt-20 pb-10 bg-black">
+            <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="col-span-1 md:col-span-1">
+                    <a href="#" class="text-2xl font-black italic tracking-tighter mb-6 flex items-center gap-2">
+                        <div class="w-3 h-6 bg-primary skew-x-[-12deg]"></div>
+                        RUANG<span class="text-primary">LARI</span>
+                    </a>
+                    <p class="text-slate-500 text-sm leading-relaxed">
+                        Kami membangun ekosistem lari terbesar di Indonesia. Bergabunglah dengan revolusi ini.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-6">Platform</h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-primary transition">Events</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Membership</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Coaches</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-6">Company</h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li><a href="#" class="hover:text-primary transition">About Us</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Careers</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-6">Newsletter</h4>
+                    <form class="flex gap-2">
+                        <input type="email" placeholder="Email Anda" class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm w-full focus:outline-none focus:border-primary text-white">
+                        <button class="bg-primary px-4 py-2 rounded-lg text-dark font-bold hover:bg-white transition">Go</button>
+                    </form>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 border-t border-white/10 pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-xs text-slate-600">
+                <p>&copy; 2024 Ruang Lari Indonesia. All rights reserved.</p>
+                <div class="flex gap-6 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-white">Privacy Policy</a>
+                    <a href="#" class="hover:text-white">Terms of Service</a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        // Init Vue
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const scrolled = ref(false);
+                const activeTab = ref('recent');
+
+                // Handle Scroll Navbar
+                window.addEventListener('scroll', () => {
+                    scrolled.value = window.scrollY > 50;
+                });
+
+                return { scrolled, activeTab }
+            }
+        }).mount('#app');
+
+        // Init AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // GSAP Hero Animations
+        window.addEventListener('load', () => {
+            // Hide Loader
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 500);
+
+            // Animate Elements
+            gsap.to('.hero-text', { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: 'power3.out' });
+            gsap.to('.hero-image', { opacity: 1, scale: 1, duration: 1.2, delay: 0.2, ease: 'back.out(1.7)' });
+        });
+
+        // ====== Blog fetch/render ======
+        async function loadLatestBlogs() {
+            const container = document.getElementById('blogCards');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="col-span-3 text-center text-gray-500">Memuat artikel...</div>
+            `;
+            try {
+                const res = await fetch('https://ruanglari.com/wp-json/wp/v2/posts?per_page=3&_embed');
+                const posts = await res.json();
+                container.innerHTML = '';
+                posts.forEach(post => {
+                    const link = post.link;
+                    const title = post.title?.rendered || 'Tanpa judul';
+                    const media = post._embedded?.['wp:featuredmedia']?.[0];
+                    const img = media?.source_url || 'ruanglari.png';
+                    const card = document.createElement('a');
+                    card.href = link;
+                    card.target = '_blank';
+                    card.rel = 'noopener';
+                    card.className = 'group block bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow hover:shadow-lg transition-shadow';
+                    card.innerHTML = `
+                        <div class="overflow-hidden">
+                            <img src="${img}" alt="${title.replace(/<[^>]*>/g,'')}" class="w-full h-56 object-cover transform transition-transform duration-300 group-hover:scale-105" />
+                        </div>
+                        <div class="p-4">
+                            <div class="font-semibold text-white line-clamp-2 group-hover:text-primary transition">${title}</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                container.innerHTML = '<div class="col-span-3 text-center text-red-500">Gagal memuat artikel.</div>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadLatestBlogs);
+
+        // ====== Upcoming events render ======
+        async function loadUpcomingEvents() {
+            const container = document.getElementById('homeEvents');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="col-span-2 text-center text-slate-400">Memuat event...</div>
+            `;
+            try {
+                const base = (window.location.pathname.indexOf('/ruanglari/public') !== -1) ? '/ruanglari/public' : '';
+                const res = await fetch(base + '/api/events/upcoming');
+                const events = await res.json();
+                container.innerHTML = '';
+                if (!events || events.length === 0) {
+                    container.innerHTML = '<div class="col-span-2 text-center text-slate-500">Belum ada event mendatang.</div>';
+                    return;
+                }
+                events.forEach(ev => {
+                    const date = new Date(ev.date + 'T' + (ev.time || '00:00'));
+                    const month = date.toLocaleString('id-ID', { month: 'short' }).toUpperCase();
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const card = document.createElement('a');
+                    card.href = '/events/' + ev.slug;
+                    card.className = 'flex bg-dark border border-slate-800 rounded-2xl overflow-hidden hover:border-primary/50 transition group';
+                    card.innerHTML = `
+                        <div class="w-32 bg-slate-900 flex flex-col items-center justify-center text-center p-4 border-r border-slate-800">
+                            <span class="text-sm font-bold text-primary uppercase">${month}</span>
+                            <span class="text-3xl font-black text-white">${day}</span>
+                        </div>
+                        <div class="p-6 flex-grow flex flex-col justify-center">
+                            <h3 class="text-xl font-bold text-white mb-1 group-hover:text-primary transition">${ev.name}</h3>
+                            <p class="text-sm text-slate-500">${ev.location || ''} • ${ev.time || ''} WIB</p>
+                        </div>
+                        <div class="w-16 flex items-center justify-center border-l border-slate-800 bg-slate-900/50">
+                            <span class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white group-hover:bg-primary group-hover:text-dark transition">→</span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                container.innerHTML = '<div class="col-span-2 text-center text-red-500">Gagal memuat event.</div>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadUpcomingEvents);
+    </script>
+</body>
+</html>

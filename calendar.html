@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PacerHub - Race Calendar & Analytics</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/duration.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+    <script>
+        dayjs.extend(window.dayjs_plugin_duration);
+        dayjs.extend(window.dayjs_plugin_relativeTime);
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                        neon: '#ccff00',
+                        strava: '#fc4c02',
+                        accent: '#3b82f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        /* FullCalendar Customization */
+        :root {
+            --fc-border-color: #334155;
+            --fc-page-bg-color: transparent;
+            --fc-neutral-bg-color: #1e293b;
+            --fc-list-event-hover-bg-color: #334155;
+            --fc-today-bg-color: rgba(204, 255, 0, 0.05);
+        }
+        .fc-toolbar-title { color: white; font-family: 'Inter', sans-serif; font-weight: 800; }
+        .fc-col-header-cell-cushion { color: #ccff00; text-decoration: none; }
+        .fc-daygrid-day-number { color: #94a3b8; font-family: 'JetBrains Mono', monospace; text-decoration: none; }
+        .fc-event { cursor: pointer; border: none !important; }
+        .fc-button-primary { background-color: #1e293b !important; border-color: #475569 !important; color: #cbd5e1 !important; }
+        .fc-button-active { background-color: #ccff00 !important; color: #0f172a !important; }
+
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #ccff00;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-dark text-white font-sans antialiased flex flex-col min-h-screen">
+
+    <div id="app" class="flex flex-col min-h-screen">
+        
+        <nav class="border-b border-slate-800 backdrop-blur-md fixed w-full z-40 bg-dark/80">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <div class="flex items-center gap-2">
+                        <!--<div class="w-3 h-8 bg-neon skew-x-[-12deg]"></div>
+                        <span class="text-2xl font-bold tracking-tighter">PACER<span class="text-neon">HUB</span></span>-->
+                        <div class="logo w-20"><img src="C:\laragon\www\ruanglari\public\images\ruanglari_green.png" alt="ruanglari"></div>
+                    </div>
+                    <div class="hidden md:block">
+                        <a href="#" class="px-3 py-2 text-sm font-medium hover:text-neon transition">Dashboard</a>
+                        <a href="#" class="px-3 py-2 text-sm font-medium hover:text-neon transition">Marketplace</a>
+                        <a href="#" class="ml-4 px-4 py-2 border border-neon text-neon text-sm font-bold rounded hover:bg-neon hover:text-dark transition skew-x-[-12deg] inline-block">
+                            <span class="skew-x-[12deg] inline-block">SYNC</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <header class="pt-32 pb-6 px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+                TRAINING & <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">RACE DAY</span>
+            </h1>
+            
+            <div class="flex justify-center mb-6">
+                <div class="bg-card p-1 rounded-xl border border-slate-700 inline-flex shadow-2xl">
+                    <button @click="switchTab('calendar')" :class="activeTab === 'calendar' ? 'bg-slate-700 text-neon shadow-lg' : 'text-slate-400 hover:text-white'" class="px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        RACE CALENDAR
+                    </button>
+                    <button @click="switchTab('strava')" :class="activeTab === 'strava' ? 'bg-[#FC4C02] text-white shadow-lg' : 'text-slate-400 hover:text-white'" class="px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                        STRAVA ANALYTICS
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 pb-20 flex-grow w-full">
+            
+            <div v-if="loading" class="flex flex-col justify-center items-center py-20 gap-4">
+                <div class="loader"></div>
+                <p class="text-slate-500 text-sm animate-pulse">Syncing RuangLari & Strava...</p>
+            </div>
+
+            <div v-show="!loading && activeTab === 'calendar'">
+                <div class="bg-card border border-slate-700 rounded-2xl p-4 md:p-6 shadow-2xl">
+                    <div id='calendar' class="min-h-[600px] text-white"></div>
+                </div>
+            </div>
+
+            <div v-if="!loading && activeTab === 'strava'" class="space-y-6">
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-card border border-slate-700 p-4 rounded-xl relative overflow-hidden group">
+                        <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition"><svg class="w-16 h-16 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg></div>
+                        <p class="text-slate-400 text-xs uppercase font-bold tracking-wider">Runs (4 Weeks)</p>
+                        <h3 class="text-3xl font-mono font-bold text-white mt-1">{{ stats.recent_run_totals ? stats.recent_run_totals.count : 0 }}</h3>
+                        <p class="text-xs text-neon mt-2 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span> Active
+                        </p>
+                    </div>
+                    <div class="bg-card border border-slate-700 p-4 rounded-xl relative overflow-hidden group">
+                        <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition"><svg class="w-16 h-16 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg></div>
+                        <p class="text-slate-400 text-xs uppercase font-bold tracking-wider">Distance (4 Weeks)</p>
+                        <h3 class="text-3xl font-mono font-bold text-white mt-1">
+                            {{ stats.recent_run_totals ? (stats.recent_run_totals.distance / 1000).toFixed(1) : 0 }} <span class="text-sm text-slate-500">km</span>
+                        </h3>
+                    </div>
+                    <div class="bg-card border border-slate-700 p-4 rounded-xl relative overflow-hidden group">
+                        <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition"><svg class="w-16 h-16 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg></div>
+                        <p class="text-slate-400 text-xs uppercase font-bold tracking-wider">Elev Gain (YTD)</p>
+                        <h3 class="text-3xl font-mono font-bold text-white mt-1">
+                            {{ stats.ytd_run_totals ? stats.ytd_run_totals.elevation_gain : 0 }} <span class="text-sm text-slate-500">m</span>
+                        </h3>
+                    </div>
+                    <div class="bg-card border border-slate-700 p-4 rounded-xl relative overflow-hidden group">
+                        <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition"><svg class="w-16 h-16 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" /></svg></div>
+                        <p class="text-slate-400 text-xs uppercase font-bold tracking-wider">Primary Shoe</p>
+                        <h3 class="text-sm font-bold text-white mt-2 line-clamp-1">{{ primaryShoe ? primaryShoe.name : '-' }}</h3>
+                        <div class="w-full bg-slate-800 h-1.5 mt-2 rounded-full overflow-hidden">
+                            <div class="bg-[#FC4C02] h-full" :style="`width: ${shoePercentage}%`"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1 text-right">{{ primaryShoe ? Math.round(primaryShoe.distance / 1000) : 0 }} km logged</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-card border border-slate-700 rounded-xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-white">Weekly Activity Analysis</h3>
+                            <div class="flex gap-2">
+                                <span class="text-[10px] text-slate-400 uppercase border border-slate-600 px-2 py-1 rounded">Volume (km)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="h-48 flex items-end justify-between gap-2">
+                            <div v-for="(day, index) in weeklyChartData" :key="index" class="flex flex-col items-center flex-1 group">
+                                <div class="relative w-full flex justify-center">
+                                    <div class="absolute -top-8 bg-slate-800 text-neon text-xs font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10 border border-slate-600">
+                                        {{ day.km }} km
+                                    </div>
+                                    <div 
+                                        class="w-full max-w-[30px] bg-slate-700 hover:bg-[#FC4C02] rounded-t-sm transition-all duration-500 ease-out" 
+                                        :style="`height: ${day.percentage}%`"
+                                    ></div>
+                                </div>
+                                <span class="text-[10px] text-slate-500 mt-2 font-mono uppercase">{{ day.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card border border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+                        <div class="w-20 h-20 rounded-full border-2 border-[#FC4C02] p-1 mb-3">
+                            <img :src="athlete.profile || 'https://static01.nyt.com/images/2023/08/22/multimedia/22worlds-nuguse1-gqlt/22worlds-nuguse1-gqlt-articleLarge.jpg?quality=75&auto=webp&disable=upscale'" class="w-full h-full rounded-full object-cover bg-slate-800">
+                        </div>
+                        <h3 class="text-xl font-bold text-white">{{ athlete.firstname }} {{ athlete.lastname }}</h3>
+                        <p class="text-slate-400 text-sm mb-4">{{ athlete.city || 'Indonesia' }}</p>
+                        <div class="grid grid-cols-2 gap-4 w-full text-sm border-t border-slate-700 pt-4">
+                            <div>
+                                <p class="text-slate-500 text-[10px] uppercase">Weight</p>
+                                <p class="font-mono text-white">{{ athlete.weight || '-' }} kg</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500 text-[10px] uppercase">Followers</p>
+                                <p class="font-mono text-white">{{ athlete.follower_count || 0 }}</p>
+                            </div>
+                        </div>
+                        <a :href="`https://www.strava.com/athletes/${athlete.id}`" target="_blank" class="mt-4 text-xs text-[#FC4C02] font-bold hover:underline">View on Strava ↗</a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-white mb-4 flex items-center gap-2">
+                        Recent Activities 
+                        <span class="text-xs font-normal text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">{{ stravaActivities.length }}</span>
+                    </h3>
+                    <div class="space-y-3">
+                        <div v-for="activity in stravaActivities" :key="activity.id" class="bg-card border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800 transition hover:border-[#FC4C02]/50">
+                            <div class="flex items-center gap-4 w-full md:w-1/3">
+                                <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center border border-slate-700 text-slate-400">
+                                    <svg v-if="activity.type === 'Run'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white line-clamp-1">{{ activity.name }}</h4>
+                                    <p class="text-xs text-slate-500">{{ formatDateFull(activity.start_date) }}</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 w-full md:w-1/2 md:pl-6 border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0">
+                                <div><p class="text-[10px] text-slate-500 uppercase">Dist</p><p class="text-lg font-mono font-bold">{{ (activity.distance / 1000).toFixed(2) }} km</p></div>
+                                <div><p class="text-[10px] text-slate-500 uppercase">Time</p><p class="text-lg font-mono font-bold">{{ formatDuration(activity.moving_time) }}</p></div>
+                                <div><p class="text-[10px] text-slate-500 uppercase">Pace</p><p class="text-lg font-mono font-bold text-[#FC4C02]">{{ calculatePace(activity.moving_time, activity.distance) }}</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="bg-slate-900 border-t border-slate-800 pt-16 pb-8">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                    <div class="col-span-1 md:col-span-1">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-2 h-6 bg-neon skew-x-[-12deg]"></div>
+                            <span class="text-xl font-bold">PACER<span class="text-neon">HUB</span></span>
+                        </div>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Platform komunitas lari terbesar untuk menemukan pacer profesional. Lari lebih cepat, lari lebih jauh, lari bersama kami.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Explore</h4>
+                        <ul class="space-y-2 text-slate-400 text-sm">
+                            <li><a href="#" class="hover:text-neon transition">Cari Pacer</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Event Kalender</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Leaderboard</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Running Calculator</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Community</h4>
+                        <ul class="space-y-2 text-slate-400 text-sm">
+                            <li><a href="#" class="hover:text-neon transition">Tentang Kami</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Menjadi Pacer</a></li>
+                            <li><a href="#" class="hover:text-neon transition">Blog & Tips</a></li>
+                            <li><a href="#" class="hover:text-neon transition">FaQ</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Stay Updated</h4>
+                        <p class="text-slate-400 text-xs mb-4">Dapatkan tips lari dan info event terbaru.</p>
+                        <div class="flex gap-2">
+                            <input type="email" placeholder="Email Anda" class="bg-slate-800 text-white text-sm px-4 py-2 rounded-lg border border-slate-700 w-full focus:border-neon outline-none">
+                            <button class="bg-neon text-dark font-bold px-4 py-2 rounded-lg hover:bg-white transition">→</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
+                    <p>&copy; 2024 PacerHub Indonesia. All rights reserved.</p>
+                    <div class="flex gap-6 mt-4 md:mt-0">
+                        <a href="#" class="hover:text-white">Privacy Policy</a>
+                        <a href="#" class="hover:text-white">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    activeTab: 'calendar',
+                    loading: true,
+                    calendarInstance: null,
+                    // Data Containers
+                    athlete: {},
+                    stats: {},
+                    stravaActivities: [],
+                    primaryShoe: null,
+                    weeklyChartData: [],
+                    
+                    // Config
+                    apiConfig: {
+                        ruangLariUrl: 'https://ruanglari.com/wp-json/ruanglari/v1/events',
+                        ruangLariKey: 'Thinkpadx390',
+                        stravaToken: '3d4e1209d01e44f3c8f86edcc4ee32a17caff2b2',
+                    }
+                }
+            },
+            computed: {
+                shoePercentage() {
+                    // Asumsi max umur sepatu lari 800km
+                    if(!this.primaryShoe) return 0;
+                    const km = this.primaryShoe.distance / 1000;
+                    return Math.min((km / 800) * 100, 100);
+                }
+            },
+            mounted() {
+                this.initData();
+            },
+            methods: {
+                async initData() {
+                    this.loading = true;
+                    // Parallel Fetch
+                    await Promise.allSettled([
+                        this.initCalendar(),
+                        this.fetchStravaData()
+                    ]);
+                    this.loading = false;
+                },
+
+                switchTab(tab) {
+                    this.activeTab = tab;
+                    if(tab === 'calendar' && this.calendarInstance) {
+                        setTimeout(() => this.calendarInstance.updateSize(), 50);
+                    }
+                },
+
+                // --- 1. STRAVA LOGIC ---
+                async fetchStravaData() {
+                    try {
+                        const headers = { 'Authorization': `Bearer ${this.apiConfig.stravaToken}` };
+
+                        // A. Get Athlete Profile (ID & Shoes)
+                        const athleteRes = await fetch('https://www.strava.com/api/v3/athlete', { headers });
+                        if(!athleteRes.ok) throw new Error("Strava Token Expired/Invalid");
+                        this.athlete = await athleteRes.json();
+                        
+                        // Set Primary Shoe
+                        if(this.athlete.shoes && this.athlete.shoes.length > 0) {
+                            this.primaryShoe = this.athlete.shoes.find(s => s.primary) || this.athlete.shoes[0];
+                        }
+
+                        // B. Get Stats (Totals)
+                        const statsRes = await fetch(`https://www.strava.com/api/v3/athletes/${this.athlete.id}/stats`, { headers });
+                        this.stats = await statsRes.json();
+
+                        // C. Get Recent Activities
+                        const actRes = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=30`, { headers });
+                        this.stravaActivities = await actRes.json();
+
+                        // D. Calculate Weekly Chart (Last 7 Days)
+                        this.calculateWeeklyChart();
+
+                    } catch (error) {
+                        console.warn("Strava API Failed (likely token), using dummy data.");
+                        this.loadDummyStrava();
+                    }
+                },
+
+                calculateWeeklyChart() {
+                    // Init 7 hari ke belakang dengan 0
+                    const days = [];
+                    for(let i=6; i>=0; i--) {
+                        days.push({ 
+                            date: dayjs().subtract(i, 'day').format('YYYY-MM-DD'),
+                            label: dayjs().subtract(i, 'day').format('ddd'), // Mon, Tue
+                            km: 0,
+                            percentage: 0 
+                        });
+                    }
+
+                    // Sum distance from activities
+                    this.stravaActivities.forEach(act => {
+                        if(act.type === 'Run') {
+                            const actDate = dayjs(act.start_date).format('YYYY-MM-DD');
+                            const dayObj = days.find(d => d.date === actDate);
+                            if(dayObj) {
+                                dayObj.km += (act.distance / 1000);
+                            }
+                        }
+                    });
+
+                    // Calculate bar height percentage (relative to max day)
+                    const maxKm = Math.max(...days.map(d => d.km));
+                    days.forEach(d => {
+                        d.km = d.km.toFixed(1);
+                        d.percentage = maxKm > 0 ? (d.km / maxKm) * 100 : 0;
+                        // Min height for visual
+                        if(d.percentage < 5 && d.percentage > 0) d.percentage = 5; 
+                    });
+
+                    this.weeklyChartData = days;
+                },
+
+                loadDummyStrava() {
+                    this.athlete = { id: 123, firstname: 'Runner', lastname: 'Demo', city: 'Jakarta', weight: 65, follower_count: 120 };
+                    this.stats = {
+                        recent_run_totals: { count: 12, distance: 85000, elevation_gain: 450 },
+                        ytd_run_totals: { elevation_gain: 2500 }
+                    };
+                    this.primaryShoe = { name: 'Nike Pegasus 40 (Demo)', distance: 350000 };
+                    this.stravaActivities = [
+                        { id: 1, name: 'Morning Easy Run', type: 'Run', start_date: dayjs().toISOString(), distance: 5000, moving_time: 1800 },
+                        { id: 2, name: 'Tempo Run', type: 'Run', start_date: dayjs().subtract(2, 'day').toISOString(), distance: 10000, moving_time: 3000 },
+                        { id: 3, name: 'Long Run', type: 'Run', start_date: dayjs().subtract(5, 'day').toISOString(), distance: 21000, moving_time: 7200 },
+                    ];
+                    this.calculateWeeklyChart();
+                },
+
+                // --- 2. CALENDAR LOGIC ---
+                async initCalendar() {
+                    try {
+                        const calendarEl = document.getElementById('calendar');
+                        this.calendarInstance = new FullCalendar.Calendar(calendarEl, {
+                            initialView: 'dayGridMonth',
+                            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                            events: async (info, success, failure) => {
+                                try {
+                                    const res = await fetch(this.apiConfig.ruangLariUrl, {
+                                        headers: { 'X-API-KEY': this.apiConfig.ruangLariKey }
+                                    });
+                                    const data = await res.json();
+                                    success(data.map(ev => ({
+                                        title: ev.title.rendered || ev.title,
+                                        start: ev.date,
+                                        url: ev.link,
+                                        backgroundColor: '#ccff00',
+                                        borderColor: '#ccff00',
+                                        textColor: '#0f172a'
+                                    })));
+                                } catch (e) {
+                                    success([{ title: 'Event Demo', start: dayjs().add(2, 'day').format('YYYY-MM-DD'), backgroundColor: '#ccff00', textColor: '#0f172a' }]);
+                                }
+                            },
+                            eventClick: (info) => {
+                                info.jsEvent.preventDefault();
+                                if(info.event.url) window.open(info.event.url);
+                            }
+                        });
+                        this.calendarInstance.render();
+                    } catch (e) { console.error("Cal Error", e); }
+                },
+
+                // Helpers
+                formatDateFull(d) { return dayjs(d).format('D MMM YYYY • HH:mm'); },
+                formatDuration(s) {
+                    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
+                    return h>0 ? `${h}h ${m}m` : `${m}m ${s%60}s`;
+                },
+                calculatePace(s, m) {
+                    if(m===0) return '-';
+                    const p = s / (m/1000);
+                    const min = Math.floor(p/60), sec = Math.floor(p%60);
+                    return `${min}:${sec<10?'0':''}${sec} /km`;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

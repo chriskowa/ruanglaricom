@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Transaction extends Model
+{
+    protected $table = 'transactions';
+
+    protected $fillable = [
+        'event_id',
+        'user_id',
+        'pic_data',
+        'total_original',
+        'coupon_id',
+        'discount_amount',
+        'final_amount',
+        'payment_status',
+        'snap_token',
+        'midtrans_order_id',
+        'midtrans_transaction_status',
+        'paid_at',
+    ];
+
+    protected $casts = [
+        'pic_data' => 'array',
+        'total_original' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'final_amount' => 'decimal:2',
+        'paid_at' => 'datetime',
+    ];
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    public function participants(): HasMany
+    {
+        return $this->hasMany(Participant::class);
+    }
+
+    /**
+     * Mark transaction as paid
+     */
+    public function markAsPaid(string $midtransOrderId = null, string $transactionStatus = null): void
+    {
+        $this->update([
+            'payment_status' => 'paid',
+            'midtrans_order_id' => $midtransOrderId ?? $this->midtrans_order_id,
+            'midtrans_transaction_status' => $transactionStatus ?? $this->midtrans_transaction_status,
+            'paid_at' => now(),
+        ]);
+    }
+
+    /**
+     * Mark transaction as failed
+     */
+    public function markAsFailed(string $midtransOrderId = null, string $transactionStatus = null): void
+    {
+        $this->update([
+            'payment_status' => 'failed',
+            'midtrans_order_id' => $midtransOrderId ?? $this->midtrans_order_id,
+            'midtrans_transaction_status' => $transactionStatus ?? $this->midtrans_transaction_status,
+        ]);
+    }
+}

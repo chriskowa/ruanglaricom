@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PacerHub - Race Directory</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',    // Slate 900
+                        card: '#1e293b',    // Slate 800
+                        input: '#020617',   // Slate 950
+                        neon: '#ccff00',    // Volt Green
+                        neonHover: '#b3e600',
+                        accent: '#3b82f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        /* Transitions */
+        .list-move,
+        .list-enter-active,
+        .list-leave-active { transition: all 0.5s ease; }
+        .list-enter-from,
+        .list-leave-to { opacity: 0; transform: translateY(30px); }
+        .list-leave-active { position: absolute; }
+        
+        /* Shimmer Loading */
+        .shimmer {
+            background: #1e293b;
+            background-image: linear-gradient(to right, #1e293b 0%, #334155 20%, #1e293b 40%, #1e293b 100%);
+            background-repeat: no-repeat;
+            background-size: 800px 100%; 
+            animation-duration: 1s;
+            animation-fill-mode: forwards; 
+            animation-iteration-count: infinite;
+            animation-name: placeholderShimmer;
+            animation-timing-function: linear;
+        }
+        @keyframes placeholderShimmer { 0% { background-position: -468px 0; } 100% { background-position: 468px 0; } }
+    </style>
+</head>
+<body class="bg-dark text-slate-200 font-sans antialiased flex flex-col min-h-screen">
+
+    <div id="app" class="flex flex-col min-h-screen">
+        
+        <nav class="border-b border-white/5 bg-dark/80 backdrop-blur-md fixed w-full z-40 transition-all duration-300">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <a href="#" class="flex items-center gap-2 group">
+                        <div class="w-3 h-8 bg-neon skew-x-[-12deg] group-hover:shadow-[0_0_15px_#ccff00] transition duration-300"></div>
+                        <span class="text-xl font-bold tracking-tight text-white uppercase">PACER<span class="text-neon">HUB</span></span>
+                    </a>
+                    <div class="hidden md:flex items-center gap-8">
+                        <a href="#" class="text-sm font-bold text-white border-b-2 border-neon pb-1">Events</a>
+                        <a href="#" class="text-sm font-medium text-slate-400 hover:text-white transition">Community</a>
+                        <a href="#" class="text-sm font-medium text-slate-400 hover:text-white transition">Login</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <header class="pt-32 pb-8 px-4 bg-gradient-to-b from-dark to-[#0B1120]">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+                    <div>
+                        <h1 class="text-4xl md:text-5xl font-black text-white mb-2">OFFICIAL <span class="text-neon">RACE</span></h1>
+                        <p class="text-slate-400 max-w-lg">Temukan event lari resmi, virtual run, dan kompetisi marathon di seluruh Indonesia.</p>
+                    </div>
+                    
+                    <div class="w-full md:w-auto flex-grow max-w-md relative group">
+                        <input v-model="filters.search" type="text" placeholder="Cari nama event..." 
+                            class="w-full bg-card border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white focus:border-neon focus:ring-1 focus:ring-neon outline-none transition shadow-lg group-hover:border-slate-500">
+                        <svg class="w-5 h-5 text-slate-500 absolute left-4 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                </div>
+                
+                <button @click="showMobileFilter = true" class="md:hidden w-full flex items-center justify-center gap-2 bg-slate-800 border border-slate-700 p-3 rounded-xl text-white font-bold hover:bg-slate-700 transition">
+                    <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                    FILTER & SORT ({{ activeFilterCount }})
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 pb-20 w-full flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <aside class="hidden lg:block space-y-8 h-fit sticky top-24">
+                <div class="bg-card border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Lokasi</h3>
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scroll">
+                        <label v-for="loc in locations" :key="loc" class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" :value="loc" v-model="filters.locations" class="w-4 h-4 rounded bg-dark border-slate-600 checked:bg-neon checked:border-neon focus:ring-0 text-dark transition">
+                            <span class="text-sm text-slate-400 group-hover:text-white transition">{{ loc }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-card border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Jarak / Kategori</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button 
+                            v-for="dist in distances" :key="dist"
+                            @click="toggleDistance(dist)"
+                            :class="filters.distances.includes(dist) ? 'bg-neon text-dark font-bold' : 'bg-dark text-slate-400 hover:text-white border-slate-700'"
+                            class="px-3 py-1.5 rounded-lg border text-xs transition-all"
+                        >
+                            {{ dist }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-card border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Biaya</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="radio" value="all" v-model="filters.priceType" class="w-4 h-4 bg-dark border-slate-600 checked:bg-neon text-dark focus:ring-0">
+                            <span class="text-sm text-slate-400 group-hover:text-white">Semua</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="radio" value="paid" v-model="filters.priceType" class="w-4 h-4 bg-dark border-slate-600 checked:bg-neon text-dark focus:ring-0">
+                            <span class="text-sm text-slate-400 group-hover:text-white">Berbayar</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="radio" value="free" v-model="filters.priceType" class="w-4 h-4 bg-dark border-slate-600 checked:bg-neon text-dark focus:ring-0">
+                            <span class="text-sm text-slate-400 group-hover:text-white">Gratis / Virtual</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button @click="resetFilters" class="w-full py-2 text-xs text-slate-500 hover:text-white underline">Reset Semua Filter</button>
+            </aside>
+
+            <div class="lg:col-span-3">
+                
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-slate-400 text-sm"><span class="text-white font-bold">{{ filteredEvents.length }}</span> Event ditemukan</p>
+                    <select v-model="sortBy" class="bg-card border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:border-neon outline-none">
+                        <option value="date_asc">Waktu: Terdekat</option>
+                        <option value="date_desc">Waktu: Terjauh</option>
+                        <option value="price_asc">Harga: Terendah</option>
+                    </select>
+                </div>
+
+                <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div v-for="n in 4" :key="n" class="bg-card border border-slate-800 rounded-2xl p-4 h-80 flex flex-col gap-4">
+                        <div class="w-full h-40 shimmer rounded-xl"></div>
+                        <div class="w-3/4 h-6 shimmer rounded"></div>
+                        <div class="w-1/2 h-4 shimmer rounded"></div>
+                        <div class="mt-auto w-full h-10 shimmer rounded-lg"></div>
+                    </div>
+                </div>
+
+                <transition-group name="list" tag="div" class="grid grid-cols-1 md:grid-cols-2 gap-6" v-else>
+                    
+                    <div v-for="event in filteredEvents" :key="event.id" class="group bg-card border border-slate-800 rounded-2xl overflow-hidden hover:border-neon/50 hover:shadow-[0_0_20px_rgba(204,255,0,0.05)] transition-all duration-300 flex flex-col h-full">
+                        
+                        <div class="relative h-48 overflow-hidden">
+                            <div class="absolute top-3 left-3 z-10 bg-dark/80 backdrop-blur border border-slate-600 text-white text-xs font-bold px-3 py-1 rounded-lg">
+                                {{ formatDateBadge(event.date) }}
+                            </div>
+                            <div class="absolute top-3 right-3 z-10">
+                                <span :class="event.isOpen ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'" 
+                                    class="px-2 py-1 rounded text-[10px] font-bold border backdrop-blur uppercase">
+                                    {{ event.isOpen ? 'Registrasi Buka' : 'Ditutup' }}
+                                </span>
+                            </div>
+                            <img :src="event.image" class="w-full h-full object-cover group-hover:scale-105 transition duration-700 filter grayscale group-hover:grayscale-0">
+                            <div class="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent"></div>
+                        </div>
+
+                        <div class="p-6 flex flex-col flex-grow">
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                <span v-for="cat in event.categories" :key="cat" class="text-[10px] font-bold px-2 py-1 rounded bg-slate-700 text-slate-300 border border-slate-600">
+                                    {{ cat }}
+                                </span>
+                            </div>
+
+                            <h3 class="text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-neon transition">{{ event.name }}</h3>
+                            
+                            <div class="flex items-center gap-2 text-slate-400 text-sm mb-4">
+                                <svg class="w-4 h-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                {{ event.location }}
+                            </div>
+
+                            <div class="mt-auto pt-4 border-t border-slate-700 flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] text-slate-500 uppercase font-bold">Mulai Dari</p>
+                                    <p class="text-white font-mono font-bold">{{ formatPrice(event.minPrice) }}</p>
+                                </div>
+                                <a :href="`#event-${event.slug}`" class="px-4 py-2 bg-slate-700 text-white text-sm font-bold rounded-lg group-hover:bg-neon group-hover:text-dark transition">
+                                    Detail
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </transition-group>
+
+                <div v-if="!loading && filteredEvents.length === 0" class="text-center py-20 bg-card/30 rounded-2xl border border-slate-800 border-dashed">
+                    <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <h3 class="text-white font-bold text-lg">Tidak ada event ditemukan</h3>
+                    <p class="text-slate-400 text-sm mt-2">Coba ubah filter lokasi atau kategori pencarian Anda.</p>
+                    <button @click="resetFilters" class="mt-6 text-neon font-bold hover:underline">Reset Filter</button>
+                </div>
+            </div>
+        </main>
+
+        <div v-if="showMobileFilter" class="fixed inset-0 z-50 lg:hidden">
+            <div @click="showMobileFilter = false" class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"></div>
+            
+            <div class="absolute bottom-0 left-0 w-full bg-card rounded-t-3xl p-6 border-t border-slate-700 shadow-2xl animate-slide-up max-h-[85vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-white">Filter & Sort</h3>
+                    <button @click="showMobileFilter = false" class="p-2 bg-slate-800 rounded-full text-slate-400">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Urutkan</label>
+                        <select v-model="sortBy" class="w-full bg-dark border border-slate-700 rounded-lg p-3 text-white">
+                            <option value="date_asc">Waktu: Terdekat</option>
+                            <option value="date_desc">Waktu: Terjauh</option>
+                            <option value="price_asc">Harga: Terendah</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Lokasi</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label v-for="loc in locations" :key="loc" class="flex items-center gap-2 bg-dark p-3 rounded-lg border border-slate-700">
+                                <input type="checkbox" :value="loc" v-model="filters.locations" class="w-4 h-4 rounded bg-slate-800 border-slate-600 checked:bg-neon checked:border-neon">
+                                <span class="text-sm text-slate-300">{{ loc }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Kategori</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button 
+                                v-for="dist in distances" :key="dist"
+                                @click="toggleDistance(dist)"
+                                :class="filters.distances.includes(dist) ? 'bg-neon text-dark font-bold' : 'bg-dark text-slate-400 border border-slate-700'"
+                                class="px-4 py-2 rounded-lg text-sm transition-all"
+                            >
+                                {{ dist }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <button @click="showMobileFilter = false" class="w-full py-4 bg-neon text-dark font-bold rounded-xl text-lg mt-4 shadow-lg">
+                        Terapkan Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    loading: true,
+                    showMobileFilter: false,
+                    sortBy: 'date_asc',
+                    locations: ['Jakarta', 'Bandung', 'Bali', 'Yogyakarta', 'Surabaya', 'Luar Negeri'],
+                    distances: ['5K', '10K', 'HM (21K)', 'FM (42K)', 'Ultra'],
+                    filters: {
+                        search: '',
+                        locations: [],
+                        distances: [],
+                        priceType: 'all' // all, paid, free
+                    },
+                    // DUMMY DATA (Nanti diganti API Laravel)
+                    events: [
+                        { id: 1, name: 'Borobudur Marathon 2024', slug: 'borobudur-marathon', date: '2024-11-19', location: 'Yogyakarta', categories: ['10K', 'HM (21K)', 'FM (42K)'], minPrice: 575000, image: 'https://images.unsplash.com/photo-1552674605-5d28c4e1902c?auto=format&fit=crop&q=80&w=600', isOpen: true },
+                        { id: 2, name: 'Jakarta City Run', slug: 'jakarta-city-run', date: '2024-10-15', location: 'Jakarta', categories: ['5K', '10K'], minPrice: 250000, image: 'https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=600', isOpen: true },
+                        { id: 3, name: 'Bali Ultra Trail', slug: 'bali-ultra', date: '2024-08-05', location: 'Bali', categories: ['Ultra', 'FM (42K)'], minPrice: 1200000, image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600', isOpen: true },
+                        { id: 4, name: 'Pocari Sweat Run', slug: 'pocari-run', date: '2024-07-20', location: 'Bandung', categories: ['10K', 'HM (21K)', 'FM (42K)'], minPrice: 450000, image: 'https://images.unsplash.com/photo-1516726817505-f5ed825624d8?auto=format&fit=crop&q=80&w=600', isOpen: false },
+                        { id: 5, name: 'Surabaya Heroes Run', slug: 'sby-run', date: '2024-11-10', location: 'Surabaya', categories: ['5K', '10K'], minPrice: 150000, image: 'https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&q=80&w=600', isOpen: true },
+                        { id: 6, name: 'Virtual Charity Run', slug: 'virtual-charity', date: '2024-12-01', location: 'Jakarta', categories: ['5K'], minPrice: 0, image: 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600', isOpen: true },
+                    ]
+                }
+            },
+            mounted() {
+                // Simulasi loading API
+                setTimeout(() => {
+                    this.loading = false;
+                }, 1500);
+            },
+            computed: {
+                activeFilterCount() {
+                    let count = 0;
+                    if(this.filters.locations.length) count++;
+                    if(this.filters.distances.length) count++;
+                    if(this.filters.priceType !== 'all') count++;
+                    return count;
+                },
+                filteredEvents() {
+                    let result = this.events.filter(event => {
+                        // Filter Search
+                        const searchMatch = event.name.toLowerCase().includes(this.filters.search.toLowerCase());
+                        
+                        // Filter Location
+                        const locMatch = this.filters.locations.length === 0 || this.filters.locations.includes(event.location);
+                        
+                        // Filter Distance (Array intersection check)
+                        const distMatch = this.filters.distances.length === 0 || event.categories.some(cat => this.filters.distances.includes(cat));
+
+                        // Filter Price
+                        let priceMatch = true;
+                        if(this.filters.priceType === 'free') priceMatch = event.minPrice === 0;
+                        if(this.filters.priceType === 'paid') priceMatch = event.minPrice > 0;
+
+                        return searchMatch && locMatch && distMatch && priceMatch;
+                    });
+
+                    // Sorting Logic
+                    return result.sort((a, b) => {
+                        if(this.sortBy === 'date_asc') return new Date(a.date) - new Date(b.date);
+                        if(this.sortBy === 'date_desc') return new Date(b.date) - new Date(a.date);
+                        if(this.sortBy === 'price_asc') return a.minPrice - b.minPrice;
+                    });
+                }
+            },
+            methods: {
+                toggleDistance(dist) {
+                    if (this.filters.distances.includes(dist)) {
+                        this.filters.distances = this.filters.distances.filter(d => d !== dist);
+                    } else {
+                        this.filters.distances.push(dist);
+                    }
+                },
+                resetFilters() {
+                    this.filters.search = '';
+                    this.filters.locations = [];
+                    this.filters.distances = [];
+                    this.filters.priceType = 'all';
+                },
+                formatPrice(price) {
+                    if (price === 0) return 'GRATIS';
+                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(price);
+                },
+                formatDateBadge(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                }
+            }
+        }).mount('#app');
+    </script>
+    
+    <style>
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slide-up 0.3s ease-out forwards;
+        }
+    </style>
+</body>
+</html>

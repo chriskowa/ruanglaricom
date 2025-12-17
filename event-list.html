@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Calendar - Ruang Lari</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                        primary: '#ccff00', // Neon Green
+                        secondary: '#3b82f6'
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 30px -10px rgba(204, 255, 0, 0.15); border-color: rgba(204, 255, 0, 0.3); }
+        .text-stroke { -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1); color: transparent; }
+    </style>
+</head>
+<body class="bg-dark text-white font-sans antialiased min-h-screen selection:bg-primary selection:text-dark">
+
+    <div id="app">
+        
+        <nav class="fixed w-full z-50 bg-dark/90 backdrop-blur-md border-b border-slate-800 py-4">
+            <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+                <a href="index.html" class="text-xl font-black italic tracking-tighter flex items-center gap-2">
+                    <div class="w-2 h-6 bg-primary skew-x-[-12deg]"></div>
+                    RUANG<span class="text-primary">LARI</span>
+                </a>
+                <div class="hidden md:flex gap-6 text-sm font-medium text-slate-400">
+                    <a href="#" class="text-white font-bold border-b-2 border-primary pb-0.5">Events</a>
+                    <a href="#" class="hover:text-primary transition">Pacers</a>
+                    <a href="#" class="hover:text-primary transition">Results</a>
+                </div>
+            </div>
+        </nav>
+
+        <header class="pt-32 pb-12 px-4 relative overflow-hidden">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10"></div>
+            
+            <div class="max-w-7xl mx-auto text-center">
+                <span class="text-primary font-mono font-bold tracking-widest text-xs uppercase mb-2 block">Official Race Calendar</span>
+                <h1 class="text-4xl md:text-6xl font-black mb-4">FIND YOUR NEXT <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-green-400">CHALLENGE</span></h1>
+                <p class="text-slate-400 max-w-xl mx-auto text-sm md:text-base">
+                    Jadwal event lari terlengkap di Indonesia. Temukan race impianmu, dari 5K fun run hingga Ultra Marathon ekstrem.
+                </p>
+            </div>
+        </header>
+
+        <div class="sticky top-16 z-40 bg-dark/95 backdrop-blur border-y border-slate-800 py-4 shadow-2xl">
+            <div class="max-w-7xl mx-auto px-4">
+                
+                <div class="hidden md:flex gap-4">
+                    <div class="relative flex-grow">
+                        <svg class="w-5 h-5 text-slate-500 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input v-model="filters.search" type="text" placeholder="Cari nama event..." class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition placeholder-slate-600">
+                    </div>
+
+                    <div class="w-48 relative">
+                        <select v-model="filters.month" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-4 text-sm text-white focus:border-primary outline-none cursor-pointer">
+                            <option value="All">Semua Bulan</option>
+                            <option v-for="m in months" :value="m">{{ m }}</option>
+                        </select>
+                        <svg class="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <div class="w-48 relative">
+                        <select v-model="filters.location" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-4 text-sm text-white focus:border-primary outline-none cursor-pointer">
+                            <option value="All">Semua Lokasi</option>
+                            <option v-for="loc in locations" :value="loc">{{ loc }}</option>
+                        </select>
+                        <svg class="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <div class="w-48 relative">
+                        <select v-model="filters.distance" class="w-full appearance-none bg-slate-900 border border-slate-700 rounded-xl py-2.5 px-4 text-sm text-white focus:border-primary outline-none cursor-pointer">
+                            <option value="All">Semua Jarak</option>
+                            <option v-for="dist in distances" :value="dist">{{ dist }}</option>
+                        </select>
+                        <svg class="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <button @click="resetFilters" class="px-4 py-2 text-sm font-bold text-slate-400 hover:text-primary transition" title="Reset Filters">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                </div>
+
+                <div class="md:hidden">
+                    <div class="flex gap-2">
+                        <div class="relative flex-grow">
+                            <svg class="w-5 h-5 text-slate-500 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input v-model="filters.search" type="text" placeholder="Cari event..." class="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-primary outline-none">
+                        </div>
+                        <button @click="showMobileFilter = !showMobileFilter" class="bg-slate-800 border border-slate-700 px-4 rounded-xl text-white hover:bg-slate-700 transition">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                        </button>
+                    </div>
+
+                    <div v-if="showMobileFilter" class="mt-4 space-y-3 p-4 bg-slate-800/50 rounded-xl border border-slate-700 animate-fade-in-down">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Bulan</label>
+                            <select v-model="filters.month" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+                                <option value="All">Semua</option>
+                                <option v-for="m in months" :value="m">{{ m }}</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Lokasi</label>
+                            <select v-model="filters.location" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+                                <option value="All">Semua</option>
+                                <option v-for="loc in locations" :value="loc">{{ loc }}</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Jarak</label>
+                            <select v-model="filters.distance" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white">
+                                <option value="All">Semua</option>
+                                <option v-for="dist in distances" :value="dist">{{ dist }}</option>
+                            </select>
+                        </div>
+                        <button @click="resetFilters" class="w-full py-2 text-xs font-bold text-primary border border-primary/30 rounded-lg mt-2">Reset Filter</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <main class="max-w-7xl mx-auto px-4 py-10 min-h-[600px]">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <div v-for="event in filteredEvents" :key="event.id" class="bg-card border border-slate-800 rounded-3xl overflow-hidden card-hover transition duration-300 group flex flex-col h-full">
+                    
+                    <div class="h-52 relative overflow-hidden bg-slate-800">
+                        <img :src="event.image" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                        
+                        <div v-if="event.status === 'Open'" class="absolute top-4 left-4 bg-primary text-dark text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wide">
+                            Registrasi Buka
+                        </div>
+                        <div v-else class="absolute top-4 left-4 bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wide">
+                            Sold Out
+                        </div>
+
+                        <div class="absolute -bottom-4 right-6 bg-slate-900 border border-slate-700 p-2 rounded-xl text-center min-w-[60px] shadow-xl z-10 group-hover:border-primary transition">
+                            <span class="block text-xs font-bold text-slate-400 uppercase">{{ event.month }}</span>
+                            <span class="block text-2xl font-black text-white font-mono">{{ event.day }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-6 pt-8 flex-grow flex flex-col">
+                        <div class="mb-4">
+                            <h3 class="text-xl font-bold text-white mb-1 leading-tight group-hover:text-primary transition">{{ event.name }}</h3>
+                            <p class="text-sm text-slate-400 flex items-center gap-1.5 mt-2">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                {{ event.location }}
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span v-for="dist in event.distances" class="text-[10px] font-bold border border-slate-700 px-2 py-1 rounded text-slate-300 bg-slate-800/50">
+                                {{ dist }}
+                            </span>
+                        </div>
+
+                        <div class="mt-auto border-t border-slate-800 pt-4 flex justify-between items-center">
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase">Mulai dari</p>
+                                <p class="font-mono font-bold text-white">{{ event.price }}</p>
+                            </div>
+                            <button class="bg-white text-dark hover:bg-primary transition px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                Detail
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div v-if="filteredEvents.length === 0" class="text-center py-20 animate-fade-in">
+                <div class="bg-slate-800/50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-700">
+                    <svg class="w-10 h-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Event Tidak Ditemukan</h3>
+                <p class="text-slate-400 mb-6 max-w-sm mx-auto">Kami tidak menemukan event yang cocok dengan filter pencarian Anda.</p>
+                <button @click="resetFilters" class="px-6 py-3 bg-primary text-dark rounded-xl font-bold hover:bg-white transition">Hapus Semua Filter</button>
+            </div>
+
+            <div v-if="filteredEvents.length > 0" class="mt-16 flex justify-center gap-2">
+                <button class="w-10 h-10 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-white flex items-center justify-center transition disabled:opacity-50" disabled>&lt;</button>
+                <button class="w-10 h-10 rounded-lg bg-primary text-dark font-bold flex items-center justify-center shadow-[0_0_15px_rgba(204,255,0,0.4)]">1</button>
+                <button class="w-10 h-10 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-white flex items-center justify-center transition">2</button>
+                <button class="w-10 h-10 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-white flex items-center justify-center transition">3</button>
+                <button class="w-10 h-10 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:border-white flex items-center justify-center transition">&gt;</button>
+            </div>
+
+        </main>
+
+        <footer class="bg-black border-t border-slate-900 py-10 text-center">
+            <p class="text-slate-600 text-sm">&copy; 2024 Ruang Lari Indonesia. Find your limit.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    showMobileFilter: false,
+                    filters: {
+                        search: '',
+                        month: 'All',
+                        location: 'All',
+                        distance: 'All'
+                    },
+                    // FILTER OPTIONS
+                    months: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+                    locations: ['Jakarta', 'Bandung', 'Bali', 'Yogyakarta', 'Magelang', 'Surabaya', 'Lombok'],
+                    distances: ['5K', '10K', 'HM', 'FM', 'Ultra'],
+                    
+                    // DUMMY EVENT DATA
+                    events: [
+                        { 
+                            id: 1, 
+                            name: 'Jakarta City Marathon 2024', 
+                            location: 'Jakarta', 
+                            month: 'Oktober', 
+                            day: '20', 
+                            distances: ['10K', 'HM', 'FM'], 
+                            price: 'Rp 450.000', 
+                            status: 'Open',
+                            image: 'https://images.unsplash.com/photo-1552674605-5d28c4e1902c?auto=format&fit=crop&q=80&w=800' 
+                        },
+                        { 
+                            id: 2, 
+                            name: 'Borobudur Marathon', 
+                            location: 'Magelang', 
+                            month: 'November', 
+                            day: '17', 
+                            distances: ['10K', 'HM', 'FM'], 
+                            price: 'Rp 575.000', 
+                            status: 'Open',
+                            image: 'https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=800'
+                        },
+                        { 
+                            id: 3, 
+                            name: 'Bali Ultra Trail', 
+                            location: 'Bali', 
+                            month: 'Agustus', 
+                            day: '05', 
+                            distances: ['25K', '50K', 'Ultra'], 
+                            price: 'Rp 1.200.000', 
+                            status: 'Open',
+                            image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=800'
+                        },
+                        { 
+                            id: 4, 
+                            name: 'Pocari Sweat Run', 
+                            location: 'Bandung', 
+                            month: 'Juli', 
+                            day: '21', 
+                            distances: ['5K', '10K', 'HM'], 
+                            price: 'Rp 350.000', 
+                            status: 'Sold Out',
+                            image: 'https://images.unsplash.com/photo-1594882645126-14020914d58d?auto=format&fit=crop&q=80&w=800'
+                        },
+                        { 
+                            id: 5, 
+                            name: 'Rinjani 100', 
+                            location: 'Lombok', 
+                            month: 'Mei', 
+                            day: '24', 
+                            distances: ['Ultra', 'FM'], 
+                            price: 'Rp 2.500.000', 
+                            status: 'Open',
+                            image: 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?auto=format&fit=crop&q=80&w=800'
+                        },
+                        { 
+                            id: 6, 
+                            name: 'Jogja Mandiri Marathon', 
+                            location: 'Yogyakarta', 
+                            month: 'Juni', 
+                            day: '30', 
+                            distances: ['5K', '10K', 'HM', 'FM'], 
+                            price: 'Rp 400.000', 
+                            status: 'Open',
+                            image: 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=800'
+                        },
+                         { 
+                            id: 7, 
+                            name: 'Surabaya Heroes Run', 
+                            location: 'Surabaya', 
+                            month: 'November', 
+                            day: '10', 
+                            distances: ['5K', '10K'], 
+                            price: 'Rp 250.000', 
+                            status: 'Open',
+                            image: 'https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&q=80&w=800'
+                        }
+                    ]
+                }
+            },
+            computed: {
+                filteredEvents() {
+                    return this.events.filter(event => {
+                        // 1. Search Logic (Name)
+                        const searchMatch = event.name.toLowerCase().includes(this.filters.search.toLowerCase());
+                        
+                        // 2. Month Logic
+                        const monthMatch = this.filters.month === 'All' || event.month === this.filters.month;
+                        
+                        // 3. Location Logic
+                        const locMatch = this.filters.location === 'All' || event.location === this.filters.location;
+                        
+                        // 4. Distance Logic (Array Check)
+                        const distMatch = this.filters.distance === 'All' || event.distances.includes(this.filters.distance);
+
+                        return searchMatch && monthMatch && locMatch && distMatch;
+                    });
+                }
+            },
+            methods: {
+                resetFilters() {
+                    this.filters.search = '';
+                    this.filters.month = 'All';
+                    this.filters.location = 'All';
+                    this.filters.distance = 'All';
+                    this.showMobileFilter = false;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
