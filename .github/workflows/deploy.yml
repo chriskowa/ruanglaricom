@@ -1,33 +1,24 @@
-name: Deploy RuangLari to Domainesia
+name: Deploy to Domainesia
 
 on:
   push:
     branches:
-      - main # Skrip ini jalan otomatis saat push ke branch main
+      - main  # Branch yang dipantau untuk perubahan. Biasanya adalah 'main' atau 'master'
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    runs-on: ubuntu-latest  # Menjalankan workflow di Ubuntu environment
 
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: 36.50.77.81
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 2222 # Port SSH standar Domainesia
-          script: |
-            # Ganti 'username_anda' dengan user cPanel Anda yang sebenarnya
-            # Ganti 'app.ruanglari.com' dengan nama folder root website Anda
-            cd /home/username_anda/public_html/app.ruanglari.com
-            
-            # Jika pertama kali, lakukan git init atau git clone. 
-            # Jika sudah ada isinya, cukup pull:
-            git pull origin main
-            
-            # Jika ini Laravel, aktifkan baris di bawah ini:
-            composer install --no-dev --optimize-autoloader
-            php artisan migrate --force
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # Checkout kode dari GitHub repository
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3  # Mengatur SSH untuk autentikasi dengan server hosting
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # Menggunakan private SSH key yang sudah disimpan di GitHub Secrets
+
+    - name: Deploy to cPanel
+      run: |
+        ssh -o StrictHostKeyChecking=no ruangdid@ruanglari.com "cd /home/ruangdid/public_html/app.ruanglari.com && git pull origin main && composer install --no-dev"
+      # SSH ke server hosting dan menarik perubahan terbaru, serta menginstal dependensi Laravel
