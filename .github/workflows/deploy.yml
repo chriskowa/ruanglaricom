@@ -20,5 +20,5 @@ jobs:
 
     - name: Deploy to cPanel
       run: |
-        ssh -o StrictHostKeyChecking=no username@yourdomain.com "cd /home/ruangdid/public_html/app.ruanglari.com && git pull origin main && composer install --no-dev"
+        ssh -o StrictHostKeyChecking=no ruangdid@ruanglari.com "cd /home/ruangdid/public_html/app.ruanglari.com && git pull origin main && composer install --no-dev"
       # SSH ke server hosting dan menarik perubahan terbaru, serta menginstal dependensi Laravel
