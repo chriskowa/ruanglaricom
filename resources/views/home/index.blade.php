@@ -35,11 +35,14 @@
                 </div>
                 <div class="relative">
                     <div class="relative z-10 rounded-[3rem] overflow-hidden border-8 border-card shadow-2xl rotate-3">
-                        <img src="https://images.unsplash.com/photo-1552674605-5d28c4e1902c?auto=format&fit=crop&q=80&w=800" alt="Runner" class="w-full h-auto object-cover">
+                        <img src="https://res.cloudinary.com/dslfarxct/images/v1766050868/542301374_18517775974013478_1186867397282832240_n/542301374_18517775974013478_1186867397282832240_n.jpg" alt="Runner" class="w-auto h-50 object-cover">
                     </div>
-                    <a href="{{ url('/register') }}" class="absolute -top-10 -right-10 w-28 h-28 bg-primary rounded-full flex items-center justify-center text-dark font-black text-center text-xs p-2 rotate-12 shadow-[0_0_30px_#ccff00] animate-float cursor-pointer">
-                        JOIN<br>NOW
-                    </a>
+                    
+                    <div class="absolute top-1/2 -translate-y-1/2 -right-10 w-28 h-28 bg-primary rounded-full flex items-center justify-center text-dark font-black text-center text-xs p-2 rotate-12 z-20 animate-bounce shadow-[0_0_30px_#ccff00]">
+                        <a href="{{ url('/register') }}">
+                            JOIN<br>NOW
+                        </a>
+                    </div>
                 </div>
             </div>
         </header>
