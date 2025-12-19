@@ -94,7 +94,7 @@
                                                 <stop offset="100%" stop-color="#ccff00" />
                                             </linearGradient>
                                             <pattern id="profilePattern" patternUnits="userSpaceOnUse" width="124" height="124">
-                                                <image :href="getProxiedProfile()" x="0" y="0" width="124" height="124" preserveAspectRatio="xMidYMid slice" crossorigin="anonymous"/>
+                                                <image :href="athlete.profile" x="0" y="0" width="124" height="124" preserveAspectRatio="xMidYMid slice" crossorigin="anonymous"/>
                                             </pattern>
                                         </defs>
                                         <path 
@@ -233,15 +233,14 @@
                         <div class="relative w-full h-full flex flex-col justify-between">
                             
                             <div class="absolute inset-0 z-0">
-                                <div v-if="posterData.bgImage" class="absolute inset-0 w-full h-full opacity-60 grayscale brightness-75 bg-cover bg-center" :style="{ backgroundImage: 'url(' + posterData.bgImage + ')' }"></div>
+                                <img v-if="posterData.bgImage" :src="posterData.bgImage" class="w-full h-full object-cover opacity-60 grayscale brightness-75" crossorigin="anonymous">
                                 <div v-else class="w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black"></div>
                                 
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-[#0f172a]/80"></div>
                             </div>
 
-                            <!-- Map Path - Placed above stats -->
-                            <div class="absolute top-[20%] left-0 right-0 h-[30%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
-                                <svg v-if="posterData.mapPath" viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_15px_rgba(204,255,0,0.8)]" preserveAspectRatio="xMidYMid meet">
+                            <div class="absolute bottom-25 right-0 z-10 w-[80%] h-[20%] flex items-end justify-start pointer-events-none p-4 opacity-80">
+                                <svg v-if="posterData.mapPath" viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_8px_rgba(204,255,0,0.6)]" preserveAspectRatio="xMidYMid meet">
                                     <path :d="posterData.mapPath" fill="none" stroke="#ccff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                             </div>
@@ -250,7 +249,8 @@
                                 
                                 <div class="flex justify-between items-start">
                                     <div class="flex items-center gap-2">
-                                        <img src="{{ asset('images/ruanglari_green.png') }}" alt="RuangLari" class="h-6 w-auto">
+                                        <img src="{{ asset('images/ruanglari_green.png') }}" alt="RuangLari" class="h-8 w-auto">
+                                        
                                     </div>
                                     
                                     <div class="text-right">
@@ -259,49 +259,49 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-auto mb-10 relative z-30">
+                                <div class="mt-auto mb-12">
                                     <h1 class="font-black text-white uppercase italic tracking-tighter 
                                             text-2xl md:text-3xl 
-                                            leading-none mb-4 
-                                            [font-size:clamp(2rem,8vw,3.5rem)] 
+                                            leading-none mb-6 
+                                            [font-size:clamp(2.8rem,9vw,4.5rem)] 
                                             drop-shadow-2xl">
                                         @{{ posterData.name }}
                                     </h1>
                                     
-                                    <div class="flex items-baseline mb-2">
-                                        <span class="text-[80px] leading-[0.85] font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 tracking-tighter -ml-1">
+                                    <div class="flex items-baseline">
+                                        <span class="text-[120px] leading-[0.85] font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 tracking-tighter -ml-1">
                                             @{{ posterData.distance }}
                                         </span>
-                                        <span class="text-xl font-bold text-[#ccff00] ml-2 uppercase tracking-widest">KM</span>
+                                        <span class="text-3xl font-bold text-[#ccff00] -ml-2 mb-4 rotate-[-90deg] origin-bottom-left">KM</span>
                                     </div>
                                 </div>
 
-                               <div class="relative z-30 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-700/50 shadow-xl">
+                               <div class="relative z-10 bg-slate-900/90 backdrop-blur-md p-6 m-4 rounded-2xl border border-slate-700">
                                     <div class="grid grid-cols-3 gap-4 text-center">
                                         <div>
-                                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Pace</p>
-                                            <p class="text-xl font-bold text-white font-mono">@{{ posterData.pace }}</p>
-                                            <p class="text-[8px] text-slate-500">/km</p>
+                                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Pace</p>
+                                            <p class="text-2xl font-bold text-white font-mono">@{{ posterData.pace }}</p>
+                                            <p class="text-[9px] text-slate-500">/km</p>
                                         </div>
                                         <div class="border-l border-slate-700">
-                                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Time</p>
-                                            <p class="text-xl font-bold text-white font-mono">@{{ posterData.time }}</p>
+                                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Time</p>
+                                            <p class="text-2xl font-bold text-white font-mono">@{{ posterData.time }}</p>
                                         </div>
                                         <div class="border-l border-slate-700">
-                                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Elev</p>
-                                            <p class="text-xl font-bold text-white font-mono">@{{ posterData.elev }}</p>
-                                            <p class="text-[8px] text-slate-500">m</p>
+                                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Elev</p>
+                                            <p class="text-2xl font-bold text-white font-mono">@{{ posterData.elev }}</p>
+                                            <p class="text-[9px] text-slate-500">m</p>
                                         </div>
                                     </div>
                                     
-                                    <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/50">
-                                        <img :src="getProxiedProfile()" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
+                                    <div class="flex items-center gap-3 mt-6 pt-4 border-t border-slate-700">
+                                        <img :src="athlete.profile" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
                                         <div>
                                             <p class="text-xs font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</p>
-                                            <p class="text-[9px] text-slate-400">@{{ athlete.city }}</p>
+                                            <p class="text-[10px] text-slate-400">@{{ athlete.city }}</p>
                                         </div>
                                         <div class="ml-auto">
-                                            <svg class="w-5 h-5 text-[#FC4C02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                                            <svg class="w-6 h-6 text-[#FC4C02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
                                         </div>
                                     </div>
                                 </div>
@@ -505,8 +505,8 @@
                     </div>
                 </div>
 
-                    <div class="space-y-3 mb-6">                    
-                    <div v-for="activity in paginatedActivities" :key="activity.id" class="bg-card border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800 transition hover:border-[#FC4C02]/50">
+                <div class="space-y-3">                    
+                    <div v-for="activity in filteredActivities" :key="activity.id" class="bg-card border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800 transition hover:border-[#FC4C02]/50">
                             <div class="flex items-center gap-4 w-full md:w-1/3">
                                 <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center border border-slate-700 text-slate-400">
                                     <svg v-if="activity.type === 'Run'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -534,31 +534,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Pagination Controls -->
-                <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-8">
-                    <button 
-                        @click="prevPage" 
-                        :disabled="currentPage === 1"
-                        class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition flex items-center gap-2"
-                    >
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                        Prev
-                    </button>
-                    
-                    <span class="text-sm text-slate-400">
-                        Page <span class="font-bold text-white">@{{ currentPage }}</span> of <span class="font-bold text-white">@{{ totalPages }}</span>
-                    </span>
-
-                    <button 
-                        @click="nextPage" 
-                        :disabled="currentPage === totalPages"
-                        class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition flex items-center gap-2"
-                    >
-                        Next
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                    </button>
                 </div>
 
             </div>
@@ -616,10 +591,6 @@
                     filterMonth: '',
                     filterDistance: 0,
                     filterLocation: '',
-                    
-                    // Pagination
-                    currentPage: 1,
-                    itemsPerPage: 10,
 
                     // Data baru untuk poster
                     posterLoading: false,
@@ -650,16 +621,6 @@
                     return Math.min((km / 800) * 100, 100);
                 },
                 
-                paginatedActivities() {
-                    const start = (this.currentPage - 1) * this.itemsPerPage;
-                    const end = start + this.itemsPerPage;
-                    return this.filteredActivities.slice(start, end);
-                },
-
-                totalPages() {
-                    return Math.ceil(this.filteredActivities.length / this.itemsPerPage);
-                },
-
                 filteredActivities() {
                     if(!this.allActivities) return [];
                     
@@ -692,7 +653,7 @@
                         }
                         
                         return true;
-                    });
+                    }).slice(0, 30); // Limit to 30 for view
                 },
                 
                 filteredStats() {
@@ -801,13 +762,7 @@
                 this.initData();
             },
             methods: {
-                    getProxiedProfile() {
-                        if (!this.athlete.profile) return 'https://via.placeholder.com/150';
-                        // Use the image proxy for html2canvas compatibility
-                        return '/image-proxy?url=' + encodeURIComponent(this.athlete.profile);
-                    },
-
-                    async initData() {
+                async initData() {
                     this.loading = true;
                     
                     const promises = [this.initCalendar()];
@@ -916,13 +871,6 @@
                     if(tab === 'calendar' && this.calendarInstance) {
                         setTimeout(() => this.calendarInstance.updateSize(), 50);
                     }
-                },
-
-                nextPage() {
-                    if(this.currentPage < this.totalPages) this.currentPage++;
-                },
-                prevPage() {
-                    if(this.currentPage > 1) this.currentPage--;
                 },
 
                 // --- 1. STRAVA LOGIC ---
@@ -1141,16 +1089,12 @@
                     container.style.left = '0';
                     container.style.zIndex = '-9999'; // Behind everything
                     
-                    // Add delay to ensure profile image is loaded/rendered properly
-                    await new Promise(resolve => setTimeout(resolve, 800));
-
                     try {
                         const canvas = await html2canvas(container, {
                             backgroundColor: '#0f172a',
                             scale: 2, // High Res
                             useCORS: true, // Allow cross-origin images (Strava profile)
-                            allowTaint: true,
-                            logging: false
+                            allowTaint: true
                         });
                         
                         // 3. Download Image
