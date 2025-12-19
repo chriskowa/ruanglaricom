@@ -816,7 +816,7 @@
                             archetype = "Endurance Master";
                             archetypeIcon = "🛡️";
                         } else if (morning / filtered.length > 0.5) {
-                            archetype = "Early Bird";
+                            archetype = "Morning Runner";
                             archetypeIcon = "🌅";
                         } else if (evening / filtered.length > 0.5) {
                             archetype = "Night Owl";

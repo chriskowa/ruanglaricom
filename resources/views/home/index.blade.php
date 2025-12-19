@@ -23,7 +23,7 @@
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2 w-2 bg-neon"></span>
                             </span>
-                            Komunitas Lari #1 Indonesia
+                            Dari Pelari Untuk Pelari
                         </div>
                         
                         <h1 class="text-5xl md:text-7xl lg:text-8xl font-black leading-tight mb-6 text-white tracking-tighter">
