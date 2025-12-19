@@ -94,7 +94,7 @@
                                                 <stop offset="100%" stop-color="#ccff00" />
                                             </linearGradient>
                                             <pattern id="profilePattern" patternUnits="userSpaceOnUse" width="124" height="124">
-                                                <image :href="athlete.profile" x="0" y="0" width="124" height="124" preserveAspectRatio="xMidYMid slice" crossorigin="anonymous"/>
+                                                <image :href="getProxiedProfile()" x="0" y="0" width="124" height="124" preserveAspectRatio="xMidYMid slice" crossorigin="anonymous"/>
                                             </pattern>
                                         </defs>
                                         <path 
@@ -233,7 +233,7 @@
                         <div class="relative w-full h-full flex flex-col justify-between">
                             
                             <div class="absolute inset-0 z-0">
-                                <img v-if="posterData.bgImage" :src="posterData.bgImage" class="w-full h-full object-cover opacity-60 grayscale brightness-75" crossorigin="anonymous">
+                                <div v-if="posterData.bgImage" class="absolute inset-0 w-full h-full opacity-60 grayscale brightness-75 bg-cover bg-center" :style="{ backgroundImage: 'url(' + posterData.bgImage + ')' }"></div>
                                 <div v-else class="w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black"></div>
                                 
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-[#0f172a]/80"></div>
@@ -262,7 +262,7 @@
                                 <div class="mt-auto mb-12">
                                     <h1 class="font-black text-white uppercase italic tracking-tighter 
                                             text-2xl md:text-3xl 
-                                            leading-none mb-6 
+                                            leading-none mb-2 
                                             [font-size:clamp(2.8rem,9vw,4.5rem)] 
                                             drop-shadow-2xl">
                                         @{{ posterData.name }}
@@ -295,7 +295,7 @@
                                     </div>
                                     
                                     <div class="flex items-center gap-3 mt-6 pt-4 border-t border-slate-700">
-                                        <img :src="athlete.profile" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
+                                        <img :src="getProxiedProfile()" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
                                         <div>
                                             <p class="text-xs font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</p>
                                             <p class="text-[10px] text-slate-400">@{{ athlete.city }}</p>
@@ -762,7 +762,13 @@
                 this.initData();
             },
             methods: {
-                async initData() {
+                    getProxiedProfile() {
+                        if (!this.athlete.profile) return 'https://via.placeholder.com/150';
+                        // Use the image proxy for html2canvas compatibility
+                        return '/image-proxy?url=' + encodeURIComponent(this.athlete.profile);
+                    },
+
+                    async initData() {
                     this.loading = true;
                     
                     const promises = [this.initCalendar()];
