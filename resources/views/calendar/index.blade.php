@@ -505,8 +505,8 @@
                     </div>
                 </div>
 
-                <div class="space-y-3">                    
-                    <div v-for="activity in filteredActivities" :key="activity.id" class="bg-card border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800 transition hover:border-[#FC4C02]/50">
+                    <div class="space-y-3 mb-6">                    
+                    <div v-for="activity in paginatedActivities" :key="activity.id" class="bg-card border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800 transition hover:border-[#FC4C02]/50">
                             <div class="flex items-center gap-4 w-full md:w-1/3">
                                 <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center border border-slate-700 text-slate-400">
                                     <svg v-if="activity.type === 'Run'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -534,6 +534,31 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div v-if="totalPages > 1" class="flex justify-center items-center gap-4 mt-8">
+                    <button 
+                        @click="prevPage" 
+                        :disabled="currentPage === 1"
+                        class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition flex items-center gap-2"
+                    >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        Prev
+                    </button>
+                    
+                    <span class="text-sm text-slate-400">
+                        Page <span class="font-bold text-white">@{{ currentPage }}</span> of <span class="font-bold text-white">@{{ totalPages }}</span>
+                    </span>
+
+                    <button 
+                        @click="nextPage" 
+                        :disabled="currentPage === totalPages"
+                        class="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700 transition flex items-center gap-2"
+                    >
+                        Next
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
                 </div>
 
             </div>
@@ -591,6 +616,10 @@
                     filterMonth: '',
                     filterDistance: 0,
                     filterLocation: '',
+                    
+                    // Pagination
+                    currentPage: 1,
+                    itemsPerPage: 10,
 
                     // Data baru untuk poster
                     posterLoading: false,
@@ -621,6 +650,16 @@
                     return Math.min((km / 800) * 100, 100);
                 },
                 
+                paginatedActivities() {
+                    const start = (this.currentPage - 1) * this.itemsPerPage;
+                    const end = start + this.itemsPerPage;
+                    return this.filteredActivities.slice(start, end);
+                },
+
+                totalPages() {
+                    return Math.ceil(this.filteredActivities.length / this.itemsPerPage);
+                },
+
                 filteredActivities() {
                     if(!this.allActivities) return [];
                     
@@ -653,7 +692,7 @@
                         }
                         
                         return true;
-                    }).slice(0, 30); // Limit to 30 for view
+                    });
                 },
                 
                 filteredStats() {
@@ -877,6 +916,13 @@
                     if(tab === 'calendar' && this.calendarInstance) {
                         setTimeout(() => this.calendarInstance.updateSize(), 50);
                     }
+                },
+
+                nextPage() {
+                    if(this.currentPage < this.totalPages) this.currentPage++;
+                },
+                prevPage() {
+                    if(this.currentPage > 1) this.currentPage--;
                 },
 
                 // --- 1. STRAVA LOGIC ---
