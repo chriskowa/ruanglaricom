@@ -103,7 +103,7 @@
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png" class="h-6 md:h-8 invert hover:scale-110 transition">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/2560px-Adidas_Logo.svg.png" class="h-8 md:h-10 invert hover:scale-110 transition">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Under_armour_logo.svg/2560px-Under_armour_logo.svg.png" class="h-6 md:h-8 invert hover:scale-110 transition">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Reebok_logo19.svg/2560px-Reebok_logo19.svg.png" class="h-6 md:h-8 invert hover:scale-110 transition">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Skechers.svg" class="h-6 md:h-8 invert hover:scale-110 transition">
                 </div>
             </div>
         </section>
