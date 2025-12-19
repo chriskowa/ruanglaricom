@@ -61,7 +61,7 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
 Route::get('/events/{slug}', [App\Http\Controllers\PublicEventController::class, 'show'])->name('events.show');
 Route::get('/events', [App\Http\Controllers\PublicEventController::class, 'index'])->name('events.index');
 Route::get('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
-Route::post('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->name('events.register.store');
+Route::post('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:5,1')->name('events.register.store');
 Route::post('/events/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
 Route::post('/events/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
 

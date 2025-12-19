@@ -43,6 +43,27 @@ class StoreRegistrationAction
             'coupon_code' => 'nullable|string|max:50',
         ]);
 
+        $fingerprint = [
+            'event_id' => $event->id,
+            'pic_email' => strtolower($validated['pic_email']),
+            'participants' => collect($validated['participants'])->map(function ($p) {
+                return [
+                    'email' => strtolower($p['email']),
+                    'id_card' => $p['id_card'],
+                    'category_id' => $p['category_id'],
+                ];
+            })->sortBy(fn($p) => $p['email'] . ':' . $p['category_id'])->values()->toArray(),
+            'coupon' => $validated['coupon_code'] ?? null,
+        ];
+        $idKey = 'reg:idempoten:' . md5(json_encode($fingerprint));
+        $existingTxId = Cache::get($idKey);
+        if ($existingTxId) {
+            $existing = Transaction::find($existingTxId);
+            if ($existing) {
+                return $existing;
+            }
+        }
+
         // Validate coupon if provided
         $coupon = null;
         $discountAmount = 0;
@@ -178,6 +199,7 @@ class StoreRegistrationAction
                     'snap_token' => $snapResult['snap_token'],
                     'midtrans_order_id' => $snapResult['order_id'],
                 ]);
+                Cache::put($idKey, $transaction->id, now()->addMinutes(10));
             } else {
                 throw new \Exception('Gagal membuat token pembayaran: ' . ($snapResult['message'] ?? 'Unknown error'));
             }
@@ -229,5 +251,4 @@ class StoreRegistrationAction
         }
     }
 }
-
 

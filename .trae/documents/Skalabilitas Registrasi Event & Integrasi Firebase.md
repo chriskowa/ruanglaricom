@@ -1,69 +1,75 @@
 ## Tujuan
-- Menangani lonjakan pendaftar dengan latensi rendah dan error minimal.
-- Mengurangi beban memori dan koneksi DB pada puncak trafik.
-- Opsional: Integrasi Firebase untuk real‑time atau sebagai penyangga (buffer) saat peak.
+- Menjaga registrasi tetap responsif saat pengunjung membludak.
+- Mengurangi beban memori/server dan load MySQL.
+- Menetapkan alur Git yang aman agar perubahan lokal tidak bentrok dengan remote.
 
-## Konteks Saat Ini
-- Backend: Laravel (MySQL sebagai DB utama).
-- Cache/Queue/Session: driver `database` (bukan Redis) — berpotensi membebani MySQL saat trafik tinggi (`config/cache.php`, `config/queue.php`, `config/session.php`).
-- Redis sudah dikonfigurasi namun bukan default (`config/database.php` bagian `redis`).
+## Ringkasan Kondisi Saat Ini
+- Backend: Laravel + Inertia/Vue, bundler Vite.
+- Database utama: MySQL.
+- `CACHE_STORE=database`, `QUEUE_CONNECTION=database`, `SESSION_DRIVER=database` (membebani MySQL saat trafik tinggi).
+- Tidak ada Horizon/Telescope/Pulse terpasang.
 
-## Strategi Utama
-- Prioritaskan MySQL sebagai source of truth; gunakan Redis untuk antrian, cache, rate limiting.
-- Terapkan arsitektur write‑path yang tahan lonjakan: idempoten, ter‑throttle, berantrian, dan ber‑index baik.
+## Rencana Teknis (Backend & Infrastruktur)
+1. Pindahkan cache, queue, dan session ke Redis
+   - Pasang Redis dan set `.env`: `CACHE_STORE=redis`, `QUEUE_CONNECTION=redis`, `SESSION_DRIVER=redis`.
+   - Gunakan `phpredis` (sudah tersedia di config) untuk performa.
+   - Manfaat: kurangi query ke MySQL, throughput lebih tinggi.
 
-## Hardening Endpoint Registrasi
-- Tambah rate limiting per IP/user menggunakan middleware `ThrottleRequests` atau `RateLimiter` di routes.
-- Idempotensi submit: gunakan `unique index` pada kolom identitas pendaftar dan `upsert`/`firstOrCreate` untuk cegah duplikasi.
-- Validasi ringan dan cepat; hindari loading data besar di memory; kirimkan pekerjaan berat ke queue.
+2. Tambahkan Laravel Horizon untuk antrian
+   - Install dan konfigurasi Horizon untuk memonitor job.
+   - Pindahkan pekerjaan berat ke job: email, invoice, integrasi pihak ketiga (Midtrans/Strava), pembuatan tiket.
+   - Terapkan retry dan dead-letter queue.
 
-## Optimisasi Memori Aplikasi
-- Jadikan server stateless; simpan session di Redis (alih‑driver dari `database` ke `redis`).
-- Hindari operasi yang memuat banyak baris di RAM; gunakan `cursor()`/`chunkById()` untuk pekerjaan batch.
-- Streaming response/log yang perlu; batasi payload dan kolom yang di‑select.
+3. Terapkan rate limiting dan proteksi endpoint registrasi
+   - Middleware `ThrottleRequests` per-IP dan per-endpoint.
+   - Captcha/Turnstile untuk cegah bot.
 
-## Antrian & Backpressure
-- Ganti `QUEUE_CONNECTION` dari `database` ke `redis` untuk throughput lebih tinggi.
-- Kirim proses pasca‑registrasi (email/whatsapp/integrasi) ke queue; gunakan retry dan dead‑letter.
-- Terapkan backpressure: jika DB melambat, antrian menahan beban, bukan endpoint.
+4. Idempoten dan tahan duplikasi
+   - Token idempoten (mis. `X-Idempotency-Key`) atau kunci unik (email/no telp + event) di DB.
+   - Safe retry di job tanpa membuat duplikasi.
 
-## Database & Indexing
-- Tambah indeks tepat pada kolom pencarian dan unik pada identitas pendaftar.
-- Tulis sesingkat mungkin (hindari JOIN tidak perlu); gunakan transaksi seperlunya.
-- Gunakan connection pooling; kurangi waktu hidup koneksi; atur `max_connections` dan pool.
+5. Optimasi MySQL untuk beban puncak
+   - Index yang tepat pada kolom unik/lookup.
+   - Hindari transaksi panjang; gunakan insert cepat dan proses asinkron.
+   - Gunakan `chunk`, `cursor`, `lazy` untuk proses data besar di worker.
 
-## Integrasi Firebase: Dua Pola
-- Pola A (Mirror Real‑Time):
-  - Tetap tulis utama ke MySQL; worker mem‑publish event ke Firebase (Firestore/Realtime DB) untuk UI live dan antrean notifikasi.
-  - Konsistensi kuat di MySQL, Firebase sebagai read‑optimized mirror.
-- Pola B (Buffer Saat Peak):
-  - Tulis cepat ke Firestore terlebih dulu saat lonjakan; worker menyerap ke MySQL secara batch dengan idempotensi.
-  - Terima konsistensi akhirnya (eventual consistency) dengan audit log.
+6. Static asset & caching
+   - Pastikan Vite build dengan cache headers via web server/CDN.
+   - Cache konten read-heavy (jadwal, leaderboard) di Redis dengan TTL.
 
-## Observabilitas & Proteksi Lonjakan
-- Metrics: request rate, p95 latensi, error rate, queue lag, DB QPS.
-- Alert saat queue backlog melewati ambang dan saat error melonjak.
-- Circuit breaker/fallback pesan antrian penuh agar UX jelas.
+7. Observability & alerting
+   - Pasang minimal logging & metrik (Pulse atau Sentry) untuk memantau throughput, waktu respon, error rate.
 
-## Uji Beban
-- Siapkan skenario k6/Locust (ramp‑up ke beberapa ribu RPS, skenario retry).
-- Ukur p95/p99 latensi dan memory footprint sebelum dan sesudah perubahan.
+8. Opsional performa lanjut
+   - Evaluasi Laravel Octane (RoadRunner/Swoole) jika server mendukung untuk konsumsi memori lebih rendah per request.
 
-## Perubahan Konfigurasi (Ringkas)
-- `.env`: ubah `CACHE_STORE=redis`, `QUEUE_CONNECTION=redis`, `SESSION_DRIVER=redis`.
-- `config/cache.php`, `config/queue.php`, `config/session.php`: pastikan koneksi Redis aktif; gunakan `phpredis` sesuai `config/database.php`.
-- Tambah middleware rate‑limit di route registrasi.
+## Rencana Integrasi Firebase (Jika Diperlukan)
+- Gunakan Firebase untuk real-time notifikasi/status (presence, progress), bukan untuk transaksi inti registrasi.
+- Skema: MySQL tetap source of truth; publish event (via queue) ke Firebase untuk UI real-time (FCM/Firestore/Realtime DB).
+- Hindari penulisan ganda transaksi ke dua datastore; gunakan pola event-driven.
 
-## Rollout Bertahap
-- Jalankan canary untuk sebagian traffic terlebih dulu.
-- Tampilkan banner sistem sibuk saat backlog tinggi.
-- Log audit untuk semua write path.
+## Alur Git Aman
+1. Jelaskan status
+   - "Branch behind 1 commit" artinya remote punya 1 commit yang belum ada di lokal; bisa fast-forward.
+   - "Changes to be committed" artinya file `.github/workflows/deploy.yml` sudah di-stage untuk commit.
+2. Langkah aman (pilih salah satu):
+   - Commit dulu, lalu rebase pull:
+     - `git commit -m "Update deploy workflow"`
+     - `git pull --rebase`
+     - Selesaikan konflik jika ada, lalu `git push`.
+   - Atau stash perubahan dulu:
+     - `git stash --include-untracked`
+     - `git pull`
+     - `git stash pop`
+     - Komit dan push.
+   - Jika ingin batalkan perubahan:
+     - `git restore --staged .github/workflows/deploy.yml`
+     - `git checkout -- .github/workflows/deploy.yml`
 
-## Hasil yang Diharapkan
-- Penurunan beban MySQL signifikan pada peak (queue & cache pindah ke Redis).
-- Latensi stabil, memori aplikasi lebih rendah karena operasi berat dialihkan ke queue.
-- Firebase tersedia untuk real‑time dan/atau buffer sesuai pola yang dipilih.
+## Deliverables
+- Konfigurasi `.env` untuk Redis (cache/queue/session) dan Horizon.
+- Middleware rate limit & idempoten pada endpoint registrasi.
+- Job antrian untuk pekerjaan berat + monitoring Horizon.
+- Dokumentasi alur Git singkat untuk tim.
 
-## Permintaan Konfirmasi
-- Pilih pola Firebase: A (mirror real‑time) atau B (buffer saat peak).
-- Setujui pengalihan cache/session/queue ke Redis dan penambahan rate limit + idempotensi di endpoint registrasi.
+Silakan konfirmasi rencana ini. Setelah disetujui, saya akan menerapkan perubahan konfigurasi, menambahkan paket yang diperlukan, dan menyusun kode serta skrip yang relevan.
