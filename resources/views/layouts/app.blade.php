@@ -15,13 +15,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
     
     @stack('styles')
+    <style>
+        .loader-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
+        .text-primary { color: #ccff00 !important; }
+        .animate-pulse { animation: loaderPulse 1.5s ease-in-out infinite; }
+        @keyframes loaderPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.98); }
+        }
+    </style>
 </head>
 <body>
-    <div id="preloader">
-        <div class="sk-three-bounce">
-            <div class="sk-child sk-bounce1"></div>
-            <div class="sk-child sk-bounce2"></div>
-            <div class="sk-child sk-bounce3"></div>
+    <div id="loader" class="loader-overlay">
+        <div class="text-4xl font-black italic tracking-tighter animate-pulse">
+            RUANG<span class="text-primary">LARI</span>
         </div>
     </div>
 
@@ -76,5 +83,14 @@
     
     @include('layouts.components.header-scripts')
     @stack('scripts')
+    <script>
+        window.addEventListener('load', function() {
+            var loader = document.getElementById('loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(function(){ loader.style.display = 'none'; }, 500);
+            }
+        });
+    </script>
 </body>
 </html>
