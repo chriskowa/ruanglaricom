@@ -85,12 +85,28 @@
                             
                             <!-- Header Profile -->
                             <div class="flex items-center gap-6 mb-8 relative z-10">
-                                <!-- Standard Profile Image (Replaces SVG for better compatibility) -->
-                                <div class="w-24 h-24 shrink-0 p-1 bg-gradient-to-br from-[#FC4C02] to-[#ccff00] rounded-2xl shadow-2xl">
-                                    <img :src="getProxiedProfile()" class="w-full h-full rounded-xl object-cover bg-slate-800" crossorigin="anonymous">
+                                <!-- Shield/Badge Shape Profile -->
+                                <div class="w-24 h-28 shrink-0 relative drop-shadow-2xl filter">
+                                    <!-- Gradient Border/Background -->
+                                    <div class="absolute inset-0 bg-gradient-to-b from-[#FC4C02] via-[#FC4C02] to-[#ccff00] rounded-t-2xl rounded-b-[4rem]"></div>
+                                    <!-- Image Container (slightly smaller) -->
+                                    <div class="absolute inset-[3px] bg-slate-900 rounded-t-[14px] rounded-b-[3.8rem] overflow-hidden">
+                                        <img :src="getProxiedProfile()" class="w-full h-full object-cover" crossorigin="anonymous">
+                                    </div>
+                                    <!-- Shine Effect -->
+                                    <div class="absolute inset-0 rounded-t-2xl rounded-b-[4rem] ring-1 ring-white/30 pointer-events-none"></div>
+                                    <!-- Badge Icon/Star at bottom -->
+                                    <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#0f172a] p-1.5 rounded-full border border-[#ccff00]">
+                                        <svg class="w-4 h-4 text-[#ccff00]" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    </div>
                                 </div>
                                 <div>
-                                    <h2 class="text-3xl font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</h2>
+                                    <div class="flex items-center gap-3">
+                                        <h2 class="text-3xl font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</h2>
+                                        <span class="bg-neon/10 text-neon text-[10px] font-bold px-2 py-1 rounded border border-neon/30 uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(204,255,0,0.2)]">
+                                            <span>@{{ filteredStats.archetypeIcon }}</span> @{{ filteredStats.archetype }}
+                                        </span>
+                                    </div>
                                     <p class="text-slate-400">@{{ athlete.city || 'Runner' }} • @{{ analysisWeeks }} Week Analysis</p>
                                 </div>
                                 <div class="ml-auto text-right">
@@ -119,6 +135,34 @@
                                 </div>
                             </div>
                             
+                            <!-- Personal Records Badge -->
+                            <div class="flex items-center gap-4 bg-gradient-to-r from-yellow-500/10 to-transparent border-l-2 border-yellow-500 p-4 rounded-r-xl mb-6 relative z-10">
+                                <div class="bg-gradient-to-br from-yellow-300 to-yellow-600 p-3 rounded-full shadow-[0_0_15px_rgba(234,179,8,0.6)] shrink-0">
+                                     <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                     </svg>
+                                </div>
+                                <div class="w-full">
+                                    <h3 class="text-yellow-400 font-bold uppercase tracking-wider text-[10px] mb-1">Period Records</h3>
+                                    <div class="flex justify-between items-center w-full pr-4">
+                                         <div class="text-center">
+                                             <p class="text-[9px] text-slate-400 uppercase">Fastest Pace</p>
+                                             <p class="text-lg font-mono font-bold text-white">@{{ filteredStats.best_pace }} <span class="text-[9px] font-sans text-slate-500">/km</span></p>
+                                         </div>
+                                         <div class="w-px h-6 bg-slate-700"></div>
+                                         <div class="text-center">
+                                             <p class="text-[9px] text-slate-400 uppercase">Longest Run</p>
+                                             <p class="text-lg font-mono font-bold text-white">@{{ filteredStats.longest_run.toFixed(1) }} <span class="text-[9px] font-sans text-slate-500">km</span></p>
+                                         </div>
+                                         <div class="w-px h-6 bg-slate-700"></div>
+                                         <div class="text-center">
+                                             <p class="text-[9px] text-slate-400 uppercase">Max Elev</p>
+                                             <p class="text-lg font-mono font-bold text-white">@{{ filteredStats.max_elevation.toFixed(0) }} <span class="text-[9px] font-sans text-slate-500">m</span></p>
+                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- Weekly Chart Snapshot for Share -->
                             <div class="mb-6 relative z-10 bg-slate-800/50 p-4 rounded-xl border border-slate-700">
                                 <p class="text-slate-400 text-xs uppercase mb-2">Weekly Analysis</p>
@@ -128,7 +172,7 @@
                             </div>
 
                             <!-- Shoe Rotation -->
-                            <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 relative z-10">
+                            <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 relative z-10 mb-6">
                                 <p class="text-slate-400 text-xs uppercase mb-3">Shoe Rotation</p>
                                 <div class="space-y-2">
                                     <div v-for="shoe in athlete.shoes ? athlete.shoes.slice(0,3) : []" class="flex justify-between items-center text-sm">
@@ -140,6 +184,37 @@
                                         <span class="font-mono text-slate-400 shrink-0">
                                             @{{ Math.round(shoe.distance/1000) }}km
                                         </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Race Potential (Premium Feature) -->
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <svg class="w-4 h-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <p class="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold">Race Potential (Est)</p>
+                                    <div class="h-px bg-slate-700 flex-1"></div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-3">
+                                    <div class="bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 text-center relative overflow-hidden group">
+                                         <div class="absolute top-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_0_10px_#3b82f6]"></div>
+                                         <p class="text-[9px] text-slate-500 mb-1 uppercase tracking-wider">5K</p>
+                                         <p class="text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['5k'] }}</p>
+                                    </div>
+                                    <div class="bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 text-center relative overflow-hidden group">
+                                         <div class="absolute top-0 left-0 w-full h-0.5 bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
+                                         <p class="text-[9px] text-slate-500 mb-1 uppercase tracking-wider">10K</p>
+                                         <p class="text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['10k'] }}</p>
+                                    </div>
+                                    <div class="bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 text-center relative overflow-hidden group">
+                                         <div class="absolute top-0 left-0 w-full h-0.5 bg-amber-500 shadow-[0_0_10px_#f59e0b]"></div>
+                                         <p class="text-[9px] text-slate-500 mb-1 uppercase tracking-wider">HM</p>
+                                         <p class="text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['21k'] }}</p>
+                                    </div>
+                                    <div class="bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 text-center relative overflow-hidden group">
+                                         <div class="absolute top-0 left-0 w-full h-0.5 bg-rose-500 shadow-[0_0_10px_#f43f5e]"></div>
+                                         <p class="text-[9px] text-slate-500 mb-1 uppercase tracking-wider">FM</p>
+                                         <p class="text-base font-bold text-white font-mono tracking-tight">@{{ filteredStats.predictions['42k'] }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -697,13 +772,104 @@
                     const longest = distances.length > 0 ? Math.max(...distances) : 0;
                     const shortest = distances.length > 0 ? Math.min(...distances) : 0;
 
+                    // Calculate Best Pace (min seconds/km)
+                    let bestPaceVal = Infinity;
+                    filtered.forEach(a => {
+                        if(a.distance > 0 && a.moving_time > 0) {
+                            const pace = a.moving_time / (a.distance / 1000); // seconds per km
+                            if(pace < bestPaceVal) bestPaceVal = pace;
+                        }
+                    });
+                    
+                    let formattedBestPace = '-';
+                    if(bestPaceVal !== Infinity) {
+                         const min = Math.floor(bestPaceVal/60);
+                         const sec = Math.floor(bestPaceVal%60);
+                         formattedBestPace = `${min}:${sec<10?'0':''}${sec}`;
+                    }
+
+                    // Max Elevation
+                    const elevs = filtered.map(a => a.total_elevation_gain || 0);
+                    const maxElev = elevs.length > 0 ? Math.max(...elevs) : 0;
+
+                    // --- 1. Archetype Calculation ---
+                    let morning = 0, evening = 0, weekend = 0;
+                    filtered.forEach(a => {
+                        const h = dayjs(a.start_date).hour();
+                        const d = dayjs(a.start_date).day(); // 0=Sun, 6=Sat
+                        if(h >= 4 && h < 10) morning++;
+                        if(h >= 16 && h < 23) evening++;
+                        if(d === 0 || d === 6) weekend++;
+                    });
+
+                    let archetype = "Consistent Runner";
+                    let archetypeIcon = "🏃";
+                    
+                    const avgPaceVal = totalDist > 0 ? (totalTime / (totalDist/1000)) : 0; // sec/km
+                    const avgDistVal = filtered.length > 0 ? (totalDist / 1000 / filtered.length) : 0; // km
+
+                    if (filtered.length > 0) {
+                        if (avgPaceVal > 0 && avgPaceVal < 300) { // < 5:00/km
+                            archetype = "Speedster";
+                            archetypeIcon = "⚡";
+                        } else if (avgDistVal > 15) {
+                            archetype = "Endurance Master";
+                            archetypeIcon = "🛡️";
+                        } else if (morning / filtered.length > 0.5) {
+                            archetype = "Early Bird";
+                            archetypeIcon = "🌅";
+                        } else if (evening / filtered.length > 0.5) {
+                            archetype = "Night Owl";
+                            archetypeIcon = "🦉";
+                        } else if (weekend / filtered.length > 0.7) {
+                            archetype = "Weekend Warrior";
+                            archetypeIcon = "🔥";
+                        }
+                    }
+
+                    // --- 2. Race Predictor (Riegel Formula) ---
+                    // Base pace: Best pace found in a run of at least 3km to be realistic
+                    let basePace = avgPaceVal > 0 ? avgPaceVal : 360; // default 6:00/km
+                    let best3kPace = Infinity;
+                    filtered.forEach(a => {
+                        if(a.distance >= 3000) {
+                            const p = a.moving_time / (a.distance / 1000);
+                            if(p < best3kPace) best3kPace = p;
+                        }
+                    });
+                    if(best3kPace !== Infinity) basePace = best3kPace;
+
+                    const formatTime = (seconds) => {
+                        const h = Math.floor(seconds/3600);
+                        const m = Math.floor((seconds%3600)/60);
+                        const s = Math.floor(seconds%60);
+                        if(h > 0) return `${h}:${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
+                        return `${m}:${s<10?'0':''}${s}`;
+                    };
+
+                    // Riegel: T2 = T1 * (D2/D1)^1.06
+                    // Assume our basePace is valid for 5km effort (optimistic)
+                    const t5k = basePace * 5;
+                    
+                    const predictions = {
+                        '5k': formatTime(t5k),
+                        '10k': formatTime(t5k * Math.pow((10/5), 1.06)),
+                        '21k': formatTime(t5k * Math.pow((21.0975/5), 1.06)),
+                        '42k': formatTime(t5k * Math.pow((42.195/5), 1.06))
+                    };
+
                     return {
                         count: filtered.length,
                         distance: totalDist / 1000,
                         elevation_gain: totalElev,
                         moving_time: totalTime,
                         longest_run: longest,
-                        shortest_run: shortest
+                        shortest_run: shortest,
+                        best_pace: formattedBestPace,
+                        max_elevation: maxElev,
+                        archetype,
+                        archetypeIcon,
+                        predictions
                     };
                 },
 
@@ -801,6 +967,16 @@
                     
                     await Promise.allSettled(promises);
                     this.loading = false;
+
+                    // Fix: Force re-render/resize calendar after loading finishes and container is visible
+                    this.$nextTick(() => {
+                        if (this.calendarInstance) {
+                            setTimeout(() => {
+                                this.calendarInstance.render();
+                                this.calendarInstance.updateSize();
+                            }, 200);
+                        }
+                    });
                 },
 
                 async shareActivityPoster(activity) {
