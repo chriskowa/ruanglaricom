@@ -1,24 +1,28 @@
-name: Deploy to Domainesia
+name: Deploy to DomaiNesia
 
 on:
   push:
     branches:
-      - main  # Branch yang dipantau untuk perubahan. Biasanya adalah 'main' atau 'master'
+      - main  # Branch yang dipantau untuk perubahan
 
 jobs:
   deploy:
     runs-on: ubuntu-latest  # Menjalankan workflow di Ubuntu environment
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2  # Checkout kode dari GitHub repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.5.3  # Mengatur SSH untuk autentikasi dengan server hosting
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # Menggunakan private SSH key yang sudah disimpan di GitHub Secrets
-
-    - name: Deploy to cPanel
-      run: |
-        ssh -o StrictHostKeyChecking=no ruangdid@ruanglari.com "cd /home/ruangdid/public_html/app.ruanglari.com && git pull origin main && composer install --no-dev"
-      # SSH ke server hosting dan menarik perubahan terbaru, serta menginstal dependensi Laravel
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}        # 36.50.77.81
+          username: ${{ secrets.SSH_USER }}    # ruangdid
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # private key dari GitHub Secrets
+          port: 64000                          # port SSH DomaiNesia
+          script: |
+            cd /home/ruangdid/app.ruanglari.com
+            git pull origin main
+            composer install --no-dev
+            php artisan migrate --force
+            php artisan cache:clear
