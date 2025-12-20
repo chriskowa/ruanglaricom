@@ -305,13 +305,20 @@
                                 </svg>
                             </div>
 
-                            <!-- Splits Graphic - Right Side -->
-                            <div v-if="posterData.splits && posterData.splits.length > 0" class="absolute right-0 top-[20%] bottom-[20%] w-[120px] flex flex-col justify-center gap-1 pr-4 z-20 pointer-events-none">
-                                <div v-for="(split, index) in posterData.splits" :key="index" class="flex items-center justify-end gap-2 group">
-                                    <span class="text-[8px] font-mono text-white/80 drop-shadow-md">@{{ split.pace }}</span>
-                                    <div class="h-1.5 bg-white/50 rounded-l-full shadow-[0_0_5px_rgba(255,255,255,0.5)] transition-all duration-500" 
-                                         :style="{ width: split.percentage + '%', opacity: 0.3 + (split.percentage/200) }"></div>
-                                    <span class="text-[6px] text-slate-400 w-3 text-right">@{{ index + 1 }}</span>
+                            <!-- Splits Graphic - Right Side (Table Style) -->
+                            <div v-if="posterData.splits && posterData.splits.length > 0" class="absolute right-4 top-[20%] bottom-[20%] w-[160px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
+                                <div v-for="(split, index) in posterData.splits" :key="index" class="grid grid-cols-[15px_1fr_35px] gap-2 items-center text-[8px] font-mono text-white/90">
+                                    <!-- Col 1: Index (Left) -->
+                                    <div class="text-left text-slate-400">@{{ index + 1 }}</div>
+                                    
+                                    <!-- Col 2: Bar (Left Aligned) -->
+                                    <div class="h-1.5 bg-slate-700/50 rounded-full overflow-hidden w-full relative">
+                                        <div class="absolute top-0 left-0 h-full bg-white/80 rounded-full shadow-[0_0_5px_rgba(255,255,255,0.5)]" 
+                                             :style="{ width: split.percentage + '%', opacity: 0.6 + (split.percentage/200) }"></div>
+                                    </div>
+                                    
+                                    <!-- Col 3: Pace (Far Right) -->
+                                    <div class="text-right font-bold drop-shadow-md">@{{ split.pace }}</div>
                                 </div>
                             </div>
 
@@ -328,17 +335,16 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-auto mb-10 relative z-30">
+                                <div class="mt-auto mb-5 relative z-30">
                                     <h1 class="font-black text-white uppercase italic tracking-tighter 
                                             text-2xl md:text-3xl 
                                             leading-none mb-2 
                                             [font-size:clamp(2rem,8vw,3.5rem)] 
                                             drop-shadow-2xl">
                                         @{{ posterData.name }}
-                                    </h1>
-                                    
+                                    </h1>                                    
                                     <div class="flex items-baseline mb-2">
-                                        <span class="text-[60px] leading-[0.85] font-black text-white tracking-tighter -ml-1 drop-shadow-lg" style="text-shadow: 0 0 20px rgba(255,255,255,0.5);">
+                                        <span class="text-[48px] leading-[0.85] font-black text-white tracking-tighter -ml-1 drop-shadow-lg" style="text-shadow: 0 0 20px rgba(255,255,255,0.5);">
                                             @{{ posterData.distance }}
                                         </span>
                                         <span class="text-xl font-bold text-[#ccff00] ml-2 uppercase tracking-widest drop-shadow-[0_0_10px_rgba(204,255,0,0.8)]">KM</span>
@@ -378,11 +384,13 @@
                                             <p class="text-xs font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</p>
                                             <p class="text-[9px] text-slate-400">@{{ athlete.city }}</p>
                                         </div>
-                                        <div class="ml-auto">
-                                            <svg class="w-5 h-5 text-[#FC4C02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                                        <div class="ml-auto text-right">
+                                            <p class="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Training Effect</p>
+                                            <div class="inline-flex items-center gap-1.5 px-2 py-1 bg-neon/10 border border-neon/20 rounded text-neon backdrop-blur-sm">
+                                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                                 <span class="text-[10px] font-bold uppercase tracking-wider">@{{ posterData.training_effect }}</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
                                 
                             </div>
                         </div>
@@ -1447,6 +1455,25 @@
                         avgHeartRate = Math.round(detail.average_heartrate);
                     }
 
+                    // Determine Training Effect (Simple Heuristic)
+                    let trainingEffect = "Aerobic Base";
+                    const distKm = activity.distance / 1000;
+                    const paceSec = activity.moving_time / distKm; // sec/km
+                    
+                    if (avgHeartRate !== '-' && avgHeartRate > 165) {
+                        trainingEffect = "VO2 Max";
+                    } else if (avgHeartRate !== '-' && avgHeartRate > 152) {
+                        trainingEffect = "Threshold";
+                    } else if (avgHeartRate !== '-' && avgHeartRate > 142) {
+                        trainingEffect = "Tempo";
+                    } else if (paceSec < 300) { // < 5:00/km
+                        trainingEffect = "Speed Workout";
+                    } else if (distKm > 18) {
+                        trainingEffect = "Long Run";
+                    } else if (avgHeartRate !== '-' && avgHeartRate < 135) {
+                        trainingEffect = "Recovery";
+                    }
+
                     // 5. Set Data Poster
                     this.posterData = {
                         name: activity.name,
@@ -1459,7 +1486,8 @@
                         bgImage: bgImage,
                         mapPath: mapPath,
                         splits: splits,
-                        heart_rate: avgHeartRate
+                        heart_rate: avgHeartRate,
+                        training_effect: trainingEffect
                     };
 
                         await this.$nextTick();
