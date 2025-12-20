@@ -305,11 +305,21 @@
                                 </svg>
                             </div>
 
+                            <!-- Splits Graphic - Right Side -->
+                            <div v-if="posterData.splits && posterData.splits.length > 0" class="absolute right-0 top-[20%] bottom-[20%] w-[120px] flex flex-col justify-center gap-1 pr-4 z-20 pointer-events-none">
+                                <div v-for="(split, index) in posterData.splits" :key="index" class="flex items-center justify-end gap-2 group">
+                                    <span class="text-[8px] font-mono text-white/80 drop-shadow-md">@{{ split.pace }}</span>
+                                    <div class="h-1.5 bg-white/50 rounded-l-full shadow-[0_0_5px_rgba(255,255,255,0.5)] transition-all duration-500" 
+                                         :style="{ width: split.percentage + '%', opacity: 0.3 + (split.percentage/200) }"></div>
+                                    <span class="text-[6px] text-slate-400 w-3 text-right">@{{ index + 1 }}</span>
+                                </div>
+                            </div>
+
                             <div class="relative z-20 h-full flex flex-col justify-between p-8">
                                 
                                 <div class="flex justify-between items-start">
                                     <div class="flex items-center gap-2">
-                                        <img src="{{ asset('images/ruanglari_green.png') }}" alt="RuangLari" class="h-6 w-auto">
+                                        <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="h-6 w-auto">
                                     </div>
                                     
                                     <div class="text-right">
@@ -321,14 +331,14 @@
                                 <div class="mt-auto mb-10 relative z-30">
                                     <h1 class="font-black text-white uppercase italic tracking-tighter 
                                             text-2xl md:text-3xl 
-                                            leading-none mb-4 
+                                            leading-none mb-2 
                                             [font-size:clamp(2rem,8vw,3.5rem)] 
                                             drop-shadow-2xl">
                                         @{{ posterData.name }}
                                     </h1>
                                     
                                     <div class="flex items-baseline mb-2">
-                                        <span class="text-[80px] leading-[0.85] font-black text-white tracking-tighter -ml-1 drop-shadow-lg" style="text-shadow: 0 0 20px rgba(255,255,255,0.5);">
+                                        <span class="text-[60px] leading-[0.85] font-black text-white tracking-tighter -ml-1 drop-shadow-lg" style="text-shadow: 0 0 20px rgba(255,255,255,0.5);">
                                             @{{ posterData.distance }}
                                         </span>
                                         <span class="text-xl font-bold text-[#ccff00] ml-2 uppercase tracking-widest drop-shadow-[0_0_10px_rgba(204,255,0,0.8)]">KM</span>
@@ -336,20 +346,29 @@
                                 </div>
 
                                <div class="relative z-30 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-700/50 shadow-xl">
-                                    <div class="grid grid-cols-3 gap-4 text-center">
+                                    <div class="grid grid-cols-4 gap-4 text-center divide-x divide-slate-700">
                                         <div>
                                             <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Pace</p>
-                                            <p class="text-xl font-bold text-white font-mono">@{{ posterData.pace }}</p>
+                                            <p class="text-lg font-bold text-white font-mono">@{{ posterData.pace }}</p>
                                             <p class="text-[8px] text-slate-500">/km</p>
                                         </div>
-                                        <div class="border-l border-slate-700">
+                                        <div>
                                             <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Time</p>
-                                            <p class="text-xl font-bold text-white font-mono">@{{ posterData.time }}</p>
+                                            <p class="text-lg font-bold text-white font-mono">@{{ posterData.time }}</p>
                                         </div>
-                                        <div class="border-l border-slate-700">
+                                        <div>
                                             <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Elev</p>
-                                            <p class="text-xl font-bold text-white font-mono">@{{ posterData.elev }}</p>
+                                            <p class="text-lg font-bold text-white font-mono">@{{ posterData.elev }}</p>
                                             <p class="text-[8px] text-slate-500">m</p>
+                                        </div>
+                                        <div v-if="posterData.heart_rate && posterData.heart_rate !== '-'">
+                                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">HR Avg</p>
+                                            <p class="text-lg font-bold text-rose-500 font-mono">@{{ posterData.heart_rate }}</p>
+                                            <p class="text-[8px] text-slate-500">bpm</p>
+                                        </div>
+                                        <div v-else>
+                                             <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">HR</p>
+                                             <p class="text-lg font-bold text-slate-600 font-mono">-</p>
                                         </div>
                                     </div>
                                     
@@ -1384,23 +1403,64 @@
                         }
 
                         // 3. Generate Map Path dari Polyline Strava
-                        let mapPath = '';
-                        if (detail.map && detail.map.summary_polyline) {
-                            mapPath = this.generateSVGPath(detail.map.summary_polyline);
-                        }
+                    let mapPath = '';
+                    if (detail.map && detail.map.summary_polyline) {
+                        mapPath = this.generateSVGPath(detail.map.summary_polyline);
+                    }
 
-                        // 4. Set Data Poster
-                        this.posterData = {
-                            name: activity.name,
-                            distance: (activity.distance / 1000).toFixed(2),
-                            time: this.formatDuration(activity.moving_time),
-                            pace: this.calculatePace(activity.moving_time, activity.distance).split(' ')[0],
-                            elev: activity.total_elevation_gain ? activity.total_elevation_gain.toFixed(0) : '0',
-                            date: dayjs(activity.start_date).format('D MMM YYYY'),
-                            type: activity.type,
-                            bgImage: bgImage,
-                            mapPath: mapPath // Data Path SVG baru
-                        };
+                    // 4. Generate Splits & Heart Rate
+                    let splits = [];
+                    let avgHeartRate = '-';
+
+                    if (detail.splits_metric && detail.splits_metric.length > 0) {
+                        // Max pace for bar scaling (avoid outliers like 0 or too high)
+                        // Invert pace for bar width: Faster = Longer bar? Or Slower = Longer?
+                        // Usually Pace Graph: Higher = Slower. Let's make Faster = Longer Bar for "Speed" visual.
+                        // Or just visualize Intensity. Let's do: Faster = Longer.
+                        
+                        const validSplits = detail.splits_metric.filter(s => s.distance > 500); // Filter partial/short splits
+                        if(validSplits.length > 0) {
+                             const paces = validSplits.map(s => s.moving_time / (s.distance/1000));
+                             const minPace = Math.min(...paces);
+                             const maxPace = Math.max(...paces);
+                             
+                             splits = validSplits.map(s => {
+                                 const paceSeconds = s.moving_time / (s.distance/1000);
+                                 // Calculate percentage: Fastest (minPace) should be 100%, Slowest close to 20%
+                                 // Invert: (Max - Current) / (Max - Min)
+                                 let percentage = 0;
+                                 if(maxPace !== minPace) {
+                                     percentage = 30 + ((maxPace - paceSeconds) / (maxPace - minPace)) * 70;
+                                 } else {
+                                     percentage = 100;
+                                 }
+                                 
+                                 return {
+                                     pace: this.calculatePace(s.moving_time, s.distance).split(' ')[0], // "5:30"
+                                     percentage: percentage
+                                 };
+                             }).slice(0, 15); // Limit to top 15 splits to fit poster
+                        }
+                    }
+
+                    if (detail.average_heartrate) {
+                        avgHeartRate = Math.round(detail.average_heartrate);
+                    }
+
+                    // 5. Set Data Poster
+                    this.posterData = {
+                        name: activity.name,
+                        distance: (activity.distance / 1000).toFixed(2),
+                        time: this.formatDuration(activity.moving_time),
+                        pace: this.calculatePace(activity.moving_time, activity.distance).split(' ')[0],
+                        elev: activity.total_elevation_gain ? activity.total_elevation_gain.toFixed(0) : '0',
+                        date: dayjs(activity.start_date).format('D MMM YYYY'),
+                        type: activity.type,
+                        bgImage: bgImage,
+                        mapPath: mapPath,
+                        splits: splits,
+                        heart_rate: avgHeartRate
+                    };
 
                         await this.$nextTick();
                         // Tunggu render sebentar

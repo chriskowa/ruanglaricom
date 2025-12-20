@@ -2,7 +2,7 @@
             <div class="max-w-7xl mx-auto px-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     <div class="col-span-1 md:col-span-1">
-                        <a href="#" class="flex items-center gap-2 mb-6 group">
+                        <a href="https://ruanglari.com/" class="flex items-center gap-2 mb-6 group">
                             <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto group-hover:scale-110 transition duration-300">
                             <span class="text-2xl font-black italic tracking-tighter text-white">RUANG<span class="text-neon">LARI</span></span>
                         </a>
