@@ -391,7 +391,8 @@
                                                  <span class="text-[10px] font-bold uppercase tracking-wider">@{{ posterData.training_effect }}</span>
                                             </div>
                                         </div>
-                                
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
