@@ -229,7 +229,8 @@
         <div class="flex-1 flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 relative overflow-hidden group">
             
             <!-- Poster Container (Visible for Preview) -->
-            <div class="relative transition-transform duration-300 transform scale-[0.55] md:scale-[0.85] origin-center shadow-2xl">
+            <!-- Scale logic updated for better mobile view -->
+            <div class="relative transition-transform duration-300 transform scale-[0.45] sm:scale-[0.55] md:scale-[0.85] origin-center shadow-2xl">
                 
                 <div id="activity-poster-container" class="w-[400px] h-[711px] bg-[#0f172a] text-white overflow-hidden font-sans relative shadow-2xl">
                     
@@ -246,14 +247,14 @@
                     </div>
 
                     <!-- 2. Map Layer (Modern, Pro) -->
-                    <div v-if="['modern', 'pro'].includes(posterStyle)" class="absolute top-[20%] left-0 right-0 h-[30%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
+                    <div v-if="posterOptions.visibleElements.map" class="absolute top-[20%] left-0 right-0 h-[30%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
                         <svg v-if="posterData.mapPath" viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_15px_rgba(204,255,0,0.8)]" preserveAspectRatio="xMidYMid meet">
                             <path :d="posterData.mapPath" fill="none" stroke="#ccff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
 
                     <!-- 3. Splits Layer (Pro only) & Chart Overlay -->
-                    <div v-if="posterStyle === 'pro' && posterData.splits && posterData.splits.length > 0" class="absolute top-[20%] right-5 w-[120px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
+                    <div v-if="posterOptions.visibleElements.splits && posterData.splits && posterData.splits.length > 0" class="absolute top-[20%] right-5 w-[120px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
                          <div v-for="(split, index) in posterData.splits" :key="index" class="grid grid-cols-[15px_1fr_35px] gap-2 items-center text-[8px] font-mono text-white/90">
                             <div class="text-left text-slate-400">@{{ index + 1 }}</div>
                             <div class="h-1.5 bg-slate-700/50 rounded-full overflow-hidden w-full relative">
@@ -265,7 +266,7 @@
                     </div>
                     
                     <!-- Chart Overlay Feature -->
-                    <div v-if="posterOptions.visibleElements.chart && showChart && posterData.chartPath" class="absolute inset-x-0 bottom-[30%] h-[150px] z-10 pointer-events-none opacity-80 mix-blend-screen">
+                    <div v-if="posterOptions.visibleElements.chart && showChart && posterData.chartPath" class="absolute inset-x-0 bottom-[30%] h-[150px] z-10 pointer-events-none mix-blend-screen opacity-100">
                         <svg viewBox="0 0 100 50" class="w-full h-full" preserveAspectRatio="none">
                             <path :d="posterData.chartPath" :fill="`url(#posterChartGradient-${chartType})`" stroke="none" />
                             <defs>
