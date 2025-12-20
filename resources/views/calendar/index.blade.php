@@ -265,13 +265,13 @@
                     </div>
                     
                     <!-- Chart Overlay Feature -->
-                    <div v-if="showChart && posterData.chartPath" class="absolute inset-x-0 bottom-[30%] h-[150px] z-10 pointer-events-none opacity-40">
+                    <div v-if="posterOptions.visibleElements.chart && showChart && posterData.chartPath" class="absolute inset-x-0 bottom-[30%] h-[150px] z-10 pointer-events-none opacity-80 mix-blend-screen">
                         <svg viewBox="0 0 100 50" class="w-full h-full" preserveAspectRatio="none">
-                            <path :d="posterData.chartPath" fill="url(#posterChartGradient)" stroke="none" />
+                            <path :d="posterData.chartPath" :fill="`url(#posterChartGradient-${chartType})`" stroke="none" />
                             <defs>
-                                <linearGradient id="posterChartGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#ccff00" stop-opacity="0.8"/>
-                                    <stop offset="100%" stop-color="#ccff00" stop-opacity="0"/>
+                                <linearGradient :id="`posterChartGradient-${chartType}`" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" :stop-color="chartType === 'pace' ? '#ccff00' : (chartType === 'heartrate' ? '#f43f5e' : '#3b82f6')" stop-opacity="0.9"/>
+                                    <stop offset="100%" :stop-color="chartType === 'pace' ? '#ccff00' : (chartType === 'heartrate' ? '#f43f5e' : '#3b82f6')" stop-opacity="0"/>
                                 </linearGradient>
                             </defs>
                         </svg>
@@ -281,13 +281,27 @@
                     <div class="relative z-20 h-full flex flex-col justify-between p-8">
                         
                         <!-- Header -->
-                        <div class="flex justify-between items-start">
+                        <div v-if="posterOptions.visibleElements.title" class="flex justify-between items-start">
                             <div class="flex items-center gap-2">
                                 <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="h-6 w-auto drop-shadow-lg">
                             </div>
-                            <div v-if="posterStyle !== 'minimal' && posterStyle !== 'zen'" class="text-right">
+                            <div v-if="posterStyle !== 'minimal' && posterStyle !== 'zen' && posterStyle !== 'cyber'" class="text-right">
                                 <p class="text-lg font-bold uppercase tracking-tighter italic text-white">@{{ posterData.type }}</p>
                                 <p class="text-[10px] text-slate-400 font-mono tracking-widest">@{{ posterData.date }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Cyber Header -->
+                        <div v-if="posterStyle === 'cyber'" class="absolute top-0 left-0 w-full p-4 flex justify-between items-center border-b border-neon/30 bg-black/50 backdrop-blur-sm z-30">
+                            <div class="text-neon font-mono text-xs">SYSTEM: ONLINE</div>
+                            <div class="text-white font-mono text-xs">@{{ posterData.date }}</div>
+                        </div>
+                        
+                        <!-- Elegant Header -->
+                        <div v-if="posterStyle === 'elegant'" class="absolute top-0 left-0 w-full p-8 flex justify-center z-30">
+                            <div class="text-center">
+                                <p class="text-white/60 text-xs tracking-[0.3em] uppercase mb-2">The Art of Running</p>
+                                <div class="w-10 h-[1px] bg-white/40 mx-auto"></div>
                             </div>
                         </div>
                         
@@ -297,7 +311,7 @@
                         </div>
 
                         <!-- Main Stats (Middle/Bottom) -->
-                        <div class="mt-auto mb-5 relative z-30" :class="{'text-center': posterStyle === 'zen' || posterStyle === 'minimal'}">
+                        <div class="mt-auto mb-5 relative z-30" :class="{'text-center': posterStyle === 'zen' || posterStyle === 'minimal' || posterStyle === 'elegant'}">
                             <!-- Magazine Style Title -->
                             <h1 v-if="posterStyle === 'magazine'" class="absolute -top-[300px] -left-8 text-[120px] font-black text-white/10 leading-none rotate-90 origin-bottom-left whitespace-nowrap">
                                 RUANGLARI
@@ -309,40 +323,68 @@
                              </div>
 
                             <!-- Title -->
-                            <h1 v-if="posterStyle !== 'simple'" class="font-black text-white uppercase italic tracking-tighter text-2xl md:text-3xl leading-none mb-2 drop-shadow-2xl"
-                                :class="{'text-5xl mb-4 not-italic': posterStyle === 'magazine', 'text-center': posterStyle === 'zen'}">
+                            <h1 v-if="posterOptions.visibleElements.title && posterStyle !== 'simple'" 
+                                class="font-black text-white uppercase italic tracking-tighter text-2xl md:text-3xl leading-none mb-2 drop-shadow-2xl"
+                                :class="{
+                                    'text-5xl mb-4 not-italic': posterStyle === 'magazine', 
+                                    'text-center': posterStyle === 'zen',
+                                    'font-mono text-neon': posterStyle === 'cyber',
+                                    'font-serif italic font-normal tracking-wide': posterStyle === 'elegant'
+                                }">
                                 @{{ posterData.name }}
                             </h1>
                             
                             <!-- Big Distance -->
-                            <div class="flex items-baseline mb-2" :class="{'justify-center': posterStyle === 'minimal' || posterStyle === 'zen'}">
+                            <div class="flex items-baseline mb-2" :class="{'justify-center': posterStyle === 'minimal' || posterStyle === 'zen' || posterStyle === 'elegant'}">
                                 <span class="text-[48px] leading-[0.85] font-black text-white tracking-tighter -ml-1 drop-shadow-lg" 
-                                      :class="{'text-[80px]': posterStyle === 'bold' || posterStyle === 'impact', 'text-center': posterStyle === 'minimal', 'text-[60px]': posterStyle === 'magazine'}"
+                                      :class="{
+                                          'text-[80px]': posterStyle === 'bold' || posterStyle === 'impact', 
+                                          'text-center': posterStyle === 'minimal', 
+                                          'text-[60px]': posterStyle === 'magazine',
+                                          'font-mono text-neon drop-shadow-[0_0_10px_rgba(204,255,0,0.5)]': posterStyle === 'cyber',
+                                          'font-serif font-thin': posterStyle === 'elegant'
+                                      }"
                                       style="text-shadow: 0 0 20px rgba(255,255,255,0.5);">
                                     @{{ posterData.distance }}
                                 </span>
-                                <span class="text-xl font-bold text-[#ccff00] ml-2 uppercase tracking-widest drop-shadow-[0_0_10px_rgba(204,255,0,0.8)]">KM</span>
+                                <span class="text-xl font-bold text-[#ccff00] ml-2 uppercase tracking-widest drop-shadow-[0_0_10px_rgba(204,255,0,0.8)]"
+                                      :class="{'text-white/50 font-serif': posterStyle === 'elegant'}">KM</span>
                             </div>
                         </div>
 
                         <!-- Stats Grid Box -->
-                        <div v-if="['classic', 'modern', 'pro', 'magazine', 'impact'].includes(posterStyle)" 
+                        <div v-if="posterOptions.visibleElements.stats && ['classic', 'modern', 'pro', 'magazine', 'impact', 'cyber', 'elegant'].includes(posterStyle)" 
                              class="relative z-30 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-700/50 shadow-xl"
-                             :class="{'bg-black/80 border-white/20 rounded-none': posterStyle === 'impact', 'bg-white/10 border-white/20': posterStyle === 'magazine'}">
+                             :class="{
+                                 'bg-black/80 border-white/20 rounded-none': posterStyle === 'impact', 
+                                 'bg-white/10 border-white/20': posterStyle === 'magazine',
+                                 'bg-slate-950/90 border-neon/50 rounded-none grid-border-cyber': posterStyle === 'cyber',
+                                 'bg-white/5 border-white/10 rounded-none border-t border-b': posterStyle === 'elegant'
+                             }">
                              
-                             <div class="grid grid-cols-4 gap-4 text-center divide-x divide-slate-700" :class="{'divide-white/20': posterStyle === 'magazine'}">
+                             <div class="grid grid-cols-4 gap-4 text-center divide-x divide-slate-700" 
+                                  :class="{
+                                      'divide-white/20': posterStyle === 'magazine',
+                                      'divide-neon/30': posterStyle === 'cyber',
+                                      'divide-white/10': posterStyle === 'elegant'
+                                  }">
                                 <!-- Stats Items -->
-                                <div><p class="text-[9px] text-slate-400 uppercase">Pace</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.pace }}</p></div>
-                                <div><p class="text-[9px] text-slate-400 uppercase">Time</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.time }}</p></div>
-                                <div><p class="text-[9px] text-slate-400 uppercase">Elev</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.elev }}</p></div>
-                                <div><p class="text-[9px] text-slate-400 uppercase">HR</p><p class="text-lg font-bold text-rose-500 font-mono">@{{ posterData.heart_rate }}</p></div>
+                                <div><p class="text-[9px] text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber'}">Pace</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.pace }}</p></div>
+                                <div><p class="text-[9px] text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber'}">Time</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.time }}</p></div>
+                                <div><p class="text-[9px] text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber'}">Elev</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.elev }}</p></div>
+                                <div><p class="text-[9px] text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber'}">HR</p><p class="text-lg font-bold text-rose-500 font-mono">@{{ posterData.heart_rate }}</p></div>
                              </div>
 
                              <!-- Footer Profile -->
-                             <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/50" :class="{'border-white/20': posterStyle === 'magazine'}">
+                             <div v-if="posterOptions.visibleElements.profile" class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/50" 
+                                  :class="{
+                                      'border-white/20': posterStyle === 'magazine',
+                                      'border-neon/30': posterStyle === 'cyber',
+                                      'border-white/10': posterStyle === 'elegant'
+                                  }">
                                 <img :src="getProxiedProfile()" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
                                 <div>
-                                    <p class="text-xs font-bold text-white">@{{ athlete.firstname }}</p>
+                                    <p class="text-xs font-bold text-white" :class="{'font-serif': posterStyle === 'elegant'}">@{{ athlete.firstname }}</p>
                                     <p class="text-[9px] text-slate-400">@{{ athlete.city }}</p>
                                 </div>
                                 <div v-if="posterStyle === 'pro'" class="ml-auto text-right">
@@ -354,7 +396,7 @@
                         </div>
                         
                         <!-- Zen Footer -->
-                        <div v-if="posterStyle === 'zen'" class="text-center mt-4">
+                        <div v-if="posterStyle === 'zen' && posterOptions.visibleElements.stats" class="text-center mt-4">
                             <div class="inline-flex items-center gap-4 text-xs font-mono text-slate-300 bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
                                 <span>@{{ posterData.pace }} /km</span>
                                 <span>•</span>
@@ -365,7 +407,7 @@
                         </div>
                         
                         <!-- Minimal/Simple Footer -->
-                         <div v-if="['simple', 'minimal', 'bold'].includes(posterStyle)" class="flex justify-between items-end border-t border-white/20 pt-4">
+                         <div v-if="['simple', 'minimal', 'bold'].includes(posterStyle) && posterOptions.visibleElements.stats" class="flex justify-between items-end border-t border-white/20 pt-4">
                             <div>
                                 <p class="text-xs font-bold text-white">@{{ posterData.date }}</p>
                                 <p class="text-[10px] text-white/70">@{{ posterData.time }} • @{{ posterData.pace }}/km</p>
@@ -380,44 +422,74 @@
             </div>
         </div>
 
-        <!-- Sidebar Controls -->
-        <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50 overflow-hidden">
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="text-xl font-bold text-white">Customize</h3>
-                <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <!-- Sidebar Controls -->
+            <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50 overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xl font-bold text-white">Customize</h3>
+                    <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+                
+                <!-- Chart Settings -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between bg-slate-800 p-3 rounded-xl border border-slate-700">
+                        <span class="text-sm font-bold text-white">Chart Overlay</span>
+                        <button @click="showChart = !showChart" class="w-12 h-6 rounded-full transition-colors relative" :class="showChart ? 'bg-neon' : 'bg-slate-600'">
+                            <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm" :class="showChart ? 'left-7' : 'left-1'"></div>
+                        </button>
+                    </div>
+                    
+                    <div v-if="showChart" class="grid grid-cols-3 gap-2">
+                        <button @click="chartType = 'pace'" :class="chartType === 'pace' ? 'bg-neon text-black' : 'bg-slate-800 text-slate-400'" class="text-[10px] font-bold py-2 rounded-lg transition">PACE</button>
+                        <button @click="chartType = 'heartrate'" :class="chartType === 'heartrate' ? 'bg-rose-500 text-white' : 'bg-slate-800 text-slate-400'" class="text-[10px] font-bold py-2 rounded-lg transition">HR</button>
+                        <button @click="chartType = 'elevation'" :class="chartType === 'elevation' ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-400'" class="text-[10px] font-bold py-2 rounded-lg transition">ELEV</button>
+                    </div>
+                </div>
+
+                <!-- Element Toppings -->
+                <div class="space-y-2 mt-2">
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Elements</p>
+                    <div class="grid grid-cols-3 gap-2">
+                         <button @click="posterOptions.visibleElements.title = !posterOptions.visibleElements.title" 
+                                 :class="posterOptions.visibleElements.title ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
+                                 class="text-[10px] py-1.5 rounded-lg border transition">Title</button>
+                         <button @click="posterOptions.visibleElements.stats = !posterOptions.visibleElements.stats" 
+                                 :class="posterOptions.visibleElements.stats ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
+                                 class="text-[10px] py-1.5 rounded-lg border transition">Stats</button>
+                         <button @click="posterOptions.visibleElements.map = !posterOptions.visibleElements.map" 
+                                 :class="posterOptions.visibleElements.map ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
+                                 class="text-[10px] py-1.5 rounded-lg border transition">Map</button>
+                         <button @click="posterOptions.visibleElements.splits = !posterOptions.visibleElements.splits" 
+                                 :class="posterOptions.visibleElements.splits ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
+                                 class="text-[10px] py-1.5 rounded-lg border transition">Splits</button>
+                         <button @click="posterOptions.visibleElements.profile = !posterOptions.visibleElements.profile" 
+                                 :class="posterOptions.visibleElements.profile ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
+                                 class="text-[10px] py-1.5 rounded-lg border transition">Profile</button>
+                    </div>
+                </div>
+                
+                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-2">Select Style</p>
+                
+                <!-- Style Selector -->
+                <div class="flex-1 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3 pb-2 md:pb-0 custom-scrollbar">
+                   <button v-for="style in posterStyles" :key="style.id"
+                       @click="posterStyle = style.id"
+                       :class="posterStyle === style.id ? 'border-neon bg-neon/10 text-white ring-1 ring-neon' : 'border-slate-700 hover:border-slate-500 text-slate-400 hover:bg-slate-800'"
+                       class="min-w-[140px] md:min-w-0 w-full p-3 md:p-4 rounded-xl border text-left transition-all flex flex-col md:flex-row items-start md:items-center gap-3 group relative overflow-hidden">
+                       <div class="flex-1 relative z-10">
+                           <p class="font-bold text-sm group-hover:text-white transition whitespace-nowrap">@{{ style.name }}</p>
+                           <p class="text-[10px] opacity-70 whitespace-normal line-clamp-1 md:line-clamp-none">@{{ style.desc }}</p>
+                       </div>
+                       <div v-if="posterStyle === style.id" class="text-neon absolute top-2 right-2 md:static"><svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
+                   </button>
+                </div>
+                
+                <div class="mt-auto pt-4 border-t border-slate-800">
+                    <button @click="downloadPoster" class="w-full bg-neon text-slate-900 font-bold py-3.5 rounded-xl hover:bg-[#b3e600] transition flex items-center justify-center gap-2 shadow-lg shadow-neon/20 active:scale-95 transform duration-100">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download Image
+                    </button>
+                </div>
             </div>
-            
-            <!-- Chart Toggle -->
-            <div class="flex items-center justify-between bg-slate-800 p-3 rounded-xl border border-slate-700 mb-2">
-                <span class="text-sm font-bold text-white">Chart Overlay</span>
-                <button @click="showChart = !showChart" class="w-12 h-6 rounded-full transition-colors relative" :class="showChart ? 'bg-neon' : 'bg-slate-600'">
-                    <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm" :class="showChart ? 'left-7' : 'left-1'"></div>
-                </button>
-            </div>
-            
-            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-2">Select Style</p>
-            
-            <!-- Style Selector (Horizontal on Mobile, Vertical on Desktop) -->
-            <div class="flex-1 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3 pb-2 md:pb-0 custom-scrollbar">
-               <button v-for="style in posterStyles" :key="style.id"
-                   @click="posterStyle = style.id"
-                   :class="posterStyle === style.id ? 'border-neon bg-neon/10 text-white ring-1 ring-neon' : 'border-slate-700 hover:border-slate-500 text-slate-400 hover:bg-slate-800'"
-                   class="min-w-[140px] md:min-w-0 w-full p-3 md:p-4 rounded-xl border text-left transition-all flex flex-col md:flex-row items-start md:items-center gap-3 group relative overflow-hidden">
-                   <div class="flex-1 relative z-10">
-                       <p class="font-bold text-sm group-hover:text-white transition whitespace-nowrap">@{{ style.name }}</p>
-                       <p class="text-[10px] opacity-70 whitespace-normal line-clamp-1 md:line-clamp-none">@{{ style.desc }}</p>
-                   </div>
-                   <div v-if="posterStyle === style.id" class="text-neon absolute top-2 right-2 md:static"><svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-               </button>
-            </div>
-            
-            <div class="mt-auto pt-4 border-t border-slate-800">
-                <button @click="downloadPoster" class="w-full bg-neon text-slate-900 font-bold py-3.5 rounded-xl hover:bg-[#b3e600] transition flex items-center justify-center gap-2 shadow-lg shadow-neon/20 active:scale-95 transform duration-100">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    Download Image
-                </button>
-            </div>
-        </div>
     </div>
 
     <!-- Full Screen Download Loader -->
@@ -425,7 +497,7 @@
         <div class="relative w-24 h-24 mb-8">
             <div class="absolute inset-0 border-4 border-slate-700 rounded-full"></div>
             <div class="absolute inset-0 border-4 border-neon rounded-full border-t-transparent animate-spin"></div>
-            <img src="{{ asset('images/logo ruang lari.png') }}" class="absolute inset-0 w-12 h-12 m-auto animate-pulse">
+            <img src="{{ asset('images/logo ruang lari.png') }}" class="absolute inset-0 w-auto h-10 m-auto animate-pulse">
         </div>
         <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Generating Poster...</h2>
         <p class="text-slate-400">Rendering high-resolution artwork</p>
@@ -750,6 +822,17 @@
                     showPosterModal: false,
                     posterStyle: 'pro',
                     showChart: false,
+                    chartType: 'pace', // pace, heartrate, elevation
+                    posterOptions: {
+                        visibleElements: {
+                            title: true,
+                            stats: true,
+                            map: true,
+                            splits: false,
+                            profile: true,
+                            chart: false
+                        }
+                    },
                     posterStyles: [
                         { id: 'simple', name: 'Simple', desc: 'Foto & Jarak saja' },
                         { id: 'minimal', name: 'Minimal', desc: 'Clean look, fokus foto' },
@@ -758,7 +841,9 @@
                         { id: 'pro', name: 'Pro', desc: 'Lengkap dengan Splits & Analysis' },
                         { id: 'magazine', name: 'Magazine', desc: 'Bold typography, cover style' },
                         { id: 'impact', name: 'Impact', desc: 'High contrast, aggressive look' },
-                        { id: 'zen', name: 'Zen', desc: 'Elegant circle frame, balanced' }
+                        { id: 'zen', name: 'Zen', desc: 'Elegant circle frame, balanced' },
+                        { id: 'cyber', name: 'Cyber', desc: 'Futuristic grid, tech stats' },
+                        { id: 'elegant', name: 'Elegant', desc: 'Serif font, glass frame, luxury' }
                     ],
                     posterData: {
                         name: '',
@@ -771,6 +856,8 @@
                         bgImage: null,
                         mapPath: '',
                         splits: [],
+                        elevationSeries: [],
+                        hrSeries: [],
                         heart_rate: '-',
                         training_effect: '',
                         chartPath: ''
@@ -1405,17 +1492,15 @@
                         mapPath = this.generateSVGPath(detail.map.summary_polyline);
                     }
 
-                    // 4. Generate Splits & Heart Rate
+                    // 4. Generate Splits & Data Series
                     let splits = [];
                     let avgHeartRate = '-';
+                    let elevationSeries = [];
+                    let hrSeries = [];
 
                     if (detail.splits_metric && detail.splits_metric.length > 0) {
-                        // Max pace for bar scaling (avoid outliers like 0 or too high)
-                        // Invert pace for bar width: Faster = Longer bar? Or Slower = Longer?
-                        // Usually Pace Graph: Higher = Slower. Let's make Faster = Longer Bar for "Speed" visual.
-                        // Or just visualize Intensity. Let's do: Faster = Longer.
+                        const validSplits = detail.splits_metric.filter(s => s.distance > 500);
                         
-                        const validSplits = detail.splits_metric.filter(s => s.distance > 500); // Filter partial/short splits
                         if(validSplits.length > 0) {
                              const paces = validSplits.map(s => s.moving_time / (s.distance/1000));
                              const minPace = Math.min(...paces);
@@ -1423,8 +1508,7 @@
                              
                              splits = validSplits.map(s => {
                                  const paceSeconds = s.moving_time / (s.distance/1000);
-                                 // Calculate percentage: Fastest (minPace) should be 100%, Slowest close to 20%
-                                 // Invert: (Max - Current) / (Max - Min)
+                                 // Calculate percentage for bar graph
                                  let percentage = 0;
                                  if(maxPace !== minPace) {
                                      percentage = 30 + ((maxPace - paceSeconds) / (maxPace - minPace)) * 70;
@@ -1433,10 +1517,16 @@
                                  }
                                  
                                  return {
-                                     pace: this.calculatePace(s.moving_time, s.distance).split(' ')[0], // "5:30"
-                                     percentage: percentage
+                                     pace: this.calculatePace(s.moving_time, s.distance).split(' ')[0], 
+                                     percentage: percentage,
+                                     elev_diff: s.elevation_difference || 0,
+                                     avg_hr: s.average_heartrate || 0
                                  };
-                             }).slice(0, 15); // Limit to top 15 splits to fit poster
+                             }).slice(0, 15);
+                             
+                             // Extract Series for Charts
+                             elevationSeries = validSplits.map(s => s.elevation_difference || 0);
+                             hrSeries = validSplits.map(s => s.average_heartrate || 0);
                         }
                     }
 
@@ -1463,40 +1553,6 @@
                         trainingEffect = "Recovery";
                     }
 
-                    let chartPath = '';
-                    if(splits.length > 0) {
-                        // Generate SVG Path from splits (pace data)
-                        // Use the percentage data already calculated
-                        const chartWidth = 100;
-                        const chartHeight = 50;
-                        const stepX = chartWidth / (splits.length - 1);
-                        
-                        let path = `M 0 ${chartHeight}`; // Start bottom-left
-                        
-                        splits.forEach((s, i) => {
-                            const x = i * stepX;
-                            // Invert percentage for Y (High percentage = High Bar = Faster Pace)
-                            // We want visual bar height.
-                            // s.percentage is 0-100 where 100 is fastest.
-                            // If we want area chart:
-                            const y = chartHeight - (s.percentage / 100 * chartHeight);
-                            
-                            if (i === 0) path = `M ${x} ${y}`;
-                            else {
-                                // Simple Line
-                                path += ` L ${x} ${y}`;
-                                // Curve (Optional)
-                                // const prevX = (i-1) * stepX;
-                                // const cp1x = prevX + (stepX / 2);
-                                // path += ` C ${cp1x} ${prevY} ...`;
-                            }
-                        });
-                        
-                        // Close path for area fill
-                        path += ` L ${chartWidth} ${chartHeight} L 0 ${chartHeight} Z`;
-                        chartPath = path;
-                    }
-
                     // 5. Set Data Poster
                     this.posterData = {
                         name: activity.name,
@@ -1509,10 +1565,15 @@
                         bgImage: bgImage,
                         mapPath: mapPath,
                         splits: splits,
+                        elevationSeries: elevationSeries,
+                        hrSeries: hrSeries,
                         heart_rate: avgHeartRate,
                         training_effect: trainingEffect,
-                        chartPath: chartPath
+                        chartPath: ''
                     };
+                    
+                    // Generate Initial Chart Path (Default: Pace)
+                    this.updateChartPath();
 
                         // Buka Modal
                         this.showPosterModal = true;
@@ -1529,6 +1590,75 @@
                     } finally {
                         this.posterLoading = false;
                         this.currentPosterId = null;
+                    }
+                },
+                
+                updateChartPath() {
+                    const type = this.chartType;
+                    const data = this.posterData;
+                    let points = [];
+                    
+                    if(type === 'pace' && data.splits.length > 0) {
+                        // Use pre-calculated percentages from splits
+                        points = data.splits.map(s => s.percentage);
+                    } else if (type === 'elevation' && data.elevationSeries.length > 0) {
+                        // Normalize Elevation
+                        const min = Math.min(...data.elevationSeries);
+                        const max = Math.max(...data.elevationSeries);
+                        const range = max - min;
+                        points = data.elevationSeries.map(v => range === 0 ? 50 : ((v - min) / range) * 100);
+                    } else if (type === 'heartrate' && data.hrSeries.length > 0) {
+                        // Normalize HR
+                         const min = Math.min(...data.hrSeries);
+                         const max = Math.max(...data.hrSeries);
+                         const range = max - min;
+                         points = data.hrSeries.map(v => range === 0 ? 50 : ((v - min) / range) * 100);
+                    }
+                    
+                    if(points.length === 0) {
+                        this.posterData.chartPath = '';
+                        return;
+                    }
+                    
+                    // Generate SVG Path
+                    const chartWidth = 100;
+                    const chartHeight = 50;
+                    const stepX = chartWidth / (points.length - 1);
+                    
+                    let path = `M 0 ${chartHeight}`; 
+                    
+                    points.forEach((val, i) => {
+                        const x = i * stepX;
+                        // For pace: High % = Fast = Tall Bar.
+                        // For Elev/HR: High Value = High Point.
+                        // So logic is same: y = height - (val% * height)
+                        const y = chartHeight - (val / 100 * chartHeight);
+                        
+                        if (i === 0) path = `M ${x} ${y}`;
+                        else path += ` L ${x} ${y}`;
+                    });
+                    
+                    path += ` L ${chartWidth} ${chartHeight} L 0 ${chartHeight} Z`;
+                    this.posterData.chartPath = path;
+                },
+                
+                watch: {
+                    chartType() {
+                        this.updateChartPath();
+                    },
+                    // Watch for style changes to set default toppings
+                    posterStyle(newStyle) {
+                        const opts = this.posterOptions.visibleElements;
+                        if(newStyle === 'simple') {
+                            opts.title = false; opts.stats = true; opts.map = false; opts.splits = false; opts.profile = false;
+                        } else if(newStyle === 'minimal') {
+                            opts.title = true; opts.stats = false; opts.map = false; opts.splits = false; opts.profile = false;
+                        } else if(newStyle === 'pro' || newStyle === 'modern') {
+                            opts.title = true; opts.stats = true; opts.map = true; opts.splits = true; opts.profile = true;
+                        } else {
+                            // Default reset
+                            opts.title = true; opts.stats = true; opts.map = false; opts.splits = false; opts.profile = true;
+                        }
                     }
                 },
 
