@@ -220,182 +220,154 @@
                             </div>
                         </div>
                     </div>
-                    <!--
-                    <div id="activity-poster-container" class="fixed -left-[9999px] top-0 w-[400px] h-[711px] bg-slate-900 text-white overflow-hidden font-sans">
-                        <div class="relative w-full h-full flex flex-col justify-between">
-                            
-                            <div class="absolute inset-0 z-0">
-                                <img v-if="posterData.bgImage" :src="posterData.bgImage" class="w-full h-full object-cover opacity-60" crossorigin="anonymous">
-                                <div v-else class="w-full h-full bg-gradient-to-br from-slate-800 via-slate-900 to-black"></div>
-                                
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900/50"></div>
-                            </div>
 
-                            <div class="relative z-10 p-6 flex justify-between items-start">
+<!-- Poster Modal -->
+<div v-if="showPosterModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4">
+    <div class="flex flex-col md:flex-row gap-6 h-full max-h-[90vh] w-full max-w-6xl">
+        
+        <!-- Preview Area -->
+        <div class="flex-1 flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 relative overflow-hidden group">
+            
+            <!-- Poster Container (Visible for Preview) -->
+            <div class="relative transition-transform duration-300 transform scale-[0.55] md:scale-[0.85] origin-center shadow-2xl">
+                
+                <div id="activity-poster-container" class="w-[400px] h-[711px] bg-[#0f172a] text-white overflow-hidden font-sans relative shadow-2xl">
+                    
+                    <!-- 1. Background Layer -->
+                    <div class="absolute inset-0 z-0">
+                        <div v-if="posterData.bgImage" class="absolute inset-0 w-full h-full bg-cover bg-center transition-all duration-500" 
+                             :class="{'grayscale brightness-75': posterStyle === 'bold' || posterStyle === 'modern', 'opacity-100': posterStyle === 'minimal'}"
+                             :style="{ backgroundImage: 'url(' + posterData.bgImage + ')' }"></div>
+                        <div v-else class="w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black"></div>
+                        
+                        <!-- Overlays -->
+                        <div v-if="posterStyle !== 'minimal'" class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-[#0f172a]/80"></div>
+                        <div v-if="posterStyle === 'bold'" class="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
+                    </div>
+
+                    <!-- 2. Map Layer (Modern, Pro) -->
+                    <div v-if="['modern', 'pro'].includes(posterStyle)" class="absolute top-[20%] left-0 right-0 h-[30%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
+                        <svg v-if="posterData.mapPath" viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_15px_rgba(204,255,0,0.8)]" preserveAspectRatio="xMidYMid meet">
+                            <path :d="posterData.mapPath" fill="none" stroke="#ccff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+
+                    <!-- 3. Splits Layer (Pro only) -->
+                    <div v-if="posterStyle === 'pro' && posterData.splits && posterData.splits.length > 0" class="absolute top-[20%] right-5 w-[120px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
+                         <div v-for="(split, index) in posterData.splits" :key="index" class="grid grid-cols-[15px_1fr_35px] gap-2 items-center text-[8px] font-mono text-white/90">
+                            <div class="text-left text-slate-400">@{{ index + 1 }}</div>
+                            <div class="h-1.5 bg-slate-700/50 rounded-full overflow-hidden w-full relative">
+                                <div class="absolute top-0 left-0 h-full bg-white/80 rounded-full" 
+                                     :style="{ width: split.percentage + '%', opacity: 0.35 + (split.percentage/200) }"></div>
+                            </div>
+                            <div class="text-right font-bold">@{{ split.pace }}</div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Content Layer -->
+                    <div class="relative z-20 h-full flex flex-col justify-between p-8">
+                        
+                        <!-- Header -->
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-2">
+                                <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="h-6 w-auto drop-shadow-lg">
+                            </div>
+                            <div v-if="posterStyle !== 'minimal'" class="text-right">
+                                <p class="text-lg font-bold uppercase tracking-tighter italic text-white">@{{ posterData.type }}</p>
+                                <p class="text-[10px] text-slate-400 font-mono tracking-widest">@{{ posterData.date }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Main Stats (Middle/Bottom) -->
+                        <div class="mt-auto mb-5 relative z-30">
+                            <!-- Title -->
+                            <h1 v-if="posterStyle !== 'simple'" class="font-black text-white uppercase italic tracking-tighter text-2xl md:text-3xl leading-none mb-2 drop-shadow-2xl">
+                                @{{ posterData.name }}
+                            </h1>
+                            
+                            <!-- Big Distance -->
+                            <div class="flex items-baseline mb-2" :class="{'justify-center': posterStyle === 'minimal'}">
+                                <span class="text-[48px] leading-[0.85] font-black text-white tracking-tighter -ml-1 drop-shadow-lg" 
+                                      :class="{'text-[80px]': posterStyle === 'bold', 'text-center': posterStyle === 'minimal'}"
+                                      style="text-shadow: 0 0 20px rgba(255,255,255,0.5);">
+                                    @{{ posterData.distance }}
+                                </span>
+                                <span class="text-xl font-bold text-[#ccff00] ml-2 uppercase tracking-widest drop-shadow-[0_0_10px_rgba(204,255,0,0.8)]">KM</span>
+                            </div>
+                        </div>
+
+                        <!-- Stats Grid Box -->
+                        <div v-if="['classic', 'modern', 'pro'].includes(posterStyle)" 
+                             class="relative z-30 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-700/50 shadow-xl">
+                             
+                             <div class="grid grid-cols-4 gap-4 text-center divide-x divide-slate-700">
+                                <!-- Stats Items -->
+                                <div><p class="text-[9px] text-slate-400 uppercase">Pace</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.pace }}</p></div>
+                                <div><p class="text-[9px] text-slate-400 uppercase">Time</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.time }}</p></div>
+                                <div><p class="text-[9px] text-slate-400 uppercase">Elev</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.elev }}</p></div>
+                                <div><p class="text-[9px] text-slate-400 uppercase">HR</p><p class="text-lg font-bold text-rose-500 font-mono">@{{ posterData.heart_rate }}</p></div>
+                             </div>
+
+                             <!-- Footer Profile -->
+                             <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/50">
+                                <img :src="getProxiedProfile()" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
                                 <div>
-                                    <h1 class="text-3xl font-extrabold italic uppercase tracking-tighter text-white drop-shadow-lg">
-                                        @{{ posterData.type }}
-                                    </h1>
-                                    <p class="text-sm text-slate-300 font-mono">@{{ posterData.date }}</p>
+                                    <p class="text-xs font-bold text-white">@{{ athlete.firstname }}</p>
+                                    <p class="text-[9px] text-slate-400">@{{ athlete.city }}</p>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-xs text-neon font-bold tracking-widest uppercase">Ruang Lari</p>
-                                    <div class="w-8 h-1 bg-neon ml-auto mt-1"></div>
-                                </div>
-                            </div>
-
-                            <div class="relative z-10 px-6 my-auto">
-                                <div class="mb-2">
-                                    <span class="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 font-mono tracking-tighter">
-                                        @{{ posterData.distance }}
-                                    </span>
-                                    <span class="text-xl font-bold text-neon uppercase ml-2">Km</span>
-                                </div>
-                                <h2 class="text-2xl font-bold text-white line-clamp-2 w-3/4 leading-tight mb-4">
-                                    @{{ posterData.name }}
-                                </h2>
-                            </div>
-
-                            <div class="relative z-10 bg-slate-900/90 backdrop-blur-md p-6 m-4 rounded-2xl border border-slate-700">
-                                <div class="grid grid-cols-3 gap-4 text-center">
-                                    <div>
-                                        <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Pace</p>
-                                        <p class="text-2xl font-bold text-white font-mono">@{{ posterData.pace }}</p>
-                                        <p class="text-[9px] text-slate-500">/km</p>
-                                    </div>
-                                    <div class="border-l border-slate-700">
-                                        <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Time</p>
-                                        <p class="text-2xl font-bold text-white font-mono">@{{ posterData.time }}</p>
-                                    </div>
-                                    <div class="border-l border-slate-700">
-                                        <p class="text-[10px] text-slate-400 uppercase tracking-widest mb-1">Elev</p>
-                                        <p class="text-2xl font-bold text-white font-mono">@{{ posterData.elev }}</p>
-                                        <p class="text-[9px] text-slate-500">m</p>
+                                <div v-if="posterStyle === 'pro'" class="ml-auto text-right">
+                                    <div class="inline-flex items-center gap-1.5 px-2 py-1 bg-neon/10 border border-neon/20 rounded text-neon">
+                                        <span class="text-[10px] font-bold uppercase">@{{ posterData.training_effect }}</span>
                                     </div>
                                 </div>
-                                
-                                <div class="flex items-center gap-3 mt-6 pt-4 border-t border-slate-700">
-                                    <img :src="athlete.profile" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
-                                    <div>
-                                        <p class="text-xs font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</p>
-                                        <p class="text-[10px] text-slate-400">@{{ athlete.city }}</p>
-                                    </div>
-                                    <div class="ml-auto">
-                                        <svg class="w-6 h-6 text-[#FC4C02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                                    </div>
-                                </div>
-                            </div>
+                             </div>
                         </div>
+                        
+                        <!-- Minimal/Simple Footer -->
+                         <div v-if="['simple', 'minimal', 'bold'].includes(posterStyle)" class="flex justify-between items-end border-t border-white/20 pt-4">
+                            <div>
+                                <p class="text-xs font-bold text-white">@{{ posterData.date }}</p>
+                                <p class="text-[10px] text-white/70">@{{ posterData.time }} • @{{ posterData.pace }}/km</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-neon">Ruang Lari</p>
+                            </div>
+                         </div>
+
                     </div>
-                    -->
-                    <div id="activity-poster-container" class="fixed -left-[9999px] top-0 w-[400px] h-[711px] bg-[#0f172a] text-white overflow-hidden font-sans">
-                        <div class="relative w-full h-full flex flex-col justify-between">
-                            
-                            <div class="absolute inset-0 z-0">
-                                <div v-if="posterData.bgImage" class="absolute inset-0 w-full h-full opacity-60 grayscale brightness-75 bg-cover bg-center" :style="{ backgroundImage: 'url(' + posterData.bgImage + ')' }"></div>
-                                <div v-else class="w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black"></div>
-                                
-                                <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-[#0f172a]/80"></div>
-                            </div>
+                </div>
+            </div>
+        </div>
 
-                            <!-- Map Path - Placed above stats -->
-                            <div class="absolute top-[20%] left-0 right-0 h-[30%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
-                                <svg v-if="posterData.mapPath" viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_15px_rgba(204,255,0,0.8)]" preserveAspectRatio="xMidYMid meet">
-                                    <path :d="posterData.mapPath" fill="none" stroke="#ccff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                            </div>
-
-                            <!-- Splits Graphic - Right Side (Table Style) -->
-                            <div v-if="posterData.splits && posterData.splits.length > 0" class="absolute top-[20%] right-5 w-[100px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
-                                <div v-for="(split, index) in posterData.splits" :key="index" class="grid grid-cols-[15px_1fr_35px] gap-2 items-center text-[8px] font-mono text-white/90">
-                                    <!-- Col 1: Index (Left) -->
-                                    <div class="text-left text-slate-400">@{{ index + 1 }}</div>
-                                    
-                                    <!-- Col 2: Bar (Left Aligned) -->
-                                    <div class="h-1.5 bg-slate-700/50 rounded-full overflow-hidden w-full relative">
-                                        <div class="absolute top-0 left-0 h-full bg-white/80 rounded-full shadow-[0_0_5px_rgba(255,255,255,0.5)]" 
-                                             :style="{ width: split.percentage + '%', opacity: 0.35 + (split.percentage/200) }"></div>
-                                    </div>
-                                    
-                                    <!-- Col 3: Pace (Far Right) -->
-                                    <div class="text-right font-bold drop-shadow-md">@{{ split.pace }}</div>
-                                </div>
-                            </div>
-
-                            <div class="relative z-20 h-full flex flex-col justify-between p-8">
-                                
-                                <div class="flex justify-between items-start">
-                                    <div class="flex items-center gap-2">
-                                        <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="h-6 w-auto">
-                                    </div>
-                                    
-                                    <div class="text-right">
-                                        <p class="text-lg font-bold uppercase tracking-tighter italic text-white">@{{ posterData.type }}</p>
-                                        <p class="text-[10px] text-slate-400 font-mono tracking-widest">@{{ posterData.date }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="mt-auto mb-5 relative z-30">
-                                    <h1 class="font-black text-white uppercase italic tracking-tighter 
-                                            text-2xl md:text-3xl 
-                                            leading-none mb-2 
-                                            [font-size:clamp(2rem,8vw,3.5rem)] 
-                                            drop-shadow-2xl">
-                                        @{{ posterData.name }}
-                                    </h1>                                    
-                                    <div class="flex items-baseline mb-2">
-                                        <span class="text-[48px] leading-[0.85] font-black text-white tracking-tighter -ml-1 drop-shadow-lg" style="text-shadow: 0 0 20px rgba(255,255,255,0.5);">
-                                            @{{ posterData.distance }}
-                                        </span>
-                                        <span class="text-xl font-bold text-[#ccff00] ml-2 uppercase tracking-widest drop-shadow-[0_0_10px_rgba(204,255,0,0.8)]">KM</span>
-                                    </div>
-                                </div>
-
-                               <div class="relative z-30 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-700/50 shadow-xl">
-                                    <div class="grid grid-cols-4 gap-4 text-center divide-x divide-slate-700">
-                                        <div>
-                                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Pace</p>
-                                            <p class="text-lg font-bold text-white font-mono">@{{ posterData.pace }}</p>
-                                            <p class="text-[8px] text-slate-500">/km</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Time</p>
-                                            <p class="text-lg font-bold text-white font-mono">@{{ posterData.time }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">Elev</p>
-                                            <p class="text-lg font-bold text-white font-mono">@{{ posterData.elev }}</p>
-                                            <p class="text-[8px] text-slate-500">m</p>
-                                        </div>
-                                        <div v-if="posterData.heart_rate && posterData.heart_rate !== '-'">
-                                            <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">HR Avg</p>
-                                            <p class="text-lg font-bold text-rose-500 font-mono">@{{ posterData.heart_rate }}</p>
-                                            <p class="text-[8px] text-slate-500">bpm</p>
-                                        </div>
-                                        <div v-else>
-                                             <p class="text-[9px] text-slate-400 uppercase tracking-widest mb-1">HR</p>
-                                             <p class="text-lg font-bold text-slate-600 font-mono">-</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/50">
-                                        <img :src="getProxiedProfile()" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
-                                        <div>
-                                            <p class="text-xs font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</p>
-                                            <p class="text-[9px] text-slate-400">@{{ athlete.city }}</p>
-                                        </div>
-                                        <div class="ml-auto text-right">
-                                            <p class="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Training Effect</p>
-                                            <div class="inline-flex items-center gap-1.5 px-2 py-1 bg-neon/10 border border-neon/20 rounded text-neon backdrop-blur-sm">
-                                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                                 <span class="text-[10px] font-bold uppercase tracking-wider">@{{ posterData.training_effect }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Sidebar Controls -->
+        <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-xl font-bold text-white">Select Style</h3>
+                <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+               <button v-for="style in posterStyles" :key="style.id"
+                   @click="posterStyle = style.id"
+                   :class="posterStyle === style.id ? 'border-neon bg-neon/10 text-white ring-1 ring-neon' : 'border-slate-700 hover:border-slate-500 text-slate-400 hover:bg-slate-800'"
+                   class="w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 group relative overflow-hidden">
+                   <div class="flex-1 relative z-10">
+                       <p class="font-bold text-sm group-hover:text-white transition">@{{ style.name }}</p>
+                       <p class="text-[10px] opacity-70">@{{ style.desc }}</p>
+                   </div>
+                   <div v-if="posterStyle === style.id" class="text-neon"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
+               </button>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t border-slate-800">
+                <button @click="downloadPoster" class="w-full bg-neon text-slate-900 font-bold py-3.5 rounded-xl hover:bg-[#b3e600] transition flex items-center justify-center gap-2 shadow-lg shadow-neon/20 active:scale-95 transform duration-100">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download Image
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         <div class="bg-card border border-slate-700 p-4 rounded-xl relative overflow-hidden group">
                             <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition"><svg class="w-16 h-16 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg></div>
@@ -711,6 +683,15 @@
                     // Data baru untuk poster
                     posterLoading: false,
                     currentPosterId: null,
+                    showPosterModal: false,
+                    posterStyle: 'pro',
+                    posterStyles: [
+                        { id: 'simple', name: 'Simple', desc: 'Foto & Jarak saja' },
+                        { id: 'minimal', name: 'Minimal', desc: 'Clean look, fokus foto' },
+                        { id: 'classic', name: 'Classic', desc: 'Layout klasik, stats lengkap' },
+                        { id: 'modern', name: 'Modern', desc: 'Neon dark mode, map overlay' },
+                        { id: 'pro', name: 'Pro', desc: 'Lengkap dengan Splits & Analysis' }
+                    ],
                     posterData: {
                         name: '',
                         distance: '',
@@ -719,7 +700,11 @@
                         elev: '',
                         date: '',
                         type: '',
-                        bgImage: null
+                        bgImage: null,
+                        mapPath: '',
+                        splits: [],
+                        heart_rate: '-',
+                        training_effect: ''
                     },
                     
                     apiConfig: {
@@ -1413,15 +1398,43 @@
                         training_effect: trainingEffect
                     };
 
-                        await this.$nextTick();
-                        // Tunggu render sebentar
-                        await new Promise(resolve => setTimeout(resolve, bgImage ? 1500 : 500));
-
-                        const container = document.getElementById('activity-poster-container');
-                        container.style.display = 'block';
-                        container.style.left = '0';
+                        // Buka Modal
+                        this.showPosterModal = true;
                         
-                        const canvas = await html2canvas(container, {
+                        // Wait for image load
+                        await this.$nextTick();
+                        if(bgImage) {
+                            await new Promise(resolve => setTimeout(resolve, 1000)); 
+                        }
+
+                    } catch (e) {
+                        console.error(e);
+                        alert("Gagal load data poster.");
+                    } finally {
+                        this.posterLoading = false;
+                        this.currentPosterId = null;
+                    }
+                },
+
+                closePosterModal() {
+                    this.showPosterModal = false;
+                },
+
+                async downloadPoster() {
+                    const container = document.getElementById('activity-poster-container');
+                    if(!container) return;
+
+                    // Clone untuk capture agar tidak terpengaruh scale preview
+                    const clone = container.cloneNode(true);
+                    clone.style.transform = 'none';
+                    clone.style.position = 'fixed';
+                    clone.style.left = '0';
+                    clone.style.top = '0';
+                    clone.style.zIndex = '-9999';
+                    document.body.appendChild(clone);
+
+                    try {
+                        const canvas = await html2canvas(clone, {
                             backgroundColor: '#0f172a',
                             scale: 2,
                             useCORS: true,
@@ -1429,18 +1442,14 @@
                         });
 
                         const link = document.createElement('a');
-                        link.download = `Ruanglari-${activity.name}.png`;
+                        link.download = `Ruanglari-${this.posterData.name}.png`;
                         link.href = canvas.toDataURL('image/png');
                         link.click();
-
-                    } catch (e) {
+                    } catch(e) {
                         console.error(e);
-                        alert("Gagal generate poster.");
+                        alert("Gagal download poster");
                     } finally {
-                        const container = document.getElementById('activity-poster-container');
-                        if(container) container.style.left = '-9999px';
-                        this.posterLoading = false;
-                        this.currentPosterId = null;
+                        document.body.removeChild(clone);
                     }
                 }
                 /*
