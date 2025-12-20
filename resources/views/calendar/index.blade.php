@@ -252,7 +252,7 @@
                         </svg>
                     </div>
 
-                    <!-- 3. Splits Layer (Pro only) -->
+                    <!-- 3. Splits Layer (Pro only) & Chart Overlay -->
                     <div v-if="posterStyle === 'pro' && posterData.splits && posterData.splits.length > 0" class="absolute top-[20%] right-5 w-[120px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
                          <div v-for="(split, index) in posterData.splits" :key="index" class="grid grid-cols-[15px_1fr_35px] gap-2 items-center text-[8px] font-mono text-white/90">
                             <div class="text-left text-slate-400">@{{ index + 1 }}</div>
@@ -263,6 +263,19 @@
                             <div class="text-right font-bold">@{{ split.pace }}</div>
                         </div>
                     </div>
+                    
+                    <!-- Chart Overlay Feature -->
+                    <div v-if="showChart && posterData.chartPath" class="absolute inset-x-0 bottom-[30%] h-[150px] z-10 pointer-events-none opacity-40">
+                        <svg viewBox="0 0 100 50" class="w-full h-full" preserveAspectRatio="none">
+                            <path :d="posterData.chartPath" fill="url(#posterChartGradient)" stroke="none" />
+                            <defs>
+                                <linearGradient id="posterChartGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ccff00" stop-opacity="0.8"/>
+                                    <stop offset="100%" stop-color="#ccff00" stop-opacity="0"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
 
                     <!-- 4. Content Layer -->
                     <div class="relative z-20 h-full flex flex-col justify-between p-8">
@@ -272,23 +285,39 @@
                             <div class="flex items-center gap-2">
                                 <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="h-6 w-auto drop-shadow-lg">
                             </div>
-                            <div v-if="posterStyle !== 'minimal'" class="text-right">
+                            <div v-if="posterStyle !== 'minimal' && posterStyle !== 'zen'" class="text-right">
                                 <p class="text-lg font-bold uppercase tracking-tighter italic text-white">@{{ posterData.type }}</p>
                                 <p class="text-[10px] text-slate-400 font-mono tracking-widest">@{{ posterData.date }}</p>
                             </div>
                         </div>
+                        
+                        <!-- Zen Style Header (Centered) -->
+                        <div v-if="posterStyle === 'zen'" class="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
+                            <div class="w-[280px] h-[280px] rounded-full border border-white/20 bg-white/5 backdrop-blur-sm"></div>
+                        </div>
 
                         <!-- Main Stats (Middle/Bottom) -->
-                        <div class="mt-auto mb-5 relative z-30">
+                        <div class="mt-auto mb-5 relative z-30" :class="{'text-center': posterStyle === 'zen' || posterStyle === 'minimal'}">
+                            <!-- Magazine Style Title -->
+                            <h1 v-if="posterStyle === 'magazine'" class="absolute -top-[300px] -left-8 text-[120px] font-black text-white/10 leading-none rotate-90 origin-bottom-left whitespace-nowrap">
+                                RUANGLARI
+                            </h1>
+                            
+                            <!-- Impact Style -->
+                             <div v-if="posterStyle === 'impact'" class="absolute inset-x-0 bottom-20 flex justify-center opacity-20">
+                                <span class="text-[150px] font-black uppercase text-white leading-none">RUN</span>
+                             </div>
+
                             <!-- Title -->
-                            <h1 v-if="posterStyle !== 'simple'" class="font-black text-white uppercase italic tracking-tighter text-2xl md:text-3xl leading-none mb-2 drop-shadow-2xl">
+                            <h1 v-if="posterStyle !== 'simple'" class="font-black text-white uppercase italic tracking-tighter text-2xl md:text-3xl leading-none mb-2 drop-shadow-2xl"
+                                :class="{'text-5xl mb-4 not-italic': posterStyle === 'magazine', 'text-center': posterStyle === 'zen'}">
                                 @{{ posterData.name }}
                             </h1>
                             
                             <!-- Big Distance -->
-                            <div class="flex items-baseline mb-2" :class="{'justify-center': posterStyle === 'minimal'}">
+                            <div class="flex items-baseline mb-2" :class="{'justify-center': posterStyle === 'minimal' || posterStyle === 'zen'}">
                                 <span class="text-[48px] leading-[0.85] font-black text-white tracking-tighter -ml-1 drop-shadow-lg" 
-                                      :class="{'text-[80px]': posterStyle === 'bold', 'text-center': posterStyle === 'minimal'}"
+                                      :class="{'text-[80px]': posterStyle === 'bold' || posterStyle === 'impact', 'text-center': posterStyle === 'minimal', 'text-[60px]': posterStyle === 'magazine'}"
                                       style="text-shadow: 0 0 20px rgba(255,255,255,0.5);">
                                     @{{ posterData.distance }}
                                 </span>
@@ -297,10 +326,11 @@
                         </div>
 
                         <!-- Stats Grid Box -->
-                        <div v-if="['classic', 'modern', 'pro'].includes(posterStyle)" 
-                             class="relative z-30 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-700/50 shadow-xl">
+                        <div v-if="['classic', 'modern', 'pro', 'magazine', 'impact'].includes(posterStyle)" 
+                             class="relative z-30 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-700/50 shadow-xl"
+                             :class="{'bg-black/80 border-white/20 rounded-none': posterStyle === 'impact', 'bg-white/10 border-white/20': posterStyle === 'magazine'}">
                              
-                             <div class="grid grid-cols-4 gap-4 text-center divide-x divide-slate-700">
+                             <div class="grid grid-cols-4 gap-4 text-center divide-x divide-slate-700" :class="{'divide-white/20': posterStyle === 'magazine'}">
                                 <!-- Stats Items -->
                                 <div><p class="text-[9px] text-slate-400 uppercase">Pace</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.pace }}</p></div>
                                 <div><p class="text-[9px] text-slate-400 uppercase">Time</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.time }}</p></div>
@@ -309,7 +339,7 @@
                              </div>
 
                              <!-- Footer Profile -->
-                             <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/50">
+                             <div class="flex items-center gap-3 mt-5 pt-4 border-t border-slate-700/50" :class="{'border-white/20': posterStyle === 'magazine'}">
                                 <img :src="getProxiedProfile()" class="w-8 h-8 rounded-full border border-neon" crossorigin="anonymous">
                                 <div>
                                     <p class="text-xs font-bold text-white">@{{ athlete.firstname }}</p>
@@ -321,6 +351,17 @@
                                     </div>
                                 </div>
                              </div>
+                        </div>
+                        
+                        <!-- Zen Footer -->
+                        <div v-if="posterStyle === 'zen'" class="text-center mt-4">
+                            <div class="inline-flex items-center gap-4 text-xs font-mono text-slate-300 bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
+                                <span>@{{ posterData.pace }} /km</span>
+                                <span>•</span>
+                                <span>@{{ posterData.time }}</span>
+                                <span>•</span>
+                                <span>@{{ posterData.date }}</span>
+                            </div>
                         </div>
                         
                         <!-- Minimal/Simple Footer -->
@@ -340,32 +381,54 @@
         </div>
 
         <!-- Sidebar Controls -->
-        <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50">
+        <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50 overflow-hidden">
             <div class="flex justify-between items-center mb-2">
-                <h3 class="text-xl font-bold text-white">Select Style</h3>
+                <h3 class="text-xl font-bold text-white">Customize</h3>
                 <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
             
-            <div class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            <!-- Chart Toggle -->
+            <div class="flex items-center justify-between bg-slate-800 p-3 rounded-xl border border-slate-700 mb-2">
+                <span class="text-sm font-bold text-white">Chart Overlay</span>
+                <button @click="showChart = !showChart" class="w-12 h-6 rounded-full transition-colors relative" :class="showChart ? 'bg-neon' : 'bg-slate-600'">
+                    <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm" :class="showChart ? 'left-7' : 'left-1'"></div>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-2">Select Style</p>
+            
+            <!-- Style Selector (Horizontal on Mobile, Vertical on Desktop) -->
+            <div class="flex-1 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3 pb-2 md:pb-0 custom-scrollbar">
                <button v-for="style in posterStyles" :key="style.id"
                    @click="posterStyle = style.id"
                    :class="posterStyle === style.id ? 'border-neon bg-neon/10 text-white ring-1 ring-neon' : 'border-slate-700 hover:border-slate-500 text-slate-400 hover:bg-slate-800'"
-                   class="w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 group relative overflow-hidden">
+                   class="min-w-[140px] md:min-w-0 w-full p-3 md:p-4 rounded-xl border text-left transition-all flex flex-col md:flex-row items-start md:items-center gap-3 group relative overflow-hidden">
                    <div class="flex-1 relative z-10">
-                       <p class="font-bold text-sm group-hover:text-white transition">@{{ style.name }}</p>
-                       <p class="text-[10px] opacity-70">@{{ style.desc }}</p>
+                       <p class="font-bold text-sm group-hover:text-white transition whitespace-nowrap">@{{ style.name }}</p>
+                       <p class="text-[10px] opacity-70 whitespace-normal line-clamp-1 md:line-clamp-none">@{{ style.desc }}</p>
                    </div>
-                   <div v-if="posterStyle === style.id" class="text-neon"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
+                   <div v-if="posterStyle === style.id" class="text-neon absolute top-2 right-2 md:static"><svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
                </button>
             </div>
             
-            <div class="mt-4 pt-4 border-t border-slate-800">
+            <div class="mt-auto pt-4 border-t border-slate-800">
                 <button @click="downloadPoster" class="w-full bg-neon text-slate-900 font-bold py-3.5 rounded-xl hover:bg-[#b3e600] transition flex items-center justify-center gap-2 shadow-lg shadow-neon/20 active:scale-95 transform duration-100">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Download Image
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- Full Screen Download Loader -->
+    <div v-if="isDownloading" class="fixed inset-0 z-[200] bg-slate-900/95 backdrop-blur-xl flex flex-col items-center justify-center text-center">
+        <div class="relative w-24 h-24 mb-8">
+            <div class="absolute inset-0 border-4 border-slate-700 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-neon rounded-full border-t-transparent animate-spin"></div>
+            <img src="{{ asset('images/logo ruang lari.png') }}" class="absolute inset-0 w-12 h-12 m-auto animate-pulse">
+        </div>
+        <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Generating Poster...</h2>
+        <p class="text-slate-400">Rendering high-resolution artwork</p>
     </div>
 </div>
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -682,15 +745,20 @@
 
                     // Data baru untuk poster
                     posterLoading: false,
+                    isDownloading: false,
                     currentPosterId: null,
                     showPosterModal: false,
                     posterStyle: 'pro',
+                    showChart: false,
                     posterStyles: [
                         { id: 'simple', name: 'Simple', desc: 'Foto & Jarak saja' },
                         { id: 'minimal', name: 'Minimal', desc: 'Clean look, fokus foto' },
                         { id: 'classic', name: 'Classic', desc: 'Layout klasik, stats lengkap' },
                         { id: 'modern', name: 'Modern', desc: 'Neon dark mode, map overlay' },
-                        { id: 'pro', name: 'Pro', desc: 'Lengkap dengan Splits & Analysis' }
+                        { id: 'pro', name: 'Pro', desc: 'Lengkap dengan Splits & Analysis' },
+                        { id: 'magazine', name: 'Magazine', desc: 'Bold typography, cover style' },
+                        { id: 'impact', name: 'Impact', desc: 'High contrast, aggressive look' },
+                        { id: 'zen', name: 'Zen', desc: 'Elegant circle frame, balanced' }
                     ],
                     posterData: {
                         name: '',
@@ -704,7 +772,8 @@
                         mapPath: '',
                         splits: [],
                         heart_rate: '-',
-                        training_effect: ''
+                        training_effect: '',
+                        chartPath: ''
                     },
                     
                     apiConfig: {
@@ -1394,6 +1463,40 @@
                         trainingEffect = "Recovery";
                     }
 
+                    let chartPath = '';
+                    if(splits.length > 0) {
+                        // Generate SVG Path from splits (pace data)
+                        // Use the percentage data already calculated
+                        const chartWidth = 100;
+                        const chartHeight = 50;
+                        const stepX = chartWidth / (splits.length - 1);
+                        
+                        let path = `M 0 ${chartHeight}`; // Start bottom-left
+                        
+                        splits.forEach((s, i) => {
+                            const x = i * stepX;
+                            // Invert percentage for Y (High percentage = High Bar = Faster Pace)
+                            // We want visual bar height.
+                            // s.percentage is 0-100 where 100 is fastest.
+                            // If we want area chart:
+                            const y = chartHeight - (s.percentage / 100 * chartHeight);
+                            
+                            if (i === 0) path = `M ${x} ${y}`;
+                            else {
+                                // Simple Line
+                                path += ` L ${x} ${y}`;
+                                // Curve (Optional)
+                                // const prevX = (i-1) * stepX;
+                                // const cp1x = prevX + (stepX / 2);
+                                // path += ` C ${cp1x} ${prevY} ...`;
+                            }
+                        });
+                        
+                        // Close path for area fill
+                        path += ` L ${chartWidth} ${chartHeight} L 0 ${chartHeight} Z`;
+                        chartPath = path;
+                    }
+
                     // 5. Set Data Poster
                     this.posterData = {
                         name: activity.name,
@@ -1407,7 +1510,8 @@
                         mapPath: mapPath,
                         splits: splits,
                         heart_rate: avgHeartRate,
-                        training_effect: trainingEffect
+                        training_effect: trainingEffect,
+                        chartPath: chartPath
                     };
 
                         // Buka Modal
@@ -1436,6 +1540,8 @@
                     const container = document.getElementById('activity-poster-container');
                     if(!container) return;
 
+                    this.isDownloading = true;
+
                     // Clone untuk capture agar tidak terpengaruh scale preview
                     const clone = container.cloneNode(true);
                     clone.style.transform = 'none';
@@ -1446,6 +1552,9 @@
                     document.body.appendChild(clone);
 
                     try {
+                        // Wait a bit for DOM to settle
+                        await new Promise(resolve => setTimeout(resolve, 500));
+
                         const canvas = await html2canvas(clone, {
                             backgroundColor: '#0f172a',
                             scale: 2,
@@ -1462,6 +1571,7 @@
                         alert("Gagal download poster");
                     } finally {
                         document.body.removeChild(clone);
+                        this.isDownloading = false;
                     }
                 }
                 /*
