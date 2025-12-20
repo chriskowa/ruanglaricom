@@ -306,7 +306,7 @@
                             </div>
 
                             <!-- Splits Graphic - Right Side (Table Style) -->
-                            <div v-if="posterData.splits && posterData.splits.length > 0" class="absolute right-4 w-[120px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
+                            <div v-if="posterData.splits && posterData.splits.length > 0" class="absolute top-20% right-5 w-[100px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
                                 <div v-for="(split, index) in posterData.splits" :key="index" class="grid grid-cols-[15px_1fr_35px] gap-2 items-center text-[8px] font-mono text-white/90">
                                     <!-- Col 1: Index (Left) -->
                                     <div class="text-left text-slate-400">@{{ index + 1 }}</div>
@@ -314,7 +314,7 @@
                                     <!-- Col 2: Bar (Left Aligned) -->
                                     <div class="h-1.5 bg-slate-700/50 rounded-full overflow-hidden w-full relative">
                                         <div class="absolute top-0 left-0 h-full bg-white/80 rounded-full shadow-[0_0_5px_rgba(255,255,255,0.5)]" 
-                                             :style="{ width: split.percentage + '%', opacity: 0.6 + (split.percentage/200) }"></div>
+                                             :style="{ width: split.percentage + '%', opacity: 0.35 + (split.percentage/200) }"></div>
                                     </div>
                                     
                                     <!-- Col 3: Pace (Far Right) -->
