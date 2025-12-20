@@ -1500,7 +1500,8 @@
                     let hrSeries = [];
 
                     if (detail.splits_metric && detail.splits_metric.length > 0) {
-                        const validSplits = detail.splits_metric.filter(s => s.distance > 500);
+                        // Filter split yang valid (jarak > 100m) untuk menghindari data error di awal/akhir
+                        const validSplits = detail.splits_metric.filter(s => s.distance > 100);
                         
                         if(validSplits.length > 0) {
                              const paces = validSplits.map(s => s.moving_time / (s.distance/1000));
@@ -1512,6 +1513,7 @@
                                  // Calculate percentage for bar graph
                                  let percentage = 0;
                                  if(maxPace !== minPace) {
+                                     // Inverse: Faster pace (lower seconds) -> Higher bar
                                      percentage = 30 + ((maxPace - paceSeconds) / (maxPace - minPace)) * 70;
                                  } else {
                                      percentage = 100;
@@ -1525,10 +1527,16 @@
                                  };
                              }).slice(0, 15);
                              
-                             // Extract Series for Charts
+                             // Extract Series for Charts (Pastikan tidak ada null/undefined)
+                             // Gunakan validSplits agar datanya konsisten dengan splits
                              elevationSeries = validSplits.map(s => s.elevation_difference || 0);
                              hrSeries = validSplits.map(s => s.average_heartrate || 0);
                         }
+                    } else if (activity.type === 'Run' && !detail.splits_metric) {
+                        // Fallback jika tidak ada splits detail, buat dummy flat chart atau coba ambil dari laps?
+                        // Untuk sekarang biarkan kosong, tapi kita pastikan series terdefinisi
+                        elevationSeries = [];
+                        hrSeries = [];
                     }
 
                     if (detail.average_heartrate) {
@@ -1602,13 +1610,14 @@
                     if(type === 'pace' && data.splits.length > 0) {
                         // Use pre-calculated percentages from splits
                         points = data.splits.map(s => s.percentage);
-                    } else if (type === 'elevation' && data.elevationSeries.length > 0) {
+                    } else if (type === 'elevation' && data.elevationSeries && data.elevationSeries.length > 0) {
                         // Normalize Elevation
                         const min = Math.min(...data.elevationSeries);
                         const max = Math.max(...data.elevationSeries);
                         const range = max - min;
+                        // Jika flat (range 0), set semua ke 50%
                         points = data.elevationSeries.map(v => range === 0 ? 50 : ((v - min) / range) * 100);
-                    } else if (type === 'heartrate' && data.hrSeries.length > 0) {
+                    } else if (type === 'heartrate' && data.hrSeries && data.hrSeries.length > 0) {
                         // Normalize HR
                          const min = Math.min(...data.hrSeries);
                          const max = Math.max(...data.hrSeries);
@@ -1621,7 +1630,7 @@
                         return;
                     }
                     
-                    // Generate SVG Path
+                    // Generate SVG Path (Smooth Curve or Line)
                     const chartWidth = 100;
                     const chartHeight = 50;
                     const stepX = chartWidth / (points.length - 1);
@@ -1630,9 +1639,9 @@
                     
                     points.forEach((val, i) => {
                         const x = i * stepX;
-                        // For pace: High % = Fast = Tall Bar.
-                        // For Elev/HR: High Value = High Point.
-                        // So logic is same: y = height - (val% * height)
+                        // y = 0 is top, y = 50 is bottom
+                        // We want high value (100%) to be at y=0 (top)
+                        // val is 0-100.
                         const y = chartHeight - (val / 100 * chartHeight);
                         
                         if (i === 0) path = `M ${x} ${y}`;
@@ -1641,6 +1650,9 @@
                     
                     path += ` L ${chartWidth} ${chartHeight} L 0 ${chartHeight} Z`;
                     this.posterData.chartPath = path;
+                    
+                    // Force Reactivity jika path tidak berubah tapi konten berubah
+                    this.$forceUpdate();
                 },
                 
                 watch: {
