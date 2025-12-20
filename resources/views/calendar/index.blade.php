@@ -266,13 +266,13 @@
                     </div>
                     
                     <!-- Chart Overlay Feature -->
-                    <div v-if="posterOptions.visibleElements.chart && showChart && posterData.chartPath" class="absolute inset-x-0 bottom-[30%] h-[150px] z-10 pointer-events-none mix-blend-screen opacity-100">
+                    <div v-if="showChart && posterData.chartPath" class="absolute inset-x-0 bottom-0 h-[250px] z-20 pointer-events-none opacity-80">
                         <svg viewBox="0 0 100 50" class="w-full h-full" preserveAspectRatio="none">
-                            <path :d="posterData.chartPath" :fill="`url(#posterChartGradient-${chartType})`" stroke="none" />
+                            <path :d="posterData.chartPath" :fill="`url(#posterChartGradient-${chartType})`" :stroke="chartType === 'pace' ? '#ccff00' : (chartType === 'heartrate' ? '#f43f5e' : '#3b82f6')" stroke-width="0.5" />
                             <defs>
                                 <linearGradient :id="`posterChartGradient-${chartType}`" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" :stop-color="chartType === 'pace' ? '#ccff00' : (chartType === 'heartrate' ? '#f43f5e' : '#3b82f6')" stop-opacity="0.9"/>
-                                    <stop offset="100%" :stop-color="chartType === 'pace' ? '#ccff00' : (chartType === 'heartrate' ? '#f43f5e' : '#3b82f6')" stop-opacity="0"/>
+                                    <stop offset="0%" :stop-color="chartType === 'pace' ? '#ccff00' : (chartType === 'heartrate' ? '#f43f5e' : '#3b82f6')" stop-opacity="0.8"/>
+                                    <stop offset="100%" :stop-color="chartType === 'pace' ? '#ccff00' : (chartType === 'heartrate' ? '#f43f5e' : '#3b82f6')" stop-opacity="0.1"/>
                                 </linearGradient>
                             </defs>
                         </svg>
