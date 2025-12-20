@@ -378,7 +378,7 @@
                             <div class="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition"><svg class="w-16 h-16 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg></div>
                             <p class="text-slate-400 text-[10px] md:text-xs uppercase font-bold tracking-wider">Dist</p>
                             <h3 class="text-2xl md:text-3xl font-mono font-bold text-white mt-1">
-                                @{{ filteredStats.distance.toFixed(0) }} <span class="text-sm text-slate-500">km</span>
+                                @{{ (filteredStats.distance || 0).toFixed(0) }} <span class="text-sm text-slate-500">km</span>
                             </h3>
                         </div>
                         <div class="bg-card border border-slate-700 p-4 rounded-xl relative overflow-hidden group">
@@ -581,7 +581,7 @@
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-2 w-full md:w-1/2 md:pl-6 border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0">
-                                <div><p class="text-[10px] text-slate-500 uppercase">Dist</p><p class="text-lg font-mono font-bold">@{{ (activity.distance / 1000).toFixed(2) }} km</p></div>
+                                <div><p class="text-[10px] text-slate-500 uppercase">Dist</p><p class="text-lg font-mono font-bold">@{{ ((activity.distance || 0) / 1000).toFixed(2) }} km</p></div>
                                 <div><p class="text-[10px] text-slate-500 uppercase">Time</p><p class="text-lg font-mono font-bold">@{{ formatDuration(activity.moving_time) }}</p></div>
                                 <div><p class="text-[10px] text-slate-500 uppercase">Pace</p><p class="text-lg font-mono font-bold text-[#FC4C02]">@{{ calculatePace(activity.moving_time, activity.distance) }}</p></div>
                             </div>
@@ -769,7 +769,19 @@
                 
                 filteredStats() {
                     if(!this.allActivities || this.allActivities.length === 0) {
-                        return { count: 0, distance: 0, elevation_gain: 0, moving_time: 0, longest_run: 0, shortest_run: 0 };
+                        return { 
+                            count: 0, 
+                            distance: 0, 
+                            elevation_gain: 0, 
+                            moving_time: 0, 
+                            longest_run: 0, 
+                            shortest_run: 0,
+                            best_pace: '-',
+                            max_elevation: 0,
+                            archetype: 'Runner',
+                            archetypeIcon: '🏃',
+                            predictions: { '5k': '-', '10k': '-', '21k': '-', '42k': '-' }
+                        };
                     }
                     
                     const cutoff = dayjs().subtract(this.analysisWeeks, 'week');
