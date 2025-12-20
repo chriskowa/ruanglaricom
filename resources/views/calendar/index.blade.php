@@ -306,7 +306,7 @@
                             </div>
 
                             <!-- Splits Graphic - Right Side (Table Style) -->
-                            <div v-if="posterData.splits && posterData.splits.length > 0" class="absolute top-20% right-5 w-[100px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
+                            <div v-if="posterData.splits && posterData.splits.length > 0" class="absolute top-[20%] right-5 w-[100px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
                                 <div v-for="(split, index) in posterData.splits" :key="index" class="grid grid-cols-[15px_1fr_35px] gap-2 items-center text-[8px] font-mono text-white/90">
                                     <!-- Col 1: Index (Left) -->
                                     <div class="text-left text-slate-400">@{{ index + 1 }}</div>
