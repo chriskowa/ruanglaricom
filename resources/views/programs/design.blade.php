@@ -362,6 +362,30 @@
     // Using Vue from global scope (loaded in pacerhub layout)
     const { createApp, ref, reactive, computed } = Vue;
 
+    // FIREBASE INTEGRATION
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBVAEiYBFSt2ZYMIxbl7q-5kZvLH_dRLKU",
+        authDomain: "ruanglari-8d041.firebaseapp.com",
+        databaseURL: "https://ruanglari-8d041-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ruanglari-8d041",
+        storageBucket: "ruanglari-8d041.firebasestorage.app",
+        messagingSenderId: "887605981752",
+        appId: "1:887605981752:web:42d420fcddd861ba21eccd",
+        measurementId: "G-9TXDKSXRR8"
+    };
+
+    let db;
+    try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        console.log("Firebase initialized in Design Program");
+    } catch(e) {
+        console.error("Firebase init failed:", e);
+    }
+
     createApp({
         setup() {
             const step = ref(0);
@@ -395,6 +419,23 @@
 
             const startAssessment = () => { step.value = 1; window.scrollTo(0,0); };
 
+            const saveToDatabase = async () => {
+                if (!db) return;
+                try {
+                    console.log("Saving to Firebase...");
+                    await addDoc(collection(db, "program_assessments"), {
+                        ...form,
+                        generatedPaces: paces,
+                        ladderTarget: ladderTarget.value,
+                        createdAt: serverTimestamp(),
+                        status: 'new' // Status for coach dashboard
+                    });
+                    console.log("Data saved successfully!");
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                }
+            };
+
             const submitAssessment = async () => {
                 // Validasi Input
                 if (!form.timeMin) { alert("Mohon isi waktu tes lari Anda."); return; }
@@ -418,7 +459,7 @@
                     if (progress === 100) {
                         clearInterval(interval);
                         generateProgram(); // Jalankan Logic
-                        // saveToDatabase();  // Disabled for now
+                        saveToDatabase();  // Save to Firebase
                         setTimeout(() => { step.value = 5; }, 500);
                     }
                 }, 200);

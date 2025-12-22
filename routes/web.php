@@ -50,6 +50,7 @@ Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
 })->name('image.proxy');
 
 Route::get('/realistic-running-program', function () { return view('programs.design'); })->name('programs.realistic');
+Route::get('/coach-ladder-program', function () { return view('coach.hub'); })->name('coach.hub');
 Route::get('/programs', [App\Http\Controllers\PublicProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{slug}', [App\Http\Controllers\PublicProgramController::class, 'show'])->name('programs.show');
 
