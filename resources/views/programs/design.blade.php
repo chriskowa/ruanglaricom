@@ -89,6 +89,42 @@
         </div>
     </div>
 
+    <!-- Workout Detail Modal -->
+    <transition name="fade">
+        <div v-if="selectedWorkout" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="selectedWorkout = null"></div>
+            <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl transform transition-all">
+                <button @click="selectedWorkout = null" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                
+                <div class="mb-4">
+                    <span class="text-xs font-mono text-cyan-400 uppercase">@{{ selectedWorkout.day }} • @{{ selectedWorkout.phase }}</span>
+                    <h3 class="text-2xl font-bold text-white mt-1">@{{ selectedWorkout.title }}</h3>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-slate-800/50 p-4 rounded border border-slate-700">
+                        <span class="block text-xs text-slate-500 uppercase mb-1">Deskripsi Latihan</span>
+                        <p class="text-slate-300">@{{ selectedWorkout.desc }}</p>
+                    </div>
+
+                    <div v-if="selectedWorkout.pace && selectedWorkout.pace !== '-'" class="flex items-center justify-between bg-slate-800/50 p-4 rounded border border-slate-700">
+                        <span class="text-sm text-slate-400">Target Pace</span>
+                        <span class="text-lg font-mono font-bold text-cyan-400">@{{ selectedWorkout.pace }}</span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <span v-if="selectedWorkout.type === 'rest'" class="flex-1 py-2 text-center text-xs font-bold bg-slate-800 text-slate-400 rounded">RECOVERY</span>
+                        <span v-else-if="selectedWorkout.type === 'easy'" class="flex-1 py-2 text-center text-xs font-bold bg-green-900/30 text-green-400 border border-green-900 rounded">AEROBIC</span>
+                        <span v-else-if="selectedWorkout.type === 'hard'" class="flex-1 py-2 text-center text-xs font-bold bg-purple-900/30 text-purple-400 border border-purple-900 rounded">QUALITY</span>
+                        <span v-else-if="selectedWorkout.type === 'long'" class="flex-1 py-2 text-center text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-900 rounded">ENDURANCE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
+
     <main class="relative z-10 flex-grow flex flex-col justify-center items-center w-full">
         
         <transition name="fade" mode="out-in">
@@ -107,6 +143,13 @@
                     <span class="relative z-10">AUDIT PERFORMA SEKARANG</span>
                     <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
                 </button>
+                
+                <div v-if="hasSavedProgram" class="mt-6">
+                    <button @click="loadSavedProgram" class="text-cyan-400 hover:text-white underline text-sm flex items-center justify-center gap-2 mx-auto">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Lanjutkan Program Terakhir
+                    </button>
+                </div>
             </div>
 
             <div v-else-if="step === 99" key="loading" class="text-center py-20">
@@ -212,6 +255,16 @@
                         <h2 class="text-3xl font-bold text-white">Target & Komitmen</h2>
                         
                         <div>
+                            <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase">Target Race Distance</label>
+                            <select v-model="form.targetDistance" class="w-full p-4 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-cyan-400 outline-none appearance-none">
+                                <option value="5k">5K (Program 8 Minggu)</option>
+                                <option value="10k">10K (Program 10 Minggu)</option>
+                                <option value="hm">Half Marathon (Program 12 Minggu)</option>
+                                <option value="fm">Full Marathon (Program 16 Minggu)</option>
+                            </select>
+                        </div>
+
+                        <div>
                             <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase">Target Waktu (Opsional)</label>
                             <input v-model="form.goalDescription" type="text" class="w-full p-4 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-cyan-400 outline-none" placeholder="Contoh: Ingin Sub 45 menit">
                         </div>
@@ -272,66 +325,151 @@
                         <div class="glass p-6 rounded-xl border border-cyan-900 shadow-neon-cyan">
                             <h3 class="text-xs font-mono text-cyan-400 uppercase mb-4 border-b border-cyan-900 pb-2">Zona Pace (Min/Km)</h3>
                             
-                            <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span class="text-green-400 font-bold">Easy / Recovery</span>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-400 font-bold">Recovery</span>
+                                        <span class="text-white font-mono">@{{ paces.recovery }}</span>
+                                    </div>
+                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-slate-400 h-1 rounded" style="width: 30%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-green-400 font-bold">Easy</span>
                                         <span class="text-white font-mono">@{{ paces.easy }}</span>
                                     </div>
                                     <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-green-500 h-1 rounded" style="width: 50%"></div></div>
-                                    <p class="text-[10px] text-slate-400 mt-1">Lari santai, bisa ngobrol. Wajib disiplin pelan.</p>
                                 </div>
-
                                 <div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span class="text-yellow-400 font-bold">Tempo / Threshold</span>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-blue-400 font-bold">Tempo (M)</span>
                                         <span class="text-white font-mono">@{{ paces.tempo }}</span>
                                     </div>
-                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-yellow-500 h-1 rounded" style="width: 75%"></div></div>
-                                    <p class="text-[10px] text-slate-400 mt-1">Tidak nyaman tapi terkontrol (Sakit yang enak).</p>
+                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-blue-500 h-1 rounded" style="width: 65%"></div></div>
                                 </div>
-
                                 <div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span class="text-purple-400 font-bold">Interval / VO2Max</span>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-yellow-400 font-bold">Threshold (T)</span>
+                                        <span class="text-white font-mono">@{{ paces.threshold }}</span>
+                                    </div>
+                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-yellow-500 h-1 rounded" style="width: 80%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-purple-400 font-bold">Interval (I)</span>
                                         <span class="text-white font-mono">@{{ paces.interval }}</span>
                                     </div>
                                     <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-purple-500 h-1 rounded" style="width: 90%"></div></div>
-                                    <p class="text-[10px] text-slate-400 mt-1">Gas pol. Nafas berat.</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-red-400 font-bold">Repetition (R)</span>
+                                        <span class="text-white font-mono">@{{ paces.repetition }}</span>
+                                    </div>
+                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-red-500 h-1 rounded" style="width: 100%"></div></div>
                                 </div>
                             </div>
+                            <p class="text-[10px] text-slate-400 mt-3 text-center italic">
+                                *Pace dihitung berdasarkan estimasi VDOT dari hasil tes lari Anda.
+                            </p>
                         </div>
                     </div>
 
                     <div class="lg:col-span-2">
-                        <!-- Tampilkan Jadwal Per Minggu -->
-                        <div v-for="(week, wIndex) in programSchedule" :key="wIndex" class="glass rounded-xl overflow-hidden border border-slate-700 mb-6">
-                            <div class="bg-slate-800/50 p-4 border-b border-slate-700 flex justify-between items-center">
-                                <div>
-                                    <h3 class="font-bold text-white text-lg">MINGGU @{{ week.weekNum }}</h3>
-                                    <span class="text-xs text-slate-400">Total: @{{ week.totalVolume }}KM | Fokus: @{{ week.focus }}</span>
-                                </div>
-                                <span class="text-xs bg-cyan-900 text-cyan-300 px-3 py-1 rounded-full font-bold">@{{ week.phase }}</span>
-                            </div>
+                        <!-- View Toggle -->
+                        <div class="flex justify-end mb-4 gap-2">
+                            <button @click="viewMode = 'calendar'" 
+                                class="px-3 py-1 text-xs rounded border transition-colors flex items-center gap-2"
+                                :class="viewMode === 'calendar' ? 'bg-cyan-900 text-cyan-300 border-cyan-700' : 'text-slate-400 border-slate-700 hover:text-white'">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                Calendar
+                            </button>
+                            <button @click="viewMode = 'list'" 
+                                class="px-3 py-1 text-xs rounded border transition-colors flex items-center gap-2"
+                                :class="viewMode === 'list' ? 'bg-cyan-900 text-cyan-300 border-cyan-700' : 'text-slate-400 border-slate-700 hover:text-white'">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                                List
+                            </button>
+                        </div>
+
+                        <!-- Tampilkan Jadwal Sebagai Kalender -->
+                        <div v-if="viewMode === 'calendar'" class="glass rounded-xl overflow-hidden border border-slate-700 mb-6 p-4">
+                            <h3 class="font-bold text-white text-lg mb-4 flex items-center gap-2">
+                                <span class="text-cyan-400">🗓</span> TRAINING CALENDAR
+                            </h3>
                             
-                            <div class="divide-y divide-slate-700">
-                                <div v-for="(day, dIndex) in week.days" :key="dIndex" class="p-4 hover:bg-slate-800/50 transition-colors group">
-                                    <div class="flex items-start">
-                                        <div class="w-16 flex-shrink-0 pt-1">
-                                            <span class="text-xs font-mono text-slate-500 uppercase">@{{ day.day }}</span>
+                            <div class="grid grid-cols-1 md:grid-cols-7 gap-2 mb-2 text-center text-xs font-mono text-slate-500 uppercase hidden md:grid">
+                                <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                            </div>
+
+                            <div v-for="(week, wIndex) in programSchedule" :key="wIndex" class="mb-6">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-xs font-bold bg-slate-800 text-white px-2 py-1 rounded">W@{{ week.weekNum }}</span>
+                                    <span class="text-xs text-cyan-400">@{{ week.phase }} (@{{ week.totalVolume }}KM)</span>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
+                                    <div v-for="(day, dIndex) in week.days" :key="dIndex" 
+                                        @click="openWorkoutModal(day, week.phase)"
+                                        class="p-2 rounded border transition-all h-full min-h-[80px] flex flex-col justify-between cursor-pointer"
+                                        :class="{
+                                            'bg-slate-800/30 border-slate-700 hover:bg-slate-800': day.type === 'rest',
+                                            'bg-green-900/10 border-green-900/30 hover:bg-green-900/20': day.type === 'easy',
+                                            'bg-purple-900/10 border-purple-900/30 hover:bg-purple-900/20': day.type === 'hard',
+                                            'bg-yellow-900/10 border-yellow-900/30 hover:bg-yellow-900/20': day.type === 'long'
+                                        }">
+                                        
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="text-[10px] text-slate-500 font-mono md:hidden">@{{ day.day }}</span>
+                                            <span class="text-[10px] text-slate-500 font-mono hidden md:inline">@{{ dIndex + 1 }}</span>
+                                            
+                                            <span v-if="day.type === 'rest'" class="text-slate-600">☾</span>
+                                            <span v-else-if="day.type === 'easy'" class="text-green-500">♥</span>
+                                            <span v-else-if="day.type === 'hard'" class="text-purple-500">⚡</span>
+                                            <span v-else-if="day.type === 'long'" class="text-yellow-500">∞</span>
                                         </div>
-                                        <div class="flex-grow">
-                                            <h4 class="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">@{{ day.title }}</h4>
-                                            <p class="text-sm text-slate-400 mt-1">@{{ day.desc }}</p>
-                                            <div v-if="day.pace && day.pace !== '-'" class="mt-2 inline-block px-2 py-1 bg-slate-900 rounded border border-slate-700 text-xs font-mono text-cyan-300">
-                                                Target Pace: @{{ day.pace }}
+
+                                        <div>
+                                            <h4 class="text-xs font-bold text-white leading-tight mb-1">@{{ day.title }}</h4>
+                                            <p v-if="day.pace && day.pace !== '-'" class="text-[10px] font-mono text-cyan-300">@{{ day.pace }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tampilkan Jadwal Sebagai List (Legacy View) -->
+                        <div v-else class="space-y-6">
+                            <div v-for="(week, wIndex) in programSchedule" :key="wIndex" class="glass rounded-xl overflow-hidden border border-slate-700">
+                                <div class="bg-slate-800/50 p-4 border-b border-slate-700 flex justify-between items-center">
+                                    <div>
+                                        <h3 class="font-bold text-white text-lg">MINGGU @{{ week.weekNum }}</h3>
+                                        <span class="text-xs text-slate-400">Total: @{{ week.totalVolume }}KM | Fokus: @{{ week.focus }}</span>
+                                    </div>
+                                    <span class="text-xs bg-cyan-900 text-cyan-300 px-3 py-1 rounded-full font-bold">@{{ week.phase }}</span>
+                                </div>
+                                
+                                <div class="divide-y divide-slate-700">
+                                    <div v-for="(day, dIndex) in week.days" :key="dIndex" 
+                                        @click="openWorkoutModal(day, week.phase)"
+                                        class="p-4 hover:bg-slate-800/50 transition-colors group cursor-pointer">
+                                        <div class="flex items-start">
+                                            <div class="w-16 flex-shrink-0 pt-1">
+                                                <span class="text-xs font-mono text-slate-500 uppercase">@{{ day.day }}</span>
                                             </div>
-                                        </div>
-                                        <div class="ml-4">
-                                            <span v-if="day.type === 'rest'" class="text-slate-600 text-xl">☾</span>
-                                            <span v-else-if="day.type === 'easy'" class="text-green-500 text-xl">♥</span>
-                                            <span v-else-if="day.type === 'hard'" class="text-purple-500 text-xl">⚡</span>
-                                            <span v-else-if="day.type === 'long'" class="text-yellow-500 text-xl">∞</span>
+                                            <div class="flex-grow">
+                                                <h4 class="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">@{{ day.title }}</h4>
+                                                <p class="text-sm text-slate-400 mt-1">@{{ day.desc }}</p>
+                                                <div v-if="day.pace && day.pace !== '-'" class="mt-2 inline-block px-2 py-1 bg-slate-900 rounded border border-slate-700 text-xs font-mono text-cyan-300">
+                                                    Target Pace: @{{ day.pace }}
+                                                </div>
+                                            </div>
+                                            <div class="ml-4">
+                                                <span v-if="day.type === 'rest'" class="text-slate-600 text-xl">☾</span>
+                                                <span v-else-if="day.type === 'easy'" class="text-green-500 text-xl">♥</span>
+                                                <span v-else-if="day.type === 'hard'" class="text-purple-500 text-xl">⚡</span>
+                                                <span v-else-if="day.type === 'long'" class="text-yellow-500 text-xl">∞</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -360,7 +498,7 @@
 @push('scripts')
 <script type="module">
     // Using Vue from global scope (loaded in pacerhub layout)
-    const { createApp, ref, reactive, computed } = Vue;
+    const { createApp, ref, reactive, computed, onMounted } = Vue;
 
     // FIREBASE INTEGRATION
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -405,16 +543,57 @@
             });
 
             // Hasil Analisis
-            const paces = reactive({ easy: '', tempo: '', interval: '' });
+            const paces = reactive({ 
+                recovery: '', 
+                easy: '', 
+                tempo: '', 
+                threshold: '', 
+                interval: '', 
+                repetition: '' 
+            });
             const programSchedule = ref([]); // Now stores array of weeks
             const formattedCurrentTime = ref('');
             const ladderTarget = ref('');
+            
+            // New State for View Mode & Modal
+            const viewMode = ref('calendar'); // 'list' or 'calendar'
+            const selectedWorkout = ref(null);
+            const hasSavedProgram = ref(false);
 
             // Helper: Format Meni:Detik
             const formatTimeStr = (totalSeconds) => {
                 const m = Math.floor(totalSeconds / 60);
                 const s = Math.round(totalSeconds % 60);
                 return `${m}:${s < 10 ? '0' + s : s}`;
+            };
+            
+            onMounted(() => {
+                // Check local storage
+                const saved = localStorage.getItem('myRunningProgram');
+                if (saved) {
+                    hasSavedProgram.value = true;
+                }
+            });
+
+            const loadSavedProgram = () => {
+                const saved = localStorage.getItem('myRunningProgram');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    // Restore state
+                    Object.assign(form, data.form);
+                    Object.assign(paces, data.paces);
+                    programSchedule.value = data.schedule;
+                    ladderTarget.value = data.target;
+                    formattedCurrentTime.value = `${data.form.timeMin}:${data.form.timeSec || '00'}`;
+                    
+                    // Go to result
+                    step.value = 5;
+                }
+            };
+            
+            const openWorkoutModal = (day, weekPhase) => {
+                if (day.type === 'rest') return; // Optional: don't open for rest days
+                selectedWorkout.value = { ...day, phase: weekPhase };
             };
 
             const startAssessment = () => { step.value = 1; window.scrollTo(0,0); };
@@ -465,7 +644,7 @@
                 }, 200);
             };
 
-            // --- LOGIC UTAMA: GENERATE PROGRAM (4 MINGGU) ---
+            // --- LOGIC UTAMA: GENERATE PROGRAM (DINAMIS 8-16 MINGGU) ---
             const generateProgram = () => {
                 // 1. Hitung Pace Saat Ini (min/km)
                 const totalSeconds = (parseInt(form.timeMin) * 60) + (parseInt(form.timeSec) || 0);
@@ -474,76 +653,134 @@
 
                 formattedCurrentTime.value = `${form.timeMin}:${form.timeSec || '00'}`;
 
-                // 2. Tentukan Target Ladder (Realistic Goal)
+                // 2. Tentukan Target Ladder
                 const ladderSeconds = totalSeconds * 0.98; 
                 const lMin = Math.floor(ladderSeconds / 60);
                 const lSec = Math.round(ladderSeconds % 60);
                 ladderTarget.value = `${lMin}:${lSec < 10 ? '0' + lSec : lSec} (Sub ${lMin + 1})`;
 
-                // 3. Kalkulasi Zona Latihan
-                const easyPaceSec = paceSecondsPerKm + 75; 
-                const tempoPaceSec = paceSecondsPerKm - 10;
-                const intervalPaceSec = paceSecondsPerKm - 35;
+                // 3. Kalkulasi Zona Latihan (Approximation based on VDOT / Riegel Formula)
+                // Ref: Daniels' Running Formula
+                
+                // Base: 10K Race Pace in sec/km
+                let racePaceSec = paceSecondsPerKm; 
+                
+                // Adjust base pace if input distance is NOT 10k (normalize to 10k equivalent for calculation base)
+                if (form.latestDistance == 5) racePaceSec = paceSecondsPerKm * 1.06; // 5k pace is faster, slow down for 10k base
+                if (form.latestDistance == 21.1) racePaceSec = paceSecondsPerKm * 0.95; // HM pace is slower, speed up for 10k base
 
-                paces.easy = formatTimeStr(easyPaceSec) + " /km";
-                paces.tempo = formatTimeStr(tempoPaceSec) + " /km";
-                paces.interval = formatTimeStr(intervalPaceSec) + " /km";
+                // VDOT Multipliers (Approximation)
+                const recoverySec = racePaceSec * 1.35;    // ~135% of 10k pace (Very Slow)
+                const easySec = racePaceSec * 1.25;        // ~125% of 10k pace
+                const tempoSec = racePaceSec * 1.10;       // ~110% (Marathon Pace range)
+                const thresholdSec = racePaceSec * 1.00;   // ~100% (Threshold / 10k-15k pace) - Corrected logic: Threshold is roughly 15-20s slower than 5k, or close to 10k pace for amateurs
+                const intervalSec = racePaceSec * 0.92;    // ~92% (5k pace or faster)
+                const repetitionSec = racePaceSec * 0.88;  // ~88% (Mile pace)
 
-                // 4. Susun Jadwal 4 Minggu (Progressive Overload)
+                paces.recovery = formatTimeStr(recoverySec) + " /km";
+                paces.easy = formatTimeStr(easySec) + " /km";
+                paces.tempo = formatTimeStr(tempoSec) + " /km";
+                paces.threshold = formatTimeStr(thresholdSec) + " /km";
+                paces.interval = formatTimeStr(intervalSec) + " /km";
+                paces.repetition = formatTimeStr(repetitionSec) + " /km";
+
+                // 4. Susun Jadwal Dinamis (8-16 Minggu)
                 const baseVol = form.weeklyVolume || 20;
+                let durationWeeks = 8;
+                let programType = "General Fitness";
                 
-                // Rumus Volume:
-                // Minggu 1: Base (100%)
-                // Minggu 2: Build (+10%)
-                // Minggu 3: Build (+10% dari M2)
-                // Minggu 4: Cutback (-30% dari M3)
-                
-                const volW1 = Math.round(baseVol);
-                const volW2 = Math.round(volW1 * 1.1);
-                const volW3 = Math.round(volW2 * 1.1);
-                const volW4 = Math.round(volW3 * 0.7); // Recovery Week
+                // Set durasi berdasarkan target
+                switch(form.targetDistance) {
+                    case '5k': durationWeeks = 8; programType = "5K Plan"; break;
+                    case '10k': durationWeeks = 10; programType = "10K Plan"; break;
+                    case 'hm': durationWeeks = 12; programType = "Half Marathon Plan"; break;
+                    case 'fm': durationWeeks = 16; programType = "Marathon Plan"; break;
+                    default: durationWeeks = 8;
+                }
 
-                const weeks = [
-                    { vol: volW1, phase: 'Base Building', focus: 'Adaptasi' },
-                    { vol: volW2, phase: 'Progression 1', focus: 'Volume +10%' },
-                    { vol: volW3, phase: 'Progression 2', focus: 'Volume +10%' },
-                    { vol: volW4, phase: 'Recovery / Cut-back', focus: 'Absorb Training' }
-                ];
+                const generatedWeeks = [];
+                let currentVol = baseVol;
 
-                programSchedule.value = weeks.map((week, idx) => {
-                    const weekNum = idx + 1;
-                    const longRunDist = Math.round(week.vol * 0.3); // 30% weekly vol
-                    const easyDist = Math.round(week.vol * 0.15); // Standard easy run
+                for (let w = 1; w <= durationWeeks; w++) {
+                    let phase = '';
+                    let focus = '';
+                    let weekVol = currentVol;
+
+                    // Logika Fase & Volume (Simplified Periodization)
+                    const isRecoveryWeek = w % 4 === 0; // Tiap 4 minggu recovery
+                    const isTaper = w > durationWeeks - 2; // 2 minggu terakhir taper
+
+                    if (isTaper) {
+                        phase = 'Tapering';
+                        focus = 'Recovery & Freshness';
+                        weekVol = w === durationWeeks ? baseVol * 0.5 : baseVol * 0.7; // Drop volume drastically
+                    } else if (isRecoveryWeek) {
+                        phase = 'Recovery / Cut-back';
+                        focus = 'Absorb Training';
+                        weekVol = currentVol * 0.7; // Turun 30%
+                    } else {
+                        // Progressive Overload
+                        if (w <= durationWeeks / 3) {
+                            phase = 'Base Building';
+                            focus = 'Endurance Foundation';
+                            if (w > 1) currentVol = Math.round(currentVol * 1.1); // Naik 10%
+                            weekVol = currentVol;
+                        } else if (w <= (durationWeeks / 3) * 2) {
+                            phase = 'Strength & Threshold';
+                            focus = 'Lactate Threshold';
+                            if (w > 1 && !isRecoveryWeek) currentVol = Math.round(currentVol * 1.05); // Naik 5%
+                            weekVol = currentVol;
+                        } else {
+                            phase = 'Peak / Speed';
+                            focus = 'Race Specific';
+                            weekVol = currentVol; // Stabilize volume
+                        }
+                    }
+
+                    // Tentukan Menu Harian
+                    const longRunDist = Math.round(weekVol * 0.3);
+                    const easyDist = Math.round(weekVol * 0.15);
                     
                     let keyWorkout = {};
                     
-                    // Variasi Key Workout per Minggu
-                    if (weekNum === 1) {
-                        keyWorkout = { title: 'Interval (Intro)', desc: '5 x 400m di pace Interval. Istirahat 2 menit jalan kaki.', pace: paces.interval };
-                    } else if (weekNum === 2) {
-                        keyWorkout = { title: 'Fartlek Run', desc: 'Lari 1 menit kencang, 1 menit pelan. Ulangi 8-10 kali.', pace: 'Feel Based' };
-                    } else if (weekNum === 3) {
-                        keyWorkout = { title: 'Tempo Run', desc: 'Pemanasan 2km, Lari 15-20 menit di pace Tempo (Sakit enak).', pace: paces.tempo };
-                    } else {
-                        keyWorkout = { title: 'Easy Run + Strides', desc: 'Lari santai saja. Di akhir, lakukan 4x lari kencang pendek (15 detik).', pace: paces.easy };
+                    // Variasi Key Workout
+                    if (phase.includes('Base')) {
+                        keyWorkout = { title: 'Fartlek / Strides', desc: 'Lari santai diselingi lari cepat pendek (Repetition).', pace: paces.repetition };
+                    } else if (phase.includes('Strength')) {
+                        keyWorkout = { title: 'Threshold Run', desc: 'Lari di ambang laktat (Comfortably Hard).', pace: paces.threshold };
+                    } else if (phase.includes('Peak')) {
+                        keyWorkout = { title: 'Interval VO2Max', desc: '4-6 x 800m atau 1km repetitions.', pace: paces.interval };
+                    } else { // Taper
+                        keyWorkout = { title: 'Dress Rehearsal', desc: 'Lari pendek dengan pace target lomba (Tempo).', pace: paces.tempo };
                     }
 
-                    return {
-                        weekNum: weekNum,
-                        phase: week.phase,
-                        focus: week.focus,
-                        totalVolume: week.vol,
+                    generatedWeeks.push({
+                        weekNum: w,
+                        phase: phase,
+                        focus: focus,
+                        totalVolume: Math.round(weekVol),
                         days: [
-                            { day: 'Senin', title: 'Rest / Recovery', type: 'rest', desc: 'Istirahat total atau cross training ringan (renang/sepeda).', pace: '-' },
+                            { day: 'Senin', title: 'Rest', type: 'rest', desc: 'Istirahat total.', pace: '-' },
                             { day: 'Selasa', title: keyWorkout.title, type: 'hard', desc: keyWorkout.desc, pace: keyWorkout.pace },
-                            { day: 'Rabu', title: 'Easy Run', type: 'easy', desc: `Jaga HR rendah. Jarak: ${easyDist}KM`, pace: paces.easy },
-                            { day: 'Kamis', title: 'Strength / Hills', type: 'hard', desc: weekNum === 4 ? 'Istirahat / Yoga' : 'Lari tanjakan atau latihan penguatan kaki (Squat/Lunges).', pace: '-' },
-                            { day: 'Jumat', title: 'Rest', type: 'rest', desc: 'Persiapan untuk Long Run besok.', pace: '-' },
-                            { day: 'Sabtu', title: 'Easy Shakeout', type: 'easy', desc: 'Lari sangat santai 20-30 menit.', pace: paces.easy },
-                            { day: 'Minggu', title: 'Long Run', type: 'long', desc: `Mental endurance. Jarak: ${longRunDist}KM.`, pace: paces.easy + ' + 15s' },
+                            { day: 'Rabu', title: 'Easy Run', type: 'easy', desc: `Jarak: ${easyDist}KM`, pace: paces.easy },
+                            { day: 'Kamis', title: 'Tempo Run', type: 'hard', desc: 'Steady state run (Marathon Pace).', pace: paces.tempo },
+                            { day: 'Jumat', title: 'Recovery Run', type: 'rest', desc: 'Lari sangat pelan untuk melancarkan darah.', pace: paces.recovery },
+                            { day: 'Sabtu', title: 'Shakeout', type: 'easy', desc: 'Lari ringan 30 menit + Strides.', pace: paces.easy },
+                            { day: 'Minggu', title: 'Long Run', type: 'long', desc: `Jarak: ${longRunDist}KM.`, pace: paces.easy },
                         ]
-                    };
-                });
+                    });
+                }
+
+                programSchedule.value = generatedWeeks;
+                
+                // Simpan ke LocalStorage
+                localStorage.setItem('myRunningProgram', JSON.stringify({
+                    timestamp: new Date().getTime(),
+                    form: form,
+                    schedule: generatedWeeks,
+                    paces: paces,
+                    target: ladderTarget.value
+                }));
             };
 
             const resetForm = () => {
@@ -555,7 +792,10 @@
             return {
                 step, form, loadingPercentage, loadingText,
                 startAssessment, submitAssessment, resetForm,
-                paces, programSchedule, formattedCurrentTime, ladderTarget
+                paces, programSchedule, formattedCurrentTime, ladderTarget,
+                // Newly added functions and refs
+                viewMode, selectedWorkout, hasSavedProgram,
+                loadSavedProgram, openWorkoutModal
             }
         }
     }).mount('#program-design-app')

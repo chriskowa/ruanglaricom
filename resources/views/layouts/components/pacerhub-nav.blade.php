@@ -5,8 +5,8 @@
                         <!-- Logo PacerHub replaced with RuangLari Green -->
                         <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
                         
-                        <a href="https://app.ruanglari.com" class="text-2xl font-black italic tracking-tighter flex items-center gap-2">                            
-                            RUANG<span class="text-primary">LARI</span>
+                        <a href="https://app.ruanglari.com" class="text-2xl font-black italic tracking-tighter flex items-center">                            
+                            RUANG<span class="text-primary bg-gradient-to-r from-neon to-green">LARI</span>
                         </a>
                     </div>
                     
