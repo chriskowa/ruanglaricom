@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Race Master - Chute System</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        body { background: #111; color: #eee; font-family: 'Inter', sans-serif; overflow: hidden; }
+        
+        /* Layout Grid */
+        .app-grid {
+            display: grid;
+            grid-template-rows: 60px 1fr 80px; /* Header, Content, Footer */
+            height: 100vh;
+        }
+
+        /* Tombol Tap Raksasa */
+        .tap-btn {
+            background: linear-gradient(145deg, #fbbf24, #d97706);
+            box-shadow: 0 10px 0 #92400e, 0 20px 20px rgba(0,0,0,0.5);
+            transition: all 0.1s;
+        }
+        .tap-btn:active {
+            transform: translateY(10px);
+            box-shadow: 0 0 0 #92400e, inset 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Scanner */
+        #reader video { object-fit: cover; border-radius: 12px; }
+        .scan-overlay { border: 4px solid #10b981; border-radius: 12px; box-shadow: 0 0 20px #10b981; }
+
+        /* Table Highlight */
+        .row-waiting { background: rgba(255, 0, 0, 0.2); animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% {background: rgba(255,0,0,0.1);} 50% {background: rgba(255,0,0,0.3);} 100% {background: rgba(255,0,0,0.1);} }
+    </style>
+</head>
+<body>
+
+<div id="app" class="app-grid">
+
+    <div class="bg-gray-900 border-b border-gray-800 flex justify-between items-center px-4">
+        <div>
+            <h1 class="font-bold text-yellow-500 tracking-wider">RACE MASTER <span class="text-xs text-gray-500">v1.0</span></h1>
+            <div class="text-[10px] text-gray-400">Mode: Chute System (Split)</div>
+        </div>
+        <div class="text-right">
+            <div class="text-2xl font-mono font-bold">{{ masterClock }}</div>
+            <div class="text-[10px] text-green-400 uppercase">Race In Progress</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 overflow-hidden">
+        
+        <div class="p-4 flex flex-col border-r border-gray-800 relative bg-gray-900/50">
+            <div class="absolute top-2 left-2 text-xs font-bold text-gray-500 uppercase">Station 1: Finish Line</div>
+            
+            <div class="flex-1 flex items-center justify-center">
+                <button @click="recordTime" class="tap-btn w-64 h-64 rounded-full flex flex-col items-center justify-center text-gray-900 border-4 border-yellow-300">
+                    <i class="ph ph-person-simple-run text-6xl mb-2"></i>
+                    <span class="text-4xl font-black">TAP</span>
+                    <span class="text-sm font-bold mt-1">SAAT LEWAT</span>
+                </button>
+            </div>
+            
+            <div class="text-center mt-4">
+                <div class="text-gray-400 text-sm">Pelari Finish (Recorded):</div>
+                <div class="text-5xl font-mono font-bold text-white">{{ finishData.length }}</div>
+            </div>
+        </div>
+
+        <div class="p-4 flex flex-col bg-black relative">
+            <div class="absolute top-2 left-2 text-xs font-bold text-gray-500 uppercase">Station 2: Chute Scanner</div>
+            
+            <div class="mb-2 flex justify-between items-end">
+                <div class="text-sm">Menunggu BIB: <span class="text-red-500 font-bold text-xl">{{ pendingBibsCount }}</span> Org</div>
+                <div class="text-xs text-gray-400">Target: Posisi #{{ nextBibIndex + 1 }}</div>
+            </div>
+
+            <div class="flex-1 bg-gray-800 rounded-xl relative overflow-hidden flex items-center justify-center">
+                <div id="reader" class="w-full h-full absolute inset-0"></div>
+                <div class="scan-overlay w-64 h-64 pointer-events-none z-10"></div>
+                <div class="absolute bottom-4 z-20 bg-black/50 px-3 py-1 rounded text-xs text-green-400">
+                    Arahkan ke QR BIB
+                </div>
+            </div>
+
+            <div class="mt-4 flex gap-2">
+                <input v-model="manualBibInput" @keyup.enter="manualSubmit" type="number" placeholder="Ketik BIB Manual..." class="bg-gray-800 border border-gray-600 text-white rounded px-4 py-2 flex-1 font-mono text-lg focus:outline-none focus:border-yellow-500">
+                <button @click="manualSubmit" class="bg-blue-600 px-4 rounded text-white font-bold"><i class="ph ph-check"></i></button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bg-gray-900 border-t border-gray-700 flex flex-col">
+        <div class="h-10 bg-gray-800 px-4 flex items-center justify-between">
+            <span class="text-xs font-bold text-gray-400 uppercase">Live Results Table</span>
+            <button @click="downloadCSV" class="text-xs bg-green-700 text-white px-3 py-1 rounded hover:bg-green-600 flex items-center gap-1">
+                <i class="ph ph-microsoft-excel-logo"></i> Export CSV
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+            <table class="w-full text-left text-sm font-mono">
+                <thead class="bg-gray-800 text-gray-400 sticky top-0">
+                    <tr>
+                        <th class="px-4 py-2 w-16">Pos</th>
+                        <th class="px-4 py-2">Waktu Finish</th>
+                        <th class="px-4 py-2">Nomor BIB</th>
+                        <th class="px-4 py-2 text-right">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                    <tr v-for="(item, index) in reversedData" :key="item.pos" :class="!item.bib ? 'row-waiting' : ''">
+                        <td class="px-4 py-2 text-gray-500 font-bold">#{{ item.pos }}</td>
+                        <td class="px-4 py-2 text-yellow-400 font-bold">{{ item.time }}</td>
+                        <td class="px-4 py-2">
+                            <span v-if="item.bib" class="text-white text-lg font-bold">{{ item.bib }}</span>
+                            <span v-else class="text-red-500 text-xs animate-pulse">Waiting Scan...</span>
+                        </td>
+                        <td class="px-4 py-2 text-right">
+                            <i v-if="item.bib" class="ph ph-check-circle text-green-500"></i>
+                            <i v-else class="ph ph-clock text-red-500"></i>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<audio id="sfx-tap" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.m3u8"></audio>
+<audio id="sfx-scan" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.m3u8"></audio>
+
+<script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            // Data Utama
+            const finishData = ref([]); // Array object: { pos: 1, time: '10:00:00', bib: null }
+            const manualBibInput = ref('');
+            const masterClock = ref('00:00:00');
+            
+            // Scanner State
+            let html5QrCode;
+            let lastScannedBib = '';
+            let lastScanTime = 0;
+
+            // COMPUTED
+            // Hitung data yang belum ada BIB-nya (untuk scanner logic)
+            const nextBibIndex = computed(() => {
+                return finishData.value.findIndex(item => item.bib === null);
+            });
+
+            const pendingBibsCount = computed(() => {
+                return finishData.value.filter(item => item.bib === null).length;
+            });
+
+            const reversedData = computed(() => {
+                return [...finishData.value].reverse();
+            });
+
+            // --- FUNCTION 1: TIMER (TAPPER) ---
+            const recordTime = () => {
+                // Play Sound
+                document.getElementById('sfx-tap').play().catch(()=>{});
+
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('id-ID', { hour12: false }) + '.' + String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+                
+                // Tambah data baru (BIB Kosong)
+                finishData.value.push({
+                    pos: finishData.value.length + 1,
+                    time: timeString,
+                    bib: null // Nanti diisi scanner
+                });
+            };
+
+            // --- FUNCTION 2: SCANNER (IDENTIFIER) ---
+            const assignBib = (bib) => {
+                const targetIndex = nextBibIndex.value;
+
+                // Validasi: Apakah ada antrian waktu yang belum punya BIB?
+                if (targetIndex === -1) {
+                    alert("⚠️ PERINGATAN: Tidak ada data waktu yang menunggu! Tekan tombol TAP dulu sebelum scan.");
+                    return;
+                }
+
+                // Cek Duplikat di list (Optional, bisa dimatikan kalau loop lari)
+                if (finishData.value.some(d => d.bib === bib)) {
+                    // Beri warning visual saja, jangan block (siapa tau lari lap 2)
+                    console.warn("Bib duplicate detected");
+                }
+
+                // Update Data: Assign BIB ke posisi teratas yang kosong
+                finishData.value[targetIndex].bib = bib;
+                
+                // Play Sound
+                document.getElementById('sfx-scan').play().catch(()=>{});
+            };
+
+            const onScanSuccess = (decodedText) => {
+                const now = Date.now();
+                // Debounce 2 detik
+                if (decodedText === lastScannedBib && (now - lastScanTime < 2000)) return;
+                
+                lastScanTime = now;
+                lastScannedBib = decodedText;
+                
+                assignBib(decodedText);
+            };
+
+            const manualSubmit = () => {
+                if(manualBibInput.value) {
+                    assignBib(manualBibInput.value);
+                    manualBibInput.value = ''; // Clear
+                }
+            };
+
+            // --- UTILS ---
+            const startScanner = () => {
+                html5QrCode = new Html5Qrcode("reader");
+                html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: 250 }, onScanSuccess)
+                .catch(err => console.error("Camera Error", err));
+            };
+
+            const downloadCSV = () => {
+                let csv = "POS,BIB,TIME\n";
+                finishData.value.forEach(row => {
+                    csv += `${row.pos},${row.bib || 'UNKNOWN'},${row.time}\n`;
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `race_result_${new Date().getTime()}.csv`;
+                a.click();
+            };
+
+            // Clock Logic
+            setInterval(() => {
+                const d = new Date();
+                masterClock.value = d.toLocaleTimeString('id-ID', { hour12: false });
+            }, 100);
+
+            // Hotkey (Spasi untuk TAP)
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+                    e.preventDefault(); // Prevent scroll
+                    recordTime();
+                }
+            });
+
+            onMounted(() => {
+                startScanner();
+            });
+
+            return {
+                finishData, reversedData, masterClock, manualBibInput,
+                nextBibIndex, pendingBibsCount,
+                recordTime, manualSubmit, downloadCSV
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>

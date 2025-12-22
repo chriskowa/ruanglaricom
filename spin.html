@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Gacha Draw - RuangLari</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; overflow: hidden; }
+        .font-arcade { font-family: 'Bangers', cursive; letter-spacing: 2px; }
+        
+        /* Gacha Machine CSS Art */
+        .machine-dome {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border: 4px solid rgba(255, 255, 255, 0.5);
+            box-shadow: inset 0 0 40px rgba(255, 255, 255, 0.2), 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        /* Animasi Bola di dalam Dome */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        @keyframes jumble {
+            0% { transform: translate(0,0); }
+            25% { transform: translate(10px, -10px) rotate(90deg); }
+            50% { transform: translate(-5px, 20px) rotate(180deg); }
+            75% { transform: translate(-10px, -5px) rotate(270deg); }
+            100% { transform: translate(0,0) rotate(360deg); }
+        }
+        .capsule { animation: float 3s ease-in-out infinite; }
+        .capsule.jumbling { animation: jumble 0.2s linear infinite; }
+
+        /* Knob Rotation */
+        .knob-turn { transform: rotate(180deg); transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+
+        /* Card Reveal */
+        .reveal-enter-active { animation: backInDown 0.8s; }
+        .reveal-leave-active { animation: backOutDown 0.5s; }
+    </style>
+</head>
+<body class="text-white h-screen flex flex-col items-center justify-center bg-[url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-blend-multiply">
+
+<div id="app" class="w-full h-full flex flex-col items-center justify-center relative">
+
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-start z-10">
+        <div>
+            <h1 class="text-4xl text-yellow-400 font-arcade drop-shadow-[0_4px_0_#000]">GACHA RUN 4x400</h1>
+            <p class="text-blue-200">Live Team Generator</p>
+        </div>
+        <div class="bg-black/50 backdrop-blur rounded-xl p-4 border border-white/10 text-right">
+            <div class="text-xs text-gray-400 uppercase">Sisa Peserta Belum Dapat Tim</div>
+            <div class="text-2xl font-bold font-mono">{{ remainingRunners }} Runners</div>
+        </div>
+    </div>
+
+    <div class="relative scale-[0.8] md:scale-100 transition-transform duration-500" :class="isRevealing ? 'blur-sm scale-[0.9]' : ''">
+        
+        <div class="relative w-80 h-80 rounded-full machine-dome mx-auto z-20 overflow-hidden flex items-center justify-center">
+            <div class="absolute inset-0 p-8 flex flex-wrap justify-center items-center gap-2">
+                <div v-for="n in 12" :key="n" 
+                     class="w-12 h-12 rounded-full border-2 border-white/40 shadow-inner flex items-center justify-center text-xs font-bold capsule"
+                     :class="[
+                        isSpinning ? 'jumbling' : '',
+                        ['bg-red-500', 'bg-blue-500', 'bg-yellow-400', 'bg-green-500'][n%4]
+                     ]"
+                     :style="{ animationDelay: n * 0.1 + 's' }">
+                    ?
+                </div>
+            </div>
+            <div class="absolute top-4 right-8 w-16 h-8 bg-white/20 rounded-full blur-md rotate-45"></div>
+        </div>
+
+        <div class="w-96 h-80 bg-gradient-to-b from-indigo-600 to-indigo-900 rounded-3xl -mt-16 pt-20 px-8 relative shadow-2xl border-4 border-indigo-400 mx-auto z-10">
+            <div class="w-40 h-32 bg-gray-900 rounded-t-full mx-auto border-4 border-gray-600 shadow-inner flex items-end justify-center pb-4 overflow-hidden relative">
+                <div class="w-full h-4 bg-black/50 absolute top-0"></div>
+                <div class="w-32 h-20 bg-black rounded-full opacity-50 blur-xl"></div>
+            </div>
+
+            <button 
+                @click="spinMachine" 
+                :disabled="isSpinning || isRevealing || remainingRunners < 4"
+                class="absolute right-[-40px] top-32 w-24 h-24 rounded-full bg-red-600 border-b-8 border-red-800 shadow-lg flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed group z-30"
+            >
+                <div class="w-20 h-4 bg-white rounded-full shadow-sm transition-transform duration-500" :class="isSpinning ? 'rotate-180' : 'rotate-45'"></div>
+                <span class="absolute -bottom-10 font-bold text-white text-sm bg-black/50 px-2 py-1 rounded">PUTAR!</span>
+            </button>
+
+            <div class="absolute bottom-4 left-4 w-4 h-4 rounded-full bg-green-400 shadow-[0_0_10px_lime] animate-pulse"></div>
+            <div class="absolute bottom-4 right-4 w-4 h-4 rounded-full bg-yellow-400 shadow-[0_0_10px_yellow] animate-pulse" style="animation-delay: 0.5s"></div>
+        </div>
+        
+        <div class="w-80 h-8 bg-gray-800 mx-auto rounded-b-xl mt-1 opacity-80"></div>
+    </div>
+
+    <transition name="reveal">
+        <div v-if="generatedTeam" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-md" @click="closeReveal"></div>
+
+            <div class="relative bg-white text-gray-900 w-full max-w-4xl rounded-[3rem] p-2 shadow-[0_0_100px_rgba(255,215,0,0.4)] animate__animated animate__zoomInDown">
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-[2.5rem] p-8 text-center text-white relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                    
+                    <h2 class="text-xl opacity-80 uppercase tracking-widest mb-2">Selamat Kepada Tim Baru</h2>
+                    <h1 class="text-6xl md:text-7xl font-arcade text-yellow-300 drop-shadow-md">{{ generatedTeam.teamName }}</h1>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-8">
+                    
+                    <div class="bg-yellow-50 rounded-2xl p-4 border-2 border-yellow-200 text-center transform hover:scale-105 transition">
+                        <div class="w-16 h-16 mx-auto bg-yellow-400 text-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-lg">⚡</div>
+                        <h3 class="font-bold text-lg text-gray-800">{{ generatedTeam.members.elite.name }}</h3>
+                        <span class="inline-block bg-yellow-200 text-yellow-800 text-xs font-bold px-2 py-1 rounded mt-1">THE ELITE</span>
+                    </div>
+
+                    <div class="bg-red-50 rounded-2xl p-4 border-2 border-red-200 text-center transform hover:scale-105 transition">
+                        <div class="w-16 h-16 mx-auto bg-red-500 text-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-lg">🔥</div>
+                        <h3 class="font-bold text-lg text-gray-800">{{ generatedTeam.members.fast.name }}</h3>
+                        <span class="inline-block bg-red-200 text-red-800 text-xs font-bold px-2 py-1 rounded mt-1">SI KENCANG</span>
+                    </div>
+
+                    <div class="bg-purple-50 rounded-2xl p-4 border-2 border-purple-200 text-center transform hover:scale-105 transition">
+                        <div class="w-16 h-16 mx-auto bg-purple-500 text-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-lg">😎</div>
+                        <h3 class="font-bold text-lg text-gray-800">{{ generatedTeam.members.culture.name }}</h3>
+                        <span class="inline-block bg-purple-200 text-purple-800 text-xs font-bold px-2 py-1 rounded mt-1">ANAK KALCER</span>
+                    </div>
+
+                    <div class="bg-green-50 rounded-2xl p-4 border-2 border-green-200 text-center transform hover:scale-105 transition">
+                        <div class="w-16 h-16 mx-auto bg-green-500 text-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-lg">🐌</div>
+                        <h3 class="font-bold text-lg text-gray-800">{{ generatedTeam.members.slow.name }}</h3>
+                        <span class="inline-block bg-green-200 text-green-800 text-xs font-bold px-2 py-1 rounded mt-1">TIM KEONG</span>
+                    </div>
+
+                </div>
+
+                <div class="p-6 text-center border-t border-gray-100 bg-gray-50 rounded-b-[2.5rem]">
+                    <button @click="closeReveal" class="bg-gray-900 text-white px-8 py-3 rounded-full font-bold hover:bg-gray-700 transition shadow-lg">
+                        Lanjut Undi Tim Berikutnya →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+</div>
+
+<script>
+    const { createApp, ref, computed } = Vue;
+
+    createApp({
+        setup() {
+            // State
+            const isSpinning = ref(false);
+            const isRevealing = ref(false);
+            const generatedTeam = ref(null);
+
+            // 1. DATA DUMMY PESERTA (Database Simulator)
+            // Di real app, data ini di-fetch dari API Laravel
+            const pools = ref({
+                elite: ['Agus Bolt', 'Budi Kipchoge', 'Siti Rocket', 'Dina Flash', 'Rudi Sprint'],
+                fast: ['Eko Speed', 'Fajar Fast', 'Gina Dash', 'Hadi Zoom', 'Indra Quick'],
+                culture: ['Joko Outfit', 'Kiki Vaporfly', 'Lina Oakleiy', 'Mamat TikTok', 'Nina OOTD'],
+                slow: ['Om Tono', 'Tante Dewi', 'Pak RT', 'Mas Santai', 'Mba Rebahan']
+            });
+
+            // Nama-nama tim lucu random
+            const teamNames = [
+                'Tim Pecel Lele', 'Tim Kaki Kram', 'Tim Nafas Tua', 
+                'Tim Salah Kostum', 'Tim Finish Strong', 'Tim Cari Sarapan',
+                'The Avengers Kw', 'Tim Lari Dari Kenyataan'
+            ];
+
+            const remainingRunners = computed(() => {
+                return pools.value.elite.length + pools.value.fast.length + pools.value.culture.length + pools.value.slow.length;
+            });
+
+            // LOGIC UTAMA GACHA
+            const spinMachine = () => {
+                if (remainingRunners.value < 4) {
+                    alert("Peserta habis! Semua tim sudah terbentuk.");
+                    return;
+                }
+
+                isSpinning.value = true;
+                
+                // Sound Effect Simulation (Optional)
+                // const audio = new Audio('gacha-sound.mp3'); audio.play();
+
+                // Simulasi delay animasi (2 detik)
+                setTimeout(() => {
+                    isSpinning.value = false;
+                    generateRandomTeam();
+                    isRevealing.value = true;
+                }, 2000);
+            };
+
+            const generateRandomTeam = () => {
+                // Helper: Ambil random & hapus dari array (biar gak kepilih 2x)
+                const pickOne = (type) => {
+                    const arr = pools.value[type];
+                    if (arr.length === 0) return { name: 'N/A' };
+                    const randomIndex = Math.floor(Math.random() * arr.length);
+                    const selected = arr[randomIndex];
+                    arr.splice(randomIndex, 1); // Hapus dari pool
+                    return { name: selected };
+                };
+
+                // Pick random Team Name
+                const randomTeamName = teamNames[Math.floor(Math.random() * teamNames.length)];
+
+                generatedTeam.value = {
+                    teamName: randomTeamName,
+                    members: {
+                        elite: pickOne('elite'),
+                        fast: pickOne('fast'),
+                        culture: pickOne('culture'),
+                        slow: pickOne('slow')
+                    }
+                };
+            };
+
+            const closeReveal = () => {
+                generatedTeam.value = null; // Tutup modal
+                isRevealing.value = false;  // Reset state
+            };
+
+            return {
+                isSpinning, isRevealing, remainingRunners, generatedTeam,
+                spinMachine, closeReveal
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
