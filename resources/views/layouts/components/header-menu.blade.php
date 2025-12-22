@@ -54,6 +54,7 @@
         </div>
     </li>
     <li class="nav-item dropdown header-profile">
+        @auth
         <a class="nav-link" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
             <img src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/profile/17.jpg') }}" width="20" alt="{{ auth()->user()->name }}">
             <div class="header-info">
@@ -76,6 +77,13 @@
             </a>
             <form id="logout-form-header" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
         </div>
+        @else
+        <a class="nav-link" href="{{ route('login') }}" role="button">
+            <div class="header-info">
+                <span class="text-black"><strong>Login</strong></span>
+            </div>
+        </a>
+        @endauth
     </li>
 </ul>
 

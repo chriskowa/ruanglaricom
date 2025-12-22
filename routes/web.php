@@ -49,7 +49,7 @@ Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
     }
 })->name('image.proxy');
 
-Route::get('/programs/design', function () { return view('programs.design'); })->name('programs.design');
+Route::get('/realistic-running-program', function () { return view('programs.design'); })->name('programs.realistic');
 Route::get('/programs', [App\Http\Controllers\PublicProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{slug}', [App\Http\Controllers\PublicProgramController::class, 'show'])->name('programs.show');
 

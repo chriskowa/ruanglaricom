@@ -1,48 +1,41 @@
-@extends('layouts.app')
+@extends('layouts.pacerhub')
 
 @section('title', 'Realistic Values - Design Program')
 
 @push('styles')
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        neon: {
-                            cyan: '#06b6d4',
-                            purple: '#a855f7',
-                            green: '#22c55e',
-                            dark: '#0f172a',
-                            card: '#1e293b'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    boxShadow: {
-                        'neon-cyan': '0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3)',
-                        'neon-purple': '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)',
-                    },
-                    animation: {
-                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'scan': 'scan 2s linear infinite',
-                    },
-                    keyframes: {
-                        scan: {
-                            '0%': { transform: 'translateY(-100%)' },
-                            '100%': { transform: 'translateY(100%)' },
-                        }
-                    }
+        // Extending existing Tailwind config from pacerhub layout
+        tailwind.config.theme.extend = {
+            ...tailwind.config.theme.extend,
+            colors: {
+                ...tailwind.config.theme.extend.colors,
+                neon: {
+                    cyan: '#06b6d4',
+                    purple: '#a855f7',
+                    green: '#22c55e',
+                    dark: '#0f172a',
+                    card: '#1e293b'
+                }
+            },
+            boxShadow: {
+                ...tailwind.config.theme.extend.boxShadow,
+                'neon-cyan': '0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3)',
+                'neon-purple': '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)',
+            },
+            animation: {
+                ...tailwind.config.theme.extend.animation,
+                'scan': 'scan 2s linear infinite',
+            },
+            keyframes: {
+                ...tailwind.config.theme.extend.keyframes,
+                scan: {
+                    '0%': { transform: 'translateY(-100%)' },
+                    '100%': { transform: 'translateY(100%)' },
                 }
             }
         }
     </script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
         /* Scoped styles for this page */
         .design-program-wrapper { 
@@ -51,7 +44,6 @@
             color: #e2e8f0;
             min-height: 100vh;
             position: relative;
-            /* Override bootstrap defaults if necessary */
         }
         
         .design-program-wrapper .glass {
@@ -72,20 +64,13 @@
             outline: none;
         }
         
-        .design-program-wrapper ::-webkit-scrollbar { width: 8px; }
-        .design-program-wrapper ::-webkit-scrollbar-track { background: #0f172a; }
-        .design-program-wrapper ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        .design-program-wrapper ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
         .fade-enter-active, .fade-leave-active { transition: opacity 0.4s ease, transform 0.4s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(10px); }
-
-        /* Ensure Tailwind preflight doesn't break everything else, or accept it */
     </style>
 @endpush
 
 @section('content')
-<div id="app" class="design-program-wrapper relative w-full h-full px-4 pb-4 pt-28 rounded-xl">
+<div id="program-design-app" class="design-program-wrapper relative w-full h-full px-4 pb-4 pt-28 rounded-xl">
         
     <div class="absolute inset-0 z-0 pointer-events-none opacity-20" 
             style="background-image: linear-gradient(#334155 1px, transparent 1px), linear-gradient(to right, #334155 1px, transparent 1px); background-size: 40px 40px;">
@@ -93,13 +78,13 @@
 
     <!-- Replaced Navbar with internal header -->
     <div class="relative z-10 w-full mb-8 flex justify-between items-center border-b border-slate-700 pb-4">
-        <div class="flex items-center cursor-pointer group" @click="resetForm">
+        <!--<div class="flex items-center cursor-pointer group" @click="resetForm">
             <div class="w-2 h-8 bg-cyan-400 mr-3 shadow-neon-cyan group-hover:h-10 transition-all duration-300"></div>
             <span class="font-bold text-xl tracking-tighter text-white">
                 REALISTIC<span class="text-cyan-400">VALUES</span>
             </span>
-        </div>
-        <div class="hidden md:block font-mono text-xs text-cyan-400 border border-cyan-900 bg-cyan-900/20 px-3 py-1 rounded">
+        </div>-->
+        <div class="hidden md:block font-mono text-xs text-cyan-400 border border-cyan-900 bg-cyan-900/20 px-3 py-1 rounded mx-auto">
             SYSTEM: ONLINE // VDOT: ACTIVE
         </div>
     </div>
@@ -319,14 +304,18 @@
                     </div>
 
                     <div class="lg:col-span-2">
-                        <div class="glass rounded-xl overflow-hidden border border-slate-700">
+                        <!-- Tampilkan Jadwal Per Minggu -->
+                        <div v-for="(week, wIndex) in programSchedule" :key="wIndex" class="glass rounded-xl overflow-hidden border border-slate-700 mb-6">
                             <div class="bg-slate-800/50 p-4 border-b border-slate-700 flex justify-between items-center">
-                                <h3 class="font-bold text-white">Jadwal Minggu 1</h3>
-                                <span class="text-xs bg-cyan-900 text-cyan-300 px-2 py-1 rounded">Fase: Conditioning</span>
+                                <div>
+                                    <h3 class="font-bold text-white text-lg">MINGGU @{{ week.weekNum }}</h3>
+                                    <span class="text-xs text-slate-400">Total: @{{ week.totalVolume }}KM | Fokus: @{{ week.focus }}</span>
+                                </div>
+                                <span class="text-xs bg-cyan-900 text-cyan-300 px-3 py-1 rounded-full font-bold">@{{ week.phase }}</span>
                             </div>
                             
                             <div class="divide-y divide-slate-700">
-                                <div v-for="(day, index) in programSchedule" :key="index" class="p-4 hover:bg-slate-800/50 transition-colors group">
+                                <div v-for="(day, dIndex) in week.days" :key="dIndex" class="p-4 hover:bg-slate-800/50 transition-colors group">
                                     <div class="flex items-start">
                                         <div class="w-16 flex-shrink-0 pt-1">
                                             <span class="text-xs font-mono text-slate-500 uppercase">@{{ day.day }}</span>
@@ -334,7 +323,7 @@
                                         <div class="flex-grow">
                                             <h4 class="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">@{{ day.title }}</h4>
                                             <p class="text-sm text-slate-400 mt-1">@{{ day.desc }}</p>
-                                            <div v-if="day.pace" class="mt-2 inline-block px-2 py-1 bg-slate-900 rounded border border-slate-700 text-xs font-mono text-cyan-300">
+                                            <div v-if="day.pace && day.pace !== '-'" class="mt-2 inline-block px-2 py-1 bg-slate-900 rounded border border-slate-700 text-xs font-mono text-cyan-300">
                                                 Target Pace: @{{ day.pace }}
                                             </div>
                                         </div>
@@ -354,7 +343,7 @@
                             <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded border border-slate-600 text-sm">
                                 Simpan PDF
                             </button>
-                            <a href="https://wa.me/?text=Halo%20Coach,%20saya%20sudah%20generate%20program." target="_blank" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded shadow-lg text-sm flex items-center">
+                            <a href="https://wa.me/6285524807623?text=Halo%20Coach,%20saya%20sudah%20generate%20program." target="_blank" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded shadow-lg text-sm flex items-center">
                                 Konsultasi Coach
                             </a>
                         </div>
@@ -370,9 +359,8 @@
 
 @push('scripts')
 <script type="module">
-    import { createApp, ref, reactive, computed } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
-    // Firebase imports removed for this implementation as it requires config which is in the original file
-    // We can add it back if needed, but for now we focus on the logic working in Laravel
+    // Using Vue from global scope (loaded in pacerhub layout)
+    const { createApp, ref, reactive, computed } = Vue;
 
     createApp({
         setup() {
@@ -394,7 +382,7 @@
 
             // Hasil Analisis
             const paces = reactive({ easy: '', tempo: '', interval: '' });
-            const programSchedule = ref([]);
+            const programSchedule = ref([]); // Now stores array of weeks
             const formattedCurrentTime = ref('');
             const ladderTarget = ref('');
 
@@ -436,7 +424,7 @@
                 }, 200);
             };
 
-            // --- LOGIC UTAMA: GENERATE PROGRAM ---
+            // --- LOGIC UTAMA: GENERATE PROGRAM (4 MINGGU) ---
             const generateProgram = () => {
                 // 1. Hitung Pace Saat Ini (min/km)
                 const totalSeconds = (parseInt(form.timeMin) * 60) + (parseInt(form.timeSec) || 0);
@@ -446,39 +434,75 @@
                 formattedCurrentTime.value = `${form.timeMin}:${form.timeSec || '00'}`;
 
                 // 2. Tentukan Target Ladder (Realistic Goal)
-                // Logika: Kurangi ~2% dari waktu saat ini sebagai target mikro
                 const ladderSeconds = totalSeconds * 0.98; 
                 const lMin = Math.floor(ladderSeconds / 60);
                 const lSec = Math.round(ladderSeconds % 60);
                 ladderTarget.value = `${lMin}:${lSec < 10 ? '0' + lSec : lSec} (Sub ${lMin + 1})`;
 
-                // 3. Kalkulasi Zona Latihan (Approximation based on Jack Daniels logic)
-                // Easy: Current Pace + 60-90s
-                // Tempo: Current Pace - 10-20s (from 10k pace) roughly
-                // Interval: Current Pace - 30-45s
-                
-                const easyPaceSec = paceSecondsPerKm + 75; // + 1 min 15s pelan
-                const tempoPaceSec = paceSecondsPerKm - 10; // sedikit lebih cepat dari 10k pace
-                const intervalPaceSec = paceSecondsPerKm - 35; // jauh lebih cepat
+                // 3. Kalkulasi Zona Latihan
+                const easyPaceSec = paceSecondsPerKm + 75; 
+                const tempoPaceSec = paceSecondsPerKm - 10;
+                const intervalPaceSec = paceSecondsPerKm - 35;
 
                 paces.easy = formatTimeStr(easyPaceSec) + " /km";
                 paces.tempo = formatTimeStr(tempoPaceSec) + " /km";
                 paces.interval = formatTimeStr(intervalPaceSec) + " /km";
 
-                // 4. Susun Jadwal Mingguan (Based on "Designing by Recovery")
-                const vol = form.weeklyVolume || 20;
-                const longRunDist = Math.round(vol * 0.3); // 30% weekly vol
-                const easyDist = Math.round(vol * 0.15);
+                // 4. Susun Jadwal 4 Minggu (Progressive Overload)
+                const baseVol = form.weeklyVolume || 20;
                 
-                programSchedule.value = [
-                    { day: 'Senin', title: 'Recovery Run / Rest', type: 'rest', desc: 'Lari sangat ringan atau istirahat total. Fokus pemulihan.', pace: '-' },
-                    { day: 'Selasa', title: 'Quality: Interval', type: 'hard', desc: 'Pemanasan 2km, Inti: 5 x 400m, Pendinginan 2km.', pace: paces.interval },
-                    { day: 'Rabu', title: 'Easy Run (Foundation)', type: 'easy', desc: `Jaga detak jantung rendah. Jarak: ${easyDist}KM`, pace: paces.easy },
-                    { day: 'Kamis', title: 'Tempo Run', type: 'hard', desc: 'Lari "Uncomfortably Hard". 20 menit konstan.', pace: paces.tempo },
-                    { day: 'Jumat', title: 'Rest / Strength', type: 'rest', desc: 'Latihan penguatan otot kaki (Lunges, Squat) tanpa beban berat.', pace: '-' },
-                    { day: 'Sabtu', title: 'Easy Run', type: 'easy', desc: 'Lari santai sore untuk melemaskan kaki.', pace: paces.easy },
-                    { day: 'Minggu', title: 'Long Run', type: 'long', desc: `Lari durasi panjang. Jarak: ${longRunDist}KM. Mental endurance.`, pace: paces.easy + ' + 15s' },
+                // Rumus Volume:
+                // Minggu 1: Base (100%)
+                // Minggu 2: Build (+10%)
+                // Minggu 3: Build (+10% dari M2)
+                // Minggu 4: Cutback (-30% dari M3)
+                
+                const volW1 = Math.round(baseVol);
+                const volW2 = Math.round(volW1 * 1.1);
+                const volW3 = Math.round(volW2 * 1.1);
+                const volW4 = Math.round(volW3 * 0.7); // Recovery Week
+
+                const weeks = [
+                    { vol: volW1, phase: 'Base Building', focus: 'Adaptasi' },
+                    { vol: volW2, phase: 'Progression 1', focus: 'Volume +10%' },
+                    { vol: volW3, phase: 'Progression 2', focus: 'Volume +10%' },
+                    { vol: volW4, phase: 'Recovery / Cut-back', focus: 'Absorb Training' }
                 ];
+
+                programSchedule.value = weeks.map((week, idx) => {
+                    const weekNum = idx + 1;
+                    const longRunDist = Math.round(week.vol * 0.3); // 30% weekly vol
+                    const easyDist = Math.round(week.vol * 0.15); // Standard easy run
+                    
+                    let keyWorkout = {};
+                    
+                    // Variasi Key Workout per Minggu
+                    if (weekNum === 1) {
+                        keyWorkout = { title: 'Interval (Intro)', desc: '5 x 400m di pace Interval. Istirahat 2 menit jalan kaki.', pace: paces.interval };
+                    } else if (weekNum === 2) {
+                        keyWorkout = { title: 'Fartlek Run', desc: 'Lari 1 menit kencang, 1 menit pelan. Ulangi 8-10 kali.', pace: 'Feel Based' };
+                    } else if (weekNum === 3) {
+                        keyWorkout = { title: 'Tempo Run', desc: 'Pemanasan 2km, Lari 15-20 menit di pace Tempo (Sakit enak).', pace: paces.tempo };
+                    } else {
+                        keyWorkout = { title: 'Easy Run + Strides', desc: 'Lari santai saja. Di akhir, lakukan 4x lari kencang pendek (15 detik).', pace: paces.easy };
+                    }
+
+                    return {
+                        weekNum: weekNum,
+                        phase: week.phase,
+                        focus: week.focus,
+                        totalVolume: week.vol,
+                        days: [
+                            { day: 'Senin', title: 'Rest / Recovery', type: 'rest', desc: 'Istirahat total atau cross training ringan (renang/sepeda).', pace: '-' },
+                            { day: 'Selasa', title: keyWorkout.title, type: 'hard', desc: keyWorkout.desc, pace: keyWorkout.pace },
+                            { day: 'Rabu', title: 'Easy Run', type: 'easy', desc: `Jaga HR rendah. Jarak: ${easyDist}KM`, pace: paces.easy },
+                            { day: 'Kamis', title: 'Strength / Hills', type: 'hard', desc: weekNum === 4 ? 'Istirahat / Yoga' : 'Lari tanjakan atau latihan penguatan kaki (Squat/Lunges).', pace: '-' },
+                            { day: 'Jumat', title: 'Rest', type: 'rest', desc: 'Persiapan untuk Long Run besok.', pace: '-' },
+                            { day: 'Sabtu', title: 'Easy Shakeout', type: 'easy', desc: 'Lari sangat santai 20-30 menit.', pace: paces.easy },
+                            { day: 'Minggu', title: 'Long Run', type: 'long', desc: `Mental endurance. Jarak: ${longRunDist}KM.`, pace: paces.easy + ' + 15s' },
+                        ]
+                    };
+                });
             };
 
             const resetForm = () => {
@@ -493,6 +517,6 @@
                 paces, programSchedule, formattedCurrentTime, ladderTarget
             }
         }
-    }).mount('#app')
+    }).mount('#program-design-app')
 </script>
 @endpush
