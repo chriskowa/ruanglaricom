@@ -3,11 +3,13 @@
         <ul class="metismenu" id="menu">
             @auth
                 @if(auth()->user()->isAdmin())
+                    <li class="menu-title">Main</li>
                     <li><a class="ai-icon" href="{{ route('admin.dashboard') }}" aria-expanded="false">
                         <i class="flaticon-381-networking"></i>
                         <span class="nav-text">Dashboard</span>
                     </a></li>
                 @elseif(auth()->user()->isCoach())
+                    <li class="menu-title">Main</li>
                     <li><a class="ai-icon" href="{{ route('coach.dashboard') }}" aria-expanded="false">
                         <i class="flaticon-381-networking"></i>
                         <span class="nav-text">Dashboard</span>
@@ -17,45 +19,35 @@
                         <span class="nav-text">Programs</span>
                     </a></li>
                 @elseif(auth()->user()->isRunner())
+                    <li class="menu-title">Main</li>
                     <li><a class="ai-icon" href="{{ route('runner.dashboard') }}" aria-expanded="false">
                         <i class="flaticon-381-networking"></i>
                         <span class="nav-text">Dashboard</span>
                     </a></li>
                     <li><a class="ai-icon" href="{{ route('runner.calendar') }}" aria-expanded="false">
                         <i class="flaticon-381-calendar"></i>
-                        <span class="nav-text">Kalender Program</span>
+                        <span class="nav-text">Calendar</span>
                     </a></li>
-                    <li><a class="ai-icon" href="{{ route('programs.realistic') }}" aria-expanded="false">
+                    <li><a class="ai-icon" href="{{ route('programs.index') }}" aria-expanded="false">
                         <i class="flaticon-381-notepad"></i>
-                        <span class="nav-text">Realistic Program</span>
+                        <span class="nav-text">Programs</span>
                     </a></li>
                 @elseif(auth()->user()->isEventOrganizer())
+                    <li class="menu-title">Main</li>
                     <li><a class="ai-icon" href="{{ route('eo.dashboard') }}" aria-expanded="false">
                         <i class="flaticon-381-controls-3"></i>
                         <span class="nav-text">Dashboard</span>
                     </a></li>
-                    <li>
-                        <a class="has-arrow ai-icon" href="javascript:void(0)" aria-expanded="false">
-                            <i class="flaticon-381-calendar"></i>
-                            <span class="nav-text">Master Events</span>
-                        </a>
-                        <ul aria-expanded="false">
-                            <li><a href="{{ route('eo.events.index') }}">Daftar Events</a></li>
-                        </ul>
-                    </li>
                 @endif
-                
+                <li class="menu-title">Commerce</li>
+                <li><a class="ai-icon" href="{{ route('programs.index') }}" aria-expanded="false">
+                    <i class="flaticon-381-notepad"></i>
+                    <span class="nav-text">Marketplace</span>
+                </a></li>
+                <li class="menu-title">Community</li>
                 <li><a class="ai-icon" href="{{ route('feed.index') }}" aria-expanded="false">
                     <i class="flaticon-381-home"></i>
-                    <span class="nav-text">Feed</span>
-                </a></li>
-                <li><a class="ai-icon" href="{{ route('users.index') }}" aria-expanded="false">
-                    <i class="flaticon-381-user"></i>
-                    <span class="nav-text">Daftar User</span>
-                </a></li>
-                <li><a class="ai-icon" href="{{ route('profile.show') }}" aria-expanded="false">
-                    <i class="flaticon-381-user"></i>
-                    <span class="nav-text">Profile</span>
+                    <span class="nav-text">Community</span>
                 </a></li>
                 <li><a class="ai-icon" href="{{ route('chat.index') }}" aria-expanded="false">
                     <svg width="22" height="22" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -63,8 +55,17 @@
                         <path d="M7.84173 11.4233H12.0498C12.273 11.4233 12.4871 11.3347 12.6449 11.1768C12.8027 11.019 12.8914 10.8049 12.8914 10.5817C12.8914 10.3585 12.8027 10.1444 12.6449 9.98661C12.4871 9.82878 12.273 9.74011 12.0498 9.74011H7.84173C7.61852 9.74011 7.40446 9.82878 7.24662 9.98661C7.08879 10.1444 7.00012 10.3585 7.00012 10.5817C7.00012 10.8049 7.08879 11.019 7.24662 11.1768C7.40446 11.3347 7.61852 11.4233 7.84173 11.4233Z" fill="#0B2A97"></path>
                         <path d="M15.4162 13.1066H7.84173C7.61852 13.1066 7.40446 13.1952 7.24662 13.3531C7.08879 13.5109 7.00012 13.725 7.00012 13.9482C7.00012 14.1714 7.08879 14.3855 7.24662 14.5433C7.40446 14.7011 7.61852 14.7898 7.84173 14.7898H15.4162C15.6394 14.7898 15.8535 14.7011 16.0113 14.5433C16.1692 14.3855 16.2578 14.1714 16.2578 13.9482C16.2578 13.725 16.1692 13.5109 16.0113 13.3531C15.8535 13.1952 15.6394 13.1066 15.4162 13.1066Z" fill="#0B2A97"></path>
                     </svg>
-                        <span class="nav-text">Chat</span>
-                    </a></li>
+                    <span class="nav-text">Messages</span>
+                </a></li>
+                <li><a class="ai-icon" href="{{ route('notifications.index') }}" aria-expanded="false">
+                    <i class="flaticon-381-bell"></i>
+                    <span class="nav-text">Notifications</span>
+                </a></li>
+                <li class="menu-title">Account</li>
+                <li><a class="ai-icon" href="{{ route('profile.show') }}" aria-expanded="false">
+                    <i class="flaticon-381-user"></i>
+                    <span class="nav-text">Profile</span>
+                </a></li>
                 <li><a class="ai-icon" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-sidebar').submit();" aria-expanded="false">
                     <i class="flaticon-381-exit"></i>
                     <span class="nav-text">Logout</span>
@@ -73,6 +74,20 @@
                     @csrf
                 </form>
             @else
+                <li class="menu-title">Main</li>
+                <li><a class="ai-icon" href="{{ route('home') }}" aria-expanded="false">
+                    <i class="flaticon-381-home"></i>
+                    <span class="nav-text">Home</span>
+                </a></li>
+                <li><a class="ai-icon" href="{{ route('calendar.public') }}" aria-expanded="false">
+                    <i class="flaticon-381-calendar"></i>
+                    <span class="nav-text">Calendar</span>
+                </a></li>
+                <li><a class="ai-icon" href="{{ route('programs.index') }}" aria-expanded="false">
+                    <i class="flaticon-381-notepad"></i>
+                    <span class="nav-text">Marketplace</span>
+                </a></li>
+                <li class="menu-title">Account</li>
                 <li><a class="ai-icon" href="{{ route('login') }}" aria-expanded="false">
                     <i class="flaticon-381-enter"></i>
                     <span class="nav-text">Login</span>
@@ -88,4 +103,3 @@
         </div>
     </div>
 </div>
-

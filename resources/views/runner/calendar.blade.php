@@ -8,9 +8,25 @@
     <link href="{{ asset('vendor/fullcalendar/css/fullcalendar.min.css') }}" rel="stylesheet">
     <link href="{{ asset('vendor/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css') }}" rel="stylesheet">
     <style>
+        :root { --neon:#ccff00; --bg:#0b1220; --bg2:#0f172a; --fg:#e2e8f0; --muted:#94a3b8; --border:#1f2937; }
+        .rl-card { background-color: var(--bg2); border-color: var(--border); }
+        .rl-card .card-header { background-color: transparent; border-bottom: 1px solid var(--border); }
+        .rl-card .card-title, .rl-card h4, .rl-card h6 { color: var(--fg); }
+        .rl-muted { color: var(--muted); }
+        .rl-btn { background-color: var(--bg2); border: 1px solid var(--border); color: var(--fg); }
+        .rl-btn:hover { border-color: var(--neon); color: var(--neon); }
+        .btn-primary { background-color: var(--neon); border-color: var(--neon); color: #0f172a; }
+        .btn-primary:hover { background-color: rgba(204,255,0,.9); border-color: var(--neon); color: #0b1220; }
+        .nav-tabs .nav-link { border: 0; color: var(--muted); }
+        .nav-tabs .nav-link.active { color: var(--neon); border-bottom: 2px solid var(--neon); }
+        .list-group-item { background-color: transparent; border-color: var(--border); color: var(--fg); }
         #calendar {
             max-width: 100%;
             margin: 0 auto;
+            background-color: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
         }
         .workout-plan-list {
             max-height: 800px;
@@ -64,6 +80,14 @@
         .phase-final_prep {
             background-color: #E8F5E9 !important;
         }
+        /* Event difficulty color accents */
+        .fc-event.difficulty-easy { border-left: 4px solid #4CAF50; }
+        .fc-event.difficulty-moderate { border-left: 4px solid #FF9800; }
+        .fc-event.difficulty-hard { border-left: 4px solid #F44336; }
+        .fc-event, .fc-daygrid-event { background-color: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 8px; padding: 2px 6px; }
+        .fc-toolbar-title { color: var(--fg); font-weight: 800; }
+        .fc-button { background-color: #1e293b; border-color: #334155; color: #cbd5e1; }
+        .fc-button:hover { color: var(--neon); border-color: var(--neon); }
     </style>
 @endpush
 
@@ -72,11 +96,11 @@
     <div class="col-xl-9 col-xxl-8">
         <div class="row">
             <div class="col-xl-12">
-                <div class="card plan-list">
+                <div class="card plan-list rl-card">
                     <div class="card-header d-sm-flex flex-wrap d-block pb-0 border-0">
                         <div class="me-auto pe-3 mb-3">
-                            <h4 class="text-black fs-20">Program Aktif</h4>
-                            <p class="fs-13 mb-0">Daftar program lari yang sedang Anda ikuti</p>
+                            <h4 class="fs-20">Program Aktif</h4>
+                            <p class="fs-13 mb-0 rl-muted">Daftar program lari yang sedang Anda ikuti</p>
                         </div>
                         <a href="{{ route('programs.index') }}" class="btn rounded btn-primary mb-3">
                             <svg class="me-2" width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -92,12 +116,12 @@
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
                                             <h6 class="mb-1">{{ $enrollment->program->title }}</h6>
-                                            <small class="text-muted">
+                                            <small class="rl-muted">
                                                 Mulai: {{ $enrollment->start_date->format('d M Y') }} | 
                                                 Selesai: {{ $enrollment->end_date->format('d M Y') }}
                                             </small>
                                         </div>
-                                        <button class="btn btn-sm btn-danger delete-program-btn" data-enrollment-id="{{ $enrollment->id }}">
+                                        <button class="btn btn-sm rl-btn delete-program-btn" data-enrollment-id="{{ $enrollment->id }}">
                                             <i class="las la-trash"></i> Hapus
                                         </button>
                                     </div>
@@ -105,18 +129,18 @@
                             </div>
                         @else
                             <div class="text-center p-4">
-                                <p class="text-muted">Belum ada program aktif. <a href="{{ route('programs.index') }}">Pilih program</a> untuk memulai.</p>
+                                <p class="rl-muted">Belum ada program aktif. <a href="{{ route('programs.index') }}">Pilih program</a> untuk memulai.</p>
                             </div>
                         @endif
                     </div>
                 </div>
             </div>
             <div class="col-xl-12 mt-3">
-                <div class="card plan-list">
+                <div class="card plan-list rl-card">
                     <div class="card-header d-sm-flex flex-wrap d-block pb-0 border-0">
                         <div class="me-auto pe-3 mb-3">
-                            <h4 class="text-black fs-20">Plan List</h4>
-                            <p class="fs-13 mb-0">Daftar workout plan program lari Anda</p>
+                            <h4 class="fs-20">Plan List</h4>
+                            <p class="fs-13 mb-0 rl-muted">Daftar workout plan program lari Anda</p>
                         </div>
                         <div class="card-action card-tabs me-4 mt-3 mt-sm-0 mb-3">
                             <ul class="nav nav-tabs" role="tablist" id="workout-filter-tabs">
@@ -136,21 +160,21 @@
                         <div class="tab-pane fade active show" id="Unfinished">
                             <div id="workout-plans-container">
                                 <div class="text-center p-4">
-                                    <p class="text-muted">Memuat workout plan...</p>
+                                    <p class="rl-muted">Memuat workout plan...</p>
                                 </div>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="All">
                             <div id="workout-plans-all-container">
                                 <div class="text-center p-4">
-                                    <p class="text-muted">Memuat workout plan...</p>
+                                    <p class="rl-muted">Memuat workout plan...</p>
                                 </div>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="Finished">
                             <div id="workout-plans-finished-container">
                                 <div class="text-center p-4">
-                                    <p class="text-muted">Memuat workout plan...</p>
+                                    <p class="rl-muted">Memuat workout plan...</p>
                                 </div>
                             </div>
                         </div>
@@ -158,10 +182,19 @@
                 </div>
             </div>
             <div class="col-xl-12 mt-3">
-                <div class="card">
+                <div class="card rl-card">
                     <div class="card-header">
-                        <h4 class="card-title">Kalender Program Lari</h4>
-                        <p class="text-muted mb-0">Klik tanggal untuk menambah/edit workout</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="card-title">Kalender Program Lari</h4>
+                                <p class="mb-0 rl-muted">Klik tanggal untuk menambah/edit workout</p>
+                            </div>
+                            <div>
+                                <button class="btn rl-btn" id="add-custom-workout-btn">
+                                    <i class="las la-plus me-1"></i> Tambah Custom Workout
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div id="calendar"></div>
@@ -292,6 +325,22 @@
                 events: '{{ route("runner.calendar.events") }}',
                 locale: 'id',
                 firstDay: 1,
+                eventClassNames: function(arg) {
+                    var classes = [];
+                    var props = arg.event.extendedProps || {};
+                    if (props.difficulty) {
+                        classes.push('difficulty-' + props.difficulty);
+                    }
+                    if (props.phase) {
+                        classes.push('phase-' + props.phase);
+                    }
+                    return classes;
+                },
+                eventDidMount: function(arg) {
+                    if (arg.el) {
+                        arg.el.style.borderRadius = '8px';
+                    }
+                },
                 dateClick: function(info) {
                     // Open form modal to add/edit workout
                     openWorkoutFormModal(info.dateStr);
@@ -334,12 +383,12 @@
             });
         });
 
-        // Delete workout button handler (outside DOMContentLoaded to ensure it's available)
-        $(document).on('click', '#delete-workout-btn', function() {
-            if (!currentWorkoutInfo) {
-                alert('Tidak ada workout yang dipilih.');
-                return;
-            }
+            // Delete workout button handler (outside DOMContentLoaded to ensure it's available)
+            $(document).on('click', '#delete-workout-btn', function() {
+                if (!currentWorkoutInfo) {
+                    alert('Tidak ada workout yang dipilih.');
+                    return;
+                }
             
             var props = currentWorkoutInfo.event.extendedProps;
             
@@ -365,6 +414,17 @@
             var modal = new bootstrap.Modal(document.getElementById('workoutFormModal'));
             modal.show();
         }
+
+        // Add custom workout CTA
+        document.addEventListener('click', function(e) {
+            if (e.target && (e.target.id === 'add-custom-workout-btn' || e.target.closest('#add-custom-workout-btn'))) {
+                var today = new Date();
+                var yyyy = today.getFullYear();
+                var mm = String(today.getMonth()+1).padStart(2,'0');
+                var dd = String(today.getDate()).padStart(2,'0');
+                openWorkoutFormModal(yyyy + '-' + mm + '-' + dd);
+            }
+        });
 
         // Store current workout info for delete action
         var currentWorkoutInfo = null;

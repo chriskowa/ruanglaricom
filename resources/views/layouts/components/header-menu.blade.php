@@ -1,13 +1,13 @@
 <ul class="navbar-nav header-right">
     <li class="nav-item">
-        <form>
+        <form role="search" aria-label="Global search">
             <div class="input-group search-area d-lg-inline-flex d-none me-3">
                 <span class="input-group-text" id="header-search">
                     <button class="bg-transparent border-0" type="button" aria-label="header-search">
                         <i class="flaticon-381-search-2"></i>
                     </button>
                 </span>
-                <input type="text" class="form-control" placeholder="Search here" aria-label="Username" aria-describedby="header-search">
+                <input id="global-search" type="text" class="form-control" placeholder="Cari sesuatu..." aria-label="Global search" aria-describedby="header-search">
             </div>
         </form>
     </li>
@@ -65,11 +65,7 @@
         <div class="dropdown-menu dropdown-menu-end">
             <a href="{{ route('profile.show') }}" class="dropdown-item ai-icon">
                 @include('layouts.components.svg-user')
-                <span class="ms-2">Profile</span>
-            </a>
-            <a href="{{ route('chat.index') }}" class="dropdown-item ai-icon">
-                @include('layouts.components.svg-inbox')
-                <span class="ms-2">Inbox</span>
+                <span class="ms-2">Edit Profile</span>
             </a>
             <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-header').submit();" class="dropdown-item ai-icon">
                 @include('layouts.components.svg-logout')
@@ -86,4 +82,3 @@
         @endauth
     </li>
 </ul>
-

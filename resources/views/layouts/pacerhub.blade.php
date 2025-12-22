@@ -92,6 +92,11 @@
         
         @include('layouts.components.pacerhub-nav')
 
+        @if(isset($withSidebar) && $withSidebar)
+            <div id="ph-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+            @include('layouts.components.pacerhub-sidebar')
+        @endif
+
         <main class="flex-grow w-full">
             @yield('content')
         </main>
@@ -109,6 +114,32 @@
                 setTimeout(function(){ loader.style.display = 'none'; }, 500);
             }
         });
+        (function(){
+            var btn = document.getElementById('ph-sidebar-toggle');
+            var sidebar = document.getElementById('ph-sidebar');
+            var backdrop = document.getElementById('ph-sidebar-backdrop');
+            function openSidebar(){
+                if(!sidebar) return;
+                sidebar.classList.remove('-translate-x-full');
+                if(backdrop){ backdrop.classList.remove('hidden'); }
+            }
+            function closeSidebar(){
+                if(!sidebar) return;
+                sidebar.classList.add('-translate-x-full');
+                if(backdrop){ backdrop.classList.add('hidden'); }
+            }
+            if(btn){
+                btn.addEventListener('click', function(){
+                    if(sidebar && sidebar.classList.contains('-translate-x-full')){ openSidebar(); } else { closeSidebar(); }
+                });
+            }
+            if(backdrop){
+                backdrop.addEventListener('click', closeSidebar);
+            }
+            document.addEventListener('keydown', function(e){
+                if(e.key === 'Escape'){ closeSidebar(); }
+            });
+        })();
     </script>
 </body>
 </html>

@@ -406,5 +406,42 @@
     if (document.querySelector('.chatbox')?.classList.contains('active')) {
         loadConversations();
     }
+    
+    let gPressedAt = 0;
+    document.addEventListener('keydown', function(e) {
+        const tag = e.target.tagName.toLowerCase();
+        const editable = e.target.isContentEditable;
+        if (e.key === '/' && tag !== 'input' && tag !== 'textarea' && !editable) {
+            e.preventDefault();
+            document.getElementById('global-search')?.focus();
+            return;
+        }
+        if (e.key.toLowerCase() === 'g') {
+            gPressedAt = Date.now();
+            return;
+        }
+        if (gPressedAt && Date.now() - gPressedAt < 1000) {
+            if (e.key.toLowerCase() === 'c') {
+                e.preventDefault();
+                @auth
+                    @if(auth()->user()->isRunner())
+                        window.location.href = "{{ route('runner.calendar') }}";
+                    @else
+                        window.location.href = "{{ route('calendar.public') }}";
+                    @endif
+                @else
+                    window.location.href = "{{ route('calendar.public') }}";
+                @endauth
+                gPressedAt = 0;
+                return;
+            }
+            if (e.key.toLowerCase() === 'm') {
+                e.preventDefault();
+                window.location.href = "{{ route('chat.index') }}";
+                gPressedAt = 0;
+                return;
+            }
+        }
+    });
 </script>
 @endpush

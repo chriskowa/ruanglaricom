@@ -34,6 +34,10 @@ Route::post('/pacer-otp', function(Illuminate\Http\Request $request){
     return redirect('/dashboard')->with('success','Verifikasi berhasil!');
 })->name('pacer.otp.verify');
 
+// Coach Registration Routes
+Route::get('/coach-register', [App\Http\Controllers\CoachRegistrationController::class, 'create'])->name('coach.register');
+Route::post('/coach-register', [App\Http\Controllers\CoachRegistrationController::class, 'store'])->name('coach.register.store');
+
 // Add Image Proxy Route
 Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
     $url = $request->query('url');
