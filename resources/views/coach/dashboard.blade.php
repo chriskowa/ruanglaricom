@@ -1,4 +1,5 @@
 @extends('layouts.pacerhub')
+@php($withSidebar = true)
 
 @section('title', 'Coach Dashboard')
 

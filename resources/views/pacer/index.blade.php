@@ -39,7 +39,7 @@
                     </div>
                     <div class="h-64 overflow-hidden relative">
                         <div class="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent z-10"></div>
-                        <img src="{{ $pacer->image_url ?? asset('images/placeholder-run.jpg') }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-110">
+                        <img loading="lazy" decoding="async" src="{{ $pacer->user->avatar ? asset('storage/' . $pacer->user->avatar) : ($pacer->user->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg')) }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-110">
                         <div class="absolute bottom-4 right-4 z-20 bg-neon text-dark font-black text-xs px-3 py-1 skew-x-[-12deg]">{{ $pacer->category }}</div>
                     </div>
                     <div class="p-6 pt-2 relative z-20 flex flex-col flex-grow">

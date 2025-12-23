@@ -1,13 +1,13 @@
 <ul class="navbar-nav header-right">
     <li class="nav-item">
-        <form role="search" aria-label="Global search">
+        <form>
             <div class="input-group search-area d-lg-inline-flex d-none me-3">
                 <span class="input-group-text" id="header-search">
                     <button class="bg-transparent border-0" type="button" aria-label="header-search">
                         <i class="flaticon-381-search-2"></i>
                     </button>
                 </span>
-                <input id="global-search" type="text" class="form-control" placeholder="Cari sesuatu..." aria-label="Global search" aria-describedby="header-search">
+                <input type="text" class="form-control" placeholder="Search here" aria-label="Username" aria-describedby="header-search">
             </div>
         </form>
     </li>
@@ -54,7 +54,6 @@
         </div>
     </li>
     <li class="nav-item dropdown header-profile">
-        @auth
         <a class="nav-link" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
             <img src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/profile/17.jpg') }}" width="20" alt="{{ auth()->user()->name }}">
             <div class="header-info">
@@ -65,7 +64,11 @@
         <div class="dropdown-menu dropdown-menu-end">
             <a href="{{ route('profile.show') }}" class="dropdown-item ai-icon">
                 @include('layouts.components.svg-user')
-                <span class="ms-2">Edit Profile</span>
+                <span class="ms-2">Profile</span>
+            </a>
+            <a href="{{ route('chat.index') }}" class="dropdown-item ai-icon">
+                @include('layouts.components.svg-inbox')
+                <span class="ms-2">Inbox</span>
             </a>
             <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-header').submit();" class="dropdown-item ai-icon">
                 @include('layouts.components.svg-logout')
@@ -73,12 +76,6 @@
             </a>
             <form id="logout-form-header" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
         </div>
-        @else
-        <a class="nav-link" href="{{ route('login') }}" role="button">
-            <div class="header-info">
-                <span class="text-black"><strong>Login</strong></span>
-            </div>
-        </a>
-        @endauth
     </li>
 </ul>
+

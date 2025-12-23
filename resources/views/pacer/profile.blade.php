@@ -1,18 +1,34 @@
 @extends('layouts.pacerhub')
 
+@push('styles')
+<style>
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+@endpush
+
 @section('content')
 
     <main class="relative z-10 pt-24 pb-10 px-4 max-w-4xl mx-auto">
         <div class="bg-card border border-slate-700 rounded-3xl overflow-hidden shadow-2xl mb-6 relative group">
-            <div class="h-32 bg-slate-800 relative overflow-hidden">
-                <div class="absolute inset-0 opacity-30 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div>
+            <div class="h-48 md:h-64 bg-slate-800 relative overflow-hidden">
+                @if($pacer->user->banner)
+                    <img src="{{ asset('storage/' . $pacer->user->banner) }}" class="w-full h-full object-cover">
+                @else
+                    <div class="absolute inset-0 opacity-30 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div>
+                @endif
             </div>
 
             <div class="px-6 pb-6 relative -mt-16 flex flex-col md:flex-row items-start md:items-end gap-6">
                 <div class="relative">
-                    <div class="w-32 h-32 rounded-2xl overflow-hidden border-4 border-card shadow-xl bg-slate-700">
-                        <img src="{{ $pacer->image_url ?? asset('images/placeholder-run.jpg') }}" class="w-full h-full object-cover">
+                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-card shadow-xl bg-slate-700">
+                        <img loading="lazy" decoding="async" src="{{ $pacer->user->avatar ? asset('storage/' . $pacer->user->avatar) : ($pacer->user->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg')) }}" class="w-full h-full object-cover">
                     </div>
                 </div>
 
@@ -28,9 +44,15 @@
                                 @endif
                             </div>
                             <h1 class="text-3xl font-black text-white leading-tight">{{ $pacer->user->name }}</h1>
-                            @if($pacer->nickname)
-                                <p class="text-slate-400 font-mono text-sm">@{{ $pacer->nickname }}</p>
-                            @endif
+                            <div class="flex flex-wrap items-center gap-2 text-sm text-slate-400 mt-1">
+                                @if($pacer->nickname)
+                                    <span class="font-mono">"{{ $pacer->nickname }}"</span>
+                                @endif
+                                @if($pacer->user->city)
+                                    <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                                    <span>{{ $pacer->user->city->name }}</span>
+                                @endif
+                            </div>
                         </div>
                         <div class="hidden md:flex gap-3 mt-4 md:mt-0">
                             <a href="{{ route('pacer.index') }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2">
@@ -56,6 +78,19 @@
                         </div>
                     @endif
                 </div>
+
+                @if($pacer->user->profile_images && count($pacer->user->profile_images) > 0)
+                <div class="bg-card border border-slate-700 rounded-3xl p-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Gallery</h3>
+                    <div class="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory pb-2">
+                        @foreach($pacer->user->profile_images as $image)
+                            <div class="flex-none w-48 h-48 rounded-xl overflow-hidden border border-slate-700 snap-center">
+                                <img src="{{ asset('storage/' . $image) }}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
@@ -92,4 +127,28 @@
         </div>
     </main>
 
+    <script>
+        async function sharePacer() {
+            const shareData = {
+                title: '{{ $pacer->user->name }} - Pacer Profile',
+                text: 'Check out this pacer profile on RuangLari!',
+                url: window.location.href
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Link copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+        }
+    </script>
 @endsection

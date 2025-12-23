@@ -75,11 +75,8 @@ class PublicProgramController extends Controller
         $programs = $query->paginate(12);
 
         // If AJAX request, return JSON
-        if ($request->ajax()) {
-            return response()->json([
-                'html' => view('programs.partials.program-grid', ['programs' => $programs])->render(),
-                'pagination' => view('programs.partials.pagination', ['programs' => $programs])->render(),
-            ]);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($programs);
         }
 
         return view('programs.index', [
