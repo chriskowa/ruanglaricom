@@ -34,8 +34,10 @@ Route::post('/pacer-otp', function(Illuminate\Http\Request $request){
     return redirect('/dashboard')->with('success','Verifikasi berhasil!');
 })->name('pacer.otp.verify');
 
-// Runner Profile (Public)
-Route::get('/runner/{username}', [App\Http\Controllers\RunnerProfileController::class, 'show'])->name('runner.profile.show');
+// Runner Profile (Public) - avoid conflicts with runner dashboard/calendar routes
+Route::get('/runner/{username}', [App\Http\Controllers\RunnerProfileController::class, 'show'])
+    ->where('username', '^(?!dashboard$)(?!calendar$)(?!programs$)[A-Za-z0-9._-]+$')
+    ->name('runner.profile.show');
 
 // Coach Registration Routes
 Route::get('/coach-register', [App\Http\Controllers\CoachRegistrationController::class, 'create'])->name('coach.register');
