@@ -658,9 +658,9 @@ class EventController extends Controller
 
     protected function authorizeEvent(Event $event)
     {
-        if ($event->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized');
-        }
+        $user = auth()->user();
+        if ($user && ($user->role === 'admin' || $user->role === 'eo')) return;
+        if ($event->user_id !== auth()->id()) abort(403, 'Unauthorized');
     }
 
     /**
@@ -708,5 +708,4 @@ class EventController extends Controller
         }
     }
 }
-
 
