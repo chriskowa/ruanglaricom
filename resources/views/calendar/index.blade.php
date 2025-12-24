@@ -248,9 +248,18 @@
 
                     <!-- 2. Map Layer (Modern, Pro) -->
                     <div v-if="posterOptions.visibleElements.map" class="absolute top-[20%] left-0 right-0 h-[30%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
-                        <svg v-if="posterData.mapPath" viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_15px_rgba(204,255,0,0.8)]" preserveAspectRatio="xMidYMid meet">
-                            <path :d="posterData.mapPath" fill="none" stroke="#ccff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <svg v-if="posterData.mapPath"
+                            viewBox="0 0 100 100"
+                            class="max-w-full max-h-full drop-shadow-[0_0_15px_rgba(204,255,0,0.8)]"
+                            preserveAspectRatio="xMidYMid meet">
+                        <path :d="posterData.mapPath"
+                                fill="none"
+                                stroke="#ccff00"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round" />
                         </svg>
+
                     </div>
 
                     <!-- 3. Splits Layer (Pro only) & Chart Overlay -->
@@ -284,7 +293,7 @@
                         <!-- Header -->
                         <div v-if="posterOptions.visibleElements.title" class="flex justify-between items-start">
                             <div class="flex items-center gap-2">
-                                <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="h-6 w-auto drop-shadow-lg">
+                                <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="w-auto drop-shadow-lg">
                             </div>
                             <div v-if="posterStyle !== 'minimal' && posterStyle !== 'zen' && posterStyle !== 'cyber'" class="text-right">
                                 <p class="text-lg font-bold uppercase tracking-tighter italic text-white">@{{ posterData.type }}</p>
