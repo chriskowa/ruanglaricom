@@ -83,6 +83,22 @@ class StoreRegistrationAction
         $now = now();
 
         foreach ($validated['participants'] as $participant) {
+            // Check for existing active registration (pending or paid)
+            // We removed the database unique constraint to allow retries on failed/expired transactions,
+            // so we must enforce the "one active registration per category" rule here.
+            $activeParticipantExists = Participant::where('race_category_id', $participant['category_id'])
+                ->where('id_card', $participant['id_card'])
+                ->whereHas('transaction', function($query) {
+                    $query->whereIn('payment_status', ['pending', 'paid']);
+                })
+                ->exists();
+
+            if ($activeParticipantExists) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'participants' => ["Peserta dengan ID Card {$participant['id_card']} sudah terdaftar (status Pending atau Paid) di kategori ini."]
+                ]);
+            }
+
             $categoryId = $participant['category_id'];
             if (!isset($categoryQuantities[$categoryId])) {
                 $categoryQuantities[$categoryId] = 0;

@@ -25,7 +25,7 @@ class CalendarController extends Controller
             ->with('program')
             ->get();
 
-        return view('runner.calendar', [
+        return view('runner.calendar_modern', [
             'enrollments' => $enrollments,
         ]);
     }
