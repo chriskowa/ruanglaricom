@@ -247,7 +247,7 @@
                     </div>
 
                     <!-- 2. Map Layer (Modern, Pro) -->
-                    <div v-if="posterOptions.visibleElements.map" class="absolute top-[20%] left-0 right-0 h-[30%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
+                    <div v-if="posterOptions.visibleElements.map" class="absolute top-[20%] left-0 right-0 h-[20%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
                         <svg v-if="posterData.mapPath"
                             viewBox="0 0 100 100"
                             class="max-w-full max-h-full drop-shadow-[0_0_15px_rgba(204,255,0,0.8)]"
