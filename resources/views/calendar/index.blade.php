@@ -455,7 +455,7 @@
         </div>
 
             <!-- Sidebar Controls -->
-            <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50">
+            <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50 overflow-y-auto max-h-[90vh] custom-scrollbar">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-xl font-bold text-white">Customize</h3>
                     <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
