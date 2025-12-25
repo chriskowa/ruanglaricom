@@ -78,7 +78,7 @@
 
                     <!-- Hidden Share Container -->
                     <div id="share-container" class="fixed -left-[9999px] top-0 w-[600px] bg-[#0f172a] p-8 text-white">
-                         <div class="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                         <div class="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
                             <div class="absolute top-0 right-0 p-6 opacity-10">
                                 <svg class="w-40 h-40 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </div>
