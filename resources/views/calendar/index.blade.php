@@ -246,24 +246,31 @@
                         <div v-if="posterStyle === 'bold'" class="absolute inset-0 bg-black/40 mix-blend-multiply"></div>
                     </div>
 
-                    <!-- 2. Map Layer (Modern, Pro) -->
-                    <div v-if="posterOptions.visibleElements.map" class="absolute top-[20%] left-0 right-0 h-[20%] flex items-center justify-center pointer-events-none p-6 opacity-90 z-10">
-                        <svg v-if="posterData.mapPath"
-                            viewBox="0 0 100 100"
-                            class="max-w-full max-h-full drop-shadow-[0_0_15px_rgba(204,255,0,0.8)]"
-                            preserveAspectRatio="xMidYMid meet">
-                        <path :d="posterData.mapPath"
-                                fill="none"
-                                stroke="#ccff00"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-
+                    <!-- 2. Map Layer (Modern, Pro) with Drag & Position Presets -->
+                    <div v-if="posterOptions.visibleElements.map" 
+                         class="absolute inset-0 z-10 overflow-hidden group flex"
+                         :class="getMapAlignmentClasses()"
+                         @mousedown="startMapDrag" @mousemove="onMapDrag" @mouseup="endMapDrag" @mouseleave="endMapDrag"
+                         @touchstart="startMapDrag" @touchmove="onMapDrag" @touchend="endMapDrag">
+                        
+                        <div class="p-6 opacity-90 transition-transform duration-75 cursor-move max-w-full"
+                             :style="{ height: mapHeightPercent + '%', transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${mapScale})` }">
+                            <svg v-if="posterData.mapPath" viewBox="0 0 110 100" class="h-full w-auto drop-shadow-[0_0_15px_rgba(204,255,0,0.8)] pointer-events-none" preserveAspectRatio="xMidYMid meet">
+                                <path :d="posterData.mapPath" fill="none" stroke="#ccff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        
+                        <!-- Map Controls -->
+                        <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
+                            <button @click.stop="mapScale = Math.min(mapScale + 0.1, 3)" class="bg-black/50 text-white p-1 rounded hover:bg-neon hover:text-black transition"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></button>
+                            <button @click.stop="mapScale = Math.max(mapScale - 0.1, 0.5)" class="bg-black/50 text-white p-1 rounded hover:bg-neon hover:text-black transition"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg></button>
+                            <button @click.stop="resetMapPosition" class="bg-black/50 text-white p-1 rounded hover:bg-neon hover:text-black transition"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
+                        </div>
                     </div>
 
                     <!-- 3. Splits Layer (Pro only) & Chart Overlay -->
-                    <div v-if="posterOptions.visibleElements.splits && posterData.splits && posterData.splits.length > 0" class="absolute top-[20%] right-5 w-[120px] flex flex-col justify-center gap-1 z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]">
+                    <div v-if="posterOptions.visibleElements.splits && posterData.splits && posterData.splits.length > 0" class="absolute z-20 pointer-events-none bg-slate-900/40 p-3 rounded-lg backdrop-blur-[2px]"
+                         :style="{ top: splitsTopPercent + '%', left: splitsLeftPercent + '%', width: splitsWidth + 'px', transform: `translate(${splitsOffset.x}px, ${splitsOffset.y}px)` }">
                          <div v-for="(split, index) in posterData.splits" :key="index" class="grid grid-cols-[15px_1fr_35px] gap-2 items-center text-[8px] font-mono text-white/90">
                             <div class="text-left text-slate-400">@{{ index + 1 }}</div>
                             <div class="h-1.5 bg-slate-700/50 rounded-full overflow-hidden w-full relative">
@@ -293,7 +300,7 @@
                         <!-- Header -->
                         <div v-if="posterOptions.visibleElements.title" class="flex justify-between items-start">
                             <div class="flex items-center gap-2">
-                                <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="w-auto drop-shadow-lg">
+                                <img src="{{ asset('images/logo ruang lari.png') }}" alt="RuangLari" class="h-6 w-auto drop-shadow-lg">
                             </div>
                             <div v-if="posterStyle !== 'minimal' && posterStyle !== 'zen' && posterStyle !== 'cyber'" class="text-right">
                                 <p class="text-lg font-bold uppercase tracking-tighter italic text-white">@{{ posterData.type }}</p>
@@ -364,8 +371,11 @@
 
                         <!-- Stats Grid Box -->
                         <div v-if="posterOptions.visibleElements.stats && ['classic', 'modern', 'pro', 'magazine', 'impact', 'cyber', 'elegant'].includes(posterStyle)" 
-                             class="relative z-30 bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-700/50 shadow-xl"
+                             class="relative z-30 bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-700/50 shadow-xl"
                              :class="{
+                                 'p-3': posterOptions.statsSize === 'small',
+                                 'p-5': posterOptions.statsSize === 'medium',
+                                 'p-6': posterOptions.statsSize === 'large',
                                  'bg-black/80 border-white/20 rounded-none': posterStyle === 'impact', 
                                  'bg-white/10 border-white/20': posterStyle === 'magazine',
                                  'bg-slate-950/90 border-neon/50 rounded-none grid-border-cyber': posterStyle === 'cyber',
@@ -379,10 +389,22 @@
                                       'divide-white/10': posterStyle === 'elegant'
                                   }">
                                 <!-- Stats Items -->
-                                <div><p class="text-[9px] text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber'}">Pace</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.pace }}</p></div>
-                                <div><p class="text-[9px] text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber'}">Time</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.time }}</p></div>
-                                <div><p class="text-[9px] text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber'}">Elev</p><p class="text-lg font-bold text-white font-mono">@{{ posterData.elev }}</p></div>
-                                <div><p class="text-[9px] text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber'}">HR</p><p class="text-lg font-bold text-rose-500 font-mono">@{{ posterData.heart_rate }}</p></div>
+                                <div>
+                                    <p class="text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber', 'text-[8px]': posterOptions.statsSize==='small', 'text-[9px]': posterOptions.statsSize!=='small'}">Pace</p>
+                                    <p class="font-bold text-white font-mono" :class="{'text-sm': posterOptions.statsSize==='small','text-lg':posterOptions.statsSize==='medium','text-2xl':posterOptions.statsSize==='large'}">@{{ posterData.pace }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber', 'text-[8px]': posterOptions.statsSize==='small', 'text-[9px]': posterOptions.statsSize!=='small'}">Time</p>
+                                    <p class="font-bold text-white font-mono" :class="{'text-sm': posterOptions.statsSize==='small','text-lg':posterOptions.statsSize==='medium','text-2xl':posterOptions.statsSize==='large'}">@{{ posterData.time }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber', 'text-[8px]': posterOptions.statsSize==='small', 'text-[9px]': posterOptions.statsSize!=='small'}">Elev</p>
+                                    <p class="font-bold text-white font-mono" :class="{'text-sm': posterOptions.statsSize==='small','text-lg':posterOptions.statsSize==='medium','text-2xl':posterOptions.statsSize==='large'}">@{{ posterData.elev }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber', 'text-[8px]': posterOptions.statsSize==='small', 'text-[9px]': posterOptions.statsSize!=='small'}">HR</p>
+                                    <p class="font-bold text-rose-500 font-mono" :class="{'text-sm': posterOptions.statsSize==='small','text-lg':posterOptions.statsSize==='medium','text-2xl':posterOptions.statsSize==='large'}">@{{ posterData.heart_rate }}</p>
+                                </div>
                              </div>
 
                              <!-- Footer Profile -->
@@ -474,6 +496,101 @@
                          <button @click="posterOptions.visibleElements.profile = !posterOptions.visibleElements.profile" 
                                  :class="posterOptions.visibleElements.profile ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
                                  class="text-[10px] py-1.5 rounded-lg border transition">Profile</button>
+                    </div>
+                </div>
+                
+                <!-- Stats Size Control -->
+                <div class="space-y-2 mt-2">
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Stats Size</p>
+                    <div class="grid grid-cols-3 gap-2">
+                         <button @click="posterOptions.statsSize = 'small'" 
+                                 :class="posterOptions.statsSize === 'small' ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
+                                 class="text-[10px] py-1.5 rounded-lg border transition">Small</button>
+                         <button @click="posterOptions.statsSize = 'medium'" 
+                                 :class="posterOptions.statsSize === 'medium' ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
+                                 class="text-[10px] py-1.5 rounded-lg border transition">Medium</button>
+                         <button @click="posterOptions.statsSize = 'large'" 
+                                 :class="posterOptions.statsSize === 'large' ? 'bg-slate-700 text-white border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-800'"
+                                 class="text-[10px] py-1.5 rounded-lg border transition">Large</button>
+                    </div>
+                </div>
+                
+                <!-- Map Position Control -->
+                <div class="space-y-2 mt-2 map-position" v-show="posterOptions.visibleElements.map">
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Map Position</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button @click="posterOptions.mapPosition = 'top-left'" :class="posterOptions.mapPosition==='top-left' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Top-Left</button>
+                        <button @click="posterOptions.mapPosition = 'top'" :class="posterOptions.mapPosition==='top' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Top</button>
+                        <button @click="posterOptions.mapPosition = 'top-right'" :class="posterOptions.mapPosition==='top-right' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Top-Right</button>
+                        <button @click="posterOptions.mapPosition = 'left'" :class="posterOptions.mapPosition==='left' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Left</button>
+                        <button @click="posterOptions.mapPosition = 'center'" :class="posterOptions.mapPosition==='center' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Center</button>
+                        <button @click="posterOptions.mapPosition = 'right'" :class="posterOptions.mapPosition==='right' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Right</button>
+                        <button @click="posterOptions.mapPosition = 'bottom-left'" :class="posterOptions.mapPosition==='bottom-left' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Bottom-Left</button>
+                        <button @click="posterOptions.mapPosition = 'bottom'" :class="posterOptions.mapPosition==='bottom' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Bottom</button>
+                        <button @click="posterOptions.mapPosition = 'bottom-right'" :class="posterOptions.mapPosition==='bottom-right' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Bottom-Right</button>
+                    </div>
+                </div>
+                
+                <!-- Map Size & Offset Control -->
+                <div class="space-y-3 mt-2 map-position" v-show="posterOptions.visibleElements.map">
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Map Size</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-slate-400">10%</span>
+                        <input type="range" min="10" max="60" v-model="mapHeightPercent" class="w-32 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
+                        <span class="text-[10px] text-slate-400">60%</span>
+                        <span class="ml-2 text-[10px] text-slate-300 font-mono">@{{ mapHeightPercent }}%</span>
+                    </div>
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Map Offset</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400">X</span>
+                            <input type="range" min="-200" max="200" v-model="mapOffset.x" class="w-40 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
+                            <span class="text-[10px] text-slate-300 font-mono w-10 text-right">@{{ mapOffset.x }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400">Y</span>
+                            <input type="range" min="-200" max="200" v-model="mapOffset.y" class="w-40 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
+                            <span class="text-[10px] text-slate-300 font-mono w-10 text-right">@{{ mapOffset.y }}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="resetMapPosition" class="px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">Reset</button>
+                            <button @click="posterOptions.mapPosition = 'center'; mapOffset = {x:0,y:0}" class="px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">Center</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Splits Position & Size -->
+                <div class="space-y-3 mt-2 split-position" v-show="posterOptions.visibleElements.splits">
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Splits Position & Size</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400">Top</span>
+                            <input type="range" min="0" max="80" v-model="splitsTopPercent" class="w-40 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
+                            <span class="text-[10px] text-slate-300 font-mono w-12 text-right">@{{ splitsTopPercent }}%</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400">Left</span>
+                            <input type="range" min="0" max="90" v-model="splitsLeftPercent" class="w-40 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
+                            <span class="text-[10px] text-slate-300 font-mono w-12 text-right">@{{ splitsLeftPercent }}%</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400">Width</span>
+                            <input type="range" min="80" max="220" v-model="splitsWidth" class="w-40 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
+                            <span class="text-[10px] text-slate-300 font-mono w-12 text-right">@{{ splitsWidth }}px</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400">X</span>
+                            <input type="range" min="-150" max="150" v-model="splitsOffset.x" class="w-40 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
+                            <span class="text-[10px] text-slate-300 font-mono w-12 text-right">@{{ splitsOffset.x }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400">Y</span>
+                            <input type="range" min="-150" max="150" v-model="splitsOffset.y" class="w-40 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-neon">
+                            <span class="text-[10px] text-slate-300 font-mono w-12 text-right">@{{ splitsOffset.y }}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="splitsTopPercent = 20; splitsLeftPercent = 80; splitsWidth = 120; splitsOffset = {x:0,y:0}" class="px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">Reset Splits</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -843,8 +960,19 @@
                             splits: false,
                             profile: true,
                             chart: false
-                        }
+                        },
+                        statsSize: 'small',
+                        mapPosition: 'center'
                     },
+                    mapScale: 1,
+                    mapOffset: { x: 0, y: 0 },
+                    isMapDragging: false,
+                    dragStart: { x: 0, y: 0 },
+                    mapHeightPercent: 20,
+                    splitsTopPercent: 20,
+                    splitsLeftPercent: 80,
+                    splitsWidth: 120,
+                    splitsOffset: { x: 0, y: 0 },
                     posterStyles: [
                         { id: 'simple', name: 'Simple', desc: 'Foto & Jarak saja' },
                         { id: 'minimal', name: 'Minimal', desc: 'Clean look, fokus foto' },
@@ -1143,7 +1271,48 @@
                 
                 this.initData();
             },
-            methods: {
+                methods: {
+                    getMapAlignmentClasses() {
+                        const pos = this.posterOptions.mapPosition;
+                        const base = [];
+                        // Always flex container
+                        base.push('items-center', 'justify-center');
+                        if (pos === 'top') { base.splice(0, base.length, 'items-start', 'justify-center'); }
+                        else if (pos === 'bottom') { base.splice(0, base.length, 'items-end', 'justify-center'); }
+                        else if (pos === 'left') { base.splice(0, base.length, 'items-center', 'justify-start'); }
+                        else if (pos === 'right') { base.splice(0, base.length, 'items-center', 'justify-end'); }
+                        else if (pos === 'top-left') { base.splice(0, base.length, 'items-start', 'justify-start'); }
+                        else if (pos === 'top-right') { base.splice(0, base.length, 'items-start', 'justify-end'); }
+                        else if (pos === 'bottom-left') { base.splice(0, base.length, 'items-end', 'justify-start'); }
+                        else if (pos === 'bottom-right') { base.splice(0, base.length, 'items-end', 'justify-end'); }
+                        return base.join(' ');
+                    },
+                    resetMapPosition() {
+                        this.mapScale = 1;
+                        this.mapOffset = { x: 0, y: 0 };
+                    },
+                    startMapDrag(e) {
+                        this.isMapDragging = true;
+                        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                        this.dragStart = {
+                            x: clientX - this.mapOffset.x,
+                            y: clientY - this.mapOffset.y
+                        };
+                    },
+                    onMapDrag(e) {
+                        if (!this.isMapDragging) return;
+                        e.preventDefault();
+                        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                        this.mapOffset = {
+                            x: clientX - this.dragStart.x,
+                            y: clientY - this.dragStart.y
+                        };
+                    },
+                    endMapDrag() {
+                        this.isMapDragging = false;
+                    },
                     getProxiedProfile() {
                         if (!this.athlete.profile) return 'https://via.placeholder.com/150';
                         // Use the image proxy for html2canvas compatibility
