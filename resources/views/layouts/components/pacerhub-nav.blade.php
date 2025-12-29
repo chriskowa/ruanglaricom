@@ -13,7 +13,25 @@
                 <a href="{{ url('programs') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Programs</a>
                 <a href="{{ url('coaches') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Coach</a>
                 <a href="{{ url('runcalendar') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Calendar</a>
-                <a href="{{ url('pacers') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Pacers</a>
+                
+                <!-- Pacers Dropdown -->
+                <div class="relative">
+                    <button id="nav-pacers-btn" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none">
+                        Pacers
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div id="nav-pacers-dropdown" class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl hidden transform transition-all origin-top-left z-50">
+                        <div class="p-1 space-y-1">
+                            <a href="{{ url('pacers') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                                Find Pacers
+                            </a>
+                            <a href="{{ route('pacer.register') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                                Register as Pacer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <a href="{{ url('challenge') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Challenge</a>
             </div>
             @endguest
@@ -135,6 +153,7 @@
         <a href="{{ url('coaches') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Coach</a>
         <a href="{{ url('runcalendar') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Calendar</a>
         <a href="{{ url('pacers') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Pacers</a>
+        <a href="{{ route('pacer.register') }}" class="px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors font-medium pl-8 text-sm">Register as Pacer</a>
         <a href="{{ url('challenge') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Challenge</a>
     </div>
 </div>
@@ -147,7 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Dropdown Toggles
     const toggles = [
         { btn: 'nav-bell-btn', menu: 'nav-bell-dropdown' },
-        { btn: 'user-menu-btn', menu: 'user-menu-dropdown' }
+        { btn: 'user-menu-btn', menu: 'user-menu-dropdown' },
+        { btn: 'nav-pacers-btn', menu: 'nav-pacers-dropdown' }
     ];
 
     toggles.forEach(toggle => {
