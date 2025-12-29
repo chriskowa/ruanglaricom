@@ -79,7 +79,7 @@
                                                     </svg>
                                                 </button>
                                             </form>
-                                        @ else
+                                        @else
                                             <form action="{{ route('coach.programs.publish', $program->id) }}" method="POST" onsubmit="return confirm('Publish this program? It will be visible in the marketplace.')">
                                                 @csrf
                                                 <button type="submit" class="p-2 rounded-lg bg-green-600/20 text-green-500 hover:bg-green-600/30 transition" title="Publish">

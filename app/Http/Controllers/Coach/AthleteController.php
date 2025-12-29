@@ -13,19 +13,37 @@ class AthleteController extends Controller
     /**
      * List all athletes enrolled in coach's programs
      */
-    public function index()
+    public function index(Request $request)
     {
         $coachId = auth()->id();
+        $search = $request->input('search');
+        $programId = $request->input('program_id');
 
         // Get enrollments for programs created by this coach
-        $enrollments = ProgramEnrollment::whereHas('program', function ($query) use ($coachId) {
-                $query->where('coach_id', $coachId);
+        $query = ProgramEnrollment::whereHas('program', function ($q) use ($coachId) {
+                $q->where('coach_id', $coachId);
             })
-            ->with(['runner', 'program'])
-            ->latest()
-            ->paginate(10);
+            ->with(['runner', 'program']);
 
-        return view('coach.athletes.index', compact('enrollments'));
+        if ($search) {
+            $query->whereHas('runner', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($programId) {
+            $query->where('program_id', $programId);
+        }
+
+        $enrollments = $query->latest()->paginate(10);
+
+        // Get coach's programs for filter dropdown
+        $programs = \App\Models\Program::where('coach_id', $coachId)
+            ->orderBy('title')
+            ->get();
+
+        return view('coach.athletes.index', compact('enrollments', 'programs', 'search', 'programId'));
     }
 
     /**
