@@ -5,19 +5,165 @@ use App\Http\Controllers\Runner\CalendarController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
-Route::get('/', function () {
-    return view('home.index');
+use App\Services\StravaClubService;
+
+Route::get('/', function (StravaClubService $stravaService) {
+    $leaderboard = $stravaService->getLeaderboard();
+
+    $topRunner = \App\Models\User::where('role', 'runner')
+        ->withCount(['followers', 'posts'])
+        ->orderByDesc('followers_count')
+        ->first();
+
+    $topPacer = \App\Models\Pacer::with('user')
+        ->orderByDesc('total_races')
+        ->first();
+
+    $topCoachData = \App\Models\ProgramEnrollment::selectRaw('programs.coach_id as coach_id, COUNT(*) as students_count')
+        ->join('programs', 'program_enrollments.program_id', '=', 'programs.id')
+        ->groupBy('programs.coach_id')
+        ->orderByDesc('students_count')
+        ->first();
+
+    $topCoach = $topCoachData ? \App\Models\User::find($topCoachData->coach_id) : null;
+
+    return view('home.index', compact('leaderboard', 'topRunner', 'topPacer', 'topCoach', 'topCoachData'));
 })->name('home');
 
+// Challenge: 40 Days Challenge - reuse realistic program design view with challenge mode
+Route::get('/challenge/40-days-challenge', function () {
+    return view('programs.design', [
+        'challengeMode' => true,
+        'challengeProgramId' => 9
+    ]);
+})->name('challenge.40days');
+
+// Challenge assessment persistence (auth required)
+Route::middleware('auth')->post('/challenge/40-days-challenge/assessment', function (Illuminate\Http\Request $request) {
+    $data = $request->validate([
+        'name' => 'nullable|string|max:255',
+        'age' => 'nullable|integer|min:1|max:120',
+        'gender' => 'nullable|string|in:Pria,Wanita',
+        'childhood' => 'nullable|string|in:active,labor,sedentary',
+        'latestDistance' => 'required|numeric|in:5,10,21.1',
+        'timeMin' => 'required|integer|min:1|max:600',
+        'timeSec' => 'nullable|integer|min:0|max:59',
+        'weeklyVolume' => 'nullable|numeric|min:0|max:1000',
+        'targetDistance' => 'nullable|string|in:5k,10k,hm,fm',
+        'goalDescription' => 'nullable|string|max:255',
+    ]);
+
+    /** @var \App\Models\User $user */
+    $user = $request->user();
+
+    // Update user fields (non-destructive)
+    $updates = [];
+    if (!empty($data['name'])) $updates['name'] = $data['name'];
+    if (!empty($data['gender'])) $updates['gender'] = strtolower($data['gender']) === 'wanita' ? 'female' : 'male';
+    if (isset($data['weeklyVolume'])) $updates['weekly_volume'] = $data['weeklyVolume'];
+
+    // Prepare audit entry
+    $audit = $user->audit_history ?? [];
+    $audit[] = [
+        'at' => now()->toISOString(),
+        'actor' => $user->id,
+        'context' => '40-days-challenge-assessment',
+        'form' => $data,
+    ];
+
+    $updates['audit_history'] = $audit;
+
+    // Persist
+    if (!empty($updates)) {
+        $user->update($updates);
+    }
+
+    return response()->json(['ok' => true]);
+})->name('challenge.40days.assessment');
+
+Route::post('/challenge/register', function (Illuminate\Http\Request $request) {
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'phone' => 'required|string|max:20',
+        'password' => 'required|string|min:6',
+    ]);
+
+    // Create User
+    $user = \App\Models\User::create([
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'phone' => $data['phone'],
+        'password' => \Illuminate\Support\Facades\Hash::make($data['password']),
+        'role' => 'runner',
+    ]);
+
+    // Generate OTP
+    $code = str_pad((string)random_int(0,999999), 6, '0', STR_PAD_LEFT);
+    \App\Models\OtpToken::create([
+        'user_id' => $user->id,
+        'code' => $code,
+        'expires_at' => now()->addMinutes(10),
+        'used' => false,
+    ]);
+
+    // Send WhatsApp
+    \App\Helpers\WhatsApp::send($data['phone'], 'Kode OTP RuangLari Anda: '.$code);
+
+    return response()->json(['ok' => true, 'user_id' => $user->id]);
+});
+
+Route::post('/challenge/verify-otp', function (Illuminate\Http\Request $request) {
+    $data = $request->validate([
+        'user_id' => 'required|exists:users,id',
+        'otp' => 'required|string|size:6'
+    ]);
+
+    $token = \App\Models\OtpToken::where('user_id', $data['user_id'])
+        ->where('code', $data['otp'])
+        ->where('used', false)
+        ->where('expires_at', '>', now())
+        ->first();
+
+    if (!$token) {
+        return response()->json(['ok' => false, 'message' => 'OTP Salah atau Kadaluarsa'], 400);
+    }
+
+    $token->update(['used' => true]);
+    
+    $user = \App\Models\User::find($data['user_id']);
+    \Illuminate\Support\Facades\Auth::login($user);
+
+    // Auto Join Program 9
+    $programId = 9;
+    // Check if already enrolled
+    $exists = \App\Models\ProgramEnrollment::where('runner_id', $user->id)
+        ->where('program_id', $programId)
+        ->exists();
+
+    if (!$exists) {
+        \App\Models\ProgramEnrollment::create([
+            'program_id' => $programId,
+            'runner_id' => $user->id,
+            'status' => 'active',
+            'start_date' => now(),
+            'end_date' => now()->addDays(40), // Assuming 40 days
+            'payment_status' => 'paid', // Free challenge
+        ]);
+    }
+
+    return response()->json(['ok' => true, 'redirect' => route('runner.calendar')]);
+});
+
 // Public routes
-Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');
-Route::get('/calendar/events-proxy', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.events.proxy');
-Route::get('/calendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
-Route::get('/calendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
-Route::post('/calendar/ai-analysis', [App\Http\Controllers\CalendarController::class, 'getAiAnalysis'])->name('calendar.ai.analysis');
+Route::get('/runcalendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');
+Route::get('/runcalendar/events-proxy', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.events.proxy');
+Route::get('/runcalendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
+Route::get('/runcalendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
+Route::post('/runcalendar/ai-analysis', [App\Http\Controllers\CalendarController::class, 'getAiAnalysis'])->name('calendar.ai.analysis');
 
 // Pacer listing and profile
-Route::get('/pacer', [App\Http\Controllers\PacerController::class, 'index'])->name('pacer.index');
+Route::get('/pacers', [App\Http\Controllers\PacerController::class, 'index'])->name('pacer.index');
 Route::get('/pacer/{slug}', [App\Http\Controllers\PacerController::class, 'show'])->name('pacer.show');
 Route::get('/pacer-register', [App\Http\Controllers\PacerRegistrationController::class, 'create'])->name('pacer.register');
 Route::post('/pacer-register', [App\Http\Controllers\PacerRegistrationController::class, 'store'])->name('pacer.register.store');
@@ -62,6 +208,9 @@ Route::get('/realistic-running-program', function () { return view('programs.des
 Route::get('/coach-ladder-program', function () { return view('coach.hub'); })->name('coach.hub');
 Route::get('/programs', [App\Http\Controllers\PublicProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{slug}', [App\Http\Controllers\PublicProgramController::class, 'show'])->name('programs.show');
+
+// Public Coach Listing
+Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');
 
 // Public race results API (must be before /events/{slug} to avoid route conflict)
 Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultController::class, 'index'])
@@ -109,11 +258,24 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login']);
     Route::get('/register', [App\Http\Controllers\Auth\AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [App\Http\Controllers\Auth\AuthController::class, 'register']);
+    
+    // Runner special registration
+    Route::get('/runner-register', [App\Http\Controllers\Runner\RunnerRegistrationController::class, 'create'])->name('runner.register');
+    Route::post('/runner-register', [App\Http\Controllers\Runner\RunnerRegistrationController::class, 'store'])->name('runner.register.store');
     Route::get('/forgot-password', [App\Http\Controllers\Auth\AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/forgot-password', [App\Http\Controllers\Auth\AuthController::class, 'sendResetLink'])->name('password.email');
+
+    // Google Auth
+    Route::get('auth/google', [App\Http\Controllers\Auth\AuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('auth/google/callback', [App\Http\Controllers\Auth\AuthController::class, 'handleGoogleCallback']);
 });
 
 Route::middleware('auth')->group(function () {
+    // Strava & AI Analysis (Protected)
+    Route::get('/runcalendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
+    Route::get('/runcalendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
+    Route::post('/runcalendar/ai-analysis', [App\Http\Controllers\CalendarController::class, 'getAiAnalysis'])->name('calendar.ai.analysis');
+
     Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->name('logout');
     
     // Profile routes (accessible by all authenticated users)
@@ -164,6 +326,11 @@ Route::middleware('auth')->group(function () {
     // Runner routes
     Route::middleware('role:runner')->prefix('runner')->name('runner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        // Challenge Programs listing (filtered)
+        Route::get('/programs/challenges', function (Illuminate\Http\Request $request) {
+            $request->merge(['challenge' => 1]);
+            return app(App\Http\Controllers\PublicProgramController::class)->index($request);
+        })->name('programs.challenges');
         Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
         Route::get('/calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
         Route::get('/calendar/workout-plans', [CalendarController::class, 'workoutPlans'])->name('calendar.workout-plans');
@@ -172,6 +339,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/calendar/custom-workout/{customWorkout}', [CalendarController::class, 'deleteCustomWorkout'])->name('calendar.custom-workout.delete');
         Route::delete('/calendar/enrollment/{enrollment}', [CalendarController::class, 'deleteEnrollment'])->name('calendar.enrollment.delete');
         Route::post('/calendar/enrollment/{enrollment}/delete', [CalendarController::class, 'deleteEnrollment'])->name('calendar.enrollment.delete.post');
+        Route::post('/calendar/reset-plan', [CalendarController::class, 'resetPlan'])->name('calendar.reset-plan');
+        Route::post('/calendar/reset-plan-list', [CalendarController::class, 'resetPlanList'])->name('calendar.reset-plan-list');
+        Route::post('/calendar/apply-program', [CalendarController::class, 'applyProgram'])->name('calendar.apply-program');
+        Route::post('/calendar/restore-program', [CalendarController::class, 'restoreProgram'])->name('calendar.restore-program');
+        Route::post('/calendar/update-pb', [CalendarController::class, 'updatePb'])->name('calendar.update-pb');
+        Route::post('/calendar/reset-plan-list', [CalendarController::class, 'resetPlanList'])->name('calendar.reset-plan-list');
+        Route::post('/calendar/reschedule', [CalendarController::class, 'reschedule'])->name('calendar.reschedule');
+        Route::get('/calendar/weekly-volume', [CalendarController::class, 'weeklyVolume'])->name('calendar.weekly-volume');
         
         // Program purchase & enrollment
         Route::post('/programs/{program}/purchase', [App\Http\Controllers\Runner\ProgramPurchaseController::class, 'purchase'])->name('programs.purchase');
@@ -207,6 +382,13 @@ Route::middleware('auth')->group(function () {
     // Coach routes
     Route::middleware('role:coach')->prefix('coach')->name('coach.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Coach\DashboardController::class, 'index'])->name('dashboard');
+        
+        // Master Workouts
+        Route::resource('master-workouts', App\Http\Controllers\Coach\MasterWorkoutController::class);
+
+        // Custom Workouts
+        Route::resource('custom-workouts', App\Http\Controllers\Coach\CustomWorkoutController::class);
+
         Route::resource('programs', App\Http\Controllers\Coach\ProgramController::class);
         Route::post('/programs/generate-template', [App\Http\Controllers\Coach\ProgramController::class, 'generateTemplate'])->name('programs.generate-template');
         Route::post('/programs/import-json', [App\Http\Controllers\Coach\ProgramController::class, 'importJson'])->name('programs.import-json');
@@ -218,6 +400,12 @@ Route::middleware('auth')->group(function () {
         // Withdrawals
         Route::get('/withdrawals', [App\Http\Controllers\Coach\WithdrawalController::class, 'index'])->name('withdrawals.index');
         Route::post('/withdrawals/request', [App\Http\Controllers\Coach\WithdrawalController::class, 'request'])->name('withdrawals.request');
+
+        // Athlete Monitoring
+        Route::get('/athletes', [App\Http\Controllers\Coach\AthleteController::class, 'index'])->name('athletes.index');
+        Route::get('/athletes/{enrollment}', [App\Http\Controllers\Coach\AthleteController::class, 'show'])->name('athletes.show');
+        Route::get('/athletes/{enrollment}/events', [App\Http\Controllers\Coach\AthleteController::class, 'calendarEvents'])->name('athletes.events');
+        Route::post('/athletes/{enrollment}/feedback', [App\Http\Controllers\Coach\AthleteController::class, 'storeFeedback'])->name('athletes.feedback');
     });
 
     // EO routes
@@ -249,6 +437,7 @@ Route::middleware('auth')->group(function () {
     // Wallet routes (accessible by all authenticated users)
     Route::get('/wallet', [App\Http\Controllers\WalletController::class, 'index'])->name('wallet.index');
     Route::post('/wallet/topup', [App\Http\Controllers\WalletController::class, 'topup'])->name('wallet.topup');
+    Route::post('/wallet/withdraw', [App\Http\Controllers\WalletController::class, 'withdraw'])->name('wallet.withdraw');
 });
 
 Route::get('/dashboard', function () {

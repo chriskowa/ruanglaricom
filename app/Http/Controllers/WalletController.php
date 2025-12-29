@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Wallet;
 use App\Models\WalletTopup;
 use App\Models\WalletTransaction;
+use App\Models\WalletWithdrawal;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,10 +43,15 @@ class WalletController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        $withdrawals = WalletWithdrawal::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         return view('wallet.index', [
             'wallet' => $wallet,
             'transactions' => $transactions,
             'topups' => $topups,
+            'withdrawals' => $withdrawals,
         ]);
     }
 
@@ -132,5 +138,85 @@ class WalletController extends Controller
         $result = $this->midtransService->handleWebhook($request);
 
         return response()->json($result);
+    }
+
+    public function withdraw(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'amount' => 'required|numeric|min:50000',
+            ]);
+
+            $user = Auth::user();
+            if (!$user->wallet) {
+                $wallet = Wallet::create([
+                    'user_id' => $user->id,
+                    'balance' => 0,
+                    'locked_balance' => 0,
+                ]);
+                $user->refresh();
+            }
+
+            if (!$user->bank_name || !$user->bank_account_name || !$user->bank_account_number) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Lengkapi data bank di Profile terlebih dahulu.',
+                ], 422);
+            }
+
+            $amount = (float)$validated['amount'];
+            $user->wallet->refresh();
+            if ($user->wallet->balance < $amount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Saldo tidak cukup.',
+                ], 400);
+            }
+
+            $balanceBefore = $user->wallet->balance;
+            $user->wallet->decrement('balance', $amount);
+            $user->wallet->increment('locked_balance', $amount);
+            $balanceAfter = $user->wallet->fresh()->balance;
+
+            $withdrawal = WalletWithdrawal::create([
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'bank_name' => $user->bank_name,
+                'bank_account_name' => $user->bank_account_name,
+                'bank_account_number' => $user->bank_account_number,
+                'status' => 'pending',
+            ]);
+
+            WalletTransaction::create([
+                'wallet_id' => $user->wallet->id,
+                'type' => 'withdraw',
+                'amount' => $amount,
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceAfter,
+                'status' => 'pending',
+                'description' => 'Withdraw request',
+                'reference_type' => WalletWithdrawal::class,
+                'reference_id' => $withdrawal->id,
+                'metadata' => [
+                    'withdrawal_id' => $withdrawal->id,
+                ],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Withdraw berhasil dibuat dan menunggu proses.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

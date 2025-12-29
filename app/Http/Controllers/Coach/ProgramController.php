@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Coach;
 use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\City;
+use App\Models\MasterWorkout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +24,8 @@ class ProgramController extends Controller
     public function create()
     {
         $cities = City::orderBy('name')->get();
-        return view('coach.programs.create', compact('cities'));
+        $masterWorkouts = MasterWorkout::visibleFor(auth()->user())->get()->groupBy('type');
+        return view('coach.programs.create', compact('cities', 'masterWorkouts'));
     }
 
     public function store(Request $request)
@@ -41,12 +43,14 @@ class ProgramController extends Controller
             'banner' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'duration_weeks' => 'nullable|integer|min:1',
             'is_published' => 'nullable|boolean',
+            'is_challenge' => 'nullable|boolean',
         ]);
 
         $validated['coach_id'] = auth()->id();
         $validated['slug'] = Str::slug($validated['title']) . '-' . uniqid();
         $validated['program_json'] = json_decode($validated['program_json'], true);
         $validated['is_published'] = $request->has('is_published') ? (bool)$request->is_published : false;
+        $validated['is_challenge'] = $request->boolean('is_challenge');
 
         // Handle file uploads
         if ($request->hasFile('thumbnail')) {
@@ -64,20 +68,27 @@ class ProgramController extends Controller
 
     public function show(Program $program)
     {
-        $this->authorize('view', $program);
+        if ($program->coach_id !== auth()->id()) {
+            abort(403);
+        }
         return view('coach.programs.show', compact('program'));
     }
 
     public function edit(Program $program)
     {
-        $this->authorize('update', $program);
+        if ($program->coach_id !== auth()->id()) {
+            abort(403);
+        }
         $cities = City::orderBy('name')->get();
-        return view('coach.programs.edit', compact('program', 'cities'));
+        $masterWorkouts = MasterWorkout::all()->groupBy('type');
+        return view('coach.programs.edit', compact('program', 'cities', 'masterWorkouts'));
     }
 
     public function update(Request $request, Program $program)
     {
-        $this->authorize('update', $program);
+        if ($program->coach_id !== auth()->id()) {
+            abort(403);
+        }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -92,6 +103,7 @@ class ProgramController extends Controller
             'banner' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'duration_weeks' => 'nullable|integer|min:1',
             'is_published' => 'nullable|boolean',
+            'is_challenge' => 'nullable|boolean',
         ]);
 
         if ($validated['title'] !== $program->title) {
@@ -100,6 +112,7 @@ class ProgramController extends Controller
 
         $validated['program_json'] = json_decode($validated['program_json'], true);
         $validated['is_published'] = $request->has('is_published') ? (bool)$request->is_published : $program->is_published;
+        $validated['is_challenge'] = $request->boolean('is_challenge');
 
         // Handle file uploads
         if ($request->hasFile('thumbnail')) {
@@ -125,64 +138,13 @@ class ProgramController extends Controller
 
     public function destroy(Program $program)
     {
-        $this->authorize('delete', $program);
+        if ($program->coach_id !== auth()->id()) {
+            abort(403);
+        }
         $program->delete();
 
         return redirect()->route('coach.programs.index')
             ->with('success', 'Program berhasil dihapus!');
-    }
-
-    /**
-     * Generate program JSON template
-     */
-    public function generateTemplate(Request $request)
-    {
-        $validated = $request->validate([
-            'duration_weeks' => 'required|integer|min:1|max:52',
-        ]);
-
-        $sessions = [];
-        $totalDays = $validated['duration_weeks'] * 7;
-
-        // Generate basic template
-        for ($day = 1; $day <= $totalDays; $day++) {
-            $sessions[] = [
-                'day' => $day,
-                'type' => 'easy_run',
-                'distance' => 5,
-                'duration' => '00:30:00',
-                'description' => 'Easy run',
-            ];
-        }
-
-        return response()->json([
-            'sessions' => $sessions,
-            'duration_weeks' => $validated['duration_weeks'],
-        ]);
-    }
-
-    /**
-     * Import JSON program from file
-     */
-    public function importJson(Request $request)
-    {
-        $request->validate([
-            'json_file' => 'required|file|mimes:json|max:2048',
-        ]);
-
-        $file = $request->file('json_file');
-        $content = file_get_contents($file->getRealPath());
-        $json = json_decode($content, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return back()->withErrors(['json_file' => 'File JSON tidak valid.']);
-        }
-
-        if (!isset($json['sessions']) || !is_array($json['sessions'])) {
-            return back()->withErrors(['json_file' => 'Format JSON tidak valid. Harus memiliki field "sessions" berupa array.']);
-        }
-
-        return response()->json($json);
     }
 
     /**
@@ -206,7 +168,9 @@ class ProgramController extends Controller
      */
     public function publish(Program $program)
     {
-        $this->authorize('update', $program);
+        if ($program->coach_id !== auth()->id()) {
+            abort(403);
+        }
         
         $program->update(['is_published' => true]);
         
@@ -218,7 +182,9 @@ class ProgramController extends Controller
      */
     public function unpublish(Program $program)
     {
-        $this->authorize('update', $program);
+        if ($program->coach_id !== auth()->id()) {
+            abort(403);
+        }
         
         $program->update(['is_published' => false]);
         
@@ -226,11 +192,75 @@ class ProgramController extends Controller
     }
 
     /**
+     * Generate program JSON template
+     */
+    public function generateTemplate(Request $request)
+    {
+        $validated = $request->validate([
+            'duration_weeks' => 'required|integer|min:1|max:52',
+        ]);
+
+        $sessions = [];
+        $totalDays = $validated['duration_weeks'] * 7;
+
+        // Generate basic template
+        for ($day = 1; $day <= $totalDays; $day++) {
+            $sessions[] = [
+                'day' => $day,
+                'type' => 'easy_run', // easy_run, long_run, tempo, interval, rest
+                'distance' => 5,
+                'duration' => '00:30:00',
+                'description' => 'Easy run',
+            ];
+        }
+
+        return response()->json([
+            'sessions' => $sessions,
+            'duration_weeks' => $validated['duration_weeks'],
+        ]);
+    }
+
+    /**
+     * Import JSON program from file
+     */
+    public function importJson(Request $request)
+    {
+        // Removed mimes:json validation as it's unreliable for some environments
+        $request->validate([
+            'json_file' => 'required|file|max:2048',
+        ]);
+
+        $file = $request->file('json_file');
+        $content = file_get_contents($file->getRealPath());
+        
+        // Attempt to decode
+        $json = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return response()->json([
+                'message' => 'The uploaded file is not a valid JSON file.',
+                'errors' => ['json_file' => ['Invalid JSON format.']]
+            ], 422);
+        }
+
+        if (!isset($json['sessions']) || !is_array($json['sessions'])) {
+             return response()->json([
+                'message' => 'Invalid JSON structure.',
+                'errors' => ['json_file' => ['Missing "sessions" array in JSON.']]
+             ], 422);
+        }
+
+        return response()->json($json);
+    }
+
+    /**
      * Export program as JSON
      */
     public function exportJson(Program $program)
     {
-        $this->authorize('view', $program);
+        if ($program->coach_id !== auth()->id()) {
+            abort(403);
+        }
         
         $programData = [
             'title' => $program->title,

@@ -1,5 +1,14 @@
 @push('scripts')
 <script>
+    // Authentication status
+    const isAuthenticated = @json(auth()->check());
+    const baseUrl = @json(url('/'));
+    const storageBase = @json(asset('storage/'));
+    const defaultAvatar = @json(asset('images/avatar/1.jpg'));
+    const authId = @json(auth()->id() ?: 0);
+    const authAvatar = @json(auth()->user() && auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/avatar/1.jpg'));
+    const authName = @json(auth()->user() ? auth()->user()->name : '');
+
     // Chatbox toggle
     document.getElementById('chatbox-toggle')?.addEventListener('click', function() {
         document.querySelector('.chatbox').classList.toggle('active');
@@ -21,15 +30,22 @@
     
     function getNotificationUrl(notif) {
         if (notif.reference_type === 'Post' && notif.reference_id) {
-            return '{{ route("feed.index") }}#post-' + notif.reference_id;
+            return @json(route("feed.index")) + '#post-' + notif.reference_id;
         }
-        return '{{ route("notifications.index") }}';
+        return @json(route("notifications.index"));
     }
     
     function checkNotifications() {
-        fetch('{{ route("notifications.unread") }}')
-            .then(response => response.json())
+        if (!isAuthenticated) return;
+
+        fetch(@json(route("notifications.unread")))
+            .then(response => {
+                if (response.status === 401) return null;
+                return response.json();
+            })
             .then(data => {
+                if (!data) return;
+
                 const countBadge = document.querySelector('.notification-count');
                 const notificationList = document.getElementById('notification-list');
                 
@@ -38,7 +54,7 @@
                     countBadge.classList.remove('d-none');
                     
                     // Update notification list
-                    if (notificationList && data.notifications.length > 0) {
+                    if (notificationList && data.notifications && data.notifications.length > 0) {
                         notificationList.innerHTML = '';
                         data.notifications.forEach(notif => {
                             const li = document.createElement('li');
@@ -73,10 +89,12 @@
             .catch(error => console.error('Error checking notifications:', error));
     }
     
-    // Check notifications every 30 seconds
+    // Check notifications every 30 seconds (only when authenticated)
     if (document.getElementById('notification-dropdown')) {
-        checkNotifications();
-        notificationCheckInterval = setInterval(checkNotifications, 30000);
+        if (isAuthenticated) {
+            checkNotifications();
+            notificationCheckInterval = setInterval(checkNotifications, 30000);
+        }
     }
     
     // Handle notification click - mark as read
@@ -92,7 +110,7 @@
                 fetch(`/notifications/${notificationId}/read`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     }
@@ -160,7 +178,7 @@
 
     // Load conversations
     function loadConversations() {
-        fetch('{{ route("chat.conversations") }}')
+        fetch(@json(route("chat.conversations")))
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -177,10 +195,11 @@
                         const li = document.createElement('li');
                         li.className = 'dz-chat-user';
                         li.dataset.userId = conv.user_id;
+                        const avatarUrl = conv.user_avatar ? (storageBase + conv.user_avatar) : defaultAvatar;
                         li.innerHTML = `
                             <div class="d-flex bd-highlight">
                                 <div class="img_cont">
-                                    <img src="${conv.user_avatar ? '{{ asset("storage/") }}/' + conv.user_avatar : '{{ asset("images/avatar/1.jpg") }}'}" 
+                                    <img src="${avatarUrl}" 
                                          class="rounded-circle user_img" alt="${conv.user_name}">
                                     <span class="online_icon offline"></span>
                                 </div>
@@ -215,7 +234,7 @@
 
         // Update chat header
         document.getElementById('chat-with-name').textContent = userName;
-        document.getElementById('chat-view-profile').href = '{{ route("profile.show") }}?user=' + userId;
+        document.getElementById('chat-view-profile').href = @json(route("profile.show")) + '?user=' + userId;
 
         // Show chat history box, hide contacts box
         document.querySelector('.dz-chat-user-box').classList.add('d-none');
@@ -235,7 +254,6 @@
 
     // Load messages
     function loadMessages(userId, silent = false) {
-        const baseUrl = '{{ url("/") }}';
         fetch(`${baseUrl}/api/chat/${userId}/messages`)
             .then(response => {
                 if (!response.ok) {
@@ -257,11 +275,11 @@
 
                     messagesContainer.innerHTML = '';
                     data.messages.forEach(msg => {
-                        const isOwnMessage = String(msg.sender_id) === '{{ auth()->id() ?: 0 }}';
+                        const isOwnMessage = String(msg.sender_id) === String(authId);
                         const messageDiv = document.createElement('div');
                         messageDiv.className = `d-flex ${isOwnMessage ? 'justify-content-end' : 'justify-content-start'} mb-4`;
-                        const senderAvatarUrl = msg.sender.avatar ? `{{ asset('storage/') }}/${msg.sender.avatar}` : `{{ asset('images/avatar/1.jpg') }}`;
-                        const currentUserAvatarUrl = `{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/avatar/1.jpg') }}`;
+                        const senderAvatarUrl = msg.sender.avatar ? (storageBase + msg.sender.avatar) : defaultAvatar;
+                        const currentUserAvatarUrl = authAvatar;
                         messageDiv.innerHTML = `
                             ${!isOwnMessage ? `
                                 <div class="img_cont_msg">
@@ -276,7 +294,7 @@
                             ${isOwnMessage ? `
                                 <div class="img_cont_msg">
                                     <img src="${currentUserAvatarUrl}" 
-                                         class="rounded-circle user_img_msg" alt="{{ auth()->user()->name }}" style="width: 40px; height: 40px; object-fit: cover;">
+                                         class="rounded-circle user_img_msg" alt="${authName}" style="width: 40px; height: 40px; object-fit: cover;">
                                 </div>
                             ` : ''}
                         `;
@@ -320,11 +338,10 @@
         const sendBtn = document.getElementById('chat-send-btn');
         sendBtn.disabled = true;
 
-        const baseUrl = '{{ url("/") }}';
         fetch(`${baseUrl}/chat/${currentChatUserId}`, {
             method: 'POST',
             headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
@@ -425,19 +442,19 @@
                 e.preventDefault();
                 @auth
                     @if(auth()->user()->isRunner())
-                        window.location.href = "{{ route('runner.calendar') }}";
+                        window.location.href = @json(route('runner.calendar'));
                     @else
-                        window.location.href = "{{ route('calendar.public') }}";
+                        window.location.href = @json(route('calendar.public'));
                     @endif
                 @else
-                    window.location.href = "{{ route('calendar.public') }}";
+                    window.location.href = @json(route('calendar.public'));
                 @endauth
                 gPressedAt = 0;
                 return;
             }
             if (e.key.toLowerCase() === 'm') {
                 e.preventDefault();
-                window.location.href = "{{ route('chat.index') }}";
+                window.location.href = @json(route('chat.index'));
                 gPressedAt = 0;
                 return;
             }

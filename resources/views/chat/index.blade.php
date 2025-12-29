@@ -1,68 +1,28 @@
-@extends('layouts.app')
+@extends('layouts.pacerhub')
 
-@section('title', 'Chat')
+@section('title', 'Messages')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="page-titles">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route(auth()->user()->role . '.dashboard') }}">Dashboard</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Chat</a></li>
-            </ol>
+<div class="flex h-[calc(100vh-64px)] overflow-hidden bg-dark pt-20">
+    <!-- Sidebar List -->
+    @include('chat.partials.sidebar', ['conversations' => $conversations])
+
+    <!-- Empty State (Hidden on mobile if listing is shown, but here we just hide on mobile for now as index is list-only on mobile) -->
+    <div class="hidden md:flex flex-1 flex-col items-center justify-center bg-slate-900/30 text-center p-8">
+        <div class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-black/50">
+            <svg class="w-10 h-10 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
         </div>
+        <h2 class="text-2xl font-black text-white mb-2">Select a Conversation</h2>
+        <p class="text-slate-400 max-w-sm">Choose a person from the left sidebar to start chatting or continue your conversation.</p>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title">Percakapan</h4>
-            </div>
-            <div class="card-body">
-                @forelse($conversations as $userId => $messages)
-                    @php
-                        $lastMessage = $messages->first();
-                        $otherUser = $lastMessage->sender_id === auth()->id() 
-                            ? $lastMessage->receiver 
-                            : $lastMessage->sender;
-                    @endphp
-                    <a href="{{ route('chat.show', $otherUser) }}" class="d-flex align-items-center p-3 border-bottom text-decoration-none">
-                        <div class="me-3">
-                            <img src="{{ $otherUser->avatar ? asset('storage/' . $otherUser->avatar) : asset('images/profile/17.jpg') }}" 
-                                 class="rounded-circle" width="50" height="50" style="object-fit: cover;" alt="{{ $otherUser->name }}">
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1 text-dark">{{ $otherUser->name }}</h5>
-                            <p class="mb-0 text-muted">{{ Str::limit($lastMessage->message, 50) }}</p>
-                        </div>
-                        <div class="text-end">
-                            <small class="text-muted">{{ $lastMessage->created_at->diffForHumans() }}</small>
-                            @if($lastMessage->receiver_id === auth()->id() && !$lastMessage->is_read)
-                                <span class="badge badge-primary">New</span>
-                            @endif
-                        </div>
-                    </a>
-                @empty
-                    <div class="text-center p-5">
-                        <p class="text-muted">Belum ada percakapan.</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #ccff00; }
+</style>
 @endsection
-
-
-
-
-
-
-
-
-
-
-
-

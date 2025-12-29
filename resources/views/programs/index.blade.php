@@ -7,11 +7,11 @@
 <div id="programs-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans bg-dark text-slate-200" v-cloak>
     
     <!-- Hero Section -->
-    <div class="mb-10 relative z-10" data-aos="fade-down">
+    <div class="mb-10 relative z-10 mt-10" data-aos="fade-down">
         <div class="text-center max-w-3xl mx-auto">
             <p class="text-neon font-mono text-sm tracking-widest uppercase mb-2">Marketplace</p>
             <h1 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
-                FIND YOUR <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">PERFECT PLAN</span>
+                FIND YOUR <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400 pr-2">PERFECT PLAN</span>
             </h1>
             <p class="text-slate-400 text-lg">
                 Pilih program latihan yang sesuai dengan target dan kemampuanmu. Dibuat oleh pelatih profesional terverifikasi.

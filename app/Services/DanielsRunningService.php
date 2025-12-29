@@ -37,7 +37,12 @@ class DanielsRunningService
         $velocity = $distanceInMeters / $totalSeconds; // meters per second
         
         // Approximate VDOT calculation
-        $vdot = (-4.6 + 0.182258 * $velocity * 1000) + (0.000104 * pow($velocity * 1000, 2));
+        // Formula often uses velocity in meters per minute
+        $velocityMin = $velocity * 60;
+        
+        // Approximate VDOT calculation using m/min
+        // VDOT = -4.6 + 0.182258 * v + 0.000104 * v^2
+        $vdot = (-4.6 + 0.182258 * $velocityMin) + (0.000104 * pow($velocityMin, 2));
         
         // Adjust based on distance (different distances have different VDOT equivalencies)
         $adjustment = $this->getVDOTAdjustment($distance);
@@ -83,24 +88,174 @@ class DanielsRunningService
      */
     public function calculateTrainingPaces(float $vdot): array
     {
-        // Simplified pace calculations based on VDOT
-        // E pace (Easy): ~65-78% of VO2max
-        // T pace (Threshold): ~83-88% of VO2max  
-        // I pace (Interval): ~95-100% of VO2max
-        // R pace (Repetition): Faster than I pace
+        // 1. Calculate Velocity at VO2max (vVO2max) in meters/minute
+        // Using the inverse of the VDOT formula: 
+        // 0.000104 * v^2 + 0.182258 * v + (-4.6 - VDOT) = 0
         
-        // Base pace calculation (minutes per km)
-        $basePace = 0.2 * pow($vdot, -1.1); // Simplified formula
+        $a = 0.000104;
+        $b = 0.182258;
+        $c = -4.6 - $vdot;
         
-        $paces = [
-            'E' => round($basePace * 1.35, 2), // Easy pace
-            'M' => round($basePace * 1.15, 2), // Marathon pace
-            'T' => round($basePace * 1.05, 2), // Threshold pace
-            'I' => round($basePace * 0.98, 2), // Interval pace
-            'R' => round($basePace * 0.95, 2), // Repetition pace
+        // Quadratic formula: v = (-b + sqrt(b^2 - 4ac)) / 2a
+        $vVO2max = (-$b + sqrt(pow($b, 2) - 4 * $a * $c)) / (2 * $a);
+        
+        // 2. Calculate Paces based on % of vVO2max
+        // Intensities (approximate Daniels' percentages)
+        $ratios = [
+            'E' => 0.70,  // Easy: ~70% vVO2max
+            'M' => 0.82,  // Marathon: ~82% vVO2max
+            'T' => 0.88,  // Threshold: ~88% vVO2max
+            'I' => 0.97,  // Interval: ~97% vVO2max
+            'R' => 1.05,  // Repetition: ~105% vVO2max
         ];
         
+        $paces = [];
+        foreach ($ratios as $type => $ratio) {
+            $velocity = $vVO2max * $ratio; // m/min
+            $paceMinPerKm = 1000 / $velocity; // min/km
+            $paces[$type] = round($paceMinPerKm, 2);
+        }
+        
         return $paces;
+    }
+
+    /**
+     * Calculate equivalent race times for standard distances
+     */
+    public function calculateEquivalentRaceTimes(float $vdot): array
+    {
+        // Standard distances in meters
+        $distances = [
+            '5k' => 5000,
+            '10k' => 10000,
+            '21k' => 21097.5,
+            '42k' => 42195,
+        ];
+
+        // Improve accuracy by using the VDOT formula directly to find velocity for 5k
+        // or finding the velocity that yields this VDOT for each distance.
+        // Since VDOT is derived from race performances, we can approximate the 
+        // expected time by using the general drop-off curve.
+        
+        // 1. Calculate Velocity at VO2max (vVO2max)
+        $a = 0.000104;
+        $b = 0.182258;
+        $c = -4.6 - $vdot;
+        $vVO2max = (-$b + sqrt(pow($b, 2) - 4 * $a * $c)) / (2 * $a); // m/min
+        
+        // Daniels' Duration Factors (Approximate from Tables)
+        // Ratio of velocity at distance D to vVO2max
+        // This is a much better approximation than simple Riegel from arbitrary anchor
+        // Derived from regression on VDOT tables
+        $ratios = [
+            '5k' => 0.957,    // ~95.7% of vVO2max
+            '10k' => 0.915,   // ~91.5% of vVO2max
+            '21k' => 0.865,   // ~86.5% of vVO2max
+            '42k' => 0.815,   // ~81.5% of vVO2max
+        ];
+
+        $results = [];
+        foreach ($distances as $name => $distMeters) {
+            // Velocity for this distance
+            // Use specific ratio or fall back to Riegel-like curve if needed
+            // The ratios above are good for VDOT ~30-60. 
+            // For higher precision, we could adjust ratio based on VDOT (elites hold higher %)
+            // But fixed ratios are better than previous Riegel implementation.
+            
+            $ratio = $ratios[$name];
+            
+            // Minor adjustment for VDOT range: higher VDOT = slightly better endurance
+            // Example: VDOT 70 holds 92% for 10k, VDOT 30 holds 90%
+            // Simple linear adjustment:
+            $ratio += ($vdot - 50) * 0.0005; 
+            
+            $velocity = $vVO2max * $ratio; // m/min
+            
+            // Calculate Time
+            $totalMinutes = $distMeters / $velocity;
+            
+            // Format Time
+            $hours = floor($totalMinutes / 60);
+            $minutes = floor($totalMinutes % 60);
+            $seconds = round(($totalMinutes - floor($totalMinutes)) * 60);
+            $timeStr = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+            
+            // Calculate Pace (min/km)
+            $paceMinPerKm = 1000 / $velocity;
+            $pm = floor($paceMinPerKm);
+            $ps = round(($paceMinPerKm - $pm) * 60);
+            $paceStr = sprintf('%d:%02d', $pm, $ps);
+            
+            $results[$name] = [
+                'time' => $timeStr,
+                'pace' => $paceStr . '/km'
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Calculate track split times for specific distances
+     * Returns times for Repetition, Interval, and Threshold paces
+     */
+    public function calculateTrackTimes(float $vdot): array
+    {
+        $paces = $this->calculateTrainingPaces($vdot); // min/km
+        
+        $distances = [
+            '100m' => 0.1,
+            '200m' => 0.2,
+            '300m' => 0.3,
+            '400m' => 0.4,
+            '600m' => 0.6,
+            '800m' => 0.8,
+            '1000m' => 1.0,
+            '1200m' => 1.2,
+            '1600m' => 1.6,
+            '2000m' => 2.0,
+        ];
+
+        $trackTimes = [];
+
+        foreach ($distances as $label => $distKm) {
+            $trackTimes[$label] = [
+                'R' => $this->formatSplitTime($distKm * $paces['R']),
+                'I' => $this->formatSplitTime($distKm * $paces['I']),
+                'T' => $this->formatSplitTime($distKm * $paces['T']),
+                'pace_R' => $this->formatPace($paces['R']),
+                'pace_I' => $this->formatPace($paces['I']),
+                'pace_T' => $this->formatPace($paces['T']),
+            ];
+        }
+
+        return $trackTimes;
+    }
+
+    /**
+     * Format pace (minutes/km) to MM:SS
+     */
+    private function formatPace(float $minutes): string
+    {
+        $m = floor($minutes);
+        $s = round(($minutes - $m) * 60);
+        return sprintf('%d:%02d', $m, $s);
+    }
+
+    /**
+     * Format split time (minutes) to MM:SS or SS if < 1 min
+     */
+    private function formatSplitTime(float $minutes): string
+    {
+        $totalSeconds = round($minutes * 60);
+        $m = floor($totalSeconds / 60);
+        $s = $totalSeconds % 60;
+
+        if ($m > 0) {
+            return sprintf('%d:%02d', $m, $s);
+        } else {
+            return sprintf('%d', $s);
+        }
     }
     
     /**
@@ -216,6 +371,93 @@ class DanielsRunningService
         return [
             'sessions' => $sessions,
             'duration_weeks' => $weeksUntilRace,
+            'vdot' => $vdot,
+            'training_paces' => $paces,
+        ];
+    }
+    
+    /**
+     * Generate training program using provided VDOT and duration
+     */
+    public function generateProgramFromVDOT(float $vdot, array $params): array
+    {
+        $paces = $this->calculateTrainingPaces($vdot);
+        
+        $goalDistance = $params['goal_distance'] ?? '10k';
+        $weeklyMileage = (float) ($params['weekly_mileage'] ?? 20);
+        $frequency = (int) ($params['training_frequency'] ?? 4);
+        $durationWeeks = (int) max(6, min(12, (int) ($params['duration_weeks'] ?? 8)));
+        
+        $phase1Weeks = max(2, (int) ($durationWeeks * 0.25));
+        $phase2Weeks = max(2, (int) ($durationWeeks * 0.25));
+        $phase3Weeks = max(2, (int) ($durationWeeks * 0.35));
+        $phase4Weeks = max(1, $durationWeeks - ($phase1Weeks + $phase2Weeks + $phase3Weeks));
+        
+        $sessions = [];
+        $day = 1;
+        
+        for ($week = 1; $week <= $phase1Weeks; $week++) {
+            $weeklyKm = $weeklyMileage + ($week * ($weeklyMileage * 0.03));
+            $daysPerWeek = min($frequency, 5);
+            $kmPerDay = $weeklyKm / $daysPerWeek;
+            for ($w = 1; $w <= 7; $w++) {
+                if ($w <= $daysPerWeek) {
+                    $sessions[] = [
+                        'day' => $day++,
+                        'type' => 'easy_run',
+                        'distance' => round($kmPerDay, 1),
+                        'duration' => $this->timeFromPace($kmPerDay, $paces['E']),
+                        'description' => 'Easy run - Aerobic base',
+                    ];
+                } else {
+                    $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+                }
+            }
+        }
+        
+        for ($week = 1; $week <= $phase2Weeks; $week++) {
+            $weeklyKm = $weeklyMileage * 1.05;
+            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy'];
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+            if ($goalDistance == '5k' || $goalDistance == '10k') {
+                $sessions[] = ['day' => $day++, 'type' => 'repetition', 'distance' => 4, 'duration' => $this->timeFromPace(4, $paces['R']), 'description' => 'R pace reps'];
+            } else {
+                $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['E']), 'description' => 'Easy'];
+            }
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy'];
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.4, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.4, $paces['E']), 'description' => 'Long easy run'];
+        }
+        
+        for ($week = 1; $week <= $phase3Weeks; $week++) {
+            $weeklyKm = $weeklyMileage * 1.1;
+            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['E']), 'description' => 'Easy'];
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+            if ($goalDistance == '5k' || $goalDistance == '10k') {
+                $sessions[] = ['day' => $day++, 'type' => 'interval', 'distance' => 6, 'duration' => $this->timeFromPace(6, $paces['I']), 'description' => 'Intervals'];
+            } else {
+                $sessions[] = ['day' => $day++, 'type' => 'tempo', 'distance' => 8, 'duration' => $this->timeFromPace(8, $paces['T']), 'description' => 'Tempo run'];
+            }
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+            $sessions[] = ['day' => $day++, 'type' => 'tempo', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['T']), 'description' => 'Tempo'];
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.45, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.45, $paces['E']), 'description' => 'Long run'];
+        }
+        
+        for ($week = 1; $week <= $phase4Weeks; $week++) {
+            $weeklyKm = $weeklyMileage * (1 - ($week * 0.25));
+            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy'];
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+            $sessions[] = ['day' => $day++, 'type' => 'tempo', 'distance' => round($weeklyKm * 0.25, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.25, $paces['T']), 'description' => 'Light tempo'];
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy'];
+            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest'];
+        }
+        
+        return [
+            'sessions' => $sessions,
+            'duration_weeks' => $durationWeeks,
             'vdot' => $vdot,
             'training_paces' => $paces,
         ];

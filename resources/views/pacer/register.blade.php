@@ -11,7 +11,7 @@
         <div class="max-w-4xl mx-auto relative z-10">
             <div class="text-center mb-12" data-aos="fade-down">
                 <h1 class="text-4xl md:text-5xl font-black text-white mb-4 uppercase italic tracking-tighter">
-                    JOIN THE <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">PACER TEAM</span>
+                    JOIN THE <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400 pr-2">PACER TEAM</span>
                 </h1>
                 <p class="text-slate-400 text-lg max-w-2xl mx-auto">
                     Jadilah bagian dari komunitas elite, bantu pelari lain mencapai target mereka, dan inspirasi ribuan orang di setiap langkah.
@@ -73,10 +73,38 @@
 
                     <div class="w-full h-px bg-slate-700/50"></div>
 
-                    <!-- Section: Running Profile -->
+                    <!-- Section: Social Media -->
                     <div>
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">2</span>
+                            Social Media
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Instagram URL</label>
+                                <input name="instagram_url" value="{{ old('instagram_url') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600" placeholder="https://instagram.com/username" />
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Facebook URL</label>
+                                <input name="facebook_url" value="{{ old('facebook_url') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600" placeholder="https://facebook.com/username" />
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">TikTok URL</label>
+                                <input name="tiktok_url" value="{{ old('tiktok_url') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600" placeholder="https://tiktok.com/@username" />
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Strava URL</label>
+                                <input name="strava_url" value="{{ old('strava_url') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600" placeholder="https://strava.com/athletes/12345" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full h-px bg-slate-700/50"></div>
+
+                    <!-- Section: Running Profile -->
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">3</span>
                             Running Profile
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -104,6 +132,47 @@
                                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Specialty Tags</label>
                                 <input name="tags" value="{{ old('tags') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600" placeholder="Consistent, Motivator, Fun" />
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Personal Bests -->
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">4</span>
+                            Personal Bests (PB)
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">5K PB</label>
+                                <input name="pb5k" value="{{ old('pb5k') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600 font-mono" placeholder="00:25:00" />
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">10K PB</label>
+                                <input name="pb10k" value="{{ old('pb10k') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600 font-mono" placeholder="00:55:00" />
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Half Marathon PB</label>
+                                <input name="pbhm" value="{{ old('pbhm') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600 font-mono" placeholder="02:00:00" />
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Full Marathon PB</label>
+                                <input name="pbfm" value="{{ old('pbfm') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600 font-mono" placeholder="04:30:00" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full h-px bg-slate-700/50"></div>
+
+                    <!-- Section: Race Portfolio -->
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">5</span>
+                            Race Portfolio
+                        </h3>
+                        <div class="group/input">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Daftar Race yang Pernah Diikuti</label>
+                            <textarea name="race_portfolio" rows="3" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600 resize-none" placeholder="Contoh: Jakarta Marathon, Borobudur Marathon, Bali Marathon, 10K Kota Bandung">{{ old('race_portfolio') }}</textarea>
+                            <p class="text-[10px] text-slate-500 mt-1">Pisahkan dengan koma.</p>
                         </div>
                     </div>
 

@@ -29,6 +29,9 @@ class ProgramReviewController extends Controller
             ->first();
 
         if (!$enrollment) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Anda harus menyelesaikan program terlebih dahulu sebelum memberikan review.'], 403);
+            }
             return back()->with('error', 'Anda harus menyelesaikan program terlebih dahulu sebelum memberikan review.');
         }
 
@@ -67,10 +70,22 @@ class ProgramReviewController extends Controller
 
             DB::commit();
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Review berhasil disimpan.',
+                    'average_rating' => round($averageRating, 2),
+                    'average_rating_rounded' => round($averageRating),
+                    'total_reviews' => $totalReviews,
+                ]);
+            }
             return back()->with('success', 'Review berhasil disimpan.');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan saat menyimpan review.'], 500);
+            }
             return back()->with('error', 'Terjadi kesalahan saat menyimpan review.');
         }
     }

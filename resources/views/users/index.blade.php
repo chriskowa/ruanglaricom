@@ -25,7 +25,7 @@
             <div>
                 <p class="text-neon font-mono text-sm tracking-widest uppercase mb-2">Community</p>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">
-                    FIND <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">{{ strtoupper(str_replace('Daftar ', '', $title)) }}</span>
+                    FIND <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400 pr-2">{{ strtoupper(str_replace('Daftar ', '', $title)) }}</span>
                 </h1>
             </div>
             

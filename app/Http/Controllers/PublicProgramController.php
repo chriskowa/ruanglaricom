@@ -39,6 +39,11 @@ class PublicProgramController extends Controller
             $query->where('average_rating', '>=', $request->rating);
         }
 
+        // Filter by challenge programs
+        if ($request->boolean('challenge')) {
+            $query->where('is_challenge', true);
+        }
+
         // Search
         if ($request->has('search') && $request->search) {
             $search = $request->search;

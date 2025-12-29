@@ -90,7 +90,7 @@ class CalendarController extends Controller
         try {
             $response = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
                 'client_id' => env('STRAVA_CLIENT_ID'),
-                'client_secret' => env('STRAVA_CLIENT_SECRET'), // Note: In prod, verify this key exists
+                'client_secret' => env('STRAVA_CLIENT_SECRET'),
                 'code' => $request->code,
                 'grant_type' => 'authorization_code',
             ]);
@@ -98,6 +98,17 @@ class CalendarController extends Controller
             if ($response->successful()) {
                 $tokenData = $response->json();
                 
+                // Save to Authenticated User (if logged in)
+                if (auth()->check()) {
+                    $user = auth()->user();
+                    $user->update([
+                        'strava_id' => $tokenData['athlete']['id'] ?? null,
+                        'strava_access_token' => $tokenData['access_token'],
+                        'strava_refresh_token' => $tokenData['refresh_token'],
+                        'strava_expires_at' => now()->addSeconds($tokenData['expires_in']),
+                    ]);
+                }
+
                 // Return a view that saves to localStorage and closes/redirects
                 return view('calendar.strava-callback', ['tokenData' => $tokenData]);
             }

@@ -14,6 +14,7 @@ class CustomWorkout extends Model
         'distance',
         'duration',
         'description',
+        'workout_structure',
         'difficulty',
         'status',
         'completed_at',
@@ -25,6 +26,7 @@ class CustomWorkout extends Model
             'workout_date' => 'date',
             'distance' => 'decimal:2',
             'completed_at' => 'datetime',
+            'workout_structure' => 'array',
         ];
     }
 

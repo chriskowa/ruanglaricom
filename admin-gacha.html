@@ -7,13 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
-        .font-impact { font-family: 'Oswald', sans-serif; } /* Font tebal untuk BIB */
-        
         .sidebar-link.active { background: #374151; border-left: 4px solid #FBBF24; color: white; }
         
         /* Pot Badge Colors */
@@ -21,25 +18,6 @@
         .badge-fast { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
         .badge-culture { background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; }
         .badge-slow { background: #ECFDF5; color: #047857; border: 1px solid #6EE7B7; }
-
-        /* --- PRINT STYLES (Rahasia Layout Rapi) --- */
-        @media print {
-            @page { size: A4 portrait; margin: 0; } /* Reset margin printer */
-            body { background: white; -webkit-print-color-adjust: exact; }
-            aside, header, .no-print { display: none !important; } /* Sembunyikan UI Admin */
-            main { padding: 0 !important; overflow: visible !important; }
-            #bib-container { display: grid !important; grid-template-columns: 1fr; width: 100%; }
-            
-            /* Layout BIB Fisik: A5 Landscape (2 BIB per A4) */
-            .bib-card {
-                width: 210mm;      /* Lebar A4 */
-                height: 148mm;     /* Setengah Tinggi A4 (A5) */
-                page-break-inside: avoid;
-                border: 1px dashed #ccc; /* Garis potong tipis */
-                margin: 0;
-                display: flex; /* Aktifkan flex untuk layout */
-            }
-        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -61,184 +39,393 @@
             <a href="#" @click="currentView = 'teams'" :class="currentView === 'teams' ? 'active' : ''" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-800 transition">
                 <i class="ph ph-users-four text-xl"></i> Manage Teams
             </a>
-            <div class="pt-4 pb-2 px-3 text-xs font-bold text-gray-500 uppercase">Race Kit Tools</div>
-            <a href="#" @click="currentView = 'bibs'" :class="currentView === 'bibs' ? 'active' : ''" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-800 transition text-yellow-400">
-                <i class="ph ph-qr-code text-xl"></i> BIB Generator
+            <div class="pt-4 pb-2 px-3 text-xs font-bold text-gray-500 uppercase">Race Day Tools</div>
+            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-800 transition opacity-50 cursor-not-allowed" title="Coming Soon">
+                <i class="ph ph-timer text-xl"></i> Live Timing
             </a>
         </nav>
+
+        <div class="p-4 border-t border-gray-800">
+            <button class="flex items-center gap-2 text-sm text-red-400 hover:text-red-300">
+                <i class="ph ph-sign-out"></i> Logout
+            </button>
+        </div>
     </aside>
 
     <main class="flex-1 flex flex-col overflow-hidden">
         
-        <header class="h-16 bg-white border-b border-gray-200 flex justify-between items-center px-8 shadow-sm no-print">
+        <header class="h-16 bg-white border-b border-gray-200 flex justify-between items-center px-8 shadow-sm">
             <h2 class="text-xl font-bold capitalize">{{ viewTitle }}</h2>
             <div class="flex items-center gap-4">
+                <div class="text-right hidden md:block">
+                    <div class="text-sm font-bold">Admin RuangLari</div>
+                    <div class="text-xs text-gray-500">Super Administrator</div>
+                </div>
                 <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">A</div>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-8 relative">
+        <div class="flex-1 overflow-y-auto p-8">
             
-            <div v-if="currentView === 'dashboard'" class="no-print">
-                <h3 class="text-2xl font-bold mb-4">Welcome Back, Admin!</h3>
-                <p>Pilih menu di samping untuk mengelola event.</p>
-            </div>
-
-            <div v-if="currentView === 'runners'" class="no-print">
-                <p>Halaman Data Peserta (Kode ada di chat sebelumnya)</p>
-            </div>
-
-            <div v-if="currentView === 'teams'" class="no-print">
-                <p>Halaman Team Management (Kode ada di chat sebelumnya)</p>
-            </div>
-
-            <div v-if="currentView === 'bibs'" class="w-full">
-                
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8 no-print">
-                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
-                        <i class="ph ph-printer"></i> Setup Cetak BIB
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Mulai Nomor (Start)</label>
-                            <input v-model.number="bibConfig.start" type="number" class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-indigo-500">
+            <div v-if="currentView === 'dashboard'" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="text-gray-500 text-sm mb-1">Total Pendaftar</div>
+                        <div class="text-3xl font-bold text-gray-900">{{ runners.length }}</div>
+                        <div class="text-xs text-green-600 mt-2 flex items-center gap-1"><i class="ph ph-trend-up"></i> +12 hari ini</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="text-gray-500 text-sm mb-1">Tim Terbentuk</div>
+                        <div class="text-3xl font-bold text-indigo-600">{{ teams.length }}</div>
+                        <div class="text-xs text-gray-400 mt-2">Target: 25 Tim</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="text-gray-500 text-sm mb-1">Gender Ratio</div>
+                        <div class="flex items-end gap-2">
+                            <span class="text-2xl font-bold text-cyan-600">{{ countGender('male') }}</span>
+                            <span class="text-gray-400">vs</span>
+                            <span class="text-2xl font-bold text-pink-500">{{ countGender('female') }}</span>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Jumlah (Qty)</label>
-                            <input v-model.number="bibConfig.qty" type="number" class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Event</label>
-                            <input v-model="bibConfig.eventName" type="text" class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div class="flex gap-2">
-                            <button @click="generateBibs" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded transition shadow">
-                                Generate
-                            </button>
-                            <button @click="printBibs" :disabled="generatedBibs.length === 0" class="flex-1 bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 rounded transition shadow disabled:opacity-50">
-                                <i class="ph ph-printer"></i> Print
-                            </button>
-                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="text-gray-500 text-sm mb-1">Runner Check-in</div>
+                        <div class="text-3xl font-bold text-orange-500">0%</div>
+                        <div class="text-xs text-gray-400 mt-2">Dibuka H-1</div>
                     </div>
                 </div>
 
-                <div id="bib-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    
-                    <div v-for="bib in generatedBibs" :key="bib.number" class="bib-card bg-white relative overflow-hidden shadow-lg no-print-shadow group">
-                        
-                        <div class="w-full h-full p-6 flex flex-col justify-between relative bg-white border-2 border-gray-800 md:aspect-[1.414/1]">
-                            
-                            <div class="flex justify-between items-start border-b-4 border-gray-900 pb-2">
-                                <div>
-                                    <h1 class="text-2xl font-black uppercase tracking-tighter italic text-gray-900">{{ bibConfig.eventName }}</h1>
-                                    <p class="text-xs font-bold text-gray-500 tracking-widest">OFFICIAL RACER</p>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-lg mb-4">Distribusi Pot Kekuatan</h3>
+                    <div class="space-y-4">
+                        <div v-for="(count, pot) in potCounts" :key="pot" class="flex items-center gap-4">
+                            <div class="w-24 text-sm font-bold uppercase">{{ pot }}</div>
+                            <div class="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500" 
+                                     :class="{
+                                        'bg-yellow-500': pot === 'elite',
+                                        'bg-red-500': pot === 'fast',
+                                        'bg-indigo-500': pot === 'culture',
+                                        'bg-green-500': pot === 'slow'
+                                     }"
+                                     :style="{ width: (count / runners.length * 100) + '%' }">
                                 </div>
-                                <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center font-bold text-xs text-gray-400">LOGO</div>
                             </div>
+                            <div class="w-10 text-right text-sm font-bold">{{ count }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                            <div class="flex-1 flex items-center justify-between px-2">
-                                <div class="text-[140px] leading-none font-impact font-bold text-gray-900 tracking-tighter -ml-2">
-                                    {{ bib.number }}
-                                </div>
+            <div v-if="currentView === 'runners'" class="space-y-4">
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+                    <div class="relative w-64">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
+                        <input v-model="searchQuery" type="text" placeholder="Cari nama / BIB..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="px-4 py-2 text-sm font-bold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">
+                            <i class="ph ph-funnel"></i> Filter
+                        </button>
+                        <button class="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">
+                            <i class="ph ph-plus"></i> Manual Add
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 text-gray-600 border-b border-gray-200">
+                            <tr>
+                                <th class="p-4">Nama Peserta</th>
+                                <th class="p-4">Gender</th>
+                                <th class="p-4">Kategori Pot</th>
+                                <th class="p-4">Pace 5K</th>
+                                <th class="p-4">Status Tim</th>
+                                <th class="p-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr v-for="runner in filteredRunners" :key="runner.id" class="hover:bg-gray-50">
+                                <td class="p-4 font-bold text-gray-900">{{ runner.name }}</td>
+                                <td class="p-4">
+                                    <span v-if="runner.gender === 'male'" class="text-cyan-600 bg-cyan-50 px-2 py-1 rounded text-xs font-bold">Pria</span>
+                                    <span v-else class="text-pink-600 bg-pink-50 px-2 py-1 rounded text-xs font-bold">Wanita</span>
+                                </td>
+                                <td class="p-4">
+                                    <span :class="getBadgeClass(runner.pot)" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">
+                                        {{ runner.pot }}
+                                    </span>
+                                </td>
+                                <td class="p-4 font-mono text-gray-500">{{ runner.pace }}</td>
+                                <td class="p-4">
+                                    <span v-if="runner.teamId" class="text-green-600 font-bold flex items-center gap-1"><i class="ph ph-check-circle"></i> Tim #{{ runner.teamId }}</span>
+                                    <span v-else class="text-gray-400 italic">Belum ada</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <button class="text-gray-400 hover:text-indigo-600"><i class="ph ph-pencil-simple text-lg"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'teams'" class="space-y-6">
+                
+                <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm gap-4">
+                    <div>
+                        <h3 class="font-bold text-gray-800">Team Generator</h3>
+                        <p class="text-xs text-gray-500">Gunakan fitur ini untuk membuat tim secara otomatis (Bulk).</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button @click="autoGenerateTeams" class="px-5 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold rounded-lg shadow-sm flex items-center gap-2 transition">
+                            <i class="ph ph-magic-wand"></i> Auto Generate All
+                        </button>
+                        <button @click="assignBibs" class="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-lg shadow-sm flex items-center gap-2 transition">
+                            <i class="ph ph-tag"></i> Assign BIB Numbers
+                        </button>
+                        <button class="px-5 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold rounded-lg transition">
+                            <i class="ph ph-download-simple"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="unassignedRunners.length > 0" class="bg-red-50 border border-red-200 p-4 rounded-xl flex justify-between items-center text-red-800">
+                    <span class="font-bold flex items-center gap-2"><i class="ph ph-warning-circle"></i> Ada {{ unassignedRunners.length }} peserta belum masuk tim!</span>
+                    <button class="text-sm underline hover:text-red-900">Lihat detail</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="team in teams" :key="team.id" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md transition">
+                        <div class="bg-gray-50 p-4 border-b border-gray-100 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-lg">{{ team.name }}</h4>
+                                <div class="text-xs text-gray-500 font-mono">Total Pace: {{ calculateTeamPace(team) }} min</div>
+                            </div>
+                            <div class="bg-gray-200 text-gray-600 px-2 py-1 rounded text-xs font-bold font-mono">
+                                {{ team.bibStart ? `#${team.bibStart}-${team.bibStart+3}` : 'NO BIB' }}
+                            </div>
+                        </div>
+
+                        <div class="p-2 space-y-1">
+                            <div v-for="member in team.members" :key="member.id" 
+                                 @click="handleSwapSelection(member, team.id)"
+                                 class="flex items-center gap-3 p-2 rounded-lg cursor-pointer transition border"
+                                 :class="swapSelected?.id === member.id ? 'bg-indigo-100 border-indigo-500 ring-2 ring-indigo-200' : 'bg-white border-transparent hover:bg-gray-50'">
                                 
-                                <div class="flex flex-col items-center">
-                                    <div :id="'qr-' + bib.number" class="bg-white p-2 border-4 border-black"></div>
-                                    <span class="text-[10px] font-mono font-bold mt-1 tracking-widest">{{ bib.number }}</span>
+                                <div class="w-2 h-8 rounded-full" 
+                                     :class="{
+                                        'bg-yellow-400': member.pot === 'elite',
+                                        'bg-red-500': member.pot === 'fast',
+                                        'bg-indigo-500': member.pot === 'culture',
+                                        'bg-green-500': member.pot === 'slow'
+                                     }"></div>
+                                
+                                <div class="flex-1">
+                                    <div class="text-sm font-bold text-gray-800">{{ member.name }}</div>
+                                    <div class="text-[10px] uppercase text-gray-400 font-bold tracking-wider">{{ member.pot }}</div>
                                 </div>
+                                <i v-if="swapSelected?.id === member.id" class="ph ph-arrows-left-right text-indigo-600 animate-pulse"></i>
                             </div>
-
-                            <div class="flex justify-between items-end border-t-2 border-gray-300 pt-2">
-                                <div class="flex gap-4">
-                                    <div class="text-xs text-gray-400 font-bold uppercase">Emergency Contact:<br><span class="text-gray-800">______________</span></div>
-                                    <div class="text-xs text-gray-400 font-bold uppercase">Medical:<br><span class="text-gray-800">______________</span></div>
-                                </div>
-                                <div class="bg-black text-white px-4 py-1 font-bold uppercase text-lg tracking-widest transform -skew-x-12">
-                                    4x400 RELAY
-                                </div>
-                            </div>
-
-                            <div class="absolute top-0 right-0 w-32 h-full bg-yellow-400/20 transform skew-x-12 -z-0"></div>
-
                         </div>
                     </div>
-
                 </div>
-                
-                <div v-if="generatedBibs.length === 0" class="text-center py-20 text-gray-400 no-print">
-                    <i class="ph ph-qr-code text-6xl mb-4"></i>
-                    <p>Masukkan konfigurasi di atas dan klik Generate.</p>
+
+                <div v-if="teams.length === 0" class="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+                    <i class="ph ph-users-three text-4xl text-gray-300 mb-2"></i>
+                    <p class="text-gray-500">Belum ada tim terbentuk. Klik "Auto Generate" untuk memulai.</p>
                 </div>
 
             </div>
 
         </div>
     </main>
+
+    <div v-if="swapMessage" class="fixed bottom-8 right-8 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3 animate-bounce">
+        <i class="ph ph-info text-yellow-400"></i>
+        {{ swapMessage }}
+    </div>
+
 </div>
 
 <script>
-    const { createApp, ref, computed, nextTick } = Vue;
+    const { createApp, ref, computed, onMounted } = Vue;
 
     createApp({
         setup() {
+            // State
             const currentView = ref('dashboard');
+            const searchQuery = ref('');
+            const swapSelected = ref(null);
+            const swapMessage = ref('');
             
-            // --- BIB GENERATOR LOGIC ---
-            const bibConfig = ref({
-                start: 101,
-                qty: 10,
-                eventName: 'GACHA RUN 2025'
-            });
-            const generatedBibs = ref([]);
+            // Dummy Database
+            const runners = ref([]);
+            const teams = ref([]);
 
-            const generateBibs = async () => {
-                generatedBibs.value = []; // Reset
+            // Helper: Generate Dummy Data
+            const initData = () => {
+                const names = ['Agus', 'Budi', 'Citra', 'Dewi', 'Eko', 'Fajar', 'Gita', 'Hani', 'Indra', 'Joko', 'Kiki', 'Lina', 'Mamat', 'Nina', 'Oki', 'Putri'];
+                const pots = ['elite', 'fast', 'culture', 'slow'];
                 
-                // 1. Create Data Objects
-                const tempBibs = [];
-                for (let i = 0; i < bibConfig.value.qty; i++) {
-                    tempBibs.push({
-                        number: bibConfig.value.start + i
+                // Generate 48 runners (12 teams worth)
+                for(let i=1; i<=48; i++) {
+                    const pot = pots[(i-1) % 4]; // Distribute evenly for demo
+                    runners.value.push({
+                        id: i,
+                        name: names[i % names.length] + ' ' + (i),
+                        gender: i % 2 === 0 ? 'female' : 'male',
+                        pot: pot,
+                        pace: (pot === 'elite' ? '18:00' : pot === 'fast' ? '24:00' : '35:00'),
+                        teamId: null
                     });
                 }
-                generatedBibs.value = tempBibs;
-
-                // 2. Wait for DOM Update (Vue renders divs) then Generate QR
-                await nextTick();
-
-                // 3. Generate QR for each BIB
-                generatedBibs.value.forEach(bib => {
-                    const el = document.getElementById('qr-' + bib.number);
-                    if(el) {
-                        el.innerHTML = ''; // Clear prev
-                        new QRCode(el, {
-                            text: String(bib.number), // Isi QR Cuma Angka (Untuk scanner app)
-                            width: 120, // Ukuran Besar agar mudah discan
-                            height: 120,
-                            colorDark : "#000000",
-                            colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.H // High Error Correction (Bisa discan meski agak lecek)
-                        });
-                    }
-                });
             };
 
-            const printBibs = () => {
-                window.print();
-            };
-
+            // COMPUTED
             const viewTitle = computed(() => {
-                const map = { 
-                    dashboard: 'Dashboard', 
-                    runners: 'Peserta', 
-                    teams: 'Manage Teams',
-                    bibs: 'Print BIB & QR'
-                };
+                const map = { dashboard: 'Dashboard Overview', runners: 'Database Peserta', teams: 'Team Management' };
                 return map[currentView.value];
             });
 
+            const filteredRunners = computed(() => {
+                if(!searchQuery.value) return runners.value;
+                return runners.value.filter(r => 
+                    r.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
+                    r.pot.includes(searchQuery.value.toLowerCase())
+                );
+            });
+
+            const potCounts = computed(() => {
+                const counts = { elite: 0, fast: 0, culture: 0, slow: 0 };
+                runners.value.forEach(r => counts[r.pot]++);
+                return counts;
+            });
+
+            const unassignedRunners = computed(() => runners.value.filter(r => !r.teamId));
+
+            // METHODS
+            const countGender = (g) => runners.value.filter(r => r.gender === g).length;
+
+            const getBadgeClass = (pot) => {
+                return {
+                    'elite': 'badge-elite', 'fast': 'badge-fast', 
+                    'culture': 'badge-culture', 'slow': 'badge-slow'
+                }[pot];
+            };
+
+            // LOGIC UTAMA: AUTO GENERATE
+            const autoGenerateTeams = () => {
+                if(!confirm("Ini akan mereset tim yang ada. Lanjut?")) return;
+
+                teams.value = [];
+                // Reset runner team status
+                runners.value.forEach(r => r.teamId = null);
+
+                // Group by Pot
+                const pool = {
+                    elite: runners.value.filter(r => r.pot === 'elite'),
+                    fast: runners.value.filter(r => r.pot === 'fast'),
+                    culture: runners.value.filter(r => r.pot === 'culture'),
+                    slow: runners.value.filter(r => r.pot === 'slow')
+                };
+
+                // Shuffle arrays (Randomize)
+                for (let key in pool) pool[key].sort(() => Math.random() - 0.5);
+
+                let teamCount = 1;
+                // Create teams while all pools have members
+                while (pool.elite.length && pool.fast.length && pool.culture.length && pool.slow.length) {
+                    const members = [
+                        pool.elite.pop(), pool.fast.pop(), 
+                        pool.culture.pop(), pool.slow.pop()
+                    ];
+                    
+                    // Assign Team ID to runners
+                    members.forEach(m => m.teamId = teamCount);
+
+                    teams.value.push({
+                        id: teamCount,
+                        name: `Tim ${teamCount}`,
+                        members: members,
+                        bibStart: null
+                    });
+                    teamCount++;
+                }
+                
+                swapMessage.value = `${teams.value.length} Tim Berhasil Dibuat!`;
+                setTimeout(() => swapMessage.value = '', 3000);
+            };
+
+            // LOGIC: ASSIGN BIB
+            const assignBibs = () => {
+                if(teams.value.length === 0) return alert("Generate tim dulu!");
+                
+                let counter = 101; // Mulai BIB 101
+                teams.value.forEach(team => {
+                    team.bibStart = counter;
+                    counter += 4; // Skip 4 numbers
+                });
+                alert("Nomor BIB berhasil ditetapkan ke semua tim.");
+            };
+
+            const calculateTeamPace = (team) => {
+                // Dummy calculation logic
+                return "110"; 
+            };
+
+            // LOGIC: SWAP PLAYER
+            const handleSwapSelection = (member, teamId) => {
+                if (!swapSelected.value) {
+                    // Select first player
+                    swapSelected.value = { ...member, currentTeamId: teamId };
+                    swapMessage.value = `Pilih pemain kedua untuk ditukar dengan ${member.name}`;
+                } else {
+                    // Select second player -> Execute Swap
+                    if (swapSelected.value.id === member.id) {
+                        swapSelected.value = null; // Cancel
+                        swapMessage.value = '';
+                        return;
+                    }
+
+                    executeSwap(swapSelected.value, { ...member, currentTeamId: teamId });
+                }
+            };
+
+            const executeSwap = (playerA, playerB) => {
+                // Find Teams
+                const teamA = teams.value.find(t => t.id === playerA.currentTeamId);
+                const teamB = teams.value.find(t => t.id === playerB.currentTeamId);
+
+                // Find Index in array
+                const indexA = teamA.members.findIndex(m => m.id === playerA.id);
+                const indexB = teamB.members.findIndex(m => m.id === playerB.id);
+
+                // Swap in Database (Local Array)
+                // Note: We need to swap the actual objects in the array
+                const temp = teamA.members[indexA];
+                teamA.members[indexA] = teamB.members[indexB];
+                teamB.members[indexB] = temp;
+
+                // Update Team IDs on runner objects
+                runners.value.find(r => r.id === playerA.id).teamId = playerB.currentTeamId;
+                runners.value.find(r => r.id === playerB.id).teamId = playerA.currentTeamId;
+
+                // Reset
+                swapSelected.value = null;
+                swapMessage.value = `Sukses menukar ${playerA.name} dengan ${playerB.name}`;
+                setTimeout(() => swapMessage.value = '', 3000);
+            };
+
+            onMounted(() => {
+                initData();
+            });
+
             return {
-                currentView, viewTitle, 
-                bibConfig, generatedBibs, generateBibs, printBibs
+                currentView, viewTitle, runners, teams, filteredRunners, 
+                searchQuery, potCounts, countGender, getBadgeClass, unassignedRunners,
+                autoGenerateTeams, assignBibs, calculateTeamPace,
+                handleSwapSelection, swapSelected, swapMessage
             };
         }
     }).mount('#app');

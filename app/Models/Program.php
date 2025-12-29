@@ -25,6 +25,7 @@ class Program extends Model
         'thumbnail',
         'banner',
         'is_published',
+        'is_challenge',
         'duration_weeks',
         'enrolled_count',
         'average_rating',
@@ -32,6 +33,12 @@ class Program extends Model
         'is_self_generated',
         'daniels_params',
         'generated_vdot',
+    ];
+
+    protected $appends = [
+        'thumbnail_url',
+        'banner_url',
+        'image_url',
     ];
 
     protected function casts(): array
@@ -44,6 +51,7 @@ class Program extends Model
             'vdot_score' => 'decimal:2',
             'is_active' => 'boolean',
             'is_published' => 'boolean',
+            'is_challenge' => 'boolean',
             'enrolled_count' => 'integer',
             'average_rating' => 'decimal:2',
             'total_reviews' => 'integer',
@@ -114,7 +122,7 @@ class Program extends Model
             return null;
         }
 
-        return asset('storage/programs/thumbnails/' . $this->thumbnail);
+        return asset('storage/' . ltrim($this->thumbnail, '/'));
     }
 
     /**
@@ -126,7 +134,15 @@ class Program extends Model
             return null;
         }
 
-        return asset('storage/programs/banners/' . $this->banner);
+        return asset('storage/' . ltrim($this->banner, '/'));
+    }
+
+    /**
+     * Get generic image URL (thumbnail fallback to default)
+     */
+    public function getImageUrlAttribute(): string
+    {
+        return $this->thumbnail_url ?? asset('images/product/1.jpg');
     }
 
     /**

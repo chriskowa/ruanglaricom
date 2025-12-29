@@ -57,7 +57,7 @@
                                 <div class="flex text-yellow-400 text-xs mb-1">
                                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                                 </div>
-                                <p class="text-sm text-slate-400"><span class="text-white font-bold">2,000+</span> Pelari Bergabung</p>
+                                <p class="text-sm text-slate-400"><span class="text-white font-bold">{{ number_format(\App\Models\User::whereIn('role', ['runner','coach'])->count()) }}</span> Pelari Bergabung</p>
                             </div>
                         </div>
                     </div>
@@ -134,6 +134,180 @@
             </div>
         </section>
 
+        <!-- LEADERBOARD SECTION -->
+        <section id="leaderboard" class="py-24 bg-dark relative overflow-hidden">
+            <!-- Background Elements -->
+            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-neon/5 rounded-full blur-[100px] pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-700 bg-slate-800/50 backdrop-blur-sm text-slate-300 text-xs font-bold uppercase tracking-wider mb-4">
+                        <svg class="w-4 h-4 text-[#fc4c02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                        Powered by Strava
+                    </div>
+                    @auth
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('calendar.strava.connect') }}" class="text-[10px] text-slate-500 hover:text-white ml-2">[Admin: Re-Connect Strava]</a>
+                        @endif
+                    @endauth
+                    <h2 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
+                        WEEKLY <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400 pr-2">LEADERBOARD</span>
+                    </h2>
+                    <p class="text-slate-400 max-w-2xl mx-auto">
+                        Pantau performa terbaik minggu ini dari member <a href="https://www.strava.com/clubs/1859982" target="_blank" class="text-neon hover:underline font-bold">Ruang Lari Club</a> di Strava.
+                        Apakah namamu ada di sini?
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    @if(isset($leaderboard) && ($leaderboard['fastest'] || $leaderboard['distance'] || $leaderboard['elevation']))
+                        
+                        <!-- 1. Fastest Pace (Speed Demon) -->
+                        @if($leaderboard['fastest'])
+                        <div class="group relative" data-aos="fade-up" data-aos-delay="0">
+                            <div class="absolute inset-0 bg-gradient-to-b from-blue-500/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
+                            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl p-1 overflow-hidden hover:border-blue-500/50 transition duration-300 h-full">
+                                <div class="bg-slate-950/50 rounded-[1.3rem] p-6 h-full flex flex-col relative overflow-hidden">
+                                    <!-- Rank Badge -->
+                                    <div class="absolute top-0 right-0 p-4">
+                                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Profile -->
+                                    <div class="flex items-center gap-4 mb-6">
+                                        <div class="relative">
+                                            <div class="w-16 h-16 rounded-full p-1 bg-gradient-to-br from-blue-500 to-cyan-400">
+                                                <img src="{{ $leaderboard['fastest']['avatar'] }}" class="w-full h-full rounded-full object-cover border-2 border-slate-900">
+                                            </div>
+                                            <div class="absolute -bottom-2 -right-2 bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-slate-900">#1</div>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-white font-bold text-lg leading-tight">{{ $leaderboard['fastest']['name'] }}</h4>
+                                            <p class="text-slate-500 text-xs uppercase tracking-wider font-bold">The Flash</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Stats -->
+                                    <div class="mt-auto">
+                                        <div class="flex items-end justify-between mb-2">
+                                            <span class="text-slate-400 text-sm font-medium">Fastest Pace</span>
+                                            <span class="text-3xl font-black text-white italic">{{ $leaderboard['fastest']['value'] }} <span class="text-sm text-slate-500 font-normal not-italic">{{ $leaderboard['fastest']['unit'] }}</span></span>
+                                        </div>
+                                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-[95%]"></div>
+                                        </div>
+                                        <p class="text-right text-xs text-blue-400 mt-2 font-mono">5k Time Trial</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- 2. Longest Distance (Distance Monster) -->
+                        @if($leaderboard['distance'])
+                        <div class="group relative transform md:-translate-y-4" data-aos="fade-up" data-aos-delay="100">
+                            <!-- Crown/Winner Effect -->
+                            <div class="absolute -top-12 left-1/2 -translate-x-1/2 text-4xl animate-bounce">👑</div>
+                            <div class="absolute inset-0 bg-gradient-to-b from-neon/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
+                            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl p-1 overflow-hidden hover:border-neon/50 transition duration-300 h-full shadow-[0_0_50px_rgba(204,255,0,0.1)]">
+                                <div class="bg-slate-950/50 rounded-[1.3rem] p-8 h-full flex flex-col relative overflow-hidden">
+                                    <div class="absolute top-0 right-0 p-4">
+                                        <div class="w-12 h-12 rounded-xl bg-neon/10 border border-neon/20 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" /></svg>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-4 mb-8">
+                                        <div class="relative">
+                                            <div class="w-20 h-20 rounded-full p-1 bg-gradient-to-br from-neon to-lime-500 shadow-lg shadow-neon/20">
+                                                <img src="{{ $leaderboard['distance']['avatar'] }}" class="w-full h-full rounded-full object-cover border-4 border-slate-900">
+                                            </div>
+                                            <div class="absolute -bottom-2 -right-2 bg-neon text-dark text-xs font-black px-2 py-0.5 rounded-full border-2 border-slate-900">MVP</div>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-white font-bold text-xl leading-tight">{{ $leaderboard['distance']['name'] }}</h4>
+                                            <p class="text-neon text-xs uppercase tracking-wider font-bold">Ultra Runner</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-auto">
+                                        <div class="flex items-end justify-between mb-2">
+                                            <span class="text-slate-400 text-sm font-medium">Total Distance</span>
+                                            <span class="text-4xl font-black text-white italic">{{ $leaderboard['distance']['value'] }} <span class="text-sm text-slate-500 font-normal not-italic">{{ $leaderboard['distance']['unit'] }}</span></span>
+                                        </div>
+                                        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-neon to-lime-500 w-[88%]"></div>
+                                        </div>
+                                        <p class="text-right text-xs text-neon mt-2 font-mono">Week 42 Leader</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- 3. Highest Elevation (Mountain Goat) -->
+                        @if($leaderboard['elevation'])
+                        <div class="group relative" data-aos="fade-up" data-aos-delay="200">
+                            <div class="absolute inset-0 bg-gradient-to-b from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
+                            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl p-1 overflow-hidden hover:border-purple-500/50 transition duration-300 h-full">
+                                <div class="bg-slate-950/50 rounded-[1.3rem] p-6 h-full flex flex-col relative overflow-hidden">
+                                    <div class="absolute top-0 right-0 p-4">
+                                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-4 mb-6">
+                                        <div class="relative">
+                                            <div class="w-16 h-16 rounded-full p-1 bg-gradient-to-br from-purple-500 to-pink-500">
+                                                <img src="{{ $leaderboard['elevation']['avatar'] }}" class="w-full h-full rounded-full object-cover border-2 border-slate-900">
+                                            </div>
+                                            <div class="absolute -bottom-2 -right-2 bg-purple-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-slate-900">#1</div>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-white font-bold text-lg leading-tight">{{ $leaderboard['elevation']['name'] }}</h4>
+                                            <p class="text-slate-500 text-xs uppercase tracking-wider font-bold">Mountain Goat</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-auto">
+                                        <div class="flex items-end justify-between mb-2">
+                                            <span class="text-slate-400 text-sm font-medium">Elevation Gain</span>
+                                            <span class="text-3xl font-black text-white italic">{{ $leaderboard['elevation']['value'] }} <span class="text-sm text-slate-500 font-normal not-italic">{{ $leaderboard['elevation']['unit'] }}</span></span>
+                                        </div>
+                                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-purple-600 to-pink-500 w-[75%]"></div>
+                                        </div>
+                                        <p class="text-right text-xs text-purple-400 mt-2 font-mono">Bromo Tengger Semeru</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                    @else
+                        <!-- Mock Data / Empty State if no real data yet -->
+                        <div class="col-span-3 text-center py-10">
+                            <div class="inline-block p-6 rounded-2xl bg-slate-800/50 border border-slate-700">
+                                <p class="text-slate-400 mb-4">Belum ada data leaderboard minggu ini.</p>
+                                <a href="{{ route('calendar.strava.connect') }}" class="text-neon font-bold hover:underline">Hubungkan Strava untuk memulai tracking &rarr;</a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="mt-12 text-center">
+                    <a href="https://www.strava.com/clubs/1859982" target="_blank" class="inline-flex items-center gap-2 px-8 py-4 bg-[#fc4c02] text-white font-bold rounded-xl hover:bg-[#e34402] hover:scale-105 transition transform shadow-lg shadow-orange-500/20">
+                        <span>GABUNG KLUB STRAVA</span>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
         <!-- COMMUNITY / HALL OF FAME -->
         <section id="community" class="py-24 bg-slate-900/50 relative">
             <!-- Skewed Background -->
@@ -156,26 +330,40 @@
                                 <span class="bg-neon text-dark text-xs font-black px-3 py-1 rounded uppercase tracking-wider">Top Runner</span>
                             </div>
                             <div class="h-64 overflow-hidden relative">
-                                <img src="https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @if(isset($topRunner))
+                                    <img src="{{ $topRunner->banner ? asset('storage/' . $topRunner->banner) : ($topRunner->avatar ? asset('storage/' . $topRunner->avatar) : ($topRunner->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg'))) }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @else
+                                    <img src="https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @endif
                                 <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
                                 <div class="absolute bottom-4 left-4">
-                                    <h4 class="text-2xl font-black text-white italic uppercase leading-none">Sarah <br>Jenner</h4>
+                                    @if(isset($topRunner))
+                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">{{ $topRunner->name }}</h4>
+                                    @else
+                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">Top Runner</h4>
+                                    @endif
                                 </div>
                             </div>
                             <div class="p-6 pt-2 flex-grow flex flex-col justify-between">
                                 <div class="grid grid-cols-2 gap-4 mb-6">
                                     <div>
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Total Dist</p>
-                                        <p class="text-2xl font-mono font-bold text-white">2,450<span class="text-sm text-slate-500">km</span></p>
+                                        <p class="text-xs text-slate-500 uppercase font-bold">Followers</p>
+                                        <p class="text-2xl font-mono font-bold text-white">{{ isset($topRunner) ? number_format($topRunner->followers_count) : '—' }}</p>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Avg Pace</p>
-                                        <p class="text-2xl font-mono font-bold text-neon">4:15</p>
+                                        <p class="text-xs text-slate-500 uppercase font-bold">Posts</p>
+                                        <p class="text-2xl font-mono font-bold text-neon">{{ isset($topRunner) ? number_format($topRunner->posts_count) : '—' }}</p>
                                     </div>
                                 </div>
-                                <a href="{{ route('pacer.index') }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-neon hover:text-dark hover:border-neon transition uppercase text-xs tracking-wider">
+                                @if(isset($topRunner))
+                                <a href="{{ route('runner.profile.show', $topRunner->username ?? $topRunner->id) }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-neon hover:text-dark hover:border-neon transition uppercase text-xs tracking-wider">
                                     View Profile
                                 </a>
+                                @else
+                                <a href="{{ route('users.runners') }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-neon hover:text-dark hover:border-neon transition uppercase text-xs tracking-wider">
+                                    View Profile
+                                </a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -188,26 +376,40 @@
                                 <span class="bg-blue-500 text-white text-xs font-black px-3 py-1 rounded uppercase tracking-wider">Top Pacer</span>
                             </div>
                             <div class="h-64 overflow-hidden relative">
-                                <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @if(isset($topPacer))
+                                    <img src="{{ $topPacer->image_url ?? ($topPacer->user && $topPacer->user->avatar ? asset('storage/' . $topPacer->user->avatar) : asset('images/default-male.svg')) }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @else
+                                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @endif
                                 <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
                                 <div class="absolute bottom-4 left-4">
-                                    <h4 class="text-2xl font-black text-white italic uppercase leading-none">Budi <br>Santoso</h4>
+                                    @if(isset($topPacer))
+                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">{{ $topPacer->nickname ?? ($topPacer->user->name ?? 'Top Pacer') }}</h4>
+                                    @else
+                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">Top Pacer</h4>
+                                    @endif
                                 </div>
                             </div>
                             <div class="p-6 pt-2 flex-grow flex flex-col justify-between">
                                 <div class="grid grid-cols-2 gap-4 mb-6">
                                     <div>
                                         <p class="text-xs text-slate-500 uppercase font-bold">Events</p>
-                                        <p class="text-2xl font-mono font-bold text-white">15<span class="text-sm text-slate-500">races</span></p>
+                                        <p class="text-2xl font-mono font-bold text-white">{{ isset($topPacer) ? number_format($topPacer->total_races) : '—' }}<span class="text-sm text-slate-500">races</span></p>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Accuracy</p>
-                                        <p class="text-2xl font-mono font-bold text-blue-400">99.8%</p>
+                                        <p class="text-xs text-slate-500 uppercase font-bold">Verified</p>
+                                        <p class="text-2xl font-mono font-bold text-blue-400">{{ isset($topPacer) ? ($topPacer->verified ? 'Yes' : 'No') : '—' }}</p>
                                     </div>
                                 </div>
+                                @if(isset($topPacer))
+                                <a href="{{ route('pacer.show', $topPacer->seo_slug ?? $topPacer->id) }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-blue-500 hover:text-white hover:border-blue-500 transition uppercase text-xs tracking-wider">
+                                    Book Pacer
+                                </a>
+                                @else
                                 <a href="{{ route('pacer.index') }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-blue-500 hover:text-white hover:border-blue-500 transition uppercase text-xs tracking-wider">
                                     Book Pacer
                                 </a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -220,26 +422,40 @@
                                 <span class="bg-white text-dark text-xs font-black px-3 py-1 rounded uppercase tracking-wider">Top Coach</span>
                             </div>
                             <div class="h-64 overflow-hidden relative">
-                                <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @if(isset($topCoach))
+                                    <img src="{{ $topCoach->banner ? asset('storage/' . $topCoach->banner) : ($topCoach->avatar ? asset('storage/' . $topCoach->avatar) : asset('images/default-male.svg')) }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @else
+                                    <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                @endif
                                 <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
                                 <div class="absolute bottom-4 left-4">
-                                    <h4 class="text-2xl font-black text-white italic uppercase leading-none">Coach <br>Indra</h4>
+                                    @if(isset($topCoach))
+                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">{{ $topCoach->name }}</h4>
+                                    @else
+                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">Top Coach</h4>
+                                    @endif
                                 </div>
                             </div>
                             <div class="p-6 pt-2 flex-grow flex flex-col justify-between">
                                 <div class="grid grid-cols-2 gap-4 mb-6">
                                     <div>
                                         <p class="text-xs text-slate-500 uppercase font-bold">Students</p>
-                                        <p class="text-2xl font-mono font-bold text-white">120+</p>
+                                        <p class="text-2xl font-mono font-bold text-white">{{ isset($topCoachData) ? number_format($topCoachData->students_count) : '—' }}</p>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-xs text-slate-500 uppercase font-bold">PB Broken</p>
-                                        <p class="text-2xl font-mono font-bold text-white">50+</p>
+                                        <p class="text-xs text-slate-500 uppercase font-bold">Programs</p>
+                                        <p class="text-2xl font-mono font-bold text-white">{{ isset($topCoach) ? number_format($topCoach->programs()->count()) : '—' }}</p>
                                     </div>
                                 </div>
+                                @if(isset($topCoach))
+                                <a href="{{ route('runner.profile.show', $topCoach->username ?? $topCoach->id) }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-white hover:text-dark hover:border-white transition uppercase text-xs tracking-wider">
+                                    Join Class
+                                </a>
+                                @else
                                 <a href="{{ url('/users?role=coach') }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-white hover:text-dark hover:border-white transition uppercase text-xs tracking-wider">
                                     Join Class
                                 </a>
+                                @endif
                             </div>
                         </div>
                     </div>

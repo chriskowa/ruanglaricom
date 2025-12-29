@@ -516,7 +516,7 @@
                 </div>
                 
                 <!-- Map Position Control -->
-                <div class="space-y-2 mt-2 map-position" v-show="posterOptions.visibleElements.map">
+                <div class="space-y-2 mt-2 map-position hidden" v-show="posterOptions.visibleElements.map">
                     <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Map Position</p>
                     <div class="grid grid-cols-3 gap-2">
                         <button @click="posterOptions.mapPosition = 'top-left'" :class="posterOptions.mapPosition==='top-left' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Top-Left</button>
@@ -624,7 +624,7 @@
         <div class="relative w-24 h-24 mb-8">
             <div class="absolute inset-0 border-4 border-slate-700 rounded-full"></div>
             <div class="absolute inset-0 border-4 border-neon rounded-full border-t-transparent animate-spin"></div>
-            <img src="{{ asset('images/logo ruang lari.png') }}" class="absolute inset-0 w-auto h-10 m-auto animate-pulse">
+            
         </div>
         <h2 class="text-2xl font-black text-white italic uppercase tracking-tighter mb-2">Generating Poster...</h2>
         <p class="text-slate-400">Rendering high-resolution artwork</p>

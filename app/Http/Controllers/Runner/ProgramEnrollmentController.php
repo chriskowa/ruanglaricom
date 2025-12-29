@@ -37,16 +37,16 @@ class ProgramEnrollmentController extends Controller
         $enrollment = ProgramEnrollment::create([
             'program_id' => $program->id,
             'runner_id' => $user->id,
-            'start_date' => Carbon::today(),
-            'end_date' => Carbon::today()->addWeeks($program->duration_weeks ?? 12),
-            'status' => 'active',
-            'payment_status' => 'paid', // Free programs are considered paid
+            'start_date' => null, // Reset to null so it goes to Bag first
+            'end_date' => null,
+            'status' => 'purchased', // Reset to purchased (Bag)
+            'payment_status' => 'paid',
         ]);
 
         // Increment enrolled count
         $program->increment('enrolled_count');
 
         return redirect()->route('runner.calendar')
-            ->with('success', 'Program berhasil didaftarkan! Silakan cek kalender Anda.');
+            ->with('success', 'Program berhasil didaftarkan! Program telah ditambahkan ke Program Bag Anda.');
     }
 }

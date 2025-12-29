@@ -1,5 +1,5 @@
         <footer class="bg-slate-950 border-t border-slate-900 pt-20 pb-10">
-            <div class="max-w-7xl mx-auto px-4">
+            <div class="max-w-7xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     <div class="col-span-1 md:col-span-1">
                         <a href="https://ruanglari.com/" class="flex items-center gap-2 mb-6 group">
@@ -10,9 +10,9 @@
                             Platform komunitas lari terbesar di Indonesia. Temukan pacer, pantau progres, dan raih personal best Anda bersama kami.
                         </p>
                         <div class="flex gap-4">
-                            <a href="#" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-youtube"></i></a>
+                            <a href="https://www.instagram.com/ruanglaricom/" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-instagram"></i></a>
+                            <a href="https://www.tiktok.com/@ruanglaricom" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-tiktok"></i></a>
+                            <a href="https://www.facebook.com/ruanglari" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-facebook-f"></i></a>
                         </div>
                     </div>
 
@@ -31,7 +31,7 @@
                         <ul class="space-y-3 text-slate-400 text-sm font-medium">
                             <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition">Tentang Kami</a></li>
                             <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition">Menjadi Pacer</a></li>
-                            <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition">Blog & Tips</a></li>
+                            <li><a href="https://ruanglari.com/blog" class="hover:text-white hover:translate-x-1 inline-block transition">Blog & Tips</a></li>
                             <li><a href="#" class="hover:text-white hover:translate-x-1 inline-block transition">FaQ</a></li>
                         </ul>
                     </div>

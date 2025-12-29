@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use App\Models\Wallet;
 
@@ -101,6 +102,46 @@ class AuthController extends Controller
         // TODO: Implement email sending for password reset
         // Untuk sekarang, return success message
         return back()->with('status', 'Link reset password telah dikirim ke email Anda!');
+    }
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Login via Google gagal. Silakan coba lagi.');
+        }
+
+        $user = User::where('email', $googleUser->getEmail())->first();
+
+        if (!$user) {
+            // Create new user
+            $user = User::create([
+                'name' => $googleUser->getName(),
+                'email' => $googleUser->getEmail(),
+                'password' => Hash::make(\Illuminate\Support\Str::random(16)), // Random password
+                'role' => 'runner', // Default role
+                'referral_code' => $this->generateReferralCode(),
+            ]);
+
+            // Create wallet for user
+            $wallet = Wallet::create([
+                'user_id' => $user->id,
+                'balance' => 0,
+                'locked_balance' => 0,
+            ]);
+
+            $user->update(['wallet_id' => $wallet->id]);
+        }
+
+        Auth::login($user);
+
+        return redirect()->route('runner.dashboard');
     }
 
     private function generateReferralCode(): string

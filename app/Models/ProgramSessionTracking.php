@@ -13,14 +13,24 @@ class ProgramSessionTracking extends Model
         'enrollment_id',
         'session_day',
         'status',
+        'rescheduled_date',
         'completed_at',
+        'strava_link',
+        'notes',
+        'coach_feedback',
+        'coach_rating',
+        'rpe',
+        'feeling',
     ];
 
     protected function casts(): array
     {
         return [
             'session_day' => 'integer',
+            'rescheduled_date' => 'date',
             'completed_at' => 'datetime',
+            'coach_rating' => 'integer',
+            'rpe' => 'integer',
         ];
     }
 

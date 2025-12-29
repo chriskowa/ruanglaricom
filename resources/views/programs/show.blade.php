@@ -56,7 +56,7 @@
                 <div class="flex items-center gap-6 text-sm md:text-base text-slate-300" data-aos="fade-up" data-aos-delay="200">
                     <div class="flex items-center gap-2">
                         <img src="{{ ($program->coach && $program->coach->avatar) ? asset('storage/' . $program->coach->avatar) : asset('images/profile/17.jpg') }}" class="w-8 h-8 rounded-full border border-slate-500">
-                        <span>Coach <span class="text-white font-bold">{{ $program->coach->name ?? 'Unknown' }}</span></span>
+                        <span>Coach <a href="{{ route('runner.profile.show', $program->coach->username ?? $program->coach->id) }}" class="text-white font-bold hover:text-neon transition-colors">{{ $program->coach->name ?? 'Unknown' }}</a></span>
                     </div>
                     <div class="w-1 h-1 bg-slate-600 rounded-full"></div>
                     <div class="flex items-center gap-1">
@@ -65,12 +65,33 @@
                     </div>
                     <div class="w-1 h-1 bg-slate-600 rounded-full"></div>
                     <div class="flex items-center gap-1">
+                        @auth
+                        @if(auth()->user()->role === 'runner')
+                        <form id="rating-form" action="{{ route('runner.programs.reviews.store', $program->id) }}" method="POST" class="flex text-yellow-500">
+                            @csrf
+                            <input type="hidden" name="rating" value="0">
+                            @for($i = 1; $i <= 5; $i++)
+                                <svg data-value="{{ $i }}" class="rating-star w-3 h-3 {{ $i <= round($program->average_rating) ? 'fill-current' : 'text-slate-600' }} cursor-pointer" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            @endfor
+                        </form>
+                        <span id="program-review-count">({{ $program->total_reviews }})</span>
+                        @else
                         <div class="flex text-yellow-500">
                             @for($i = 1; $i <= 5; $i++)
                                 <svg class="w-3 h-3 {{ $i <= round($program->average_rating) ? 'fill-current' : 'text-slate-600' }}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                             @endfor
                         </div>
-                        <span>({{ $program->reviews_count }})</span>
+                        <span>({{ $program->total_reviews }})</span>
+                        @endif
+                        @endauth
+                        @guest
+                        <div class="flex text-yellow-500">
+                            @for($i = 1; $i <= 5; $i++)
+                                <svg class="w-3 h-3 {{ $i <= round($program->average_rating) ? 'fill-current' : 'text-slate-600' }}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            @endfor
+                        </div>
+                        <span>({{ $program->total_reviews }})</span>
+                        @endguest
                     </div>
                 </div>
             </div>
@@ -83,6 +104,15 @@
             <!-- Main Content -->
             <div class="lg:col-span-2 space-y-8">
                 
+                <!-- Feature Image -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-slate-800" data-aos="fade-up">
+                    @if($program->image_url)
+                        <img src="{{ $program->image_url }}" alt="{{ $program->title }} Feature Image" class="w-full h-auto object-cover">
+                    @else
+                        <div class="p-8 text-center text-slate-500">No feature image</div>
+                    @endif
+                </div>
+
                 <!-- About -->
                 <div class="glass-panel rounded-2xl p-8" data-aos="fade-up">
                     <h3 class="text-xl font-bold text-white mb-4 border-b border-slate-800 pb-4">About the Program</h3>
@@ -122,6 +152,32 @@
                 <!-- Reviews -->
                 <div class="glass-panel rounded-2xl p-8" data-aos="fade-up">
                     <h3 class="text-xl font-bold text-white mb-6 border-b border-slate-800 pb-4">Runner Reviews</h3>
+                    @auth
+                    @if(auth()->user()->role === 'runner')
+                    <div class="mb-6">
+                        <form id="runner-review-form" action="{{ route('runner.programs.reviews.store', $program->id) }}" method="POST" class="space-y-3">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="text-xs text-slate-400">Rating</label>
+                                    <select name="rating" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-200">
+                                        @for($r = 1; $r <= 5; $r++)
+                                            <option value="{{ $r }}">{{ $r }}</option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="text-xs text-slate-400">Review</label>
+                                    <textarea name="review" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-200" placeholder="Opsional"></textarea>
+                                </div>
+                            </div>
+                            <div class="pt-2">
+                                <button type="submit" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold">Kirim Review</button>
+                            </div>
+                        </form>
+                    </div>
+                    @endif
+                    @endauth
                     @if($reviews->count() > 0)
                         <div class="space-y-6">
                             @foreach($reviews as $review)
@@ -238,7 +294,7 @@
                                 <p class="text-[10px] text-slate-500 uppercase">Rating</p>
                             </div>
                         </div>
-                        <a href="#" class="block w-full py-2 mt-4 border border-slate-600 hover:border-white text-slate-300 hover:text-white font-bold text-center rounded-lg text-sm transition-all">
+                        <a href="{{ route('runner.profile.show', $program->coach->username ?? $program->coach->id) }}" class="block w-full py-2 mt-4 border border-slate-600 hover:border-white text-slate-300 hover:text-white font-bold text-center rounded-lg text-sm transition-all">
                             View Profile
                         </a>
                     </div>
@@ -282,3 +338,67 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('rating-form');
+    if (!form) return;
+    var stars = form.querySelectorAll('.rating-star');
+    var input = form.querySelector('input[name="rating"]');
+    var countEl = document.getElementById('program-review-count');
+    var token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    stars.forEach(function(star){
+        star.addEventListener('click', function(){
+            var value = parseInt(star.dataset.value);
+            input.value = value;
+            var fd = new FormData();
+            fd.append('rating', value);
+            if (token) fd.append('_token', token);
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                body: fd
+            }).then(function(r){ return r.json(); }).then(function(data){
+                if (data && data.success) {
+                    var rounded = parseInt(data.average_rating_rounded || Math.round(data.average_rating || value));
+                    stars.forEach(function(s){
+                        var v = parseInt(s.dataset.value);
+                        if (v <= rounded) { s.classList.add('fill-current'); s.classList.remove('text-slate-600'); }
+                        else { s.classList.remove('fill-current'); s.classList.add('text-slate-600'); }
+                    });
+                    if (countEl && typeof data.total_reviews !== 'undefined') {
+                        countEl.textContent = '(' + data.total_reviews + ')';
+                    }
+                } else {
+                    alert((data && data.message) ? data.message : 'Gagal menyimpan rating');
+                }
+            }).catch(function(){ alert('Terjadi kesalahan'); });
+        });
+    });
+
+    var reviewForm = document.getElementById('runner-review-form');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e){
+            e.preventDefault();
+            var fd = new FormData(reviewForm);
+            if (token && !fd.get('_token')) fd.append('_token', token);
+            fetch(reviewForm.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                body: fd
+            }).then(function(r){ return r.json(); }).then(function(data){
+                if (data && data.success) {
+                    if (countEl && typeof data.total_reviews !== 'undefined') {
+                        countEl.textContent = '(' + data.total_reviews + ')';
+                    }
+                    alert('Review berhasil disimpan');
+                } else {
+                    alert((data && data.message) ? data.message : 'Gagal menyimpan review');
+                }
+            }).catch(function(){ alert('Terjadi kesalahan'); });
+        });
+    }
+});
+</script>
+@endpush

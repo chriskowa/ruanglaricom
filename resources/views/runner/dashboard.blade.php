@@ -4,10 +4,10 @@
 @section('title', 'Runner Dashboard')
 
 @section('content')
-<div id="runner-dashboard-app" class="min-h-screen pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative overflow-hidden font-sans">
+<div id="runner-dashboard-app" class="min-h-screen pt-20 pb-10 max-w-7xl mx-auto mt-auto relative overflow-hidden font-sans">
     
     <!-- Hero Section -->
-    <div class="mb-10 relative z-10" data-aos="fade-up">
+    <div class="mb-10 relative z-10 mt-10" data-aos="fade-up">
         <div class="flex flex-col md:flex-row justify-between items-end gap-4">
             <div>
                 <p class="text-neon font-mono text-sm tracking-widest uppercase mb-1">Good Morning, Athlete</p>
@@ -78,9 +78,9 @@
                 </div>
                 <span class="text-xs font-mono text-slate-500 uppercase">Weekly Volume</span>
             </div>
-            <h3 class="text-2xl font-bold text-white">42.5 <span class="text-sm font-normal text-slate-400">km</span></h3>
+            <h3 class="text-2xl font-bold text-white">{{ $weeklyVolumeKm ?? 0 }} <span class="text-sm font-normal text-slate-400">km</span></h3>
             <div class="w-full bg-slate-800 h-1.5 rounded-full mt-4 overflow-hidden">
-                <div class="bg-cyan-400 h-full rounded-full" style="width: 65%"></div>
+                <div class="bg-cyan-400 h-full rounded-full" style="width: {{ min(100, (($weeklyVolumeKm ?? 0) / 70) * 100) }}%"></div>
             </div>
         </div>
     </div>
@@ -92,7 +92,7 @@
         <div class="lg:col-span-2 space-y-8">
             <div class="flex justify-between items-end">
                 <h2 class="text-2xl font-bold text-white">Your Programs</h2>
-                <a href="#" class="text-sm text-neon hover:underline">View All</a>
+                <a href="{{ route('programs.index') }}" class="text-sm text-neon hover:underline">View All</a>
             </div>
 
             @if($activeEnrollments->count() > 0)
@@ -100,11 +100,18 @@
                     @foreach($activeEnrollments as $enrollment)
                     <div class="bg-card/30 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center hover:bg-slate-800/50 transition-colors cursor-pointer group">
                         <div class="w-full md:w-32 h-32 md:h-24 bg-slate-800 rounded-lg overflow-hidden shrink-0">
-                            <!-- Placeholder Image -->
-                            <img src="https://source.unsplash.com/random/200x200/?running" alt="Program" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
+                            @if($enrollment->program && $enrollment->program->thumbnail)
+                                <img src="{{ $enrollment->program->thumbnail_url }}" alt="Program" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
+                            @else
+                                <img src="https://source.unsplash.com/random/200x200/?running" alt="Program" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
+                            @endif
                         </div>
                         <div class="flex-1 text-center md:text-left">
-                            <h3 class="text-lg font-bold text-white group-hover:text-neon transition-colors">{{ $enrollment->program->title ?? 'Unknown Program' }}</h3>
+                            <h3 class="text-lg font-bold text-white group-hover:text-neon transition-colors">
+                                <a href="{{ route('programs.show', $enrollment->program->slug) }}" class="hover:underline">
+                                    {{ $enrollment->program->title ?? 'Unknown Program' }}
+                                </a>
+                            </h3>
                             <p class="text-sm text-slate-400 mb-2">Coach {{ $enrollment->program->coach->user->name ?? 'System' }}</p>
                             
                             <div class="flex items-center justify-center md:justify-start gap-4 text-xs font-mono text-slate-500">
@@ -113,7 +120,7 @@
                             </div>
                         </div>
                         <div class="shrink-0">
-                            <a href="#" class="px-4 py-2 rounded-lg bg-slate-700 text-white text-sm font-bold hover:bg-neon hover:text-dark transition-colors">Continue</a>
+                            <a href="{{ route('runner.calendar') }}" class="px-4 py-2 rounded-lg bg-slate-700 text-white text-sm font-bold hover:bg-neon hover:text-dark transition-colors">Continue</a>
                         </div>
                     </div>
                     @endforeach
@@ -161,13 +168,13 @@
                 <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/20 rounded-full blur-xl"></div>
                 <div class="flex justify-between items-start">
                     <div>
-                        <h4 class="font-bold text-lg">Jakarta</h4>
-                        <p class="text-sm opacity-80">Today, 06:30 AM</p>
+                        <h4 id="weather-city" class="font-bold text-lg">—</h4>
+                        <p id="weather-time" class="text-sm opacity-80">—</p>
                     </div>
                     <svg class="w-10 h-10 text-yellow-300 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                 </div>
                 <div class="mt-4">
-                    <span class="text-4xl font-bold">28°C</span>
+                    <span id="weather-temp" class="text-4xl font-bold">—°C</span>
                     <p class="text-sm mt-1">Perfect for a morning run!</p>
                 </div>
             </div>
@@ -175,4 +182,42 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+    (function(){
+        var cityEl = document.getElementById('weather-city');
+        var tempEl = document.getElementById('weather-temp');
+        var timeEl = document.getElementById('weather-time');
+        function setInfo(city, temp){
+            if(cityEl) cityEl.textContent = city;
+            if(tempEl) tempEl.textContent = Math.round(temp) + '°C';
+            if(timeEl) timeEl.textContent = 'Today, ' + dayjs().format('HH:mm');
+        }
+        function fetchWeather(lat, lon){
+            var wUrl = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m&timezone=auto';
+            fetch(wUrl).then(function(r){ return r.json(); }).then(function(data){
+                var temp = (data && data.current && data.current.temperature_2m) ? data.current.temperature_2m : null;
+                if(temp == null){ setInfo('Unknown', 28); return; }
+                var gUrl = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lon;
+                fetch(gUrl, { headers: { 'Accept': 'application/json' } }).then(function(r){ return r.json(); }).then(function(geo){
+                    var addr = geo && geo.address ? geo.address : {};
+                    var city = addr.city || addr.town || addr.village || addr.state || 'Unknown';
+                    setInfo(city, temp);
+                }).catch(function(){ setInfo('Unknown', temp); });
+            }).catch(function(){ setInfo('Jakarta', 28); });
+        }
+        if(navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(function(pos){
+                var lat = pos.coords.latitude;
+                var lon = pos.coords.longitude;
+                fetchWeather(lat, lon);
+            }, function(){
+                fetchWeather(-6.2, 106.8);
+            }, { timeout: 5000 });
+        } else {
+            fetchWeather(-6.2, 106.8);
+        }
+    })();
+</script>
+@endpush
 @endsection

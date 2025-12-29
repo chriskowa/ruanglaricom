@@ -10,6 +10,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use App\Models\City;
 use App\Models\Province;
+use App\Models\Pacer;
 
 class ProfileController extends Controller
 {
@@ -57,11 +58,12 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         $user->load('city.province', 'wallet');
+        $pacer = Pacer::where('user_id', $user->id)->first();
         
         $cities = City::with('province')->orderBy('name')->get();
         $provinces = Province::orderBy('name')->get();
         
-        return view('profile.show', compact('user', 'cities', 'provinces'));
+        return view('profile.show', compact('user', 'cities', 'provinces', 'pacer'));
     }
 
     public function update(Request $request)
@@ -74,12 +76,30 @@ class ProfileController extends Controller
                 'phone' => 'nullable|string|max:20',
                 'date_of_birth' => 'nullable|date',
                 'address' => 'nullable|string|max:500',
-                'city_id' => 'nullable|exists:cities,id',
-                'gender' => 'nullable|in:male,female',
+            'city_id' => 'nullable|exists:cities,id',
+            'gender' => 'nullable|in:male,female',
+            'strava_url' => 'nullable|url|max:255',
+            'instagram_url' => 'nullable|url|max:255',
+            'facebook_url' => 'nullable|url|max:255',
+            'tiktok_url' => 'nullable|url|max:255',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'profile_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'banner' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'password' => 'nullable|string|min:8|confirmed',
+            'bank_name' => 'nullable|string|max:120',
+            'bank_account_name' => 'nullable|string|max:120',
+            'bank_account_number' => 'nullable|string|max:50',
+            'pb_5k' => 'nullable|string|max:20',
+            'pb_10k' => 'nullable|string|max:20',
+            'pb_hm' => 'nullable|string|max:20',
+            'pb_fm' => 'nullable|string|max:20',
+            'pacer_nickname' => 'nullable|string|max:100',
+            'pacer_category' => 'nullable|string|max:50',
+            'pacer_pace' => 'nullable|string|max:20',
+            'pacer_whatsapp' => 'nullable|string|max:20',
+            'pacer_bio' => 'nullable|string',
+            'pacer_tags' => 'nullable|string',
+            'pacer_race_portfolio' => 'nullable|string',
         ]);
 
         // Update basic info
@@ -89,7 +109,18 @@ class ProfileController extends Controller
                 $user->date_of_birth = $validated['date_of_birth'] ?? null;
                 $user->address = $validated['address'] ?? null;
                 $user->city_id = $validated['city_id'] ?? null;
-                $user->gender = $validated['gender'] ?? null;
+        $user->gender = $validated['gender'] ?? null;
+        $user->strava_url = $validated['strava_url'] ?? null;
+        $user->instagram_url = $validated['instagram_url'] ?? null;
+        $user->facebook_url = $validated['facebook_url'] ?? null;
+        $user->tiktok_url = $validated['tiktok_url'] ?? null;
+        $user->bank_name = $validated['bank_name'] ?? null;
+        $user->bank_account_name = $validated['bank_account_name'] ?? null;
+        $user->bank_account_number = $validated['bank_account_number'] ?? null;
+        $user->pb_5k = $validated['pb_5k'] ?? null;
+        $user->pb_10k = $validated['pb_10k'] ?? null;
+        $user->pb_hm = $validated['pb_hm'] ?? null;
+        $user->pb_fm = $validated['pb_fm'] ?? null;
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
@@ -138,6 +169,22 @@ class ProfileController extends Controller
         }
 
         $user->save();
+
+        $pacer = Pacer::where('user_id', $user->id)->first();
+        if ($pacer) {
+            $pacer->nickname = $validated['pacer_nickname'] ?? $pacer->nickname;
+            $pacer->category = $validated['pacer_category'] ?? $pacer->category;
+            $pacer->pace = $validated['pacer_pace'] ?? $pacer->pace;
+            $pacer->whatsapp = $validated['pacer_whatsapp'] ?? $pacer->whatsapp;
+            $pacer->bio = $validated['pacer_bio'] ?? $pacer->bio;
+            $pacer->tags = isset($validated['pacer_tags']) && $validated['pacer_tags'] !== null
+                ? array_values(array_filter(array_map('trim', preg_split('/[,;]+/', $validated['pacer_tags']))))
+                : $pacer->tags;
+            $pacer->race_portfolio = isset($validated['pacer_race_portfolio']) && $validated['pacer_race_portfolio'] !== null
+                ? array_values(array_filter(array_map('trim', preg_split('/[,;]+/', $validated['pacer_race_portfolio']))))
+                : $pacer->race_portfolio;
+            $pacer->save();
+        }
 
         return redirect()->route('profile.show')->with('success', 'Profile berhasil diperbarui!');
     }

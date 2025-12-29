@@ -38234,3 +38234,8 @@ a:hover {
 }
 
 /*# sourceMappingURL=style.css.map */
+
+/* Custom Input Date Icon Color */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) !important;
+}

@@ -20,7 +20,11 @@ return new class extends Migration
             });
             
             // Rename column using raw SQL
-            DB::statement('ALTER TABLE events CHANGE organizer_id user_id BIGINT UNSIGNED NOT NULL');
+            if (Schema::getConnection()->getDriverName() !== 'mysql') {
+                DB::statement('ALTER TABLE events RENAME COLUMN organizer_id TO user_id');
+            } else {
+                DB::statement('ALTER TABLE events CHANGE organizer_id user_id BIGINT UNSIGNED NOT NULL');
+            }
             
             // Re-add foreign key
             Schema::table('events', function (Blueprint $table) {
@@ -72,11 +76,19 @@ return new class extends Migration
         // Migrate data from old structure to new if needed
         // Migrate date + time to start_at
         if (Schema::hasColumn('events', 'date') && Schema::hasColumn('events', 'time')) {
-            DB::statement("
-                UPDATE events 
-                SET start_at = CONCAT(date, ' ', COALESCE(time, '00:00:00'))
-                WHERE start_at IS NULL AND date IS NOT NULL
-            ");
+            if (Schema::getConnection()->getDriverName() !== 'mysql') {
+                DB::statement("
+                    UPDATE events 
+                    SET start_at = date || ' ' || COALESCE(time, '00:00:00')
+                    WHERE start_at IS NULL AND date IS NOT NULL
+                ");
+            } else {
+                DB::statement("
+                    UPDATE events 
+                    SET start_at = CONCAT(date, ' ', COALESCE(time, '00:00:00'))
+                    WHERE start_at IS NULL AND date IS NOT NULL
+                ");
+            }
         }
         
         // Migrate location to location_name
@@ -90,20 +102,36 @@ return new class extends Migration
         
         // Migrate description to short_description
         if (Schema::hasColumn('events', 'description')) {
-            DB::statement("
-                UPDATE events 
-                SET short_description = LEFT(description, 500)
-                WHERE short_description IS NULL AND description IS NOT NULL
-            ");
+            if (Schema::getConnection()->getDriverName() !== 'mysql') {
+                DB::statement("
+                    UPDATE events 
+                    SET short_description = substr(description, 1, 500)
+                    WHERE short_description IS NULL AND description IS NOT NULL
+                ");
+            } else {
+                DB::statement("
+                    UPDATE events 
+                    SET short_description = LEFT(description, 500)
+                    WHERE short_description IS NULL AND description IS NOT NULL
+                ");
+            }
         }
         
         // Migrate banner_image to hero_image_url
         if (Schema::hasColumn('events', 'banner_image')) {
-            DB::statement("
-                UPDATE events 
-                SET hero_image_url = CONCAT('storage/', banner_image)
-                WHERE hero_image_url IS NULL AND banner_image IS NOT NULL
-            ");
+            if (Schema::getConnection()->getDriverName() !== 'mysql') {
+                DB::statement("
+                    UPDATE events 
+                    SET hero_image_url = 'storage/' || banner_image
+                    WHERE hero_image_url IS NULL AND banner_image IS NOT NULL
+                ");
+            } else {
+                DB::statement("
+                    UPDATE events 
+                    SET hero_image_url = CONCAT('storage/', banner_image)
+                    WHERE hero_image_url IS NULL AND banner_image IS NOT NULL
+                ");
+            }
         }
 
         // Drop old columns after data migration
@@ -271,7 +299,11 @@ return new class extends Migration
                 $table->dropForeign(['user_id']);
             });
             
-            DB::statement('ALTER TABLE events CHANGE user_id organizer_id BIGINT UNSIGNED NOT NULL');
+            if (Schema::getConnection()->getDriverName() !== 'mysql') {
+                DB::statement('ALTER TABLE events RENAME COLUMN user_id TO organizer_id');
+            } else {
+                DB::statement('ALTER TABLE events CHANGE user_id organizer_id BIGINT UNSIGNED NOT NULL');
+            }
             
             Schema::table('events', function (Blueprint $table) {
                 $table->foreign('organizer_id')->references('id')->on('users')->onDelete('cascade');

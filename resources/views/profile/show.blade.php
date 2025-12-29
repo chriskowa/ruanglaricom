@@ -108,6 +108,18 @@
                     </div>
                 </div>
 
+                <div class="glass rounded-2xl p-4 flex items-center justify-center gap-3" data-aos="fade-up" data-aos-delay="50">
+                    <a href="{{ route('wallet.index') }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
+                        Wallet
+                    </a>
+                    <a href="{{ route('wallet.index') }}#topup-form" class="px-5 py-2.5 bg-neon text-dark rounded-xl text-sm font-black hover:bg-lime-400 transition-all shadow-lg shadow-neon/20">
+                        Top-up / Deposit
+                    </a>
+                    <a href="{{ route('wallet.index') }}#withdraw-form" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
+                        Withdraw
+                    </a>
+                </div>
+
                 <!-- Gallery Preview -->
                 @if($user->profile_images && count($user->profile_images) > 0)
                 <div class="glass rounded-2xl p-6" data-aos="fade-up" data-aos-delay="100">
@@ -210,6 +222,82 @@
                             </div>
                         </div>
 
+                        <!-- Section 4: Running Profile (PB) -->
+                        <div class="space-y-6 pt-6">
+                            <h3 class="text-neon text-sm font-bold uppercase tracking-wider border-b border-slate-700 pb-2 mb-4">Running Profile</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">5K PB</label>
+                                    <input type="text" name="pb_5k" value="{{ old('pb_5k', $user->pb_5k) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all font-mono" placeholder="00:25:00">
+                                    @error('pb_5k') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">10K PB</label>
+                                    <input type="text" name="pb_10k" value="{{ old('pb_10k', $user->pb_10k) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all font-mono" placeholder="00:55:00">
+                                    @error('pb_10k') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Half Marathon PB</label>
+                                    <input type="text" name="pb_hm" value="{{ old('pb_hm', $user->pb_hm) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all font-mono" placeholder="02:00:00">
+                                    @error('pb_hm') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Full Marathon PB</label>
+                                    <input type="text" name="pb_fm" value="{{ old('pb_fm', $user->pb_fm) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all font-mono" placeholder="04:30:00">
+                                    @error('pb_fm') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($pacer)
+                        <!-- Section 5: Pacer & Portfolio -->
+                        <div class="space-y-6 pt-6">
+                            <h3 class="text-neon text-sm font-bold uppercase tracking-wider border-b border-slate-700 pb-2 mb-4">Pacer & Portfolio</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Nickname</label>
+                                    <input type="text" name="pacer_nickname" value="{{ old('pacer_nickname', $pacer->nickname) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                    @error('pacer_nickname') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Category</label>
+                                    <select name="pacer_category" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                        <option value="">Select Category</option>
+                                        <option value="10K" {{ old('pacer_category', $pacer->category) == '10K' ? 'selected' : '' }}>10K</option>
+                                        <option value="HM (21K)" {{ old('pacer_category', $pacer->category) == 'HM (21K)' ? 'selected' : '' }}>HM (21K)</option>
+                                        <option value="FM (42K)" {{ old('pacer_category', $pacer->category) == 'FM (42K)' ? 'selected' : '' }}>FM (42K)</option>
+                                    </select>
+                                    @error('pacer_category') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Target Pace</label>
+                                    <input type="text" name="pacer_pace" value="{{ old('pacer_pace', $pacer->pace) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all font-mono" placeholder="05:30/km">
+                                    @error('pacer_pace') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">WhatsApp</label>
+                                    <input type="text" name="pacer_whatsapp" value="{{ old('pacer_whatsapp', $pacer->whatsapp) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                    @error('pacer_whatsapp') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase">Short Bio</label>
+                                <textarea name="pacer_bio" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">{{ old('pacer_bio', $pacer->bio) }}</textarea>
+                                @error('pacer_bio') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase">Tags</label>
+                                <input type="text" name="pacer_tags" value="{{ old('pacer_tags', $pacer->tags ? implode(', ', $pacer->tags) : '') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="trail, endurance, marathon">
+                                @error('pacer_tags') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase">Race Portfolio</label>
+                                <textarea name="pacer_race_portfolio" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="Contoh: Jakarta Marathon, Borobudur Marathon, Bali Marathon">{{ old('pacer_race_portfolio', $pacer->race_portfolio ? implode(', ', $pacer->race_portfolio) : '') }}</textarea>
+                                @error('pacer_race_portfolio') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Section 2: Media -->
                         <div class="space-y-6 pt-6">
                             <h3 class="text-neon text-sm font-bold uppercase tracking-wider border-b border-slate-700 pb-2 mb-4">Media & Customization</h3>
@@ -237,7 +325,56 @@
                             </div>
                         </div>
 
-                        <!-- Section 3: Security -->
+                        <!-- Section 3: Social Media -->
+                        <div class="space-y-6 pt-6">
+                            <h3 class="text-neon text-sm font-bold uppercase tracking-wider border-b border-slate-700 pb-2 mb-4">Social Media</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Strava URL</label>
+                                    <input type="url" name="strava_url" value="{{ old('strava_url', $user->strava_url) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="https://www.strava.com/athletes/...">
+                                    @error('strava_url') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Instagram URL</label>
+                                    <input type="url" name="instagram_url" value="{{ old('instagram_url', $user->instagram_url) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="https://instagram.com/...">
+                                    @error('instagram_url') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Facebook URL</label>
+                                    <input type="url" name="facebook_url" value="{{ old('facebook_url', $user->facebook_url) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="https://facebook.com/...">
+                                    @error('facebook_url') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">TikTok URL</label>
+                                    <input type="url" name="tiktok_url" value="{{ old('tiktok_url', $user->tiktok_url) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="https://tiktok.com/@...">
+                                    @error('tiktok_url') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6 pt-6">
+                            <h3 class="text-neon text-sm font-bold uppercase tracking-wider border-b border-slate-700 pb-2 mb-4">Bank Account</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Bank</label>
+                                    <input type="text" name="bank_name" value="{{ old('bank_name', $user->bank_name) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Nama Pemilik Rekening</label>
+                                    <input type="text" name="bank_account_name" value="{{ old('bank_account_name', $user->bank_account_name) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                </div>
+                                <div class="space-y-2 md:col-span-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Nomor Rekening</label>
+                                    <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $user->bank_account_number) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Security -->
                         <div class="space-y-6 pt-6">
                             <h3 class="text-neon text-sm font-bold uppercase tracking-wider border-b border-slate-700 pb-2 mb-4">Security</h3>
                             

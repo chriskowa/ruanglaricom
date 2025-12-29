@@ -52,9 +52,9 @@ class ProgramPurchaseController extends Controller
             $enrollment = ProgramEnrollment::create([
                 'program_id' => $program->id,
                 'runner_id' => $user->id,
-                'start_date' => Carbon::today(),
-                'end_date' => Carbon::today()->addWeeks($program->duration_weeks ?? 12),
-                'status' => 'active',
+                'start_date' => null,
+                'end_date' => null,
+                'status' => 'purchased',
                 'payment_status' => 'paid',
             ]);
 
@@ -83,7 +83,7 @@ class ProgramPurchaseController extends Controller
             DB::commit();
 
             return redirect()->route('runner.calendar')
-                ->with('success', 'Program berhasil dibeli! Silakan cek kalender Anda.');
+                ->with('success', 'Program berhasil dibeli! Program telah ditambahkan ke Program Bag Anda.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -101,15 +101,15 @@ class ProgramPurchaseController extends Controller
         $enrollment = ProgramEnrollment::create([
             'program_id' => $program->id,
             'runner_id' => $user->id,
-            'start_date' => Carbon::today(),
-            'end_date' => Carbon::today()->addWeeks($program->duration_weeks ?? 12),
-            'status' => 'active',
+            'start_date' => null,
+            'end_date' => null,
+            'status' => 'purchased',
             'payment_status' => 'paid', // Free programs are considered paid
         ]);
 
         $program->increment('enrolled_count');
 
         return redirect()->route('runner.calendar')
-            ->with('success', 'Program berhasil didaftarkan! Silakan cek kalender Anda.');
+            ->with('success', 'Program berhasil didaftarkan! Program telah ditambahkan ke Program Bag Anda.');
     }
 }

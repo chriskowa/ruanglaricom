@@ -12,6 +12,7 @@
                     @elseif(auth()->user()->isCoach())
                         <li><a href="{{ route('coach.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                         <li><a href="{{ route('coach.programs.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Programs</a></li>
+                        <li><a href="{{ route('coach.master-workouts.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Workout Library</a></li>
                     @elseif(auth()->user()->isRunner())
                         <li><a href="{{ route('runner.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                         <li><a href="{{ route('runner.calendar') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Calendar</a></li>

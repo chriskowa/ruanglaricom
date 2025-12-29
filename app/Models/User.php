@@ -37,8 +37,18 @@ class User extends Authenticatable
         'date_of_birth',
         'address',
         'strava_token',
+        'strava_url',
+        'instagram_url',
+        'facebook_url',
+        'tiktok_url',
         'google_calendar_token',
         'gender',
+        'pb_5k',
+        'pb_10k',
+        'pb_hm',
+        'pb_fm',
+        'audit_history',
+        'weekly_volume',
     ];
 
     /**
@@ -63,9 +73,12 @@ class User extends Authenticatable
             'password' => 'hashed',
             'bank_account' => 'array',
             'bank_verified_at' => 'datetime',
-            'date_of_birth' => 'date',
-            'profile_images' => 'array',
-        ];
+        'date_of_birth' => 'date',
+        'profile_images' => 'array',
+        'strava_expires_at' => 'datetime',
+        'audit_history' => 'array',
+        'weekly_volume' => 'decimal:2',
+    ];
     }
 
     // Relationships
@@ -181,5 +194,60 @@ class User extends Authenticatable
     public function unreadNotifications()
     {
         return $this->hasMany(Notification::class)->where('is_read', false)->latest();
+    }
+
+    /**
+     * Calculate best VDOT from PBs
+     */
+    public function getVdotAttribute()
+    {
+        $daniels = app(\App\Services\DanielsRunningService::class);
+        $bestVdot = 0;
+
+        $pbs = [
+            '5k' => $this->pb_5k,
+            '10k' => $this->pb_10k,
+            '21k' => $this->pb_hm,
+            '42k' => $this->pb_fm,
+        ];
+
+        foreach ($pbs as $dist => $time) {
+            if ($time) {
+                try {
+                    $vdot = $daniels->calculateVDOT($time, $dist);
+                    if ($vdot > $bestVdot) {
+                        $bestVdot = $vdot;
+                    }
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+        }
+
+        return $bestVdot > 0 ? $bestVdot : null;
+    }
+
+    /**
+     * Get training paces based on best VDOT
+     */
+    public function getTrainingPacesAttribute()
+    {
+        $vdot = $this->vdot;
+        if (!$vdot) return null;
+
+        $daniels = app(\App\Services\DanielsRunningService::class);
+        return $daniels->calculateTrainingPaces($vdot);
+    }
+
+    /**
+     * Get equivalent race times based on best VDOT
+     */
+    public function getEquivalentRaceTimesAttribute()
+    {
+        $vdot = $this->vdot;
+        if (!$vdot) return null;
+
+        $daniels = app(\App\Services\DanielsRunningService::class);
+        return $daniels->calculateEquivalentRaceTimes($vdot);
     }
 }

@@ -144,6 +144,29 @@
                     </div>
                 </div>
 
+                @if($user->role === 'coach')
+                <div class="glass-panel rounded-2xl p-6">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Coach Stats</h3>
+                    <div class="text-center">
+                        <p class="text-xl font-black text-white">{{ $user->programs()->count() }}</p>
+                        <p class="text-[10px] text-slate-500 uppercase">Programs</p>
+                    </div>
+                    @if($user->programs()->exists())
+                    <div class="mt-4 pt-4 border-t border-slate-800">
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Related Programs</h4>
+                        <div class="space-y-2">
+                            @foreach($user->programs()->latest()->take(3)->get() as $program)
+                            <a href="{{ route('programs.show', $program->slug) }}" class="block p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors">
+                                <p class="text-sm font-bold text-white">{{ $program->title }}</p>
+                                <p class="text-[10px] text-slate-500">{{ $program->distance_target }} • {{ ucfirst($program->difficulty) }}</p>
+                            </a>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                </div>
+                @endif
+
                 <!-- Bio / Info -->
                 <div class="glass-panel rounded-2xl p-6">
                     <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">About</h3>

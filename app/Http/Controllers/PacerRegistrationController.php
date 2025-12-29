@@ -26,6 +26,15 @@ class PacerRegistrationController extends Controller
             'image' => ['nullable','file','mimes:jpg,jpeg,png,webp','max:1024'],
             'bio' => ['nullable', 'string'],
             'tags' => ['nullable', 'string'],
+            'race_portfolio' => ['nullable', 'string'],
+            'instagram_url' => ['nullable', 'url', 'max:255'],
+            'facebook_url' => ['nullable', 'url', 'max:255'],
+            'tiktok_url' => ['nullable', 'url', 'max:255'],
+            'strava_url' => ['nullable', 'url', 'max:255'],
+            'pb5k' => ['nullable', 'string', 'max:20'],
+            'pb10k' => ['nullable', 'string', 'max:20'],
+            'pbhm' => ['nullable', 'string', 'max:20'],
+            'pbfm' => ['nullable', 'string', 'max:20'],
         ]);
 
         // Create user as runner
@@ -35,6 +44,10 @@ class PacerRegistrationController extends Controller
             'phone' => $data['phone'],
             'password' => bcrypt(str()->random(12)),
             'role' => 'runner',
+            'instagram_url' => $data['instagram_url'] ?? null,
+            'facebook_url' => $data['facebook_url'] ?? null,
+            'tiktok_url' => $data['tiktok_url'] ?? null,
+            'strava_url' => $data['strava_url'] ?? null,
         ]);
 
         // Handle image upload and convert to webp
@@ -79,8 +92,14 @@ class PacerRegistrationController extends Controller
             'verified' => false,
             'total_races' => 0,
             'bio' => $data['bio'] ?? null,
-            'stats' => ['pb5k' => null, 'pb10k' => null, 'pbfm' => null],
+            'stats' => [
+                'pb5k' => $data['pb5k'] ?? null, 
+                'pb10k' => $data['pb10k'] ?? null, 
+                'pbhm' => $data['pbhm'] ?? null, 
+                'pbfm' => $data['pbfm'] ?? null
+            ],
             'tags' => isset($data['tags']) ? array_filter(array_map('trim', explode(',', $data['tags']))) : [],
+            'race_portfolio' => isset($data['race_portfolio']) ? array_filter(array_map('trim', explode(',', $data['race_portfolio']))) : [],
         ]);
 
         // Create OTP and send via WhatsApp

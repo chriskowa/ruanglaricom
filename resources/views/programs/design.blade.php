@@ -125,6 +125,54 @@
         </div>
     </transition>
 
+    <!-- Register Modal -->
+    <transition name="fade">
+        <div v-if="showRegisterModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="!isSubmitting && (showRegisterModal = false)"></div>
+            <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
+                <h3 class="text-2xl font-bold text-white mb-4">Daftar Challenge</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Nama Lengkap</label>
+                        <input v-model="registerForm.name" type="text" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Email</label>
+                        <input v-model="registerForm.email" type="email" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">No WhatsApp</label>
+                        <input v-model="registerForm.phone" type="tel" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none" placeholder="08...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Password</label>
+                        <input v-model="registerForm.password" type="password" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
+                    </div>
+                    <button @click="submitRegister" :disabled="isSubmitting" class="w-full py-3 bg-neon text-dark font-bold rounded-lg hover:bg-white transition-colors disabled:opacity-50">
+                        @{{ isSubmitting ? 'Memproses...' : 'Kirim OTP via WhatsApp' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <!-- OTP Modal -->
+    <transition name="fade">
+        <div v-if="showOtpModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+            <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full shadow-2xl text-center">
+                <h3 class="text-2xl font-bold text-white mb-2">Verifikasi OTP</h3>
+                <p class="text-slate-400 text-sm mb-6">Masukkan 6 digit kode yang dikirim ke WhatsApp Anda.</p>
+                
+                <input v-model="otpCode" maxlength="6" class="w-full p-4 text-center text-2xl tracking-widest font-mono bg-slate-800 border border-slate-600 rounded-lg text-white mb-6 focus:border-cyan-400 outline-none">
+                
+                <button @click="submitOtp" :disabled="isSubmitting" class="w-full py-3 bg-cyan-500 text-slate-900 font-bold rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50">
+                    @{{ isSubmitting ? 'Verifikasi...' : 'Verifikasi & Join' }}
+                </button>
+            </div>
+        </div>
+    </transition>
+
     <main class="relative z-10 flex-grow flex flex-col justify-center items-center w-full">
         
         <transition name="fade" mode="out-in">
@@ -304,191 +352,206 @@
                     <p class="text-slate-400 font-mono">Berdasarkan VDOT Calculation & The Ladder Philosophy</p>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="relative">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
-                    <div class="space-y-6">
-                        <div class="glass p-6 rounded-xl border border-slate-700">
-                            <h3 class="text-xs font-mono text-slate-400 uppercase mb-4 border-b border-slate-700 pb-2">Analisis Gap</h3>
-                            <div class="flex justify-between items-end mb-2">
-                                <span class="text-slate-400">Saat Ini</span>
-                                <span class="text-2xl font-bold text-white">@{{ formattedCurrentTime }}</span>
-                            </div>
-                            <div class="flex justify-between items-end mb-4">
-                                <span class="text-slate-400">Target Ladder</span>
-                                <span class="text-2xl font-bold text-neon-green text-green-400">@{{ ladderTarget }}</span>
-                            </div>
-                            <div class="text-xs text-slate-500 italic">
-                                *Target jangka panjang disembunyikan. Fokus pada target ladder minggu ini.
-                            </div>
-                        </div>
-
-                        <div class="glass p-6 rounded-xl border border-cyan-900 shadow-neon-cyan">
-                            <h3 class="text-xs font-mono text-cyan-400 uppercase mb-4 border-b border-cyan-900 pb-2">Zona Pace (Min/Km)</h3>
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <div class="flex justify-between text-xs mb-1">
-                                        <span class="text-slate-400 font-bold">Recovery</span>
-                                        <span class="text-white font-mono">@{{ paces.recovery }}</span>
-                                    </div>
-                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-slate-400 h-1 rounded" style="width: 30%"></div></div>
+                        <div class="space-y-6">
+                            <div class="glass p-6 rounded-xl border border-slate-700">
+                                <h3 class="text-xs font-mono text-slate-400 uppercase mb-4 border-b border-slate-700 pb-2">Analisis Gap</h3>
+                                <div class="flex justify-between items-end mb-2">
+                                    <span class="text-slate-400">Saat Ini</span>
+                                    <span class="text-2xl font-bold text-white">@{{ formattedCurrentTime }}</span>
                                 </div>
-                                <div>
-                                    <div class="flex justify-between text-xs mb-1">
-                                        <span class="text-green-400 font-bold">Easy</span>
-                                        <span class="text-white font-mono">@{{ paces.easy }}</span>
-                                    </div>
-                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-green-500 h-1 rounded" style="width: 50%"></div></div>
+                                <div class="flex justify-between items-end mb-4">
+                                    <span class="text-slate-400">Target Ladder</span>
+                                    <span class="text-2xl font-bold text-neon-green text-green-400">@{{ ladderTarget }}</span>
                                 </div>
-                                <div>
-                                    <div class="flex justify-between text-xs mb-1">
-                                        <span class="text-blue-400 font-bold">Tempo (M)</span>
-                                        <span class="text-white font-mono">@{{ paces.tempo }}</span>
-                                    </div>
-                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-blue-500 h-1 rounded" style="width: 65%"></div></div>
+                                <div class="text-xs text-slate-500 italic">
+                                    *Target jangka panjang disembunyikan. Fokus pada target ladder minggu ini.
                                 </div>
-                                <div>
-                                    <div class="flex justify-between text-xs mb-1">
-                                        <span class="text-yellow-400 font-bold">Threshold (T)</span>
-                                        <span class="text-white font-mono">@{{ paces.threshold }}</span>
-                                    </div>
-                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-yellow-500 h-1 rounded" style="width: 80%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-xs mb-1">
-                                        <span class="text-purple-400 font-bold">Interval (I)</span>
-                                        <span class="text-white font-mono">@{{ paces.interval }}</span>
-                                    </div>
-                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-purple-500 h-1 rounded" style="width: 90%"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-xs mb-1">
-                                        <span class="text-red-400 font-bold">Repetition (R)</span>
-                                        <span class="text-white font-mono">@{{ paces.repetition }}</span>
-                                    </div>
-                                    <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-red-500 h-1 rounded" style="width: 100%"></div></div>
-                                </div>
-                            </div>
-                            <p class="text-[10px] text-slate-400 mt-3 text-center italic">
-                                *Pace dihitung berdasarkan estimasi VDOT dari hasil tes lari Anda.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-2">
-                        <!-- View Toggle -->
-                        <div class="flex justify-end mb-4 gap-2">
-                            <button @click="viewMode = 'calendar'" 
-                                class="px-3 py-1 text-xs rounded border transition-colors flex items-center gap-2"
-                                :class="viewMode === 'calendar' ? 'bg-cyan-900 text-cyan-300 border-cyan-700' : 'text-slate-400 border-slate-700 hover:text-white'">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                Calendar
-                            </button>
-                            <button @click="viewMode = 'list'" 
-                                class="px-3 py-1 text-xs rounded border transition-colors flex items-center gap-2"
-                                :class="viewMode === 'list' ? 'bg-cyan-900 text-cyan-300 border-cyan-700' : 'text-slate-400 border-slate-700 hover:text-white'">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                                List
-                            </button>
-                        </div>
-
-                        <!-- Tampilkan Jadwal Sebagai Kalender -->
-                        <div v-if="viewMode === 'calendar'" class="glass rounded-xl overflow-hidden border border-slate-700 mb-6 p-4">
-                            <h3 class="font-bold text-white text-lg mb-4 flex items-center gap-2">
-                                <span class="text-cyan-400">🗓</span> TRAINING CALENDAR
-                            </h3>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-7 gap-2 mb-2 text-center text-xs font-mono text-slate-500 uppercase hidden md:grid">
-                                <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
                             </div>
 
-                            <div v-for="(week, wIndex) in programSchedule" :key="wIndex" class="mb-6">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xs font-bold bg-slate-800 text-white px-2 py-1 rounded">W@{{ week.weekNum }}</span>
-                                    <span class="text-xs text-cyan-400">@{{ week.phase }} (@{{ week.totalVolume }}KM)</span>
-                                </div>
+                            <div class="glass p-6 rounded-xl border border-cyan-900 shadow-neon-cyan">
+                                <h3 class="text-xs font-mono text-cyan-400 uppercase mb-4 border-b border-cyan-900 pb-2">Zona Pace (Min/Km)</h3>
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
-                                    <div v-for="(day, dIndex) in week.days" :key="dIndex" 
-                                        @click="openWorkoutModal(day, week.phase)"
-                                        class="p-2 rounded border transition-all h-full min-h-[80px] flex flex-col justify-between cursor-pointer"
-                                        :class="{
-                                            'bg-slate-800/30 border-slate-700 hover:bg-slate-800': day.type === 'rest',
-                                            'bg-green-900/10 border-green-900/30 hover:bg-green-900/20': day.type === 'easy',
-                                            'bg-purple-900/10 border-purple-900/30 hover:bg-purple-900/20': day.type === 'hard',
-                                            'bg-yellow-900/10 border-yellow-900/30 hover:bg-yellow-900/20': day.type === 'long'
-                                        }">
-                                        
-                                        <div class="flex justify-between items-start mb-1">
-                                            <span class="text-[10px] text-slate-500 font-mono md:hidden">@{{ day.day }}</span>
-                                            <span class="text-[10px] text-slate-500 font-mono hidden md:inline">@{{ dIndex + 1 }}</span>
-                                            
-                                            <span v-if="day.type === 'rest'" class="text-slate-600">☾</span>
-                                            <span v-else-if="day.type === 'easy'" class="text-green-500">♥</span>
-                                            <span v-else-if="day.type === 'hard'" class="text-purple-500">⚡</span>
-                                            <span v-else-if="day.type === 'long'" class="text-yellow-500">∞</span>
-                                        </div>
-
-                                        <div>
-                                            <h4 class="text-xs font-bold text-white leading-tight mb-1">@{{ day.title }}</h4>
-                                            <p v-if="day.pace && day.pace !== '-'" class="text-[10px] font-mono text-cyan-300">@{{ day.pace }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tampilkan Jadwal Sebagai List (Legacy View) -->
-                        <div v-else class="space-y-6">
-                            <div v-for="(week, wIndex) in programSchedule" :key="wIndex" class="glass rounded-xl overflow-hidden border border-slate-700">
-                                <div class="bg-slate-800/50 p-4 border-b border-slate-700 flex justify-between items-center">
+                                <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <h3 class="font-bold text-white text-lg">MINGGU @{{ week.weekNum }}</h3>
-                                        <span class="text-xs text-slate-400">Total: @{{ week.totalVolume }}KM | Fokus: @{{ week.focus }}</span>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-slate-400 font-bold">Recovery</span>
+                                            <span class="text-white font-mono">@{{ paces.recovery }}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-slate-400 h-1 rounded" style="width: 30%"></div></div>
                                     </div>
-                                    <span class="text-xs bg-cyan-900 text-cyan-300 px-3 py-1 rounded-full font-bold">@{{ week.phase }}</span>
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-green-400 font-bold">Easy</span>
+                                            <span class="text-white font-mono">@{{ paces.easy }}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-green-500 h-1 rounded" style="width: 50%"></div></div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-blue-400 font-bold">Tempo (M)</span>
+                                            <span class="text-white font-mono">@{{ paces.tempo }}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-blue-500 h-1 rounded" style="width: 65%"></div></div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-yellow-400 font-bold">Threshold (T)</span>
+                                            <span class="text-white font-mono">@{{ paces.threshold }}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-yellow-500 h-1 rounded" style="width: 80%"></div></div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-purple-400 font-bold">Interval (I)</span>
+                                            <span class="text-white font-mono">@{{ paces.interval }}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-purple-500 h-1 rounded" style="width: 90%"></div></div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="text-red-400 font-bold">Repetition (R)</span>
+                                            <span class="text-white font-mono">@{{ paces.repetition }}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-700 h-1 rounded"><div class="bg-red-500 h-1 rounded" style="width: 100%"></div></div>
+                                    </div>
                                 </div>
-                                
-                                <div class="divide-y divide-slate-700">
-                                    <div v-for="(day, dIndex) in week.days" :key="dIndex" 
-                                        @click="openWorkoutModal(day, week.phase)"
-                                        class="p-4 hover:bg-slate-800/50 transition-colors group cursor-pointer">
-                                        <div class="flex items-start">
-                                            <div class="w-16 flex-shrink-0 pt-1">
-                                                <span class="text-xs font-mono text-slate-500 uppercase">@{{ day.day }}</span>
-                                            </div>
-                                            <div class="flex-grow">
-                                                <h4 class="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">@{{ day.title }}</h4>
-                                                <p class="text-sm text-slate-400 mt-1">@{{ day.desc }}</p>
-                                                <div v-if="day.pace && day.pace !== '-'" class="mt-2 inline-block px-2 py-1 bg-slate-900 rounded border border-slate-700 text-xs font-mono text-cyan-300">
-                                                    Target Pace: @{{ day.pace }}
+                                <p class="text-[10px] text-slate-400 mt-3 text-center italic">
+                                    *Pace dihitung berdasarkan estimasi VDOT dari hasil tes lari Anda.
+                                </p>
+                            </div>
+                        </div>
+                    
+                        <div class="lg:col-span-2 relative">
+                            
+                            <div :class="CHALLENGE_MODE ? 'blur-sm select-none pointer-events-none' : ''">
+                                <!-- View Toggle -->
+                                <div class="flex justify-end mb-4 gap-2">
+                                    <button @click="viewMode = 'calendar'" 
+                                        class="px-3 py-1 text-xs rounded border transition-colors flex items-center gap-2"
+                                        :class="viewMode === 'calendar' ? 'bg-cyan-900 text-cyan-300 border-cyan-700' : 'text-slate-400 border-slate-700 hover:text-white'">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        Calendar
+                                    </button>
+                                    <button @click="viewMode = 'list'" 
+                                        class="px-3 py-1 text-xs rounded border transition-colors flex items-center gap-2"
+                                        :class="viewMode === 'list' ? 'bg-cyan-900 text-cyan-300 border-cyan-700' : 'text-slate-400 border-slate-700 hover:text-white'">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                                        List
+                                    </button>
+                                </div>
+
+                                <!-- Tampilkan Jadwal Sebagai Kalender -->
+                                <div v-if="viewMode === 'calendar'" class="glass rounded-xl overflow-hidden border border-slate-700 mb-6 p-4">
+                                    <h3 class="font-bold text-white text-lg mb-4 flex items-center gap-2">
+                                        <span class="text-cyan-400">🗓</span> TRAINING CALENDAR
+                                    </h3>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-7 gap-2 mb-2 text-center text-xs font-mono text-slate-500 uppercase hidden md:grid">
+                                        <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                                    </div>
+
+                                    <div v-for="(week, wIndex) in programSchedule" :key="wIndex" class="mb-6">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="text-xs font-bold bg-slate-800 text-white px-2 py-1 rounded">W@{{ week.weekNum }}</span>
+                                            <span class="text-xs text-cyan-400">@{{ week.phase }} (@{{ week.totalVolume }}KM)</span>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-7 gap-2">
+                                            <div v-for="(day, dIndex) in week.days" :key="dIndex" 
+                                                @click="openWorkoutModal(day, week.phase)"
+                                                class="p-2 rounded border transition-all h-full min-h-[80px] flex flex-col justify-between cursor-pointer"
+                                                :class="{
+                                                    'bg-slate-800/30 border-slate-700 hover:bg-slate-800': day.type === 'rest',
+                                                    'bg-green-900/10 border-green-900/30 hover:bg-green-900/20': day.type === 'easy',
+                                                    'bg-purple-900/10 border-purple-900/30 hover:bg-purple-900/20': day.type === 'hard',
+                                                    'bg-yellow-900/10 border-yellow-900/30 hover:bg-yellow-900/20': day.type === 'long'
+                                                }">
+                                                
+                                                <div class="flex justify-between items-start mb-1">
+                                                    <span class="text-[10px] text-slate-500 font-mono md:hidden">@{{ day.day }}</span>
+                                                    <span class="text-[10px] text-slate-500 font-mono hidden md:inline">@{{ dIndex + 1 }}</span>
+                                                    
+                                                    <span v-if="day.type === 'rest'" class="text-slate-600">☾</span>
+                                                    <span v-else-if="day.type === 'easy'" class="text-green-500">♥</span>
+                                                    <span v-else-if="day.type === 'hard'" class="text-purple-500">⚡</span>
+                                                    <span v-else-if="day.type === 'long'" class="text-yellow-500">∞</span>
+                                                </div>
+
+                                                <div>
+                                                    <h4 class="text-xs font-bold text-white leading-tight mb-1">@{{ day.title }}</h4>
+                                                    <p v-if="day.pace && day.pace !== '-'" class="text-[10px] font-mono text-cyan-300">@{{ day.pace }}</p>
                                                 </div>
                                             </div>
-                                            <div class="ml-4">
-                                                <span v-if="day.type === 'rest'" class="text-slate-600 text-xl">☾</span>
-                                                <span v-else-if="day.type === 'easy'" class="text-green-500 text-xl">♥</span>
-                                                <span v-else-if="day.type === 'hard'" class="text-purple-500 text-xl">⚡</span>
-                                                <span v-else-if="day.type === 'long'" class="text-yellow-500 text-xl">∞</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tampilkan Jadwal Sebagai List (Legacy View) -->
+                                <div v-else class="space-y-6">
+                                    <div v-for="(week, wIndex) in programSchedule" :key="wIndex" class="glass rounded-xl overflow-hidden border border-slate-700">
+                                        <div class="bg-slate-800/50 p-4 border-b border-slate-700 flex justify-between items-center">
+                                            <div>
+                                                <h3 class="font-bold text-white text-lg">MINGGU @{{ week.weekNum }}</h3>
+                                                <span class="text-xs text-slate-400">Total: @{{ week.totalVolume }}KM | Fokus: @{{ week.focus }}</span>
+                                            </div>
+                                            <span class="text-xs bg-cyan-900 text-cyan-300 px-3 py-1 rounded-full font-bold">@{{ week.phase }}</span>
+                                        </div>
+                                        
+                                        <div class="divide-y divide-slate-700">
+                                            <div v-for="(day, dIndex) in week.days" :key="dIndex" 
+                                                @click="openWorkoutModal(day, week.phase)"
+                                                class="p-4 hover:bg-slate-800/50 transition-colors group cursor-pointer">
+                                                <div class="flex items-start">
+                                                    <div class="w-16 flex-shrink-0 pt-1">
+                                                        <span class="text-xs font-mono text-slate-500 uppercase">@{{ day.day }}</span>
+                                                    </div>
+                                                    <div class="flex-grow">
+                                                        <h4 class="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">@{{ day.title }}</h4>
+                                                        <p class="text-sm text-slate-400 mt-1">@{{ day.desc }}</p>
+                                                        <div v-if="day.pace && day.pace !== '-'" class="mt-2 inline-block px-2 py-1 bg-slate-900 rounded border border-slate-700 text-xs font-mono text-cyan-300">
+                                                            Target Pace: @{{ day.pace }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <span v-if="day.type === 'rest'" class="text-slate-600 text-xl">☾</span>
+                                                        <span v-else-if="day.type === 'easy'" class="text-green-500 text-xl">♥</span>
+                                                        <span v-else-if="day.type === 'hard'" class="text-purple-500 text-xl">⚡</span>
+                                                        <span v-else-if="day.type === 'long'" class="text-yellow-500 text-xl">∞</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <div class="mt-6 flex justify-end gap-4">
+                                    <button @click="resetForm" class="text-slate-400 hover:text-white text-sm underline">Reset Data</button>
+                                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded border border-slate-600 text-sm">
+                                        Simpan PDF
+                                    </button>
+                                    <a href="https://wa.me/6285524807623?text=Halo%20Coach,%20saya%20sudah%20generate%20program." target="_blank" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded shadow-lg text-sm flex items-center">
+                                        Konsultasi Coach
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="mt-6 flex justify-end gap-4">
-                            <button @click="resetForm" class="text-slate-400 hover:text-white text-sm underline">Reset Data</button>
-                            <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded border border-slate-600 text-sm">
-                                Simpan PDF
-                            </button>
-                            <a href="https://wa.me/6285524807623?text=Halo%20Coach,%20saya%20sudah%20generate%20program." target="_blank" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded shadow-lg text-sm flex items-center">
-                                Konsultasi Coach
-                            </a>
+
+                            <!-- Join Overlay -->
+                            <div v-if="CHALLENGE_MODE" class="absolute inset-0 z-10 flex items-center justify-center">
+                                <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-700 rounded-2xl p-8 text-center max-w-md w-full mx-4 shadow-2xl">
+                                    <h3 class="text-white font-black text-2xl mb-2">Join 40 Days Challenge</h3>
+                                    <p class="text-slate-400 text-sm mb-6">Blueprint latihan disembunyikan. Gabung untuk mengakses kalender latihan.</p>
+                                    <button @click="joinChallenge" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-white transition-all shadow-neon-cyan">
+                                        JOIN CHALLENGE?
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
-
                 </div>
-            </div>
 
         </transition>
     </main>
@@ -496,13 +559,14 @@
 @endsection
 
 @push('scripts')
-<script type="module">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
     // Using Vue from global scope (loaded in pacerhub layout)
     const { createApp, ref, reactive, computed, onMounted } = Vue;
-
-    // FIREBASE INTEGRATION
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    var CHALLENGE_MODE = {{ isset($challengeMode) && $challengeMode ? 'true' : 'false' }};
+    var CHALLENGE_PROGRAM_ID = {{ isset($challengeProgramId) ? (int)$challengeProgramId : 'null' }};
+    var IS_AUTHENTICATED = {{ auth()->check() ? 'true' : 'false' }};
 
     const firebaseConfig = {
         apiKey: "AIzaSyBVAEiYBFSt2ZYMIxbl7q-5kZvLH_dRLKU",
@@ -517,8 +581,8 @@
 
     let db;
     try {
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
         console.log("Firebase initialized in Design Program");
     } catch(e) {
         console.error("Firebase init failed:", e);
@@ -602,11 +666,11 @@
                 if (!db) return;
                 try {
                     console.log("Saving to Firebase...");
-                    await addDoc(collection(db, "program_assessments"), {
+                    await db.collection("program_assessments").add({
                         ...form,
                         generatedPaces: paces,
                         ladderTarget: ladderTarget.value,
-                        createdAt: serverTimestamp(),
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         status: 'new' // Status for coach dashboard
                     });
                     console.log("Data saved successfully!");
@@ -617,7 +681,16 @@
 
             const submitAssessment = async () => {
                 // Validasi Input
-                if (!form.timeMin) { alert("Mohon isi waktu tes lari Anda."); return; }
+                if (step.value === 1) {
+                    if (!form.name || !form.age || !form.gender) { alert("Lengkapi profil atlet (nama, usia, gender)."); return; }
+                }
+                if (step.value === 2) {
+                    if (!form.childhood) { alert("Pilih latar masa kecil untuk audit historis."); return; }
+                }
+                if (step.value === 3) {
+                    if (!form.latestDistance || !form.timeMin || (form.timeSec === '' || form.timeSec === null)) { alert("Isi jarak tes dan waktu (menit & detik)."); return; }
+                    if (form.weeklyVolume === '' || form.weeklyVolume === null) { alert("Isi volume lari mingguan (KM)."); return; }
+                }
                 
                 // Masuk ke Loading Animation
                 step.value = 99;
@@ -639,6 +712,20 @@
                         clearInterval(interval);
                         generateProgram(); // Jalankan Logic
                         saveToDatabase();  // Save to Firebase
+                        // Persist to backend (challenge mode)
+                        if (CHALLENGE_MODE && IS_AUTHENTICATED) {
+                            fetch('{{ url("/challenge/40-days-challenge/assessment") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    ...form
+                                })
+                            }).catch(e => console.error("Persist error:", e));
+                        }
                         setTimeout(() => { step.value = 5; }, 500);
                     }
                 }, 200);
@@ -788,6 +875,38 @@
                 form.timeMin = '';
                 form.timeSec = '';
             };
+            
+            const joinChallenge = async () => {
+                const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+                if (!isAuthenticated) {
+                    window.location.href = '{{ route("login") }}';
+                    return;
+                }
+                if (!CHALLENGE_PROGRAM_ID) {
+                    alert('Program challenge tidak ditemukan.');
+                    return;
+                }
+                try {
+                    const resp = await fetch('{{ route("runner.programs.enroll-free", ["program" => 0]) }}'.replace('/0/', `/${CHALLENGE_PROGRAM_ID}/`), {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (resp.ok) {
+                        window.location.href = '{{ route("runner.calendar") }}';
+                    } else if (resp.status === 422) {
+                        const j = await resp.json();
+                        alert(j.message || 'Validasi gagal.');
+                    } else {
+                        alert('Gagal join challenge.');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Terjadi kesalahan saat join.');
+                }
+            };
 
             return {
                 step, form, loadingPercentage, loadingText,
@@ -795,7 +914,7 @@
                 paces, programSchedule, formattedCurrentTime, ladderTarget,
                 // Newly added functions and refs
                 viewMode, selectedWorkout, hasSavedProgram,
-                loadSavedProgram, openWorkoutModal
+                loadSavedProgram, openWorkoutModal, joinChallenge, CHALLENGE_MODE
             }
         }
     }).mount('#program-design-app')

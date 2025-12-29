@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
-    public function index()
+    private function getConversationsList()
     {
-        $conversations = Message::where('sender_id', Auth::id())
+        return Message::where('sender_id', Auth::id())
             ->orWhere('receiver_id', Auth::id())
             ->with(['sender', 'receiver'])
             ->latest()
@@ -21,6 +21,11 @@ class ChatController extends Controller
                     ? $message->receiver_id 
                     : $message->sender_id;
             });
+    }
+
+    public function index()
+    {
+        $conversations = $this->getConversationsList();
 
         return view('chat.index', [
             'conversations' => $conversations,
@@ -29,6 +34,8 @@ class ChatController extends Controller
 
     public function show(User $user)
     {
+        $conversations = $this->getConversationsList();
+
         $messages = Message::where(function ($query) use ($user) {
             $query->where('sender_id', Auth::id())
                   ->where('receiver_id', $user->id);
@@ -52,6 +59,7 @@ class ChatController extends Controller
         return view('chat.show', [
             'user' => $user,
             'messages' => $messages,
+            'conversations' => $conversations,
         ]);
     }
 

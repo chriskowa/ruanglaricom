@@ -12,13 +12,14 @@ class Pacer extends Model
 
     protected $fillable = [
         'user_id', 'seo_slug', 'nickname', 'category', 'pace', 'image_url',
-        'whatsapp', 'verified', 'total_races', 'bio', 'stats', 'tags'
+        'whatsapp', 'verified', 'total_races', 'bio', 'stats', 'tags', 'race_portfolio'
     ];
 
     protected $casts = [
         'verified' => 'boolean',
         'stats' => 'array',
         'tags' => 'array',
+        'race_portfolio' => 'array',
     ];
 
     public function user(): BelongsTo
@@ -26,4 +27,3 @@ class Pacer extends Model
         return $this->belongsTo(User::class);
     }
 }
-
