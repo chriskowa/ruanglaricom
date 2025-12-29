@@ -51,6 +51,11 @@ class User extends Authenticatable
         'weekly_volume',
     ];
 
+    public function pacer()
+    {
+        return $this->hasOne(Pacer::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

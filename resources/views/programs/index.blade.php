@@ -130,7 +130,7 @@
 
             <!-- Program Grid -->
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                <div v-for="program in programs.data" :key="program.id" class="group bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl overflow-hidden hover:border-neon/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-neon/5 flex flex-col">
+                <div v-for="program in programs.data" :key="program.id" :class="['group bg-slate-900/50 backdrop-blur-sm border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 flex flex-col', program.is_challenge ? 'border-neon shadow-[0_0_30px_rgba(57,255,20,0.3)] shadow-neon/50' : 'border-slate-800 hover:border-neon/50 hover:shadow-xl hover:shadow-neon/5']">
                     
                     <!-- Image -->
                     <div class="relative h-48 overflow-hidden">
@@ -152,7 +152,7 @@
                     <div class="p-5 flex-1 flex flex-col">
                         <!-- Coach Info -->
                         <div class="flex items-center gap-2 mb-3">
-                            <img :src="program.coach?.avatar ? '/storage/' + program.coach.avatar : '/images/profile/17.jpg'" class="w-6 h-6 rounded-full object-cover border border-slate-600">
+                            <img :src="getCoachAvatar(program.coach)" class="w-6 h-6 rounded-full object-cover border border-slate-600">
                             <span class="text-xs text-slate-400">Coach @{{ program.coach?.name || 'Unknown' }}</span>
                         </div>
 
@@ -369,6 +369,16 @@
             };
 
             // Helpers
+            const getCoachAvatar = (coach) => {
+                if (coach && coach.avatar) {
+                    if (coach.avatar.startsWith('http')) return coach.avatar;
+                    if (coach.avatar.startsWith('images/')) return '/' + coach.avatar;
+                    return '/storage/' + coach.avatar;
+                }
+                const name = coach ? coach.name : 'Coach';
+                return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1e293b&color=39FF14`;
+            };
+
             const formatPrice = (price) => {
                 if (!price || price == 0) return 'Free';
                 return 'Rp ' + new Intl.NumberFormat('id-ID').format(price);
@@ -403,7 +413,8 @@
                 resetFilters,
                 formatPrice,
                 formatCategory,
-                getDifficultyColor
+                getDifficultyColor,
+                getCoachAvatar
             };
         }
     }).mount('#programs-app');

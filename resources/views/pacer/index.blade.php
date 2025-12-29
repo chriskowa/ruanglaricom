@@ -8,17 +8,87 @@
             FIND YOUR <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">RHYTHM</span>
         </h1>
 
-        <div class="max-w-4xl mx-auto bg-card/50 backdrop-blur-xl border border-slate-700 p-2 rounded-2xl shadow-2xl flex flex-col md:flex-row gap-2 mt-10">
-            <div class="relative flex-grow">
-                <input id="pacer-search" type="text" placeholder="Cari nama atau target waktu..." class="w-full bg-slate-900/50 text-white pl-6 pr-4 py-4 rounded-xl border border-transparent focus:border-neon outline-none transition">
+        <form action="{{ route('pacer.index') }}" method="GET" class="max-w-5xl mx-auto mt-10 text-left relative z-20">
+            <div class="bg-card/50 backdrop-blur-xl border border-slate-700 p-6 rounded-2xl shadow-2xl space-y-4">
+                <!-- Top Row -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-5">
+                        <label class="block text-xs font-mono text-cyan-400 mb-1 uppercase tracking-wider">Search</label>
+                        <div class="relative">
+                            <input name="search" value="{{ request('search') }}" type="text" placeholder="Name or nickname..." class="w-full bg-slate-900/50 text-white pl-10 pr-4 py-3 rounded-xl border border-slate-600 focus:border-neon outline-none transition placeholder-slate-600">
+                            <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                    </div>
+                    <div class="md:col-span-4">
+                        <label class="block text-xs font-mono text-cyan-400 mb-1 uppercase tracking-wider">City</label>
+                        <div class="relative">
+                            <select name="city_id" class="w-full bg-slate-900/50 text-white px-4 py-3 rounded-xl border border-slate-600 focus:border-neon outline-none transition appearance-none cursor-pointer">
+                                <option value="">All Cities</option>
+                                @foreach($cities as $city)
+                                    <option value="{{ $city->id }}" {{ request('city_id') == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+                                @endforeach
+                            </select>
+                            <svg class="w-4 h-4 text-slate-500 absolute right-3 top-3.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-mono text-cyan-400 mb-1 uppercase tracking-wider">Target Pace</label>
+                        <input name="pace" value="{{ request('pace') }}" type="text" placeholder="e.g. 5:30" class="w-full bg-slate-900/50 text-white px-4 py-3 rounded-xl border border-slate-600 focus:border-neon outline-none transition placeholder-slate-600 text-center font-mono">
+                    </div>
+                </div>
+
+                <!-- PB Row -->
+                <div class="bg-slate-900/30 rounded-xl p-4 border border-slate-700/50">
+                    <div class="flex items-center gap-2 mb-3 cursor-pointer group" onclick="document.getElementById('pb-filters').classList.toggle('hidden'); this.querySelector('svg').classList.toggle('rotate-180')">
+                         <span class="text-xs font-mono text-neon uppercase tracking-wider group-hover:text-white transition-colors">Personal Best Requirements (Max Time)</span>
+                         <svg class="w-3 h-3 text-neon transition-transform duration-300 {{ request()->anyFilled(['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm']) ? 'rotate-180' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                    <div id="pb-filters" class="grid grid-cols-2 md:grid-cols-4 gap-4 {{ request()->anyFilled(['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm']) ? '' : 'hidden' }}">
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase mb-1 block">5K PB</label>
+                            <input name="pb_5k" value="{{ request('pb_5k') }}" type="text" placeholder="00:20:00" class="w-full bg-slate-900/50 text-white px-3 py-2 rounded-lg border border-slate-700 focus:border-neon outline-none text-xs font-mono text-center placeholder-slate-600">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase mb-1 block">10K PB</label>
+                            <input name="pb_10k" value="{{ request('pb_10k') }}" type="text" placeholder="00:45:00" class="w-full bg-slate-900/50 text-white px-3 py-2 rounded-lg border border-slate-700 focus:border-neon outline-none text-xs font-mono text-center placeholder-slate-600">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase mb-1 block">Half Marathon PB</label>
+                            <input name="pb_hm" value="{{ request('pb_hm') }}" type="text" placeholder="01:45:00" class="w-full bg-slate-900/50 text-white px-3 py-2 rounded-lg border border-slate-700 focus:border-neon outline-none text-xs font-mono text-center placeholder-slate-600">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase mb-1 block">Full Marathon PB</label>
+                            <input name="pb_fm" value="{{ request('pb_fm') }}" type="text" placeholder="03:45:00" class="w-full bg-slate-900/50 text-white px-3 py-2 rounded-lg border border-slate-700 focus:border-neon outline-none text-xs font-mono text-center placeholder-slate-600">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Actions -->
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-2">
+                    <div class="flex flex-wrap justify-center gap-2">
+                         <label class="cursor-pointer">
+                            <input type="radio" name="category" value="All" class="hidden peer" {{ request('category', 'All') == 'All' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <span class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-900 border border-slate-700 text-slate-400 peer-checked:bg-neon peer-checked:text-dark peer-checked:border-neon transition hover:text-white hover:border-slate-500">All Categories</span>
+                         </label>
+                         @foreach(['HM (21K)', 'FM (42K)', '10K'] as $cat)
+                         <label class="cursor-pointer">
+                            <input type="radio" name="category" value="{{ $cat }}" class="hidden peer" {{ request('category') == $cat ? 'checked' : '' }} onchange="this.form.submit()">
+                            <span class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-900 border border-slate-700 text-slate-400 peer-checked:bg-neon peer-checked:text-dark peer-checked:border-neon transition hover:text-white hover:border-slate-500">{{ $cat }}</span>
+                         </label>
+                         @endforeach
+                    </div>
+                    
+                    <div class="flex gap-3 w-full md:w-auto items-center">
+                        @if(request()->anyFilled(['search', 'city_id', 'pace', 'pb_5k', 'pb_10k', 'pb_hm', 'pb_fm']))
+                        <a href="{{ route('pacer.index') }}" class="px-4 py-2 text-slate-400 hover:text-white text-xs font-bold uppercase tracking-wider transition">Reset Filters</a>
+                        @endif
+                        <button type="submit" class="flex-1 md:flex-none px-8 py-3 bg-neon text-dark font-black rounded-xl hover:bg-white hover:shadow-neon-cyan transition shadow-lg transform hover:-translate-y-0.5 text-sm">
+                            FIND PACERS
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="flex bg-slate-900/50 rounded-xl p-1 overflow-x-auto">
-                <button class="px-6 py-3 rounded-lg text-sm font-bold transition-all whitespace-nowrap text-slate-400 hover:text-white" data-cat="All">All</button>
-                <button class="px-6 py-3 rounded-lg text-sm font-bold transition-all whitespace-nowrap text-slate-400 hover:text-white" data-cat="HM (21K)">HM (21K)</button>
-                <button class="px-6 py-3 rounded-lg text-sm font-bold transition-all whitespace-nowrap text-slate-400 hover:text-white" data-cat="FM (42K)">FM (42K)</button>
-                <button class="px-6 py-3 rounded-lg text-sm font-bold transition-all whitespace-nowrap text-slate-400 hover:text-white" data-cat="10K">10K</button>
-            </div>
-        </div>
+        </form>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 pb-20 flex-grow w-full">
@@ -98,33 +168,6 @@
 
     <script>
         (function(){
-            const search = document.getElementById('pacer-search');
-            const grid = document.getElementById('pacer-grid');
-            const cards = Array.from(grid.children);
-            const countEl = document.getElementById('pacer-count');
-            let currentCat = 'All';
-
-            function applyFilter(){
-                const q = (search.value || '').toLowerCase();
-                let visible = 0;
-                cards.forEach(card => {
-                    const inCat = currentCat === 'All' || card.getAttribute('data-cat') === currentCat;
-                    const hasQuery = !q || card.getAttribute('data-name').includes(q) || card.getAttribute('data-nick').includes(q) || card.getAttribute('data-pace').includes(q);
-                    const show = inCat && hasQuery;
-                    card.style.display = show ? '' : 'none';
-                    if(show) visible++;
-                });
-                countEl.textContent = visible;
-            }
-
-            document.querySelectorAll('[data-cat]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentCat = btn.getAttribute('data-cat');
-                    applyFilter();
-                });
-            });
-            search.addEventListener('input', applyFilter);
-            applyFilter();
             // Modal logic
             const modal = document.getElementById('pacer-modal');
             const modalClose = document.getElementById('modal-close');
