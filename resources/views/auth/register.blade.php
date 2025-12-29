@@ -61,7 +61,7 @@
     </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center relative overflow-hidden py-10">
+<body class="min-h-screen flex items-center justify-center relative py-10">
     
     <!-- Background Effects -->
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
