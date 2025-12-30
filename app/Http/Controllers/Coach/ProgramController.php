@@ -68,7 +68,7 @@ class ProgramController extends Controller
 
     public function show(Program $program)
     {
-        if ($program->coach_id !== auth()->id()) {
+        if ((int)$program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
         return view('coach.programs.show', compact('program'));
@@ -76,7 +76,7 @@ class ProgramController extends Controller
 
     public function edit(Program $program)
     {
-        if ($program->coach_id !== auth()->id()) {
+        if ((int)$program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
         $cities = City::orderBy('name')->get();
@@ -86,7 +86,7 @@ class ProgramController extends Controller
 
     public function update(Request $request, Program $program)
     {
-        if ($program->coach_id !== auth()->id()) {
+        if ((int)$program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
 
@@ -138,7 +138,7 @@ class ProgramController extends Controller
 
     public function destroy(Program $program)
     {
-        if ($program->coach_id !== auth()->id()) {
+        if ((int)$program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
         $program->delete();
@@ -168,7 +168,7 @@ class ProgramController extends Controller
      */
     public function publish(Program $program)
     {
-        if ($program->coach_id !== auth()->id()) {
+        if ((int)$program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
         
@@ -182,7 +182,7 @@ class ProgramController extends Controller
      */
     public function unpublish(Program $program)
     {
-        if ($program->coach_id !== auth()->id()) {
+        if ((int)$program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
         
@@ -258,7 +258,7 @@ class ProgramController extends Controller
      */
     public function exportJson(Program $program)
     {
-        if ($program->coach_id !== auth()->id()) {
+        if ((int)$program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
         

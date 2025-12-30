@@ -46,7 +46,7 @@ class CustomWorkoutController extends Controller
     public function update(Request $request, MasterWorkout $customWorkout)
     {
         // Authorization
-        if ($customWorkout->coach_id !== auth()->id()) {
+        if ((int)$customWorkout->coach_id !== (int)auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -89,7 +89,7 @@ class CustomWorkoutController extends Controller
 
     public function destroy(MasterWorkout $customWorkout)
     {
-        if ($customWorkout->coach_id !== auth()->id()) {
+        if ((int)$customWorkout->coach_id !== (int)auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

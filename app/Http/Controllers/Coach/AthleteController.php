@@ -55,7 +55,7 @@ class AthleteController extends Controller
             ->findOrFail($enrollmentId);
 
         // Verify this enrollment belongs to a program owned by the coach
-        if ($enrollment->program->coach_id !== auth()->id()) {
+        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
 
@@ -73,7 +73,7 @@ class AthleteController extends Controller
         $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
         
         // Verify ownership
-        if ($enrollment->program->coach_id !== auth()->id()) {
+        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
 
@@ -135,7 +135,7 @@ class AthleteController extends Controller
 
         $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
         
-        if ($enrollment->program->coach_id !== auth()->id()) {
+        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
             abort(403);
         }
 
