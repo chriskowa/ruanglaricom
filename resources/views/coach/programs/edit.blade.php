@@ -149,13 +149,13 @@
                                 @if($type === 'rest')
                                      <div class="fc-event p-3 rounded-xl bg-slate-800 border border-slate-700 cursor-move hover:bg-slate-700 hover:border-slate-500 transition flex flex-col gap-2 group relative overflow-hidden"
                                          draggable="true"
-                                         data-json='{"type":"rest","title":"Rest Day","description":"Total recovery","distance":0,"duration":""}'>
+                                         @dragstart="handleDragStart($event, { type: 'rest', title: 'Rest Day', description: 'Total recovery', distance: 0, duration: '' })">
                                          <div class="absolute left-0 top-0 bottom-0 w-1 bg-slate-500"></div>
                                          <div class="flex items-start justify-between gap-2 pl-2">
                                             <div class="text-xs font-bold text-white truncate w-full">Manual Rest</div>
                                             <i class="fa-solid fa-grip-vertical text-slate-600 group-hover:text-slate-400 text-[10px]"></i>
                                          </div>
-                                    </div>
+                                     </div>
                                 @endif
                             </div>
                         @endforeach
@@ -227,7 +227,7 @@
                                 :key="session._id"
                                 class="p-2 rounded-lg cursor-pointer hover:brightness-110 transition text-xs shadow-lg relative z-10"
                                 :style="{ backgroundColor: getSessionColor(session.type), borderLeft: '3px solid rgba(255,255,255,0.3)' }"
-                                @click.stop="editSession(session)">
+                                @click.stop="openBuilderEdit(session)">
                                 <div class="font-bold text-white truncate">@{{ session.title || session.type }}</div>
                                 <div class="text-white/70">@{{ session.distance }} km</div>
                             </div>
@@ -238,7 +238,7 @@
                         </div>
                         
                         <button type="button" class="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-slate-700/60 text-white text-[10px] font-bold hover:bg-neon hover:text-dark transition"
-                                @click.stop="openAddSession(day)">
+                                @click.stop="openBuilderAdd(day)">
                             Add
                         </button>
                     </div>
@@ -250,42 +250,181 @@
             </div>
         </form>
 
-        <div v-if="showAddModal" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80" @click="showAddModal = false"></div>
-            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6">
-                <h3 class="text-white font-bold text-lg mb-4">Add Custom Workout</h3>
-                <div class="space-y-4">
+        <div v-if="builderVisible" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80" @click="closeBuilder"></div>
+            <div class="relative z-10 max-w-2xl mx-auto my-10 glass-panel rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-white font-bold text-lg">Advanced Workout Builder</h3>
+                    <button class="text-slate-400 hover:text-white" @click="closeBuilder">×</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Title</label>
-                        <input type="text" v-model="newSession.title" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Workout Type</label>
-                        <select v-model="newSession.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Type</label>
+                        <select v-model="builderForm.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
                             <option value="easy_run">Easy Run</option>
                             <option value="long_run">Long Run</option>
-                            <option value="tempo">Tempo Run</option>
+                            <option value="tempo">Tempo</option>
                             <option value="interval">Intervals</option>
                             <option value="strength">Strength</option>
                             <option value="rest">Rest</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Distance (km)</label>
-                        <input type="number" step="0.1" v-model="newSession.distance" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Title</label>
+                        <input v-model="builderForm.title" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" placeholder="Optional">
                     </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="glass-panel rounded-xl p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs font-bold text-slate-400 uppercase">Warm Up</div>
+                            <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                                <input type="checkbox" v-model="builderForm.warmup.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                                Enable
+                            </label>
+                        </div>
+                        <div v-if="builderForm.warmup.enabled" class="mt-3 grid grid-cols-2 gap-2">
+                            <select v-model="builderForm.warmup.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.warmup.by==='distance'" type="number" step="0.1" v-model.number="builderForm.warmup.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                            <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-xl p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs font-bold text-slate-400 uppercase">Cool Down</div>
+                            <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                                <input type="checkbox" v-model="builderForm.cooldown.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                                Enable
+                            </label>
+                        </div>
+                        <div v-if="builderForm.cooldown.enabled" class="mt-3 grid grid-cols-2 gap-2">
+                            <select v-model="builderForm.cooldown.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.cooldown.by==='distance'" type="number" step="0.1" v-model.number="builderForm.cooldown.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                            <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 glass-panel rounded-xl p-4">
+                    <div class="text-xs font-bold text-slate-400 uppercase mb-2">Main</div>
+                    <div v-if="builderForm.type==='easy_run'">
+                        <div class="grid grid-cols-3 gap-2">
+                            <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                            <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
+                            <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='long_run'">
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Total Distance (km)">
+                            <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
+                            <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                                <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                                Fast Finish
+                            </label>
+                            <div class="grid grid-cols-2 gap-2" v-if="builderForm.longRun.fastFinish.enabled">
+                                <input type="number" step="0.1" v-model.number="builderForm.longRun.fastFinish.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                                <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace">
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='tempo'">
+                        <div class="grid grid-cols-4 gap-2">
+                            <select v-model="builderForm.tempo.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.tempo.by==='distance'" type="number" step="0.1" v-model.number="builderForm.tempo.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                            <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
+                            <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                            <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="moderate">Moderate</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='interval'">
+                        <div class="grid grid-cols-5 gap-2">
+                            <input type="number" v-model.number="builderForm.interval.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Reps">
+                            <select v-model="builderForm.interval.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.interval.by==='distance'" type="number" step="0.1" v-model.number="builderForm.interval.repDistanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep km">
+                            <input v-else type="text" v-model="builderForm.interval.repTime" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep 00:03:00">
+                            <input type="text" v-model="builderForm.interval.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                            <input type="text" v-model="builderForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Recovery">
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='strength'">
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <select v-model="builderForm.strength.category" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="">Select Category</option>
+                                    <option value="full_body">Full Body</option>
+                                    <option value="legs_lower_body">Legs/Lower Body</option>
+                                    <option value="core">Core</option>
+                                    <option value="upper_body">Upper Body</option>
+                                </select>
+                                <select v-model="builderForm.strength.exercise" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="">Select Exercise</option>
+                                    <option v-for="ex in strengthOptions" :key="ex.name" :value="ex.name">@{{ ex.name }}</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" v-model="builderForm.strength.sets" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Sets">
+                                <input type="text" v-model="builderForm.strength.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Reps/Dur">
+                                <input type="text" v-model="builderForm.strength.equipment" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Equipment">
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="button" class="px-3 py-2 rounded-lg bg-slate-800 text-white text-xs" @click="addStrengthExercise">Add Exercise</button>
+                            </div>
+                            <div class="space-y-2" v-if="builderForm.strength.plan && builderForm.strength.plan.length">
+                                <div v-for="(item, idx) in builderForm.strength.plan" :key="idx" class="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white">
+                                    <div>@{{ item.name }} — @{{ item.sets }} x @{{ item.reps }} (@{{ item.equipment }})</div>
+                                    <button type="button" class="text-slate-300 hover:text-white" @click="removeStrengthExercise(idx)">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='rest'">
+                        <div class="text-slate-400 text-sm">Rest Day</div>
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Duration (Optional)</label>
-                        <input type="text" v-model="newSession.duration" placeholder="00:30:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Intensity</label>
+                        <select v-model="builderForm.intensity" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Description</label>
-                        <textarea v-model="newSession.description" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm"></textarea>
-                    </div>
-                    <div class="flex justify-end gap-2 pt-4">
-                        <button type="button" @click="showAddModal = false" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm">Cancel</button>
-                        <button type="button" @click="createSession" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm">Add</button>
-                    </div>
+                </div>
+                <div class="mt-4 glass-panel rounded-xl p-4">
+                    <div class="text-xs font-bold text-slate-400 uppercase mb-2">Summary</div>
+                    <div class="text-white text-sm">@{{ builderSummary }}</div>
+                    <div class="text-slate-400 text-xs mt-1">Total Distance: @{{ builderTotalDistance }} km</div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="closeBuilder">Cancel</button>
+                    <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="saveBuilder">Save</button>
                 </div>
             </div>
         </div>
@@ -304,19 +443,58 @@
                     
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Type</label>
-                        <select v-model="customWorkout.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-neon outline-none">
+                        <select v-model="cwForm.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-neon outline-none">
                             <option v-for="(label, type) in workoutTypes" :key="type" :value="type">@{{ label }}</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Default Dist (km)</label>
-                            <input type="number" step="0.1" v-model="customWorkout.default_distance" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-neon outline-none">
+                    <div class="glass-panel rounded-xl p-4">
+                        <div class="text-xs font-bold text-slate-400 uppercase mb-2">Main Set</div>
+                        <div v-if="cwForm.type==='easy_run' || cwForm.type==='long_run'">
+                            <div class="grid grid-cols-3 gap-2">
+                                <select v-model="cwForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="distance">Distance</option>
+                                    <option value="time">Time</option>
+                                </select>
+                                <input v-if="cwForm.main.by==='distance'" type="number" step="0.1" v-model.number="cwForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                                <input v-else type="text" v-model="cwForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
+                                <input type="text" v-model="cwForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Default Duration</label>
-                            <input type="text" v-model="customWorkout.default_duration" placeholder="00:30:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-neon outline-none">
+                        <div v-else-if="cwForm.type==='tempo'">
+                            <div class="grid grid-cols-4 gap-2">
+                                <select v-model="cwForm.tempo.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="distance">Distance</option>
+                                    <option value="time">Time</option>
+                                </select>
+                                <input v-if="cwForm.tempo.by==='distance'" type="number" step="0.1" v-model.number="cwForm.tempo.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                                <input v-else type="text" v-model="cwForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
+                                <input type="text" v-model="cwForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                                <select v-model="cwForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="moderate">Moderate</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div v-else-if="cwForm.type==='interval'">
+                            <div class="grid grid-cols-5 gap-2">
+                                <input type="number" v-model.number="cwForm.interval.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Reps">
+                                <select v-model="cwForm.interval.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="distance">Distance</option>
+                                    <option value="time">Time</option>
+                                </select>
+                                <input v-if="cwForm.interval.by==='distance'" type="number" step="0.1" v-model.number="cwForm.interval.repDistanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep km">
+                                <input v-else type="text" v-model="cwForm.interval.repTime" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep 00:03:00">
+                                <input type="text" v-model="cwForm.interval.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                                <input type="text" v-model="cwForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Recovery">
+                            </div>
+                        </div>
+                        <div v-else-if="cwForm.type==='rest'">
+                            <div class="text-slate-400 text-sm">Rest Day</div>
+                        </div>
+                        <div class="mt-3 text-xs text-slate-400">
+                            Summary: <span class="text-white">@{{ cwSummary }}</span>
+                            <div class="text-slate-400 mt-1">Total Distance: @{{ cwTotalDistance }} km</div>
                         </div>
                     </div>
 
@@ -329,6 +507,23 @@
                         <input type="checkbox" v-model="customWorkout.is_public" id="cw_is_public" class="rounded bg-slate-900 border-slate-700 text-neon focus:ring-neon">
                         <label for="cw_is_public" class="text-xs text-white">Public (Visible to other coaches)</label>
                     </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Intensity</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" v-model="customWorkout.intensity" value="low" class="text-neon focus:ring-neon bg-slate-900 border-slate-700">
+                                <span class="text-sm text-slate-300 capitalize">Low</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" v-model="customWorkout.intensity" value="medium" class="text-neon focus:ring-neon bg-slate-900 border-slate-700">
+                                <span class="text-sm text-slate-300 capitalize">Medium</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" v-model="customWorkout.intensity" value="high" class="text-neon focus:ring-neon bg-slate-900 border-slate-700">
+                                <span class="text-sm text-slate-300 capitalize">High</span>
+                            </label>
+                        </div>
+                    </div>
                     
                     <div class="flex justify-end gap-2 pt-4">
                         <button type="button" @click="showCustomModal = false" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm hover:bg-slate-700">Cancel</button>
@@ -338,47 +533,7 @@
             </div>
         </div>
 
-        <!-- Session Edit Modal -->
-        <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80" @click="showModal = false"></div>
-            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6">
-                <h3 class="text-white font-bold text-lg mb-4">Edit Session</h3>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Workout Type</label>
-                        <select v-model="editingSession.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
-                            <option value="easy_run">Easy Run</option>
-                            <option value="long_run">Long Run</option>
-                            <option value="tempo">Tempo Run</option>
-                            <option value="interval">Intervals</option>
-                            <option value="strength">Strength</option>
-                            <option value="rest">Rest</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Distance (km)</label>
-                        <input type="number" step="0.1" v-model="editingSession.distance" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Duration (Optional)</label>
-                        <input type="text" v-model="editingSession.duration" placeholder="00:30:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Description</label>
-                        <textarea v-model="editingSession.description" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm"></textarea>
-                    </div>
-                    
-                    <div class="flex justify-between pt-4">
-                        <button type="button" @click="deleteSession" class="text-red-400 text-sm hover:underline">Delete Session</button>
-                        <div class="flex gap-2">
-                            <button type="button" @click="showModal = false" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm">Cancel</button>
-                            <button type="button" @click="saveSession" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm">Save</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
     </div>
 </main>
@@ -394,12 +549,12 @@ createApp({
         const saving = ref(false);
         const currentWeek = ref(1);
         const activeTab = ref('easy_run');
-        const showModal = ref(false);
         const showCustomModal = ref(false);
-        const showAddModal = ref(false);
-        const editingSession = reactive({});
         const fileInput = ref(null);
-        const addTargetDay = ref(1);
+        const builderVisible = ref(false);
+        const builderIsEditing = ref(false);
+        const builderTargetDay = ref(1);
+        const builderSessionId = ref(null);
         
         // Master Workouts from Backend
         const initialMasterWorkouts = @json($masterWorkouts ?? []);
@@ -422,15 +577,29 @@ createApp({
             description: '',
             default_distance: 0,
             default_duration: '',
-            is_public: false
+            is_public: false,
+            intensity: 'low'
         });
         
-        const newSession = reactive({
-            title: '',
+        const cwForm = reactive({
             type: 'easy_run',
-            distance: 0,
-            duration: '',
-            description: ''
+            main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
+            tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+            interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+            strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
+        });
+        
+        const builderForm = reactive({
+            type: 'easy_run',
+            title: '',
+            intensity: 'low',
+            warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+            cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+            main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
+            longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
+            tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+            interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+            strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
         });
 
         const workoutTypes = {
@@ -497,25 +666,104 @@ createApp({
             event.dataTransfer.effectAllowed = 'copy';
         };
 
-        const openAddSession = (day) => {
-            addTargetDay.value = day;
-            Object.assign(newSession, { title: '', type: 'easy_run', distance: 0, duration: '', description: '' });
-            showAddModal.value = true;
+        const openBuilderAdd = (day) => {
+            builderIsEditing.value = false;
+            builderTargetDay.value = day;
+            builderSessionId.value = null;
+            Object.assign(builderForm, { type: 'easy_run', title: '' });
+            Object.assign(builderForm.warmup, { enabled: false, by: 'distance', distanceKm: 0, duration: '' });
+            Object.assign(builderForm.cooldown, { enabled: false, by: 'distance', distanceKm: 0, duration: '' });
+            Object.assign(builderForm.main, { by: 'distance', distanceKm: 0, duration: '', pace: '' });
+            Object.assign(builderForm.longRun.fastFinish, { enabled: false, distanceKm: 0, pace: '' });
+            Object.assign(builderForm.tempo, { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' });
+            Object.assign(builderForm.interval, { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' });
+            Object.assign(builderForm.strength, { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] });
+            builderVisible.value = true;
         };
 
-        const createSession = () => {
-            const absDay = getAbsDay(currentWeek.value, addTargetDay.value);
-            const s = {
-                _id: generateId(),
-                day: absDay,
-                type: newSession.type,
-                title: newSession.title,
-                distance: parseFloat(newSession.distance) || 0,
-                duration: newSession.duration || '',
-                description: newSession.description || ''
+        const strengthData = {
+            strength_training: {
+                full_body: [
+                    { name: 'Burpees', sets: '3', reps: '12-15', equipment: 'Bodyweight' },
+                    { name: 'Kettlebell Swing', sets: '3', reps: '15-20', equipment: 'Kettlebell' },
+                    { name: 'Clean and Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' },
+                    { name: 'Thrusters', sets: '3', reps: '10-12', equipment: 'Dumbbell/Barbell' }
+                ],
+                legs_lower_body: [
+                    { name: 'Squats', sets: '4', reps: '8-12', equipment: 'Barbell/Bodyweight' },
+                    { name: 'Lunges', sets: '3', reps: '10 each leg', equipment: 'Bodyweight/Dumbbell' },
+                    { name: 'Deadlifts', sets: '4', reps: '6-10', equipment: 'Barbell' },
+                    { name: 'Glute Bridge / Hip Thrust', sets: '3', reps: '12-15', equipment: 'Bodyweight/Barbell' },
+                    { name: 'Calf Raises', sets: '3', reps: '15-20', equipment: 'Bodyweight/Dumbbell' }
+                ],
+                core: [
+                    { name: 'Plank', sets: '3', duration: '45-60s', equipment: 'Bodyweight' },
+                    { name: 'Russian Twist', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight/Medicine Ball' },
+                    { name: 'Leg Raises', sets: '3', reps: '12-15', equipment: 'Bodyweight' },
+                    { name: 'Bicycle Crunch', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight' },
+                    { name: 'Ab Rollout', sets: '3', reps: '8-12', equipment: 'Ab Wheel/Barbell' }
+                ],
+                upper_body: [
+                    { name: 'Push-Ups', sets: '3', reps: '12-20', equipment: 'Bodyweight' },
+                    { name: 'Bench Press', sets: '4', reps: '6-10', equipment: 'Barbell/Dumbbell' },
+                    { name: 'Pull-Ups / Chin-Ups', sets: '3', reps: '8-12', equipment: 'Bodyweight' },
+                    { name: 'Overhead Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' },
+                    { name: 'Bent Over Row', sets: '4', reps: '8-12', equipment: 'Barbell/Dumbbell' },
+                    { name: 'Bicep Curl', sets: '3', reps: '12-15', equipment: 'Dumbbell/Barbell' },
+                    { name: 'Tricep Dips', sets: '3', reps: '10-12', equipment: 'Bodyweight/Bench' }
+                ]
+            }
+        };
+
+        const strengthOptions = computed(() => {
+            const cat = builderForm.strength.category;
+            const all = strengthData.strength_training;
+            const list = cat && all[cat] ? all[cat] : [];
+            return list;
+        });
+
+        const addStrengthExercise = () => {
+            const ex = builderForm.strength.exercise;
+            const cat = builderForm.strength.category;
+            const list = strengthData.strength_training[cat] || [];
+            const found = list.find(i => i.name === ex);
+            const item = {
+                name: ex || '',
+                sets: builderForm.strength.sets || (found ? found.sets : ''),
+                reps: builderForm.strength.reps || (found ? found.reps : ''),
+                equipment: builderForm.strength.equipment || (found ? found.equipment : '')
             };
-            form.sessions.push(s);
-            showAddModal.value = false;
+            if (!builderForm.strength.plan) builderForm.strength.plan = [];
+            builderForm.strength.plan.push(item);
+            builderForm.strength.exercise = '';
+            builderForm.strength.sets = '';
+            builderForm.strength.reps = '';
+            builderForm.strength.equipment = '';
+        };
+
+        const removeStrengthExercise = (idx) => {
+            if (!builderForm.strength.plan) return;
+            builderForm.strength.plan.splice(idx, 1);
+        };
+
+        const openBuilderEdit = (session) => {
+            builderIsEditing.value = true;
+            builderSessionId.value = session._id;
+            const abs = session.day;
+            const week = Math.ceil(abs / 7);
+            const day = abs - (week - 1) * 7;
+            builderTargetDay.value = day;
+            builderForm.type = session.type;
+            builderForm.title = session.title || '';
+            try {
+                if (session.advanced_config) {
+                    const cfg = typeof session.advanced_config === 'string' ? JSON.parse(session.advanced_config) : session.advanced_config;
+                    Object.assign(builderForm, { ...builderForm, ...cfg });
+                } else {
+                    builderForm.main.distanceKm = session.distance || 0;
+                }
+            } catch(e){}
+            builderVisible.value = true;
         };
 
         const saveCustomWorkout = async () => {
@@ -527,28 +775,58 @@ createApp({
                         'X-CSRF-TOKEN': csrf,
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify(customWorkout)
+                    body: JSON.stringify({
+                        title: customWorkout.title,
+                        type: cwForm.type,
+                        description: customWorkout.description || cwSummary.value,
+                        default_distance: cwTotalDistance.value,
+                        default_duration: (() => {
+                            if (cwForm.type==='easy_run' || cwForm.type==='long_run') {
+                                if (cwForm.main.by==='time') return cwForm.main.duration || '';
+                                return '';
+                            } else if (cwForm.type==='tempo') {
+                                if (cwForm.tempo.by==='time') return cwForm.tempo.duration || '';
+                                return '';
+                            } else if (cwForm.type==='interval') {
+                                if (cwForm.interval.by==='time') {
+                                    const perRep = parseDurationMinutes(cwForm.interval.repTime);
+                                    const total = (Number(cwForm.interval.reps)||0) * (isNaN(perRep)?0:perRep);
+                                    const totalStr = minutesToHHMMSS(total);
+                                    return totalStr;
+                                }
+                                return '';
+                            }
+                            return '';
+                        })(),
+                        is_public: customWorkout.is_public,
+                        intensity: customWorkout.intensity || 'low'
+                    })
                 });
                 
                 const data = await res.json();
                 
                 if (res.ok) {
-                    // Add to local list
-                    if (!masterWorkouts[customWorkout.type]) {
-                        masterWorkouts[customWorkout.type] = [];
+                    if (!masterWorkouts[cwForm.type]) {
+                        masterWorkouts[cwForm.type] = [];
                     }
-                    masterWorkouts[customWorkout.type].push(data.workout);
+                    masterWorkouts[cwForm.type].push(data.workout);
                     
                     showCustomModal.value = false;
                     
-                    // Reset form
                     Object.assign(customWorkout, {
                         title: '',
-                        type: 'easy_run',
                         description: '',
                         default_distance: 0,
                         default_duration: '',
-                        is_public: false
+                        is_public: false,
+                        intensity: 'low'
+                    });
+                    Object.assign(cwForm, {
+                        type: 'easy_run',
+                        main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
+                        tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+                        interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+                        strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
                     });
                     
                     alert('Custom workout created!');
@@ -561,22 +839,219 @@ createApp({
             }
         };
 
-        const editSession = (session) => {
-            Object.assign(editingSession, JSON.parse(JSON.stringify(session))); // Deep copy
-            showModal.value = true;
-        };
-
-        const saveSession = () => {
-            const index = form.sessions.findIndex(s => s._id === editingSession._id);
-            if (index !== -1) {
-                form.sessions[index] = { ...editingSession };
+        const builderSummary = computed(() => {
+            const parts = [];
+            if (builderForm.warmup.enabled) {
+                parts.push(`WU: ${builderForm.warmup.by==='distance' ? `${builderForm.warmup.distanceKm}km` : builderForm.warmup.duration}`);
             }
-            showModal.value = false;
+            if (builderForm.type==='interval') {
+                if (builderForm.interval.by==='distance') {
+                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repDistanceKm}km${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
+                } else {
+                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repTime}${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
+                }
+                parts.push(`Rec ${builderForm.interval.recovery}`);
+            } else if (builderForm.type==='tempo') {
+                if (builderForm.tempo.by==='distance') {
+                    parts.push(`${builderForm.tempo.distanceKm}km @${builderForm.tempo.pace} ${builderForm.tempo.effort}`);
+                } else {
+                    parts.push(`${builderForm.tempo.duration} @${builderForm.tempo.pace} ${builderForm.tempo.effort}`);
+                }
+            } else if (builderForm.type==='long_run') {
+                if (builderForm.main.by==='distance') {
+                    parts.push(`${builderForm.main.distanceKm}km Long Run`);
+                } else {
+                    parts.push(`${builderForm.main.duration} Long Run${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
+                }
+                if (builderForm.longRun.fastFinish.enabled) {
+                    parts.push(`FF ${builderForm.longRun.fastFinish.distanceKm}km @${builderForm.longRun.fastFinish.pace}`);
+                }
+            } else if (builderForm.type==='easy_run') {
+                if (builderForm.main.by==='distance') {
+                    parts.push(`${builderForm.main.distanceKm}km Easy${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
+                } else {
+                    parts.push(`${builderForm.main.duration} Easy${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
+                }
+            } else if (builderForm.type==='strength') {
+                const cat = builderForm.strength.category ? builderForm.strength.category.replace('_',' ') : 'Strength';
+                if (builderForm.strength.plan && builderForm.strength.plan.length) {
+                    const items = builderForm.strength.plan.slice(0,3).map(i => i.name).join(', ');
+                    parts.push(`${cat}: ${items}${builderForm.strength.plan.length>3 ? ', ...' : ''}`);
+                } else {
+                    parts.push(cat);
+                }
+            } else if (builderForm.type==='rest') {
+                parts.push('Rest');
+            }
+            if (builderForm.cooldown.enabled) {
+                parts.push(`CD: ${builderForm.cooldown.by==='distance' ? `${builderForm.cooldown.distanceKm}km` : builderForm.cooldown.duration}`);
+            }
+            const base = parts.join(' | ');
+            return builderForm.intensity ? `${base} | Intensity: ${builderForm.intensity}` : base;
+        });
+        
+        const minutesToHHMMSS = (min) => {
+            const totalSec = Math.round((min || 0) * 60);
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+            return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
         };
 
-        const deleteSession = () => {
-            form.sessions = form.sessions.filter(s => s._id !== editingSession._id);
-            showModal.value = false;
+        const parsePaceMinPerKm = (s) => {
+            if (!s) return NaN;
+            const m = s.trim().match(/^(\d{1,2}):(\d{2})/);
+            if (!m) return NaN;
+            const min = parseInt(m[1], 10);
+            const sec = parseInt(m[2], 10);
+            return min + sec/60;
+        };
+
+        const parseDurationMinutes = (s) => {
+            if (!s) return NaN;
+            const parts = s.trim().split(':').map(x => parseInt(x,10));
+            if (parts.some(isNaN)) return NaN;
+            let h=0,m=0,sec=0;
+            if (parts.length === 3) { h=parts[0]; m=parts[1]; sec=parts[2]; }
+            else if (parts.length === 2) { m=parts[0]; sec=parts[1]; }
+            else { m=parts[0]; }
+            return h*60 + m + sec/60;
+        };
+        
+        const cwSummary = computed(() => {
+            const parts = [];
+            if (cwForm.type==='interval') {
+                if (cwForm.interval.by==='distance') {
+                    parts.push(`${cwForm.interval.reps}x${cwForm.interval.repDistanceKm}km${cwForm.interval.pace ? ` @${cwForm.interval.pace}`:''}`);
+                } else {
+                    parts.push(`${cwForm.interval.reps}x${cwForm.interval.repTime}${cwForm.interval.pace ? ` @${cwForm.interval.pace}`:''}`);
+                }
+                parts.push(`Rec ${cwForm.interval.recovery}`);
+            } else if (cwForm.type==='tempo') {
+                if (cwForm.tempo.by==='distance') {
+                    parts.push(`${cwForm.tempo.distanceKm}km${cwForm.tempo.pace ? ` @${cwForm.tempo.pace}`:''} ${cwForm.tempo.effort}`);
+                } else {
+                    parts.push(`${cwForm.tempo.duration}${cwForm.tempo.pace ? ` @${cwForm.tempo.pace}`:''} ${cwForm.tempo.effort}`);
+                }
+            } else if (cwForm.type==='long_run') {
+                if (cwForm.main.by==='distance') {
+                    parts.push(`${cwForm.main.distanceKm}km Long Run${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
+                } else {
+                    parts.push(`${cwForm.main.duration} Long Run${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
+                }
+            } else if (cwForm.type==='easy_run') {
+                if (cwForm.main.by==='distance') {
+                    parts.push(`${cwForm.main.distanceKm}km Easy${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
+                } else {
+                    parts.push(`${cwForm.main.duration} Easy${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
+                }
+            } else if (cwForm.type==='rest') {
+                parts.push('Rest');
+            }
+            return parts.join(' | ');
+        });
+        
+        const cwTotalDistance = computed(() => {
+            let total = 0;
+            if (cwForm.type==='interval') {
+                if (cwForm.interval.by==='distance') {
+                    total += (Number(cwForm.interval.reps)||0) * (Number(cwForm.interval.repDistanceKm)||0);
+                } else {
+                    const dMin = parseDurationMinutes(cwForm.interval.repTime);
+                    const pMin = parsePaceMinPerKm(cwForm.interval.pace);
+                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                    total += (Number(cwForm.interval.reps)||0) * dist;
+                }
+            } else if (cwForm.type==='tempo') {
+                if (cwForm.tempo.by==='distance') total += Number(cwForm.tempo.distanceKm)||0;
+                else {
+                    const dMin = parseDurationMinutes(cwForm.tempo.duration);
+                    const pMin = parsePaceMinPerKm(cwForm.tempo.pace);
+                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                    total += dist;
+                }
+            } else if (cwForm.type==='long_run') {
+                if (cwForm.main.by==='distance') total += Number(cwForm.main.distanceKm)||0;
+                else {
+                    const dMin = parseDurationMinutes(cwForm.main.duration);
+                    const pMin = parsePaceMinPerKm(cwForm.main.pace);
+                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                    total += dist;
+                }
+            } else if (cwForm.type==='easy_run') {
+                if (cwForm.main.by==='distance') total += Number(cwForm.main.distanceKm)||0;
+                else {
+                    const dMin = parseDurationMinutes(cwForm.main.duration);
+                    const pMin = parsePaceMinPerKm(cwForm.main.pace);
+                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                    total += dist;
+                }
+            }
+            return Number(total.toFixed(1));
+        });
+
+        const builderTotalDistance = computed(() => {
+            let total = 0;
+            if (builderForm.warmup.enabled && builderForm.warmup.by==='distance') total += Number(builderForm.warmup.distanceKm)||0;
+            if (builderForm.cooldown.enabled && builderForm.cooldown.by==='distance') total += Number(builderForm.cooldown.distanceKm)||0;
+            if (builderForm.type==='interval') {
+                if (builderForm.interval.by==='distance') {
+                    total += (Number(builderForm.interval.reps)||0) * (Number(builderForm.interval.repDistanceKm)||0);
+                } else {
+                    const dMin = parseDurationMinutes(builderForm.interval.repTime);
+                    const pMin = parsePaceMinPerKm(builderForm.interval.pace);
+                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                    total += (Number(builderForm.interval.reps)||0) * dist;
+                }
+            } else if (builderForm.type==='tempo') {
+                if (builderForm.tempo.by==='distance') total += Number(builderForm.tempo.distanceKm)||0;
+                else {
+                    const dMin = parseDurationMinutes(builderForm.tempo.duration);
+                    const pMin = parsePaceMinPerKm(builderForm.tempo.pace);
+                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                    total += dist;
+                }
+            } else if (builderForm.type==='long_run') {
+                if (builderForm.main.by==='distance') total += Number(builderForm.main.distanceKm)||0;
+                else {
+                    const dMin = parseDurationMinutes(builderForm.main.duration);
+                    const pMin = parsePaceMinPerKm(builderForm.main.pace);
+                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                    total += dist;
+                }
+            } else if (builderForm.type==='easy_run') {
+                if (builderForm.main.by==='distance') total += Number(builderForm.main.distanceKm)||0;
+                else {
+                    const dMin = parseDurationMinutes(builderForm.main.duration);
+                    const pMin = parsePaceMinPerKm(builderForm.main.pace);
+                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                    total += dist;
+                }
+            }
+            return Number(total.toFixed(1));
+        });
+
+        const closeBuilder = () => { builderVisible.value = false; };
+
+        const saveBuilder = () => {
+            const absDay = getAbsDay(currentWeek.value, builderTargetDay.value);
+            const payload = {
+                _id: builderSessionId.value || generateId(),
+                day: absDay,
+                type: builderForm.type,
+                title: builderForm.title || builderSummary.value,
+                distance: builderTotalDistance.value,
+                description: builderSummary.value,
+                duration: builderForm.main.duration || '',
+                advanced_config: JSON.stringify(builderForm)
+            };
+            if (builderIsEditing.value) {
+                const idx = form.sessions.findIndex(s => s._id === builderSessionId.value);
+                if (idx !== -1) form.sessions[idx] = payload;
+            } else {
+                form.sessions.push(payload);
+            }
+            builderVisible.value = false;
         };
 
         // Update handleDrop to read dataTransfer
@@ -629,10 +1104,11 @@ createApp({
             
             // Add copied sessions
             currentSessions.forEach(s => {
-                const dayOffset = s.day - startCurrent; // 0 to 6
+                const dayOffset = s.day - startCurrent;
                 const newDay = startNext + dayOffset;
                 form.sessions.push({
                     ...s,
+                    _id: generateId(),
                     day: newDay
                 });
             });
@@ -696,14 +1172,14 @@ createApp({
                     return;
                 }
                 
-                if (res.ok) {
-                    if (data.sessions && Array.isArray(data.sessions)) {
-                        form.sessions = data.sessions;
-                        if (data.duration_weeks) form.duration_weeks = data.duration_weeks;
-                        alert('Program imported successfully!');
-                    } else {
-                        alert('Invalid JSON format: Missing "sessions" array.');
-                    }
+                    if (res.ok) {
+                        if (data.sessions && Array.isArray(data.sessions)) {
+                            form.sessions = data.sessions.map(s => ({...s, _id: s._id || generateId()}));
+                            if (data.duration_weeks) form.duration_weeks = data.duration_weeks;
+                            alert('Program imported successfully!');
+                        } else {
+                            alert('Invalid JSON format: Missing "sessions" array.');
+                        }
                 } else {
                     alert(data.message || (data.errors && data.errors.json_file ? data.errors.json_file[0] : 'Import failed'));
                 }
@@ -788,10 +1264,11 @@ createApp({
         return { 
             form, saving, currentWeek, activeTab, totalVolume, 
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, 
-            editSession, showModal, editingSession, saveSession, deleteSession,
+            openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
             copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes, masterWorkouts,
-            handleDragStart, showAddModal, newSession, openAddSession, createSession, addTargetDay
+            cwForm, cwSummary, cwTotalDistance,
+            handleDragStart, strengthOptions, addStrengthExercise, removeStrengthExercise
         };
     }
 }).mount('#program-builder-app');

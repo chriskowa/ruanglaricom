@@ -43,24 +43,27 @@
                     <input type="text" name="title" value="{{ old('title', $masterWorkout->title ?? '') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon outline-none" placeholder="e.g. Morning Easy Run">
                     @error('title') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Description / Instructions</label>
-                    <textarea name="description" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon outline-none" placeholder="Describe the workout...">{{ old('description', $masterWorkout->description ?? '') }}</textarea>
-                    @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
             </div>
 
             <!-- Parameters -->
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Default Distance (km)</label>
-                    <input type="number" step="0.01" name="default_distance" value="{{ old('default_distance', $masterWorkout->default_distance ?? 0) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon outline-none">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Distance (km)</label>
+                    <input type="number" step="0.1" name="default_distance" value="{{ old('default_distance', $masterWorkout->default_distance ?? 0) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon outline-none" placeholder="e.g. 5.0">
+                    <p class="text-xs text-slate-500 mt-1">Isi salah satu: Distance atau Duration</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Default Duration</label>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Duration</label>
                     <input type="text" name="default_duration" value="{{ old('default_duration', $masterWorkout->default_duration ?? '') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon outline-none" placeholder="e.g. 00:45:00">
+                    <p class="text-xs text-slate-500 mt-1">Format: HH:MM:SS (contoh 00:30:00)</p>
                 </div>
+            </div>
+
+            <!-- Description aligned with session modal -->
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Description / Instructions</label>
+                <textarea name="description" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon outline-none" placeholder="Describe the workout...">{{ old('description', $masterWorkout->description ?? '') }}</textarea>
+                @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div>
