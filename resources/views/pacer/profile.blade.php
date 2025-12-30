@@ -151,9 +151,14 @@
                 @if($pacer->race_portfolio && is_array($pacer->race_portfolio) && count($pacer->race_portfolio) > 0)
                 <div class="bg-card border border-slate-700 rounded-3xl p-6">
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Race Portfolio</h3>
+                    @php($neonColors = ['#ccff00','#22d3ee','#a78bfa','#f472b6','#f59e0b','#10b981','#ef4444','#14b8a6'])
                     <div class="flex flex-wrap gap-2">
                         @foreach($pacer->race_portfolio as $race)
-                            <span class="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-xs text-slate-300 hover:border-neon hover:text-white transition-colors">{{ $race }}</span>
+                            @php($c = $neonColors[crc32($race) % count($neonColors)])
+                            <span class="relative inline-flex items-center px-3 py-1 rounded-full border text-xs font-bold transition-all duration-300 bg-slate-900/60 group hover:scale-[1.03] hover:shadow-lg group-hover:bg-white group-hover:text-dark" style="--c: {{ $c }}; border-color: var(--c); color: var(--c);">
+                                <span class="absolute inset-0 rounded-full blur-md opacity-0 group-hover:opacity-100" style="background: var(--c);"></span>
+                                <span class="relative z-10">{{ $race }}</span>
+                            </span>
                         @endforeach
                     </div>
                 </div>
@@ -227,12 +232,23 @@
                         </div>
                     </div>
                     @endguest
+                    <div class="mt-6">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Share QR</h4>
+                        <div class="flex items-center justify-center">
+                            <div class="rounded-2xl p-3 border border-neon/30 bg-slate-900 relative">
+                                <div class="absolute inset-0 rounded-2xl pointer-events-none" style="box-shadow: 0 0 40px rgba(204,255,0,0.15);"></div>
+                                <div id="pacer-profile-qr-inner" class="bg-white rounded-xl"></div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 text-center mt-2">Scan untuk membuka profil</p>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     var btnSave = document.getElementById('btnSaveContact');
@@ -279,6 +295,18 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     if(btnSave) btnSave.addEventListener('click', downloadVCard);
     if(btnShare) btnShare.addEventListener('click', shareProfile);
+    var qrContainer = document.getElementById('pacer-profile-qr-inner');
+    if (qrContainer && typeof QRCode !== 'undefined') {
+        var profileUrl = @json(route('runner.profile.show', $pacer->user->username ?? $pacer->user->id));
+        new QRCode(qrContainer, {
+            text: profileUrl,
+            width: 180,
+            height: 180,
+            colorDark: "#1f2937",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    }
 });
 </script>
 @endpush
