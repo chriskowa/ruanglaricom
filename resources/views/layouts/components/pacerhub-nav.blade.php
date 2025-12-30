@@ -32,7 +32,7 @@
                     </div>
                 </div>
 
-                <a href="{{ url('challenge') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Challenge</a>
+                <a href="{{ url('challenge/40-days-challenge') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Challenge</a>
             </div>
             @endguest
             

@@ -539,11 +539,24 @@
                             </div>
 
                             <!-- Join Overlay -->
-                            <div v-if="CHALLENGE_MODE" class="absolute inset-0 z-10 flex items-center justify-center">
-                                <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-700 rounded-2xl p-8 text-center max-w-md w-full mx-4 shadow-2xl">
+                            <div v-if="CHALLENGE_MODE" class="absolute inset-0 z-10 flex items-top justify-center">
+                                <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-700 h-[250px] rounded-2xl p-8 text-center max-w-md w-full mx-4 shadow-2xl">
                                     <h3 class="text-white font-black text-2xl mb-2">Join 40 Days Challenge</h3>
                                     <p class="text-slate-400 text-sm mb-6">Blueprint latihan disembunyikan. Gabung untuk mengakses kalender latihan.</p>
-                                    <button @click="joinChallenge" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-white transition-all shadow-neon-cyan">
+                                    <style>
+                                        @keyframes breath-animation {
+                                            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+                                            50% { transform: scale(1.05); box-shadow: 0 0 10px 10px rgba(22, 163, 74, 0); }
+                                        }
+                                        .animate-breath {
+                                            animation: breath-animation 1s infinite;
+                                        }
+                                        .animate-breath:hover {
+                                            animation: none;
+                                            transform: scale(1.5);
+                                        }
+                                    </style>
+                                    <button @click="joinChallenge" class="animate-breath px-6 py-3 rounded-xl bg-neon text-white font-black hover:bg-white hover:text-slate-900 transition-all shadow-neon-cyan">
                                         JOIN CHALLENGE?
                                     </button>
                                 </div>
