@@ -89,7 +89,54 @@
         </div>
     </div>
 
-    <!-- Workout Detail Modal -->
+    <!-- Register Modal -->
+    <transition name="fade">
+        <div v-if="showRegisterModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="!isSubmitting && (showRegisterModal = false)"></div>
+            <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
+                <h3 class="text-2xl font-bold text-white mb-4">Daftar Challenge</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Nama Lengkap</label>
+                        <input v-model="registerForm.name" type="text" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Email</label>
+                        <input v-model="registerForm.email" type="email" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">No WhatsApp</label>
+                        <input v-model="registerForm.whatsapp" type="tel" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none" placeholder="08...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Password</label>
+                        <input v-model="registerForm.password" type="password" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Avatar / Foto Profil</label>
+                        <input type="file" @change="handleFileUpload" accept="image/*" class="w-full p-2 rounded bg-slate-800 border border-slate-600 text-white text-xs file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-cyan-500 file:text-slate-900 hover:file:bg-cyan-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Link Profil Strava (Opsional)</label>
+                        <input v-model="registerForm.strava_url" type="url" placeholder="https://www.strava.com/athletes/..." class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
+                    </div>
+
+                    <div class="flex items-start gap-2 pt-2">
+                        <input v-model="registerForm.terms_agreed" type="checkbox" id="terms" class="mt-1">
+                        <label for="terms" class="text-xs text-slate-400">
+                            Saya menyetujui <a href="#" class="text-cyan-400 hover:underline">Syarat & Ketentuan</a> yang berlaku dalam 40 Days Challenge ini.
+                        </label>
+                    </div>
+
+                    <button @click="submitRegister" :disabled="isSubmitting" class="animate-breath px-6 py-3 rounded-xl bg-neon text-white font-black hover:bg-white hover:text-slate-900 transition-all shadow-neon-cyan w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                        @{{ isSubmitting ? 'Memproses...' : 'Submit' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
     <transition name="fade">
         <div v-if="selectedWorkout" class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="selectedWorkout = null"></div>
@@ -125,36 +172,7 @@
         </div>
     </transition>
 
-    <!-- Register Modal -->
-    <transition name="fade">
-        <div v-if="showRegisterModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="!isSubmitting && (showRegisterModal = false)"></div>
-            <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
-                <h3 class="text-2xl font-bold text-white mb-4">Daftar Challenge</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-mono text-cyan-400 mb-1">Nama Lengkap</label>
-                        <input v-model="registerForm.name" type="text" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-mono text-cyan-400 mb-1">Email</label>
-                        <input v-model="registerForm.email" type="email" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-mono text-cyan-400 mb-1">No WhatsApp</label>
-                        <input v-model="registerForm.phone" type="tel" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none" placeholder="08...">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-mono text-cyan-400 mb-1">Password</label>
-                        <input v-model="registerForm.password" type="password" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
-                    </div>
-                    <button @click="submitRegister" :disabled="isSubmitting" class="w-full py-3 bg-neon text-dark font-bold rounded-lg hover:bg-white transition-colors disabled:opacity-50">
-                        @{{ isSubmitting ? 'Memproses...' : 'Kirim OTP via WhatsApp' }}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </transition>
+
 
     <!-- OTP Modal -->
     <transition name="fade">
@@ -182,8 +200,16 @@
                     Algoritma Kepelatihan v2.0
                 </div>
                 <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400">
-                    DESIGNING BY <br> RECOVERY
+                    40 DAYS RUNNING <br> CHALLENGE 
                 </h1>
+                <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-700 to-red-900">
+                    DESIGNED BY 
+                    <a href="{{ url('/runner/coach-budi') }}" target="_blank" class="text-red-300 hover:text-red-100">
+                        RAKA WAHYU PRAYOGA
+                    </a>
+                </h3>
+
+
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
                     Kami tidak menjual mimpi. Kami menghitung <span class="text-cyan-400 font-bold">Gap</span>, menganalisis <span class="text-cyan-400 font-bold">Realita</span>, dan membangun <span class="text-purple-400 font-bold">Tangga Progresi</span> (Ladder) khusus untuk fisiologis Anda.
                 </p>
@@ -279,6 +305,7 @@
                             <div>
                                 <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase">Jarak Tes</label>
                                 <select v-model="form.latestDistance" class="w-full p-4 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-cyan-400 outline-none">
+                                    <option value="3">3 Kilometer</option>
                                     <option value="5">5 Kilometer</option>
                                     <option value="10">10 Kilometer</option>
                                     <option value="21.1">Half Marathon</option>
@@ -540,25 +567,14 @@
 
                             <!-- Join Overlay -->
                             <div v-if="CHALLENGE_MODE" class="absolute inset-0 z-10 flex items-top justify-center">
-                                <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-700 h-[250px] rounded-2xl p-8 text-center max-w-md w-full mx-4 shadow-2xl">
+                                <div class="fixed top-40 left-50 -translate-x-50 w-full z-50 bg-slate-900/90 backdrop-blur-xl border border-slate-700 h-[250px] rounded-2xl p-8 text-center max-w-md w-full mx-4 shadow-2xl">
                                     <h3 class="text-white font-black text-2xl mb-2">Join 40 Days Challenge</h3>
                                     <p class="text-slate-400 text-sm mb-6">Blueprint latihan disembunyikan. Gabung untuk mengakses kalender latihan.</p>
-                                    <style>
-                                        @keyframes breath-animation {
-                                            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-                                            50% { transform: scale(1.05); box-shadow: 0 0 10px 10px rgba(22, 163, 74, 0); }
-                                        }
-                                        .animate-breath {
-                                            animation: breath-animation 1s infinite;
-                                        }
-                                        .animate-breath:hover {
-                                            animation: none;
-                                            transform: scale(1.5);
-                                        }
-                                    </style>
+
                                     <button @click="joinChallenge" class="animate-breath px-6 py-3 rounded-xl bg-neon text-white font-black hover:bg-white hover:text-slate-900 transition-all shadow-neon-cyan">
                                         JOIN CHALLENGE?
-                                    </button>
+                                    </button><br/><br/>
+                                    <button @click="resetForm" class="text-slate-400 hover:text-white text-sm underline">Reset Data</button>
                                 </div>
                             </div>
 
@@ -889,35 +905,149 @@
                 form.timeSec = '';
             };
             
+            const showRegisterModal = ref(false);
+            const showOtpModal = ref(false);
+            const isSubmitting = ref(false);
+            const otpCode = ref('');
+            const userId = ref(null);
+            
+            const registerForm = reactive({
+                name: '',
+                email: '',
+                whatsapp: '',
+                password: '',
+                gender: '',
+                pb_5km: '',
+                strava_url: '',
+                terms_agreed: false,
+                avatar: null
+            });
+
+            const handleFileUpload = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    registerForm.avatar = file;
+                }
+            };
+
             const joinChallenge = async () => {
                 const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
-                if (!isAuthenticated) {
-                    window.location.href = '{{ route("login") }}';
+                if (isAuthenticated) {
+                    // Existing logic for authenticated users
+                    if (!CHALLENGE_PROGRAM_ID) {
+                        alert('Program challenge tidak ditemukan.');
+                        return;
+                    }
+                    try {
+                        const resp = await fetch('{{ route("runner.programs.enroll-free", ["program" => 0]) }}'.replace('/0/', `/${CHALLENGE_PROGRAM_ID}/`), {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            }
+                        });
+                        if (resp.ok) {
+                            window.location.href = '{{ route("runner.calendar") }}';
+                        } else {
+                            const j = await resp.json();
+                            alert(j.message || 'Gagal join challenge.');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        alert('Terjadi kesalahan.');
+                    }
+                } else {
+                    // Unauthenticated: Show Register Modal
+                    // Prefill from form/localStorage
+                    registerForm.name = form.name;
+                    registerForm.gender = form.gender;
+                    
+                    // Try to estimate PB 5km from input
+                    if (form.latestDistance == 5) {
+                        registerForm.pb_5km = `${form.timeMin}:${form.timeSec}`;
+                    } else if (paces.interval) {
+                        // Rough estimate or leave blank
+                        registerForm.pb_5km = ''; 
+                    }
+                    
+                    showRegisterModal.value = true;
+                }
+            };
+
+            const submitRegister = async () => {
+                if(!registerForm.name || !registerForm.email || !registerForm.whatsapp || !registerForm.password || !registerForm.terms_agreed) {
+                    alert('Mohon lengkapi semua data dan setujui syarat & ketentuan.');
                     return;
                 }
-                if (!CHALLENGE_PROGRAM_ID) {
-                    alert('Program challenge tidak ditemukan.');
-                    return;
-                }
+                isSubmitting.value = true;
                 try {
-                    const resp = await fetch('{{ route("runner.programs.enroll-free", ["program" => 0]) }}'.replace('/0/', `/${CHALLENGE_PROGRAM_ID}/`), {
+                    const formData = new FormData();
+                    formData.append('name', registerForm.name);
+                    formData.append('email', registerForm.email);
+                    formData.append('whatsapp', registerForm.whatsapp);
+                    formData.append('password', registerForm.password);
+                    formData.append('gender', registerForm.gender);
+                    formData.append('pb_5km', registerForm.pb_5km || '');
+                    formData.append('strava_url', registerForm.strava_url || '');
+                    formData.append('terms_agreed', registerForm.terms_agreed ? '1' : '0');
+                    
+                    if(registerForm.avatar) {
+                        formData.append('avatar', registerForm.avatar);
+                    }
+
+                    const res = await fetch('{{ route("challenge.send-otp") }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                             'Accept': 'application/json'
-                        }
+                        },
+                        body: formData
                     });
-                    if (resp.ok) {
-                        window.location.href = '{{ route("runner.calendar") }}';
-                    } else if (resp.status === 422) {
-                        const j = await resp.json();
-                        alert(j.message || 'Validasi gagal.');
+                    const data = await res.json();
+                    if(data.success) {
+                        userId.value = data.user_id;
+                        showRegisterModal.value = false;
+                        showOtpModal.value = true;
                     } else {
-                        alert('Gagal join challenge.');
+                        alert(data.message || 'Gagal registrasi/kirim OTP');
                     }
-                } catch (e) {
+                } catch(e) {
                     console.error(e);
-                    alert('Terjadi kesalahan saat join.');
+                    alert('Terjadi kesalahan koneksi.');
+                } finally {
+                    isSubmitting.value = false;
+                }
+            };
+
+            const submitOtp = async () => {
+                if(!otpCode.value) return;
+                isSubmitting.value = true;
+                
+                try {
+                    const res = await fetch('{{ route("challenge.verify-otp") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            otp: otpCode.value,
+                            user_id: userId.value
+                        })
+                    });
+                    const data = await res.json();
+                    
+                    if(data.success) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        alert(data.message || 'OTP Salah!');
+                    }
+                } catch(e) {
+                    console.error(e);
+                    alert('Terjadi kesalahan saat verifikasi.');
+                } finally {
+                    isSubmitting.value = false;
                 }
             };
 
@@ -927,7 +1057,9 @@
                 paces, programSchedule, formattedCurrentTime, ladderTarget,
                 // Newly added functions and refs
                 viewMode, selectedWorkout, hasSavedProgram,
-                loadSavedProgram, openWorkoutModal, joinChallenge, CHALLENGE_MODE
+                loadSavedProgram, openWorkoutModal, joinChallenge, CHALLENGE_MODE,
+                // Registration
+                showRegisterModal, showOtpModal, isSubmitting, otpCode, registerForm, submitRegister, submitOtp, userId, handleFileUpload
             }
         }
     }).mount('#program-design-app')

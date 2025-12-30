@@ -33,6 +33,7 @@ class Program extends Model
         'is_self_generated',
         'daniels_params',
         'generated_vdot',
+        'hardcoded',
     ];
 
     protected $appends = [

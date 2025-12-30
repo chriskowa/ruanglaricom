@@ -81,81 +81,11 @@ Route::middleware('auth')->post('/challenge/40-days-challenge/assessment', funct
     return response()->json(['ok' => true]);
 })->name('challenge.40days.assessment');
 
-Route::post('/challenge/register', function (Illuminate\Http\Request $request) {
-    $data = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email',
-        'phone' => 'required|string|max:20',
-        'password' => 'required|string|min:6',
-    ]);
+use App\Http\Controllers\ChallengeController;
 
-    // Create User
-    $user = \App\Models\User::create([
-        'name' => $data['name'],
-        'email' => $data['email'],
-        'phone' => $data['phone'],
-        'password' => \Illuminate\Support\Facades\Hash::make($data['password']),
-        'role' => 'runner',
-        'is_active' => false,
-    ]);
-
-    // Generate OTP
-    $code = str_pad((string)random_int(0,999999), 6, '0', STR_PAD_LEFT);
-    \App\Models\OtpToken::create([
-        'user_id' => $user->id,
-        'code' => $code,
-        'expires_at' => now()->addMinutes(10),
-        'used' => false,
-    ]);
-
-    // Send WhatsApp
-    \App\Helpers\WhatsApp::send($data['phone'], 'Kode OTP RuangLari Anda: '.$code);
-
-    return response()->json(['ok' => true, 'user_id' => $user->id]);
-});
-
-Route::post('/challenge/verify-otp', function (Illuminate\Http\Request $request) {
-    $data = $request->validate([
-        'user_id' => 'required|exists:users,id',
-        'otp' => 'required|string|size:6'
-    ]);
-
-    $token = \App\Models\OtpToken::where('user_id', $data['user_id'])
-        ->where('code', $data['otp'])
-        ->where('used', false)
-        ->where('expires_at', '>', now())
-        ->first();
-
-    if (!$token) {
-        return response()->json(['ok' => false, 'message' => 'OTP Salah atau Kadaluarsa'], 400);
-    }
-
-    $token->update(['used' => true]);
-    
-    $user = \App\Models\User::find($data['user_id']);
-    \Illuminate\Support\Facades\Auth::login($user);
-    $user->update(['is_active' => true]);
-
-    // Auto Join Program 9
-    $programId = 9;
-    // Check if already enrolled
-    $exists = \App\Models\ProgramEnrollment::where('runner_id', $user->id)
-        ->where('program_id', $programId)
-        ->exists();
-
-    if (!$exists) {
-        \App\Models\ProgramEnrollment::create([
-            'program_id' => $programId,
-            'runner_id' => $user->id,
-            'status' => 'active',
-            'start_date' => now(),
-            'end_date' => now()->addDays(40), // Assuming 40 days
-            'payment_status' => 'paid', // Free challenge
-        ]);
-    }
-
-    return response()->json(['ok' => true, 'redirect' => route('runner.calendar')]);
-});
+Route::post('/challenge/join', [ChallengeController::class, 'join'])->name('challenge.join');
+Route::post('/challenge/send-otp', [ChallengeController::class, 'sendOtp'])->name('challenge.send-otp');
+Route::post('/challenge/verify-otp', [ChallengeController::class, 'verifyOtp'])->name('challenge.verify-otp');
 
 // Public routes
 Route::get('/runcalendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');

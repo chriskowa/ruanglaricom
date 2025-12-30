@@ -62,6 +62,14 @@ class PacerController extends Controller
         // Get cities that actually have pacers
         $cities = City::whereHas('users.pacer')->orderBy('name')->get();
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'pacers' => $pacers,
+                'cities' => $cities,
+                'count' => $pacers->count()
+            ]);
+        }
+
         return view('pacer.index', compact('pacers', 'cities'));
     }
 
