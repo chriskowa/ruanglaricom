@@ -74,7 +74,7 @@ class PacerRegistrationController extends Controller
                     imagesavealpha($src, true);
                     imagewebp($src, $dstPath, 70);
                     imagedestroy($src);
-                    $imageUrl = '/storage/pacers/'.basename($dstPath);
+                    $imageUrl = '/pacers/'.basename($dstPath);
                 }
             }
         }
