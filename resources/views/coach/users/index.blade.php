@@ -1,18 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.coach')
+@php($withSidebar = true)
 
 @section('title', 'Daftar Coach')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="page-titles">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('coach.dashboard') }}">Dashboard</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Daftar Coach</a></li>
-            </ol>
-        </div>
-    </div>
-</div>
 
 <div class="row">
     @forelse($users as $user)

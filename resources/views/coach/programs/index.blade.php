@@ -37,7 +37,7 @@
                             @foreach($programs as $program)
                             <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition">
                                 <td class="py-4 pl-4">
-                                    <div class="font-bold text-white">{{ $program->title }}</div>
+                                    <div class="font-bold text-white"><a href="{{ route('programs.show', $program->slug) }}">{{ $program->title }}</a></div>
                                     <div class="text-xs text-slate-500 truncate max-w-[200px]">{{ $program->description }}</div>
                                 </td>
                                 <td class="py-4 font-mono text-sm">

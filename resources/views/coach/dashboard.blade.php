@@ -21,7 +21,7 @@
 @endpush
 
 @section('content')
-<div id="coach-dashboard-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
+<div id="coach-dashboard-app" class="max-w-7xl mx-auto mt-[100px] pb-10 font-sans">
     
     <!-- Hero Section -->
     <div class="mb-10 relative z-10" data-aos="fade-up">

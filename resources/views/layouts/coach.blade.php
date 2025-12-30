@@ -52,21 +52,63 @@
 
     @include('layouts.components.pacerhub-nav')
 
-    <main class="flex-grow w-full">
-        @yield('content')
-    </main>
+@if(isset($withSidebar) && $withSidebar)
+    <div id="ph-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+    @include('layouts.components.pacerhub-sidebar')
+@endif
 
-    @include('layouts.components.pacerhub-footer')
+<main class="flex-grow w-full">
+    <div class="pt-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <nav aria-label="Breadcrumb" class="text-xs font-mono text-slate-400">
+                @hasSection('breadcrumb')
+                    @yield('breadcrumb')
+                @else
+                    <ol class="flex items-center gap-2">
+                        <li><a href="{{ route('coach.dashboard') }}" class="hover:text-neon">Dashboard</a></li>
+                        <li class="text-slate-600">/</li>
+                        <li class="text-slate-300">@yield('title', 'Coach')</li>
+                    </ol>
+                @endif
+            </nav>
+        </div>
+    </div>
+    @yield('content')
+</main>
+
+@include('layouts.components.pacerhub-footer')
 
     @stack('scripts')
-    <script>
-        window.addEventListener('load', function() {
-            var loader = document.getElementById('loader');
-            if (loader) {
-                loader.style.opacity = '0';
-                setTimeout(function(){ loader.style.display = 'none'; }, 500);
-            }
-        });
-    </script>
+<script>
+    window.addEventListener('load', function() {
+        var loader = document.getElementById('loader');
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(function(){ loader.style.display = 'none'; }, 500);
+        }
+    });
+    (function(){
+        var btn = document.getElementById('ph-sidebar-toggle');
+        var sidebar = document.getElementById('ph-sidebar');
+        var backdrop = document.getElementById('ph-sidebar-backdrop');
+        function openSidebar(){
+            if(!sidebar) return;
+            sidebar.classList.remove('-translate-x-full');
+            if(backdrop){ backdrop.classList.remove('hidden'); }
+        }
+        function closeSidebar(){
+            if(!sidebar) return;
+            sidebar.classList.add('-translate-x-full');
+            if(backdrop){ backdrop.classList.add('hidden'); }
+        }
+        if(btn){
+            btn.addEventListener('click', function(){
+                if(sidebar && sidebar.classList.contains('-translate-x-full')){ openSidebar(); } else { closeSidebar(); }
+            });
+        }
+        if(backdrop){ backdrop.addEventListener('click', closeSidebar); }
+        document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ closeSidebar(); } });
+    })();
+</script>
 </body>
 </html>

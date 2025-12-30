@@ -232,6 +232,11 @@
                         <div v-else class="h-full w-full flex items-center justify-center text-slate-600 text-xs opacity-0 group-hover:opacity-100 pointer-events-none absolute inset-0">
                             Drop here
                         </div>
+                        
+                        <button type="button" class="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-slate-700/60 text-white text-[10px] font-bold hover:bg-neon hover:text-dark transition"
+                                @click.stop="openAddSession(day)">
+                            Add
+                        </button>
                     </div>
                 </div>
                 
@@ -240,6 +245,46 @@
                 </div>
             </div>
         </form>
+
+        <div v-if="showAddModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80" @click="showAddModal = false"></div>
+            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6">
+                <h3 class="text-white font-bold text-lg mb-4">Add Custom Workout</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Title</label>
+                        <input type="text" v-model="newSession.title" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Workout Type</label>
+                        <select v-model="newSession.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                            <option value="easy_run">Easy Run</option>
+                            <option value="long_run">Long Run</option>
+                            <option value="tempo">Tempo Run</option>
+                            <option value="interval">Intervals</option>
+                            <option value="strength">Strength</option>
+                            <option value="rest">Rest</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Distance (km)</label>
+                        <input type="number" step="0.1" v-model="newSession.distance" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Duration (Optional)</label>
+                        <input type="text" v-model="newSession.duration" placeholder="00:30:00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Description</label>
+                        <textarea v-model="newSession.description" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-4">
+                        <button type="button" @click="showAddModal = false" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm">Cancel</button>
+                        <button type="button" @click="createSession" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Session Edit Modal -->
         <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto">
@@ -351,8 +396,10 @@ createApp({
         const activeTab = ref('easy_run');
         const showModal = ref(false);
         const showCustomModal = ref(false);
+        const showAddModal = ref(false);
         const editingSession = reactive({});
         const fileInput = ref(null);
+        const addTargetDay = ref(1);
         
         // Master Workouts from Backend
         const initialMasterWorkouts = @json($masterWorkouts ?? []);
@@ -365,6 +412,14 @@ createApp({
             default_distance: 0,
             default_duration: '',
             is_public: false
+        });
+        
+        const newSession = reactive({
+            title: '',
+            type: 'easy_run',
+            distance: 0,
+            duration: '',
+            description: ''
         });
 
         const workoutTypes = {
@@ -430,6 +485,27 @@ createApp({
             };
             event.dataTransfer.setData('json', JSON.stringify(data));
             event.dataTransfer.effectAllowed = 'copy';
+        };
+
+        const openAddSession = (day) => {
+            addTargetDay.value = day;
+            Object.assign(newSession, { title: '', type: 'easy_run', distance: 0, duration: '', description: '' });
+            showAddModal.value = true;
+        };
+
+        const createSession = () => {
+            const absDay = getAbsDay(currentWeek.value, addTargetDay.value);
+            const s = {
+                _id: generateId(),
+                day: absDay,
+                type: newSession.type,
+                title: newSession.title,
+                distance: parseFloat(newSession.distance) || 0,
+                duration: newSession.duration || '',
+                description: newSession.description || ''
+            };
+            form.sessions.push(s);
+            showAddModal.value = false;
         };
 
         const saveCustomWorkout = async () => {
@@ -697,7 +773,8 @@ createApp({
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleDragStart,
             editSession, showModal, editingSession, saveSession, deleteSession,
             copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
-            handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes
+            handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes,
+            showAddModal, newSession, openAddSession, createSession, addTargetDay
         };
     }
 }).mount('#program-builder-app');
