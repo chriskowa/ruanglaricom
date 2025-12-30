@@ -11,7 +11,10 @@ class PacerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Pacer::with(['user.city']);
+        $query = Pacer::with(['user.city'])
+            ->whereHas('user', function (Builder $q) {
+                $q->where('is_pacer', true);
+            });
 
         // Filter by City
         if ($request->filled('city_id')) {

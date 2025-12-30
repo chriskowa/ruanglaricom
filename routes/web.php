@@ -177,7 +177,7 @@ Route::post('/pacer-otp', function(Illuminate\Http\Request $request){
     $token->update(['used'=>true]);
     $user = App\Models\User::findOrFail($data['user_id']);
     Illuminate\Support\Facades\Auth::login($user);
-    return redirect('/dashboard')->with('success','Verifikasi berhasil!');
+    return redirect()->route('profile.show')->with('success','Verifikasi berhasil!');
 })->name('pacer.otp.verify');
 
 // Runner Profile (Public) - avoid conflicts with runner dashboard/calendar routes

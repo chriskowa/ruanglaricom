@@ -249,6 +249,21 @@
                             </div>
                         </div>
 
+                        <!-- Pacer Activation -->
+                        <div class="mt-8 pt-6 border-t border-slate-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-neon text-sm font-bold uppercase tracking-wider">Join Pacer Program</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Activate your profile to be listed in the Pacer Hub.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="hidden" name="is_pacer" value="0">
+                                    <input type="checkbox" name="is_pacer" value="1" class="sr-only peer" {{ old('is_pacer', $user->is_pacer) ? 'checked' : '' }}>
+                                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-neon/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neon"></div>
+                                </label>
+                            </div>
+                        </div>
+
                         @if($pacer)
                         <!-- Section 5: Pacer & Portfolio -->
                         <div class="space-y-6 pt-6">

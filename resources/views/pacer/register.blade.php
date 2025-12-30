@@ -169,6 +169,12 @@
                             <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">5</span>
                             Race Portfolio
                         </h3>
+                        
+                        <div class="group/input mb-6">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Total Official Races</label>
+                            <input name="total_races" type="number" min="0" value="{{ old('total_races') }}" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600 font-mono" placeholder="10" />
+                        </div>
+
                         <div class="group/input">
                             <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 group-focus-within/input:text-neon transition-colors">Daftar Race yang Pernah Diikuti</label>
                             <textarea name="race_portfolio" rows="3" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all placeholder-slate-600 resize-none" placeholder="Contoh: Jakarta Marathon, Borobudur Marathon, Bali Marathon, 10K Kota Bandung">{{ old('race_portfolio') }}</textarea>

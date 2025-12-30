@@ -43,6 +43,7 @@ class User extends Authenticatable
         'tiktok_url',
         'google_calendar_token',
         'gender',
+        'is_pacer',
         'pb_5k',
         'pb_10k',
         'pb_hm',

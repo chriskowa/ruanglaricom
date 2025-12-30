@@ -100,6 +100,7 @@ class ProfileController extends Controller
             'pacer_bio' => 'nullable|string',
             'pacer_tags' => 'nullable|string',
             'pacer_race_portfolio' => 'nullable|string',
+            'is_pacer' => 'nullable|boolean',
         ]);
 
         // Update basic info
@@ -121,6 +122,9 @@ class ProfileController extends Controller
         $user->pb_10k = $validated['pb_10k'] ?? null;
         $user->pb_hm = $validated['pb_hm'] ?? null;
         $user->pb_fm = $validated['pb_fm'] ?? null;
+        if (isset($validated['is_pacer'])) {
+            $user->is_pacer = $validated['is_pacer'];
+        }
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
