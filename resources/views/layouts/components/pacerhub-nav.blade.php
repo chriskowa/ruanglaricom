@@ -94,7 +94,7 @@
                 <!-- User Profile Dropdown -->
                 <div class="relative" id="user-menu-container">
                     <button id="user-menu-btn" class="flex items-center gap-3 p-1.5 pr-3 rounded-full hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-all">
-                        <img class="w-8 h-8 rounded-full object-cover border border-slate-600" src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/profile/17.jpg') }}" alt="{{ auth()->user()->name }}">
+                        <img class="w-8 h-8 rounded-full object-cover border border-slate-600" src="{{ auth()->user()->avatar ? (str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : (str_starts_with(auth()->user()->avatar, '/storage') ? asset(ltrim(auth()->user()->avatar, '/')) : asset('storage/' . auth()->user()->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ auth()->user()->name }}">
                         <span class="hidden md:block text-sm font-medium text-slate-200">{{ auth()->user()->name }}</span>
                         <svg class="w-4 h-4 text-slate-500 hidden md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>

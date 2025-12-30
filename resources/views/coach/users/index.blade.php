@@ -20,7 +20,7 @@
         <div class="card">
             <div class="card-body text-center">
                 <div class="profile-photo mb-3">
-                    <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/profile/17.jpg') }}" 
+                    <img src="{{ $user->avatar ? (str_starts_with($user->avatar, 'http') ? $user->avatar : (str_starts_with($user->avatar, '/storage') ? asset(ltrim($user->avatar, '/')) : asset('storage/' . $user->avatar))) : asset('images/profile/17.jpg') }}" 
                          class="img-fluid rounded-circle" alt="{{ $user->name }}" style="width: 100px; height: 100px; object-fit: cover;">
                 </div>
                 <h4 class="mb-1">{{ $user->name }}</h4>

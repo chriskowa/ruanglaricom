@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pacer;
+use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class PacerRegistrationController extends Controller
 {
     public function create()
     {
-        return view('pacer.register');
+        $cities = City::with('province')->get();
+        return view('pacer.register', compact('cities'));
     }
 
     public function store(Request $request)
@@ -20,6 +23,7 @@ class PacerRegistrationController extends Controller
             'name' => ['required','string','max:120'],
             'email' => ['required','email','max:120','unique:users,email'],
             'phone' => ['required','string','max:20'],
+            'password' => ['required','string','min:6','confirmed'],
             'nickname' => ['nullable', 'string', 'max:100'],
             'category' => ['required', 'string', 'max:50'],
             'pace' => ['required', 'string', 'max:20'],
@@ -32,6 +36,8 @@ class PacerRegistrationController extends Controller
             'facebook_url' => ['nullable', 'url', 'max:255'],
             'tiktok_url' => ['nullable', 'url', 'max:255'],
             'strava_url' => ['nullable', 'url', 'max:255'],
+            'gender' => ['nullable', 'in:male,female,other'],
+            'city_id' => ['nullable', 'exists:cities,id'],
             'pb5k' => ['nullable', 'string', 'max:20'],
             'pb10k' => ['nullable', 'string', 'max:20'],
             'pbhm' => ['nullable', 'string', 'max:20'],
@@ -87,8 +93,10 @@ class PacerRegistrationController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'],
-            'password' => bcrypt(str()->random(12)),
+            'password' => Hash::make($data['password']),
             'role' => 'runner',
+            'gender' => $data['gender'] ?? null,
+            'city_id' => $data['city_id'] ?? null,
             'instagram_url' => $data['instagram_url'] ?? null,
             'facebook_url' => $data['facebook_url'] ?? null,
             'tiktok_url' => $data['tiktok_url'] ?? null,
@@ -100,6 +108,7 @@ class PacerRegistrationController extends Controller
             'pb_hm' => $data['pbhm'] ?? null,
             'pb_fm' => $data['pbfm'] ?? null,
             'is_pacer' => false,
+            'is_active' => false,
         ]);
 
         $pacer = Pacer::create([

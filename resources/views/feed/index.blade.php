@@ -73,7 +73,7 @@
                     <form action="{{ route('feed.store') }}" method="POST" enctype="multipart/form-data" id="post-form">
                         @csrf
                         <div class="flex gap-4 mb-4">
-                            <img src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/profile/17.jpg') }}" 
+                            <img src="{{ auth()->user()->avatar ? (str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : (str_starts_with(auth()->user()->avatar, '/storage') ? asset(ltrim(auth()->user()->avatar, '/')) : asset('storage/' . auth()->user()->avatar))) : asset('images/profile/17.jpg') }}" 
                                  class="w-10 h-10 rounded-full object-cover border border-slate-700 shrink-0">
                             <div class="flex-grow">
                                 <textarea name="content" rows="2" class="w-full bg-slate-900/50 border-none rounded-xl p-3 text-white placeholder-slate-500 focus:ring-1 focus:ring-neon resize-none transition-all" placeholder="What's on your mind, {{ explode(' ', auth()->user()->name)[0] }}?" required></textarea>
@@ -106,7 +106,7 @@
                         <div class="p-4 flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <a href="{{ route('profile.show', ['user' => $post->user->id]) }}">
-                                    <img src="{{ $post->user->avatar ? asset('storage/' . $post->user->avatar) : asset('images/profile/17.jpg') }}" 
+                                    <img src="{{ $post->user->avatar ? (str_starts_with($post->user->avatar, 'http') ? $post->user->avatar : (str_starts_with($post->user->avatar, '/storage') ? asset(ltrim($post->user->avatar, '/')) : asset('storage/' . $post->user->avatar))) : asset('images/profile/17.jpg') }}" 
                                          class="w-10 h-10 rounded-full object-cover border border-slate-700">
                                 </a>
                                 <div>
@@ -237,7 +237,7 @@
                             @forelse($suggestions as $user)
                             <div class="flex items-center justify-between group">
                                 <div class="flex items-center gap-3">
-                                    <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/profile/17.jpg') }}" 
+                                    <img src="{{ $user->avatar ? (str_starts_with($user->avatar, 'http') ? $user->avatar : (str_starts_with($user->avatar, '/storage') ? asset(ltrim($user->avatar, '/')) : asset('storage/' . $user->avatar))) : asset('images/profile/17.jpg') }}" 
                                          class="w-10 h-10 rounded-full object-cover border border-slate-700">
                                     <div class="overflow-hidden">
                                         <h4 class="font-bold text-white text-sm truncate w-24">{{ $user->name }}</h4>

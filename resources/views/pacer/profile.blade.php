@@ -40,7 +40,7 @@
             <div class="px-6 pb-6 relative flex flex-col md:flex-row items-start md:items-end gap-6">
                 <div class="relative">
                     <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-card shadow-xl bg-slate-700">
-                        <img loading="lazy" decoding="async" src="{{ $pacer->user->avatar ? asset('storage/' . $pacer->user->avatar) : ($pacer->user->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg')) }}" class="w-full h-full object-cover">
+                        <img loading="lazy" decoding="async" src="{{ $pacer->user->avatar ? (str_starts_with($pacer->user->avatar, 'http') ? $pacer->user->avatar : (str_starts_with($pacer->user->avatar, '/storage') ? asset(ltrim($pacer->user->avatar, '/')) : asset('storage/' . $pacer->user->avatar))) : ($pacer->user->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg')) }}" class="w-full h-full object-cover">
                     </div>
                 </div>
 

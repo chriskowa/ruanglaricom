@@ -39,6 +39,7 @@ class RunnerRegistrationController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => 'runner',
+            'is_active' => true,
             'gender' => $validated['gender'] ?? null,
             'birthdate' => $validated['birthdate'] ?? null,
             'city_id' => $validated['city_id'] ?? null,

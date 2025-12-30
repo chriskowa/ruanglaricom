@@ -96,6 +96,7 @@ Route::post('/challenge/register', function (Illuminate\Http\Request $request) {
         'phone' => $data['phone'],
         'password' => \Illuminate\Support\Facades\Hash::make($data['password']),
         'role' => 'runner',
+        'is_active' => false,
     ]);
 
     // Generate OTP
@@ -133,6 +134,7 @@ Route::post('/challenge/verify-otp', function (Illuminate\Http\Request $request)
     
     $user = \App\Models\User::find($data['user_id']);
     \Illuminate\Support\Facades\Auth::login($user);
+    $user->update(['is_active' => true]);
 
     // Auto Join Program 9
     $programId = 9;
@@ -177,6 +179,7 @@ Route::post('/pacer-otp', function(Illuminate\Http\Request $request){
     $token->update(['used'=>true]);
     $user = App\Models\User::findOrFail($data['user_id']);
     Illuminate\Support\Facades\Auth::login($user);
+    $user->update(['is_active' => true]);
     return redirect()->route('profile.show')->with('success','Verifikasi berhasil!');
 })->name('pacer.otp.verify');
 

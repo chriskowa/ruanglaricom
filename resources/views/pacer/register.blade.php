@@ -73,10 +73,56 @@
 
                     <div class="w-full h-px bg-slate-700/50"></div>
 
-                    <!-- Section: Social Media -->
+                    <!-- Section: Account & Demographics -->
                     <div>
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">2</span>
+                            Account & Demographics
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+                                <input name="password" type="password" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all" placeholder="Enter password" required />
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Confirm Password</label>
+                                <input name="password_confirmation" type="password" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none transition-all" placeholder="Confirm password" required />
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Gender</label>
+                                <div class="relative">
+                                    <select name="gender" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none appearance-none cursor-pointer">
+                                        <option value="" {{ old('gender') ? '' : 'selected' }}>Select Gender</option>
+                                        <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>Female</option>
+                                        <option value="other" {{ old('gender') === 'other' ? 'selected' : '' }}>Other</option>
+                                    </select>
+                                    <svg class="w-4 h-4 text-slate-400 absolute right-4 top-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
+                            <div class="group/input">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">City</label>
+                                <div class="relative">
+                                    <select name="city_id" class="w-full bg-slate-900/50 text-white rounded-xl border border-slate-700 px-4 py-3 focus:border-neon focus:ring-1 focus:ring-neon outline-none appearance-none cursor-pointer">
+                                        <option value="">Select City</option>
+                                        @foreach($cities as $city)
+                                            <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>
+                                                {{ $city->name }}, {{ $city->province->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <svg class="w-4 h-4 text-slate-400 absolute right-4 top-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full h-px bg-slate-700/50"></div>
+
+                    <!-- Section: Social Media -->
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">3</span>
                             Social Media
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -104,7 +150,7 @@
                     <!-- Section: Running Profile -->
                     <div>
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">3</span>
+                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">4</span>
                             Running Profile
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -138,7 +184,7 @@
                     <!-- Section: Personal Bests -->
                     <div>
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">4</span>
+                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">5</span>
                             Personal Bests (PB)
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -166,7 +212,7 @@
                     <!-- Section: Race Portfolio -->
                     <div>
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">5</span>
+                            <span class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-neon border border-slate-700">6</span>
                             Race Portfolio
                         </h3>
                         

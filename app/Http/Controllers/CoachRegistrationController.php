@@ -34,6 +34,7 @@ class CoachRegistrationController extends Controller
             'phone' => $data['phone'],
             'password' => bcrypt(str()->random(12)),
             'role' => 'coach',
+            'is_active' => false,
             'city' => $data['city'],
         ]);
 

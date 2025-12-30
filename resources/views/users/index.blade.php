@@ -89,7 +89,7 @@
                 <div class="relative z-10">
                     <!-- Avatar -->
                     <div class="relative w-24 h-24 mx-auto mb-4">
-                        <img :src="user.avatar ? APP_URL + '/storage/' + user.avatar : (user.gender === 'female' ? defaultFemale : defaultMale)" 
+                        <img :src="user.avatar ? (user.avatar.startsWith('/storage') ? (APP_URL + user.avatar) : (APP_URL + '/storage/' + user.avatar)) : (user.gender === 'female' ? defaultFemale : defaultMale)" 
                              loading="lazy"
                              decoding="async"
                              width="96" height="96"

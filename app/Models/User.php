@@ -23,6 +23,7 @@ class User extends Authenticatable
         'username',
         'password',
         'role',
+        'is_active',
         'city_id',
         'package_tier',
         'bank_account',
@@ -84,6 +85,8 @@ class User extends Authenticatable
         'strava_expires_at' => 'datetime',
         'audit_history' => 'array',
         'weekly_volume' => 'decimal:2',
+        'is_pacer' => 'boolean',
+        'is_active' => 'boolean',
     ];
     }
 

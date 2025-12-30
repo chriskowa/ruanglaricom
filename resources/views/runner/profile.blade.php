@@ -40,7 +40,7 @@
             <div class="px-6 pb-6 relative -mt-20 flex flex-col md:flex-row items-end gap-6">
                 <div class="relative group">
                     <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-slate-900 shadow-xl bg-slate-800">
-                        <img loading="lazy" decoding="async" src="{{ $user->avatar ? asset('storage/' . $user->avatar) : ($user->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg')) }}" class="w-full h-full object-cover">
+                        <img loading="lazy" decoding="async" src="{{ $user->avatar ? (str_starts_with($user->avatar, 'http') ? $user->avatar : (str_starts_with($user->avatar, '/storage') ? asset(ltrim($user->avatar, '/')) : asset('storage/' . $user->avatar))) : ($user->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg')) }}" class="w-full h-full object-cover">
                     </div>
                     @if($user->role === 'coach')
                         <div class="absolute -bottom-2 -right-2 bg-blue-500 text-white text-xs font-black px-3 py-1 rounded-full border-2 border-slate-900 shadow-lg">

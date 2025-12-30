@@ -73,6 +73,7 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
+            'is_active' => true,
             'referral_code' => $this->generateReferralCode(),
         ]);
 
@@ -126,6 +127,7 @@ class AuthController extends Controller
                 'email' => $googleUser->getEmail(),
                 'password' => Hash::make(\Illuminate\Support\Str::random(16)), // Random password
                 'role' => 'runner', // Default role
+                'is_active' => true,
                 'referral_code' => $this->generateReferralCode(),
             ]);
 
