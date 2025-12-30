@@ -104,19 +104,19 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
                             <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">5K PB</p>
-                            <p class="text-xl font-mono font-bold text-neon">{{ $pacer->user->pb_5k ?? '-' }}</p>
+                            <p class="text-xl font-mono font-bold {{ $pacer->category === '5K' ? 'text-neon' : 'text-white' }}">{{ $pacer->user->pb_5k ?? '-' }}</p>
                         </div>
                         <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
                             <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">10K PB</p>
-                            <p class="text-xl font-mono font-bold text-neon">{{ $pacer->user->pb_10k ?? '-' }}</p>
+                            <p class="text-xl font-mono font-bold {{ $pacer->category === '10K' ? 'text-neon' : 'text-white' }}">{{ $pacer->user->pb_10k ?? '-' }}</p>
                         </div>
                         <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
                             <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">HM PB</p>
-                            <p class="text-xl font-mono font-bold text-neon">{{ $pacer->user->pb_hm ?? '-' }}</p>
+                            <p class="text-xl font-mono font-bold {{ $pacer->category === 'HM (21K)' ? 'text-neon' : 'text-white' }}">{{ $pacer->user->pb_hm ?? '-' }}</p>
                         </div>
                         <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
                             <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">FM PB</p>
-                            <p class="text-xl font-mono font-bold text-neon">{{ $pacer->user->pb_fm ?? '-' }}</p>
+                            <p class="text-xl font-mono font-bold {{ $pacer->category === 'FM (42K)' ? 'text-neon' : 'text-white' }}">{{ $pacer->user->pb_fm ?? '-' }}</p>
                         </div>
                     </div>
                 </div>

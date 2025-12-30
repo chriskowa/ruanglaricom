@@ -68,7 +68,7 @@
                 <div class="glass rounded-2xl p-6 text-center relative overflow-hidden" data-aos="fade-up">
                     <div class="relative inline-block mb-4">
                         <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-dark shadow-2xl overflow-hidden relative z-10 mx-auto">
-                            <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/profile/profile.png') }}" alt="Avatar" class="w-full h-full object-cover">
+                            <img src="{{ $user->avatar ? (str_starts_with($user->avatar, 'http') ? $user->avatar : (str_starts_with($user->avatar, '/storage') ? asset(ltrim($user->avatar, '/')) : asset('storage/' . $user->avatar))) : asset('images/profile/profile.png') }}" alt="Avatar" class="w-full h-full object-cover">
                         </div>
                         <div class="absolute inset-0 rounded-full border-2 border-neon blur-md opacity-50 animate-pulse"></div>
                         <div class="absolute bottom-2 right-2 z-20 w-8 h-8 bg-neon rounded-full flex items-center justify-center text-dark shadow-lg cursor-pointer hover:scale-110 transition-transform" onclick="document.getElementById('avatar_input').click()" title="Change Avatar">
@@ -92,19 +92,40 @@
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-2 border-t border-slate-700 pt-6">
+                    <div class="grid grid-cols-4 gap-2 border-t border-slate-700 pt-6">
                         <div class="text-center">
                             <h4 class="text-lg font-bold text-white">{{ $user->wallet ? number_format($user->wallet->balance/1000, 0) . 'K' : '0' }}</h4>
                             <p class="text-[10px] text-slate-500 uppercase tracking-wide">Wallet</p>
                         </div>
-                        <div class="text-center border-l border-r border-slate-700">
+                        <div class="text-center border-l border-slate-700">
                             <h4 class="text-lg font-bold text-white">{{ $user->events_count ?? 0 }}</h4>
                             <p class="text-[10px] text-slate-500 uppercase tracking-wide">Events</p>
+                        </div>
+                        <div class="text-center border-l border-slate-700">
+                            <h4 class="text-lg font-bold text-white">{{ $user->followers_count ?? 0 }}</h4>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-wide">Followers</p>
                         </div>
                         <div class="text-center">
                             <h4 class="text-lg font-bold text-neon">{{ ucfirst($user->package_tier ?? 'Free') }}</h4>
                             <p class="text-[10px] text-slate-500 uppercase tracking-wide">Tier</p>
                         </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap justify-center gap-3 mt-6">
+                        <a href="{{ route('runner.profile.show', $user->username) }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
+                            Runner Profile
+                        </a>
+                        <a href="{{ route('feed.index') }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
+                            Runner Feed
+                        </a>
+                        <a href="{{ route('users.index') }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
+                            Find Runner
+                        </a>
+                        @if(!empty($pacer))
+                        <a href="{{ route('pacer.show', $pacer->seo_slug) }}" class="px-5 py-2.5 bg-neon text-dark rounded-xl text-sm font-black hover:bg-lime-400 transition-all shadow-lg shadow-neon/20">
+                            Pacer Detail
+                        </a>
+                        @endif
                     </div>
                 </div>
 
@@ -113,7 +134,7 @@
                         Wallet
                     </a>
                     <a href="{{ route('wallet.index') }}#topup-form" class="px-5 py-2.5 bg-neon text-dark rounded-xl text-sm font-black hover:bg-lime-400 transition-all shadow-lg shadow-neon/20">
-                        Top-up / Deposit
+                        Top-up
                     </a>
                     <a href="{{ route('wallet.index') }}#withdraw-form" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
                         Withdraw

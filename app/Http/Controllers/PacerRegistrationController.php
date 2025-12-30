@@ -107,7 +107,7 @@ class PacerRegistrationController extends Controller
             'pb_10k' => $data['pb10k'] ?? null,
             'pb_hm' => $data['pbhm'] ?? null,
             'pb_fm' => $data['pbfm'] ?? null,
-            'is_pacer' => false,
+            'is_pacer' => true,
             'is_active' => false,
         ]);
 

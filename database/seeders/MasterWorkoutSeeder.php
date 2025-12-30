@@ -10,7 +10,7 @@ class MasterWorkoutSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run(): void
+    public function run(): void 
     {
         $workouts = [
             // 🟢 Easy & Recovery (Base)

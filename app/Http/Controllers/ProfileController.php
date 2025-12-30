@@ -58,6 +58,7 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         $user->load('city.province', 'wallet');
+        $user->loadCount('followers');
         $pacer = Pacer::where('user_id', $user->id)->first();
         
         $cities = City::with('province')->orderBy('name')->get();
