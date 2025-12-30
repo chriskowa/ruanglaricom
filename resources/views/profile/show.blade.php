@@ -68,7 +68,7 @@
                 <div class="glass rounded-2xl p-6 text-center relative overflow-hidden" data-aos="fade-up">
                     <div class="relative inline-block mb-4">
                         <div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-dark shadow-2xl overflow-hidden relative z-10 mx-auto">
-                            <img src="{{ $user->avatar ? (str_starts_with($user->avatar, 'http') ? $user->avatar : (str_starts_with($user->avatar, '/storage') ? asset(substr($user->avatar, 1)) : asset($user->avatar))) : asset('images/profile/profile.png') }}" alt="Avatar" class="w-full h-full object-cover">
+                            <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/profile/profile.png') }}" alt="Avatar" class="w-full h-full object-cover">
                         </div>
                         <div class="absolute inset-0 rounded-full border-2 border-neon blur-md opacity-50 animate-pulse"></div>
                         <div class="absolute bottom-2 right-2 z-20 w-8 h-8 bg-neon rounded-full flex items-center justify-center text-dark shadow-lg cursor-pointer hover:scale-110 transition-transform" onclick="document.getElementById('avatar_input').click()" title="Change Avatar">
