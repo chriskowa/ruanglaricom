@@ -2,7 +2,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="flex items-center justify-between h-20">
             <!-- Left Side: Logo -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1">
                 <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
                 <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" class="text-2xl font-black italic tracking-tighter flex items-center">
                     RUANG<span class="text-primary">LARI</span>
@@ -17,7 +17,7 @@
                 <!-- Pacers Dropdown -->
                 <div class="relative">
                     <button id="nav-pacers-btn" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none">
-                        Pacers
+                        Challenge
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     <div id="nav-pacers-dropdown" class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl hidden transform transition-all origin-top-left z-50">
@@ -26,13 +26,15 @@
                                 Find Pacers
                             </a>
                             <a href="{{ route('pacer.register') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                                Register as Pacer
+                                Leaderboard
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <a href="{{ url('challenge/40-days-challenge') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Challenge</a>
+
+
+                
             </div>
             @endguest
             
