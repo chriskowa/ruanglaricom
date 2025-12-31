@@ -234,23 +234,104 @@
                     </button>
                 </div>
                 
-                <div class="overflow-y-auto pr-2 space-y-4 text-slate-300 text-sm leading-relaxed">
-                    <p class="font-bold text-cyan-400">1. Ketentuan Umum</p>
-                    <p>Program 40 Days Challenge adalah program latihan lari intensif yang dirancang untuk meningkatkan performa lari Anda. Peserta diharapkan dalam kondisi sehat jasmani dan rohani sebelum mengikuti program ini.</p>
+                <div class="overflow-y-auto pr-2 space-y-5 text-slate-300 text-sm leading-relaxed custom-scroll">
+    
+    <div>
+        <p class="font-bold text-cyan-400 uppercase tracking-wider mb-2">1. Mekanisme Virtual Challenge</p>
+        <ul class="list-disc pl-5 space-y-1 text-slate-400">
+            <li><strong class="text-white">Semua Level Pelari:</strong> Terbuka untuk umum, dari pemula hingga elite.</li>
+            <li><strong class="text-white">Wajib Join Club:</strong> Peserta harus bergabung di Strava Club "Ruang Lari".</li>
+            <li><strong class="text-white">Konsistensi 40 Hari:</strong> Peserta wajib menjaga konsistensi latihan selama periode challenge.</li>
+            <li><strong class="text-white">Activity Submission:</strong> Wajib melakukan submit/sync aktivitas lari ke dashboard akun RuangLari.com.</li>
+            <li><strong class="text-white">Running Program:</strong> Ruang Lari menyediakan platform program latihan terstruktur (opsional namun sangat disarankan untuk hasil maksimal).</li>
+            <li><strong class="text-white">Race Day Proof:</strong> Buktikan performa (New PB) pada hari race day yang ditentukan (Hari ke-40).</li>
+        </ul>
+    </div>
 
-                    <p class="font-bold text-cyan-400">2. Risiko Cidera</p>
-                    <p>Setiap aktivitas fisik memiliki risiko cidera. Dengan mengikuti program ini, Anda memahami dan menanggung segala risiko yang mungkin terjadi selama latihan. Kami menyarankan konsultasi dengan dokter sebelum memulai program latihan intensitas tinggi.</p>
+    <div>
+        <p class="font-bold text-cyan-400 uppercase tracking-wider mb-2">2. Ketentuan Umum & Keselamatan</p>
+        <p class="mb-2">Peserta diharapkan dalam kondisi sehat jasmani dan rohani. Setiap aktivitas fisik memiliki risiko cidera; dengan mendaftar, Anda memahami dan menanggung segala risiko yang mungkin terjadi.</p>
+        <p class="text-xs text-slate-500 italic">Data pribadi (usia, berat badan, hasil tes) hanya digunakan untuk analisis algoritma VDOT.</p>
+    </div>
 
-                    <p class="font-bold text-cyan-400">3. Komitmen Peserta</p>
-                    <p>Peserta diharapkan mengikuti jadwal latihan yang telah disusun (The Ladder) untuk hasil maksimal. Inkonsistensi latihan dapat mempengaruhi hasil akhir dan analisis performa.</p>
+    <div class="border-t border-slate-700/50"></div>
 
-                    <p class="font-bold text-cyan-400">4. Data Pribadi</p>
-                    <p>Data yang Anda masukkan (usia, berat badan, hasil tes lari) akan digunakan semata-mata untuk perhitungan algoritma VDOT dan personalisasi program latihan Anda.</p>
+    <div>
+        <p class="font-bold text-cyan-400 uppercase tracking-wider mb-2">3. Penentuan Pemenang (Fairness Policy)</p>
+        <p class="mb-2">Pemenang ditentukan berdasarkan <span class="text-green-400 font-bold">Total Poin Improvement</span> (Selisih PB Lama vs PB Baru), bukan siapa yang tercepat finish.</p>
+        
+        <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700 mb-3">
+            <p class="font-bold text-white text-xs mb-1">Syarat Validasi Data:</p>
+            <ul class="list-disc pl-4 space-y-1 text-xs text-slate-400">
+                <li>Wajib melampirkan <strong>Official Timing Result</strong> (Race 5K/10K/HM/FM) maksimal 1 bulan sebelum acara sebagai Baseline.</li>
+                <li>Final Test wajib dilakukan di Track Atletik/Rute Terukur yang valid.</li>
+            </ul>
+        </div>
 
-                    <div class="p-4 bg-slate-800 rounded border border-slate-700 mt-4">
-                        <p class="text-center text-slate-400 italic">Konten lengkap syarat dan ketentuan akan diperbarui secara berkala.</p>
-                    </div>
-                </div>
+        <p class="text-xs mb-2">Demi keadilan antara pelari Pemula vs Elite (Sub 20), kami menerapkan <strong>Sistem Koefisien (Multiplier)</strong>:</p>
+        
+        <div class="overflow-hidden rounded-lg border border-slate-700 bg-slate-900/50">
+            <table class="w-full text-xs text-left">
+                <thead class="bg-slate-800 text-cyan-400 uppercase font-bold">
+                    <tr>
+                        <th class="px-3 py-2">Baseline 5K</th>
+                        <th class="px-3 py-2 text-center">Difficulty</th>
+                        <th class="px-3 py-2 text-right">Point</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 text-slate-300">
+                    <tr class="hover:bg-white/5">
+                        <td class="px-3 py-2 font-mono text-green-400">&lt; 20 Menit</td>
+                        <td class="px-3 py-2 text-center">Hard</td>
+                        <td class="px-3 py-2 text-right font-bold text-white">x 4</td>
+                    </tr>
+                    <tr class="hover:bg-white/5">
+                        <td class="px-3 py-2 font-mono text-blue-400">20 - 25 Menit</td>
+                        <td class="px-3 py-2 text-center">Medium</td>
+                        <td class="px-3 py-2 text-right font-bold text-white">x 2</td>
+                    </tr>
+                    <tr class="hover:bg-white/5">
+                        <td class="px-3 py-2 font-mono text-yellow-400">25 - 30 Menit</td>
+                        <td class="px-3 py-2 text-center">Normal</td>
+                        <td class="px-3 py-2 text-right font-bold text-white">x 1.2</td>
+                    </tr>
+                    <tr class="hover:bg-white/5">
+                        <td class="px-3 py-2 font-mono text-slate-400">&gt; 30 Menit</td>
+                        <td class="px-3 py-2 text-center">Beginner</td>
+                        <td class="px-3 py-2 text-right font-bold text-white">x 1</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-gradient-to-r from-slate-800 to-slate-900 p-4 rounded-lg border border-cyan-900/50 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-cyan-500/10 blur-xl rounded-full group-hover:bg-cyan-500/20 transition-all"></div>
+        
+        <p class="font-bold text-cyan-400 uppercase tracking-wider mb-3 relative z-10 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>
+            Rewards & Podium
+        </p>
+        
+        <div class="grid grid-cols-2 gap-4 text-center relative z-10">
+            <div>
+                <p class="text-3xl font-black text-white">5</p>
+                <p class="text-[10px] uppercase text-slate-400 tracking-widest">Pemenang Pria</p>
+            </div>
+            <div>
+                <p class="text-3xl font-black text-white">5</p>
+                <p class="text-[10px] uppercase text-slate-400 tracking-widest">Pemenang Wanita</p>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-white/10 text-center relative z-10">
+            <p class="text-sm font-medium text-slate-300">Setiap pemenang mendapatkan:</p>
+            <p class="text-lg font-bold text-green-400 mt-1">Uang Tunai + Voucher 250K</p>
+            <p class="text-xs text-slate-500 mt-1">Belanja di RuangLari Store</p>
+        </div>
+    </div>
+
+</div>
 
                 <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end">
                     <button @click="showTermsModal = false" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors font-bold">
@@ -283,10 +364,15 @@
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
                     Kami tidak menjual mimpi. Kami menghitung <span class="text-cyan-400 font-bold">Gap</span>, menganalisis <span class="text-cyan-400 font-bold">Realita</span>, dan membangun <span class="text-purple-400 font-bold">Tangga Progresi</span> (Ladder) khusus untuk fisiologis Anda.
                 </p>
+                <button @click.prevent="showTermsModal = true" class="group relative px-8 py-4 bg-red-500 hover:bg-red-400 text-slate-900 font-bold text-lg rounded-sm transition-all shadow-neon-red hover:scale-105">
+                    <span class="relative z-10">SYARAT KETENTUAN</span>
+                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                </button><br/><br/>
                 <button @click="startAssessment" class="group relative px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-lg rounded-sm transition-all shadow-neon-cyan hover:scale-105">
                     <span class="relative z-10">AUDIT PERFORMA SEKARANG</span>
                     <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
                 </button>
+                
                 
                 <div v-if="hasSavedProgram" class="mt-6">
                     <button @click="loadSavedProgram" class="text-cyan-400 hover:text-white underline text-sm flex items-center justify-center gap-2 mx-auto">
