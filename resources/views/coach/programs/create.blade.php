@@ -223,6 +223,8 @@
                                 :key="session._id"
                                 class="p-2 rounded-lg cursor-pointer hover:brightness-110 transition text-xs shadow-lg relative z-10"
                                 :style="{ backgroundColor: getSessionColor(session.type), borderLeft: '3px solid rgba(255,255,255,0.3)' }"
+                                draggable="true"
+                                @dragstart="handleSessionDragStart($event, session)"
                                 @click.stop="openBuilderEdit(session)">
                                 <div class="font-bold text-white truncate">@{{ session.title || session.type }}</div>
                                 <div class="text-white/70">@{{ session.distance }} km</div>
@@ -1061,6 +1063,17 @@ createApp({
         
 
         // Update handleDrop to read dataTransfer
+        const handleSessionDragStart = (event, session) => {
+            const data = {
+                mode: 'move',
+                _id: session._id,
+                type: session.type,
+                title: session.title
+            };
+            event.dataTransfer.setData('json', JSON.stringify(data));
+            event.dataTransfer.effectAllowed = 'move';
+        };
+
         const handleDrop = (event, day) => {
             try {
                 const jsonStr = event.dataTransfer.getData('json');
@@ -1068,21 +1081,28 @@ createApp({
                     const data = JSON.parse(jsonStr);
                     const absDay = getAbsDay(currentWeek.value, day);
                     
-                    console.log('Dropping workout:', data, 'to day:', absDay);
-
-                    // Add new (Allow multiple per day)
-                    const newSession = {
-                        _id: generateId(),
-                        day: absDay,
-                        type: data.type,
-                        title: data.title,
-                        distance: parseFloat(data.distance) || 0,
-                        description: data.description || '',
-                        duration: data.duration || ''
-                    };
-                    
-                    form.sessions.push(newSession);
-                    console.log('Session added. Total sessions:', form.sessions.length);
+                    if (data.mode === 'move' && data._id) {
+                        // Move existing session
+                        const sessionIndex = form.sessions.findIndex(s => s._id === data._id);
+                        if (sessionIndex !== -1) {
+                            form.sessions[sessionIndex].day = absDay;
+                            console.log('Session moved to day:', absDay);
+                        }
+                    } else {
+                        // Add new session (existing logic)
+                        console.log('Dropping new workout:', data, 'to day:', absDay);
+                        const newSession = {
+                            _id: generateId(),
+                            day: absDay,
+                            type: data.type,
+                            title: data.title,
+                            distance: parseFloat(data.distance) || 0,
+                            description: data.description || '',
+                            duration: data.duration || ''
+                        };
+                        form.sessions.push(newSession);
+                        console.log('Session added. Total sessions:', form.sessions.length);
+                    }
                 }
             } catch (e) {
                 console.error('Invalid drop data or error in handleDrop:', e);
@@ -1261,7 +1281,7 @@ createApp({
 
         return { 
             form, saving, currentWeek, activeTab, totalVolume, 
-            getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleDragStart,
+            getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleDragStart, handleSessionDragStart,
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
             deleteWorkout, builderIsEditing, builderSessionId,
             copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
