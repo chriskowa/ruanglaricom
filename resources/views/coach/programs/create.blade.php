@@ -226,8 +226,20 @@
                                 draggable="true"
                                 @dragstart="handleSessionDragStart($event, session)"
                                 @click.stop="openBuilderEdit(session)">
-                                <div class="font-bold text-white truncate">@{{ session.title || session.type }}</div>
-                                <div class="text-white/70">@{{ session.distance }} km</div>
+                            <div class="flex justify-between items-start">
+                                <div class="font-bold text-white truncate pr-2">@{{ session.title || session.type }}</div>
+                                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                                    <button type="button" class="text-white/70 hover:text-white" 
+                                            @click.stop="duplicateWorkout(session._id)" title="Duplicate">
+                                        <i class="fa-solid fa-copy"></i>
+                                    </button>
+                                    <button type="button" class="text-white/70 hover:text-white" 
+                                            @click.stop="deleteWorkout(session._id)" title="Delete">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-white/70">@{{ session.distance }} km</div>
                             </div>
                         </template>
                         
@@ -873,6 +885,15 @@ createApp({
 
         const closeBuilder = () => { builderVisible.value = false; };
 
+        const duplicateWorkout = (sessionId) => {
+            const session = form.sessions.find(s => s._id === sessionId);
+            if (session) {
+                const newSession = JSON.parse(JSON.stringify(session));
+                newSession._id = generateId();
+                form.sessions.push(newSession);
+            }
+        };
+
         const deleteWorkout = (sessionId) => {
             if (!confirm('Are you sure you want to delete this workout?')) {
                 return;
@@ -1283,7 +1304,7 @@ createApp({
             form, saving, currentWeek, activeTab, totalVolume, 
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleDragStart, handleSessionDragStart,
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
-            deleteWorkout, builderIsEditing, builderSessionId,
+            deleteWorkout, duplicateWorkout, builderIsEditing, builderSessionId,
             copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes,
             masterWorkouts

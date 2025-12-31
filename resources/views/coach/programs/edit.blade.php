@@ -232,10 +232,16 @@
                                 @click.stop="openBuilderEdit(session)">
                                 <div class="flex justify-between items-start">
                                     <div class="font-bold text-white truncate pr-2">@{{ session.title || session.type }}</div>
-                                    <button type="button" class="text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition" 
-                                            @click.stop="deleteWorkout(session._id)">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
+                                    <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                                        <button type="button" class="text-white/70 hover:text-white" 
+                                                @click.stop="duplicateWorkout(session._id)" title="Duplicate">
+                                            <i class="fa-solid fa-copy"></i>
+                                        </button>
+                                        <button type="button" class="text-white/70 hover:text-white" 
+                                                @click.stop="deleteWorkout(session._id)" title="Delete">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="text-white/70">@{{ session.distance }} km</div>
                             </div>
@@ -1293,6 +1299,15 @@ createApp({
             }
         };
 
+        const duplicateWorkout = (sessionId) => {
+            const session = form.sessions.find(s => s._id === sessionId);
+            if (session) {
+                const newSession = JSON.parse(JSON.stringify(session));
+                newSession._id = generateId();
+                form.sessions.push(newSession);
+            }
+        };
+
         const deleteWorkout = (sessionId) => {
             if (!confirm('Are you sure you want to delete this workout?')) {
                 return;
@@ -1320,7 +1335,7 @@ createApp({
             copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes, masterWorkouts,
             cwForm, cwSummary, cwTotalDistance,
-            handleDragStart, handleSessionDragStart, strengthOptions, addStrengthExercise, removeStrengthExercise, deleteWorkout
+            handleDragStart, handleSessionDragStart, strengthOptions, addStrengthExercise, removeStrengthExercise, deleteWorkout, duplicateWorkout
         };
     }
 }).mount('#program-builder-app');
