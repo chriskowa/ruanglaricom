@@ -461,7 +461,6 @@
                             <div>
                                 <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase">Jarak Tes</label>
                                 <select v-model="form.latestDistance" class="w-full p-4 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-cyan-400 outline-none">
-                                    <option value="3">3 Kilometer</option>
                                     <option value="5">5 Kilometer</option>
                                     <option value="10">10 Kilometer</option>
                                     <option value="21.1">Half Marathon</option>
@@ -793,7 +792,7 @@
                 age: '',
                 gender: 'Pria',
                 childhood: '',
-                latestDistance: '10', // Default 10K
+                latestDistance: '5', // Default 10K
                 timeMin: '',
                 timeSec: '',
                 weeklyVolume: '',
