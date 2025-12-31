@@ -41,6 +41,7 @@ class ChallengeController extends Controller
             'pb_5km' => 'nullable|string',
             'strava_url' => 'nullable|url',
             'avatar' => 'nullable|image|max:2048', // Max 2MB
+            'valid_proof' => 'required|image|max:2048', // Bukti Valid 5K
             'terms_agreed' => 'required|accepted',
         ]);
 
@@ -69,6 +70,13 @@ class ChallengeController extends Controller
             $avatarPath = '/storage/' . $path;
         }
 
+        // Handle Valid Proof (Banner)
+        $bannerPath = null;
+        if($request->hasFile('valid_proof')){
+            $path = $request->file('valid_proof')->store('proofs', 'public');
+            $bannerPath = '/storage/' . $path;
+        }
+
         // 5. Check for existing user
         $user = User::where('email', $data['email'])->first();
         
@@ -86,6 +94,9 @@ class ChallengeController extends Controller
 
         if($avatarPath) {
             $userData['avatar'] = $avatarPath;
+        }
+        if($bannerPath) {
+            $userData['banner'] = $bannerPath;
         }
 
         if ($user) {

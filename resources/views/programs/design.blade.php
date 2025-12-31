@@ -150,6 +150,12 @@
                     </div>
 
                     <div>
+                        <label class="block text-xs font-mono text-cyan-400 mb-1">Bukti Valid 5K (Required)</label>
+                        <input type="file" @change="(e) => handleFileUpload(e, 'valid_proof')" accept="image/*" class="w-full p-2 rounded bg-slate-800 border border-slate-600 text-white text-xs file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-cyan-500 file:text-slate-900 hover:file:bg-cyan-400">
+                        <p class="text-[10px] text-slate-400 mt-1">*Screenshot hasil lari 5K terbaik / Race Result.</p>
+                    </div>
+
+                    <div>
                         <label class="block text-xs font-mono text-cyan-400 mb-1">Link Profil Strava (Opsional)</label>
                         <input v-model="registerForm.strava_url" type="url" placeholder="https://www.strava.com/athletes/..." class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
                     </div>
@@ -1085,13 +1091,14 @@
                 pb_5km: '',
                 strava_url: '',
                 terms_agreed: false,
-                avatar: null
+                avatar: null,
+                valid_proof: null
             });
 
-            const handleFileUpload = (event) => {
+            const handleFileUpload = (event, field = 'avatar') => {
                 const file = event.target.files[0];
                 if (file) {
-                    registerForm.avatar = file;
+                    registerForm[field] = file;
                 }
             };
 
@@ -1144,6 +1151,12 @@
                     alert('Mohon lengkapi semua data dan setujui syarat & ketentuan.');
                     return;
                 }
+                
+                if(!registerForm.valid_proof) {
+                    alert('Wajib upload bukti valid 5K (Screenshot hasil lari/race result).');
+                    return;
+                }
+
                 isSubmitting.value = true;
                 try {
                     const formData = new FormData();
@@ -1158,6 +1171,9 @@
                     
                     if(registerForm.avatar) {
                         formData.append('avatar', registerForm.avatar);
+                    }
+                    if(registerForm.valid_proof) {
+                        formData.append('valid_proof', registerForm.valid_proof);
                     }
 
                     const res = await fetch('{{ route("challenge.send-otp") }}', {
