@@ -246,7 +246,7 @@
         <p class="font-bold text-cyan-400 uppercase tracking-wider mb-2">1. Mekanisme Virtual Challenge</p>
         <ul class="list-disc pl-5 space-y-1 text-slate-400">
             <li><strong class="text-white">Semua Level Pelari:</strong> Terbuka untuk umum, dari pemula hingga elite.</li>
-            <li><strong class="text-white">Wajib Join Club:</strong> Peserta harus bergabung di Strava Club "Ruang Lari".</li>
+            <li><strong class="text-white">Wajib Join Club:</strong> Peserta harus bergabung di Strava Club <a href="https://www.strava.com/clubs/1859982" target="_blank">"Ruang Lari"</a>.</li>
             <li><strong class="text-white">Konsistensi 40 Hari:</strong> Peserta wajib menjaga konsistensi latihan selama periode challenge.</li>
             <li><strong class="text-white">Activity Submission:</strong> Wajib melakukan submit/sync aktivitas lari ke dashboard akun RuangLari.com.</li>
             <li><strong class="text-white">Running Program:</strong> Ruang Lari menyediakan platform program latihan terstruktur (opsional namun sangat disarankan untuk hasil maksimal).</li>
