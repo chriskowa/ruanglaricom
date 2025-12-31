@@ -122,7 +122,7 @@
 
     <!-- Register Modal -->
     <transition name="fade">
-        <div v-if="showRegisterModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div v-if="showRegisterModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 overflow-y-auto">
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="!isSubmitting && (showRegisterModal = false)"></div>
             <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
                 <h3 class="text-2xl font-bold text-white mb-4">Daftar Challenge</h3>
