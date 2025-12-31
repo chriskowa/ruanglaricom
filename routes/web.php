@@ -185,6 +185,17 @@ Route::get('/api/events/upcoming', function () {
     }
 })->name('api.events.upcoming');
 
+// Public API: Cyberpunk Leaderboard (40days)
+Route::get('/api/leaderboard/40days', [\App\Http\Controllers\LeaderboardController::class, 'index'])
+    ->name('api.leaderboard.40days');
+Route::get('/api/club/members', [\App\Http\Controllers\LeaderboardController::class, 'clubMembers'])
+    ->name('api.club.members');
+
+// Leaderboard UI
+Route::get('/leaderboard/40days', function () {
+    return view('leaderboard.cyberpunk');
+})->name('leaderboard.cyberpunk');
+
 // Auth routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [App\Http\Controllers\Auth\AuthController::class, 'showLogin'])->name('login');
@@ -254,6 +265,10 @@ Route::middleware('auth')->group(function () {
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/leaderboard/sync', function () {
+            Illuminate\Support\Facades\Artisan::call('leaderboard:sync');
+            return response()->json(['ok' => true]);
+        })->name('leaderboard.sync');
     });
 
     // Runner routes

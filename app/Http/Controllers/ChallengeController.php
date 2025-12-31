@@ -123,7 +123,7 @@ class ChallengeController extends Controller
             'used' => false,
         ]);
 
-        \App\Helpers\WhatsApp::send($data['whatsapp'], 'Kode OTP 40 Days Challenge: '.$code.' (berlaku 10 menit)');
+        \App\Helpers\WhatsApp::send($data['whatsapp'], 'Kode OTP 40 Days Challenge: '.$code.' (berlaku 10 menit) Gabung Grup Untuk Pengumuman https://chat.whatsapp.com/Ht9mz3P3Tje9xGBpl73Htg');
 
         return response()->json([
             'success' => true,

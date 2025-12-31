@@ -66,6 +66,37 @@
         
         .fade-enter-active, .fade-leave-active { transition: opacity 0.4s ease, transform 0.4s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(10px); }
+
+        .overlay-card {
+            animation: glowPulse 2.5s ease-in-out infinite;
+        }
+        .cta-join {
+            animation: glowPulse 2s ease-in-out infinite, bump 3.5s ease-in-out infinite;
+        }
+        .bubble {
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(8px);
+            opacity: 0.18;
+            animation: floatY 6s ease-in-out infinite;
+        }
+        .bubble.b1 { width: 80px; height: 80px; background: #06b6d4; top: -18px; left: -18px; animation-duration: 7s; }
+        .bubble.b2 { width: 120px; height: 120px; background: #a855f7; bottom: -22px; right: -22px; animation-duration: 8s; }
+        .bubble.b3 { width: 60px; height: 60px; background: #22c55e; top: 30%; right: -18px; animation-duration: 6s; }
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 0px rgba(6,182,212,0.0), 0 0 0px rgba(168,85,247,0.0); }
+            50% { box-shadow: 0 0 20px rgba(6,182,212,0.35), 0 0 35px rgba(168,85,247,0.25); }
+            100% { box-shadow: 0 0 0px rgba(6,182,212,0.0), 0 0 0px rgba(168,85,247,0.0); }
+        }
+        @keyframes floatY {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes bump {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
     </style>
 @endpush
 
@@ -202,12 +233,12 @@
                 <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400">
                     40 DAYS RUNNING <br> CHALLENGE 
                 </h1>
-                <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-700 to-red-900">
-                    DESIGNED BY 
+                <h4 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-700 to-red-900">
+                    DESIGNED BY VDOT, IMPROVED BY 
                     <a href="{{ url('/runner/coach-budi') }}" target="_blank" class="text-red-300 hover:text-red-100">
-                        RAKA WAHYU PRAYOGA
+                        RAKA WP
                     </a>
-                </h3>
+                </h4>
 
 
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -565,16 +596,25 @@
                                 </div>
                             </div>
 
-                            <!-- Join Overlay -->
-                            <div v-if="CHALLENGE_MODE" class="absolute inset-0 z-10 flex items-top justify-center">
-                                <div class="fixed top-40 left-50 -translate-x-50 w-full z-50 bg-slate-900/90 backdrop-blur-xl border border-slate-700 h-[250px] rounded-2xl p-8 text-center max-w-md w-full mx-4 shadow-2xl">
-                                    <h3 class="text-white font-black text-2xl mb-2">Join 40 Days Challenge</h3>
-                                    <p class="text-slate-400 text-sm mb-6">Blueprint latihan disembunyikan. Gabung untuk mengakses kalender latihan.</p>
-
-                                    <button @click="joinChallenge" class="animate-breath px-6 py-3 rounded-xl bg-neon text-white font-black hover:bg-white hover:text-slate-900 transition-all shadow-neon-cyan">
-                                        JOIN CHALLENGE?
-                                    </button><br/><br/>
-                                    <button @click="resetForm" class="text-slate-400 hover:text-white text-sm underline">Reset Data</button>
+                            <div v-if="CHALLENGE_MODE" class="fixed inset-0 z-[60] flex items-center justify-center">
+                                <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+                                <div class="relative bg-slate-900/90 border border-cyan-700/40 rounded-2xl p-8 w-full max-w-md mx-4 overlay-card">
+                                    <span class="bubble b1"></span>
+                                    <span class="bubble b2"></span>
+                                    <span class="bubble b3"></span>
+                                    <div class="text-center">
+                                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-900/30 border border-cyan-700 text-cyan-300 text-[10px] font-mono uppercase mb-3">
+                                            Ready To Level Up
+                                        </div>
+                                        <h3 class="text-white font-black text-2xl mb-2">Join 40 Days Challenge</h3>
+                                        <p class="text-slate-400 text-sm mb-6">Blueprint latihan disembunyikan. Gabung untuk mengakses kalender latihan.</p>
+                                        <button @click="joinChallenge" class="cta-join px-6 py-3 rounded-xl bg-cyan-500 text-slate-900 font-black hover:bg-cyan-400 transition-all shadow-neon-cyan w-full">
+                                            JOIN SEKARANG
+                                        </button>
+                                        <div class="mt-4">
+                                            <button @click="resetForm" class="text-slate-400 hover:text-white text-xs underline">Reset Data</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class StravaClubService
 {
@@ -14,6 +17,11 @@ class StravaClubService
     {
         // Cache for 30 minutes to avoid hitting rate limits
         return Cache::remember('strava_club_leaderboard', 1800, function () {
+            $envToken = env('STRAVA_ACCESS_TOKEN');
+            if (!empty($envToken)) {
+                $activities = $this->fetchClubActivitiesByEnv();
+                return $this->processLeaderboard($activities);
+            }
             return $this->fetchClubActivities();
         });
     }
@@ -59,6 +67,22 @@ class StravaClubService
 
         $activities = $response->json();
         return $this->processLeaderboard($activities);
+    }
+
+    public function fetchClubActivitiesByEnv(): array
+    {
+        $clubId = env('STRAVA_CLUB_ID', $this->clubId);
+        $token = env('STRAVA_ACCESS_TOKEN');
+        if (!$token) {
+            return [];
+        }
+        $response = Http::withToken($token)
+            ->withoutVerifying()
+            ->get("https://www.strava.com/api/v3/clubs/{$clubId}/activities", ['per_page' => 200]);
+        if ($response->failed()) {
+            return [];
+        }
+        return $response->json() ?: [];
     }
 
     private function getValidToken($user)
@@ -129,18 +153,28 @@ class StravaClubService
             }
 
             // Sum Distance (meters to km)
-            $athletes[$athleteName]['distance'] += ($activity['distance'] / 1000);
+            $distanceMeters = (float)($activity['distance'] ?? 0);
+            $athletes[$athleteName]['distance'] += ($distanceMeters > 0 ? $distanceMeters / 1000 : 0);
             
             // Sum Elevation (meters)
-            $athletes[$athleteName]['elevation'] += $activity['total_elevation_gain'];
+            $elevationGain = (float)($activity['total_elevation_gain'] ?? 0);
+            $athletes[$athleteName]['elevation'] += $elevationGain;
             
             // Track Fastest Pace (min/km)
             // Strava gives speed in m/s. Pace = 1000 / (speed * 60)
-            if ($activity['average_speed'] > 0) {
-                $pace = (1000 / $activity['average_speed']) / 60;
-                if ($pace < $athletes[$athleteName]['fastest_pace']) {
-                    $athletes[$athleteName]['fastest_pace'] = $pace;
+            $avgSpeed = isset($activity['average_speed']) ? (float)$activity['average_speed'] : null;
+            $pace = null;
+            if ($avgSpeed && $avgSpeed > 0) {
+                $pace = (1000 / $avgSpeed) / 60;
+            } elseif ($distanceMeters > 0) {
+                $movingTime = (int)($activity['moving_time'] ?? 0);
+                if ($movingTime > 0) {
+                    // Pace (min/km) = moving_time (sec) / (distance_km) / 60
+                    $pace = ($movingTime / ($distanceMeters / 1000)) / 60;
                 }
+            }
+            if ($pace !== null && $pace < $athletes[$athleteName]['fastest_pace']) {
+                $athletes[$athleteName]['fastest_pace'] = $pace;
             }
         }
 
@@ -179,5 +213,113 @@ class StravaClubService
         $minutes = floor($decimalMinutes);
         $seconds = round(($decimalMinutes - $minutes) * 60);
         return sprintf('%d:%02d', $minutes, $seconds);
+    }
+
+    public function getClubMembers(): array
+    {
+        return \Illuminate\Support\Facades\Cache::remember('strava_club_members', 1800, function () {
+            // Prefer ENV access token if provided (useful for server-side/system token)
+            $envToken = env('STRAVA_ACCESS_TOKEN');
+            if (!empty($envToken)) {
+                return $this->fetchClubMembersByEnv();
+            }
+            return $this->fetchClubMembers();
+        });
+    }
+
+    private function fetchClubMembers(): array
+    {
+        $admin = \App\Models\User::whereNotNull('strava_access_token')->first();
+        
+        // If no admin or token found, use Mock Data in local/dev environment
+        if (!$admin) {
+            return $this->getMockMembers();
+        }
+
+        $accessToken = $this->getValidToken($admin);
+        if (!$accessToken) {
+            return $this->getMockMembers();
+        }
+
+        $response = \Illuminate\Support\Facades\Http::withToken($accessToken)
+            ->withoutVerifying()
+            ->get("https://www.strava.com/api/v3/clubs/{$this->clubId}/members", ['per_page' => 200]);
+
+        if ($response->failed()) {
+            return $this->getMockMembers();
+        }
+
+        $members = $response->json() ?: [];
+        return array_map(function ($m) {
+            $name = trim(($m['firstname'] ?? '') . ' ' . ($m['lastname'] ?? ''));
+            return [
+                'id' => $m['id'] ?? null,
+                'name' => $name !== '' ? $name : ($m['username'] ?? 'Unknown'),
+                'avatar' => $m['profile'] ?? ($m['profile_medium'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($name)),
+                'gender' => strtoupper(($m['sex'] ?? '')) === 'F' ? 'F' : 'M',
+                'city' => $m['city'] ?? null,
+                'state' => $m['state'] ?? null,
+                'country' => $m['country'] ?? null,
+            ];
+        }, $members);
+    }
+
+    private function fetchClubMembersByEnv(): array
+    {
+        $clubId = env('STRAVA_CLUB_ID', $this->clubId);
+        $token = env('STRAVA_ACCESS_TOKEN');
+        if (empty($token)) {
+            return $this->getMockMembers();
+        }
+        $response = \Illuminate\Support\Facades\Http::withToken($token)
+            ->withoutVerifying()
+            ->get("https://www.strava.com/api/v3/clubs/{$clubId}/members", ['per_page' => 200]);
+        if ($response->failed()) {
+            return $this->getMockMembers();
+        }
+        $members = $response->json() ?: [];
+        return array_map(function ($m) {
+            $name = trim(($m['firstname'] ?? '') . ' ' . ($m['lastname'] ?? ''));
+            return [
+                'id' => $m['id'] ?? null,
+                'name' => $name !== '' ? $name : ($m['username'] ?? 'Unknown'),
+                'avatar' => $m['profile'] ?? ($m['profile_medium'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($name)),
+                'gender' => strtoupper(($m['sex'] ?? '')) === 'F' ? 'F' : 'M',
+                'city' => $m['city'] ?? null,
+                'state' => $m['state'] ?? null,
+                'country' => $m['country'] ?? null,
+            ];
+        }, $members);
+    }
+
+    private function getMockMembers(): array
+    {
+        // Return mock data for development/testing when no Strava connection exists
+        $mockNames = [
+            ['Sarah Connor', 'F', 'Los Angeles', 'CA'], 
+            ['John Wick', 'M', 'New York', 'NY'],
+            ['Ellen Ripley', 'F', 'Nostromo', 'Space'],
+            ['Neo Anderson', 'M', 'Mega City', 'Matrix'],
+            ['Trinity', 'F', 'Zion', 'Matrix'],
+            ['Forrest Gump', 'M', 'Greenbow', 'Alabama'],
+            ['Lara Croft', 'F', 'London', 'UK'],
+            ['Bruce Wayne', 'M', 'Gotham', 'NJ'],
+            ['Diana Prince', 'F', 'Themyscira', 'Greece'],
+            ['Tony Stark', 'M', 'Malibu', 'CA']
+        ];
+
+        $members = [];
+        foreach ($mockNames as $idx => $data) {
+            $members[] = [
+                'id' => 1000 + $idx,
+                'name' => $data[0],
+                'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($data[0]) . '&background=random',
+                'gender' => $data[1],
+                'city' => $data[2],
+                'state' => $data[3],
+                'country' => 'USA',
+            ];
+        }
+        return $members;
     }
 }

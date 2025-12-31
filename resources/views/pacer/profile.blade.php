@@ -14,7 +14,7 @@
 
 @section('content')
 
-    <div class="relative h-64 md:h-80 w-full rounded-b-3xl overflow-hidden group">
+    <div class="absolute h-64 md:h-80 w-full rounded-b-3xl overflow-hidden group">
         <div class="absolute inset-0 bg-slate-900">
             @if($pacer->user->banner)
                 <img src="{{ asset('storage/' . $pacer->user->banner) }}" alt="Banner" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700">
@@ -36,8 +36,8 @@
 
     <main class="relative z-10 pt-24 pb-10 px-4 max-w-4xl mx-auto">
         <div class="bg-card border border-slate-700 rounded-3xl overflow-hidden shadow-2xl mb-6 relative group">
-            <div class="h-32 bg-slate-800 relative overflow-hidden"><div class="absolute inset-0 opacity-30 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center"></div><div class="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div></div>
-            <div class="px-6 pb-6 relative flex flex-col md:flex-row items-start md:items-end gap-6">
+            <div class="h-32 w-full bg-slate-800 absolute overflow-hidden"><div class="absolute inset-0 opacity-30 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center"></div><div class="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div></div>
+            <div class="px-6 pb-6 pt-6 relative flex flex-col md:flex-row items-center md:items-end gap-6">
                 <div class="relative">
                     <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-card shadow-xl bg-slate-700">
                         <img loading="lazy" decoding="async" src="{{ $pacer->user->avatar ? (str_starts_with($pacer->user->avatar, 'http') ? $pacer->user->avatar : (str_starts_with($pacer->user->avatar, '/storage') ? asset(ltrim($pacer->user->avatar, '/')) : asset('storage/' . $pacer->user->avatar))) : ($pacer->user->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg')) }}" class="w-full h-full object-cover">
@@ -66,8 +66,8 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="hidden md:flex gap-3 mt-4 md:mt-0">
-                            <a href="{{ route('pacer.index') }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                        <div class="md:flex gap-3 mt-4 md:mt-0">
+                            <a href="{{ route('pacer.index') }}" class="hidden md:flex px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                                 Back to List
                             </a>
@@ -75,9 +75,7 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                 Save Contact
                             </button>
-                            <button id="btnShareProfile" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition">
-                                Share
-                            </button>
+                            <button id="btnShareProfile" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2 text-white"> <i class="fas fa-share-alt"></i> <!-- icon share --> <span>Share</span> </button>
                         </div>
                     </div>
                 </div>
