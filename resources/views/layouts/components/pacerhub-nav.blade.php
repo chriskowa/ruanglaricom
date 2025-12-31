@@ -168,12 +168,21 @@
 
 <div id="mobile-menu-panel" class="md:hidden hidden fixed top-20 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-b-2xl shadow-2xl">
     <div class="p-3 grid grid-cols-1 gap-1">
-        <a href="{{ url('programs') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Programs</a>
-        <a href="{{ url('coaches') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Coach</a>
-        <a href="{{ url('runcalendar') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Calendar</a>
-        <a href="{{ url('pacers') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Pacers</a>
-        <a href="{{ route('pacer.register') }}" class="px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors font-medium pl-8 text-sm">Register as Pacer</a>
-        <a href="{{ url('challenge') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Challenge</a>
+        <a href="{{ route('programs.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Programs</a>
+        <a href="{{ route('coaches.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Coach</a>
+        <a href="{{ route('calendar.public') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Calendar</a>
+        
+        <div class="px-3 py-2">
+            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Pacers</div>
+            <a href="{{ route('pacer.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Find Pacers</a>
+            <a href="{{ route('pacer.register') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Register Pacer</a>
+        </div>
+
+        <div class="px-3 py-2">
+            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Challenge</div>
+            <a href="{{ route('challenge.40days') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">40 Days Challenge</a>
+            <a href="{{ route('leaderboard.cyberpunk') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Leaderboard</a>
+        </div>
     </div>
 </div>
 
@@ -186,7 +195,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggles = [
         { btn: 'nav-bell-btn', menu: 'nav-bell-dropdown' },
         { btn: 'user-menu-btn', menu: 'user-menu-dropdown' },
-        { btn: 'nav-pacers-btn', menu: 'nav-pacers-dropdown' }
+        { btn: 'nav-pacers-btn', menu: 'nav-pacers-dropdown' },
+        { btn: 'nav-challenge-btn', menu: 'nav-challenge-dropdown' }
     ];
 
     toggles.forEach(toggle => {
@@ -361,19 +371,29 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('focus', fetchCartCount);
     }
 
-    const mobileToggle = document.getElementById('mobile-menu-toggle');
-    const mobilePanel = document.getElementById('mobile-menu-panel');
-    function closeMobile(){ if(mobilePanel) mobilePanel.classList.add('hidden'); }
-    function toggleMobile(){ if(!mobilePanel) return; mobilePanel.classList.toggle('hidden'); }
-    if(mobileToggle){
-        mobileToggle.addEventListener('click', function(e){ e.stopPropagation(); toggleMobile(); });
-        document.addEventListener('click', function(e){
-            if(mobilePanel && !mobilePanel.classList.contains('hidden')){
-                closeMobile();
-            }
+    // Mobile Menu Toggle
+    const mobileBtn = document.getElementById('mobile-menu-toggle') || document.getElementById('ph-sidebar-toggle');
+    const mobileMenu = document.getElementById('mobile-menu-panel');
+    const mobileMenuLinks = mobileMenu ? mobileMenu.querySelectorAll('a') : [];
+
+    if (mobileBtn && mobileMenu) {
+        mobileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mobileMenu.classList.toggle('hidden');
         });
-        document.addEventListener('keydown', function(e){
-            if(e.key === 'Escape') closeMobile();
+        
+        // Close when clicking a link
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+        
+        // Close on click outside
+        document.addEventListener('click', (e) => {
+             if (!mobileMenu.classList.contains('hidden') && !mobileMenu.contains(e.target) && !mobileBtn.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+            }
         });
     }
 });
