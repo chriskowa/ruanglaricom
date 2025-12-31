@@ -145,6 +145,9 @@ Route::get('/programs/{slug}', [App\Http\Controllers\PublicProgramController::cl
 // Public Coach Listing
 Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');
 
+// Newsletter
+Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'store'])->name('newsletter.subscribe');
+
 // Public race results API (must be before /events/{slug} to avoid route conflict)
 Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultController::class, 'index'])
     ->where('slug', '[a-z0-9\-]+')

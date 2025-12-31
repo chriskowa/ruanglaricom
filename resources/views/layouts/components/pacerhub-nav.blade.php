@@ -2,7 +2,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="flex items-center justify-between h-20">
             <!-- Left Side: Logo -->
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 pl-2">
                 <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
                 <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" class="text-2xl font-black italic tracking-tighter flex items-center">
                     RUANG<span class="text-primary">LARI</span>
@@ -10,22 +10,39 @@
             </div>
             @guest
             <div class="flex-1 hidden md:flex items-center justify-center gap-1">
-                <a href="{{ url('programs') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Programs</a>
-                <a href="{{ url('coaches') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Coach</a>
-                <a href="{{ url('runcalendar') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Calendar</a>
+                <a href="{{ route('programs.index') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Programs</a>
+                <a href="{{ route('coaches.index') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Coach</a>
+                <a href="{{ route('calendar.public') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Calendar</a>
                 
                 <!-- Pacers Dropdown -->
                 <div class="relative">
                     <button id="nav-pacers-btn" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none">
-                        Challenge
+                        Pacers
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     <div id="nav-pacers-dropdown" class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl hidden transform transition-all origin-top-left z-50">
                         <div class="p-1 space-y-1">
-                            <a href="{{ url('pacers') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                            <a href="{{ route('pacer.index') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
                                 Find Pacers
                             </a>
                             <a href="{{ route('pacer.register') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                                Register Pacer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <button id="nav-challenge-btn" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none">
+                        Challenge
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div id="nav-challenge-dropdown" class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl hidden transform transition-all origin-top-left z-50">
+                        <div class="p-1 space-y-1">
+                            <a href="{{ route('challenge.40days') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                                40 Days Running Challenge
+                            </a>
+                            <a href="{{ route('leaderboard.cyberpunk') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
                                 Leaderboard
                             </a>
                         </div>
@@ -131,7 +148,7 @@
                     <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors" title="Menu">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                     </button>
-                    <a href="{{ route('login') }}" class="text-sm font-bold text-slate-300 hover:text-white transition-colors">Login</a>
+                    <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-bold bg-neon text-dark rounded-xl hover:bg-lime-400 hover:shadow-lg hover:shadow-neon/20 transition-all transform hover:-translate-y-0.5">Login</a>
                     <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-bold bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors">Register</a>
                 </div>
                 @endauth
