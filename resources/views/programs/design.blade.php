@@ -157,7 +157,7 @@
                     <div class="flex items-start gap-2 pt-2">
                         <input v-model="registerForm.terms_agreed" type="checkbox" id="terms" class="mt-1">
                         <label for="terms" class="text-xs text-slate-400">
-                            Saya menyetujui <a href="#" class="text-cyan-400 hover:underline">Syarat & Ketentuan</a> yang berlaku dalam 40 Days Challenge ini.
+                            Saya menyetujui <a href="#" @click.prevent="showTermsModal = true" class="text-cyan-400 hover:underline">Syarat & Ketentuan</a> yang berlaku dalam 40 Days Challenge ini.
                         </label>
                     </div>
 
@@ -222,6 +222,45 @@
         </div>
     </transition>
 
+    <!-- Terms & Conditions Modal -->
+    <transition name="fade">
+        <div v-if="showTermsModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="showTermsModal = false"></div>
+            <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-2xl w-full shadow-2xl max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-4">
+                    <h3 class="text-xl font-bold text-white">Syarat & Ketentuan</h3>
+                    <button @click="showTermsModal = false" class="text-slate-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="overflow-y-auto pr-2 space-y-4 text-slate-300 text-sm leading-relaxed">
+                    <p class="font-bold text-cyan-400">1. Ketentuan Umum</p>
+                    <p>Program 40 Days Challenge adalah program latihan lari intensif yang dirancang untuk meningkatkan performa lari Anda. Peserta diharapkan dalam kondisi sehat jasmani dan rohani sebelum mengikuti program ini.</p>
+
+                    <p class="font-bold text-cyan-400">2. Risiko Cidera</p>
+                    <p>Setiap aktivitas fisik memiliki risiko cidera. Dengan mengikuti program ini, Anda memahami dan menanggung segala risiko yang mungkin terjadi selama latihan. Kami menyarankan konsultasi dengan dokter sebelum memulai program latihan intensitas tinggi.</p>
+
+                    <p class="font-bold text-cyan-400">3. Komitmen Peserta</p>
+                    <p>Peserta diharapkan mengikuti jadwal latihan yang telah disusun (The Ladder) untuk hasil maksimal. Inkonsistensi latihan dapat mempengaruhi hasil akhir dan analisis performa.</p>
+
+                    <p class="font-bold text-cyan-400">4. Data Pribadi</p>
+                    <p>Data yang Anda masukkan (usia, berat badan, hasil tes lari) akan digunakan semata-mata untuk perhitungan algoritma VDOT dan personalisasi program latihan Anda.</p>
+
+                    <div class="p-4 bg-slate-800 rounded border border-slate-700 mt-4">
+                        <p class="text-center text-slate-400 italic">Konten lengkap syarat dan ketentuan akan diperbarui secara berkala.</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+                    <button @click="showTermsModal = false" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors font-bold">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
+
     <main class="relative z-10 flex-grow flex flex-col justify-center items-center w-full">
         
         <transition name="fade" mode="out-in">
@@ -235,7 +274,7 @@
                 </h1>
                 <h4 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-700 to-red-900">
                     DESIGNED BY VDOT, IMPROVED BY 
-                    <a href="{{ url('/runner/coach-budi') }}" target="_blank" class="text-red-300 hover:text-red-100">
+                    <a href="{{ url('/runner/coach-raka') }}" target="_blank" class="text-red-300 hover:text-red-100">
                         RAKA WP
                     </a>
                 </h4>
@@ -947,6 +986,7 @@
             
             const showRegisterModal = ref(false);
             const showOtpModal = ref(false);
+            const showTermsModal = ref(false);
             const isSubmitting = ref(false);
             const otpCode = ref('');
             const userId = ref(null);
@@ -1099,7 +1139,7 @@
                 viewMode, selectedWorkout, hasSavedProgram,
                 loadSavedProgram, openWorkoutModal, joinChallenge, CHALLENGE_MODE,
                 // Registration
-                showRegisterModal, showOtpModal, isSubmitting, otpCode, registerForm, submitRegister, submitOtp, userId, handleFileUpload
+                showRegisterModal, showOtpModal, showTermsModal, isSubmitting, otpCode, registerForm, submitRegister, submitOtp, userId, handleFileUpload
             }
         }
     }).mount('#program-design-app')
