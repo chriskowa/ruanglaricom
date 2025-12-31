@@ -66,17 +66,28 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="md:flex gap-3 mt-4 md:mt-0">
-                            <a href="{{ route('pacer.index') }}" class="hidden md:flex px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        <div class="flex flex-col items-center gap-3 mt-4 md:mt-0 md:flex-row md:justify-start">
+                            <a href="{{ route('pacer.index') }}" 
+                            class="hidden md:flex px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                                </svg>
                                 Back to List
                             </a>
-                            <button id="btnSaveContact" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <button id="btnSaveContact" 
+                                    class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
                                 Save Contact
                             </button>
-                            <button id="btnShareProfile" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2 text-white"> <i class="fas fa-share-alt"></i> <!-- icon share --> <span>Share</span> </button>
+                            <button id="btnShareProfile" 
+                                    class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-sm font-bold transition flex items-center gap-2 text-white">
+                                <i class="fas fa-share-alt"></i>
+                                <span>Share</span>
+                            </button>
                         </div>
+
                     </div>
                 </div>
             </div>
