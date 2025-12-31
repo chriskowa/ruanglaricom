@@ -123,11 +123,11 @@
 
     <!-- Register Modal -->
     <transition name="fade">
-        <div v-if="showRegisterModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 overflow-y-auto">
+        <div v-if="showRegisterModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="!isSubmitting && (showRegisterModal = false)"></div>
-            <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
-                <h3 class="text-2xl font-bold text-white mb-4">Daftar Challenge</h3>
-                <div class="space-y-4">
+            <div class="relative bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full shadow-2xl flex flex-col max-h-[90vh]">
+                <h3 class="text-2xl font-bold text-white mb-4 flex-shrink-0">Daftar Challenge</h3>
+                <div class="space-y-4 overflow-y-auto custom-scroll pr-2">
                     <div>
                         <label class="block text-xs font-mono text-cyan-400 mb-1">Nama Lengkap</label>
                         <input v-model="registerForm.name" type="text" class="w-full p-3 rounded bg-slate-800 border border-slate-600 text-white focus:border-cyan-400 outline-none">
