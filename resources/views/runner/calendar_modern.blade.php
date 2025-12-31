@@ -15,6 +15,52 @@
 .fc-event.difficulty-moderate{border-left:4px solid #FF9800}
 .fc-event.difficulty-hard{border-left:4px solid #F44336}
 
+/* Workout Type Color Coding */
+/*.fc-event.workout-easy_run{border-left:4px solid #22c55e;background:linear-gradient(90deg, rgba(34,197,94,0.08) 0%, rgba(30,41,59,1) 100%)}
+.fc-event.workout-tempo{border-left:4px solid #f59e0b;background:linear-gradient(90deg, rgba(245,158,11,0.08) 0%, rgba(30,41,59,1) 100%)}
+.fc-event.workout-interval{border-left:4px solid #a855f7;background:linear-gradient(90deg, rgba(168,85,247,0.08) 0%, rgba(30,41,59,1) 100%)}
+.fc-event.workout-long_run{border-left:4px solid #eab308;background:linear-gradient(90deg, rgba(234,179,8,0.08) 0%, rgba(30,41,59,1) 100%)}
+.fc-event.workout-recovery{border-left:4px solid #06b6d4;background:linear-gradient(90deg, rgba(6,182,212,0.08) 0%, rgba(30,41,59,1) 100%)}
+.fc-event.workout-rest{border-left:4px solid #64748b;background:linear-gradient(90deg, rgba(100,116,139,0.08) 0%, rgba(30,41,59,1) 100%)}*/
+/* Workout Type Color Coding (Solid Background) */
+/* Workout Type Color Coding (Solid + Font White for Easy & Strength) */
+.fc-event.workout-easy_run {
+  border-left: 4px solid #4CAF50; /* Hijau segar */
+  background-color: #4CAF50;
+  color: #ffffff; /* Font putih */
+}
+
+.fc-event.workout-long_run {
+  border-left: 4px solid #2196F3; /* Biru stabil */
+  background-color: #2196F3;
+  color: #ffffff; /* Font putih agar tetap kontras */
+}
+
+.fc-event.workout-interval {
+  border-left: 4px solid #F44336; /* Merah intens */
+  background-color: #F44336;
+  color: #ffffff;
+}
+
+.fc-event.workout-tempo {
+  border-left: 4px solid #FFC107; /* Kuning energi */
+  background-color: #FFC107;
+  color: #000000; /* Font hitam biar lebih terbaca di kuning */
+}
+
+.fc-event.workout-strength {
+  border-left: 4px solid #9C27B0; /* Ungu power */
+  background-color: #9C27B0;
+  color: #ffffff; /* Font putih */
+}
+
+.fc-event.workout-rest {
+  border-left: 4px solid #9E9E9E; /* Abu netral */
+  background-color: #9E9E9E;
+  color: #000000; /* Font hitam agar jelas */
+}
+
+
 /* Mobile List View Styling (Card Style) */
 .fc-list { border: none !important; }
 .fc-list-day-cushion { background-color: transparent !important; }
@@ -39,6 +85,14 @@
 .fc-list-event.difficulty-easy { background: linear-gradient(90deg, rgba(76, 175, 80, 0.1) 0%, rgba(30, 41, 59, 1) 100%) !important; border-left: 4px solid #4CAF50 !important; }
 .fc-list-event.difficulty-moderate { background: linear-gradient(90deg, rgba(255, 152, 0, 0.1) 0%, rgba(30, 41, 59, 1) 100%) !important; border-left: 4px solid #FF9800 !important; }
 .fc-list-event.difficulty-hard { background: linear-gradient(90deg, rgba(244, 67, 54, 0.1) 0%, rgba(30, 41, 59, 1) 100%) !important; border-left: 4px solid #F44336 !important; }
+
+/* Color coding for list view by workout type */
+.fc-list-event.workout-easy_run { background: linear-gradient(90deg, rgba(34,197,94,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #22c55e !important; }
+.fc-list-event.workout-tempo { background: linear-gradient(90deg, rgba(245,158,11,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #f59e0b !important; }
+.fc-list-event.workout-interval { background: linear-gradient(90deg, rgba(168,85,247,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #a855f7 !important; }
+.fc-list-event.workout-long_run { background: linear-gradient(90deg, rgba(234,179,8,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #eab308 !important; }
+.fc-list-event.workout-recovery { background: linear-gradient(90deg, rgba(6,182,212,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #06b6d4 !important; }
+.fc-list-event.workout-rest { background: linear-gradient(90deg, rgba(100,116,139,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #64748b !important; }*/
 
 </style>
 @endpush
@@ -405,6 +459,7 @@
                     <div v-if="detail.duration"><span class="text-slate-500">Duration:</span> @{{ detail.duration }}</div>
                     <div v-if="detail.program_difficulty || detail.difficulty"><span class="text-slate-500">Difficulty:</span> @{{ (detail.program_difficulty || detail.difficulty || '').toUpperCase() }}</div>
                     <div v-if="detail.target_pace"><span class="text-slate-500">Target Pace:</span> <span class="text-neon font-bold">@{{ detail.target_pace }}</span></div>
+                    <div v-if="detail.recommended_pace"><span class="text-slate-500">Recommended Pace:</span> <span class="text-neon font-bold">@{{ detail.recommended_pace }}</span></div>
                     <div v-if="detail.description"><span class="text-slate-500">Description:</span> @{{ detail.description }}</div>
                     
                     <!-- Structured Workout Display -->
@@ -1120,6 +1175,8 @@ createApp({
                     const props = arg.event.extendedProps || {};
                     if (props.difficulty) cls.push('difficulty-' + props.difficulty);
                     if (props.phase) cls.push('phase-' + props.phase);
+                    const t = (props.session && props.session.type) || (props.workout && props.workout.type) || props.activity_type || props.type;
+                    if (t) cls.push('workout-' + t);
                     return cls;
                 },
                 dateClick: (info) => { openForm(info.dateStr); },
@@ -1179,6 +1236,29 @@ createApp({
             } catch {}
         };
 
+        // Helper to calculate recommended pace
+        const calculateRecommendedPace = (type) => {
+            if (!type) return null;
+            const t = type.toLowerCase();
+            const map = { 
+                easy_run: 'E', recovery: 'E', run: 'E', 
+                long_run: 'M', 
+                tempo: 'T', threshold: 'T', 
+                interval: 'I', vo2max: 'I',
+                repetition: 'R', speed: 'R',
+                strength: null, rest: null, yoga: null, cycling: null
+            };
+            
+            const key = map[t]; 
+            if (!key) return null;
+
+            let val = trainingProfile.value?.paces?.[key];
+            // Fallback for Long Run (M -> E) if M is not set
+            if (!val && key === 'M') val = trainingProfile.value?.paces?.['E'];
+            
+            return val ? (formatPace(val) + ' /km') : null;
+        };
+
         const showEventDetail = (info) => {
             const props = info.event.extendedProps || {};
             if (props.type === 'program_session') {
@@ -1195,6 +1275,13 @@ createApp({
                 detail.enrollment_id = props.enrollment_id;
                 detail.session_day = s.day;
                 detail.target_pace = props.target_pace || null;
+                
+                // Hide target pace for non-running activities
+                if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
+                    detail.target_pace = null;
+                }
+
+                detail.recommended_pace = calculateRecommendedPace(detail.type);
                 
                 // Fetch tracking data if available in session object or need separate call
                 // Assuming session object might have tracking info if passed from backend
@@ -1216,6 +1303,13 @@ createApp({
                 detail.workout_id = w.id || props.workout_id || null;
                 detail.workout_structure = w.workout_structure || null;
                 detail.source = 'custom';
+                
+                // Hide target pace for non-running activities
+                if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
+                    detail.target_pace = null;
+                }
+
+                detail.recommended_pace = calculateRecommendedPace(detail.type);
             }
             showDetailModal.value = true;
         };
@@ -1238,6 +1332,14 @@ createApp({
             detail.workout_structure = plan.workout_structure || null;
             detail.source = plan.source || (plan.enrollment_id ? 'program' : null);
             detail.target_pace = plan.target_pace || null;
+            
+            // Hide target pace for non-running activities
+            if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
+                detail.target_pace = null;
+            }
+
+            detail.recommended_pace = calculateRecommendedPace(detail.type);
+
             detail.coach_feedback = plan.coach_feedback || null;
             detail.coach_rating = plan.coach_rating || null;
             
@@ -1330,7 +1432,11 @@ createApp({
         };
         const statusText = (s) => s==='completed'?'Finished':(s==='started'?'On Progress':'UNFINISHED');
         const statusClass = (s) => s==='completed'?'text-green-400':(s==='started'?'text-yellow-400':'text-red-400');
-        const activityLabel = (t) => ({running:'Running',run:'Run',easy_run:'Easy Run',interval:'Interval',tempo:'Tempo',yoga:'Yoga',cycling:'Cycling',rest:'Rest'}[t] || 'Running');
+        const activityLabel = (t) => ({
+            running:'Running', run:'Run', easy_run:'Easy Run', 
+            interval:'Interval', tempo:'Tempo', long_run:'Long Run', recovery:'Recovery',
+            yoga:'Yoga', cycling:'Cycling', rest:'Rest', strength:'Strength'
+        }[t] || 'Running');
         const formatDate = (d) => { try { const dt = new Date(d); return dt.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }); } catch { return d; } };
 
         const assetStorage = @json(asset('storage'));

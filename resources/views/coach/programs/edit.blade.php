@@ -225,10 +225,16 @@
                         <template v-if="getSessions(currentWeek, day).length > 0">
                             <div v-for="session in getSessions(currentWeek, day)" 
                                 :key="session._id"
-                                class="p-2 rounded-lg cursor-pointer hover:brightness-110 transition text-xs shadow-lg relative z-10"
+                                class="p-2 rounded-lg cursor-pointer hover:brightness-110 transition text-xs shadow-lg relative z-10 group"
                                 :style="{ backgroundColor: getSessionColor(session.type), borderLeft: '3px solid rgba(255,255,255,0.3)' }"
                                 @click.stop="openBuilderEdit(session)">
-                                <div class="font-bold text-white truncate">@{{ session.title || session.type }}</div>
+                                <div class="flex justify-between items-start">
+                                    <div class="font-bold text-white truncate pr-2">@{{ session.title || session.type }}</div>
+                                    <button type="button" class="text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition" 
+                                            @click.stop="deleteWorkout(session._id)">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
                                 <div class="text-white/70">@{{ session.distance }} km</div>
                             </div>
                         </template>
@@ -422,9 +428,16 @@
                     <div class="text-white text-sm">@{{ builderSummary }}</div>
                     <div class="text-slate-400 text-xs mt-1">Total Distance: @{{ builderTotalDistance }} km</div>
                 </div>
-                <div class="flex justify-end gap-2 mt-4">
-                    <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="closeBuilder">Cancel</button>
-                    <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="saveBuilder">Save</button>
+                <div class="flex justify-between items-center mt-4">
+                    <div>
+                         <button v-if="builderIsEditing" type="button" class="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm hover:bg-red-500/20 transition" @click="deleteWorkout(builderSessionId)">
+                            Delete Workout
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="closeBuilder">Cancel</button>
+                        <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="saveBuilder">Save</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1191,7 +1204,7 @@ createApp({
             }
         };
 
-        const saveProgram = async () => {
+        const saveProgram = async (shouldRedirect = true) => {
             if (saving.value) return;
             saving.value = true;
 
@@ -1239,7 +1252,12 @@ createApp({
                 }
                 
                 if (res.ok) {
-                    window.location.href = '{{ route("coach.programs.index") }}';
+                    if (shouldRedirect) {
+                        window.location.href = '{{ route("coach.programs.index") }}';
+                    } else {
+                        // Optional: Show a toast or small notification instead of full redirect
+                        // alert('Program saved'); 
+                    }
                 } else {
                     alert((data && data.message) || 'Failed to update program');
                     if (data && data.errors) {
@@ -1254,6 +1272,18 @@ createApp({
             }
         };
 
+        const deleteWorkout = (sessionId) => {
+            if (!confirm('Are you sure you want to delete this workout?')) {
+                return;
+            }
+            
+            const index = form.sessions.findIndex(s => s._id === sessionId);
+            if (index !== -1) {
+                form.sessions.splice(index, 1);
+                builderVisible.value = false;
+            }
+        };
+
         const handleFileChange = (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -1265,10 +1295,11 @@ createApp({
             form, saving, currentWeek, activeTab, totalVolume, 
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, 
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
+            builderIsEditing, builderSessionId,
             copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes, masterWorkouts,
             cwForm, cwSummary, cwTotalDistance,
-            handleDragStart, strengthOptions, addStrengthExercise, removeStrengthExercise
+            handleDragStart, strengthOptions, addStrengthExercise, removeStrengthExercise, deleteWorkout
         };
     }
 }).mount('#program-builder-app');

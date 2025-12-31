@@ -418,9 +418,16 @@
                     <div class="text-white text-sm">@{{ builderSummary }}</div>
                     <div class="text-slate-400 text-xs mt-1">Total Distance: @{{ builderTotalDistance }} km</div>
                 </div>
-                <div class="flex justify-end gap-2 mt-4">
-                    <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="closeBuilder">Cancel</button>
-                    <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="saveBuilder">Save</button>
+                <div class="flex justify-between items-center mt-4">
+                    <div>
+                         <button v-if="builderIsEditing" type="button" class="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm hover:bg-red-500/20 transition" @click="deleteWorkout(builderSessionId)">
+                            Delete Workout
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="closeBuilder">Cancel</button>
+                        <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="saveBuilder">Save</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -864,6 +871,18 @@ createApp({
 
         const closeBuilder = () => { builderVisible.value = false; };
 
+        const deleteWorkout = (sessionId) => {
+            if (!confirm('Are you sure you want to delete this workout?')) {
+                return;
+            }
+            
+            const index = form.sessions.findIndex(s => s._id === sessionId);
+            if (index !== -1) {
+                form.sessions.splice(index, 1);
+                builderVisible.value = false;
+            }
+        };
+
         const saveBuilder = () => {
             const absDay = getAbsDay(currentWeek.value, builderTargetDay.value);
             const payload = {
@@ -1244,6 +1263,7 @@ createApp({
             form, saving, currentWeek, activeTab, totalVolume, 
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleDragStart,
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
+            deleteWorkout, builderIsEditing, builderSessionId,
             copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes,
             masterWorkouts
