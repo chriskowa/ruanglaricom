@@ -1,5 +1,5 @@
 <nav class="border-b border-slate-800 backdrop-blur-md fixed w-full z-40 bg-dark/80">
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto p-2">
         <div class="flex items-center justify-between h-20">
             <!-- Left Side: Logo -->
             <div class="flex items-center gap-1 pl-2">
