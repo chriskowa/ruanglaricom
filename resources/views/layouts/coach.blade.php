@@ -5,11 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Coach Dashboard - RuangLari')</title>
+
+     <!-- Primary Meta Tags -->
+    <title>Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans</title>
+    <meta name="title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
+    <meta name="description" content="Ruang Lari adalah platform komunitas lari terbesar di Indonesia. Temukan pacer, ikuti event, pantau progres, dan raih personal best Anda. Dapatkan rencana latihan eksklusif, analisis performa, dan diskon event.">
+
+    <!-- Keywords -->
+    <meta name="keywords" content="ruang lari, komunitas lari indonesia, pacer indonesia, event lari, kalender lari, training plan, analisis performa, strava indonesia, sepatu lari lokal, fotografer olahraga, running calculator, personal best, marathon indonesia, 5K, 10K, half marathon, full marathon">
+
+    <!-- Author -->
+    <meta name="author" content="Ruang Lari Indonesia">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ruanglari.id/">
+    <meta property="og:title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
+    <meta property="og:description" content="Gabung dengan Ruang Lari, komunitas lari terbesar di Indonesia. Ikuti event, temukan pacer, dan pecahkan personal record Anda.">
+    <meta property="og:image" content="https://ruanglari.id/assets/images/ruanglari-cover.jpg">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://ruanglari.id/">
+    <meta name="twitter:title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
+    <meta name="twitter:description" content="Platform all-in-one untuk pelari, pacer, dan pelatih. Pantau progres, ikuti event, dan raih personal best Anda.">
+    <meta name="twitter:image" content="https://ruanglari.id/assets/images/ruanglari-cover.jpg">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="{{ url()->current() }}">   
+
+    <!-- Favicon default -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <!-- Versi PNG -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
+
+    <!-- Versi Apple Touch -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/green/apple-touch-icon.png') }}">
+
+    <!-- Versi Android/Manifest -->
+    <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <script>
