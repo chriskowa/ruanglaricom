@@ -469,7 +469,7 @@
                             <div>
                                 <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase">Waktu Tempuh (MM:SS)</label>
                                 <div class="flex gap-2">
-                                    <input v-model="form.timeMin" type="number" placeholder="Menit (cth: 52)" class="w-1/2 p-4 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-cyan-400 focus:shadow-neon-cyan outline-none text-center font-mono text-lg">
+                                    <input v-model="form.timeMin" type="number" placeholder="Menit (cth: 25)" class="w-1/2 p-4 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-cyan-400 focus:shadow-neon-cyan outline-none text-center font-mono text-lg">
                                     <span class="text-2xl text-slate-500 self-center">:</span>
                                     <input v-model="form.timeSec" type="number" placeholder="Detik (cth: 30)" class="w-1/2 p-4 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-cyan-400 focus:shadow-neon-cyan outline-none text-center font-mono text-lg">
                                 </div>
