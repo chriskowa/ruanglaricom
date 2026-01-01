@@ -4,7 +4,7 @@
                     <div class="col-span-1 md:col-span-1">
                         <a href="https://ruanglari.com/" class="flex items-center gap-2 mb-6 group">
                             <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto group-hover:scale-110 transition duration-300">
-                            <span class="text-2xl font-black italic tracking-tighter text-white">RUANG<span class="text-neon">LARI</span></span>
+                            <span class="text-2xl font-black italic tracking-tighter text-white">RUANG<span class="pl-1 text-neon">LARI</span></span>
                         </a>
                         <p class="text-slate-400 text-sm leading-relaxed mb-6">
                             Platform komunitas lari terbesar di Indonesia. Temukan pacer, pantau progres, dan raih personal best Anda bersama kami.

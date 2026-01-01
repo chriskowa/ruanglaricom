@@ -5,7 +5,7 @@
             <div class="flex items-center gap-1 pl-2">
                 <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
                 <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" class="text-2xl font-black italic tracking-tighter flex items-center">
-                    RUANG<span class="text-primary">LARI</span>
+                    RUANG<span class="pl-1 text-primary">LARI</span>
                 </a>
             </div>
             @guest

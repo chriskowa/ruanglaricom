@@ -72,9 +72,9 @@
     <div class="w-full max-w-lg px-6 relative z-10">
         
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-black italic tracking-tighter text-white mb-2">
+            <a href="{{ route('home') }}" class="block"><h1 class="text-3xl font-black italic tracking-tighter text-white mb-2">
                 RUANG<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-neon pr-2">LARI</span>
-            </h1>
+            </h1></a>
             <p class="text-slate-400 text-sm">Join the community. Start your journey.</p>
         </div>
 
