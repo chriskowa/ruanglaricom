@@ -56,7 +56,7 @@
             @endguest
             
             <!-- Right Side: Navigation & Actions -->
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1">
                 @auth
                 <button id="ph-sidebar-toggle" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors" title="Menu">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
