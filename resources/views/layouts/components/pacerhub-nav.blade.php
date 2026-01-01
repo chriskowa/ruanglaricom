@@ -48,10 +48,6 @@
                         </div>
                     </div>
                 </div>
-
-
-
-                
             </div>
             @endguest
             
@@ -72,7 +68,7 @@
                 
                 <!-- Cart Icon -->
                 @auth
-                <a href="{{ route('marketplace.cart.index') }}" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Cart">
+                <a href="{{ route('marketplace.cart.index') }}" class="hidden md:block p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Cart">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     <span id="nav-cart-count" class="absolute top-1.5 right-1 w-4 h-4 bg-neon text-dark text-[10px] font-bold rounded-full flex items-center justify-center hidden">0</span>
                 </a>
@@ -80,14 +76,14 @@
 
                 <!-- Chat / Messages -->
                 @auth
-                <a href="{{ route('chat.index') }}" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Messages">
+                <a href="{{ route('chat.index') }}" class="hidden md:block p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Messages">
                     @include('layouts.components.svg-chat')
                 </a>
                 @endauth
                 
                 <!-- Notifications -->
                 @auth
-                <div class="relative" id="notification-container">
+                <div class="relative hidden md:block" id="notification-container">
                     <button id="nav-bell-btn" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Notifications">
                         @include('layouts.components.svg-bell')
                         <span id="notification-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-dark hidden"></span>
@@ -166,7 +162,7 @@
     </div>
 </nav>
 
-<div id="mobile-menu-panel" class="md:hidden hidden fixed top-20 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-b-2xl shadow-2xl">
+<div id="mobile-menu-panel" class="md:hidden hidden fixed top-20 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-b-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
     <div class="p-3 grid grid-cols-1 gap-1">
         <a href="{{ route('programs.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Programs</a>
         <a href="{{ route('coaches.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Coach</a>
@@ -183,6 +179,31 @@
             <a href="{{ route('challenge.40days') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">40 Days Challenge</a>
             <a href="{{ route('leaderboard.cyberpunk') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Leaderboard</a>
         </div>
+
+        @auth
+        <div class="px-3 py-2 border-t border-slate-800 mt-2">
+            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Menu</div>
+            <a href="{{ route('marketplace.cart.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">
+                Cart
+                <span id="mobile-cart-count" class="ml-2 bg-neon text-dark text-[10px] font-bold px-1.5 rounded-full hidden">0</span>
+            </a>
+            <a href="{{ route('chat.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">
+                Messages
+            </a>
+            <a href="{{ route('notifications.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">
+                Notifications
+                <span id="mobile-notif-count" class="ml-2 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full hidden">0</span>
+            </a>
+        </div>
+        @endauth
+
+        @guest
+        <div class="px-3 py-2 border-t border-slate-800 mt-2">
+             <div class="text-xs font-bold text-slate-500 uppercase mb-2">Account</div>
+             <a href="{{ route('login') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Login</a>
+             <a href="{{ route('register') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Register</a>
+        </div>
+        @endguest
     </div>
 </div>
 
@@ -230,6 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Notifications Logic
     const notifBadge = document.getElementById('notification-badge');
+    const mobileNotifBadge = document.getElementById('mobile-notif-count');
     const notifList = document.getElementById('notification-list');
     
     function fetchNotifications() {
@@ -246,10 +268,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data) return; // Stop if no data (e.g. 401)
 
             if (data.count > 0) {
-                notifBadge.classList.remove('hidden');
-                notifBadge.innerText = data.count > 9 ? '9+' : data.count;
+                if(notifBadge) {
+                    notifBadge.classList.remove('hidden');
+                    notifBadge.innerText = data.count > 9 ? '9+' : data.count;
+                }
+                if(mobileNotifBadge) {
+                    mobileNotifBadge.classList.remove('hidden');
+                    mobileNotifBadge.innerText = data.count > 9 ? '9+' : data.count;
+                }
             } else {
-                notifBadge.classList.add('hidden');
+                notifBadge?.classList.add('hidden');
+                mobileNotifBadge?.classList.add('hidden');
             }
             
             if (notifList) {
@@ -342,6 +371,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cart Count Logic
     const cartBadge = document.getElementById('nav-cart-count');
+    const mobileCartBadge = document.getElementById('mobile-cart-count');
+
     function fetchCartCount() {
         if (!isAuthenticated) return;
 
@@ -356,16 +387,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data) return;
 
             if (data.count > 0) {
-                cartBadge.classList.remove('hidden');
-                cartBadge.innerText = data.count > 9 ? '9+' : data.count;
+                if(cartBadge) {
+                    cartBadge.classList.remove('hidden');
+                    cartBadge.innerText = data.count > 9 ? '9+' : data.count;
+                }
+                if(mobileCartBadge) {
+                    mobileCartBadge.classList.remove('hidden');
+                    mobileCartBadge.innerText = data.count > 9 ? '9+' : data.count;
+                }
             } else {
-                cartBadge.classList.add('hidden');
+                cartBadge?.classList.add('hidden');
+                mobileCartBadge?.classList.add('hidden');
             }
         })
         .catch(err => console.error('Cart error:', err));
     }
 
-    if (cartBadge) {
+    if (cartBadge || mobileCartBadge) {
         fetchCartCount();
         // Update every time page is focused or periodically
         window.addEventListener('focus', fetchCartCount);
