@@ -23,6 +23,14 @@
         // Clone user to avoid reference issues
         this.selectedUser = JSON.parse(JSON.stringify(user));
         
+        // Fix storage path for avatar and banner
+        if (this.selectedUser.avatar) {
+            this.selectedUser.avatar = this.selectedUser.avatar.replace(/^storage\//, '');
+        }
+        if (this.selectedUser.banner) {
+            this.selectedUser.banner = this.selectedUser.banner.replace(/^storage\//, '');
+        }
+        
         // Ensure bank_account exists
         let bank = this.selectedUser.bank_account || {};
         
@@ -204,15 +212,6 @@
                 </thead>
                 <tbody class="divide-y divide-slate-700/50">
                     @forelse($users as $user)
-                    @php
-                        // Fix double storage path issue for avatar and banner
-                        if ($user->avatar) {
-                            $user->avatar = preg_replace('/^storage\//', '', $user->avatar);
-                        }
-                        if ($user->banner) {
-                            $user->banner = preg_replace('/^storage\//', '', $user->banner);
-                        }
-                    @endphp
                     <tr class="hover:bg-slate-700/20 transition-colors group">
                         <td class="px-6 py-4 cursor-pointer" @click="openModal(@js($user))">
                             <div class="flex items-center gap-3">
