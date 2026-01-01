@@ -244,6 +244,10 @@
                 <div class="overflow-y-auto pr-2 space-y-5 text-slate-300 text-sm leading-relaxed custom-scroll">
     
     <div>
+        <p class="font-bold text-cyan-400 uppercase tracking-wider mb-2">Latar Belakang</p>
+        <p class="mb-2">Ruang lari berkomitmen membuat atmosfer komunitas lari yang sehat, kebersamaan dan keberlanjutan Dengan  konsistensi dan supportifitas. Sehingga diadakannya 40 Days Running Challenge yaitu konsisten berlatih selama 40 hari dan di akhir akan kita akan time trial bersama di Stadion Gajayana.</p>
+    </div>
+    <div>        
         <p class="font-bold text-cyan-400 uppercase tracking-wider mb-2">1. Mekanisme Virtual Challenge</p>
         <ul class="list-disc pl-5 space-y-1 text-slate-400">
             <li><strong class="text-white">Semua Level Pelari:</strong> Terbuka untuk umum, dari pemula hingga elite.</li>
