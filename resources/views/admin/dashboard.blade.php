@@ -16,7 +16,7 @@
                 </h1>
             </div>
             <div class="flex gap-3">
-                <a href="{{ route('users.index') }}" class="px-6 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-red-500 hover:text-red-500 transition-all font-bold text-sm flex items-center gap-2">
+                <a href="{{ route('admin.users.index') }}" class="px-6 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-red-500 hover:text-red-500 transition-all font-bold text-sm flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                     Manage Users
                 </a>
@@ -90,7 +90,7 @@
         <div class="lg:col-span-2 bg-card/30 border border-slate-700 rounded-2xl p-6">
             <h3 class="text-lg font-bold text-white mb-6">Administrative Tools</h3>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <a href="{{ route('users.index') }}" class="p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group text-center">
+                <a href="{{ route('admin.users.index') }}" class="p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group text-center">
                     <div class="w-12 h-12 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                     </div>
