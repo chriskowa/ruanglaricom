@@ -154,4 +154,38 @@ class AthleteController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Feedback saved']);
     }
+
+    public function storeRace(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'race_name' => 'required|string',
+            'workout_date' => 'required|date',
+            'distance' => 'nullable|numeric',
+            'dist_label' => 'nullable|string',
+            'goal_time' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $workout = \App\Models\CustomWorkout::create([
+            'runner_id' => $enrollment->runner_id,
+            'workout_date' => $validated['workout_date'],
+            'type' => 'race',
+            'difficulty' => 'hard',
+            'distance' => $validated['distance'] ?? null,
+            'description' => $validated['notes'] ?? null,
+            'status' => 'pending',
+            'workout_structure' => [
+                'race_name' => $validated['race_name'],
+                'goal_time' => $validated['goal_time'] ?? null,
+                'dist_label' => $validated['dist_label'] ?? null,
+            ],
+        ]);
+
+        return response()->json(['success' => true]);
+    }
 }

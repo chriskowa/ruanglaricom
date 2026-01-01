@@ -170,9 +170,15 @@ class CalendarController extends Controller
         foreach ($customWorkouts as $workout) {
             $colors = $this->getEventColors($workout->difficulty ?? 'moderate', null);
             
+            if ($workout->type === 'race') {
+                $colors['background'] = '#FFD700'; // Gold
+                $colors['border'] = '#DAA520';
+                $colors['text'] = '#000000';
+            }
+            
             $events[] = [
                 'id' => "custom_workout_{$workout->id}",
-                'title' => $workout->type ?? 'Run',
+                'title' => ($workout->type === 'race' ? '🏆 ' : '') . ($workout->workout_structure['race_name'] ?? $workout->type ?? 'Run'),
                 'start' => $workout->workout_date->format('Y-m-d'),
                 'allDay' => true,
                 'backgroundColor' => $colors['background'],
@@ -521,7 +527,7 @@ class CalendarController extends Controller
         $validated = $request->validate([
             'workout_id' => 'nullable|exists:custom_workouts,id',
             'workout_date' => 'required|date',
-            'type' => 'required|in:run,interval,tempo,easy_run,yoga,cycling,rest',
+            'type' => 'required|in:run,interval,tempo,easy_run,yoga,cycling,rest,race',
             'distance' => 'nullable|numeric|min:0',
             'duration' => 'nullable|string',
             'description' => 'nullable|string|max:1000',

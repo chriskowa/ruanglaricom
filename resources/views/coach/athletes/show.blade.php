@@ -42,6 +42,12 @@
             <!-- Calendar Column -->
             <div class="lg:col-span-2">
                 <div class="glass-panel rounded-2xl p-4 md:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-white font-bold">Training Calendar</h3>
+                        <button @click="openRaceForm" class="px-3 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-xs flex items-center gap-1">
+                            <span>🏆</span> Add Race
+                        </button>
+                    </div>
                     <div id="calendar"></div>
                 </div>
             </div>
@@ -65,6 +71,9 @@
                         <div class="space-y-3 mb-6 text-sm text-slate-300">
                             <div v-if="selectedSession.extendedProps.distance">
                                 <span class="text-slate-500">Target Distance:</span> @{{ selectedSession.extendedProps.distance }} km
+                                <div v-if="getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance)" class="mt-2 p-2 bg-slate-800/80 border border-slate-700 rounded text-neon font-mono text-xs">
+                                    @{{ getPaceInfo(selectedSession.extendedProps.type, selectedSession.extendedProps.distance) }}
+                                </div>
                             </div>
                             <div v-if="selectedSession.extendedProps.description">
                                 <span class="text-slate-500">Description:</span>
@@ -149,10 +158,132 @@ createApp({
         const csrf = document.querySelector('meta[name="csrf-token"]').content;
         const selectedSession = ref(null);
         const loading = ref(false);
+        const trainingProfile = @json($trainingProfile);
         const feedbackForm = reactive({
             coach_rating: 0,
             coach_feedback: ''
         });
+
+        // Race State
+        const showRaceModal = ref(false);
+        const raceForm = reactive({
+            name: '',
+            date: new Date().toISOString().slice(0,10),
+            distance: '10k',
+            goal_time: '',
+            notes: '',
+            distLabel: ''
+        });
+
+        const openRaceForm = () => {
+            raceForm.name = '';
+            raceForm.date = new Date().toISOString().slice(0,10);
+            raceForm.distance = '10k';
+            raceForm.goal_time = '';
+            raceForm.notes = '';
+            showRaceModal.value = true;
+        };
+
+        const saveRace = async () => {
+            loading.value = true;
+            try {
+                // Determine distLabel
+                let label = '';
+                if(raceForm.distance === '5k') label = '5K';
+                else if(raceForm.distance === '10k') label = '10K';
+                else if(raceForm.distance === '21k') label = 'HM';
+                else if(raceForm.distance === '42k') label = 'FM';
+
+                const res = await fetch(`{{ route('coach.athletes.race.store', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
+                    body: JSON.stringify({
+                        workout_date: raceForm.date,
+                        race_name: raceForm.name,
+                        distance: label ? parseFloat(raceForm.distance) : null, // This might need parsing logic if value is string like '5k'
+                        dist_label: label,
+                        goal_time: raceForm.goal_time,
+                        notes: raceForm.notes
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showRaceModal.value = false;
+                    alert('Race added successfully');
+                    // Refresh calendar
+                    const calendarEl = document.getElementById('calendar');
+                    // We need access to calendar instance. 
+                    // Since it's local in onMounted, we might need to reload or expose it.
+                    // Easiest is reload for now as calendar instance isn't globally exposed
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to add race');
+                }
+            } catch(e) {
+                alert('An error occurred');
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const formatPace = (minPerKm) => {
+            if (!minPerKm) return '-';
+            const mins = Math.floor(minPerKm);
+            const secs = Math.round((minPerKm - mins) * 60);
+            return `${mins}:${secs.toString().padStart(2,'0')}`;
+        };
+
+        const getPaceInfo = (type, distance) => {
+            if (!type || !trainingProfile) return null;
+
+            const tLower = type.toLowerCase();
+            const map = { 
+                easy_run: 'E', recovery: 'E', run: 'E', 
+                long_run: 'M', 
+                tempo: 'T', threshold: 'T', 
+                interval: 'I', vo2max: 'I',
+                repetition: 'R', speed: 'R'
+            };
+            const typeKey = map[tLower];
+
+            // Check for track distance logic (0.1km - 2.0km)
+            if (distance && trainingProfile.track_times) {
+                const dist = parseFloat(distance);
+                
+                if (dist >= 0.1 && dist <= 2.0) {
+                    const m = Math.round(dist * 1000);
+                    const key = m + 'm';
+                    
+                    // If exact track distance found, return split times
+                    if (trainingProfile.track_times[key]) {
+                        const t = trainingProfile.track_times[key];
+                        
+                        let targetInfo = '';
+                        if (typeKey) {
+                            let useKey = typeKey;
+                            // Logic override: If Interval (I) and distance 100-400m, use Repetition (R) pace
+                            if (typeKey === 'I' && dist >= 0.1 && dist <= 0.405) {
+                                useKey = 'R';
+                            }
+                            
+                            if (['I','R','T'].includes(useKey) && t[useKey]) {
+                                targetInfo = ` | Target: ${t[useKey]}`;
+                            }
+                        }
+
+                        // Return all 3 relevant paces/splits for context
+                        return `Split Times (${key}): Rep=${t.R} | Int=${t.I} | Thr=${t.T}${targetInfo}`;
+                    }
+                }
+            }
+
+            if (!typeKey) return null;
+
+            let val = trainingProfile.paces?.[typeKey];
+            if (!val && typeKey === 'M') val = trainingProfile.paces?.['E']; // Fallback M -> E
+            
+            return val ? `Target Pace: ${formatPace(val)} /km` : null;
+        };
 
         const statusClass = (s) => {
             if(s === 'completed') return 'bg-green-500/20 text-green-500';
@@ -220,7 +351,7 @@ createApp({
             calendar.render();
         });
 
-        return { selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading };
+        return { selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, showRaceModal, raceForm, openRaceForm, saveRace };
     }
 }).mount('#coach-monitor-app');
 </script>

@@ -60,6 +60,39 @@
   color: #000000; /* Font hitam agar jelas */
 }
 
+.fc-event.workout-race {
+  border-left: 4px solid #FFD700; /* Gold */
+  background-color: #FFD700;
+  color: #000000;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.fc-event.workout-race {
+  border-left: 4px solid #FFD700; /* Gold */
+  background-color: #FFD700;
+  color: #000000;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.fc-event.workout-race {
+  border-left: 4px solid #FFD700; /* Gold */
+  background-color: #FFD700;
+  color: #000000;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.fc-event.workout-race {
+  border-left: 4px solid #FFD700; /* Gold highlight */
+  background-color: #FFD700;
+  color: #000000; /* Black text for contrast */
+}
+
 
 /* Mobile List View Styling (Card Style) */
 .fc-list { border: none !important; }
@@ -92,6 +125,7 @@
 .fc-list-event.workout-interval { background: linear-gradient(90deg, rgba(168,85,247,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #a855f7 !important; }
 .fc-list-event.workout-long_run { background: linear-gradient(90deg, rgba(234,179,8,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #eab308 !important; }
 .fc-list-event.workout-recovery { background: linear-gradient(90deg, rgba(6,182,212,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #06b6d4 !important; }
+.fc-list-event.workout-race { background: linear-gradient(90deg, rgba(255,215,0,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #FFD700 !important; }
 .fc-list-event.workout-rest { background: linear-gradient(90deg, rgba(100,116,139,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #64748b !important; }*/
 
 </style>
@@ -109,6 +143,7 @@
                 <button @click="showVdotModal = true" class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-sm">Generate VDOT</button>
                 <a href="{{ route('programs.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm font-bold">Browse Programs</a>
                 <button @click="openFormForToday" class="px-4 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-sm">Add Custom Workout</button>
+                <button @click="openRaceForm" class="px-4 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-sm">Add Race</button>
             </div>
         </div>
 
@@ -815,6 +850,99 @@
                 </form>
             </div>
         </div>
+
+
+
+        <div v-if="showRaceModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80"></div>
+            <div class="relative z-10 max-w-lg mx-auto my-10 glass-panel rounded-2xl p-6 border-yellow-500/30 shadow-2xl shadow-yellow-500/10">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-white font-black text-xl flex items-center gap-2">
+                        <span class="text-2xl">🏆</span> Add Race Event
+                    </h3>
+                    <button class="text-slate-400 hover:text-white" @click="showRaceModal = false">×</button>
+                </div>
+                <form @submit.prevent="saveRace" class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-yellow-500 uppercase">Race Name</label>
+                        <input type="text" v-model="raceForm.name" required placeholder="e.g. Jakarta Marathon 2025" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-yellow-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Date</label>
+                        <input type="date" v-model="raceForm.date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-yellow-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Distance</label>
+                        <div class="grid grid-cols-4 gap-2 mb-2">
+                            <button type="button" @click="setRaceDist(5, '5K')" class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs hover:border-yellow-500 hover:text-yellow-500 transition" :class="raceForm.distLabel==='5K'?'border-yellow-500 text-yellow-500':''">5K</button>
+                            <button type="button" @click="setRaceDist(10, '10K')" class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs hover:border-yellow-500 hover:text-yellow-500 transition" :class="raceForm.distLabel==='10K'?'border-yellow-500 text-yellow-500':''">10K</button>
+                            <button type="button" @click="setRaceDist(21.1, 'HM')" class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs hover:border-yellow-500 hover:text-yellow-500 transition" :class="raceForm.distLabel==='HM'?'border-yellow-500 text-yellow-500':''">HM</button>
+                            <button type="button" @click="setRaceDist(42.2, 'FM')" class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-xs hover:border-yellow-500 hover:text-yellow-500 transition" :class="raceForm.distLabel==='FM'?'border-yellow-500 text-yellow-500':''">FM</button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="number" step="0.01" v-model="raceForm.distance" placeholder="Custom" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                            <span class="text-slate-400 text-sm">km</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Goal Time (Optional)</label>
+                        <input type="text" v-model="raceForm.goal_time" placeholder="hh:mm:ss" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Notes / Website</label>
+                        <textarea v-model="raceForm.notes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm"></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
+                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showRaceModal = false">Cancel</button>
+                        <button type="submit" class="px-6 py-2 rounded-xl bg-yellow-500 text-black font-black text-sm hover:bg-yellow-400 shadow-lg shadow-yellow-500/20">Save Race</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div v-if="showRaceModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80"></div>
+            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-white font-bold text-lg">Add Race</h3>
+                        <p class="text-xs text-slate-400">Add upcoming race to your calendar</p>
+                    </div>
+                    <button class="text-slate-400 hover:text-white" @click="showRaceModal = false">×</button>
+                </div>
+                <form @submit.prevent="saveRace" class="space-y-4">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Event Name</label>
+                        <input type="text" v-model="raceForm.name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Date</label>
+                            <input type="date" v-model="raceForm.race_date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Distance</label>
+                            <select v-model="raceForm.distance" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+                                <option value="5k">5K</option>
+                                <option value="10k">10K</option>
+                                <option value="21k">Half Marathon</option>
+                                <option value="42k">Marathon</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Goal Time (Optional)</label>
+                        <input type="text" v-model="raceForm.goal_time" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+                    </div>
+                    <div class="pt-4 border-t border-slate-700 flex justify-end gap-3">
+                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm" @click="showRaceModal = false">Cancel</button>
+                        <button type="submit" class="px-6 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition text-sm">Save Race</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </main>
 @endsection
@@ -862,6 +990,17 @@ createApp({
             duration:'', 
             description:'',
             workout_structure: [] // Array of steps
+        });
+        
+        // Race Form State
+        const showRaceModal = ref(false);
+        const raceForm = reactive({
+            name: '',
+            date: '',
+            distance: '',
+            distLabel: '', // 5K, 10K, etc.
+            goal_time: '',
+            notes: ''
         });
         
         // Workout Builder Helper Methods
@@ -1210,6 +1349,53 @@ createApp({
 
         const closeForm = () => { showFormModal.value = false; };
 
+        // Race helpers
+        const setRaceDist = (val, label) => {
+            raceForm.distance = val;
+            raceForm.distLabel = label;
+        };
+
+        const openRaceForm = () => {
+            raceForm.name = '';
+            raceForm.date = new Date().toISOString().slice(0,10);
+            raceForm.distance = '10';
+            raceForm.distLabel = '10K';
+            raceForm.goal_time = '';
+            raceForm.notes = '';
+            showRaceModal.value = true;
+        };
+        const saveRace = async () => {
+            try {
+                const payload = {
+                    workout_date: raceForm.date,
+                    type: 'race',
+                    difficulty: 'hard',
+                    distance: raceForm.distance || null,
+                    description: raceForm.notes || null,
+                    workout_structure: {
+                        race_name: raceForm.name,
+                        goal_time: raceForm.goal_time,
+                        dist_label: raceForm.distLabel
+                    }
+                };
+                const res = await fetch(`{{ route('runner.calendar.custom-workout.store') }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showRaceModal.value = false;
+                    if (calendar) calendar.refetchEvents();
+                    await loadPlans();
+                } else {
+                    alert(data.message || 'Failed to save race');
+                }
+            } catch (e) {
+                alert('An error occurred while saving race');
+            }
+        };
+
         const saveCustomWorkout = async () => {
             const payload = {
                 workout_id: form.workout_id || '',
@@ -1237,7 +1423,7 @@ createApp({
         };
 
         // Helper to calculate recommended pace
-        const calculateRecommendedPace = (type) => {
+        const calculateRecommendedPace = (type, distance = null) => {
             if (!type) return null;
             const t = type.toLowerCase();
             const map = { 
@@ -1252,8 +1438,38 @@ createApp({
             const key = map[t]; 
             if (!key) return null;
 
+            // Check for specific Track times (Interval, Repetition, Threshold)
+            // User requested specific logic for 0.1-2km to take from track tab
+            if (['I', 'R', 'T'].includes(key) && distance && trainingProfile.value?.track_times) {
+                const distKm = parseFloat(distance);
+                // Check if distance is between 0.1 and 2.0 km (approx)
+                if (distKm >= 0.1 && distKm <= 2.0) {
+                    // Logic override: If Interval (I) and distance 100-400m, use Repetition (R) pace
+                    let useKey = key;
+                    if (key === 'I' && distKm >= 0.1 && distKm <= 0.405) { // 0.405 to cover slightly over 400m due to float precision
+                        useKey = 'R';
+                    }
+
+                    // Try to match standard track distances
+                    const m = Math.round(distKm * 1000);
+                    
+                    // We check if exact key exists
+                    const trackKey = m + 'm';
+                    
+                    if (trainingProfile.value.track_times[trackKey]) {
+                        const trackData = trainingProfile.value.track_times[trackKey];
+                        // Get the specific pace type from trackData (I, R, or T)
+                        const splitTime = trackData[useKey]; 
+                        const pacePerKm = trackData['pace_' + useKey];
+                        
+                        if (splitTime) {
+                            return `${splitTime} (${pacePerKm} /km)`;
+                        }
+                    }
+                }
+            }
+
             let val = trainingProfile.value?.paces?.[key];
-            // Fallback for Long Run (M -> E) if M is not set
             if (!val && key === 'M') val = trainingProfile.value?.paces?.['E'];
             
             return val ? (formatPace(val) + ' /km') : null;
@@ -1281,7 +1497,7 @@ createApp({
                     detail.target_pace = null;
                 }
 
-                detail.recommended_pace = calculateRecommendedPace(detail.type);
+                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance);
                 
                 // Fetch tracking data if available in session object or need separate call
                 // Assuming session object might have tracking info if passed from backend
@@ -1292,7 +1508,7 @@ createApp({
                 notesInput.value = '';
             } else if (props.type === 'custom_workout') {
                 const w = props.workout || {};
-                detailTitle.value = 'Custom Workout';
+                detailTitle.value = w.type === 'race' ? (w.workout_structure?.race_name || 'Race Event') : 'Custom Workout';
                 detail.date = info.event.startStr;
                 detail.type = w.type || 'run';
                 detail.distance = w.distance || null;
@@ -1309,7 +1525,7 @@ createApp({
                     detail.target_pace = null;
                 }
 
-                detail.recommended_pace = calculateRecommendedPace(detail.type);
+                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance);
             }
             showDetailModal.value = true;
         };
@@ -1338,7 +1554,7 @@ createApp({
                 detail.target_pace = null;
             }
 
-            detail.recommended_pace = calculateRecommendedPace(detail.type);
+            detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance);
 
             detail.coach_feedback = plan.coach_feedback || null;
             detail.coach_rating = plan.coach_rating || null;
@@ -1471,7 +1687,8 @@ createApp({
             trainingProfile, formatPace, showPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
             stravaLinkInput, notesInput, rpeInput, feelingInput, finishActivityWithLink, profileTab, chatCoach,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, weeklyVolume, maxVolume,
-            assetStorage, assetProfile, runnerUrl, chatUrl };
+            assetStorage, assetProfile, runnerUrl, chatUrl, 
+            showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist };
     }
 
 }).mount('#runner-calendar-app');
