@@ -208,12 +208,20 @@
                         <td class="px-6 py-4 cursor-pointer" @click="openModal(@js($user))">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold overflow-hidden relative">
-                                    @if($user->avatar)
-                                        <img src="{{ asset('storage/'.ltrim(str_replace('storage/', '', $user->avatar), '/')) }}" 
-                                            alt="{{ $user->name }}" class="w-full h-full object-cover">
+                                    @php
+                                        $avatar = $user->avatar 
+                                            ? preg_replace('/^storage\//', '', $user->avatar) 
+                                            : null;
+                                    @endphp
+
+                                    @if($avatar)
+                                        <img src="{{ asset('storage/'.$avatar) }}" 
+                                            alt="{{ $user->name }}" 
+                                            class="w-full h-full object-cover">
                                     @else
                                         {{ substr($user->name, 0, 1) }}
                                     @endif
+
 
 
                                     <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
