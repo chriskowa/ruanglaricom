@@ -53,11 +53,9 @@
             
             <!-- Right Side: Navigation & Actions -->
             <div class="flex items-center gap-1">
-                @auth
                 <button id="ph-sidebar-toggle" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors" title="Menu">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
-                @endauth
 
                 <!-- Desktop Search -->
                 <div class="hidden md:block">
@@ -68,7 +66,7 @@
                 
                 <!-- Cart Icon -->
                 @auth
-                <a href="{{ route('marketplace.cart.index') }}" class="hidden md:block p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Cart">
+                <a href="{{ route('marketplace.cart.index') }}" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Cart">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     <span id="nav-cart-count" class="absolute top-1.5 right-1 w-4 h-4 bg-neon text-dark text-[10px] font-bold rounded-full flex items-center justify-center hidden">0</span>
                 </a>
@@ -83,12 +81,12 @@
                 
                 <!-- Notifications -->
                 @auth
-                <div class="relative hidden md:block" id="notification-container">
+                <div class="relative" id="notification-container">
                     <button id="nav-bell-btn" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Notifications">
                         @include('layouts.components.svg-bell')
                         <span id="notification-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-dark hidden"></span>
                     </button>
-                    <div id="nav-bell-dropdown" class="absolute right-0 mt-4 w-80 sm:w-96 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl hidden overflow-hidden transform transition-all origin-top-right z-50">
+                    <div id="nav-bell-dropdown" class="absolute right-0 -mr-16 md:mr-0 mt-4 w-80 sm:w-96 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl hidden overflow-hidden transform transition-all origin-top-right z-50">
                         <div class="p-4 border-b border-slate-800 flex justify-between items-center">
                             <h3 class="font-bold text-white">Notifications</h3>
                             <button id="mark-all-read" class="text-xs text-neon hover:text-white transition-colors">Mark all read</button>
@@ -107,7 +105,7 @@
                 
                 @auth
                 <!-- User Profile Dropdown -->
-                <div class="relative" id="user-menu-container">
+                <div class="relative hidden md:block" id="user-menu-container">
                     <button id="user-menu-btn" class="flex items-center gap-3 p-1.5 pr-3 rounded-full hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-all">
                         <img class="w-8 h-8 rounded-full object-cover border border-slate-600" src="{{ auth()->user()->avatar ? (str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : (str_starts_with(auth()->user()->avatar, '/storage') ? asset(ltrim(auth()->user()->avatar, '/')) : asset('storage/' . auth()->user()->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ auth()->user()->name }}">
                         <span class="hidden md:block text-sm font-medium text-slate-200">{{ auth()->user()->name }}</span>
@@ -141,9 +139,6 @@
                 </div>
                 @else
                 <div class="flex items-center gap-3">
-                    <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors" title="Menu">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    </button>
                     <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-bold bg-neon text-dark rounded-xl hover:bg-lime-400 hover:shadow-lg hover:shadow-neon/20 transition-all transform hover:-translate-y-0.5">Register</a>
                     <!--<a href="{{ route('register') }}" class="px-4 py-2 text-sm font-bold bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors">Register</a>>!-->
                 </div>
@@ -182,7 +177,18 @@
 
         @auth
         <div class="px-3 py-2 border-t border-slate-800 mt-2">
-            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Menu</div>
+            <div class="flex items-center gap-3 mb-4 px-2 py-2 bg-slate-800/50 rounded-lg">
+                 <img class="w-10 h-10 rounded-full object-cover border border-slate-600" src="{{ auth()->user()->avatar ? (str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : (str_starts_with(auth()->user()->avatar, '/storage') ? asset(ltrim(auth()->user()->avatar, '/')) : asset('storage/' . auth()->user()->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ auth()->user()->name }}">
+                 <div>
+                     <div class="font-bold text-white text-sm">{{ auth()->user()->name }}</div>
+                     <div class="text-xs text-neon font-medium uppercase tracking-wider">{{ auth()->user()->role }}</div>
+                 </div>
+            </div>
+
+            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Account</div>
+            <a href="{{ route('profile.show') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">
+                Profile
+            </a>
             <a href="{{ route('marketplace.cart.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">
                 Cart
                 <span id="mobile-cart-count" class="ml-2 bg-neon text-dark text-[10px] font-bold px-1.5 rounded-full hidden">0</span>
@@ -194,6 +200,13 @@
                 Notifications
                 <span id="mobile-notif-count" class="ml-2 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full hidden">0</span>
             </a>
+            
+            <form action="{{ route('logout') }}" method="POST" class="mt-2">
+                @csrf
+                <button type="submit" class="w-full text-left block py-2 text-red-400 hover:text-red-300 pl-4 border-l border-transparent hover:border-red-500 transition-colors">
+                    Logout
+                </button>
+            </form>
         </div>
         @endauth
 

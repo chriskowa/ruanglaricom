@@ -597,7 +597,7 @@
                 <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-2">Select Style</p>
                 
                 <!-- Style Selector -->
-                <div class="flex-1 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3 pb-2 md:pb-0 custom-scrollbar">
+                <div class="flex-1 h-40 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3 pb-2 md:pb-0 custom-scrollbar">
                    <button v-for="style in posterStyles" :key="style.id"
                        @click="posterStyle = style.id"
                        :class="posterStyle === style.id ? 'border-neon bg-neon/10 text-white ring-1 ring-neon' : 'border-slate-700 hover:border-slate-500 text-slate-400 hover:bg-slate-800'"

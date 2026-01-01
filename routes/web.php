@@ -88,11 +88,11 @@ Route::post('/challenge/send-otp', [ChallengeController::class, 'sendOtp'])->nam
 Route::post('/challenge/verify-otp', [ChallengeController::class, 'verifyOtp'])->name('challenge.verify-otp');
 
 // Public routes
-Route::get('/runcalendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');
-Route::get('/runcalendar/events-proxy', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.events.proxy');
-Route::get('/runcalendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
-Route::get('/runcalendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
-Route::post('/runcalendar/ai-analysis', [App\Http\Controllers\CalendarController::class, 'getAiAnalysis'])->name('calendar.ai.analysis');
+Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');
+Route::get('/calendar/events-proxy', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.events.proxy');
+Route::get('/calendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
+Route::get('/calendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
+Route::post('/calendar/ai-analysis', [App\Http\Controllers\CalendarController::class, 'getAiAnalysis'])->name('calendar.ai.analysis');
 
 // Pacer listing and profile
 Route::get('/pacers', [App\Http\Controllers\PacerController::class, 'index'])->name('pacer.index');
@@ -218,11 +218,6 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    // Strava & AI Analysis (Protected)
-    Route::get('/runcalendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
-    Route::get('/runcalendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
-    Route::post('/runcalendar/ai-analysis', [App\Http\Controllers\CalendarController::class, 'getAiAnalysis'])->name('calendar.ai.analysis');
-
     Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->name('logout');
     
     // Profile routes (accessible by all authenticated users)
