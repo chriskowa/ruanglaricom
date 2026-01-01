@@ -367,10 +367,7 @@
                     </a>
                 </h4>
                 <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                Ruang Lari commited to - membuat atmosfer komunitas lari yang sehat, kebersamaan dan keberlanjutan Dengan  konsistensi dan supportifitas
-                </p>
-                <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                    Kami tidak menjual mimpi. Kami menghitung <span class="text-cyan-400 font-bold">Gap</span>, menganalisis <span class="text-cyan-400 font-bold">Realita</span>, dan membangun <span class="text-purple-400 font-bold">Tangga Progresi</span> (Ladder) khusus untuk fisiologis Anda.
+                Ruang Lari berkomitmen untuk membuat atmosfer komunitas lari yang sehat, kebersamaan dan keberlanjutan Dengan  konsistensi dan supportifitas. Kami tidak menjual mimpi. Kami menghitung <span class="text-cyan-400 font-bold">Gap</span>, menganalisis <span class="text-cyan-400 font-bold">Realita</span>, dan membangun <span class="text-purple-400 font-bold">Tangga Progresi</span> (Ladder) khusus untuk fisiologis Anda.
                 </p>
                 <button @click.prevent="showTermsModal = true" class="group relative px-8 py-4 bg-red-500 hover:bg-red-400 text-slate-900 font-bold text-lg rounded-sm transition-all shadow-neon-red hover:scale-105">
                     <span class="relative z-10">SYARAT KETENTUAN</span>
