@@ -168,7 +168,7 @@
                         </label>
                     </div>
 
-                    <button @click="submitRegister" :disabled="isSubmitting" class="animate-breath px-6 py-3 rounded-xl bg-neon text-white font-black hover:bg-white hover:text-slate-900 transition-all shadow-neon-cyan w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button @click="submitRegister" :disabled="isSubmitting" class="animate-breath px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-white hover:text-slate-900 transition-all shadow-neon-cyan w-full disabled:opacity-50 disabled:cursor-not-allowed">
                         @{{ isSubmitting ? 'Memproses...' : 'Submit' }}
                     </button>
                 </div>
