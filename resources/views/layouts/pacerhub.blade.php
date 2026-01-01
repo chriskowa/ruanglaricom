@@ -277,7 +277,7 @@
                     if(!list.length){ convList.innerHTML = '<div class="p-4 text-center text-slate-400 text-sm">Belum ada percakapan</div>'; return; }
                     list.forEach(function(conv){
                         var li = document.createElement('div');
-                        li.className = 'p-3 hover:bg-slate-800 cursor-pointer flex items-center gap-3';
+                        li.className = 'p-3 hover:bg-slate-800 cursor-pointer flex items-center gap-1';
                         var avatar = conv.user_avatar ? (storageBase + conv.user_avatar) : defaultAvatar17;
                         li.innerHTML = '<img src="'+avatar+'" class="w-8 h-8 rounded-full border border-slate-700"><div class="flex-1"><div class="text-sm text-white font-bold">'+conv.user_name+'</div><div class="text-[11px] text-slate-400">'+(conv.last_message||'')+'</div></div>'+(conv.unread_count>0?'<span class="text-[10px] px-2 py-0.5 rounded bg-red-500 text-white">'+conv.unread_count+'</span>':'');
                         li.addEventListener('click', function(){ openChat(conv.user_id, conv.user_name, conv.user_avatar); });
