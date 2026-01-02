@@ -58,8 +58,8 @@ class DanielsRunningService
             $vdot = $newVdot;
         }
         
-        // Round to 2 decimal places and ensure reasonable range (30-85)
-        return max(30, min(85, round($vdot, 2)));
+        // Round to 4 decimal places and ensure reasonable range (10-85)
+        return max(10, min(85, round($vdot, 4)));
     }
     
     /**
@@ -168,12 +168,10 @@ class DanielsRunningService
             $velocity = $vVO2max * $ratio; // m/min
             
             // Calculate Time
-            $totalMinutes = $distMeters / $velocity;
-            
-            // Format Time
-            $hours = floor($totalMinutes / 60);
-            $minutes = floor($totalMinutes % 60);
-            $seconds = round(($totalMinutes - floor($totalMinutes)) * 60);
+            $totalSeconds = round(($distMeters / $velocity) * 60);
+            $hours = floor($totalSeconds / 3600);
+            $minutes = floor(($totalSeconds % 3600) / 60);
+            $seconds = $totalSeconds % 60;
             $timeStr = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
             
             // Calculate Pace (min/km)
@@ -464,10 +462,10 @@ class DanielsRunningService
      */
     private function timeFromPace(float $distanceKm, float $paceMinPerKm): string
     {
-        $totalMinutes = $distanceKm * $paceMinPerKm;
-        $hours = floor($totalMinutes / 60);
-        $minutes = floor($totalMinutes % 60);
-        $seconds = round(($totalMinutes - floor($totalMinutes)) * 60);
+        $totalSeconds = round($distanceKm * $paceMinPerKm * 60);
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        $seconds = $totalSeconds % 60;
         
         return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
     }
