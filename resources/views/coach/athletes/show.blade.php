@@ -144,6 +144,54 @@
                 </div>
             </div>
         </div>
+
+        <!-- Race Modal -->
+        <div v-if="showRaceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 relative">
+                <button @click="showRaceModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+                <h3 class="text-xl font-black text-white italic mb-6">🏆 Add Race Event</h3>
+                
+                <form @submit.prevent="saveRace" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Event Name</label>
+                        <input v-model="raceForm.name" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="e.g. Jakarta Marathon" required>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Date</label>
+                            <input v-model="raceForm.date" type="date" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Distance</label>
+                            <select v-model="raceForm.distance" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none">
+                                <option value="5k">5K</option>
+                                <option value="10k">10K</option>
+                                <option value="21k">Half Marathon</option>
+                                <option value="42k">Full Marathon</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Goal Time (Optional)</label>
+                        <input v-model="raceForm.goal_time" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="hh:mm:ss">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Notes</label>
+                        <textarea v-model="raceForm.notes" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none" placeholder="Target pace strategy, etc."></textarea>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" :disabled="loading" class="w-full py-3 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                            @{{ loading ? 'Saving...' : 'Add to Calendar' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </main>
 @endsection
@@ -334,6 +382,14 @@ createApp({
                 initialView: 'dayGridMonth',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
                 events: '{{ route("coach.athletes.events", $enrollment->id) }}',
+                dateClick: (info) => {
+                    raceForm.date = info.dateStr;
+                    raceForm.name = '';
+                    raceForm.distance = '10k';
+                    raceForm.goal_time = '';
+                    raceForm.notes = '';
+                    showRaceModal.value = true;
+                },
                 eventClick: (info) => {
                     selectedSession.value = info.event;
                     // Pre-fill form
