@@ -463,6 +463,13 @@
                 <!-- Edit Data -->
                 <div class="space-y-3 border-b border-slate-800 pb-4">
                     <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Edit Data</p>
+                    
+                    <!-- Title Full Width -->
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Title</label>
+                        <input type="text" v-model="posterData.name" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none">
+                    </div>
+
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[10px] text-slate-400 block mb-1">Distance</label>
