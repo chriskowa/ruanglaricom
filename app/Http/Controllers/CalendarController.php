@@ -54,8 +54,8 @@ class CalendarController extends Controller
     {
         try {
             // Fetch events from RuangLari
-            $response = Http::withHeaders([
-                'X-API-KEY' => 'Thinkpadx390'
+            $response = Http::withoutVerifying()->withHeaders([
+                'ruangLariKey' => 'Thinkpadx390'
             ])->get('https://ruanglari.com/wp-json/ruanglari/v1/events');
 
             if ($response->successful()) {

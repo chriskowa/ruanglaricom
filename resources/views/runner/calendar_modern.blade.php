@@ -863,6 +863,44 @@
                     <button class="text-slate-400 hover:text-white" @click="showRaceModal = false">×</button>
                 </div>
                 <form @submit.prevent="saveRace" class="space-y-4">
+                    <div class="mb-4 bg-slate-800/50 p-3 rounded-xl border border-slate-700 relative">
+                        <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Import from RuangLari</label>
+                        
+                        <!-- Search Input -->
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                v-model="eventSearchQuery"
+                                @focus="showEventDropdown = true"
+                                placeholder="Type to search event..."
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-yellow-500 focus:outline-none pl-8"
+                            >
+                            <span class="absolute left-3 top-2.5 text-slate-500">🔍</span>
+                            <button v-if="eventSearchQuery" @click="eventSearchQuery = ''; showEventDropdown = false" class="absolute right-3 top-2.5 text-slate-500 hover:text-white">✕</button>
+                        </div>
+
+                        <!-- Dropdown List -->
+                        <div v-if="showEventDropdown && filteredEvents.length > 0" 
+                            class="absolute left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                            <ul>
+                                <li v-for="event in filteredEvents" :key="event.id"
+                                    @click="selectRuangLariEvent(event)"
+                                    class="px-4 py-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0"
+                                >
+                                    <div class="text-sm font-bold text-white">@{{ event.title }}</div>
+                                    <div class="text-xs text-slate-400 flex justify-between mt-1">
+                                        <span>📅 @{{ event.date }}</span>
+                                        <span>📍 @{{ event.location }}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div v-else-if="showEventDropdown && filteredEvents.length === 0 && !loadingEvents" class="absolute left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl p-4 text-center text-slate-500 text-sm z-50">
+                            No events found.
+                        </div>
+
+                        <div v-if="loadingEvents" class="text-xs text-yellow-500 mt-1 italic">Loading events...</div>
+                    </div>
                     <div>
                         <label class="text-xs font-bold text-yellow-500 uppercase">Race Name</label>
                         <input type="text" v-model="raceForm.name" required placeholder="e.g. Jakarta Marathon 2025" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-yellow-500 focus:outline-none">
@@ -901,48 +939,7 @@
             </div>
         </div>
 
-        <div v-if="showRaceModal" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80"></div>
-            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-white font-bold text-lg">Add Race</h3>
-                        <p class="text-xs text-slate-400">Add upcoming race to your calendar</p>
-                    </div>
-                    <button class="text-slate-400 hover:text-white" @click="showRaceModal = false">×</button>
-                </div>
-                <form @submit.prevent="saveRace" class="space-y-4">
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Event Name</label>
-                        <input type="text" v-model="raceForm.name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs text-slate-400 block mb-1">Date</label>
-                            <input type="date" v-model="raceForm.race_date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 block mb-1">Distance</label>
-                            <select v-model="raceForm.distance" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                                <option value="5k">5K</option>
-                                <option value="10k">10K</option>
-                                <option value="21k">Half Marathon</option>
-                                <option value="42k">Marathon</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Goal Time (Optional)</label>
-                        <input type="text" v-model="raceForm.goal_time" placeholder="HH:MM:SS" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                    </div>
-                    <div class="pt-4 border-t border-slate-700 flex justify-end gap-3">
-                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm" @click="showRaceModal = false">Cancel</button>
-                        <button type="submit" class="px-6 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition text-sm">Save Race</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+
     </div>
 </main>
 @endsection
@@ -950,7 +947,7 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script>
-const { createApp, ref, reactive, onMounted, computed } = Vue;
+const { createApp, ref, reactive, onMounted, computed, watch } = Vue;
 (function(){
     const root = document.getElementById('runner-calendar-app');
     if (!root) { console.error('Runner calendar root not found'); return; }
@@ -1042,6 +1039,77 @@ createApp({
             });
             if (total > 0) form.distance = total.toFixed(2);
         };
+
+        // RuangLari Events Integration
+        const ruangLariEvents = ref([]);
+        const loadingEvents = ref(false);
+        const eventSearchQuery = ref('');
+        const showEventDropdown = ref(false);
+        
+        const filteredEvents = computed(() => {
+            if (!eventSearchQuery.value) return ruangLariEvents.value;
+            const query = eventSearchQuery.value.toLowerCase();
+            return ruangLariEvents.value.filter(e => 
+                e.title.toLowerCase().includes(query) || 
+                (e.location && e.location.toLowerCase().includes(query))
+            );
+        });
+
+        const fetchRuangLariEvents = async () => {
+            if (ruangLariEvents.value.length > 0) return;
+            loadingEvents.value = true;
+            try {
+                // Use proxy to avoid CORS
+                const res = await fetch('{{ route("calendar.events.proxy") }}');
+                const data = await res.json();
+                ruangLariEvents.value = Array.isArray(data) ? data : [];
+            } catch (e) {
+                console.error('Failed to fetch events', e);
+            } finally {
+                loadingEvents.value = false;
+            }
+        };
+
+        const selectRuangLariEvent = (event) => {
+            eventSearchQuery.value = event.title;
+            showEventDropdown.value = false;
+            onSelectRuangLariEvent(event);
+        };
+
+        const onSelectRuangLariEvent = (event) => {
+            if (!event) return;
+            // API Format: {"id":6001,"title":"...","date":"mm/dd/yyyy",...}
+            raceForm.name = event.title;
+            raceForm.notes = event.link || '';
+            
+            // Parse date mm/dd/yyyy -> yyyy-mm-dd
+            if (event.date) {
+                const parts = event.date.split('/');
+                if (parts.length === 3) {
+                    const mm = parts[0].padStart(2, '0');
+                    const dd = parts[1].padStart(2, '0');
+                    const yyyy = parts[2];
+                    raceForm.date = `${yyyy}-${mm}-${dd}`;
+                }
+            }
+            
+            // Guess distance
+            const title = event.title.toLowerCase();
+            if (title.includes('marathon') && !title.includes('half')) {
+                setRaceDist(42.2, 'FM');
+            } else if (title.includes('half') || title.includes('hm') || title.includes('21k')) {
+                setRaceDist(21.1, 'HM');
+            } else if (title.includes('10k')) {
+                setRaceDist(10, '10K');
+            } else if (title.includes('5k')) {
+                setRaceDist(5, '5K');
+            }
+        };
+
+        watch(showRaceModal, (val) => {
+            if (val) fetchRuangLariEvents();
+        });
+
         const showPbModal = ref(false);
         const pbLoading = ref(false);
         const pbForm = reactive({
@@ -1691,7 +1759,8 @@ createApp({
             stravaLinkInput, notesInput, rpeInput, feelingInput, finishActivityWithLink, profileTab, chatCoach,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, weeklyVolume, maxVolume,
             assetStorage, assetProfile, runnerUrl, chatUrl, 
-            showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist };
+            showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,
+            ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent };
     }
 
 }).mount('#runner-calendar-app');
