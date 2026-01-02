@@ -29,14 +29,16 @@ class AuthController extends Controller
             
             $user = Auth::user();
             
-            // Redirect berdasarkan role
-            return match($user->role) {
-                'admin' => redirect()->route('admin.dashboard'),
-                'coach' => redirect()->route('coach.dashboard'),
-                'runner' => redirect()->route('runner.dashboard'),
-                'eo' => redirect()->route('eo.dashboard'),
-                default => redirect()->route('runner.dashboard'),
+            // Redirect ke intended URL atau dashboard berdasarkan role
+            $dashboard = match($user->role) {
+                'admin' => route('admin.dashboard'),
+                'coach' => route('coach.dashboard'),
+                'runner' => route('runner.dashboard'),
+                'eo' => route('eo.dashboard'),
+                default => route('runner.dashboard'),
             };
+
+            return redirect()->intended($dashboard);
         }
 
         return back()->withErrors([
@@ -88,7 +90,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route($user->role . '.dashboard');
+        return redirect()->intended(route($user->role . '.dashboard'));
     }
 
     public function showForgotPassword()
@@ -143,7 +145,16 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('runner.dashboard');
+        // Redirect ke intended URL atau dashboard berdasarkan role
+        $dashboard = match($user->role) {
+            'admin' => route('admin.dashboard'),
+            'coach' => route('coach.dashboard'),
+            'runner' => route('runner.dashboard'),
+            'eo' => route('eo.dashboard'),
+            default => route('runner.dashboard'),
+        };
+
+        return redirect()->intended($dashboard);
     }
 
     private function generateReferralCode(): string
