@@ -72,6 +72,12 @@
                             <button @click="generateShareImage" class="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg transition" title="Share Stats">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                             </button>
+                            <button @click="shareActivityPoster(stravaActivities[0])" :disabled="posterLoading || stravaActivities.length === 0" class="bg-slate-700 hover:bg-neon hover:text-slate-900 text-white p-2 rounded-lg transition" title="Create Poster (Latest Run)">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            </button>
+                            <button @click="openRecapSetup" class="bg-slate-700 hover:bg-pink-500 text-white p-2 rounded-lg transition" title="Yearly Recap Collage">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                            </button>
                             <button @click="disconnectStrava" class="text-xs text-red-400 hover:text-red-300 underline">Disconnect</button>
                         </div>
                     </div>
@@ -221,6 +227,69 @@
                         </div>
                     </div>
 
+<!-- Recap Setup Modal -->
+<div v-if="showRecapSetup" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4">
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 w-full max-w-md shadow-2xl relative">
+        <h3 class="text-xl font-bold text-white mb-4">Generate Yearly Recap</h3>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Year</label>
+                <select v-model="recapConfig.year" class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white focus:outline-none focus:border-neon">
+                    <option v-for="y in [2026, 2025, 2024, 2023]" :value="y">@{{ y }}</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Number of Activities</label>
+                <input type="number" v-model="recapConfig.count" min="1" max="100" class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white focus:outline-none focus:border-neon">
+                <input type="range" v-model="recapConfig.count" min="4" max="100" class="w-full mt-2 accent-neon">
+                <p class="text-[10px] text-slate-500 mt-1">Recommended: 12, 20, 24, 30, 42</p>
+            </div>
+            
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Layout</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button @click="recapConfig.layout = 'grid'" 
+                            :class="recapConfig.layout === 'grid' ? 'bg-neon text-slate-900 border-neon' : 'bg-slate-800 text-slate-400 border-slate-700'"
+                            class="flex flex-col items-center justify-center p-3 rounded-lg border transition">
+                        <svg class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                        <span class="text-xs font-bold">Grid</span>
+                    </button>
+                    <button @click="recapConfig.layout = 'radial'" 
+                            :class="recapConfig.layout === 'radial' ? 'bg-neon text-slate-900 border-neon' : 'bg-slate-800 text-slate-400 border-slate-700'"
+                            class="flex flex-col items-center justify-center p-3 rounded-lg border transition">
+                        <svg class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        <span class="text-xs font-bold">Radial</span>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Map Color</label>
+                <div class="flex gap-2">
+                    <input type="color" v-model="recapConfig.mapColor" class="h-10 w-10 p-0 border-0 rounded overflow-hidden cursor-pointer">
+                    <input type="text" v-model="recapConfig.mapColor" class="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white font-mono uppercase focus:outline-none focus:border-neon">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Sort By</label>
+                <select v-model="recapConfig.sortBy" class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white focus:outline-none focus:border-neon">
+                    <option value="date_desc">Newest First</option>
+                    <option value="date_asc">Oldest First</option>
+                    <option value="distance_desc">Longest Distance</option>
+                </select>
+            </div>
+            
+            <div class="pt-4 flex gap-3">
+                <button @click="closeRecapSetup" class="flex-1 px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">Cancel</button>
+                <button @click="generateRecap" class="flex-1 px-4 py-2 rounded-lg bg-neon text-slate-900 font-bold hover:bg-[#b3e600] transition">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Poster Modal -->
 <div v-if="showPosterModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4">
     <div class="flex flex-col md:flex-row gap-6 h-full max-h-[90vh] w-full max-w-6xl">
@@ -253,11 +322,33 @@
                          @mousedown="startMapDrag" @mousemove="onMapDrag" @mouseup="endMapDrag" @mouseleave="endMapDrag"
                          @touchstart="startMapDrag" @touchmove="onMapDrag" @touchend="endMapDrag">
                         
-                        <div class="p-6 opacity-90 transition-transform duration-75 cursor-move max-w-full"
+                        <!-- Single Map Mode -->
+                        <div v-if="!posterData.isRecap" class="p-6 opacity-90 transition-transform duration-75 cursor-move max-w-full"
                              :style="{ height: mapHeightPercent + '%', transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${mapScale})` }">
                             <svg v-if="posterData.mapPath" viewBox="0 0 110 100" class="h-full w-auto drop-shadow-[0_0_15px_rgba(204,255,0,0.8)] pointer-events-none" preserveAspectRatio="xMidYMid meet">
                                 <path :d="posterData.mapPath" fill="none" stroke="#ccff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
+                        </div>
+
+                        <!-- Recap Mode (Grid or Radial) -->
+                        <div v-else class="w-full h-full overflow-hidden"
+                             :class="posterData.layoutType === 'grid' ? 'p-8 flex flex-wrap content-center justify-center gap-1' : 'relative'"
+                             :style="{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${mapScale})` }">
+                             
+                             <div v-for="(item, idx) in posterData.recapPaths" :key="idx" 
+                                  class="flex items-center justify-center transition-all duration-300 hover:scale-150 z-0 hover:z-10"
+                                  :class="posterData.layoutType === 'grid' ? 'relative' : ''"
+                                  :style="posterData.layoutType === 'grid' ? { 
+                                      width: 'calc(' + (100 / Math.ceil(Math.sqrt(posterData.recapPaths.length))) + '% - 4px)', 
+                                      height: 'calc(' + (100 / Math.ceil(Math.sqrt(posterData.recapPaths.length))) + '% - 4px)' 
+                                  } : item.style">
+                                  
+                                <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-sm" preserveAspectRatio="xMidYMid meet" :style="{ transform: `scale(${item.scale})` }">
+                                     <path :d="item.d" fill="none" 
+                                           :stroke="posterData.mapColor || (posterStyle === 'cyber' ? '#ccff00' : (posterStyle === 'modern' ? '#ccff00' : '#ffffff'))" 
+                                           stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                             </div>
                         </div>
                         
                         <!-- Map Controls -->
@@ -899,7 +990,7 @@
                                 <div><p class="text-[10px] text-slate-500 uppercase">Time</p><p class="text-lg font-mono font-bold">@{{ formatDuration(activity.moving_time) }}</p></div>
                                 <div><p class="text-[10px] text-slate-500 uppercase">Pace</p><p class="text-lg font-mono font-bold text-[#FC4C02]">@{{ calculatePace(activity.moving_time, activity.distance) }}</p></div>
                             </div>
-                            <div class="top-4 right-4 z-10">
+                            <div class="absolute top-4 right-4 z-10">
                                 <button @click.stop="shareActivityPoster(activity)" :disabled="posterLoading" class="bg-slate-700/80 hover:bg-neon hover:text-slate-900 text-white p-2 rounded-lg transition shadow-lg group-hover:scale-105 backdrop-blur-sm" title="Generate Poster">
                                     <svg v-if="posterLoading && currentPosterId === activity.id" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -963,6 +1054,38 @@
 @push('scripts')
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
+        // Polyline Decoder Utility
+        function decodePolyline(encoded) {
+            if (!encoded) return [];
+            var poly = [];
+            var index = 0, len = encoded.length;
+            var lat = 0, lng = 0;
+
+            while (index < len) {
+                var b, shift = 0, result = 0;
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                var dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lat += dlat;
+
+                shift = 0;
+                result = 0;
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                var dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lng += dlng;
+
+                poly.push([lat / 1e5, lng / 1e5]);
+            }
+            return poly;
+        }
+
         const { createApp } = Vue;
 
         createApp({
@@ -999,6 +1122,17 @@
                     isDownloading: false,
                     currentPosterId: null,
                     showPosterModal: false,
+                    
+                    // Recap Feature
+                    showRecapSetup: false,
+                    recapConfig: {
+                        year: new Date().getFullYear(),
+                        count: 24,
+                        sortBy: 'date_desc',
+                        layout: 'grid', // grid, radial
+                        mapColor: '#ccff00'
+                    },
+                    
                     posterStyle: 'pro',
                     showChart: false,
                     chartType: 'pace', // pace, heartrate, elevation
@@ -1663,6 +1797,141 @@
                     }
                 },
                 
+                // --- RECAP FEATURE ---
+                openRecapSetup() {
+                    this.showRecapSetup = true;
+                },
+                
+                closeRecapSetup() {
+                    this.showRecapSetup = false;
+                },
+                
+                async generateRecap() {
+                    this.posterLoading = true;
+                    this.showRecapSetup = false;
+                    
+                    try {
+                        const { year, count, sortBy, layout, mapColor } = this.recapConfig;
+                        
+                        // 1. Filter Activities
+                        let filtered = this.allActivities.filter(a => {
+                            return dayjs(a.start_date).year() === parseInt(year) && 
+                                   a.type === 'Run' && 
+                                   a.map && a.map.summary_polyline;
+                        });
+                        
+                        // 2. Sort
+                        if (sortBy === 'date_desc') {
+                            filtered.sort((a,b) => new Date(b.start_date) - new Date(a.start_date));
+                        } else if (sortBy === 'date_asc') {
+                            filtered.sort((a,b) => new Date(a.start_date) - new Date(b.start_date));
+                        } else if (sortBy === 'distance_desc') {
+                            filtered.sort((a,b) => b.distance - a.distance);
+                        }
+                        
+                        // 3. Slice
+                        const selected = filtered.slice(0, count);
+                        
+                        if (selected.length === 0) {
+                            alert("No activities found with map data for this year.");
+                            this.posterLoading = false;
+                            return;
+                        }
+                        
+                        // 4. Generate Normalized Paths & Styles
+                        const paths = selected.map((act, index) => {
+                            const d = this.generateSVGPath(act.map.summary_polyline);
+                            
+                            // Random Scale for variety (0.7 to 1.3)
+                            const scale = 0.7 + Math.random() * 0.6;
+                            
+                            // Calculate Radial Position if layout is radial
+                            let style = {};
+                            
+                            if (layout === 'radial') {
+                                const total = selected.length;
+                                // Use golden angle for spiral distribution to avoid overlap
+                                const angle = index * 137.5 * (Math.PI / 180); 
+                                // Radius increases with index (spiral out), starting from 25% to 45% of container
+                                // We want center empty (min radius 20%)
+                                const maxR = 40; // max radius percentage
+                                const minR = 25; // min radius percentage
+                                const r = minR + (index / total) * (maxR - minR);
+                                
+                                // Convert to percentages (Center is 50, 50)
+                                const x = 50 + r * Math.cos(angle);
+                                const y = 50 + r * Math.sin(angle);
+                                
+                                style = {
+                                    position: 'absolute',
+                                    left: x + '%',
+                                    top: y + '%',
+                                    width: (12 * scale) + '%', // Base width 12%
+                                    height: (12 * scale) + '%',
+                                    transform: 'translate(-50%, -50%)'
+                                };
+                            } else {
+                                // Grid Layout Style handled by CSS Grid/Flex in template
+                                style = {
+                                     // Just carry scale for grid items if needed
+                                     // transform: `scale(${scale})` // Maybe too messy for grid? Let's keep grid uniform or slight variation
+                                };
+                            }
+
+                            return {
+                                d: d,
+                                style: style,
+                                scale: scale
+                            };
+                        });
+                        
+                        // 5. Calculate Stats
+                        const totalDist = selected.reduce((acc, curr) => acc + curr.distance, 0);
+                        const totalTime = selected.reduce((acc, curr) => acc + curr.moving_time, 0);
+                        const totalElev = selected.reduce((acc, curr) => acc + (curr.total_elevation_gain || 0), 0);
+                        
+                        // Format Duration Helper if not exists, create simple one
+                        const formatDur = (s) => {
+                             const h = Math.floor(s/3600);
+                             const m = Math.floor((s%3600)/60);
+                             return h > 0 ? `${h}h ${m}m` : `${m}m`;
+                        };
+
+                        // 6. Set Poster Data
+                        this.posterData = {
+                            type: 'recap',
+                            isRecap: true,
+                            recapPaths: paths,
+                            layoutType: layout,
+                            mapColor: mapColor || '#ccff00',
+                            name: `${year} RECAP`,
+                            distance: (totalDist / 1000).toFixed(0),
+                            time: formatDur(totalTime),
+                            pace: selected.length + ' RUNS', // Abuse pace field for count
+                            elev: totalElev.toFixed(0),
+                            date: `Top ${selected.length} Activities`,
+                            bgImage: null,
+                            mapPath: '', // No single map
+                            splits: [],
+                            elevationSeries: [],
+                            hrSeries: [],
+                            heart_rate: '-',
+                            training_effect: 'CONSISTENCY',
+                            chartPath: ''
+                        };
+                        
+                        // Set style to modern or cyber for recap
+                        this.posterStyle = 'modern';
+                        this.showPosterModal = true;
+                        
+                    } catch (e) {
+                        console.error("Recap Error", e);
+                        alert("Failed to generate recap.");
+                    } finally {
+                        this.posterLoading = false;
+                    }
+                },
+
                  // Helper untuk mengubah koordinat ke SVG Path
                 generateSVGPath(polyline) {
                     if (!polyline) return '';
@@ -1683,13 +1952,19 @@
                         // Normalisasi ke viewbox 0-100
                         const rangeX = maxX - minX;
                         const rangeY = maxY - minY;
-                        const padding = 0; // opsional
-
+                        
+                        // Handle edge cases (single point or straight lines)
+                        if (rangeX === 0 && rangeY === 0) return 'M 50 50 L 50 50';
+                        
                         // Buat path string
                         // Kita balik Y karena SVG koordinat Y positif ke bawah, sedangkan Lat positif ke atas
                         const pathData = coords.map((c, i) => {
-                            const x = ((c[1] - minX) / rangeX) * 100;
-                            const y = 100 - ((c[0] - minY) / rangeY) * 100; // Flip Y
+                            let x = 50;
+                            let y = 50;
+                            
+                            if (rangeX > 0) x = ((c[1] - minX) / rangeX) * 100;
+                            if (rangeY > 0) y = 100 - ((c[0] - minY) / rangeY) * 100; // Flip Y
+                            
                             return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                         }).join(' ');
 
