@@ -123,6 +123,43 @@ class AthleteController extends Controller
             ];
         }
 
+        // Fetch custom workouts & races
+        $customWorkouts = \App\Models\CustomWorkout::where('runner_id', $enrollment->runner_id)->get();
+
+        foreach ($customWorkouts as $workout) {
+            $color = match($workout->status) {
+                'completed' => '#4CAF50',
+                'missed' => '#F44336',
+                default => '#3B82F6' // Blue for custom
+            };
+            
+            if ($workout->type === 'race') {
+                $color = '#EAB308'; // Yellow for race
+            }
+
+            $title = $workout->type === 'race' 
+                ? "🏆 " . ($workout->workout_structure['race_name'] ?? 'Race')
+                : ucfirst(str_replace('_', ' ', $workout->type));
+
+            $events[] = [
+                'id' => "custom_{$workout->id}",
+                'title' => $title,
+                'start' => $workout->workout_date->format('Y-m-d'),
+                'backgroundColor' => $color,
+                'borderColor' => $color,
+                'extendedProps' => [
+                    'is_custom' => true,
+                    'id' => $workout->id,
+                    'type' => $workout->type,
+                    'distance' => $workout->distance,
+                    'description' => $workout->description,
+                    'status' => $workout->status,
+                    'workout_structure' => $workout->workout_structure,
+                    'tracking' => null // Placeholder for now
+                ]
+            ];
+        }
+
         return response()->json($events);
     }
 
@@ -188,6 +225,39 @@ class AthleteController extends Controller
                 'goal_time' => $validated['goal_time'] ?? null,
                 'dist_label' => $validated['dist_label'] ?? null,
             ],
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function storeWorkout(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'workout_date' => 'required|date',
+            'type' => 'required|string',
+            'difficulty' => 'required|string',
+            'distance' => 'nullable|numeric',
+            'duration' => 'nullable|string',
+            'description' => 'nullable|string',
+            'workout_structure' => 'nullable|array',
+        ]);
+
+        $workout = \App\Models\CustomWorkout::create([
+            'runner_id' => $enrollment->runner_id,
+            'workout_date' => $validated['workout_date'],
+            'type' => $validated['type'],
+            'difficulty' => $validated['difficulty'],
+            'distance' => $validated['distance'] ?? null,
+            'duration' => $validated['duration'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'workout_structure' => $validated['workout_structure'] ?? null,
+            'status' => 'pending',
+            'source' => 'coach', // Optional: to distinguish coach-assigned vs runner-created
         ]);
 
         return response()->json(['success' => true]);

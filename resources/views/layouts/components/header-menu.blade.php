@@ -38,6 +38,7 @@
         <a class="nav-link bell bell-link" href="javascript:void(0)" aria-label="Chat" id="chatbox-toggle">
             @include('layouts.components.svg-chat')
             <div class="pulse-css"></div>
+            <span class="badge badge-danger badge-xs" id="chat-total-unread" style="position: absolute; top: 0px; right: 0px; display: none; padding: 2px 5px; font-size: 10px;">0</span>
         </a>
         <div class="dropdown-menu dropdown-menu-end rounded">
             <div id="DZ_W_TimeLine11Home" class="widget-timeline dz-scroll style-1 p-3 height370">

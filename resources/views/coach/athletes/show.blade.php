@@ -145,6 +145,109 @@
             </div>
         </div>
 
+        <!-- Workout Modal -->
+        <div v-if="showFormModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showFormModal = false"></div>
+            <div class="relative z-10 max-w-lg mx-auto my-10 bg-slate-900 border border-slate-700 rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-white font-bold text-xl italic">Add Workout</h3>
+                    <button class="text-slate-400 hover:text-white" @click="showFormModal = false">×</button>
+                </div>
+                <form @submit.prevent="saveCustomWorkout" class="space-y-3">
+                    <input type="hidden" v-model="form.workout_id">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Date</label>
+                        <input type="date" v-model="form.workout_date" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Type</label>
+                        <select v-model="form.type" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
+                            <option value="run">Run</option>
+                            <option value="easy_run">Easy Run</option>
+                            <option value="interval">Interval</option>
+                            <option value="tempo">Tempo</option>
+                            <option value="yoga">Yoga</option>
+                            <option value="cycling">Cycling</option>
+                            <option value="rest">Rest</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Difficulty</label>
+                        <select v-model="form.difficulty" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
+                            <option value="easy">Easy</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase">Distance (km)</label>
+                            <input type="number" step="0.01" v-model="form.distance" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase">Duration</label>
+                            <input type="text" v-model="form.duration" placeholder="00:30:00" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none">
+                        </div>
+                    </div>
+                    
+                    <!-- Workout Builder -->
+                    <div class="border-t border-slate-700 pt-4 mt-4">
+                        <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Workout Builder</label>
+                        
+                        <div class="space-y-2 mb-3">
+                            <div v-for="(step, index) in form.workout_structure" :key="index" class="flex flex-col gap-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-slate-700" :class="{'text-green-400': step.type==='warmup', 'text-blue-400': step.type==='run', 'text-orange-400': step.type==='interval', 'text-yellow-400': step.type==='recovery', 'text-purple-400': step.type==='cool_down'}">
+                                        @{{ step.type.replace('_', ' ') }}
+                                    </span>
+                                    <div class="flex gap-1">
+                                        <button type="button" class="text-slate-400 hover:text-white" @click="moveStep(index, -1)" v-if="index > 0">↑</button>
+                                        <button type="button" class="text-slate-400 hover:text-white" @click="moveStep(index, 1)" v-if="index < form.workout_structure.length - 1">↓</button>
+                                        <button type="button" class="text-red-400 hover:text-red-300 ml-2" @click="removeStep(index)">×</button>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <select v-model="step.duration_type" @change="calculateTotalDistance" class="bg-slate-900 border border-slate-700 rounded text-xs text-white px-2 py-1 outline-none focus:border-neon">
+                                        <option value="distance">Distance</option>
+                                        <option value="time">Time</option>
+                                    </select>
+                                    <div class="flex gap-1 col-span-2">
+                                        <input type="number" step="0.01" v-model="step.value" @change="calculateTotalDistance" class="w-full bg-slate-900 border border-slate-700 rounded text-xs text-white px-2 py-1 outline-none focus:border-neon" placeholder="Value">
+                                        <select v-model="step.unit" @change="calculateTotalDistance" class="w-20 bg-slate-900 border border-slate-700 rounded text-xs text-white px-2 py-1 outline-none focus:border-neon">
+                                            <option value="km">km</option>
+                                            <option value="m">m</option>
+                                            <option value="min">min</option>
+                                            <option value="sec">sec</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <input type="text" v-model="step.notes" placeholder="Notes (e.g. @ 5:00 pace)" class="w-full bg-slate-900 border border-slate-700 rounded text-xs text-white px-2 py-1 outline-none focus:border-neon">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" @click="addStep('warmup')" class="px-2 py-1 rounded bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-bold hover:bg-green-500/30">+ Warmup</button>
+                            <button type="button" @click="addStep('run')" class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-bold hover:bg-blue-500/30">+ Run</button>
+                            <button type="button" @click="addStep('interval')" class="px-2 py-1 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-bold hover:bg-orange-500/30">+ Interval</button>
+                            <button type="button" @click="addStep('recovery')" class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs font-bold hover:bg-yellow-500/30">+ Recovery</button>
+                            <button type="button" @click="addStep('cool_down')" class="px-2 py-1 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-bold hover:bg-purple-500/30">+ Cool Down</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Description</label>
+                        <textarea v-model="form.description" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-neon outline-none" placeholder="Workout details..."></textarea>
+                    </div>
+                    <div class="pt-4 flex justify-end gap-3">
+                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:bg-slate-700" @click="showFormModal = false">Cancel</button>
+                        <button type="submit" :disabled="loading" class="px-6 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition text-sm disabled:opacity-50">
+                            @{{ loading ? 'Saving...' : 'Save Workout' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Race Modal -->
         <div v-if="showRaceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 relative">
@@ -204,6 +307,7 @@ const { createApp, ref, reactive, onMounted } = Vue;
 createApp({
     setup() {
         const csrf = document.querySelector('meta[name="csrf-token"]').content;
+        let calendar = null;
         const selectedSession = ref(null);
         const loading = ref(false);
         const trainingProfile = @json($trainingProfile);
@@ -211,6 +315,103 @@ createApp({
             coach_rating: 0,
             coach_feedback: ''
         });
+
+        // Workout Form State
+        const showFormModal = ref(false);
+        const form = reactive({ 
+            workout_id:'', 
+            workout_date:'', 
+            type:'run', 
+            difficulty:'moderate', 
+            distance:'', 
+            duration:'', 
+            description:'',
+            workout_structure: [] 
+        });
+
+        // Workout Builder Helper Methods
+        const addStep = (type) => {
+            form.workout_structure.push({
+                type: type, // warmup, run, interval, recovery, rest, cool_down
+                duration_type: 'distance', // distance, time
+                value: '',
+                unit: 'km', // km, min, m, sec
+                notes: ''
+            });
+        };
+
+        const removeStep = (index) => {
+            form.workout_structure.splice(index, 1);
+        };
+
+        const moveStep = (index, direction) => {
+            if (direction === -1 && index > 0) {
+                const temp = form.workout_structure[index];
+                form.workout_structure[index] = form.workout_structure[index - 1];
+                form.workout_structure[index - 1] = temp;
+            } else if (direction === 1 && index < form.workout_structure.length - 1) {
+                const temp = form.workout_structure[index];
+                form.workout_structure[index] = form.workout_structure[index + 1];
+                form.workout_structure[index + 1] = temp;
+            }
+        };
+
+        const calculateTotalDistance = () => {
+            let total = 0;
+            form.workout_structure.forEach(step => {
+                if (step.duration_type === 'distance' && step.value) {
+                    let val = parseFloat(step.value);
+                    if (step.unit === 'm') val /= 1000;
+                    total += val;
+                }
+            });
+            if (total > 0) form.distance = total.toFixed(2);
+        };
+
+        const openForm = (dateStr) => {
+            form.workout_id = '';
+            form.workout_date = dateStr;
+            form.type = 'run';
+            form.difficulty = 'moderate';
+            form.distance = '';
+            form.duration = '';
+            form.description = '';
+            form.workout_structure = [];
+            showFormModal.value = true;
+        };
+
+        const saveCustomWorkout = async () => {
+            loading.value = true;
+            try {
+                const payload = {
+                    workout_date: form.workout_date,
+                    type: form.type,
+                    difficulty: form.difficulty,
+                    distance: form.distance || null,
+                    duration: form.duration || null,
+                    description: form.description || null,
+                    workout_structure: form.workout_structure.length > 0 ? form.workout_structure : null,
+                };
+                
+                const res = await fetch(`{{ route('coach.athletes.workout.store', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showFormModal.value = false;
+                    alert('Workout added successfully');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to add workout');
+                }
+            } catch (e) {
+                alert('An error occurred');
+            } finally {
+                loading.value = false;
+            }
+        };
 
         // Race State
         const showRaceModal = ref(false);
@@ -378,17 +579,12 @@ createApp({
 
         onMounted(() => {
             const el = document.getElementById('calendar');
-            const calendar = new FullCalendar.Calendar(el, {
+            calendar = new FullCalendar.Calendar(el, {
                 initialView: 'dayGridMonth',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
                 events: '{{ route("coach.athletes.events", $enrollment->id) }}',
                 dateClick: (info) => {
-                    raceForm.date = info.dateStr;
-                    raceForm.name = '';
-                    raceForm.distance = '10k';
-                    raceForm.goal_time = '';
-                    raceForm.notes = '';
-                    showRaceModal.value = true;
+                    openForm(info.dateStr);
                 },
                 eventClick: (info) => {
                     selectedSession.value = info.event;
@@ -407,7 +603,11 @@ createApp({
             calendar.render();
         });
 
-        return { selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, showRaceModal, raceForm, openRaceForm, saveRace };
+        return { 
+            selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
+            showRaceModal, raceForm, openRaceForm, saveRace,
+            showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance
+        };
     }
 }).mount('#coach-monitor-app');
 </script>

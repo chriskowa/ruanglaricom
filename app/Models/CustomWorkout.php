@@ -18,6 +18,7 @@ class CustomWorkout extends Model
         'difficulty',
         'status',
         'completed_at',
+        'source',
     ];
 
     protected function casts(): array

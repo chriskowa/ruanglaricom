@@ -360,6 +360,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/athletes/{enrollment}/events', [App\Http\Controllers\Coach\AthleteController::class, 'calendarEvents'])->name('athletes.events');
         Route::post('/athletes/{enrollment}/feedback', [App\Http\Controllers\Coach\AthleteController::class, 'storeFeedback'])->name('athletes.feedback');
         Route::post('/athletes/{enrollment}/race', [App\Http\Controllers\Coach\AthleteController::class, 'storeRace'])->name('athletes.race.store');
+        Route::post('/athletes/{enrollment}/workout', [App\Http\Controllers\Coach\AthleteController::class, 'storeWorkout'])->name('athletes.workout.store');
     });
 
     // EO routes

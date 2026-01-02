@@ -6,7 +6,7 @@
     const storageBase = @json(asset('storage/'));
     const defaultAvatar = @json(asset('images/avatar/1.jpg'));
     const authId = @json(auth()->id() ?: 0);
-    const authAvatar = @json(auth()->user() && auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/avatar/1.jpg'));
+    const authAvatar = @json(auth()->user() && auth()->user()->avatar ? asset('storage/' . preg_replace('/^(\/)?storage\//', '', auth()->user()->avatar)) : asset('images/avatar/1.jpg'));
     const authName = @json(auth()->user() ? auth()->user()->name : '');
 
     // Chatbox toggle
@@ -419,10 +419,8 @@
         }, 100);
     });
 
-    // Initial load if chatbox is already active
-    if (document.querySelector('.chatbox')?.classList.contains('active')) {
-        loadConversations();
-    }
+    // Initial load (always load to update badge)
+    loadConversations();
     
     let gPressedAt = 0;
     document.addEventListener('keydown', function(e) {
