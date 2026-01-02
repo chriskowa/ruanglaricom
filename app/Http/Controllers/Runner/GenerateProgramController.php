@@ -120,12 +120,16 @@ class GenerateProgramController extends Controller
     private function generateDescription(array $params, array $programData): string
     {
         $description = "Program latihan yang di-generate menggunakan Daniels' Running Formula.\n\n";
-        $description .= "VDOT Score: " . $programData['vdot'] . "\n";
+        $description .= "VDOT Score: " . ($programData['vdot'] ?? '-') . "\n";
         $description .= "Training Paces:\n";
-        $description .= "- Easy (E): " . $this->formatPace($programData['training_paces']['E']) . "/km\n";
-        $description .= "- Threshold (T): " . $this->formatPace($programData['training_paces']['T']) . "/km\n";
-        $description .= "- Interval (I): " . $this->formatPace($programData['training_paces']['I']) . "/km\n";
-        $description .= "\nTarget: " . strtoupper($params['goal_distance']) . " pada " . Carbon::parse($params['goal_race_date'])->format('d M Y');
+        if (isset($programData['training_paces'])) {
+            $description .= "- Easy (E): " . $this->formatPace($programData['training_paces']['E']) . "/km\n";
+            $description .= "- Threshold (T): " . $this->formatPace($programData['training_paces']['T']) . "/km\n";
+            $description .= "- Interval (I): " . $this->formatPace($programData['training_paces']['I']) . "/km\n";
+        }
+        
+        $durationWeeks = $programData['duration_weeks'] ?? 8;
+        $description .= "\nTarget: " . strtoupper($params['goal_distance']) . " (" . $durationWeeks . " Weeks)";
         
         return $description;
     }
