@@ -209,8 +209,8 @@
                         <!-- VDOT Score (Always visible) -->
                         <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center mb-6">
                             <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">VDOT Score</div>
-                            <div class="text-4xl font-black text-white">@{{ trainingProfile.vdot || '-' }}</div>
-                            <div class="text-[10px] text-slate-500 mt-1">VO2Max Approx: @{{ trainingProfile.vdot || '-' }}</div>
+                            <div class="text-4xl font-black text-white">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+                            <div class="text-[10px] text-slate-500 mt-1">VO2Max Approx: @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                         </div>
 
                         <!-- Tabs -->
