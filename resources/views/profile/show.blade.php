@@ -223,6 +223,18 @@
                                 </div>
 
                                 <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Weight (kg)</label>
+                                    <input type="number" step="0.01" name="weight" value="{{ old('weight', $user->weight) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="e.g. 65.5">
+                                    @error('weight') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Height (cm)</label>
+                                    <input type="number" name="height" value="{{ old('height', $user->height) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all" placeholder="e.g. 175">
+                                    @error('height') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div class="space-y-2">
                                     <label class="text-xs font-bold text-slate-400 uppercase">City</label>
                                     <select name="city_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all">
                                         <option value="">Select City</option>

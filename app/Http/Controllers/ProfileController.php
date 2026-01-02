@@ -79,6 +79,8 @@ class ProfileController extends Controller
                 'address' => 'nullable|string|max:500',
             'city_id' => 'nullable|exists:cities,id',
             'gender' => 'nullable|in:male,female',
+            'weight' => 'nullable|numeric|min:20|max:300',
+            'height' => 'nullable|integer|min:50|max:300',
             'strava_url' => 'nullable|url|max:255',
             'instagram_url' => 'nullable|url|max:255',
             'facebook_url' => 'nullable|url|max:255',
@@ -112,6 +114,8 @@ class ProfileController extends Controller
                 $user->address = $validated['address'] ?? null;
                 $user->city_id = $validated['city_id'] ?? null;
         $user->gender = $validated['gender'] ?? null;
+        $user->weight = $validated['weight'] ?? null;
+        $user->height = $validated['height'] ?? null;
         $user->strava_url = $validated['strava_url'] ?? null;
         $user->instagram_url = $validated['instagram_url'] ?? null;
         $user->facebook_url = $validated['facebook_url'] ?? null;
