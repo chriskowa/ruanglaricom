@@ -458,7 +458,29 @@
             <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50 overflow-y-auto max-h-[85vh] custom-scrollbar">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-xl font-bold text-white">Customize</h3>
-                    <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+
+                <!-- Edit Data -->
+                <div class="space-y-3 border-b border-slate-800 pb-4">
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Edit Data</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Distance</label>
+                            <input type="text" v-model="posterData.distance" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Time</label>
+                            <input type="text" v-model="posterData.time" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Heart Rate</label>
+                            <input type="text" v-model="posterData.heart_rate" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Elevation</label>
+                            <input type="text" v-model="posterData.elev" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none">
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Chart Settings -->
@@ -593,11 +615,19 @@
                         </div>
                     </div>
                 </div>
-                
+            </div>
+
+            <!-- Sidebar Styles (Right: Style & Download) -->
+            <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50 overflow-y-auto max-h-[85vh] custom-scrollbar">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xl font-bold text-white">Styles</h3>
+                    <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+
                 <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-2">Select Style</p>
                 
                 <!-- Style Selector -->
-                <div class="flex-1 h-40 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3 pb-2 md:pb-0 custom-scrollbar">
+                <div class="flex-1 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto flex md:flex-col gap-3 pb-2 md:pb-0 custom-scrollbar">
                    <button v-for="style in posterStyles" :key="style.id"
                        @click="posterStyle = style.id"
                        :class="posterStyle === style.id ? 'border-neon bg-neon/10 text-white ring-1 ring-neon' : 'border-slate-700 hover:border-slate-500 text-slate-400 hover:bg-slate-800'"
