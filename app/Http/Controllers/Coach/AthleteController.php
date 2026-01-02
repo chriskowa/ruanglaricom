@@ -82,6 +82,10 @@ class AthleteController extends Controller
         $sessions = $programJson['sessions'] ?? [];
         $startDate = $enrollment->start_date;
 
+        if (!$startDate) {
+            return response()->json([]);
+        }
+
         $events = [];
 
         foreach ($sessions as $index => $session) {
