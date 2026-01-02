@@ -917,7 +917,8 @@ class CalendarController extends Controller
             'success' => true, 
             'message' => 'Personal Best updated',
             'vdot' => $user->vdot,
-            'paces' => $user->training_paces
+            'paces' => $user->training_paces,
+            'equivalent_race_times' => $user->equivalent_race_times
         ]);
     }
 }

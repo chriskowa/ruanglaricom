@@ -30,41 +30,63 @@ class DanielsRunningService
         // Calculate pace per kilometer
         $pacePerKm = $totalSeconds / ($distanceInMeters / 1000); // seconds per km
         
-        // Simplified VDOT calculation
-        // This is an approximation - full VDOT calculation is more complex
-        // Formula: VDOT ≈ 0.2989558 * (distance/time) + (-0.193260626) * (time) + 7.000388531
-        
         $velocity = $distanceInMeters / $totalSeconds; // meters per second
         
         // Approximate VDOT calculation
         // Formula often uses velocity in meters per minute
         $velocityMin = $velocity * 60;
         
-        // Approximate VDOT calculation using m/min
-        // VDOT = -4.6 + 0.182258 * v + 0.000104 * v^2
-        $vdot = (-4.6 + 0.182258 * $velocityMin) + (0.000104 * pow($velocityMin, 2));
+        // Iterative calculation to match equivalent race times logic
+        // Initial VDOT guess
+        $vdot = 50.0;
         
-        // Adjust based on distance (different distances have different VDOT equivalencies)
-        $adjustment = $this->getVDOTAdjustment($distance);
-        $vdot = $vdot * $adjustment;
+        for ($i = 0; $i < 5; $i++) {
+            $ratio = $this->getRatioForDistance($distance, $vdot);
+            if ($ratio <= 0) $ratio = 0.01;
+            
+            // Calculate implied vVO2max from this race performance
+            $vVO2max = $velocityMin / $ratio;
+            
+            // Calculate new VDOT from vVO2max
+            // VDOT = -4.6 + 0.182258 * v + 0.000104 * v^2
+            $newVdot = -4.6 + 0.182258 * $vVO2max + 0.000104 * pow($vVO2max, 2);
+            
+            if (abs($newVdot - $vdot) < 0.01) {
+                $vdot = $newVdot;
+                break;
+            }
+            $vdot = $newVdot;
+        }
         
         // Round to 2 decimal places and ensure reasonable range (30-85)
         return max(30, min(85, round($vdot, 2)));
     }
     
     /**
-     * Get VDOT adjustment factor based on distance
+     * Get ratio of vVO2max sustainable for a given distance and VDOT
      */
-    private function getVDOTAdjustment(string $distance): float
+    private function getRatioForDistance(string $distance, float $vdot): float
     {
-        $adjustments = [
-            '5k' => 1.0,
-            '10k' => 0.98,
-            '21k' => 0.96,
-            '42k' => 0.94,
+        $ratios = [
+            '5k' => 0.957,    // ~95.7% of vVO2max
+            '10k' => 0.915,   // ~91.5% of vVO2max
+            '21k' => 0.865,   // ~86.5% of vVO2max
+            '42k' => 0.815,   // ~81.5% of vVO2max
         ];
         
-        return $adjustments[$distance] ?? 1.0;
+        // Normalize key
+        $key = '5k';
+        if (strpos($distance, '5k') !== false) $key = '5k';
+        elseif (strpos($distance, '10k') !== false) $key = '10k';
+        elseif (strpos($distance, 'hm') !== false || strpos($distance, '21k') !== false) $key = '21k';
+        elseif (strpos($distance, 'fm') !== false || strpos($distance, '42k') !== false) $key = '42k';
+
+        $ratio = $ratios[$key] ?? 0.957;
+        
+        // Minor adjustment for VDOT range: higher VDOT = slightly better endurance
+        $ratio += ($vdot - 50) * 0.0005; 
+        
+        return $ratio;
     }
     
     /**
@@ -132,42 +154,16 @@ class DanielsRunningService
             '42k' => 42195,
         ];
 
-        // Improve accuracy by using the VDOT formula directly to find velocity for 5k
-        // or finding the velocity that yields this VDOT for each distance.
-        // Since VDOT is derived from race performances, we can approximate the 
-        // expected time by using the general drop-off curve.
-        
         // 1. Calculate Velocity at VO2max (vVO2max)
         $a = 0.000104;
         $b = 0.182258;
         $c = -4.6 - $vdot;
         $vVO2max = (-$b + sqrt(pow($b, 2) - 4 * $a * $c)) / (2 * $a); // m/min
         
-        // Daniels' Duration Factors (Approximate from Tables)
-        // Ratio of velocity at distance D to vVO2max
-        // This is a much better approximation than simple Riegel from arbitrary anchor
-        // Derived from regression on VDOT tables
-        $ratios = [
-            '5k' => 0.957,    // ~95.7% of vVO2max
-            '10k' => 0.915,   // ~91.5% of vVO2max
-            '21k' => 0.865,   // ~86.5% of vVO2max
-            '42k' => 0.815,   // ~81.5% of vVO2max
-        ];
-
         $results = [];
         foreach ($distances as $name => $distMeters) {
             // Velocity for this distance
-            // Use specific ratio or fall back to Riegel-like curve if needed
-            // The ratios above are good for VDOT ~30-60. 
-            // For higher precision, we could adjust ratio based on VDOT (elites hold higher %)
-            // But fixed ratios are better than previous Riegel implementation.
-            
-            $ratio = $ratios[$name];
-            
-            // Minor adjustment for VDOT range: higher VDOT = slightly better endurance
-            // Example: VDOT 70 holds 92% for 10k, VDOT 30 holds 90%
-            // Simple linear adjustment:
-            $ratio += ($vdot - 50) * 0.0005; 
+            $ratio = $this->getRatioForDistance($name, $vdot);
             
             $velocity = $vVO2max * $ratio; // m/min
             

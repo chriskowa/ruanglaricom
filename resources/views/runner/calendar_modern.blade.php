@@ -1161,8 +1161,11 @@ createApp({
                 if (data.success) {
                     trainingProfile.value.vdot = data.vdot;
                     trainingProfile.value.paces = data.paces;
+                    if(data.equivalent_race_times) {
+                        trainingProfile.value.equivalent_race_times = data.equivalent_race_times;
+                    }
                     showPbModal.value = false;
-                    alert('PB updated! Training paces recalculated.');
+                    alert('PB updated! Training paces and equivalent race times recalculated.');
                 } else {
                     alert(data.message || 'Failed to update PB');
                 }
