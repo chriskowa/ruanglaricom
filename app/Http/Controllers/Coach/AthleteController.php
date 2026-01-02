@@ -88,6 +88,19 @@ class AthleteController extends Controller
 
         $events = [];
 
+        $typeColors = [
+            'easy_run' => '#10B981', // Emerald 500
+            'long_run' => '#6366F1', // Indigo 500
+            'tempo' => '#F97316',    // Orange 500
+            'interval' => '#EF4444', // Red 500
+            'strength' => '#64748B', // Slate 500
+            'race' => '#EAB308',     // Yellow 500
+            'rest' => '#94A3B8',     // Slate 400
+            'run' => '#3B82F6',      // Blue 500
+            'recovery' => '#14B8A6', // Teal 500
+            'yoga' => '#8B5CF6',     // Violet 500
+        ];
+
         foreach ($sessions as $index => $session) {
             if (!isset($session['day'])) continue;
 
@@ -104,14 +117,37 @@ class AthleteController extends Controller
             }
 
             $status = $tracking->status ?? 'pending';
-            $color = $status === 'completed' ? '#4CAF50' : ($status === 'started' ? '#FFC107' : '#9E9E9E');
+            
+            // Determine Color
+            $type = $session['type'] ?? 'run';
+            $baseColor = $typeColors[$type] ?? $typeColors['run'];
+
+            // Visual logic: 
+            // - Pending/Future: Type Color
+            // - Completed: Green Border + Type Color (or slight variation)
+            // - Missed: Red
+            
+            if ($status === 'completed') {
+                $backgroundColor = $baseColor;
+                $borderColor = '#22C55E'; // Green border to indicate success
+                $titlePrefix = "✅ ";
+            } elseif ($status === 'missed') {
+                $backgroundColor = '#EF4444'; // Red for missed
+                $borderColor = '#EF4444';
+                $titlePrefix = "❌ ";
+            } else {
+                $backgroundColor = $baseColor;
+                $borderColor = $baseColor;
+                $titlePrefix = "";
+            }
 
             $events[] = [
                 'id' => "session_{$index}",
-                'title' => $session['type'] ?? 'Run',
+                'title' => $titlePrefix . ($session['type'] ?? 'Run'),
                 'start' => $sessionDate->format('Y-m-d'),
-                'backgroundColor' => $color,
-                'borderColor' => $color,
+                'backgroundColor' => $backgroundColor,
+                'borderColor' => $borderColor,
+                'textColor' => '#FFFFFF', // Ensure text is white
                 'extendedProps' => [
                     'session_day' => $session['day'],
                     'type' => $session['type'],
@@ -127,31 +163,48 @@ class AthleteController extends Controller
         $customWorkouts = \App\Models\CustomWorkout::where('runner_id', $enrollment->runner_id)->get();
 
         foreach ($customWorkouts as $workout) {
-            $color = match($workout->status) {
-                'completed' => '#4CAF50',
-                'missed' => '#F44336',
-                default => '#3B82F6' // Blue for custom
-            };
+            $type = $workout->type;
+            $baseColor = $typeColors[$type] ?? $typeColors['run'];
+
+            if ($workout->status === 'completed') {
+                $backgroundColor = $baseColor;
+                $borderColor = '#22C55E';
+                $titlePrefix = "✅ ";
+            } elseif ($workout->status === 'missed') {
+                $backgroundColor = '#EF4444';
+                $borderColor = '#EF4444';
+                $titlePrefix = "❌ ";
+            } else {
+                $backgroundColor = $baseColor;
+                $borderColor = $baseColor;
+                $titlePrefix = "";
+            }
             
             if ($workout->type === 'race') {
-                $color = '#EAB308'; // Yellow for race
+                // Race special handling
+                $backgroundColor = $typeColors['race'];
+                $borderColor = $typeColors['race'];
+                $titlePrefix = "🏆 "; // Always trophy for race
             }
 
             $title = $workout->type === 'race' 
-                ? "🏆 " . ($workout->workout_structure['race_name'] ?? 'Race')
-                : ucfirst(str_replace('_', ' ', $workout->type));
+                ? $titlePrefix . ($workout->workout_structure['race_name'] ?? 'Race')
+                : $titlePrefix . ucfirst(str_replace('_', ' ', $workout->type));
 
             $events[] = [
                 'id' => "custom_{$workout->id}",
                 'title' => $title,
                 'start' => $workout->workout_date->format('Y-m-d'),
-                'backgroundColor' => $color,
-                'borderColor' => $color,
+                'backgroundColor' => $backgroundColor,
+                'borderColor' => $borderColor,
+                'textColor' => '#FFFFFF',
                 'extendedProps' => [
                     'is_custom' => true,
                     'id' => $workout->id,
                     'type' => $workout->type,
                     'distance' => $workout->distance,
+                    'duration' => $workout->duration,
+                    'difficulty' => $workout->difficulty,
                     'description' => $workout->description,
                     'status' => $workout->status,
                     'workout_structure' => $workout->workout_structure,
@@ -257,7 +310,44 @@ class AthleteController extends Controller
             'description' => $validated['description'] ?? null,
             'workout_structure' => $validated['workout_structure'] ?? null,
             'status' => 'pending',
-            'source' => 'coach', // Optional: to distinguish coach-assigned vs runner-created
+            // 'source' => 'coach', // Removed as column does not exist
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function updateWorkout(Request $request, $enrollmentId, $customWorkoutId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+            abort(403);
+        }
+
+        $workout = \App\Models\CustomWorkout::findOrFail($customWorkoutId);
+
+        // Verify workout belongs to this runner
+        if ((int)$workout->runner_id !== (int)$enrollment->runner_id) {
+            abort(403, 'Workout does not belong to this athlete');
+        }
+
+        $validated = $request->validate([
+            'workout_date' => 'required|date',
+            'type' => 'required|string',
+            'difficulty' => 'required|string',
+            'distance' => 'nullable|numeric',
+            'duration' => 'nullable|string',
+            'description' => 'nullable|string',
+            'workout_structure' => 'nullable|array',
+        ]);
+
+        $workout->update([
+            'workout_date' => $validated['workout_date'],
+            'type' => $validated['type'],
+            'difficulty' => $validated['difficulty'],
+            'distance' => $validated['distance'] ?? null,
+            'duration' => $validated['duration'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'workout_structure' => $validated['workout_structure'] ?? null,
         ]);
 
         return response()->json(['success' => true]);

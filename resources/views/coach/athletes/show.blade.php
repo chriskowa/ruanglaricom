@@ -10,6 +10,14 @@
 .fc .fc-button{background:#1e293b;border-color:#334155;color:#cbd5e1}
 .fc .fc-button:hover{color:#ccff00;border-color:#ccff00}
 .fc-event{border:none;border-radius:4px;cursor:pointer;}
+/* Calendar Dark Mode Overrides */
+.fc-theme-standard .fc-scrollgrid { border-color: #334155; }
+.fc-theme-standard td, .fc-theme-standard th { border-color: #334155; }
+.fc .fc-daygrid-day-number { color: #94a3b8; text-decoration: none; }
+.fc .fc-col-header-cell-cushion { color: #94a3b8; text-decoration: none; }
+.fc-day-today { background-color: rgba(204, 255, 0, 0.05) !important; }
+.fc-daygrid-day-frame { min-height: 100px; }
+.fc .fc-daygrid-day.fc-day-other { background-color: rgba(0,0,0,0.2); }
 </style>
 @endpush
 
@@ -27,13 +35,25 @@
             
             <!-- Runner Stats Summary -->
             <div class="flex gap-4">
-                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 uppercase">VDOT</div>
-                    <div class="text-xl font-black text-white">{{ $trainingProfile['vdot'] ?? '-' }}</div>
+                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
+                    <div class="text-[10px] text-slate-400 uppercase">Gender</div>
+                    <div class="text-lg font-black text-white capitalize">{{ $enrollment->runner->gender ?? '-' }}</div>
                 </div>
-                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 uppercase">Start Date</div>
-                    <div class="text-xl font-black text-white">{{ $enrollment->start_date ? $enrollment->start_date->format('d M') : '-' }}</div>
+                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
+                    <div class="text-[10px] text-slate-400 uppercase">Age</div>
+                    <div class="text-lg font-black text-white">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age : '-' }}</div>
+                </div>
+                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
+                    <div class="text-[10px] text-slate-400 uppercase">Weight</div>
+                    <div class="text-lg font-black text-white">{{ $enrollment->runner->weight ? $enrollment->runner->weight.' kg' : '-' }}</div>
+                </div>
+                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
+                    <div class="text-[10px] text-slate-400 uppercase">Height</div>
+                    <div class="text-lg font-black text-white">{{ $enrollment->runner->height ? $enrollment->runner->height.' cm' : '-' }}</div>
+                </div>
+                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
+                    <div class="text-[10px] text-slate-400 uppercase">VDOT</div>
+                    <div class="text-lg font-black text-neon">{{ $trainingProfile['vdot'] ?? '-' }}</div>
                 </div>
             </div>
         </div>
@@ -41,6 +61,163 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Calendar Column -->
             <div class="lg:col-span-2">
+                <!-- Training Profile Panel -->
+                <div class="glass-panel rounded-2xl p-4 md:p-6 mb-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                    </svg>
+                                    Training Profile
+                                </h3>
+                                <p class="text-xs text-slate-400">Based on Athlete's Personal Best (PB)</p>
+                            </div>
+                        </div>
+
+                        <!-- VDOT Score -->
+                        <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center mb-6">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">VDOT Score</div>
+                            <div class="text-4xl font-black text-white">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+                            <div class="text-[10px] text-slate-500 mt-1">VO2Max Approx: @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+                        </div>
+
+                        <!-- Tabs -->
+                        <div class="flex gap-4 border-b border-slate-700 mb-4">
+                            <button 
+                                class="text-sm font-bold pb-2 transition border-b-2"
+                                :class="profileTab === 'training' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                @click="profileTab = 'training'">
+                                Training
+                            </button>
+                            <button 
+                                class="text-sm font-bold pb-2 transition border-b-2"
+                                :class="profileTab === 'equivalent' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                @click="profileTab = 'equivalent'">
+                                Equivalent
+                            </button>
+                            <button 
+                                class="text-sm font-bold pb-2 transition border-b-2"
+                                :class="profileTab === 'track' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                @click="profileTab = 'track'">
+                                Track
+                            </button>
+                        </div>
+
+                        <!-- Training Tab -->
+                        <div v-if="profileTab === 'training'">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead>
+                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
+                                            <th class="py-2">Type</th>
+                                            <th class="py-2 text-right">1 Km</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-slate-300">
+                                        <tr class="border-b border-slate-800">
+                                            <td class="py-2 text-green-400 font-bold">Easy (E)</td>
+                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.E) }}</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-800">
+                                            <td class="py-2 text-blue-400 font-bold">Marathon (M)</td>
+                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.M) }}</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-800">
+                                            <td class="py-2 text-yellow-400 font-bold">Threshold (T)</td>
+                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.T) }}</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-800">
+                                            <td class="py-2 text-orange-400 font-bold">Interval (I)</td>
+                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.I) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 text-red-400 font-bold">Repetition (R)</td>
+                                            <td class="py-2 text-right">@{{ formatPace(trainingProfile.paces?.R) }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Equivalent Tab -->
+                        <div v-if="profileTab === 'equivalent'">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead>
+                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
+                                            <th class="py-2">Race</th>
+                                            <th class="py-2 text-right">Time</th>
+                                            <th class="py-2 text-right">Pace</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-slate-300">
+                                        <tr class="border-b border-slate-800">
+                                            <td class="py-2 font-bold">5K</td>
+                                            <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['5k']?.time || '-' }}</td>
+                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['5k']?.pace || '-' }}</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-800">
+                                            <td class="py-2 font-bold">10K</td>
+                                            <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['10k']?.time || '-' }}</td>
+                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['10k']?.pace || '-' }}</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-800">
+                                            <td class="py-2 font-bold">Half Marathon</td>
+                                            <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['21k']?.time || '-' }}</td>
+                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['21k']?.pace || '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 font-bold">Marathon</td>
+                                            <td class="py-2 text-right text-white font-mono">@{{ trainingProfile.equivalent_race_times?.['42k']?.time || '-' }}</td>
+                                            <td class="py-2 text-right text-slate-400 font-mono text-xs">@{{ trainingProfile.equivalent_race_times?.['42k']?.pace || '-' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Track Tab -->
+                        <div v-if="profileTab === 'track'">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead>
+                                        <tr class="text-xs text-slate-500 uppercase border-b border-slate-700">
+                                            <th class="py-2">Distance</th>
+                                            <th class="py-2 text-right text-red-400">Rep (R)</th>
+                                            <th class="py-2 text-right text-orange-400">Int (I)</th>
+                                            <th class="py-2 text-right text-yellow-400">Thr (T)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-slate-300">
+                                        <tr v-for="(times, dist) in trainingProfile.track_times" :key="dist" class="border-b border-slate-800 last:border-0">
+                                            <td class="py-2 font-bold text-white">@{{ dist }}</td>
+                                            <td class="py-2 text-right font-mono">
+                                                <div class="text-white">@{{ times.R }}</div>
+                                                <div class="text-[10px] text-slate-500">@{{ times.pace_R }}/km</div>
+                                            </td>
+                                            <td class="py-2 text-right font-mono">
+                                                <div class="text-white">@{{ times.I }}</div>
+                                                <div class="text-[10px] text-slate-500">@{{ times.pace_I }}/km</div>
+                                            </td>
+                                            <td class="py-2 text-right font-mono">
+                                                <div class="text-white">@{{ times.T }}</div>
+                                                <div class="text-[10px] text-slate-500">@{{ times.pace_T }}/km</div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="glass-panel rounded-2xl p-4 md:p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-white font-bold">Training Calendar</h3>
@@ -65,6 +242,13 @@
                                 :class="statusClass(selectedSession.extendedProps.status)">
                                 @{{ selectedSession.extendedProps.status }}
                             </span>
+                        </div>
+
+                        <!-- Edit Button -->
+                        <div class="mb-4">
+                            <button @click="openForm(null, selectedSession)" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-slate-700">
+                                <i class="fa-solid fa-pen"></i> @{{ selectedSession.extendedProps.is_custom ? 'Edit Custom Workout' : 'Customize / Edit Workout' }}
+                            </button>
                         </div>
 
                         <!-- Session Detail -->
@@ -190,48 +374,24 @@
                         </div>
                     </div>
                     
-                    <!-- Workout Builder -->
+                    <!-- Advanced Workout Builder -->
                     <div class="border-t border-slate-700 pt-4 mt-4">
-                        <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Workout Builder</label>
+                        <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Workout Configuration</label>
                         
-                        <div class="space-y-2 mb-3">
-                            <div v-for="(step, index) in form.workout_structure" :key="index" class="flex flex-col gap-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-slate-700" :class="{'text-green-400': step.type==='warmup', 'text-blue-400': step.type==='run', 'text-orange-400': step.type==='interval', 'text-yellow-400': step.type==='recovery', 'text-purple-400': step.type==='cool_down'}">
-                                        @{{ step.type.replace('_', ' ') }}
-                                    </span>
-                                    <div class="flex gap-1">
-                                        <button type="button" class="text-slate-400 hover:text-white" @click="moveStep(index, -1)" v-if="index > 0">↑</button>
-                                        <button type="button" class="text-slate-400 hover:text-white" @click="moveStep(index, 1)" v-if="index < form.workout_structure.length - 1">↓</button>
-                                        <button type="button" class="text-red-400 hover:text-red-300 ml-2" @click="removeStep(index)">×</button>
-                                    </div>
+                        <div v-if="form.workout_structure && form.workout_structure.advanced" class="bg-slate-800 p-3 rounded-xl border border-slate-700 mb-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-xs text-neon font-bold uppercase mb-1">Advanced Config</div>
+                                    <div class="text-sm text-white">@{{ form.description }}</div>
+                                    <div class="text-xs text-slate-400 mt-1">Total: @{{ form.distance }} km</div>
                                 </div>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <select v-model="step.duration_type" @change="calculateTotalDistance" class="bg-slate-900 border border-slate-700 rounded text-xs text-white px-2 py-1 outline-none focus:border-neon">
-                                        <option value="distance">Distance</option>
-                                        <option value="time">Time</option>
-                                    </select>
-                                    <div class="flex gap-1 col-span-2">
-                                        <input type="number" step="0.01" v-model="step.value" @change="calculateTotalDistance" class="w-full bg-slate-900 border border-slate-700 rounded text-xs text-white px-2 py-1 outline-none focus:border-neon" placeholder="Value">
-                                        <select v-model="step.unit" @change="calculateTotalDistance" class="w-20 bg-slate-900 border border-slate-700 rounded text-xs text-white px-2 py-1 outline-none focus:border-neon">
-                                            <option value="km">km</option>
-                                            <option value="m">m</option>
-                                            <option value="min">min</option>
-                                            <option value="sec">sec</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <input type="text" v-model="step.notes" placeholder="Notes (e.g. @ 5:00 pace)" class="w-full bg-slate-900 border border-slate-700 rounded text-xs text-white px-2 py-1 outline-none focus:border-neon">
+                                <button type="button" @click="openBuilder(true)" class="text-xs text-slate-400 hover:text-white">Edit</button>
                             </div>
                         </div>
 
-                        <div class="flex flex-wrap gap-2">
-                            <button type="button" @click="addStep('warmup')" class="px-2 py-1 rounded bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-bold hover:bg-green-500/30">+ Warmup</button>
-                            <button type="button" @click="addStep('run')" class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-bold hover:bg-blue-500/30">+ Run</button>
-                            <button type="button" @click="addStep('interval')" class="px-2 py-1 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-bold hover:bg-orange-500/30">+ Interval</button>
-                            <button type="button" @click="addStep('recovery')" class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs font-bold hover:bg-yellow-500/30">+ Recovery</button>
-                            <button type="button" @click="addStep('cool_down')" class="px-2 py-1 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-bold hover:bg-purple-500/30">+ Cool Down</button>
-                        </div>
+                        <button type="button" @click="openBuilder(!!(form.workout_structure && form.workout_structure.advanced))" class="w-full py-3 rounded-xl border border-dashed border-slate-600 text-slate-400 hover:text-neon hover:border-neon hover:bg-slate-800 transition text-sm font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-layer-group"></i> @{{ form.workout_structure && form.workout_structure.advanced ? 'Open Builder to Edit' : 'Open Advanced Builder' }}
+                        </button>
                     </div>
 
                     <div>
@@ -248,7 +408,187 @@
             </div>
         </div>
 
-        <!-- Race Modal -->
+        <!-- Advanced Workout Builder Modal -->
+    <div v-if="builderVisible" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="fixed inset-0 bg-black/80" @click="builderVisible = false"></div>
+        <div class="relative z-10 max-w-2xl mx-auto my-10 glass-panel rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white font-bold text-lg">Advanced Workout Builder</h3>
+                <button class="text-slate-400 hover:text-white" @click="builderVisible = false">×</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Type</label>
+                    <select v-model="builderForm.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                        <option value="easy_run">Easy Run</option>
+                        <option value="long_run">Long Run</option>
+                        <option value="tempo">Tempo</option>
+                        <option value="interval">Intervals</option>
+                        <option value="strength">Strength</option>
+                        <option value="rest">Rest</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Title</label>
+                    <input v-model="builderForm.title" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" placeholder="Optional">
+                </div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-panel rounded-xl p-3">
+                    <div class="flex items-center justify-between">
+                        <div class="text-xs font-bold text-slate-400 uppercase">Warm Up</div>
+                        <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                            <input type="checkbox" v-model="builderForm.warmup.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                            Enable
+                        </label>
+                    </div>
+                    <div v-if="builderForm.warmup.enabled" class="mt-3 grid grid-cols-2 gap-2">
+                        <select v-model="builderForm.warmup.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                            <option value="distance">Distance</option>
+                            <option value="time">Time</option>
+                        </select>
+                        <input v-if="builderForm.warmup.by==='distance'" type="number" step="0.1" v-model.number="builderForm.warmup.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                        <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
+                    </div>
+                </div>
+                <div class="glass-panel rounded-xl p-3">
+                    <div class="flex items-center justify-between">
+                        <div class="text-xs font-bold text-slate-400 uppercase">Cool Down</div>
+                        <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                            <input type="checkbox" v-model="builderForm.cooldown.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                            Enable
+                        </label>
+                    </div>
+                    <div v-if="builderForm.cooldown.enabled" class="mt-3 grid grid-cols-2 gap-2">
+                        <select v-model="builderForm.cooldown.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                            <option value="distance">Distance</option>
+                            <option value="time">Time</option>
+                        </select>
+                        <input v-if="builderForm.cooldown.by==='distance'" type="number" step="0.1" v-model.number="builderForm.cooldown.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                        <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 glass-panel rounded-xl p-4">
+                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Main</div>
+                <div v-if="builderForm.type==='easy_run'">
+                    <div class="grid grid-cols-3 gap-2">
+                        <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                            <option value="distance">Distance</option>
+                            <option value="time">Time</option>
+                        </select>
+                        <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                        <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
+                        <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                    </div>
+                </div>
+                <div v-else-if="builderForm.type==='long_run'">
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                            <option value="distance">Distance</option>
+                            <option value="time">Time</option>
+                        </select>
+                        <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Total Distance (km)">
+                        <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
+                        <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                            <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                            Fast Finish
+                        </label>
+                        <div class="grid grid-cols-2 gap-2" v-if="builderForm.longRun.fastFinish.enabled">
+                            <input type="number" step="0.1" v-model.number="builderForm.longRun.fastFinish.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                            <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace">
+                        </div>
+                    </div>
+                </div>
+                <div v-else-if="builderForm.type==='tempo'">
+                    <div class="grid grid-cols-4 gap-2">
+                        <select v-model="builderForm.tempo.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                            <option value="distance">Distance</option>
+                            <option value="time">Time</option>
+                        </select>
+                        <input v-if="builderForm.tempo.by==='distance'" type="number" step="0.1" v-model.number="builderForm.tempo.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                        <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
+                        <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                        <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                            <option value="moderate">Moderate</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                <div v-else-if="builderForm.type==='interval'">
+                    <div class="grid grid-cols-5 gap-2">
+                        <input type="number" v-model.number="builderForm.interval.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Reps">
+                        <select v-model="builderForm.interval.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                            <option value="distance">Distance</option>
+                            <option value="time">Time</option>
+                        </select>
+                        <input v-if="builderForm.interval.by==='distance'" type="number" step="0.1" v-model.number="builderForm.interval.repDistanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep km">
+                        <input v-else type="text" v-model="builderForm.interval.repTime" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep 00:03:00">
+                        <input type="text" v-model="builderForm.interval.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                        <input type="text" v-model="builderForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Recovery">
+                    </div>
+                </div>
+                <div v-else-if="builderForm.type==='strength'">
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <select v-model="builderForm.strength.category" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="">Select Category</option>
+                                <option value="full_body">Full Body</option>
+                                <option value="legs_lower_body">Legs/Lower Body</option>
+                                <option value="core">Core</option>
+                                <option value="upper_body">Upper Body</option>
+                            </select>
+                            <select v-model="builderForm.strength.exercise" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="">Select Exercise</option>
+                                <option v-for="ex in strengthOptions" :key="ex.name" :value="ex.name">@{{ ex.name }}</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" v-model="builderForm.strength.sets" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Sets">
+                            <input type="text" v-model="builderForm.strength.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Reps/Dur">
+                            <input type="text" v-model="builderForm.strength.equipment" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Equipment">
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="button" class="px-3 py-2 rounded-lg bg-slate-800 text-white text-xs" @click="addStrengthExercise">Add Exercise</button>
+                        </div>
+                        <div class="space-y-2" v-if="builderForm.strength.plan && builderForm.strength.plan.length">
+                            <div v-for="(item, idx) in builderForm.strength.plan" :key="idx" class="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white">
+                                <div>@{{ item.name }} — @{{ item.sets }} x @{{ item.reps }} (@{{ item.equipment }})</div>
+                                <button type="button" class="text-slate-300 hover:text-white" @click="removeStrengthExercise(idx)">×</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else-if="builderForm.type==='rest'">
+                    <div class="text-slate-400 text-sm">Rest Day</div>
+                </div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Intensity</label>
+                    <select v-model="builderForm.intensity" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4 glass-panel rounded-xl p-4">
+                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Summary</div>
+                <div class="text-white text-sm">@{{ builderSummary }}</div>
+                <div class="text-slate-400 text-xs mt-1">Total Distance: @{{ builderTotalDistance }} km</div>
+            </div>
+            <div class="flex justify-end items-center mt-4 gap-2">
+                <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="builderVisible = false">Cancel</button>
+                <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="saveBuilder">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Race Modal -->
         <div v-if="showRaceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 relative">
                 <button @click="showRaceModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
@@ -311,10 +651,12 @@ createApp({
         const selectedSession = ref(null);
         const loading = ref(false);
         const trainingProfile = @json($trainingProfile);
+        const profileTab = ref('training');
         const feedbackForm = reactive({
             coach_rating: 0,
             coach_feedback: ''
         });
+
 
         // Workout Form State
         const showFormModal = ref(false);
@@ -329,8 +671,208 @@ createApp({
             workout_structure: [] 
         });
 
+        // Advanced Builder State
+        const builderVisible = ref(false);
+        const builderForm = reactive({
+            type: 'easy_run',
+            title: '',
+            intensity: 'low',
+            warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+            cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+            main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
+            longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
+            tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+            interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+            strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
+        });
+
+        const strengthData = {
+            strength_training: {
+                full_body: [
+                    { name: 'Burpees', sets: '3', reps: '12-15', equipment: 'Bodyweight' },
+                    { name: 'Kettlebell Swing', sets: '3', reps: '15-20', equipment: 'Kettlebell' },
+                    { name: 'Clean and Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' },
+                    { name: 'Thrusters', sets: '3', reps: '10-12', equipment: 'Dumbbell/Barbell' }
+                ],
+                legs_lower_body: [
+                    { name: 'Squats', sets: '4', reps: '8-12', equipment: 'Barbell/Bodyweight' },
+                    { name: 'Lunges', sets: '3', reps: '10 each leg', equipment: 'Bodyweight/Dumbbell' },
+                    { name: 'Deadlifts', sets: '4', reps: '6-10', equipment: 'Barbell' },
+                    { name: 'Glute Bridge / Hip Thrust', sets: '3', reps: '12-15', equipment: 'Bodyweight/Barbell' },
+                    { name: 'Calf Raises', sets: '3', reps: '15-20', equipment: 'Bodyweight/Dumbbell' }
+                ],
+                core: [
+                    { name: 'Plank', sets: '3', duration: '45-60s', equipment: 'Bodyweight' },
+                    { name: 'Russian Twist', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight/Medicine Ball' },
+                    { name: 'Leg Raises', sets: '3', reps: '12-15', equipment: 'Bodyweight' },
+                    { name: 'Bicycle Crunch', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight' },
+                    { name: 'Ab Rollout', sets: '3', reps: '8-12', equipment: 'Ab Wheel/Barbell' }
+                ],
+                upper_body: [
+                    { name: 'Push-Ups', sets: '3', reps: '12-20', equipment: 'Bodyweight' },
+                    { name: 'Bench Press', sets: '4', reps: '6-10', equipment: 'Barbell/Dumbbell' },
+                    { name: 'Pull-Ups / Chin-Ups', sets: '3', reps: '8-12', equipment: 'Bodyweight' },
+                    { name: 'Overhead Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' },
+                    { name: 'Bent Over Row', sets: '4', reps: '8-12', equipment: 'Barbell/Dumbbell' },
+                    { name: 'Bicep Curl', sets: '3', reps: '12-15', equipment: 'Dumbbell/Barbell' },
+                    { name: 'Tricep Dips', sets: '3', reps: '10-12', equipment: 'Bodyweight/Bench' }
+                ]
+            }
+        };
+
+        const strengthOptions = Vue.computed(() => {
+            const cat = builderForm.strength.category;
+            const all = strengthData.strength_training;
+            return (cat && all[cat]) ? all[cat] : [];
+        });
+
+        const addStrengthExercise = () => {
+            const ex = builderForm.strength.exercise;
+            const cat = builderForm.strength.category;
+            const list = strengthData.strength_training[cat] || [];
+            const found = list.find(i => i.name === ex);
+            const item = {
+                name: ex || '',
+                sets: builderForm.strength.sets || (found ? found.sets : ''),
+                reps: builderForm.strength.reps || (found ? found.reps : ''),
+                equipment: builderForm.strength.equipment || (found ? found.equipment : '')
+            };
+            if (!builderForm.strength.plan) builderForm.strength.plan = [];
+            builderForm.strength.plan.push(item);
+            builderForm.strength.exercise = '';
+            builderForm.strength.sets = '';
+            builderForm.strength.reps = '';
+            builderForm.strength.equipment = '';
+        };
+
+        const removeStrengthExercise = (idx) => {
+            if (!builderForm.strength.plan) return;
+            builderForm.strength.plan.splice(idx, 1);
+        };
+
+        const builderSummary = Vue.computed(() => {
+            const parts = [];
+            if (builderForm.warmup.enabled) {
+                parts.push(`WU: ${builderForm.warmup.by==='distance' ? `${builderForm.warmup.distanceKm}km` : builderForm.warmup.duration}`);
+            }
+            if (builderForm.type==='interval') {
+                if (builderForm.interval.by==='distance') {
+                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repDistanceKm}km${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
+                } else {
+                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repTime}${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
+                }
+                parts.push(`Rec ${builderForm.interval.recovery}`);
+            } else if (builderForm.type==='tempo') {
+                if (builderForm.tempo.by==='distance') {
+                    parts.push(`${builderForm.tempo.distanceKm}km @${builderForm.tempo.pace} ${builderForm.tempo.effort}`);
+                } else {
+                    parts.push(`${builderForm.tempo.duration} @${builderForm.tempo.pace} ${builderForm.tempo.effort}`);
+                }
+            } else if (builderForm.type==='long_run') {
+                parts.push(`Long Run ${builderForm.main.by==='distance'?builderForm.main.distanceKm+'km':builderForm.main.duration}`);
+                if (builderForm.longRun.fastFinish.enabled) {
+                    parts.push(`+ ${builderForm.longRun.fastFinish.distanceKm}km Fast Finish`);
+                }
+            } else if (builderForm.type==='easy_run') {
+                parts.push(`Easy Run ${builderForm.main.by==='distance'?builderForm.main.distanceKm+'km':builderForm.main.duration}`);
+            } else if (builderForm.type==='strength') {
+                parts.push(`Strength: ${builderForm.strength.plan.length} exercises`);
+            } else if (builderForm.type==='rest') {
+                parts.push('Rest Day');
+            }
+
+            if (builderForm.cooldown.enabled) {
+                parts.push(`CD: ${builderForm.cooldown.by==='distance' ? `${builderForm.cooldown.distanceKm}km` : builderForm.cooldown.duration}`);
+            }
+            return parts.join(' + ');
+        });
+
+        const parseDurationMinutes = (str) => {
+            if (!str) return 0;
+            const parts = str.split(':').map(Number);
+            if (parts.length === 2) return parts[0] + parts[1]/60;
+            if (parts.length === 3) return parts[0]*60 + parts[1] + parts[2]/60;
+            return 0;
+        };
+
+        const minutesToHHMMSS = (mins) => {
+            const h = Math.floor(mins / 60);
+            const m = Math.floor(mins % 60);
+            const s = Math.round((mins * 60) % 60);
+            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        };
+
+        const builderTotalDistance = Vue.computed(() => {
+            let total = 0;
+            if (builderForm.warmup.enabled && builderForm.warmup.by === 'distance') total += (Number(builderForm.warmup.distanceKm) || 0);
+            
+            if (builderForm.type === 'easy_run' || builderForm.type === 'long_run') {
+                if (builderForm.main.by === 'distance') total += (Number(builderForm.main.distanceKm) || 0);
+                if (builderForm.type === 'long_run' && builderForm.longRun.fastFinish.enabled) total += (Number(builderForm.longRun.fastFinish.distanceKm) || 0);
+            } else if (builderForm.type === 'tempo') {
+                if (builderForm.tempo.by === 'distance') total += (Number(builderForm.tempo.distanceKm) || 0);
+            } else if (builderForm.type === 'interval') {
+                if (builderForm.interval.by === 'distance') total += (Number(builderForm.interval.reps) || 0) * (Number(builderForm.interval.repDistanceKm) || 0);
+            }
+            
+            if (builderForm.cooldown.enabled && builderForm.cooldown.by === 'distance') total += (Number(builderForm.cooldown.distanceKm) || 0);
+            
+            return Number(total.toFixed(2));
+        });
+
+        const openBuilder = (isEditing) => {
+            if (isEditing) {
+                // Try to load existing advanced config
+                let config = null;
+                if (form.workout_structure && form.workout_structure.advanced) {
+                    config = form.workout_structure.advanced;
+                }
+                
+                if (config) {
+                    Object.assign(builderForm, config);
+                }
+            } else {
+                // Reset
+                Object.assign(builderForm, {
+                    type: 'easy_run',
+                    title: '',
+                    intensity: 'low',
+                    warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+                    cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+                    main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
+                    longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
+                    tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+                    interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+                    strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
+                });
+            }
+            builderVisible.value = true;
+        };
+
+        const saveBuilder = () => {
+            // Update the main form with builder data
+            const advancedConfig = JSON.parse(JSON.stringify(builderForm));
+            form.workout_structure = { advanced: advancedConfig };
+            form.description = builderSummary.value;
+            form.distance = builderTotalDistance.value;
+            
+            // Try to set duration if possible
+            if (['easy_run', 'long_run'].includes(builderForm.type) && builderForm.main.by === 'time') {
+                form.duration = builderForm.main.duration;
+            } else if (builderForm.type === 'tempo' && builderForm.tempo.by === 'time') {
+                form.duration = builderForm.tempo.duration;
+            } else if (builderForm.type === 'interval' && builderForm.interval.by === 'time') {
+                const perRep = parseDurationMinutes(builderForm.interval.repTime);
+                const total = (Number(builderForm.interval.reps)||0) * (isNaN(perRep)?0:perRep);
+                form.duration = minutesToHHMMSS(total);
+            }
+
+            builderVisible.value = false;
+        };
+
         // Workout Builder Helper Methods
         const addStep = (type) => {
+            if (!Array.isArray(form.workout_structure)) form.workout_structure = [];
             form.workout_structure.push({
                 type: type, // warmup, run, interval, recovery, rest, cool_down
                 duration_type: 'distance', // distance, time
@@ -341,10 +883,13 @@ createApp({
         };
 
         const removeStep = (index) => {
-            form.workout_structure.splice(index, 1);
+            if (Array.isArray(form.workout_structure)) {
+                form.workout_structure.splice(index, 1);
+            }
         };
 
         const moveStep = (index, direction) => {
+            if (!Array.isArray(form.workout_structure)) return;
             if (direction === -1 && index > 0) {
                 const temp = form.workout_structure[index];
                 form.workout_structure[index] = form.workout_structure[index - 1];
@@ -357,6 +902,7 @@ createApp({
         };
 
         const calculateTotalDistance = () => {
+            if (!Array.isArray(form.workout_structure)) return;
             let total = 0;
             form.workout_structure.forEach(step => {
                 if (step.duration_type === 'distance' && step.value) {
@@ -368,15 +914,34 @@ createApp({
             if (total > 0) form.distance = total.toFixed(2);
         };
 
-        const openForm = (dateStr) => {
-            form.workout_id = '';
-            form.workout_date = dateStr;
-            form.type = 'run';
-            form.difficulty = 'moderate';
-            form.distance = '';
-            form.duration = '';
-            form.description = '';
-            form.workout_structure = [];
+        const openForm = (dateStr, session = null) => {
+            if (session) {
+                // Edit Mode
+                if (session.extendedProps.is_custom) {
+                    form.workout_id = session.extendedProps.id;
+                    form.workout_structure = session.extendedProps.workout_structure || [];
+                } else {
+                    form.workout_id = '';
+                    form.workout_structure = [];
+                }
+                
+                form.workout_date = session.startStr.split('T')[0];
+                form.type = session.extendedProps.type;
+                form.difficulty = session.extendedProps.difficulty || 'moderate';
+                form.distance = session.extendedProps.distance;
+                form.duration = session.extendedProps.duration || '';
+                form.description = session.extendedProps.description;
+            } else {
+                // Create Mode
+                form.workout_id = '';
+                form.workout_date = dateStr;
+                form.type = 'run';
+                form.difficulty = 'moderate';
+                form.distance = '';
+                form.duration = '';
+                form.description = '';
+                form.workout_structure = [];
+            }
             showFormModal.value = true;
         };
 
@@ -390,23 +955,32 @@ createApp({
                     distance: form.distance || null,
                     duration: form.duration || null,
                     description: form.description || null,
-                    workout_structure: form.workout_structure.length > 0 ? form.workout_structure : null,
+                    workout_structure: form.workout_structure,
                 };
                 
-                const res = await fetch(`{{ route('coach.athletes.workout.store', $enrollment->id) }}`, {
-                    method: 'POST',
+                let url = `{{ route('coach.athletes.workout.store', $enrollment->id) }}`;
+                let method = 'POST';
+                
+                if (form.workout_id) {
+                    url = `{{ route('coach.athletes.workout.update', ['enrollment' => $enrollment->id, 'customWorkout' => 'ID_PLACEHOLDER']) }}`.replace('ID_PLACEHOLDER', form.workout_id);
+                    method = 'PUT';
+                }
+
+                const res = await fetch(url, {
+                    method: method,
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (data.success) {
                     showFormModal.value = false;
-                    alert('Workout added successfully');
+                    alert('Workout saved successfully');
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Failed to add workout');
+                    alert(data.message || 'Failed to save workout');
                 }
             } catch (e) {
+                console.error(e);
                 alert('An error occurred');
             } finally {
                 loading.value = false;
@@ -460,10 +1034,6 @@ createApp({
                     showRaceModal.value = false;
                     alert('Race added successfully');
                     // Refresh calendar
-                    const calendarEl = document.getElementById('calendar');
-                    // We need access to calendar instance. 
-                    // Since it's local in onMounted, we might need to reload or expose it.
-                    // Easiest is reload for now as calendar instance isn't globally exposed
                     window.location.reload();
                 } else {
                     alert(data.message || 'Failed to add race');
@@ -604,9 +1174,12 @@ createApp({
         });
 
         return { 
+            trainingProfile, profileTab, formatPace,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             showRaceModal, raceForm, openRaceForm, saveRace,
-            showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance
+            showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance,
+            // Advanced Builder
+            builderVisible, builderForm, openBuilder, saveBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise
         };
     }
 }).mount('#coach-monitor-app');
