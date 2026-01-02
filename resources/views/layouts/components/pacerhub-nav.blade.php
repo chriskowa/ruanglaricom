@@ -10,6 +10,7 @@
             </div>
             @guest
             <div class="flex-1 hidden md:flex items-center justify-center gap-1">
+                <a href="{{ route('marketplace.index') }}" class="px-3 py-2 text-sm font-bold {{ request()->routeIs('marketplace.*') ? 'text-neon' : 'text-slate-300 hover:text-neon' }} transition-colors">Marketplace</a>
                 <a href="{{ route('programs.index') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Programs</a>
                 <a href="{{ route('coaches.index') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Coach</a>
                 <a href="{{ route('calendar.public') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Calendar</a>
@@ -164,6 +165,7 @@
 <div id="mobile-menu-panel" class="md:hidden hidden fixed top-20 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-b-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
     <div class="p-3 grid grid-cols-1 gap-1">
         <a href="{{ route('programs.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Programs</a>
+        <a href="{{ route('marketplace.index') }}" class="px-3 py-3 rounded-lg {{ request()->routeIs('marketplace.*') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }} transition-colors font-bold">Marketplace</a>
         <a href="{{ route('coaches.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Coach</a>
         <a href="{{ route('calendar.public') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Calendar</a>
         

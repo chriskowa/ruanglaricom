@@ -145,6 +145,10 @@ Route::get('/programs/{slug}', [App\Http\Controllers\PublicProgramController::cl
 // Public Coach Listing
 Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');
 
+// Public Marketplace
+Route::get('/marketplace', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'index'])->name('marketplace.index');
+Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\MarketplaceController::class, 'show'])->name('marketplace.show');
+
 // Newsletter
 Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'store'])->name('newsletter.subscribe');
 
@@ -270,7 +274,12 @@ Route::middleware('auth')->group(function () {
     Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
 
-    Route::post('/leaderboard/sync', function () {
+    Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');
+    Route::post('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'update'])->name('marketplace.settings.update');
+    Route::resource('marketplace/categories', App\Http\Controllers\Admin\MarketplaceCategoryController::class)->names('marketplace.categories');
+    Route::resource('marketplace/brands', App\Http\Controllers\Admin\MarketplaceBrandController::class)->names('marketplace.brands');
+
+        Route::post('/leaderboard/sync', function () {
             Illuminate\Support\Facades\Artisan::call('leaderboard:sync');
             return response()->json(['ok' => true]);
         })->name('leaderboard.sync');
@@ -314,8 +323,21 @@ Route::middleware('auth')->group(function () {
 
     // Marketplace routes (accessible by all authenticated users)
     Route::prefix('marketplace')->name('marketplace.')->group(function () {
+        // Seller Management
+        Route::resource('seller/products', App\Http\Controllers\Marketplace\ProductController::class)->names('seller.products');
+        
         // Cart routes
         Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
+        
+        // Checkout routes
+        Route::post('/checkout/init', [App\Http\Controllers\Marketplace\CheckoutController::class, 'init'])->name('checkout.init');
+        Route::get('/checkout/{order}/pay', [App\Http\Controllers\Marketplace\CheckoutController::class, 'pay'])->name('checkout.pay');
+        
+        // My Orders
+        Route::get('/orders', [App\Http\Controllers\Marketplace\OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [App\Http\Controllers\Marketplace\OrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{order}/shipped', [App\Http\Controllers\Marketplace\OrderController::class, 'markShipped'])->name('orders.shipped');
+        Route::post('/orders/{order}/completed', [App\Http\Controllers\Marketplace\OrderController::class, 'markCompleted'])->name('orders.completed');
         Route::post('/cart/add/{program}', [App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
         Route::delete('/cart/{cart}', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
         Route::put('/cart/{cart}', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
@@ -413,3 +435,4 @@ Route::get('/dashboard', function () {
 // Midtrans webhook (no auth required)
 Route::post('/wallet/topup/callback', [App\Http\Controllers\WalletController::class, 'topupCallback'])->name('wallet.topup.callback');
 Route::post('/events/transactions/webhook', [App\Http\Controllers\EventTransactionWebhookController::class, 'handle'])->name('events.transactions.webhook');
+Route::post('/marketplace/webhook', [App\Http\Controllers\Marketplace\WebhookController::class, 'handle'])->name('marketplace.webhook');

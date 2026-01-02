@@ -10,6 +10,10 @@
                     @if(auth()->user()->isAdmin())
                         <li><a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                         <li><a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Manage Users</a></li>
+                        
+                        <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Commerce Marketplace</li>
+                        <li><a href="{{ route('admin.marketplace.categories.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Categories</a></li>
+                        <li><a href="{{ route('admin.marketplace.brands.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Brands</a></li>
                     @elseif(auth()->user()->isCoach())
                         <li><a href="{{ route('coach.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                         <li><a href="{{ route('coach.programs.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Programs</a></li>
@@ -23,7 +27,7 @@
                     @endif
                     
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Commerce</li>
-                    <li><a href="{{ route('programs.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Marketplace</a></li>
+                    <li><a href="{{ route('marketplace.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ request()->routeIs('marketplace.*') ? 'text-primary bg-slate-800' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Marketplace</a></li>
                     
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Community</li>
                     <li><a href="{{ route('feed.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Community</a></li>

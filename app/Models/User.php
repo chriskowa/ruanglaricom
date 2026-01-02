@@ -207,6 +207,12 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class)->where('is_read', false)->latest();
     }
 
+    // Marketplace relationships
+    public function marketplaceProducts()
+    {
+        return $this->hasMany(\App\Models\Marketplace\MarketplaceProduct::class, 'user_id');
+    }
+
     /**
      * Calculate best VDOT from PBs
      */

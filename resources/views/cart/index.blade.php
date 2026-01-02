@@ -1,19 +1,7 @@
 @extends('layouts.pacerhub')
+@php($withSidebar = true)
 
 @section('title', 'Shopping Cart')
-
-@push('styles')
-<script>
-    tailwind.config.theme.extend.colors.neon = '#ccff00';
-</script>
-<style>
-    .glass-panel {
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-</style>
-@endpush
 
 @section('content')
 <div class="min-h-screen pt-24 pb-20 px-4 md:px-8 font-sans bg-dark text-slate-200">
@@ -44,14 +32,20 @@
                     </div>
 
                     @foreach($cartItems as $item)
-                        <div class="glass-panel rounded-2xl p-4 md:p-6 hover:border-neon/30 transition-all group relative overflow-hidden">
+                        <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-4 md:p-6 hover:border-neon/30 transition-all group relative overflow-hidden shadow-xl">
                             <!-- Background Glow -->
                             <div class="absolute inset-0 bg-gradient-to-r from-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
                             <div class="flex flex-col md:flex-row gap-6 relative z-10">
                                 <!-- Image -->
-                                <div class="w-full md:w-32 h-32 rounded-xl overflow-hidden shrink-0 border border-slate-700">
-                                    <img src="{{ $item->program->thumbnail_url ?? 'https://source.unsplash.com/random/200x200/?running' }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                <div class="w-full md:w-32 h-32 rounded-xl overflow-hidden shrink-0 border border-slate-700 bg-slate-800">
+                                    @if($item->program->thumbnail_url)
+                                        <img src="{{ $item->program->thumbnail_url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center bg-slate-800 text-slate-600">
+                                            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Details -->
@@ -99,13 +93,13 @@
                         </div>
                     @endforeach
                 @else
-                    <div class="glass-panel rounded-2xl p-12 text-center border-dashed border-slate-700">
+                    <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-12 text-center border-dashed">
                         <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-600">
                             <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         </div>
                         <h3 class="text-xl font-bold text-white mb-2">Your cart is empty</h3>
                         <p class="text-slate-400 mb-8">Looks like you haven't added any training programs yet.</p>
-                        <a href="{{ route('programs.index') }}" class="px-8 py-3 bg-neon text-dark font-black rounded-xl hover:bg-white transition-all shadow-lg shadow-neon/20 inline-block">
+                        <a href="{{ route('marketplace.index') }}" class="px-8 py-3 bg-neon text-dark font-black rounded-xl hover:bg-white transition-all shadow-lg shadow-neon/20 inline-block">
                             Browse Programs
                         </a>
                     </div>
@@ -115,7 +109,7 @@
             <!-- Summary -->
             <div class="lg:col-span-1">
                 <div class="sticky top-24">
-                    <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-6 shadow-xl">
                         <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
                             <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                             Order Summary
@@ -141,7 +135,7 @@
                             <a href="{{ route('marketplace.checkout.index') }}" class="block w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-center rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 uppercase tracking-wider">
                                 Checkout Now
                             </a>
-                            <a href="{{ route('programs.index') }}" class="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-center rounded-xl transition-colors text-sm">
+                            <a href="{{ route('marketplace.index') }}" class="block w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-center rounded-xl transition-colors text-sm">
                                 Continue Shopping
                             </a>
                         @else
@@ -199,7 +193,6 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred');
             qtyText.innerText = originalQty;
         });
     }

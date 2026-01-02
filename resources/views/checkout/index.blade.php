@@ -1,32 +1,7 @@
 @extends('layouts.pacerhub')
+@php($withSidebar = true)
 
 @section('title', 'Checkout')
-
-@push('styles')
-<script>
-    tailwind.config.theme.extend.colors.neon = '#ccff00';
-</script>
-<style>
-    .glass-panel {
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .custom-radio:checked + div {
-        border-color: #ccff00;
-        background-color: rgba(204, 255, 0, 0.05);
-    }
-    .custom-radio:checked + div .radio-indicator {
-        border-color: #ccff00;
-        background-color: #ccff00;
-        box-shadow: 0 0 10px rgba(204, 255, 0, 0.3);
-    }
-    .custom-radio:disabled + div {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-</style>
-@endpush
 
 @section('content')
 <div class="min-h-screen pt-24 pb-20 px-4 md:px-8 font-sans bg-dark text-slate-200">
@@ -70,7 +45,7 @@
                     @csrf
                     
                     <!-- Payment Method -->
-                    <div class="glass-panel rounded-2xl p-6 md:p-8 mb-6">
+                    <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 mb-6 shadow-xl">
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-neon font-mono text-sm">1</div>
                             Select Payment Method
@@ -79,8 +54,8 @@
                         <div class="space-y-4">
                             <!-- Wallet Option -->
                             <label class="block cursor-pointer group">
-                                <input type="radio" name="payment_method" value="wallet" class="custom-radio hidden" checked>
-                                <div class="p-4 rounded-xl border border-slate-700 bg-slate-800/30 hover:bg-slate-800/50 transition-all flex items-center justify-between group-hover:border-slate-600">
+                                <input type="radio" name="payment_method" value="wallet" class="peer hidden" checked>
+                                <div class="p-4 rounded-xl border border-slate-700 bg-slate-800/30 hover:bg-slate-800/50 transition-all flex items-center justify-between group-hover:border-slate-600 peer-checked:border-neon peer-checked:bg-neon/5 peer-checked:[&_.radio-indicator]:bg-neon peer-checked:[&_.radio-indicator]:border-neon peer-checked:[&_.radio-indicator]:shadow-[0_0_10px_rgba(204,255,0,0.3)]">
                                     <div class="flex items-center gap-4">
                                         <div class="w-12 h-12 rounded-lg bg-slate-900 flex items-center justify-center border border-slate-700">
                                             <svg class="w-6 h-6 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
@@ -102,8 +77,8 @@
 
                             <!-- Midtrans Option (Disabled) -->
                             <label class="block cursor-not-allowed opacity-60">
-                                <input type="radio" name="payment_method" value="midtrans" class="custom-radio hidden" disabled>
-                                <div class="p-4 rounded-xl border border-slate-700 bg-slate-800/30 flex items-center justify-between">
+                                <input type="radio" name="payment_method" value="midtrans" class="peer hidden" disabled>
+                                <div class="p-4 rounded-xl border border-slate-700 bg-slate-800/30 flex items-center justify-between peer-checked:border-neon peer-checked:bg-neon/5">
                                     <div class="flex items-center gap-4">
                                         <div class="w-12 h-12 rounded-lg bg-slate-900 flex items-center justify-center border border-slate-700 grayscale">
                                             <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -120,7 +95,7 @@
                     </div>
 
                     <!-- Notes -->
-                    <div class="glass-panel rounded-2xl p-6 md:p-8 mb-6">
+                    <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 mb-6 shadow-xl">
                         <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-neon font-mono text-sm">2</div>
                             Additional Notes
@@ -142,7 +117,7 @@
             <!-- Order Summary -->
             <div class="lg:col-span-1">
                 <div class="sticky top-24">
-                    <div class="glass-panel rounded-2xl p-6 border border-slate-700">
+                    <div class="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-800 p-6 shadow-xl">
                         <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
                             <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                             Order Summary
