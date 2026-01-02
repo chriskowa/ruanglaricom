@@ -470,6 +470,19 @@
                         <input type="text" v-model="posterData.name" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:border-neon focus:outline-none">
                     </div>
 
+                    <!-- Custom Image Upload -->
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Background Image</label>
+                        <div class="flex items-center gap-2">
+                            <label class="cursor-pointer bg-slate-800 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white px-3 py-1.5 rounded text-[10px] transition flex items-center gap-2">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                Choose Image
+                                <input type="file" @change="handleImageUpload" accept="image/*" class="hidden">
+                            </label>
+                            <button v-if="posterData.bgImage !== originalBgImage" @click="resetImage" class="text-[10px] text-red-400 hover:text-red-300 underline">Reset</button>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[10px] text-slate-400 block mb-1">Distance</label>
@@ -1010,6 +1023,7 @@
                     splitsLeftPercent: 80,
                     splitsWidth: 120,
                     splitsOffset: { x: 0, y: 0 },
+                    originalBgImage: null, // Store original image for reset
                     posterStyles: [
                         { id: 'simple', name: 'Simple', desc: 'Foto & Jarak saja' },
                         { id: 'minimal', name: 'Minimal', desc: 'Clean look, fokus foto' },
@@ -1798,6 +1812,9 @@
                         chartPath: ''
                     };
                     
+                    // Set Original BG for Reset
+                    this.originalBgImage = bgImage;
+                    
                     // Generate Initial Chart Path (Default: Pace)
                     this.updateChartPath();
 
@@ -1890,6 +1907,26 @@
                             opts.title = true; opts.stats = true; opts.map = false; opts.splits = false; opts.profile = true;
                         }
                     }
+                },
+
+                handleImageUpload(event) {
+                    const file = event.target.files[0];
+                    if(!file) return;
+                    
+                    if(!file.type.match('image.*')) {
+                        alert('Silakan pilih file gambar (JPG/PNG)');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.posterData.bgImage = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                },
+
+                resetImage() {
+                    this.posterData.bgImage = this.originalBgImage;
                 },
 
                 closePosterModal() {
