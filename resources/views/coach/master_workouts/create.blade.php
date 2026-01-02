@@ -1,4 +1,7 @@
 @extends('layouts.coach')
+@php
+    $withSidebar = true;
+@endphp
 
 @section('title', isset($masterWorkout) ? 'Edit Template' : 'Create Template')
 

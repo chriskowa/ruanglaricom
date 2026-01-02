@@ -105,11 +105,11 @@
                 
                 @auth
                 <!-- User Profile Dropdown -->
-                <div class="relative hidden md:block" id="user-menu-container">
+                <div class="relative" id="user-menu-container">
                     <button id="user-menu-btn" class="flex items-center gap-3 p-1.5 pr-3 rounded-full hover:bg-slate-800 border border-transparent hover:border-slate-700 transition-all">
                         <img class="w-8 h-8 rounded-full object-cover border border-slate-600" src="{{ auth()->user()->avatar ? (str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : (str_starts_with(auth()->user()->avatar, '/storage') ? asset(ltrim(auth()->user()->avatar, '/')) : asset('storage/' . auth()->user()->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ auth()->user()->name }}">
                         <span class="hidden md:block text-sm font-medium text-slate-200">{{ auth()->user()->name }}</span>
-                        <svg class="w-4 h-4 text-slate-500 hidden md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     
                     <div id="user-menu-dropdown" class="absolute right-0 mt-4 w-56 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl hidden transform transition-all origin-top-right z-50">
@@ -118,6 +118,10 @@
                             <p class="text-xs text-neon font-medium uppercase tracking-wider mt-0.5">{{ auth()->user()->role }}</p>
                         </div>
                         <div class="p-2 space-y-1">
+                            <a href="{{ route(auth()->user()->role . '.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                                Dashboard
+                            </a>
                             <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                 Profile
@@ -139,8 +143,8 @@
                 </div>
                 @else
                 <div class="flex items-center gap-3">
+                    <a href="{{ route('login') }}" class="text-sm font-bold text-slate-300 hover:text-white transition-colors">Login</a>
                     <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-bold bg-neon text-dark rounded-xl hover:bg-lime-400 hover:shadow-lg hover:shadow-neon/20 transition-all transform hover:-translate-y-0.5">Register</a>
-                    <!--<a href="{{ route('register') }}" class="px-4 py-2 text-sm font-bold bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors">Register</a>>!-->
                 </div>
                 @endauth
                 
@@ -186,6 +190,9 @@
             </div>
 
             <div class="text-xs font-bold text-slate-500 uppercase mb-2">Account</div>
+            <a href="{{ route(auth()->user()->role . '.dashboard') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">
+                Dashboard
+            </a>
             <a href="{{ route('profile.show') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">
                 Profile
             </a>

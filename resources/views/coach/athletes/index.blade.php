@@ -1,4 +1,7 @@
 @extends('layouts.coach')
+@php
+    $withSidebar = true;
+@endphp
 
 @section('title', 'My Athletes')
 
@@ -97,7 +100,7 @@
                                     @endphp
                                     <div class="w-32">
                                         <div class="flex justify-between text-xs mb-1">
-                                            <span>Week {{ ceil($daysPassed/7) }}</span>
+                                            <span>Week {{ ceil(($daysPassed + 1)/7) }}</span>
                                             <span>{{ number_format($progress, 0) }}%</span>
                                         </div>
                                         <div class="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
