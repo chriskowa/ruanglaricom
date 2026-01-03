@@ -148,7 +148,11 @@
 
             <div class="mt-8 text-center bg-gradient-to-r from-blue-900/40 to-purple-900/40 p-4 rounded-xl border border-white/5">
                 <p class="text-sm text-gray-300 italic">"Tidak masalah seberapa lambat kamu berlari, kamu tetap mengalahkan mereka yang rebahan."</p>
+                @auth
                 <a href="{{ route('challenge.create') }}" class="inline-block mt-3 text-xs font-bold text-green-400 hover:text-green-300 uppercase tracking-widest border-b border-green-400/30 pb-0.5">Setor Lari Sekarang <i class="fas fa-arrow-right ml-1"></i></a>
+                @else
+                <a href="{{ route('login') }}" class="inline-block mt-3 text-xs font-bold text-green-400 hover:text-green-300 uppercase tracking-widest border-b border-green-400/30 pb-0.5">Login untuk Setor Lari <i class="fas fa-sign-in-alt ml-1"></i></a>
+                @endauth
             </div>
 
         </main>

@@ -87,8 +87,9 @@ Route::post('/challenge/join', [ChallengeController::class, 'join'])->name('chal
 Route::post('/challenge/send-otp', [ChallengeController::class, 'sendOtp'])->name('challenge.send-otp');
 Route::post('/challenge/verify-otp', [ChallengeController::class, 'verifyOtp'])->name('challenge.verify-otp');
 
+Route::get('/challenge/leaderboard', [ChallengeController::class, 'index'])->name('challenge.index');
+
 Route::middleware('auth')->group(function () {
-    Route::get('/challenge/leaderboard', [ChallengeController::class, 'index'])->name('challenge.index');
     Route::get('/challenge/submit', [ChallengeController::class, 'create'])->name('challenge.create');
     Route::post('/challenge/submit', [ChallengeController::class, 'store'])->name('challenge.store');
 });
