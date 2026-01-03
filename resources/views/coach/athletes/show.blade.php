@@ -864,6 +864,20 @@ createApp({
         });
 
         const openBuilder = (isEditing) => {
+            // Always reset to defaults first
+            Object.assign(builderForm, {
+                type: 'easy_run',
+                title: '',
+                intensity: 'low',
+                warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+                cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+                main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
+                longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
+                tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+                interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+                strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
+            });
+
             if (isEditing) {
                 // Try to load existing advanced config
                 let config = null;
@@ -873,21 +887,12 @@ createApp({
                 
                 if (config) {
                     Object.assign(builderForm, config);
+                } else {
+                    // If no advanced config, try to match type
+                    if (['easy_run', 'long_run', 'tempo', 'interval', 'strength', 'rest'].includes(form.type)) {
+                        builderForm.type = form.type;
+                    }
                 }
-            } else {
-                // Reset
-                Object.assign(builderForm, {
-                    type: 'easy_run',
-                    title: '',
-                    intensity: 'low',
-                    warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
-                    cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
-                    main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
-                    longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
-                    tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
-                    interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
-                    strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
-                });
             }
             builderVisible.value = true;
         };
@@ -963,6 +968,9 @@ createApp({
                 if (session.extendedProps.is_custom) {
                     form.workout_id = session.extendedProps.id;
                     form.workout_structure = session.extendedProps.workout_structure || [];
+                    
+                    // Auto-open builder for editing
+                    setTimeout(() => openBuilder(true), 50);
                 } else {
                     form.workout_id = '';
                     form.workout_structure = [];
@@ -984,6 +992,9 @@ createApp({
                 form.duration = '';
                 form.description = '';
                 form.workout_structure = [];
+                
+                // Auto-open builder for creating
+                setTimeout(() => openBuilder(false), 50);
             }
             showFormModal.value = true;
         };

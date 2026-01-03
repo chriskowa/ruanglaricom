@@ -313,6 +313,17 @@ class AthleteController extends Controller
             // 'source' => 'coach', // Removed as column does not exist
         ]);
 
+        // Notify Runner
+        \App\Models\Notification::create([
+            'user_id' => $enrollment->runner_id,
+            'type' => 'workout_assigned',
+            'title' => 'New Workout Assigned',
+            'message' => "Coach " . auth()->user()->name . " assigned a new workout for " . \Carbon\Carbon::parse($validated['workout_date'])->format('d M Y'),
+            'reference_type' => 'custom_workout',
+            'reference_id' => $workout->id,
+            'is_read' => false,
+        ]);
+
         return response()->json(['success' => true]);
     }
 
@@ -348,6 +359,17 @@ class AthleteController extends Controller
             'duration' => $validated['duration'] ?? null,
             'description' => $validated['description'] ?? null,
             'workout_structure' => $validated['workout_structure'] ?? null,
+        ]);
+
+        // Notify Runner
+        \App\Models\Notification::create([
+            'user_id' => $enrollment->runner_id,
+            'type' => 'workout_updated',
+            'title' => 'Workout Updated',
+            'message' => "Coach " . auth()->user()->name . " updated your workout for " . \Carbon\Carbon::parse($validated['workout_date'])->format('d M Y'),
+            'reference_type' => 'custom_workout',
+            'reference_id' => $workout->id,
+            'is_read' => false,
         ]);
 
         return response()->json(['success' => true]);
