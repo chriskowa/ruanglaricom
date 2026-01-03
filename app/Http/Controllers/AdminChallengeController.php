@@ -37,10 +37,31 @@ class AdminChallengeController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'refresh_token' => 'nullable|string', // Optional now
+            'refresh_token' => 'nullable|string',
+            'access_token' => 'nullable|string',
+            'expires_at' => 'nullable|numeric',
+            'strava_id' => 'nullable|string',
         ]);
 
         $user = User::findOrFail($request->user_id);
+
+        // Update User Credentials if provided
+        if ($request->strava_id) {
+            $user->strava_id = $request->strava_id;
+        }
+        if ($request->refresh_token) {
+            $user->strava_refresh_token = $request->refresh_token;
+        }
+        if ($request->access_token) {
+            $user->strava_access_token = $request->access_token;
+        }
+        if ($request->expires_at) {
+            $user->strava_expires_at = \Carbon\Carbon::createFromTimestamp($request->expires_at);
+        }
+        // If any strava data updated, save
+        if ($request->hasAny(['strava_id', 'refresh_token', 'access_token', 'expires_at'])) {
+            $user->save();
+        }
         
         // Find enrollment to get start date
         $enrollment = ProgramEnrollment::where('runner_id', $user->id)
@@ -55,38 +76,62 @@ class AdminChallengeController extends Controller
             return response()->json(['success' => false, 'message' => 'User not enrolled in 40 Days Challenge.'], 400);
         }
 
-        // 1. Extract Strava ID from URL
-        if (empty($user->strava_url) || !preg_match('/\/athletes\/(\d+)/', $user->strava_url, $matches)) {
-            return response()->json(['success' => false, 'message' => 'Invalid Strava URL format or missing. ID not found.'], 400);
+        // 1. Determine Strava ID
+        $stravaId = $user->strava_id;
+        if (empty($stravaId)) {
+            // Try extracting from URL
+            if (!empty($user->strava_url) && preg_match('/\/athletes\/(\d+)/', $user->strava_url, $matches)) {
+                $stravaId = $matches[1];
+                // Save it for future
+                $user->strava_id = $stravaId;
+                $user->save();
+            }
         }
-        $stravaId = $matches[1];
+
+        if (empty($stravaId)) {
+            return response()->json(['success' => false, 'message' => 'Strava ID not found. Please update Strava URL or input Strava ID manually.'], 400);
+        }
 
         $accessToken = null;
+        $usedClubMode = false;
 
-        // 2. Strategy A: Use Admin Refresh Token (or Env) if provided
-        if ($request->refresh_token) {
+        // 2. Determine Access Token
+        // Priority 1: Check if we have a valid access token in DB
+        if ($user->strava_access_token && $user->strava_expires_at && $user->strava_expires_at->isFuture()) {
+            $accessToken = $user->strava_access_token;
+        }
+        // Priority 2: If we have a refresh token, try to refresh
+        elseif ($user->strava_refresh_token) {
             $response = Http::post('https://www.strava.com/oauth/token', [
                 'client_id' => config('services.strava.client_id') ?? env('STRAVA_CLIENT_ID'),
                 'client_secret' => config('services.strava.client_secret') ?? env('STRAVA_CLIENT_SECRET'),
-                'refresh_token' => $request->refresh_token,
+                'refresh_token' => $user->strava_refresh_token,
                 'grant_type' => 'refresh_token',
             ]);
 
             if ($response->successful()) {
-                $accessToken = $response->json()['access_token'];
+                $data = $response->json();
+                $accessToken = $data['access_token'];
+                
+                // Update user tokens
+                $user->strava_access_token = $accessToken;
+                $user->strava_refresh_token = $data['refresh_token'];
+                $user->strava_expires_at = \Carbon\Carbon::createFromTimestamp($data['expires_at']);
+                $user->save();
             } else {
-                 // Log error but try fallback? No, if user provides token, they expect it to work.
-                 return response()->json(['success' => false, 'message' => 'Failed to refresh token: ' . $response->body()], 400);
+                // If refresh failed, we might want to log it or continue to fallback
+                // For now, let's continue to fallback logic
             }
-        } 
-        
-        // Strategy B: Use Env Access Token (Global Admin Token) - similar to StravaClubService
+        }
+
+        // Priority 3: Use Env Access Token (Global Admin Token) - Club Mode
         if (!$accessToken) {
             $envToken = env('STRAVA_ACCESS_TOKEN'); // From .env directly
             if ($envToken) {
                 $accessToken = $envToken;
+                $usedClubMode = true;
             } else {
-                return response()->json(['success' => false, 'message' => 'No Refresh Token provided and no System Access Token found in .env'], 400);
+                return response()->json(['success' => false, 'message' => 'No valid Access Token available (User or Admin). Please provide a valid Refresh Token.'], 400);
             }
         }
 
@@ -95,8 +140,8 @@ class AdminChallengeController extends Controller
         
         $stravaActivities = [];
         
-        // Use Club Mode if no refresh token provided (Admin Token fallback)
-        if (!$request->refresh_token) {
+        // Fetch Logic
+        if ($usedClubMode) {
              // Club Mode - Mimic StravaClubService
              $clubId = env('STRAVA_CLUB_ID', '1859982');
              
@@ -116,7 +161,6 @@ class AdminChallengeController extends Controller
                       if (isset($act['athlete']['id']) && $act['athlete']['id'] == $stravaId) {
                           return true;
                       }
-                      // Some responses might use 'resource_state' but usually 'athlete' -> 'id' is present
                       return false;
                  });
              } else {

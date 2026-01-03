@@ -238,7 +238,6 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     // Challenge / Leaderboard Routes
-    Route::get('/challenge/leaderboard', [App\Http\Controllers\ChallengeController::class, 'index'])->name('challenge.index');
     Route::get('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'create'])->name('challenge.create');
     Route::post('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'store'])->name('challenge.store');
 

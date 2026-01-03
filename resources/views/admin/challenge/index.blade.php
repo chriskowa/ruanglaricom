@@ -190,14 +190,42 @@
                 @csrf
                 <input type="hidden" id="syncUserId" name="user_id">
                 <div class="p-4 space-y-4">
+                    <!-- Helper Link -->
+                    <div class="mb-4 text-xs text-slate-400 bg-slate-900 p-3 rounded border border-slate-700">
+                        <p class="mb-1 font-bold text-slate-300">Helper: Dapatkan Code/Token</p>
+                        <p class="mb-2">Gunakan URL ini di browser untuk authorize user manual:</p>
+                        <code class="block bg-black p-2 rounded text-green-400 mb-2 break-all select-all cursor-pointer" onclick="navigator.clipboard.writeText(this.innerText); alert('URL copied!');">https://www.strava.com/oauth/authorize?client_id={{ config('services.strava.client_id') }}&response_type=code&redirect_uri={{ config('app.url') }}&approval_prompt=force&scope=read,activity:read_all</code>
+                        <p class="text-[10px] text-slate-500">*Ganti redirect_uri jika perlu. Code akan muncul di URL setelah authorize.</p>
+                    </div>
+
                     <div class="bg-blue-900/30 p-3 rounded border border-blue-500/30 text-xs text-blue-200 mb-2">
                         <i class="fas fa-info-circle mr-1"></i> 
-                        Biarkan kosong untuk mencoba sync otomatis dari <b>Ruang Lari Club</b> (Admin Token). <br>
-                        Isi <b>Refresh Token</b> user jika user tidak ada di Club.
+                        <b>Club Mode (Auto):</b> Kosongkan semua field.<br>
+                        <b>Manual Mode:</b> Isi Strava ID dan salah satu Token untuk update kredensial user.
                     </div>
+
+                    <!-- Strava ID -->
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Strava ID (Opsional - Jika URL invalid)</label>
+                        <input type="text" name="strava_id" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="Contoh: 12345678">
+                    </div>
+
+                    <!-- Access Token -->
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Access Token (Opsional - String Panjang)</label>
+                        <input type="text" name="access_token" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="Paste Access Token here">
+                    </div>
+
+                    <!-- Refresh Token -->
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Refresh Token (Opsional)</label>
-                        <input type="text" id="refreshToken" name="refresh_token" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="Biarkan kosong untuk Club Mode">
+                        <input type="text" id="refreshToken" name="refresh_token" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="Paste Refresh Token here">
+                    </div>
+
+                    <!-- Expires At -->
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Expires At (Timestamp - Opsional)</label>
+                        <input type="text" name="expires_at" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500" placeholder="Contoh: 1735891234">
                     </div>
                 </div>
                 <div class="p-4 border-t border-slate-700 bg-slate-900/50 flex justify-end gap-2">
@@ -249,7 +277,7 @@
 
     function closeSyncModal() {
         document.getElementById('syncModal').classList.add('hidden');
-        document.getElementById('refreshToken').value = '';
+        document.getElementById('syncForm').reset();
     }
 
     async function submitSync(e) {

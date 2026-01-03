@@ -43,9 +43,9 @@
                             <a href="{{ route('challenge.40days') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
                                 40 Days Running Challenge
                             </a>
-                            <a href="{{ route('leaderboard.cyberpunk') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                            <!--<a href="{{ route('leaderboard.cyberpunk') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
                                 Leaderboard
-                            </a>
+                            </a>-->
                             <a href="{{ route('challenge.index') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
                                 Leaderboard 40days
                             </a>
@@ -184,7 +184,9 @@
         <div class="px-3 py-2">
             <div class="text-xs font-bold text-slate-500 uppercase mb-2">Challenge</div>
             <a href="{{ route('challenge.40days') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">40 Days Challenge</a>
-            <a href="{{ route('leaderboard.cyberpunk') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Leaderboard</a>
+            <!--<a href="{{ route('leaderboard.cyberpunk') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Leaderboard</a>-->
+            <a href="{{ route('challenge.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Leaderboard 40days</a>
+            <a href="{{ route('challenge.create') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Lapor Aktivitas</a>
         </div>
 
         @auth

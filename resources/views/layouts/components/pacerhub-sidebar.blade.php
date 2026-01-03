@@ -49,6 +49,7 @@
                     <li><a href="{{ route('home') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Home</a></li>
                     <li><a href="{{ route('calendar.public') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Calendar</a></li>
                     <li><a href="{{ route('programs.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Marketplace</a></li>
+                    <li><a href="{{ route('challenge.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Leaderboard 40days</a></li>
                     
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Account</li>
                     <li><a href="{{ route('login') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Login</a></li>
