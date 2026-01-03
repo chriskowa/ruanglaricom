@@ -11,165 +11,200 @@
             background-attachment: fixed;
         }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         /* Custom File Input */
         input[type="file"]::file-selector-button {
             display: none;
         }
+        /* Hide number input arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 @endpush
 
 @section('content')
-    <div id="submit-app" class="relative z-10 w-full min-h-screen flex items-center justify-center p-4 pt-20">
+    <div id="submit-app" class="relative z-10 w-full min-h-screen pb-24 pt-20 px-4">
         
         <div class="fixed inset-0 z-[-1] bg-fixed-image"></div>
-        <div class="fixed inset-0 z-[-1] bg-slate-900/80"></div>
+        <div class="fixed inset-0 z-[-1] bg-slate-900/90"></div>
 
-        <div class="glass-panel w-full max-w-md rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+        <div class="max-w-md mx-auto space-y-6">
             
-            <div class="flex justify-between items-center mb-6">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-white">Setor Lari 🏃‍♂️</h2>
-                    <p class="text-xs text-gray-400">40 Days Challenge</p>
+                    <h1 class="text-2xl font-black text-white italic tracking-tighter">SUBMIT RUN</h1>
+                    <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">40 Days Challenge</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 shadow-lg">
+                    <i class="fas fa-running text-neon text-lg"></i>
                 </div>
             </div>
 
-            <form @submit.prevent="submitActivity" class="space-y-4">
-                
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 ml-1">Tanggal Lari</label>
-                    <div class="relative">
-                        <input type="date" v-model="form.date" required
-                            class="w-full bg-slate-800/50 border border-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors text-white placeholder-gray-500">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 ml-1">Jarak (KM)</label>
-                        <div class="relative">
-                            <input type="number" step="0.01" v-model="form.distance" placeholder="0.00" required
-                                class="w-full bg-slate-800/50 border border-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors text-white">
-                            <span class="absolute right-4 top-3 text-xs text-gray-500 font-bold">KM</span>
-                        </div>
-                    </div>
+            <!-- Form Card -->
+            <div class="glass-panel rounded-3xl p-1 shadow-2xl overflow-hidden">
+                <form @submit.prevent="submitActivity" class="bg-slate-900/50 p-5 space-y-6">
                     
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1 ml-1">Durasi</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div class="relative">
-                                <input type="number" v-model="form.duration_hours" placeholder="0" min="0"
-                                    class="w-full bg-slate-800/50 border border-slate-600 rounded-xl px-2 py-3 text-center text-sm focus:outline-none focus:border-green-500 transition-colors text-white">
-                                <span class="text-[10px] text-gray-500 absolute bottom-1 left-0 right-0 text-center">Jam</span>
+                    <!-- Distance Input (Hero) -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Distance (KM)</label>
+                        <div class="relative">
+                            <input type="number" step="0.01" v-model="form.distance" placeholder="0.00" required inputmode="decimal"
+                                class="w-full bg-transparent border-b-2 border-slate-700 text-5xl font-black text-white placeholder-slate-700 focus:outline-none focus:border-neon transition-colors py-2 px-1 text-center font-mono">
+                        </div>
+                    </div>
+
+                    <!-- Duration & Pace Grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Duration -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Duration</label>
+                            <div class="flex gap-1 items-center bg-slate-800/80 rounded-xl p-2 border border-slate-700/50">
+                                <div class="flex-1">
+                                    <input type="number" v-model="form.duration_hours" placeholder="00" min="0" inputmode="numeric"
+                                        class="w-full bg-transparent text-center text-lg font-bold text-white focus:outline-none placeholder-slate-600">
+                                    <div class="text-[9px] text-center text-slate-500 uppercase">Hr</div>
+                                </div>
+                                <span class="text-slate-500 font-bold">:</span>
+                                <div class="flex-1">
+                                    <input type="number" v-model="form.duration_minutes" placeholder="00" min="0" max="59" inputmode="numeric"
+                                        class="w-full bg-transparent text-center text-lg font-bold text-white focus:outline-none placeholder-slate-600">
+                                    <div class="text-[9px] text-center text-slate-500 uppercase">Min</div>
+                                </div>
+                                <span class="text-slate-500 font-bold">:</span>
+                                <div class="flex-1">
+                                    <input type="number" v-model="form.duration_seconds" placeholder="00" min="0" max="59" inputmode="numeric"
+                                        class="w-full bg-transparent text-center text-lg font-bold text-white focus:outline-none placeholder-slate-600">
+                                    <div class="text-[9px] text-center text-slate-500 uppercase">Sec</div>
+                                </div>
                             </div>
-                            <div class="relative">
-                                <input type="number" v-model="form.duration_minutes" placeholder="0" min="0" max="59"
-                                    class="w-full bg-slate-800/50 border border-slate-600 rounded-xl px-2 py-3 text-center text-sm focus:outline-none focus:border-green-500 transition-colors text-white">
-                                <span class="text-[10px] text-gray-500 absolute bottom-1 left-0 right-0 text-center">Menit</span>
-                            </div>
-                            <div class="relative">
-                                <input type="number" v-model="form.duration_seconds" placeholder="0" min="0" max="59"
-                                    class="w-full bg-slate-800/50 border border-slate-600 rounded-xl px-2 py-3 text-center text-sm focus:outline-none focus:border-green-500 transition-colors text-white">
-                                <span class="text-[10px] text-gray-500 absolute bottom-1 left-0 right-0 text-center">Detik</span>
+                        </div>
+
+                        <!-- Pace (Calculated) -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Avg Pace</label>
+                            <div class="h-[62px] flex items-center justify-center bg-slate-800/40 rounded-xl border border-dashed border-slate-700">
+                                <div class="text-center">
+                                    <div class="text-xl font-black text-neon font-mono">@{{ calculatedPace }}</div>
+                                    <div class="text-[9px] text-slate-500 uppercase">/km</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 ml-1">Screenshot Aplikasi Lari / Foto Jam</label>
-                    <div class="relative group cursor-pointer">
-                        <input type="file" @change="handleFileUpload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" required>
+                    <!-- Date & Strava -->
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Date</label>
+                            <input type="date" v-model="form.date" required
+                                class="w-full bg-slate-800/80 border border-slate-700/50 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors">
+                        </div>
                         
-                        <div class="border-2 border-dashed border-slate-600 rounded-xl p-6 text-center group-hover:border-green-500 group-hover:bg-slate-800/50 transition-all">
-                            <div v-if="!previewImage">
-                                <i class="fas fa-cloud-upload-alt text-2xl text-gray-500 mb-2 group-hover:text-green-400"></i>
-                                <p class="text-xs text-gray-400">Tap untuk upload bukti</p>
-                            </div>
-                            <div v-else class="relative">
-                                <img :src="previewImage" class="h-32 mx-auto rounded-lg object-cover shadow-lg">
-                                <p class="text-[10px] text-green-400 mt-2"><i class="fas fa-check-circle"></i> Foto siap diupload</p>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Strava / Activity Link</label>
+                            <div class="relative">
+                                <i class="fab fa-strava absolute left-4 top-3.5 text-orange-500"></i>
+                                <input type="url" v-model="form.stravaLink" placeholder="Paste link activity..."
+                                    class="w-full bg-slate-800/80 border border-slate-700/50 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-orange-500 transition-colors">
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1 ml-1">Link Activity Strava (Opsional)</label>
-                    <div class="relative">
-                        <i class="fab fa-strava absolute left-4 top-3.5 text-orange-500"></i>
-                        <input type="url" v-model="form.stravaLink" placeholder="https://strava.com/activities/..."
-                            class="w-full bg-slate-800/50 border border-slate-600 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-orange-500 transition-colors text-white">
+                    <!-- Photo Upload -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Proof Screenshot</label>
+                        <div class="relative group cursor-pointer">
+                            <input type="file" @change="handleFileUpload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" :required="!previewImage">
+                            
+                            <div class="relative overflow-hidden border-2 border-dashed border-slate-700 bg-slate-800/30 rounded-2xl h-40 flex flex-col items-center justify-center transition-all group-hover:border-neon group-hover:bg-slate-800/50">
+                                <div v-if="!previewImage" class="text-center p-4">
+                                    <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:scale-110 transition-transform">
+                                        <i class="fas fa-camera text-slate-400 group-hover:text-neon text-lg"></i>
+                                    </div>
+                                    <p class="text-xs text-slate-300 font-medium">Tap to upload screenshot</p>
+                                    <p class="text-[10px] text-slate-500 mt-1">Supports JPG, PNG</p>
+                                </div>
+                                <img v-else :src="previewImage" class="absolute inset-0 w-full h-full object-cover">
+                                
+                                <div v-if="previewImage" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span class="text-white text-xs font-bold bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">Change Photo</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div v-if="message" :class="messageType === 'success' ? 'text-green-400' : 'text-red-400'" class="text-xs text-center font-bold">
-                    @{{ message }}
-                </div>
+                    <!-- Submit Button -->
+                    <button type="submit" :disabled="isSubmitting"
+                        class="w-full bg-neon text-slate-900 font-black text-lg py-4 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4">
+                        <span v-if="!isSubmitting">SUBMIT ACTIVITY</span>
+                        <span v-else><i class="fas fa-circle-notch fa-spin"></i> PROCESSING...</span>
+                    </button>
+                    
+                    <div v-if="message" :class="messageType === 'success' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'" class="text-xs text-center font-bold p-3 rounded-lg border">
+                        @{{ message }}
+                    </div>
 
-                <button type="submit" :disabled="isSubmitting"
-                    class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-900/20 transform active:scale-95 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span v-if="!isSubmitting">Kirim Laporan <i class="fas fa-paper-plane text-xs"></i></span>
-                    <span v-else><i class="fas fa-circle-notch fa-spin"></i> Mengirim...</span>
-                </button>
-
-            </form>
-
-            <div class="mt-6 text-center">
-                <a href="{{ route('runner.calendar') }}" class="text-xs text-gray-500 hover:text-white transition-colors">Kembali ke Calendar</a>
+                </form>
             </div>
-        </div>
 
-        <!-- History Section -->
-        <div class="glass-panel w-full max-w-md rounded-2xl p-6 shadow-2xl relative overflow-hidden mt-6 md:mt-0 md:ml-6 h-fit">
-            <h3 class="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">Riwayat Setoran</h3>
-            <div class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                @forelse($activities as $activity)
-                    <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700 relative">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="text-sm font-bold text-white">{{ \Carbon\Carbon::parse($activity->date)->format('d M Y') }}</div>
-                                <div class="text-xs text-gray-400 mt-0.5">
-                                    {{ $activity->distance }} KM • {{ gmdate('H:i:s', $activity->duration_seconds) }}
+            <!-- History Section (Accordion Style for Mobile) -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between px-2">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Recent Activities</h3>
+                    <a href="{{ route('runner.calendar') }}" class="text-xs text-neon hover:text-white transition-colors font-medium">View Calendar</a>
+                </div>
+
+                <div class="space-y-3">
+                    @forelse($activities->take(5) as $activity)
+                        <div class="bg-slate-800/60 backdrop-blur-md rounded-xl p-4 border border-slate-700/50 flex justify-between items-center shadow-sm">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-lg bg-slate-700/50 flex items-center justify-center text-slate-300 font-bold text-xs flex-shrink-0">
+                                    {{ \Carbon\Carbon::parse($activity->date)->format('d') }}<br>
+                                    {{ \Carbon\Carbon::parse($activity->date)->format('M') }}
+                                </div>
+                                <div>
+                                    <div class="text-white font-bold text-base">{{ $activity->distance }} KM</div>
+                                    <div class="text-xs text-slate-400 font-mono">{{ gmdate('H:i:s', $activity->duration_seconds) }}</div>
                                 </div>
                             </div>
                             <div class="text-right">
                                 @if($activity->status == 'approved')
-                                    <span class="inline-block px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-bold rounded-full border border-green-500/30">
-                                        <i class="fas fa-check"></i> Diterima
-                                    </span>
+                                    <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center border border-green-500/30">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </div>
                                 @elseif($activity->status == 'rejected')
-                                    <span class="inline-block px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold rounded-full border border-red-500/30">
-                                        <i class="fas fa-times"></i> Ditolak
-                                    </span>
+                                    <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/30">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </div>
                                 @else
-                                    <span class="inline-block px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] font-bold rounded-full border border-yellow-500/30">
-                                        <i class="fas fa-clock"></i> Menunggu
-                                    </span>
+                                    <div class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center border border-yellow-500/30">
+                                        <i class="fas fa-hourglass-half text-xs"></i>
+                                    </div>
                                 @endif
                             </div>
                         </div>
-                        @if($activity->status == 'rejected' && $activity->rejection_reason)
-                            <div class="mt-2 text-[10px] text-red-300 bg-red-900/30 p-2 rounded border border-red-800/50">
-                                <strong>Alasan:</strong> {{ $activity->rejection_reason }}
-                            </div>
-                        @endif
-                    </div>
-                @empty
-                    <div class="text-center text-gray-500 text-xs py-4">
-                        Belum ada riwayat setoran.
-                    </div>
-                @endforelse
+                    @empty
+                        <div class="text-center py-8 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
+                            <p class="text-slate-500 text-xs">No activities submitted yet.</p>
+                        </div>
+                    @endforelse
+                </div>
             </div>
         </div>
     </div>
 
 @push('scripts')
     <script>
-        const { createApp, ref } = Vue;
+        const { createApp, ref, computed, watch } = Vue;
 
         createApp({
             setup() {
@@ -180,30 +215,50 @@
                 const form = ref({
                     date: new Date().toISOString().substr(0, 10),
                     distance: '',
-                    duration_hours: 0,
-                    duration_minutes: 0,
-                    duration_seconds: 0,
+                    duration_hours: '',
+                    duration_minutes: '',
+                    duration_seconds: '',
                     stravaLink: '',
                     image: null
+                });
+
+                // Calculate Pace Automatically
+                const calculatedPace = computed(() => {
+                    const dist = parseFloat(form.value.distance);
+                    const h = parseInt(form.value.duration_hours) || 0;
+                    const m = parseInt(form.value.duration_minutes) || 0;
+                    const s = parseInt(form.value.duration_seconds) || 0;
+
+                    if (!dist || dist <= 0) return '-:--';
+                    
+                    const totalMinutes = (h * 60) + m + (s / 60);
+                    if (totalMinutes <= 0) return '-:--';
+
+                    const paceDecimal = totalMinutes / dist;
+                    const paceMin = Math.floor(paceDecimal);
+                    const paceSec = Math.round((paceDecimal - paceMin) * 60);
+
+                    const formattedSec = paceSec < 10 ? '0' + paceSec : paceSec;
+                    return `${paceMin}:${formattedSec}`;
                 });
 
                 const handleFileUpload = (event) => {
                     const file = event.target.files[0];
                     if (file) {
                         form.value.image = file;
-                        // Create preview URL
                         previewImage.value = URL.createObjectURL(file);
                     }
                 };
 
                 const submitActivity = async () => {
-                    // Calculate total seconds to verify duration > 0
-                    const totalSeconds = (parseInt(form.value.duration_hours || 0) * 3600) + 
-                                       (parseInt(form.value.duration_minutes || 0) * 60) + 
-                                       parseInt(form.value.duration_seconds || 0);
+                    if (!form.value.image) {
+                        message.value = 'Mohon upload bukti screenshot lari.';
+                        messageType.value = 'error';
+                        return;
+                    }
 
-                    if(!form.value.distance || !form.value.image || totalSeconds <= 0) {
-                        message.value = 'Mohon isi jarak, durasi, dan upload bukti foto!';
+                    if (!form.value.distance || form.value.distance <= 0) {
+                        message.value = 'Jarak harus diisi.';
                         messageType.value = 'error';
                         return;
                     }
@@ -211,34 +266,45 @@
                     isSubmitting.value = true;
                     message.value = '';
 
-                    const formData = new FormData();
-                    formData.append('date', form.value.date);
-                    formData.append('distance', form.value.distance);
-                    formData.append('duration_hours', form.value.duration_hours || 0);
-                    formData.append('duration_minutes', form.value.duration_minutes || 0);
-                    formData.append('duration_seconds', form.value.duration_seconds || 0);
-                    if(form.value.stravaLink) formData.append('strava_link', form.value.stravaLink);
-                    formData.append('image', form.value.image);
-                    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-
                     try {
+                        const formData = new FormData();
+                        formData.append('date', form.value.date);
+                        formData.append('distance', form.value.distance);
+                        formData.append('duration_hours', form.value.duration_hours || 0);
+                        formData.append('duration_minutes', form.value.duration_minutes || 0);
+                        formData.append('duration_seconds', form.value.duration_seconds || 0);
+                        formData.append('strava_link', form.value.stravaLink);
+                        formData.append('image', form.value.image);
+
+                        // CSRF Token
+                        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
                         const response = await fetch("{{ route('challenge.store') }}", {
                             method: 'POST',
-                            body: formData,
                             headers: {
+                                'X-CSRF-TOKEN': token,
                                 'Accept': 'application/json'
-                            }
+                            },
+                            body: formData
                         });
 
                         const result = await response.json();
 
-                        if (response.ok && result.success) {
+                        if (result.success) {
                             message.value = result.message;
                             messageType.value = 'success';
+                            // Reset form
+                            form.value.distance = '';
+                            form.value.duration_hours = '';
+                            form.value.duration_minutes = '';
+                            form.value.duration_seconds = '';
+                            form.value.stravaLink = '';
+                            form.value.image = null;
+                            previewImage.value = null;
                             
-                            // Redirect after short delay or reset
+                            // Reload page after delay to update history
                             setTimeout(() => {
-                                window.location.href = "{{ route('challenge.index') }}";
+                                window.location.reload();
                             }, 1500);
                         } else {
                             message.value = result.message || 'Terjadi kesalahan saat mengirim data.';
@@ -246,7 +312,7 @@
                         }
                     } catch (error) {
                         console.error(error);
-                        message.value = 'Terjadi kesalahan jaringan atau server.';
+                        message.value = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
                         messageType.value = 'error';
                     } finally {
                         isSubmitting.value = false;
@@ -254,14 +320,15 @@
                 };
 
                 return {
+                    form,
                     isSubmitting,
                     previewImage,
                     message,
                     messageType,
-                    form,
                     handleFileUpload,
-                    submitActivity
-                }
+                    submitActivity,
+                    calculatedPace
+                };
             }
         }).mount('#submit-app');
     </script>
