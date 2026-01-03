@@ -8,6 +8,10 @@
                         <i class="flaticon-381-networking"></i>
                         <span class="nav-text">Dashboard</span>
                     </a></li>
+                    <li><a class="ai-icon" href="{{ route('admin.challenge.index') }}" aria-expanded="false">
+                        <i class="flaticon-381-layer-1"></i>
+                        <span class="nav-text">Approval Setoran</span>
+                    </a></li>
                 @elseif(auth()->user()->isCoach())
                     <li class="menu-title">Main</li>
                     <li><a class="ai-icon" href="{{ route('coach.dashboard') }}" aria-expanded="false">

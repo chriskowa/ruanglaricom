@@ -87,6 +87,18 @@ Route::post('/challenge/join', [ChallengeController::class, 'join'])->name('chal
 Route::post('/challenge/send-otp', [ChallengeController::class, 'sendOtp'])->name('challenge.send-otp');
 Route::post('/challenge/verify-otp', [ChallengeController::class, 'verifyOtp'])->name('challenge.verify-otp');
 
+Route::middleware('auth')->group(function () {
+    Route::get('/challenge/leaderboard', [ChallengeController::class, 'index'])->name('challenge.index');
+    Route::get('/challenge/submit', [ChallengeController::class, 'create'])->name('challenge.create');
+    Route::post('/challenge/submit', [ChallengeController::class, 'store'])->name('challenge.store');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/challenge/approval', [App\Http\Controllers\AdminChallengeController::class, 'index'])->name('challenge.index');
+    Route::post('/challenge/approve/{id}', [App\Http\Controllers\AdminChallengeController::class, 'approve'])->name('challenge.approve');
+    Route::post('/challenge/reject/{id}', [App\Http\Controllers\AdminChallengeController::class, 'reject'])->name('challenge.reject');
+});
+
 // Public routes
 Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');
 Route::get('/calendar/events-proxy', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.events.proxy');
@@ -222,6 +234,11 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    // Challenge / Leaderboard Routes
+    Route::get('/challenge/leaderboard', [App\Http\Controllers\ChallengeController::class, 'index'])->name('challenge.index');
+    Route::get('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'create'])->name('challenge.create');
+    Route::post('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'store'])->name('challenge.store');
+
     Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->name('logout');
     
     // Profile routes (accessible by all authenticated users)

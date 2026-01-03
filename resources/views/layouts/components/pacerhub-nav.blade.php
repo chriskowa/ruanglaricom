@@ -46,6 +46,12 @@
                             <a href="{{ route('leaderboard.cyberpunk') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
                                 Leaderboard
                             </a>
+                            <a href="{{ route('challenge.index') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                                Leaderboard 40days
+                            </a>
+                            <a href="{{ route('challenge.create') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                                Lapor Aktivitas
+                            </a>
                         </div>
                     </div>
                 </div>

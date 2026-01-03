@@ -10,6 +10,7 @@
                     @if(auth()->user()->isAdmin())
                         <li><a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                         <li><a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Manage Users</a></li>
+                        <li><a href="{{ route('admin.challenge.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Approval Setoran</a></li>
                         
                         <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Commerce Marketplace</li>
                         <li><a href="{{ route('admin.marketplace.categories.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Categories</a></li>
@@ -22,6 +23,7 @@
                         <li><a href="{{ route('runner.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                         <li><a href="{{ route('runner.calendar') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Calendar</a></li>
                         <li><a href="{{ route('programs.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Programs</a></li>
+                        <li><a href="{{ route('challenge.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Leaderboard 40days</a></li>
                     @elseif(auth()->user()->isEventOrganizer())
                         <li><a href="{{ route('eo.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                     @endif

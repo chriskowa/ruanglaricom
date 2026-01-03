@@ -2,200 +2,140 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Program;
-use App\Models\ProgramEnrollment;
-use App\Models\Wallet;
+use App\Models\ChallengeActivity;
+use App\Models\LeaderboardStat;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ChallengeController extends Controller
 {
-    /**
-     * Handle challenge registration and enrollment.
-     * This method is now effectively part of the OTP verification flow.
-     * We keep it for backward compatibility or direct calls if needed, 
-     * but the main flow uses sendOtp -> verifyOtp.
-     */
-    public function join(Request $request)
+    public function index(Request $request)
     {
-        // Deprecated in favor of verifyOtp flow for 40days challenge
-        return response()->json(['message' => 'Please use OTP flow.']);
+        // Get sort parameter, default to percentage
+        $sortBy = $request->get('sort', 'percentage');
+
+        $query = LeaderboardStat::with('user');
+
+        switch ($sortBy) {
+            case 'streak':
+                $query->orderBy('streak', 'desc');
+                break;
+            case 'pace':
+                $query->orderBy('pace', 'asc');
+                break;
+            case 'percentage':
+            default:
+                $query->orderBy('percentage', 'desc');
+                break;
+        }
+
+        // Secondary sort by active_days desc
+        $query->orderBy('active_days', 'desc');
+
+        $runners = $query->get();
+
+        // Prepare data for Vue to avoid complex Blade logic
+        $runnersJson = $runners->map(function($stat) {
+            $user = $stat->user;
+            $avatar = $user && $user->avatar 
+                ? (str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . $user->avatar)) 
+                : 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'Runner');
+
+            return [
+                'user_id' => $stat->user_id,
+                'name' => $user->name ?? 'Runner',
+                'avatar' => $avatar,
+                'active_days' => $stat->active_days,
+                'percentage' => $stat->percentage,
+                'streak' => $stat->streak,
+                'qualified' => $stat->qualified,
+                'old_pb' => $stat->old_pb,
+                'new_pb' => $stat->new_pb,
+                'gap' => $stat->gap,
+                'pace' => $stat->pace ?? '0:00'
+            ];
+        });
+
+        return view('challenge.index', compact('runners', 'sortBy', 'runnersJson'));
     }
 
-    /**
-     * Register User (Inactive) & Send OTP
-     */
-    public function sendOtp(Request $request)
+    public function create()
     {
-        // 1. Validate Registration Data
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email', 
-            'password' => 'required|min:8',
-            'whatsapp' => 'required|string',
-            'gender' => 'required|in:Pria,Wanita,Male,Female',
-            'pb_5km' => 'nullable|string',
-            'strava_url' => 'nullable|url',
-            'avatar' => 'nullable|image|max:2048', // Max 2MB
-            'valid_proof' => 'required|image|max:2048', // Bukti Valid 5K
-            'terms_agreed' => 'required|accepted',
-        ]);
-
-        // 2. Format Phone
-        $phone = preg_replace('/[^0-9]/', '', $data['whatsapp']);
-        if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
-        } elseif (!str_starts_with($phone, '62')) {
-            $phone = '62' . $phone;
-        }
-        $data['whatsapp'] = $phone;
-
-        // 3. Generate Username
-        $baseSlug = Str::slug($data['name']);
-        $username = $baseSlug;
-        $i = 1;
-        while(User::where('username', $username)->exists()){
-            $username = $baseSlug . '.' . $i;
-            $i++;
-        }
-
-        // 4. Handle Avatar
-        $avatarPath = null;
-        if($request->hasFile('avatar')){
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $avatarPath = '/storage/' . $path;
-        }
-
-        // Handle Valid Proof (Banner)
-        $bannerPath = null;
-        if($request->hasFile('valid_proof')){
-            $path = $request->file('valid_proof')->store('proofs', 'public');
-            $bannerPath = '/storage/' . $path;
-        }
-
-        // 5. Check for existing user
-        $user = User::where('email', $data['email'])->first();
-        
-        $gender = $data['gender'] === 'Pria' ? 'male' : ($data['gender'] === 'Wanita' ? 'female' : strtolower($data['gender']));
-
-        $userData = [
-            'name' => $data['name'],
-            'password' => Hash::make($data['password']),
-            'whatsapp' => $data['whatsapp'],
-            'gender' => $gender,
-            'pb_5k' => $data['pb_5km'] ?? null,
-            'strava_url' => $data['strava_url'] ?? null,
-            'username' => $username,
-        ];
-
-        if($avatarPath) {
-            $userData['avatar'] = $avatarPath;
-        }
-        if($bannerPath) {
-            $userData['banner'] = $bannerPath;
-        }
-
-        if ($user) {
-            if ($user->is_active) {
-                return response()->json([
-                    'success' => false, 
-                    'message' => 'Email sudah terdaftar. Silakan login.'
-                ]);
-            }
+        // Check if user is enrolled
+        $activities = ChallengeActivity::where('user_id', Auth::id())
+            ->orderBy('date', 'desc')
+            ->get();
             
-            // Update existing inactive user
-            $user->update($userData);
-        } else {
-            // Create New User
-            $userData['email'] = $data['email'];
-            $userData['role'] = 'runner';
-            $userData['is_active'] = false;
-            
-            $user = User::create($userData);
-
-            // Initialize Wallet
-            Wallet::create([
-                'user_id' => $user->id,
-                'balance' => 15000,
-            ]);
-        }
-
-        // 6. Generate & Send OTP
-        $code = str_pad((string)random_int(0,999999), 6, '0', STR_PAD_LEFT);
-        
-        \App\Models\OtpToken::create([
-            'user_id' => $user->id,
-            'code' => $code,
-            'expires_at' => now()->addMinutes(10),
-            'used' => false,
-        ]);
-
-        \App\Helpers\WhatsApp::send($data['whatsapp'], 'Kode OTP 40 Days Challenge: '.$code.' (berlaku 10 menit) Gabung Grup Untuk Pengumuman https://chat.whatsapp.com/Ht9mz3P3Tje9xGBpl73Htg');
-
-        return response()->json([
-            'success' => true,
-            'user_id' => $user->id,
-            'message' => 'OTP telah dikirim ke WhatsApp Anda.'
-        ]);
+        return view('challenge.submit', compact('activities'));
     }
 
-    /**
-     * Verify OTP & Complete Enrollment
-     */
-    public function verifyOtp(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'otp' => 'required|string',
+            'date' => 'required|date',
+            'distance' => 'required|numeric|min:0.01',
+            'duration_hours' => 'required|integer|min:0',
+            'duration_minutes' => 'required|integer|min:0|max:59',
+            'duration_seconds' => 'required|integer|min:0|max:59',
+            'image' => 'required|image|max:5120', // 5MB max
+            'strava_link' => 'nullable|url'
         ]);
 
-        // 1. Verify OTP
-        $token = \App\Models\OtpToken::where('user_id', $request->user_id)
-            ->where('code', $request->otp)
-            ->where('used', false)
-            ->first();
+        $user = Auth::user();
 
-        if (!$token || $token->expires_at->isPast()) {
+        // Check for duplicate submission for the same date
+        $existing = ChallengeActivity::where('user_id', $user->id)
+            ->where('date', $request->date)
+            ->whereIn('status', ['pending', 'approved'])
+            ->exists();
+
+        if ($existing) {
             return response()->json([
-                'success' => false, 
-                'message' => 'Kode OTP salah atau sudah kadaluwarsa.'
-            ]);
+                'success' => false,
+                'message' => 'Anda sudah menyetor aktivitas untuk tanggal ini! Mohon tunggu persetujuan atau setor untuk tanggal lain.'
+            ], 422);
         }
 
-        // 2. Mark OTP as used
-        $token->update(['used' => true]);
+        // Calculate total seconds
+        $totalSeconds = ($request->duration_hours * 3600) + ($request->duration_minutes * 60) + $request->duration_seconds;
 
-        // 3. Activate User & Login
-        $user = User::find($request->user_id);
-        $user->update(['is_active' => true]);
-        
-        Auth::login($user);
-
-        // 4. Enroll in Program
-        $program = Program::where('hardcoded', '40days')->first();
-
-        if ($program) {
-            ProgramEnrollment::firstOrCreate(
-                ['program_id' => $program->id, 'runner_id' => $user->id],
-                [
-                    'status' => 'active',
-                    'start_date' => now(),
-                    'end_date' => now()->addWeeks($program->duration_weeks ?? 8),
-                    'payment_status' => 'paid',
-                ]
-            );
-        } else {
-            Log::warning("Challenge program with hardcoded='40days' not found.");
+        if ($totalSeconds <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Durasi tidak boleh 0!'
+            ], 422);
         }
+
+        // Upload Image
+        $imagePath = $request->file('image')->store('activity_proofs', 'public');
+
+        // Create Activity Record
+        ChallengeActivity::create([
+            'user_id' => $user->id,
+            'date' => $request->date,
+            'distance' => $request->distance,
+            'duration_seconds' => $totalSeconds,
+            'image_path' => $imagePath,
+            'strava_link' => $request->strava_link,
+            'status' => 'pending'
+        ]);
 
         return response()->json([
-            'success' => true,
-            'redirect_url' => route('runner.calendar'),
-            'message' => 'Registrasi berhasil!'
+            'success' => true, 
+            'message' => "Lari berhasil disetor dan menunggu persetujuan admin!",
+            'is_pb' => false
         ]);
+    }
+
+    private function comparePace($pace1, $pace2) {
+        // Returns -1 if pace1 < pace2 (faster), 0 if equal, 1 if pace1 > pace2 (slower)
+        list($m1, $s1) = explode(':', $pace1);
+        list($m2, $s2) = explode(':', $pace2);
+        
+        $sec1 = $m1 * 60 + $s1;
+        $sec2 = $m2 * 60 + $s2;
+        
+        return $sec1 <=> $sec2;
     }
 }

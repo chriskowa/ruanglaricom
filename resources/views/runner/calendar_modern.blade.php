@@ -141,6 +141,14 @@
             </div>
             <div class="flex gap-3">
                 <button @click="showVdotModal = true" class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-sm">Generate VDOT</button>
+                @php
+                    $isEnrolled40Days = $enrollments->contains(function ($enrollment) {
+                        return $enrollment->program_id == 9 && $enrollment->status == 'active';
+                    });
+                @endphp
+                @if($isEnrolled40Days)
+                <a href="{{ route('challenge.create') }}" class="px-4 py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
+                @endif
                 <a href="{{ route('programs.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm font-bold">Browse Programs</a>
                 <button @click="openFormForToday" class="px-4 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-sm">Add Custom Workout</button>
                 <button @click="openRaceForm" class="px-4 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-sm">Add Race</button>

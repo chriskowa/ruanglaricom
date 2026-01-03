@@ -8,7 +8,7 @@
                 TRAINING & <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">RACE DAY</span>
             </h1>
             
-            <div class="flex justify-center mb-6">
+            <div class="flex justify-center mb-6 gap-4 items-center flex-col md:flex-row">
                 <div class="bg-card p-1 rounded-xl border border-slate-700 inline-flex shadow-2xl">
                     <button @click="switchTab('calendar')" :class="activeTab === 'calendar' ? 'bg-slate-700 text-neon shadow-lg' : 'text-slate-400 hover:text-white'" class="px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -19,6 +19,12 @@
                         STRAVA ANALYTICS
                     </button>
                 </div>
+
+                @if(auth()->user()->programEnrollments()->whereHas('program', function($q) { $q->where('hardcoded', '40days')->orWhere('slug', '40days'); })->exists())
+                <a href="{{ route('challenge.create') }}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-green-900/20 transition-all flex items-center gap-2 border border-white/10">
+                    <i class="fas fa-plus-circle"></i> Lapor Aktivitas
+                </a>
+                @endif
             </div>
         </header>
 
