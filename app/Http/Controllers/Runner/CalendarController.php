@@ -593,7 +593,7 @@ class CalendarController extends Controller
     {
         $user = auth()->user();
 
-        if ($customWorkout->runner_id !== $user->id) {
+        if ((int)$customWorkout->runner_id !== (int)$user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
