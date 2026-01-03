@@ -66,6 +66,9 @@
         tailwind.config = {
             theme: {
                 extend: {
+                    screens: {
+                        'xs': '360px',
+                    },
                     colors: {
                         dark: '#0f172a',
                         card: '#1e293b',
@@ -143,7 +146,7 @@
             @include('layouts.components.pacerhub-sidebar')
         @endif
 
-        <main class="flex-grow w-full">
+        <main class="flex-grow w-full pt-16">
             @yield('content')
         </main>
 

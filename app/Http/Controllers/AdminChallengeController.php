@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\ChallengeActivity;
 use App\Models\LeaderboardStat;
+use App\Models\ProgramEnrollment;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class AdminChallengeController extends Controller
 {
@@ -16,7 +19,179 @@ class AdminChallengeController extends Controller
             ->orderBy('created_at', 'asc')
             ->paginate(20);
 
-        return view('admin.challenge.index', compact('activities'));
+        // Get enrolled runners for 40days program
+        // Assuming '40days' is in slug or hardcoded field, or ID 9
+        $enrolledRunners = ProgramEnrollment::whereHas('program', function($q) {
+                $q->where('hardcoded', '40days')
+                  ->orWhere('id', 9)
+                  ->orWhere('slug', 'like', '%40days%');
+            })
+            ->with('runner')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.challenge.index', compact('activities', 'enrolledRunners'));
+    }
+
+    public function syncStrava(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'refresh_token' => 'nullable|string', // Optional now
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        
+        // Find enrollment to get start date
+        $enrollment = ProgramEnrollment::where('runner_id', $user->id)
+            ->whereHas('program', function($q) {
+                $q->where('hardcoded', '40days')
+                  ->orWhere('id', 9)
+                  ->orWhere('slug', 'like', '%40days%');
+            })
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json(['success' => false, 'message' => 'User not enrolled in 40 Days Challenge.'], 400);
+        }
+
+        // 1. Extract Strava ID from URL
+        if (empty($user->strava_url) || !preg_match('/\/athletes\/(\d+)/', $user->strava_url, $matches)) {
+            return response()->json(['success' => false, 'message' => 'Invalid Strava URL format or missing. ID not found.'], 400);
+        }
+        $stravaId = $matches[1];
+
+        $accessToken = null;
+
+        // 2. Strategy A: Use Admin Refresh Token (or Env) if provided
+        if ($request->refresh_token) {
+            $response = Http::post('https://www.strava.com/oauth/token', [
+                'client_id' => config('services.strava.client_id') ?? env('STRAVA_CLIENT_ID'),
+                'client_secret' => config('services.strava.client_secret') ?? env('STRAVA_CLIENT_SECRET'),
+                'refresh_token' => $request->refresh_token,
+                'grant_type' => 'refresh_token',
+            ]);
+
+            if ($response->successful()) {
+                $accessToken = $response->json()['access_token'];
+            } else {
+                 // Log error but try fallback? No, if user provides token, they expect it to work.
+                 return response()->json(['success' => false, 'message' => 'Failed to refresh token: ' . $response->body()], 400);
+            }
+        } 
+        
+        // Strategy B: Use Env Access Token (Global Admin Token) - similar to StravaClubService
+        if (!$accessToken) {
+            $envToken = env('STRAVA_ACCESS_TOKEN'); // From .env directly
+            if ($envToken) {
+                $accessToken = $envToken;
+            } else {
+                return response()->json(['success' => false, 'message' => 'No Refresh Token provided and no System Access Token found in .env'], 400);
+            }
+        }
+
+        // 3. Fetch Activities
+        $after = (int) $enrollment->created_at->timestamp;
+        
+        $stravaActivities = [];
+        
+        // Use Club Mode if no refresh token provided (Admin Token fallback)
+        if (!$request->refresh_token) {
+             // Club Mode - Mimic StravaClubService
+             $clubId = env('STRAVA_CLUB_ID', '1859982');
+             
+             // Note: Club API usually ignores 'after', so we fetch latest 200 and filter in PHP
+             $clubResponse = Http::withToken($accessToken)
+                ->withoutVerifying()
+                ->get("https://www.strava.com/api/v3/clubs/{$clubId}/activities", [
+                    'per_page' => 200,
+                ]);
+             
+             if ($clubResponse->successful()) {
+                 $allActivities = $clubResponse->json();
+                 
+                 // Filter strictly for this user using Strava ID
+                 $stravaActivities = array_filter($allActivities, function($act) use ($stravaId) {
+                      // Check athlete ID safely
+                      if (isset($act['athlete']['id']) && $act['athlete']['id'] == $stravaId) {
+                          return true;
+                      }
+                      // Some responses might use 'resource_state' but usually 'athlete' -> 'id' is present
+                      return false;
+                 });
+             } else {
+                 return response()->json(['success' => false, 'message' => 'Failed to fetch club activities: ' . $clubResponse->body()], 400);
+             }
+        } else {
+             // Normal Mode (User Token provided)
+             $activitiesUrl = "https://www.strava.com/api/v3/athlete/activities";
+             $actResponse = Http::withToken($accessToken)
+                ->withoutVerifying()
+                ->get($activitiesUrl, [
+                    'after' => $after,
+                    'per_page' => 100
+                ]);
+             
+             if ($actResponse->successful()) {
+                 $stravaActivities = $actResponse->json();
+             } else {
+                 return response()->json(['success' => false, 'message' => 'Failed to fetch activities: ' . $actResponse->body()], 400);
+             }
+        }
+
+        $count = 0;
+
+        foreach ($stravaActivities as $activity) {
+            // Filter by type (Run)
+            if ($activity['type'] !== 'Run') continue;
+            
+            // Filter by Date (must be after enrollment)
+            $activityTime = strtotime($activity['start_date_local']);
+            if ($activityTime < $after) continue;
+            
+            // Double check Owner (redundant for Club Mode but good for safety)
+            if (isset($activity['athlete']['id']) && $activity['athlete']['id'] != $stravaId) {
+                continue; 
+            }
+
+            // Check if already exists
+            $exists = ChallengeActivity::where('user_id', $user->id)
+                ->where('strava_activity_id', $activity['id'])
+                ->exists();
+            
+            if ($exists) continue;
+
+            // Check duplicate by date
+            $date = date('Y-m-d', strtotime($activity['start_date_local']));
+            $existingDate = ChallengeActivity::where('user_id', $user->id)
+                ->where('date', $date)
+                ->exists();
+            
+            if ($existingDate) continue; // One per day rule
+
+            // Save
+            ChallengeActivity::create([
+                'user_id' => $user->id,
+                'date' => $date,
+                'distance' => $activity['distance'] / 1000, // meters to km
+                'duration_seconds' => $activity['moving_time'],
+                'image_path' => 'strava_sync', // Placeholder
+                'strava_link' => "https://www.strava.com/activities/" . $activity['id'],
+                'strava_activity_id' => $activity['id'],
+                'status' => 'approved' // Auto approve synced
+            ]);
+            $count++;
+        }
+
+        if ($count > 0) {
+            $this->recalculateStats($user->id);
+        }
+
+        return response()->json([
+            'success' => true, 
+            'message' => "Synced $count activities for {$user->name}." . ($request->refresh_token ? "" : " (Used Club Mode)"),
+            'count' => $count
+        ]);
     }
 
     public function approve($id)

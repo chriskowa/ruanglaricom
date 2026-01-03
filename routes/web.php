@@ -98,6 +98,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/challenge/approval', [App\Http\Controllers\AdminChallengeController::class, 'index'])->name('challenge.index');
     Route::post('/challenge/approve/{id}', [App\Http\Controllers\AdminChallengeController::class, 'approve'])->name('challenge.approve');
     Route::post('/challenge/reject/{id}', [App\Http\Controllers\AdminChallengeController::class, 'reject'])->name('challenge.reject');
+    Route::post('/challenge/sync-strava', [App\Http\Controllers\AdminChallengeController::class, 'syncStrava'])->name('challenge.sync-strava');
+    Route::get('/challenge/sync-strava', function() { return redirect()->route('admin.challenge.index'); });
 });
 
 // Public routes

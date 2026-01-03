@@ -4,7 +4,7 @@
             <!-- Left Side: Logo -->
             <div class="flex items-center gap-1 pl-2">
                 <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
-                <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" class="text-2xl font-black italic tracking-tighter flex items-center">
+                <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" class="text-2xl xs:text-xl font-black italic tracking-tighter flex items-center">
                     RUANG<span class="pl-1 text-primary">LARI</span>
                 </a>
             </div>
@@ -149,7 +149,7 @@
                     </div>
                 </div>
                 @else
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 xs:gap-1">
                     <a href="{{ route('login') }}" class="text-sm font-bold text-slate-300 hover:text-white transition-colors">Login</a>
                     <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-bold bg-neon text-dark rounded-xl hover:bg-lime-400 hover:shadow-lg hover:shadow-neon/20 transition-all transform hover:-translate-y-0.5">Register</a>
                 </div>
