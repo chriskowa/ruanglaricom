@@ -58,6 +58,10 @@
                     <div class="text-[10px] text-slate-400 uppercase">VDOT</div>
                     <div class="text-lg font-black text-neon">{{ $trainingProfile['vdot'] ?? '-' }}</div>
                 </div>
+                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
+                    <div class="text-[10px] text-slate-400 uppercase">Weekly Target (km)</div>
+                    <div class="text-lg font-black text-white">{{ isset($trainingProfile['weekly_km_target']) && $trainingProfile['weekly_km_target'] !== null ? number_format($trainingProfile['weekly_km_target'], 1) : '-' }}</div>
+                </div>
             </div>
         </div>
 

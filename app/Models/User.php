@@ -57,6 +57,7 @@ class User extends Authenticatable
         'pb_fm',
         'audit_history',
         'weekly_volume',
+        'weekly_km_target',
     ];
 
     public function pacer()
@@ -91,6 +92,7 @@ class User extends Authenticatable
             'strava_expires_at' => 'datetime',
             'audit_history' => 'array',
             'weekly_volume' => 'decimal:2',
+            'weekly_km_target' => 'decimal:2',
             'is_pacer' => 'boolean',
             'is_active' => 'boolean',
         ];

@@ -45,6 +45,7 @@ class RunningProfileService
             ],
             'vdot' => $bestVdot,
             'vo2max' => $bestVdot, // Approximation aligned with VDOT scale
+            'weekly_km_target' => $user->weekly_km_target,
             'paces' => $paces,
             'equivalent_race_times' => $equivalent,
             'track_times' => $trackTimes,

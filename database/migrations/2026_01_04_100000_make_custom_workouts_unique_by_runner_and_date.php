@@ -32,7 +32,8 @@ return new class extends Migration
                         ->delete();
                 }
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         Schema::table('custom_workouts', function (Blueprint $table) {
             try {
@@ -40,7 +41,8 @@ return new class extends Migration
             } catch (\Throwable $e) {
                 try {
                     DB::statement('ALTER TABLE custom_workouts ADD UNIQUE INDEX custom_workouts_runner_date_unique (runner_id, workout_date)');
-                } catch (\Throwable $e2) {}
+                } catch (\Throwable $e2) {
+                }
             }
         });
     }
@@ -50,11 +52,13 @@ return new class extends Migration
         Schema::table('custom_workouts', function (Blueprint $table) {
             try {
                 $table->dropUnique('custom_workouts_runner_date_unique');
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
 
             try {
                 $table->index(['runner_id', 'workout_date'], 'custom_workouts_runner_id_workout_date_index');
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
         });
     }
 };
