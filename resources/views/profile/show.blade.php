@@ -112,7 +112,7 @@
                     </div>
                     
                     <div class="flex flex-wrap justify-center gap-3 mt-6">
-                        <a href="{{ route('runner.profile.show', $user->username) }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
+                        <a href="{{ route('runner.profile.show', $user->username ?? $user->id) }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">
                             Runner Profile
                         </a>
                         <a href="{{ route('feed.index') }}" class="px-5 py-2.5 bg-slate-800 hover:bg-white hover:text-dark border border-slate-700 rounded-xl text-sm font-bold transition-all">

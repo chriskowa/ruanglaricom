@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class ChallengeController extends Controller
@@ -182,10 +183,31 @@ class ChallengeController extends Controller
         // Upload Proof
         $proofPath = $request->file('valid_proof')->store('challenge_proofs', 'public');
 
+        // Normalize PB 5K (accept MM:SS or HH:MM:SS)
+        $pb5k = null;
+        if (! empty($data['pb_5km'])) {
+            $raw = trim($data['pb_5km']);
+            if (preg_match('/^\d{1,2}:\d{2}$/', $raw)) {
+                [$m, $s] = explode(':', $raw);
+                $pb5k = sprintf('%02d:%02d:%02d', 0, (int) $m, (int) $s);
+            } elseif (preg_match('/^\d{1,2}:\d{2}:\d{2}$/', $raw)) {
+                [$h, $m, $s] = explode(':', $raw);
+                $pb5k = sprintf('%02d:%02d:%02d', (int) $h, (int) $m, (int) $s);
+            }
+        }
+
+        // Generate username from name (fallback unique suffix)
+        $usernameBase = Str::slug($data['name']);
+        $username = $usernameBase ?: 'runner';
+        if (User::where('username', $username)->exists()) {
+            $username = $username.'-'.substr(uniqid('', true), -4);
+        }
+
         // Create User
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'username' => $username,
             'phone' => $phone,
             'password' => Hash::make($data['password']),
             'role' => 'runner',
@@ -193,6 +215,7 @@ class ChallengeController extends Controller
             'avatar' => $avatarPath,
             'is_active' => false,
             'strava_url' => $data['strava_url'] ?? null,
+            'pb_5k' => $pb5k,
             'audit_history' => [
                 [
                     'at' => now()->toIsoString(),
