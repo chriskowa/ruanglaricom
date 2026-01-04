@@ -766,7 +766,7 @@ createApp({
             weeklyTargetLoading.value = true;
             try {
                 // Assuming route is defined in blade or we construct it
-                const res = await fetch(`{{ route('marketplace.athletes.update-weekly-target', $enrollment->id) }}`, {
+                const res = await fetch(`{{ route('coach.athletes.update-weekly-target', $enrollment->id) }}`, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
                     body: JSON.stringify(weeklyTargetForm)
