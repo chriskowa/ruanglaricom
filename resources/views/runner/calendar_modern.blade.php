@@ -1877,6 +1877,7 @@ createApp({
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, weeklyVolume, maxVolume,
             assetStorage, assetProfile, runnerUrl, chatUrl, 
             showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,
+            showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass };
     }

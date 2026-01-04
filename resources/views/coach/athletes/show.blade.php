@@ -645,6 +645,32 @@
         </div>
     </div>
 
+    <div v-if="showWeeklyTargetModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="fixed inset-0 bg-black/80"></div>
+        <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6 border-neon/30 shadow-2xl shadow-neon/10">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-white font-black text-xl flex items-center gap-2">
+                    <span>🎯</span> Update Weekly Target
+                </h3>
+                <button @click="showWeeklyTargetModal = false" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Weekly Target (km)</label>
+                    <input type="number" step="0.1" v-model="weeklyTargetForm.weekly_km_target" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    <p class="text-[10px] text-slate-500 mt-1">Set target jarak lari mingguan atlet.</p>
+                </div>
+                <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
+                    <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showWeeklyTargetModal = false">Cancel</button>
+                    <button type="button" @click="updateWeeklyTarget" class="px-6 py-2 rounded-xl bg-neon text-dark font-black text-sm hover:bg-neon/90 shadow-lg shadow-neon/20 flex items-center gap-2" :disabled="weeklyTargetLoading">
+                        <span v-if="weeklyTargetLoading" class="animate-spin">⟳</span>
+                        Save Target
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Race Modal -->
         <div v-if="showRaceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 relative">
