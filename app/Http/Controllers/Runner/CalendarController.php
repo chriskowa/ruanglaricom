@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Runner;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller; 
 use App\Models\CustomWorkout;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
