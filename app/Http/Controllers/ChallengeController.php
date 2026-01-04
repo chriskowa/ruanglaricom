@@ -4,8 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\ChallengeActivity;
 use App\Models\LeaderboardStat;
+use App\Models\OtpToken;
+use App\Models\ProgramEnrollment;
+use App\Models\User;
+use App\Models\Program;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class ChallengeController extends Controller
 {
@@ -137,5 +144,152 @@ class ChallengeController extends Controller
         $sec2 = $m2 * 60 + $s2;
 
         return $sec1 <=> $sec2;
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'whatsapp' => 'required|string|max:20',
+            'password' => 'required|string|min:6',
+            'gender' => 'required|in:Pria,Wanita',
+            'pb_5km' => 'nullable|string',
+            'strava_url' => 'nullable|url',
+            'avatar' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
+            'valid_proof' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        // Format Phone
+        $phone = preg_replace('/[^0-9]/', '', $data['whatsapp']);
+        if (str_starts_with($phone, '0')) {
+            $phone = '62'.substr($phone, 1);
+        } elseif (! str_starts_with($phone, '62')) {
+            $phone = '62'.$phone;
+        }
+
+        // Check if user exists by phone
+        if (User::where('phone', $phone)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Nomor WhatsApp sudah terdaftar.'], 422);
+        }
+
+        // Upload Avatar
+        $avatarPath = null;
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        // Upload Proof
+        $proofPath = $request->file('valid_proof')->store('challenge_proofs', 'public');
+
+        // Create User
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'phone' => $phone,
+            'password' => Hash::make($data['password']),
+            'role' => 'runner',
+            'gender' => strtolower($data['gender']) === 'pria' ? 'male' : 'female',
+            'avatar' => $avatarPath,
+            'is_active' => false,
+            'strava_url' => $data['strava_url'] ?? null,
+            'audit_history' => [
+                [
+                    'at' => now()->toIsoString(),
+                    'context' => 'challenge_registration',
+                    'pb_5km' => $data['pb_5km'] ?? null,
+                    'valid_proof' => $proofPath
+                ]
+            ]
+        ]);
+
+        // Generate OTP
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        OtpToken::create([
+            'user_id' => $user->id,
+            'code' => $code,
+            'expires_at' => now()->addMinutes(10),
+            'used' => false,
+        ]);
+
+        // Send OTP
+        $otpChannel = env('OTP_CHANNEL', 'whatsapp');
+        $successMsg = 'Kami telah mengirim OTP ke WhatsApp Anda.';
+
+        if ($otpChannel === 'email') {
+            try {
+                Mail::raw('Kode OTP 40 Days Challenge Anda: '.$code.' (berlaku 10 menit)', function ($message) use ($user) {
+                    $message->to($user->email)->subject('Kode OTP 40 Days Challenge');
+                });
+                $successMsg = 'Kami telah mengirim OTP ke Email Anda.';
+            } catch (\Exception $e) {
+                Log::error('Email OTP failed: '.$e->getMessage());
+            }
+        } else {
+            \App\Helpers\WhatsApp::send($phone, 'Kode OTP 40 Days Challenge Anda: '.$code.' (berlaku 10 menit)');
+        }
+
+        return response()->json([
+            'success' => true,
+            'user_id' => $user->id,
+            'message' => $successMsg
+        ]);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'otp' => 'required|string|size:6',
+        ]);
+
+        $token = OtpToken::where('user_id', $request->user_id)
+            ->where('code', $request->otp)
+            ->where('used', false)
+            ->first();
+
+        if (! $token || $token->expires_at->isPast()) {
+            return response()->json(['success' => false, 'message' => 'Kode OTP tidak valid atau kedaluwarsa.'], 422);
+        }
+
+        $token->update(['used' => true]);
+        $user = User::findOrFail($request->user_id);
+        $user->update(['is_active' => true]);
+
+        Auth::login($user);
+
+        // Enroll in Challenge (Program ID 9)
+        $programId = 9;
+        $program = Program::find($programId);
+
+        if ($program) {
+            $exists = ProgramEnrollment::where('runner_id', $user->id)
+                ->where('program_id', $programId)
+                ->exists();
+
+            if (! $exists) {
+                ProgramEnrollment::create([
+                    'runner_id' => $user->id,
+                    'program_id' => $programId,
+                    'status' => 'purchased',
+                    'payment_status' => 'paid',
+                    'start_date' => null,
+                    'end_date' => null,
+                ]);
+                $program->increment('enrolled_count');
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'redirect_url' => route('runner.calendar'),
+            'message' => 'Verifikasi berhasil!'
+        ]);
+    }
+
+    public function join(Request $request)
+    {
+        // Placeholder for join method if called directly, but logic seems to be in verifyOtp enrollment
+        return response()->json(['success' => false, 'message' => 'Silakan registrasi melalui form.'], 400);
     }
 }

@@ -1114,7 +1114,7 @@
                         return;
                     }
                     try {
-                        const resp = await fetch('{{ route("runner.programs.enroll-free", ["program" => 0]) }}'.replace('/0/', `/${CHALLENGE_PROGRAM_ID}/`), {
+                        const resp = await fetch('{{ route("programs.enroll-free", ["program" => 0]) }}'.replace('/0/', `/${CHALLENGE_PROGRAM_ID}/`), {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
