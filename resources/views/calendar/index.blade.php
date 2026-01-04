@@ -19,12 +19,6 @@
                         STRAVA ANALYTICS
                     </button>
                 </div>
-
-                @if(auth()->user()->programEnrollments()->whereHas('program', function($q) { $q->where('hardcoded', '40days')->orWhere('slug', '40days'); })->exists())
-                <a href="{{ route('challenge.create') }}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-green-900/20 transition-all flex items-center gap-2 border border-white/10">
-                    <i class="fas fa-plus-circle"></i> Lapor Aktivitas
-                </a>
-                @endif
             </div>
         </header>
 
