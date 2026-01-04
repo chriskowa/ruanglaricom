@@ -389,51 +389,43 @@
                             <!-- Status Indicator Strip -->
                             <div class="absolute left-0 top-0 bottom-0 w-1" :class="plan.status==='completed'?'bg-green-500':(plan.status==='started'?'bg-blue-500':'bg-slate-600')"></div>
                             
-                            <!-- Header: Date & Title -->
-                            <div class="flex items-start gap-4 pl-2">
-                                <!-- Date Badge -->
-                                <div class="flex flex-col items-center justify-center bg-slate-900/50 rounded-xl p-2 min-w-[60px] border border-slate-700/50 shadow-inner">
-                                    <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">@{{ dayName(plan.date) }}</span>
-                                    <span class="text-2xl font-black text-white leading-none my-1">@{{ plan.day_number }}</span>
-                                    <span class="text-[10px] text-slate-500">@{{ plan.date_formatted ? plan.date_formatted.split(' ')[1] : '' }}</span>
-                                </div>
-                                
-                                <!-- Description -->
-                                <div class="flex-1 min-w-0 pt-1">
-                                     <h4 class="text-white font-bold text-base md:text-lg leading-tight mb-1.5 cursor-pointer hover:text-neon transition" @click="showPlanDetail(plan)">
-                                        @{{ plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session') }}
-                                     </h4>
-                                     <div class="flex flex-wrap items-center gap-2 mb-1">
-                                        <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-slate-700 text-slate-300 border border-slate-600">
-                                            @{{ plan.type === 'custom_workout' ? (plan.activity_type || 'Custom') : (plan.type || 'Workout') }}
-                                        </span>
-                                        <span v-if="plan.status!=='pending'" class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" :class="statusClass(plan.status)">
-                                            <span v-if="plan.status==='completed'">✓</span>
-                                            <span v-if="plan.status==='started'">▶</span>
+                            <div class="pl-3 flex flex-col gap-3">
+                                <!-- Top: Date & Description -->
+                                <div class="w-full">
+                                     <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[11px] text-neon font-bold uppercase tracking-wider">@{{ dayName(plan.date) }}, @{{ plan.date_formatted ? plan.date_formatted.split(' ')[1] : '' }}</span>
+                                        <span v-if="plan.day_number" class="text-[10px] text-slate-500 font-mono">Day @{{ plan.day_number }}</span>
+                                        <span v-if="plan.status!=='pending'" class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" :class="statusClass(plan.status)">
                                             @{{ statusText(plan.status) }}
                                         </span>
                                      </div>
-                                     <div class="text-xs text-slate-400 truncate flex items-center gap-2">
-                                        <span>@{{ plan.program_title || 'Custom Workout' }}</span>
-                                        <span class="w-1 h-1 rounded-full bg-slate-600"></span>
-                                        <span class="text-slate-300">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
-                                     </div>
+                                     <h4 class="text-white font-bold text-lg leading-tight cursor-pointer hover:text-neon transition" @click="showPlanDetail(plan)">
+                                        @{{ plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session') }}
+                                     </h4>
                                 </div>
-                            </div>
 
-                            <!-- Footer: Actions -->
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between pl-2 pt-3 border-t border-slate-700/50 mt-1 gap-3">
-                                <div class="text-xs text-slate-500 italic truncate max-w-[200px] sm:max-w-none">
-                                    @{{ plan.target_pace ? 'Target: ' + plan.target_pace : (plan.notes ? 'Note: ' + plan.notes : '') }}
+                                <!-- Middle: Type & Stats -->
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex items-center gap-2">
+                                         <span class="px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider bg-slate-700 text-slate-300 border border-slate-600">
+                                            @{{ plan.type === 'custom_workout' ? (plan.activity_type || 'Custom') : (plan.type || 'Workout') }}
+                                        </span>
+                                         <span class="text-slate-300 text-sm font-mono">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
+                                    </div>
+                                     <div class="text-xs text-slate-400">
+                                        @{{ plan.program_title || 'Custom Workout' }}
+                                    </div>
                                 </div>
-                                <div class="flex gap-2 w-full sm:w-auto">
-                                    <button v-if="plan.status==='pending'" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-neon text-dark text-xs font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-2" @click="updateSessionStatus(plan,'started')">
+                                
+                                <!-- Bottom: Actions -->
+                                <div class="pt-3 mt-1 border-t border-slate-700/50">
+                                    <button v-if="plan.status==='pending'" class="w-full px-4 py-3 rounded-xl bg-neon text-dark text-sm font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-2" @click.stop="updateSessionStatus(plan,'started')">
                                         <span>▶</span> Start Activity
                                     </button>
-                                    <button v-if="plan.status==='started'" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2" @click="showPlanDetail(plan)">
-                                        <span>✓</span> Finish...
+                                    <button v-if="plan.status==='started'" class="w-full px-4 py-3 rounded-xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2" @click.stop="showPlanDetail(plan)">
+                                        <span>✓</span> Finish Activity
                                     </button>
-                                    <button v-if="plan.status==='completed'" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-700/50 text-slate-400 text-xs cursor-default border border-slate-700 flex items-center justify-center gap-2" @click="showPlanDetail(plan)">
+                                    <button v-if="plan.status==='completed'" class="w-full px-4 py-3 rounded-xl bg-slate-700/50 text-slate-400 text-sm cursor-default border border-slate-700 flex items-center justify-center gap-2" @click.stop="showPlanDetail(plan)">
                                         <span>👁</span> View Details
                                     </button>
                                 </div>
@@ -1886,38 +1878,70 @@ createApp({
         };
 
         const updateSessionStatus = async (plan, status, stravaLink = null, notes = null, rpe = null, feeling = null) => {
+            console.log('updateSessionStatus plan:', plan);
             try {
                 const payload = { status };
                 
-                if (plan.type === 'custom_workout' || (plan.id && String(plan.id).startsWith('custom_'))) {
+                // Enhanced logic for identifying custom vs program session
+                if (plan.enrollment_id) {
+                     payload.enrollment_id = plan.enrollment_id;
+                     payload.session_day = plan.session_day;
+                } else if (plan.type === 'custom_workout' || (plan.id && String(plan.id).startsWith('custom_')) || plan.workout_id) {
                     payload.workout_id = plan.workout_id || (plan.id ? String(plan.id).replace('custom_', '') : null);
-                } else {
-                    payload.enrollment_id = plan.enrollment_id;
-                    payload.session_day = plan.session_day;
                 }
 
-                if (stravaLink) payload.strava_link = stravaLink;
-                if (notes) payload.notes = notes;
+                if (stravaLink && stravaLink.trim()) payload.strava_link = stravaLink.trim();
+                if (notes && notes.trim()) payload.notes = notes.trim();
                 if (rpe) payload.rpe = rpe;
                 if (feeling) payload.feeling = feeling;
+                
+                console.log('Sending payload:', payload);
 
                 const res = await fetch(`{{ route('runner.calendar.update-session-status') }}`, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
                 const data = await res.json();
+                
+                if (!res.ok) {
+                    console.error('Error response:', data);
+                    let errorMsg = data.message || 'Validation failed';
+                    if (data.errors) {
+                        errorMsg += '\n' + Object.values(data.errors).flat().join('\n');
+                    }
+                    alert('Error: ' + errorMsg);
+                    return false;
+                }
+
                 if (data.success) {
                     // Update local state if detail modal is open
-                    if (showDetailModal.value && detail.session_day === plan.session_day) {
-                        detail.status = status;
-                        if (stravaLink) detail.strava_link = stravaLink;
-                        if (notes) detail.notes = notes;
+                    if (showDetailModal.value) {
+                        // Check match (simple check since we often operate on detail itself)
+                        const isSamePlan = (plan.enrollment_id && detail.enrollment_id === plan.enrollment_id && detail.session_day === plan.session_day) ||
+                                         (plan.workout_id && detail.workout_id === plan.workout_id) ||
+                                         (plan.id === detail.id);
+
+                        if (isSamePlan) {
+                            detail.status = status;
+                            if (stravaLink) detail.strava_link = stravaLink;
+                            if (notes) detail.notes = notes;
+                            if (status === 'completed') showDetailModal.value = false;
+                        }
                     }
                     await loadPlans();
                     if (calendar) calendar.refetchEvents();
+                    return true;
+                } else {
+                     alert(data.message || 'Failed to update status');
+                     return false;
                 }
-            } catch {}
+            } catch (e) {
+                console.error('Exception:', e);
+                alert('An error occurred: ' + e.message);
+                return false;
+            }
         };
 
         const finishActivityWithLink = async () => {

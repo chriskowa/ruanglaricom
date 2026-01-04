@@ -505,66 +505,84 @@ class CalendarController extends Controller
      */
     public function updateSessionStatus(Request $request)
     {
-        $validated = $request->validate([
-            'tracking_id' => 'nullable|exists:program_session_tracking,id',
-            'enrollment_id' => 'nullable|required_without:workout_id|exists:program_enrollments,id',
-            'workout_id' => 'nullable|required_without:enrollment_id|exists:custom_workouts,id',
-            'session_day' => 'nullable|required_with:enrollment_id|integer',
+        \Log::info('updateSessionStatus payload:', $request->all());
+
+        $validator = \Validator::make($request->all(), [
             'status' => 'required|in:started,completed',
             'strava_link' => 'nullable|url|max:255',
             'notes' => 'nullable|string|max:1000',
             'rpe' => 'nullable|integer|min:1|max:10',
             'feeling' => 'nullable|string|in:strong,good,average,weak,terrible',
+            'enrollment_id' => 'nullable|exists:program_enrollments,id',
+            'workout_id' => 'nullable|exists:custom_workouts,id',
+            'session_day' => 'nullable|integer',
         ]);
 
+        if ($validator->fails()) {
+            \Log::warning('updateSessionStatus validation failed:', $validator->errors()->toArray());
+            return response()->json([
+                'message' => 'Validation failed', 
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $validated = $validator->validated();
         $user = auth()->user();
 
-        if (isset($validated['workout_id'])) {
-            // Update Custom Workout
+        // 1. Check if Custom Workout
+        if (!empty($validated['workout_id'])) {
             $workout = CustomWorkout::where('id', $validated['workout_id'])
                 ->where('runner_id', $user->id)
                 ->firstOrFail();
 
-            $workout->update([
-                'status' => $validated['status'],
-                // Only update these if provided
-                'strava_link' => $validated['strava_link'] ?? $workout->strava_link,
-                'notes' => $validated['notes'] ?? $workout->notes,
-                'rpe' => $validated['rpe'] ?? $workout->rpe,
-                'feeling' => $validated['feeling'] ?? $workout->feeling,
-            ]);
+            $updateData = ['status' => $validated['status']];
+            
+            if ($request->has('strava_link')) $updateData['strava_link'] = $validated['strava_link'];
+            if ($request->has('notes')) $updateData['notes'] = $validated['notes'];
+            if ($request->has('rpe')) $updateData['rpe'] = $validated['rpe'];
+            if ($request->has('feeling')) $updateData['feeling'] = $validated['feeling'];
+
+            $workout->update($updateData);
 
             return response()->json([
                 'success' => true,
-                'tracking' => $workout, // Return workout as tracking for consistency
+                'tracking' => $workout,
             ]);
         }
 
-        // Verify enrollment belongs to user
-        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
-            ->where('runner_id', $user->id)
-            ->firstOrFail();
+        // 2. Check if Program Session
+        if (!empty($validated['enrollment_id']) && isset($validated['session_day'])) {
+            // Verify enrollment belongs to user
+            $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+                ->where('runner_id', $user->id)
+                ->firstOrFail();
 
-        // Create or update tracking
-        $tracking = ProgramSessionTracking::updateOrCreate(
-            [
-                'enrollment_id' => $enrollment->id,
-                'session_day' => $validated['session_day'],
-            ],
-            [
-                'status' => $validated['status'],
-                'completed_at' => $validated['status'] === 'completed' ? now() : null,
-                'strava_link' => $validated['strava_link'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-                'rpe' => $validated['rpe'] ?? null,
-                'feeling' => $validated['feeling'] ?? null,
-            ]
-        );
+            // Create or update tracking
+            $tracking = ProgramSessionTracking::updateOrCreate(
+                [
+                    'enrollment_id' => $validated['enrollment_id'],
+                    'session_day' => $validated['session_day'],
+                ],
+                [
+                    'status' => $validated['status'],
+                    'strava_link' => $validated['strava_link'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                    'rpe' => $validated['rpe'] ?? null,
+                    'feeling' => $validated['feeling'] ?? null,
+                    'completed_at' => $validated['status'] === 'completed' ? now() : null,
+                ]
+            );
 
-        return response()->json([
-            'success' => true,
-            'tracking' => $tracking,
-        ]);
+            // Update program progress
+            // $this->updateProgramProgress($enrollment);
+
+            return response()->json([
+                'success' => true,
+                'tracking' => $tracking,
+            ]);
+        }
+
+        return response()->json(['message' => 'Missing workout identification (enrollment_id+session_day OR workout_id)'], 422);
     }
 
     /**
