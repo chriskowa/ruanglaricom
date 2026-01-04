@@ -1403,6 +1403,7 @@ createApp({
 
         return { 
             trainingProfile, profileTab, formatPace,
+            showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance, deleteCustomWorkout,
