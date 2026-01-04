@@ -748,7 +748,7 @@ createApp({
         let calendar = null;
         const selectedSession = ref(null);
         const loading = ref(false);
-        const trainingProfile = @json($trainingProfile);
+        const trainingProfile = reactive(@json($trainingProfile) || {});
         const profileTab = ref('training');
         const feedbackForm = reactive({
             coach_rating: 0,
