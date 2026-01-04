@@ -384,26 +384,58 @@
 
                     <div v-if="plansLoading" class="p-6 text-center text-slate-400">Loading plans...</div>
                     <div v-else-if="plans.length === 0" class="p-6 text-center text-slate-400">No workout plans</div>
-                    <div v-else class="space-y-3">
-                        <div v-for="plan in plans" :key="plan.id || plan.date+plan.enrollment_id" class="flex items-center justify-between gap-4 p-4 rounded-xl bg-slate-800/40 border border-slate-700">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-lg flex flex-col items-center justify-center text-white" :class="plan.status==='completed'?'bg-green-500/20 border border-green-500/30':'bg-blue-500/20 border border-blue-500/30'">
-                                    <span class="text-lg font-black">@{{ plan.day_number }}</span>
-                                    <span class="text-[10px] uppercase tracking-wider">@{{ dayName(plan.date) }}</span>
+                    <div v-else class="space-y-4">
+                        <div v-for="plan in plans" :key="plan.id || plan.date+plan.enrollment_id" class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3 relative overflow-hidden group hover:border-slate-600 transition">
+                            <!-- Status Indicator Strip -->
+                            <div class="absolute left-0 top-0 bottom-0 w-1" :class="plan.status==='completed'?'bg-green-500':(plan.status==='started'?'bg-blue-500':'bg-slate-600')"></div>
+                            
+                            <!-- Header: Date & Title -->
+                            <div class="flex items-start gap-4 pl-2">
+                                <!-- Date Badge -->
+                                <div class="flex flex-col items-center justify-center bg-slate-900/50 rounded-xl p-2 min-w-[60px] border border-slate-700/50 shadow-inner">
+                                    <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">@{{ dayName(plan.date) }}</span>
+                                    <span class="text-2xl font-black text-white leading-none my-1">@{{ plan.day_number }}</span>
+                                    <span class="text-[10px] text-slate-500">@{{ plan.date_formatted ? plan.date_formatted.split(' ')[1] : '' }}</span>
                                 </div>
-                                <div>
-                                    <button class="text-white font-bold hover:text-neon transition text-left" @click="showPlanDetail(plan)">@{{ plan.description || plan.type || 'Workout' }}</button>
-                                    <div class="text-xs mt-1" :class="statusClass(plan.status)">@{{ statusText(plan.status) }}</div>
-                                    <div v-if="plan.notes" class="text-xs text-white font-bold mt-1">Note: @{{ plan.notes }}</div>
+                                
+                                <!-- Description -->
+                                <div class="flex-1 min-w-0 pt-1">
+                                     <h4 class="text-white font-bold text-base md:text-lg leading-tight mb-1.5 cursor-pointer hover:text-neon transition" @click="showPlanDetail(plan)">
+                                        @{{ plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session') }}
+                                     </h4>
+                                     <div class="flex flex-wrap items-center gap-2 mb-1">
+                                        <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-slate-700 text-slate-300 border border-slate-600">
+                                            @{{ plan.type === 'custom_workout' ? (plan.activity_type || 'Custom') : (plan.type || 'Workout') }}
+                                        </span>
+                                        <span v-if="plan.status!=='pending'" class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" :class="statusClass(plan.status)">
+                                            <span v-if="plan.status==='completed'">✓</span>
+                                            <span v-if="plan.status==='started'">▶</span>
+                                            @{{ statusText(plan.status) }}
+                                        </span>
+                                     </div>
+                                     <div class="text-xs text-slate-400 truncate flex items-center gap-2">
+                                        <span>@{{ plan.program_title || 'Custom Workout' }}</span>
+                                        <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                                        <span class="text-slate-300">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
+                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <div class="text-xs text-slate-400">
-                                    <span class="px-2 py-1 rounded bg-slate-700">@{{ activityLabel(plan.type) }}</span>
+
+                            <!-- Footer: Actions -->
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between pl-2 pt-3 border-t border-slate-700/50 mt-1 gap-3">
+                                <div class="text-xs text-slate-500 italic truncate max-w-[200px] sm:max-w-none">
+                                    @{{ plan.target_pace ? 'Target: ' + plan.target_pace : (plan.notes ? 'Note: ' + plan.notes : '') }}
                                 </div>
-                                <div class="flex gap-2">
-                                    <button v-if="plan.status==='pending'" class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-xs" @click="updateSessionStatus(plan,'started')">Start</button>
-                                    <button v-if="plan.status==='started'" class="px-3 py-1 rounded-lg bg-neon text-dark text-xs font-black" @click="showPlanDetail(plan)">Finish...</button>
+                                <div class="flex gap-2 w-full sm:w-auto">
+                                    <button v-if="plan.status==='pending'" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-neon text-dark text-xs font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-2" @click="updateSessionStatus(plan,'started')">
+                                        <span>▶</span> Start Activity
+                                    </button>
+                                    <button v-if="plan.status==='started'" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2" @click="showPlanDetail(plan)">
+                                        <span>✓</span> Finish...
+                                    </button>
+                                    <button v-if="plan.status==='completed'" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-700/50 text-slate-400 text-xs cursor-default border border-slate-700 flex items-center justify-center gap-2" @click="showPlanDetail(plan)">
+                                        <span>👁</span> View Details
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1855,11 +1887,15 @@ createApp({
 
         const updateSessionStatus = async (plan, status, stravaLink = null, notes = null, rpe = null, feeling = null) => {
             try {
-                const payload = { 
-                    enrollment_id: plan.enrollment_id, 
-                    session_day: plan.session_day, 
-                    status
-                };
+                const payload = { status };
+                
+                if (plan.type === 'custom_workout' || (plan.id && String(plan.id).startsWith('custom_'))) {
+                    payload.workout_id = plan.workout_id || (plan.id ? String(plan.id).replace('custom_', '') : null);
+                } else {
+                    payload.enrollment_id = plan.enrollment_id;
+                    payload.session_day = plan.session_day;
+                }
+
                 if (stravaLink) payload.strava_link = stravaLink;
                 if (notes) payload.notes = notes;
                 if (rpe) payload.rpe = rpe;
@@ -1885,10 +1921,6 @@ createApp({
         };
 
         const finishActivityWithLink = async () => {
-            if (!stravaLinkInput.value) {
-                alert('Please enter your Strava activity link.');
-                return;
-            }
             await updateSessionStatus(detail, 'completed', stravaLinkInput.value, notesInput.value, rpeInput.value, feelingInput.value);
             // Close modal after success or update UI
         };

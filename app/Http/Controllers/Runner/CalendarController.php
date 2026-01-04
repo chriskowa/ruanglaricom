@@ -507,8 +507,9 @@ class CalendarController extends Controller
     {
         $validated = $request->validate([
             'tracking_id' => 'nullable|exists:program_session_tracking,id',
-            'enrollment_id' => 'required|exists:program_enrollments,id',
-            'session_day' => 'required|integer',
+            'enrollment_id' => 'nullable|required_without:workout_id|exists:program_enrollments,id',
+            'workout_id' => 'nullable|required_without:enrollment_id|exists:custom_workouts,id',
+            'session_day' => 'nullable|required_with:enrollment_id|integer',
             'status' => 'required|in:started,completed',
             'strava_link' => 'nullable|url|max:255',
             'notes' => 'nullable|string|max:1000',
@@ -517,6 +518,27 @@ class CalendarController extends Controller
         ]);
 
         $user = auth()->user();
+
+        if (isset($validated['workout_id'])) {
+            // Update Custom Workout
+            $workout = CustomWorkout::where('id', $validated['workout_id'])
+                ->where('runner_id', $user->id)
+                ->firstOrFail();
+
+            $workout->update([
+                'status' => $validated['status'],
+                // Only update these if provided
+                'strava_link' => $validated['strava_link'] ?? $workout->strava_link,
+                'notes' => $validated['notes'] ?? $workout->notes,
+                'rpe' => $validated['rpe'] ?? $workout->rpe,
+                'feeling' => $validated['feeling'] ?? $workout->feeling,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'tracking' => $workout, // Return workout as tracking for consistency
+            ]);
+        }
 
         // Verify enrollment belongs to user
         $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
