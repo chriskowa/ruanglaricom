@@ -351,6 +351,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/calendar/update-weekly-target', [CalendarController::class, 'updateWeeklyTarget'])->name('calendar.update-weekly-target');
         Route::post('/calendar/reset-plan-list', [CalendarController::class, 'resetPlanList'])->name('calendar.reset-plan-list');
         Route::post('/calendar/reschedule', [CalendarController::class, 'reschedule'])->name('calendar.reschedule');
+        Route::post('/calendar/reschedule-program', [CalendarController::class, 'rescheduleProgram'])->name('calendar.reschedule-program');
         Route::get('/calendar/weekly-volume', [CalendarController::class, 'weeklyVolume'])->name('calendar.weekly-volume');
 
         // Program purchase & enrollment

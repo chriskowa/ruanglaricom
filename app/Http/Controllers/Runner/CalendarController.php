@@ -954,6 +954,44 @@ class CalendarController extends Controller
     }
 
     /**
+     * Reschedule entire program (change start date)
+     */
+    public function rescheduleProgram(Request $request)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+            'new_start_date' => 'required|date',
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->firstOrFail();
+
+        $startDate = Carbon::parse($validated['new_start_date']);
+        $program = $enrollment->program;
+        $durationWeeks = $program->duration_weeks ?? 12;
+        $endDate = $startDate->copy()->addWeeks($durationWeeks);
+
+        DB::transaction(function () use ($enrollment, $startDate, $endDate) {
+            // Update enrollment dates
+            $enrollment->update([
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ]);
+
+            // Clear any individual session reschedules so they align with new start date
+            ProgramSessionTracking::where('enrollment_id', $enrollment->id)
+                ->update(['rescheduled_date' => null]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Program rescheduled successfully',
+        ]);
+    }
+
+    /**
      * Update Runner PB
      */
     public function updatePb(Request $request)

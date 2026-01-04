@@ -139,14 +139,14 @@
                 <p class="text-neon font-mono text-sm tracking-widest uppercase">Training</p>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Runner Calendar</h1>
             </div>
-            <div class="flex gap-3">
-                <button @click="showVdotModal = true" class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-sm">Generate VDOT</button>
+            <div class="flex gap-2 md:gap-3 flex-wrap justify-end">
+                <button @click="showVdotModal = true" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm">Generate VDOT</button>
                 @if($isEnrolled40Days)
-                <a href="{{ route('challenge.create') }}" class="px-4 py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
+                <a href="{{ route('challenge.create') }}" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-xs md:text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
                 @endif
-                <a href="{{ route('programs.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm font-bold">Browse Programs</a>
-                <button @click="openFormForToday" class="px-4 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-sm">Add Custom Workout</button>
-                <button @click="openRaceForm" class="px-4 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-sm">Add Race</button>
+                <a href="{{ route('programs.index') }}" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-xs md:text-sm font-bold">Browse Programs</a>
+                <button @click="openFormForToday" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-xs md:text-sm">Add Custom Workout</button>
+                <button @click="openRaceForm" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-xs md:text-sm">Add Race</button>
             </div>
         </div>
 
@@ -431,6 +431,7 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
+                                <button class="px-3 py-1 rounded-lg bg-blue-600/20 text-blue-500 border border-blue-600/30 text-xs w-full hover:bg-blue-600/30 transition" @click="openRescheduleModal(en)">Reschedule</button>
                                 <button class="px-3 py-1 rounded-lg bg-yellow-600/20 text-yellow-500 border border-yellow-600/30 text-xs w-full hover:bg-yellow-600/30 transition" @click="resetPlan(en.id)">Reset to Bag</button>
                                 <button class="px-3 py-1 rounded-lg bg-red-600/20 text-red-500 border border-red-600/30 text-xs w-full hover:bg-red-600/30 transition" @click="deleteEnrollment(en.id)">Delete</button>
                             </div>
@@ -1010,6 +1011,40 @@
             </div>
         </div>
 
+        <!-- Reschedule Modal -->
+        <div v-if="showRescheduleModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80"></div>
+            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6 border-blue-500/30 shadow-2xl shadow-blue-500/10">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-white font-black text-xl flex items-center gap-2">
+                        <span class="text-2xl">📅</span> Reschedule Program
+                    </h3>
+                    <button class="text-slate-400 hover:text-white" @click="showRescheduleModal = false">×</button>
+                </div>
+                <div class="mb-4">
+                    <p class="text-slate-300 text-sm mb-2">Shift your entire program to a new start date. All future sessions will be moved accordingly.</p>
+                    <div class="bg-blue-900/20 border border-blue-800 rounded-lg p-3">
+                        <p class="text-xs text-blue-300">Program: <span class="font-bold text-white">@{{ rescheduleTarget?.program?.title }}</span></p>
+                        <p class="text-xs text-blue-300">Current Start: <span class="font-bold text-white">@{{ formatDate(rescheduleTarget?.start_date) }}</span></p>
+                    </div>
+                </div>
+                <form @submit.prevent="submitReschedule" class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-blue-400 uppercase">New Start Date</label>
+                        <input type="date" v-model="rescheduleForm.new_start_date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+                    
+                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
+                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showRescheduleModal = false">Cancel</button>
+                        <button type="submit" :disabled="rescheduleLoading" class="px-6 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm hover:bg-blue-400 shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                            <span v-if="rescheduleLoading" class="animate-spin">⌛</span>
+                            <span>Confirm Reschedule</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
 
     </div>
 </main>
@@ -1306,6 +1341,50 @@ createApp({
                 }
             } catch (e) {
                 alert('An error occurred');
+            }
+        };
+
+        // Reschedule Logic
+        const showRescheduleModal = ref(false);
+        const rescheduleLoading = ref(false);
+        const rescheduleTarget = ref(null);
+        const rescheduleForm = reactive({
+            new_start_date: ''
+        });
+
+        const openRescheduleModal = (enrollment) => {
+            rescheduleTarget.value = enrollment;
+            rescheduleForm.new_start_date = enrollment.start_date ? enrollment.start_date.slice(0,10) : new Date().toISOString().slice(0,10);
+            showRescheduleModal.value = true;
+        };
+
+        const submitReschedule = async () => {
+            if (!rescheduleForm.new_start_date) {
+                alert('Please select a new start date');
+                return;
+            }
+            
+            rescheduleLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('runner.calendar.reschedule-program') }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
+                    body: JSON.stringify({ 
+                        enrollment_id: rescheduleTarget.value.id,
+                        new_start_date: rescheduleForm.new_start_date
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Program rescheduled successfully!');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to reschedule program');
+                }
+            } catch (e) {
+                alert('An error occurred');
+            } finally {
+                rescheduleLoading.value = false;
             }
         };
 
@@ -1879,7 +1958,8 @@ createApp({
             showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
-            displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass };
+            displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass,
+            showRescheduleModal, rescheduleTarget, rescheduleForm, rescheduleLoading, openRescheduleModal, submitReschedule };
     }
 
 }).mount('#runner-calendar-app');
