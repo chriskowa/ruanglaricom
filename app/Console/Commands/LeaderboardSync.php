@@ -2,16 +2,17 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Services\StravaClubService;
-use App\Models\User;
 use App\Models\LeaderboardStat;
-use Illuminate\Support\Str;
+use App\Models\User;
+use App\Services\StravaClubService;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 
 class LeaderboardSync extends Command
 {
     protected $signature = 'leaderboard:sync';
+
     protected $description = 'Sync Strava club activities into 40days leaderboard stats';
 
     public function handle(StravaClubService $strava)
@@ -22,12 +23,14 @@ class LeaderboardSync extends Command
         $this->info("Fetched {$count} activities");
 
         $users = User::where('program', '40days')->get();
-        $this->info('Processing users: ' . $users->count());
+        $this->info('Processing users: '.$users->count());
 
         $byAthlete = [];
         foreach ($activities as $act) {
-            $name = trim(($act['athlete']['firstname'] ?? '') . ' ' . ($act['athlete']['lastname'] ?? ''));
-            if ($name === '') continue;
+            $name = trim(($act['athlete']['firstname'] ?? '').' '.($act['athlete']['lastname'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
             $byAthlete[$name][] = $act;
         }
 
@@ -44,26 +47,26 @@ class LeaderboardSync extends Command
 
             foreach ($userActs as $act) {
                 $type = $act['type'] ?? '';
-                $distanceMeters = (int)($act['distance'] ?? 0);
+                $distanceMeters = (int) ($act['distance'] ?? 0);
                 $startDate = Carbon::parse($act['start_date_local'] ?? $act['start_date'] ?? Carbon::now());
                 if ($startDate->isSameDay($today)) {
                     $didWorkoutToday = true;
                 }
 
                 if (Str::lower($type) === 'run' && $distanceMeters >= 5000) {
-                    $elapsedSec = (int)($act['elapsed_time'] ?? 0);
+                    $elapsedSec = (int) ($act['elapsed_time'] ?? 0);
                     if ($elapsedSec > 0) {
                         if ($best5kTimeSeconds === null || $elapsedSec < $best5kTimeSeconds) {
                             $best5kTimeSeconds = $elapsedSec;
                             $km = max($distanceMeters / 1000, 1);
-                            $best5kPaceSecondsPerKm = (int)round($elapsedSec / $km);
+                            $best5kPaceSecondsPerKm = (int) round($elapsedSec / $km);
                         }
                     }
                 }
             }
 
             if ($didWorkoutToday) {
-                if (!$stat->last_active_date || !$stat->last_active_date->isSameDay($today)) {
+                if (! $stat->last_active_date || ! $stat->last_active_date->isSameDay($today)) {
                     $stat->active_days = ($stat->active_days ?? 0) + 1;
                     if ($stat->last_active_date && $stat->last_active_date->isYesterday()) {
                         $stat->streak = ($stat->streak ?? 0) + 1;
@@ -74,7 +77,7 @@ class LeaderboardSync extends Command
                 }
             }
 
-            $stat->percentage = min(100, (int)floor((($stat->active_days ?? 0) / 40) * 100));
+            $stat->percentage = min(100, (int) floor((($stat->active_days ?? 0) / 40) * 100));
             $stat->qualified = ($stat->active_days ?? 0) >= 40;
 
             if ($best5kTimeSeconds) {
@@ -94,6 +97,7 @@ class LeaderboardSync extends Command
         }
 
         $this->info('Leaderboard sync completed.');
+
         return Command::SUCCESS;
     }
 
@@ -104,7 +108,9 @@ class LeaderboardSync extends Command
 
     private function findMatchName(?string $userName, array $candidateNames): ?string
     {
-        if (!$userName) return null;
+        if (! $userName) {
+            return null;
+        }
         $normUser = $this->normalizeName($userName);
         $best = null;
         $bestScore = 0;
@@ -116,6 +122,7 @@ class LeaderboardSync extends Command
                 $best = $cand;
             }
         }
+
         return $bestScore >= 70 ? $best : null;
     }
 
@@ -123,6 +130,7 @@ class LeaderboardSync extends Command
     {
         $m = intdiv($seconds, 60);
         $s = $seconds % 60;
+
         return sprintf('%d:%02d', $m, $s);
     }
 
@@ -130,6 +138,7 @@ class LeaderboardSync extends Command
     {
         $m = intdiv($secondsPerKm, 60);
         $s = $secondsPerKm % 60;
+
         return sprintf('%d:%02d', $m, $s);
     }
 
@@ -139,6 +148,7 @@ class LeaderboardSync extends Command
         $abs = abs($gapSec);
         $m = intdiv($abs, 60);
         $s = $abs % 60;
+
         return sprintf('%s%dm %02ds', $sign, $m, $s);
     }
 }

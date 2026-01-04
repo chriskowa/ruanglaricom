@@ -86,14 +86,14 @@ class User extends Authenticatable
             'password' => 'hashed',
             'bank_account' => 'array',
             'bank_verified_at' => 'datetime',
-        'date_of_birth' => 'date',
-        'profile_images' => 'array',
-        'strava_expires_at' => 'datetime',
-        'audit_history' => 'array',
-        'weekly_volume' => 'decimal:2',
-        'is_pacer' => 'boolean',
-        'is_active' => 'boolean',
-    ];
+            'date_of_birth' => 'date',
+            'profile_images' => 'array',
+            'strava_expires_at' => 'datetime',
+            'audit_history' => 'array',
+            'weekly_volume' => 'decimal:2',
+            'is_pacer' => 'boolean',
+            'is_active' => 'boolean',
+        ];
     }
 
     // Relationships
@@ -254,9 +254,12 @@ class User extends Authenticatable
     public function getTrainingPacesAttribute()
     {
         $vdot = $this->vdot;
-        if (!$vdot) return null;
+        if (! $vdot) {
+            return null;
+        }
 
         $daniels = app(\App\Services\DanielsRunningService::class);
+
         return $daniels->calculateTrainingPaces($vdot);
     }
 
@@ -266,9 +269,12 @@ class User extends Authenticatable
     public function getEquivalentRaceTimesAttribute()
     {
         $vdot = $this->vdot;
-        if (!$vdot) return null;
+        if (! $vdot) {
+            return null;
+        }
 
         $daniels = app(\App\Services\DanielsRunningService::class);
+
         return $daniels->calculateEquivalentRaceTimes($vdot);
     }
 }

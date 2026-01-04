@@ -38,7 +38,7 @@ class Order extends Model
 
         static::creating(function ($order) {
             if (empty($order->order_number)) {
-                $order->order_number = 'ORD-' . strtoupper(Str::random(8)) . '-' . time();
+                $order->order_number = 'ORD-'.strtoupper(Str::random(8)).'-'.time();
             }
         });
     }
@@ -53,7 +53,7 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function markAsPaid(string $paymentReference = null): void
+    public function markAsPaid(?string $paymentReference = null): void
     {
         $this->update([
             'payment_status' => 'paid',

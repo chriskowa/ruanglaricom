@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('participants', function (Blueprint $table) {
-            if (!Schema::hasColumn('participants', 'race_category_id')) {
+            if (! Schema::hasColumn('participants', 'race_category_id')) {
                 return;
             }
             $table->unique(['race_category_id', 'id_card'], 'participants_unique_category_idcard');
@@ -23,4 +23,3 @@ return new class extends Migration
         });
     }
 };
-

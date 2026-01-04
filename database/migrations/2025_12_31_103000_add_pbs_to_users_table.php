@@ -12,16 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'pb_5k')) {
+            if (! Schema::hasColumn('users', 'pb_5k')) {
                 $table->string('pb_5k')->nullable()->after('is_pacer');
             }
-            if (!Schema::hasColumn('users', 'pb_10k')) {
+            if (! Schema::hasColumn('users', 'pb_10k')) {
                 $table->string('pb_10k')->nullable()->after('pb_5k');
             }
-            if (!Schema::hasColumn('users', 'pb_hm')) {
+            if (! Schema::hasColumn('users', 'pb_hm')) {
                 $table->string('pb_hm')->nullable()->after('pb_10k');
             }
-            if (!Schema::hasColumn('users', 'pb_fm')) {
+            if (! Schema::hasColumn('users', 'pb_fm')) {
                 $table->string('pb_fm')->nullable()->after('pb_hm');
             }
         });

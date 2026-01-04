@@ -8,10 +8,10 @@ use App\Models\OrderItem;
 use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Models\WalletTransaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class CheckoutController extends Controller
 {
@@ -56,14 +56,14 @@ class CheckoutController extends Controller
         ]);
 
         $user = Auth::user();
-        
+
         \Log::info('Checkout started', [
             'user_id' => $user->id,
             'payment_method' => $validated['payment_method'],
         ]);
 
         // Ensure user has wallet
-        if (!$user->wallet) {
+        if (! $user->wallet) {
             $wallet = \App\Models\Wallet::create([
                 'user_id' => $user->id,
                 'balance' => 0,
@@ -115,11 +115,12 @@ class CheckoutController extends Controller
             if ($validated['payment_method'] === 'wallet') {
                 // Refresh wallet to get latest balance
                 $user->wallet->refresh();
-                
+
                 // Check wallet balance
                 if ($user->wallet->balance < $total) {
                     DB::rollBack();
-                    return back()->withErrors(['error' => 'Saldo wallet tidak cukup. Saldo Anda: Rp ' . number_format($user->wallet->balance, 0, ',', '.') . ', Diperlukan: Rp ' . number_format($total, 0, ',', '.')]);
+
+                    return back()->withErrors(['error' => 'Saldo wallet tidak cukup. Saldo Anda: Rp '.number_format($user->wallet->balance, 0, ',', '.').', Diperlukan: Rp '.number_format($total, 0, ',', '.')]);
                 }
 
                 // Deduct from wallet
@@ -135,7 +136,7 @@ class CheckoutController extends Controller
                     'balance_before' => $balanceBefore,
                     'balance_after' => $balanceAfter,
                     'status' => 'completed',
-                    'description' => 'Pembelian program: ' . $order->order_number,
+                    'description' => 'Pembelian program: '.$order->order_number,
                     'reference_id' => $order->id,
                     'reference_type' => Order::class,
                     'processed_at' => now(),
@@ -148,14 +149,14 @@ class CheckoutController extends Controller
                 // Enroll user in programs (check if already enrolled)
                 foreach ($cartItems as $cartItem) {
                     $program = $cartItem->program;
-                    
+
                     // Check if user already enrolled in this program
                     $existingEnrollment = ProgramEnrollment::where('program_id', $program->id)
                         ->where('runner_id', $user->id)
                         ->where('status', '!=', 'cancelled')
                         ->first();
 
-                    if (!$existingEnrollment) {
+                    if (! $existingEnrollment) {
                         // Calculate end date
                         $endDate = Carbon::today()->addWeeks($program->duration_weeks ?? 12);
 
@@ -177,13 +178,13 @@ class CheckoutController extends Controller
                 Cart::where('user_id', $user->id)->delete();
 
                 DB::commit();
-                
+
                 \Log::info('Checkout successful', [
                     'user_id' => $user->id,
                     'order_id' => $order->id,
                     'order_number' => $order->order_number,
                 ]);
-                
+
                 // Redirect to invoice page
                 return redirect()->route('marketplace.orders.show', $order->id)
                     ->with('success', 'Pembelian berhasil! Program telah ditambahkan ke kalender Anda.');
@@ -191,19 +192,21 @@ class CheckoutController extends Controller
             } else {
                 // Midtrans payment (TODO: implement)
                 DB::rollBack();
+
                 return back()->withErrors(['error' => 'Pembayaran Midtrans belum tersedia.']);
             }
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Checkout error: ' . $e->getMessage(), [
+            \Log::error('Checkout error: '.$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'user_id' => Auth::id(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            return back()->with('error', 'Gagal memproses checkout: ' . $e->getMessage())
-                ->withErrors(['error' => 'Gagal memproses checkout: ' . $e->getMessage()]);
+
+            return back()->with('error', 'Gagal memproses checkout: '.$e->getMessage())
+                ->withErrors(['error' => 'Gagal memproses checkout: '.$e->getMessage()]);
         }
     }
 }

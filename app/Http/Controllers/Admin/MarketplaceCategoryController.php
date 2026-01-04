@@ -12,6 +12,7 @@ class MarketplaceCategoryController extends Controller
     public function index()
     {
         $categories = MarketplaceCategory::with('parent', 'children')->get();
+
         return view('admin.marketplace.categories.index', compact('categories'));
     }
 
@@ -54,6 +55,7 @@ class MarketplaceCategoryController extends Controller
     public function destroy(MarketplaceCategory $category)
     {
         $category->delete();
+
         return redirect()->route('admin.marketplace.categories.index')->with('success', 'Category deleted successfully.');
     }
 }

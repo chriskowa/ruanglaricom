@@ -564,6 +564,7 @@
 @endsection
 
 @push('scripts')
+@include('layouts.components.advanced-builder-utils')
 <script>
 const { createApp, ref, reactive, computed, onMounted } = Vue;
 
@@ -863,56 +864,7 @@ createApp({
             }
         };
 
-        const builderSummary = computed(() => {
-            const parts = [];
-            if (builderForm.warmup.enabled) {
-                parts.push(`WU: ${builderForm.warmup.by==='distance' ? `${builderForm.warmup.distanceKm}km` : builderForm.warmup.duration}`);
-            }
-            if (builderForm.type==='interval') {
-                if (builderForm.interval.by==='distance') {
-                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repDistanceKm}km${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
-                } else {
-                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repTime}${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
-                }
-                parts.push(`Rec ${builderForm.interval.recovery}`);
-            } else if (builderForm.type==='tempo') {
-                if (builderForm.tempo.by==='distance') {
-                    parts.push(`${builderForm.tempo.distanceKm}km @${builderForm.tempo.pace} ${builderForm.tempo.effort}`);
-                } else {
-                    parts.push(`${builderForm.tempo.duration} @${builderForm.tempo.pace} ${builderForm.tempo.effort}`);
-                }
-            } else if (builderForm.type==='long_run') {
-                if (builderForm.main.by==='distance') {
-                    parts.push(`${builderForm.main.distanceKm}km Long Run`);
-                } else {
-                    parts.push(`${builderForm.main.duration} Long Run${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
-                }
-                if (builderForm.longRun.fastFinish.enabled) {
-                    parts.push(`FF ${builderForm.longRun.fastFinish.distanceKm}km @${builderForm.longRun.fastFinish.pace}`);
-                }
-            } else if (builderForm.type==='easy_run') {
-                if (builderForm.main.by==='distance') {
-                    parts.push(`${builderForm.main.distanceKm}km Easy${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
-                } else {
-                    parts.push(`${builderForm.main.duration} Easy${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
-                }
-            } else if (builderForm.type==='strength') {
-                const cat = builderForm.strength.category ? builderForm.strength.category.replace('_',' ') : 'Strength';
-                if (builderForm.strength.plan && builderForm.strength.plan.length) {
-                    const items = builderForm.strength.plan.slice(0,3).map(i => i.name).join(', ');
-                    parts.push(`${cat}: ${items}${builderForm.strength.plan.length>3 ? ', ...' : ''}`);
-                } else {
-                    parts.push(cat);
-                }
-            } else if (builderForm.type==='rest') {
-                parts.push('Rest');
-            }
-            if (builderForm.cooldown.enabled) {
-                parts.push(`CD: ${builderForm.cooldown.by==='distance' ? `${builderForm.cooldown.distanceKm}km` : builderForm.cooldown.duration}`);
-            }
-            const base = parts.join(' | ');
-            return builderForm.intensity ? `${base} | Intensity: ${builderForm.intensity}` : base;
-        });
+        const builderSummary = computed(() => RLBuilderUtils.buildSummary(builderForm));
         
         const minutesToHHMMSS = (min) => {
             const totalSec = Math.round((min || 0) * 60);
@@ -942,77 +894,9 @@ createApp({
             return h*60 + m + sec/60;
         };
         
-        const cwSummary = computed(() => {
-            const parts = [];
-            if (cwForm.type==='interval') {
-                if (cwForm.interval.by==='distance') {
-                    parts.push(`${cwForm.interval.reps}x${cwForm.interval.repDistanceKm}km${cwForm.interval.pace ? ` @${cwForm.interval.pace}`:''}`);
-                } else {
-                    parts.push(`${cwForm.interval.reps}x${cwForm.interval.repTime}${cwForm.interval.pace ? ` @${cwForm.interval.pace}`:''}`);
-                }
-                parts.push(`Rec ${cwForm.interval.recovery}`);
-            } else if (cwForm.type==='tempo') {
-                if (cwForm.tempo.by==='distance') {
-                    parts.push(`${cwForm.tempo.distanceKm}km${cwForm.tempo.pace ? ` @${cwForm.tempo.pace}`:''} ${cwForm.tempo.effort}`);
-                } else {
-                    parts.push(`${cwForm.tempo.duration}${cwForm.tempo.pace ? ` @${cwForm.tempo.pace}`:''} ${cwForm.tempo.effort}`);
-                }
-            } else if (cwForm.type==='long_run') {
-                if (cwForm.main.by==='distance') {
-                    parts.push(`${cwForm.main.distanceKm}km Long Run${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
-                } else {
-                    parts.push(`${cwForm.main.duration} Long Run${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
-                }
-            } else if (cwForm.type==='easy_run') {
-                if (cwForm.main.by==='distance') {
-                    parts.push(`${cwForm.main.distanceKm}km Easy${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
-                } else {
-                    parts.push(`${cwForm.main.duration} Easy${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
-                }
-            } else if (cwForm.type==='rest') {
-                parts.push('Rest');
-            }
-            return parts.join(' | ');
-        });
+        const cwSummary = computed(() => RLBuilderUtils.buildSummary(cwForm));
         
-        const cwTotalDistance = computed(() => {
-            let total = 0;
-            if (cwForm.type==='interval') {
-                if (cwForm.interval.by==='distance') {
-                    total += (Number(cwForm.interval.reps)||0) * (Number(cwForm.interval.repDistanceKm)||0);
-                } else {
-                    const dMin = parseDurationMinutes(cwForm.interval.repTime);
-                    const pMin = parsePaceMinPerKm(cwForm.interval.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += (Number(cwForm.interval.reps)||0) * dist;
-                }
-            } else if (cwForm.type==='tempo') {
-                if (cwForm.tempo.by==='distance') total += Number(cwForm.tempo.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(cwForm.tempo.duration);
-                    const pMin = parsePaceMinPerKm(cwForm.tempo.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (cwForm.type==='long_run') {
-                if (cwForm.main.by==='distance') total += Number(cwForm.main.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(cwForm.main.duration);
-                    const pMin = parsePaceMinPerKm(cwForm.main.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (cwForm.type==='easy_run') {
-                if (cwForm.main.by==='distance') total += Number(cwForm.main.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(cwForm.main.duration);
-                    const pMin = parsePaceMinPerKm(cwForm.main.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            }
-            return Number(total.toFixed(1));
-        });
+        const cwTotalDistance = computed(() => RLBuilderUtils.computeTotalDistance(cwForm));
 
         const builderTotalDistance = computed(() => {
             let total = 0;

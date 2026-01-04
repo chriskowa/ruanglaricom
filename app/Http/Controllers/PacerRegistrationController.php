@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pacer;
 use App\Models\City;
+use App\Models\Pacer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class PacerRegistrationController extends Controller
@@ -14,21 +14,22 @@ class PacerRegistrationController extends Controller
     public function create()
     {
         $cities = City::with('province')->get();
+
         return view('pacer.register', compact('cities'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required','string','max:120'],
-            'email' => ['required','email','max:120','unique:users,email'],
-            'phone' => ['required','string','max:20'],
-            'password' => ['required','string','min:6','confirmed'],
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:120', 'unique:users,email'],
+            'phone' => ['required', 'string', 'max:20'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
             'nickname' => ['nullable', 'string', 'max:100'],
             'category' => ['required', 'string', 'max:50'],
             'pace' => ['required', 'string', 'max:20'],
             'whatsapp' => ['nullable', 'string', 'max:20'],
-            'image' => ['nullable','file','mimes:jpg,jpeg,png,webp','max:1024'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:1024'],
             'bio' => ['nullable', 'string'],
             'tags' => ['nullable', 'string'],
             'race_portfolio' => ['nullable', 'string'],
@@ -48,9 +49,9 @@ class PacerRegistrationController extends Controller
         // Format Phone Number to start with 62
         $phone = preg_replace('/[^0-9]/', '', $data['phone']);
         if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
-        } elseif (!str_starts_with($phone, '62')) {
-            $phone = '62' . $phone;
+            $phone = '62'.substr($phone, 1);
+        } elseif (! str_starts_with($phone, '62')) {
+            $phone = '62'.$phone;
         }
         $data['phone'] = $phone;
 
@@ -61,12 +62,17 @@ class PacerRegistrationController extends Controller
             $imgInfo = getimagesize($path);
             if ($imgInfo) {
                 $dstPath = storage_path('app/public/pacers/'.uniqid('pacer_').'.webp');
-                if (!is_dir(dirname($dstPath))) mkdir(dirname($dstPath), 0775, true);
+                if (! is_dir(dirname($dstPath))) {
+                    mkdir(dirname($dstPath), 0775, true);
+                }
                 $src = null;
                 switch ($imgInfo['mime']) {
-                    case 'image/jpeg': $src = imagecreatefromjpeg($path); break;
-                    case 'image/png': $src = imagecreatefrompng($path); break;
-                    case 'image/webp': $src = imagecreatefromwebp($path); break;
+                    case 'image/jpeg': $src = imagecreatefromjpeg($path);
+                        break;
+                    case 'image/png': $src = imagecreatefrompng($path);
+                        break;
+                    case 'image/webp': $src = imagecreatefromwebp($path);
+                        break;
                 }
                 if ($src) {
                     imagepalettetotruecolor($src);
@@ -80,12 +86,12 @@ class PacerRegistrationController extends Controller
         }
 
         // Generate slug/username
-        $slugBase = $data['name'] . '-' . ($data['nickname'] ?? 'pacer');
+        $slugBase = $data['name'].'-'.($data['nickname'] ?? 'pacer');
         $slug = Str::slug($slugBase);
         $i = 1;
-        while (Pacer::where('seo_slug', $slug)->exists() || \App\Models\User::where('username', $slug)->exists()) { 
-            $slug = Str::slug($slugBase.'-'.$i); 
-            $i++; 
+        while (Pacer::where('seo_slug', $slug)->exists() || \App\Models\User::where('username', $slug)->exists()) {
+            $slug = Str::slug($slugBase.'-'.$i);
+            $i++;
         }
 
         // Create user as runner
@@ -123,17 +129,17 @@ class PacerRegistrationController extends Controller
             'total_races' => $data['total_races'] ?? 0,
             'bio' => $data['bio'] ?? null,
             'stats' => [
-                'pb5k' => $data['pb5k'] ?? null, 
-                'pb10k' => $data['pb10k'] ?? null, 
-                'pbhm' => $data['pbhm'] ?? null, 
-                'pbfm' => $data['pbfm'] ?? null
+                'pb5k' => $data['pb5k'] ?? null,
+                'pb10k' => $data['pb10k'] ?? null,
+                'pbhm' => $data['pbhm'] ?? null,
+                'pbfm' => $data['pbfm'] ?? null,
             ],
             'tags' => isset($data['tags']) ? array_filter(array_map('trim', explode(',', $data['tags']))) : [],
             'race_portfolio' => isset($data['race_portfolio']) ? array_filter(array_map('trim', explode(',', $data['race_portfolio']))) : [],
         ]);
 
         // Create OTP
-        $code = str_pad((string)random_int(0,999999), 6, '0', STR_PAD_LEFT);
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         \App\Models\OtpToken::create([
             'user_id' => $user->id,
             'code' => $code,
@@ -153,7 +159,7 @@ class PacerRegistrationController extends Controller
                 $successMsg = 'Kami telah mengirim OTP ke Email Anda.';
             } catch (\Exception $e) {
                 // Fallback or log error
-                \Illuminate\Support\Facades\Log::error('Email OTP failed: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error('Email OTP failed: '.$e->getMessage());
             }
         } else {
             \App\Helpers\WhatsApp::send($data['phone'], 'Kode OTP PacerHub Anda: '.$code.' (berlaku 10 menit)');

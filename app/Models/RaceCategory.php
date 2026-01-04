@@ -40,13 +40,13 @@ class RaceCategory extends Model
      */
     public function getRemainingQuota(): int
     {
-        if (!$this->quota) {
+        if (! $this->quota) {
             return 999999; // Unlimited
         }
 
         // Count registered participants
         $registeredCount = \App\Models\Participant::where('race_category_id', $this->id)
-            ->whereHas('transaction', function($query) {
+            ->whereHas('transaction', function ($query) {
                 $query->whereIn('payment_status', ['pending', 'paid']);
             })
             ->count();

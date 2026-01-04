@@ -13,32 +13,32 @@ return new class extends Migration
     {
         Schema::table('order_items', function (Blueprint $table) {
             // Add order_id column if not exists
-            if (!Schema::hasColumn('order_items', 'order_id')) {
+            if (! Schema::hasColumn('order_items', 'order_id')) {
                 $table->foreignId('order_id')->after('id')->constrained('orders')->onDelete('cascade');
             }
-            
+
             // Add program_id column if not exists
-            if (!Schema::hasColumn('order_items', 'program_id')) {
+            if (! Schema::hasColumn('order_items', 'program_id')) {
                 $table->foreignId('program_id')->after('order_id')->constrained('programs')->onDelete('cascade');
             }
-            
+
             // Add program_title column if not exists
-            if (!Schema::hasColumn('order_items', 'program_title')) {
+            if (! Schema::hasColumn('order_items', 'program_title')) {
                 $table->string('program_title')->after('program_id');
             }
-            
+
             // Add quantity column if not exists
-            if (!Schema::hasColumn('order_items', 'quantity')) {
+            if (! Schema::hasColumn('order_items', 'quantity')) {
                 $table->integer('quantity')->default(1)->after('program_title');
             }
-            
+
             // Add price column if not exists
-            if (!Schema::hasColumn('order_items', 'price')) {
+            if (! Schema::hasColumn('order_items', 'price')) {
                 $table->decimal('price', 10, 2)->after('quantity');
             }
-            
+
             // Add subtotal column if not exists
-            if (!Schema::hasColumn('order_items', 'subtotal')) {
+            if (! Schema::hasColumn('order_items', 'subtotal')) {
                 $table->decimal('subtotal', 10, 2)->after('price');
             }
         });

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('midtrans_transaction_status')->nullable();
             $table->enum('status', ['pending', 'success', 'failed', 'expired'])->default('pending');
             $table->timestamps();
-            
+
             $table->index('midtrans_order_id');
             $table->index('status');
         });

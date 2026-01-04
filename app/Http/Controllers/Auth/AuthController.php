@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
-use App\Models\User;
-use App\Models\Wallet;
 
 class AuthController extends Controller
 {
@@ -26,11 +26,11 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            
+
             $user = Auth::user();
-            
+
             // Redirect ke intended URL atau dashboard berdasarkan role
-            $dashboard = match($user->role) {
+            $dashboard = match ($user->role) {
                 'admin' => route('admin.dashboard'),
                 'coach' => route('coach.dashboard'),
                 'runner' => route('runner.dashboard'),
@@ -58,6 +58,7 @@ class AuthController extends Controller
     public function showRegister(Request $request, $role = 'runner')
     {
         $role = $request->get('role', $role);
+
         return view('auth.register', ['role' => $role]);
     }
 
@@ -90,7 +91,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->intended(route($user->role . '.dashboard'));
+        return redirect()->intended(route($user->role.'.dashboard'));
     }
 
     public function showForgotPassword()
@@ -122,7 +123,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $googleUser->getEmail())->first();
 
-        if (!$user) {
+        if (! $user) {
             // Create new user
             $user = User::create([
                 'name' => $googleUser->getName(),
@@ -146,7 +147,7 @@ class AuthController extends Controller
         Auth::login($user);
 
         // Redirect ke intended URL atau dashboard berdasarkan role
-        $dashboard = match($user->role) {
+        $dashboard = match ($user->role) {
             'admin' => route('admin.dashboard'),
             'coach' => route('coach.dashboard'),
             'runner' => route('runner.dashboard'),

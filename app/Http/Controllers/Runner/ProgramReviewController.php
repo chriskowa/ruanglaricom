@@ -28,10 +28,11 @@ class ProgramReviewController extends Controller
             ->where('status', 'completed')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Anda harus menyelesaikan program terlebih dahulu sebelum memberikan review.'], 403);
             }
+
             return back()->with('error', 'Anda harus menyelesaikan program terlebih dahulu sebelum memberikan review.');
         }
 
@@ -79,6 +80,7 @@ class ProgramReviewController extends Controller
                     'total_reviews' => $totalReviews,
                 ]);
             }
+
             return back()->with('success', 'Review berhasil disimpan.');
 
         } catch (\Exception $e) {
@@ -86,6 +88,7 @@ class ProgramReviewController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Terjadi kesalahan saat menyimpan review.'], 500);
             }
+
             return back()->with('error', 'Terjadi kesalahan saat menyimpan review.');
         }
     }

@@ -11,6 +11,7 @@ class MasterWorkoutController extends Controller
     public function index()
     {
         $workouts = MasterWorkout::orderBy('type')->orderBy('title')->get();
+
         return view('coach.master_workouts.index', compact('workouts'));
     }
 
@@ -61,6 +62,7 @@ class MasterWorkoutController extends Controller
     public function destroy(MasterWorkout $masterWorkout)
     {
         $masterWorkout->delete();
+
         return redirect()->route('coach.master-workouts.index')
             ->with('success', 'Workout template deleted successfully!');
     }

@@ -14,7 +14,7 @@ class ChallengeActivity extends Model
         'image_path',
         'strava_link',
         'status',
-        'rejection_reason'
+        'rejection_reason',
     ];
 
     public function user()

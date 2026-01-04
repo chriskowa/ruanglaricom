@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\City;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class CoachListController extends Controller
@@ -17,7 +17,7 @@ class CoachListController extends Controller
 
         // Filter by Search (Name)
         if ($request->has('search') && $request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         // Filter by Location (City)
@@ -29,7 +29,7 @@ class CoachListController extends Controller
         if ($request->has('rating') && $request->rating) {
             $query->having('programs_average_rating', '>=', $request->rating);
         }
-        
+
         // Sorting
         if ($request->has('sort')) {
             switch ($request->sort) {
@@ -47,7 +47,7 @@ class CoachListController extends Controller
         }
 
         $coaches = $query->paginate(12)->withQueryString();
-        
+
         if ($request->ajax()) {
             return view('coaches.partials.list', compact('coaches'))->render();
         }

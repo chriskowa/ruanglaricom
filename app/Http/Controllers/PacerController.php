@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pacer;
 use App\Models\City;
-use Illuminate\Http\Request;
+use App\Models\Pacer;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 class PacerController extends Controller
 {
@@ -30,13 +30,13 @@ class PacerController extends Controller
                 $q->whereHas('user', function ($uq) use ($search) {
                     $uq->where('name', 'like', "%{$search}%");
                 })
-                ->orWhere('nickname', 'like', "%{$search}%");
+                    ->orWhere('nickname', 'like', "%{$search}%");
             });
         }
 
         // Filter by Pace
         if ($request->filled('pace')) {
-            $query->where('pace', 'like', '%' . $request->pace . '%');
+            $query->where('pace', 'like', '%'.$request->pace.'%');
         }
 
         // Filter by PB (Faster than or equal to input)
@@ -46,8 +46,8 @@ class PacerController extends Controller
             if ($request->filled($field)) {
                 $query->whereHas('user', function (Builder $q) use ($field, $request) {
                     $q->where($field, '<=', $request->input($field))
-                      ->whereNotNull($field)
-                      ->where($field, '!=', '');
+                        ->whereNotNull($field)
+                        ->where($field, '!=', '');
                 });
             }
         }
@@ -66,7 +66,7 @@ class PacerController extends Controller
             return response()->json([
                 'pacers' => $pacers,
                 'cities' => $cities,
-                'count' => $pacers->count()
+                'count' => $pacers->count(),
             ]);
         }
 
@@ -76,7 +76,7 @@ class PacerController extends Controller
     public function show(string $slug)
     {
         $pacer = Pacer::with('user')->where('seo_slug', $slug)->firstOrFail();
+
         return view('pacer.profile', compact('pacer'));
     }
 }
-

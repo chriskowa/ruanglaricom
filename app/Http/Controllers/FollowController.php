@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FollowController extends Controller
@@ -14,6 +13,7 @@ class FollowController extends Controller
             if (request()->wantsJson()) {
                 return response()->json(['message' => 'Anda tidak bisa follow diri sendiri.'], 422);
             }
+
             return back()->with('error', 'Anda tidak bisa follow diri sendiri.');
         }
 
@@ -21,31 +21,35 @@ class FollowController extends Controller
             if (request()->wantsJson()) {
                 return response()->json(['message' => 'Anda sudah follow user ini.'], 422);
             }
+
             return back()->with('error', 'Anda sudah follow user ini.');
         }
 
         Auth::user()->following()->attach($user->id);
 
         if (request()->wantsJson()) {
-            return response()->json(['message' => 'Berhasil follow ' . $user->name, 'status' => 'following']);
+            return response()->json(['message' => 'Berhasil follow '.$user->name, 'status' => 'following']);
         }
-        return back()->with('success', 'Berhasil follow ' . $user->name);
+
+        return back()->with('success', 'Berhasil follow '.$user->name);
     }
 
     public function unfollow(User $user)
     {
-        if (!Auth::user()->isFollowing($user)) {
+        if (! Auth::user()->isFollowing($user)) {
             if (request()->wantsJson()) {
                 return response()->json(['message' => 'Anda belum follow user ini.'], 422);
             }
+
             return back()->with('error', 'Anda belum follow user ini.');
         }
 
         Auth::user()->following()->detach($user->id);
 
         if (request()->wantsJson()) {
-            return response()->json(['message' => 'Berhasil unfollow ' . $user->name, 'status' => 'unfollowed']);
+            return response()->json(['message' => 'Berhasil unfollow '.$user->name, 'status' => 'unfollowed']);
         }
-        return back()->with('success', 'Berhasil unfollow ' . $user->name);
+
+        return back()->with('success', 'Berhasil unfollow '.$user->name);
     }
 }

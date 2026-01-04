@@ -1,10 +1,10 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use App\Models\User;
 
 return new class extends Migration
 {
@@ -14,10 +14,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'gender')) {
+            if (! Schema::hasColumn('users', 'gender')) {
                 $table->enum('gender', ['male', 'female'])->nullable()->after('email');
             }
-            if (!Schema::hasColumn('users', 'username')) {
+            if (! Schema::hasColumn('users', 'username')) {
                 $table->string('username')->unique()->nullable()->after('name');
             }
         });
@@ -28,7 +28,7 @@ return new class extends Migration
             $username = Str::slug($user->name);
             $count = 1;
             while (User::where('username', $username)->exists()) {
-                $username = Str::slug($user->name) . $count++;
+                $username = Str::slug($user->name).$count++;
             }
             $user->username = $username;
             $user->save();

@@ -22,15 +22,3 @@ class ProgramPolicy
         return $user->id === $program->coach_id || $user->isAdmin();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

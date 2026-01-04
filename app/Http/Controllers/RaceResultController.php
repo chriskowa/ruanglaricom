@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\RaceResult;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class RaceResultController extends Controller
 {
@@ -16,7 +15,7 @@ class RaceResultController extends Controller
     {
         // Decode slug if it contains encoded characters
         $slug = urldecode($slug);
-        
+
         try {
             $event = Event::where('slug', $slug)->firstOrFail();
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -28,7 +27,7 @@ class RaceResultController extends Controller
                 'total' => 0,
             ], 404);
         }
-        
+
         $query = RaceResult::forEvent($event->id)
             ->orderBy('rank_category', 'asc')
             ->orderBy('chip_time', 'asc');
@@ -44,18 +43,18 @@ class RaceResultController extends Controller
         }
 
         // Search by name or BIB
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->has('search') && ! empty($request->search)) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('runner_name', 'like', "%{$search}%")
-                  ->orWhere('bib_number', 'like', "%{$search}%");
+                    ->orWhere('bib_number', 'like', "%{$search}%");
             });
         }
 
         $results = $query->get();
 
         // Format data untuk frontend
-        $formattedResults = $results->map(function($result) {
+        $formattedResults = $results->map(function ($result) {
             return [
                 'rank' => $result->rank_category ?? $result->rank_overall ?? 0,
                 'name' => $result->runner_name,
@@ -78,6 +77,3 @@ class RaceResultController extends Controller
         ]);
     }
 }
-
-
-

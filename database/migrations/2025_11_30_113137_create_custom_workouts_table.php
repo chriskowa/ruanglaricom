@@ -23,7 +23,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'started', 'completed'])->default('pending');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['runner_id', 'workout_date']);
             $table->index('status');
         });

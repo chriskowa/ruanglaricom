@@ -3,11 +3,9 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class StravaClubService
 {
@@ -18,10 +16,12 @@ class StravaClubService
         // Cache for 30 minutes to avoid hitting rate limits
         return Cache::remember('strava_club_leaderboard', 1800, function () {
             $envToken = env('STRAVA_ACCESS_TOKEN');
-            if (!empty($envToken)) {
+            if (! empty($envToken)) {
                 $activities = $this->fetchClubActivitiesByEnv();
+
                 return $this->processLeaderboard($activities);
             }
+
             return $this->fetchClubActivities();
         });
     }
@@ -32,21 +32,21 @@ class StravaClubService
         // We'll use the first user who has a Strava token connected
         $admin = User::whereNotNull('strava_access_token')->first();
 
-        if (!$admin) {
+        if (! $admin) {
             return [
                 'fastest' => null,
                 'distance' => null,
-                'elevation' => null
+                'elevation' => null,
             ];
         }
 
         // 2. Ensure token is valid
         $accessToken = $this->getValidToken($admin);
-        if (!$accessToken) {
+        if (! $accessToken) {
             return [
                 'fastest' => null,
                 'distance' => null,
-                'elevation' => null
+                'elevation' => null,
             ];
         }
 
@@ -61,11 +61,12 @@ class StravaClubService
             return [
                 'fastest' => null,
                 'distance' => null,
-                'elevation' => null
+                'elevation' => null,
             ];
         }
 
         $activities = $response->json();
+
         return $this->processLeaderboard($activities);
     }
 
@@ -73,7 +74,7 @@ class StravaClubService
     {
         $clubId = env('STRAVA_CLUB_ID', $this->clubId);
         $token = env('STRAVA_ACCESS_TOKEN');
-        if (!$token) {
+        if (! $token) {
             return [];
         }
         $response = Http::withToken($token)
@@ -82,6 +83,7 @@ class StravaClubService
         if ($response->failed()) {
             return [];
         }
+
         return $response->json() ?: [];
     }
 
@@ -104,8 +106,10 @@ class StravaClubService
                     'strava_refresh_token' => $data['refresh_token'],
                     'strava_expires_at' => now()->addSeconds($data['expires_in']),
                 ]);
+
                 return $data['access_token'];
             }
+
             return null; // Failed to refresh
         }
 
@@ -118,56 +122,58 @@ class StravaClubService
             return [
                 'fastest' => null,
                 'distance' => null,
-                'elevation' => null
+                'elevation' => null,
             ];
         }
 
         $athletes = [];
         $startOfWeek = Carbon::now()->startOfWeek()->subWeek(); // Get Last Week (Monday)
         $endOfWeek = Carbon::now()->startOfWeek(); // Until This Week Monday (Sunday night)
-        
+
         // Alternatively, for "This Week":
         // $startOfWeek = Carbon::now()->startOfWeek();
 
         // Aggregate data by athlete
         foreach ($activities as $activity) {
             // Only count Run activities for now
-            if ($activity['type'] !== 'Run') continue;
+            if ($activity['type'] !== 'Run') {
+                continue;
+            }
 
             // Filter by Date (Optional: Remove comment to enforce strictly current/last week)
             // Strava activities usually come sorted by date desc.
             // $activityDate = Carbon::parse($activity['start_date_local']);
-            // if ($activityDate->lt($startOfWeek)) continue; 
+            // if ($activityDate->lt($startOfWeek)) continue;
 
-            $athleteName = $activity['athlete']['firstname'] . ' ' . $activity['athlete']['lastname'];
-            
-            if (!isset($athletes[$athleteName])) {
+            $athleteName = $activity['athlete']['firstname'].' '.$activity['athlete']['lastname'];
+
+            if (! isset($athletes[$athleteName])) {
                 $athletes[$athleteName] = [
                     'name' => $athleteName,
                     'distance' => 0,
                     'elevation' => 0,
                     'max_speed' => 0,
                     'fastest_pace' => 9999, // Minutes per km
-                    'avatar' => 'https://i.pravatar.cc/150?u=' . md5($athleteName) // Fallback avatar if not available
+                    'avatar' => 'https://i.pravatar.cc/150?u='.md5($athleteName), // Fallback avatar if not available
                 ];
             }
 
             // Sum Distance (meters to km)
-            $distanceMeters = (float)($activity['distance'] ?? 0);
+            $distanceMeters = (float) ($activity['distance'] ?? 0);
             $athletes[$athleteName]['distance'] += ($distanceMeters > 0 ? $distanceMeters / 1000 : 0);
-            
+
             // Sum Elevation (meters)
-            $elevationGain = (float)($activity['total_elevation_gain'] ?? 0);
+            $elevationGain = (float) ($activity['total_elevation_gain'] ?? 0);
             $athletes[$athleteName]['elevation'] += $elevationGain;
-            
+
             // Track Fastest Pace (min/km)
             // Strava gives speed in m/s. Pace = 1000 / (speed * 60)
-            $avgSpeed = isset($activity['average_speed']) ? (float)$activity['average_speed'] : null;
+            $avgSpeed = isset($activity['average_speed']) ? (float) $activity['average_speed'] : null;
             $pace = null;
             if ($avgSpeed && $avgSpeed > 0) {
                 $pace = (1000 / $avgSpeed) / 60;
             } elseif ($distanceMeters > 0) {
-                $movingTime = (int)($activity['moving_time'] ?? 0);
+                $movingTime = (int) ($activity['moving_time'] ?? 0);
                 if ($movingTime > 0) {
                     // Pace (min/km) = moving_time (sec) / (distance_km) / 60
                     $pace = ($movingTime / ($distanceMeters / 1000)) / 60;
@@ -189,21 +195,21 @@ class StravaClubService
                 'name' => $distanceLeader['name'],
                 'value' => number_format($distanceLeader['distance'], 1),
                 'unit' => 'km',
-                'avatar' => $distanceLeader['avatar']
+                'avatar' => $distanceLeader['avatar'],
             ] : null,
-            
+
             'elevation' => $elevationLeader ? [
                 'name' => $elevationLeader['name'],
                 'value' => number_format($elevationLeader['elevation'], 0),
                 'unit' => 'm',
-                'avatar' => $elevationLeader['avatar']
+                'avatar' => $elevationLeader['avatar'],
             ] : null,
-            
+
             'fastest' => $paceLeader ? [
                 'name' => $paceLeader['name'],
                 'value' => $this->formatPace($paceLeader['fastest_pace']),
                 'unit' => '/km',
-                'avatar' => $paceLeader['avatar']
+                'avatar' => $paceLeader['avatar'],
             ] : null,
         ];
     }
@@ -212,6 +218,7 @@ class StravaClubService
     {
         $minutes = floor($decimalMinutes);
         $seconds = round(($decimalMinutes - $minutes) * 60);
+
         return sprintf('%d:%02d', $minutes, $seconds);
     }
 
@@ -220,9 +227,10 @@ class StravaClubService
         return \Illuminate\Support\Facades\Cache::remember('strava_club_members', 1800, function () {
             // Prefer ENV access token if provided (useful for server-side/system token)
             $envToken = env('STRAVA_ACCESS_TOKEN');
-            if (!empty($envToken)) {
+            if (! empty($envToken)) {
                 return $this->fetchClubMembersByEnv();
             }
+
             return $this->fetchClubMembers();
         });
     }
@@ -230,14 +238,14 @@ class StravaClubService
     private function fetchClubMembers(): array
     {
         $admin = \App\Models\User::whereNotNull('strava_access_token')->first();
-        
+
         // If no admin or token found, use Mock Data in local/dev environment
-        if (!$admin) {
+        if (! $admin) {
             return $this->getMockMembers();
         }
 
         $accessToken = $this->getValidToken($admin);
-        if (!$accessToken) {
+        if (! $accessToken) {
             return $this->getMockMembers();
         }
 
@@ -250,12 +258,14 @@ class StravaClubService
         }
 
         $members = $response->json() ?: [];
+
         return array_map(function ($m) {
-            $name = trim(($m['firstname'] ?? '') . ' ' . ($m['lastname'] ?? ''));
+            $name = trim(($m['firstname'] ?? '').' '.($m['lastname'] ?? ''));
+
             return [
                 'id' => $m['id'] ?? null,
                 'name' => $name !== '' ? $name : ($m['username'] ?? 'Unknown'),
-                'avatar' => $m['profile'] ?? ($m['profile_medium'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($name)),
+                'avatar' => $m['profile'] ?? ($m['profile_medium'] ?? 'https://ui-avatars.com/api/?name='.urlencode($name)),
                 'gender' => strtoupper(($m['sex'] ?? '')) === 'F' ? 'F' : 'M',
                 'city' => $m['city'] ?? null,
                 'state' => $m['state'] ?? null,
@@ -278,12 +288,14 @@ class StravaClubService
             return $this->getMockMembers();
         }
         $members = $response->json() ?: [];
+
         return array_map(function ($m) {
-            $name = trim(($m['firstname'] ?? '') . ' ' . ($m['lastname'] ?? ''));
+            $name = trim(($m['firstname'] ?? '').' '.($m['lastname'] ?? ''));
+
             return [
                 'id' => $m['id'] ?? null,
                 'name' => $name !== '' ? $name : ($m['username'] ?? 'Unknown'),
-                'avatar' => $m['profile'] ?? ($m['profile_medium'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($name)),
+                'avatar' => $m['profile'] ?? ($m['profile_medium'] ?? 'https://ui-avatars.com/api/?name='.urlencode($name)),
                 'gender' => strtoupper(($m['sex'] ?? '')) === 'F' ? 'F' : 'M',
                 'city' => $m['city'] ?? null,
                 'state' => $m['state'] ?? null,
@@ -296,7 +308,7 @@ class StravaClubService
     {
         // Return mock data for development/testing when no Strava connection exists
         $mockNames = [
-            ['Sarah Connor', 'F', 'Los Angeles', 'CA'], 
+            ['Sarah Connor', 'F', 'Los Angeles', 'CA'],
             ['John Wick', 'M', 'New York', 'NY'],
             ['Ellen Ripley', 'F', 'Nostromo', 'Space'],
             ['Neo Anderson', 'M', 'Mega City', 'Matrix'],
@@ -305,7 +317,7 @@ class StravaClubService
             ['Lara Croft', 'F', 'London', 'UK'],
             ['Bruce Wayne', 'M', 'Gotham', 'NJ'],
             ['Diana Prince', 'F', 'Themyscira', 'Greece'],
-            ['Tony Stark', 'M', 'Malibu', 'CA']
+            ['Tony Stark', 'M', 'Malibu', 'CA'],
         ];
 
         $members = [];
@@ -313,13 +325,14 @@ class StravaClubService
             $members[] = [
                 'id' => 1000 + $idx,
                 'name' => $data[0],
-                'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($data[0]) . '&background=random',
+                'avatar' => 'https://ui-avatars.com/api/?name='.urlencode($data[0]).'&background=random',
                 'gender' => $data[1],
                 'city' => $data[2],
                 'state' => $data[3],
                 'country' => 'USA',
             ];
         }
+
         return $members;
     }
 }

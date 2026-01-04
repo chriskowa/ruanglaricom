@@ -18,7 +18,7 @@ return new class extends Migration
             $table->tinyInteger('rating')->unsigned(); // 1-5
             $table->text('review')->nullable();
             $table->timestamps();
-            
+
             // Ensure one review per runner per program
             $table->unique(['program_id', 'runner_id']);
         });

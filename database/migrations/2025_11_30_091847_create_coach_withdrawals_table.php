@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('processed_at')->nullable();
             $table->text('rejection_reason')->nullable();
             $table->timestamps();
-            
+
             $table->index('status');
         });
     }

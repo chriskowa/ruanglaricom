@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'started', 'completed'])->default('pending');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
-            
+
             // Ensure one tracking record per enrollment per session day
             $table->unique(['enrollment_id', 'session_day']);
             $table->index('status');

@@ -12,8 +12,9 @@ class CitySeeder extends Seeder
     {
         $jawaTimur = Province::where('name', 'Jawa Timur')->first();
 
-        if (!$jawaTimur) {
+        if (! $jawaTimur) {
             $this->command->error('Province Jawa Timur tidak ditemukan. Jalankan ProvinceSeeder terlebih dahulu.');
+
             return;
         }
 

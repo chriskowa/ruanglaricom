@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Coach;
 use App\Http\Controllers\Controller;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
-use App\Models\User;
 use Illuminate\Http\Request;
 
 class AthleteController extends Controller
@@ -21,14 +20,14 @@ class AthleteController extends Controller
 
         // Get enrollments for programs created by this coach
         $query = ProgramEnrollment::whereHas('program', function ($q) use ($coachId) {
-                $q->where('coach_id', $coachId);
-            })
+            $q->where('coach_id', $coachId);
+        })
             ->with(['runner', 'program']);
 
         if ($search) {
             $query->whereHas('runner', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -55,7 +54,7 @@ class AthleteController extends Controller
             ->findOrFail($enrollmentId);
 
         // Verify this enrollment belongs to a program owned by the coach
-        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
             abort(403);
         }
 
@@ -71,9 +70,9 @@ class AthleteController extends Controller
     public function calendarEvents(Request $request, $enrollmentId)
     {
         $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
-        
+
         // Verify ownership
-        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
             abort(403);
         }
 
@@ -82,7 +81,7 @@ class AthleteController extends Controller
         $sessions = $programJson['sessions'] ?? [];
         $startDate = $enrollment->start_date;
 
-        if (!$startDate) {
+        if (! $startDate) {
             return response()->json([]);
         }
 
@@ -102,13 +101,15 @@ class AthleteController extends Controller
         ];
 
         foreach ($sessions as $index => $session) {
-            if (!isset($session['day'])) continue;
+            if (! isset($session['day'])) {
+                continue;
+            }
 
-            $sessionDate = $startDate->copy()->addDays((int)$session['day'] - 1);
+            $sessionDate = $startDate->copy()->addDays((int) $session['day'] - 1);
 
             // Get tracking
             $tracking = ProgramSessionTracking::where('enrollment_id', $enrollment->id)
-                ->where('session_day', (int)$session['day'])
+                ->where('session_day', (int) $session['day'])
                 ->first();
 
             // Override date if rescheduled
@@ -117,33 +118,33 @@ class AthleteController extends Controller
             }
 
             $status = $tracking->status ?? 'pending';
-            
+
             // Determine Color
             $type = $session['type'] ?? 'run';
             $baseColor = $typeColors[$type] ?? $typeColors['run'];
 
-            // Visual logic: 
+            // Visual logic:
             // - Pending/Future: Type Color
             // - Completed: Green Border + Type Color (or slight variation)
             // - Missed: Red
-            
+
             if ($status === 'completed') {
                 $backgroundColor = $baseColor;
                 $borderColor = '#22C55E'; // Green border to indicate success
-                $titlePrefix = "✅ ";
+                $titlePrefix = '✅ ';
             } elseif ($status === 'missed') {
                 $backgroundColor = '#EF4444'; // Red for missed
                 $borderColor = '#EF4444';
-                $titlePrefix = "❌ ";
+                $titlePrefix = '❌ ';
             } else {
                 $backgroundColor = $baseColor;
                 $borderColor = $baseColor;
-                $titlePrefix = "";
+                $titlePrefix = '';
             }
 
             $events[] = [
                 'id' => "session_{$index}",
-                'title' => $titlePrefix . ($session['type'] ?? 'Run'),
+                'title' => $titlePrefix.($session['type'] ?? 'Run'),
                 'start' => $sessionDate->format('Y-m-d'),
                 'backgroundColor' => $backgroundColor,
                 'borderColor' => $borderColor,
@@ -155,7 +156,7 @@ class AthleteController extends Controller
                     'description' => $session['description'] ?? null,
                     'status' => $status,
                     'tracking' => $tracking, // Contains feedback, rating, rpe, feeling
-                ]
+                ],
             ];
         }
 
@@ -169,27 +170,27 @@ class AthleteController extends Controller
             if ($workout->status === 'completed') {
                 $backgroundColor = $baseColor;
                 $borderColor = '#22C55E';
-                $titlePrefix = "✅ ";
+                $titlePrefix = '✅ ';
             } elseif ($workout->status === 'missed') {
                 $backgroundColor = '#EF4444';
                 $borderColor = '#EF4444';
-                $titlePrefix = "❌ ";
+                $titlePrefix = '❌ ';
             } else {
                 $backgroundColor = $baseColor;
                 $borderColor = $baseColor;
-                $titlePrefix = "";
+                $titlePrefix = '';
             }
-            
+
             if ($workout->type === 'race') {
                 // Race special handling
                 $backgroundColor = $typeColors['race'];
                 $borderColor = $typeColors['race'];
-                $titlePrefix = "🏆 "; // Always trophy for race
+                $titlePrefix = '🏆 '; // Always trophy for race
             }
 
-            $title = $workout->type === 'race' 
-                ? $titlePrefix . ($workout->workout_structure['race_name'] ?? 'Race')
-                : $titlePrefix . ucfirst(str_replace('_', ' ', $workout->type));
+            $title = $workout->type === 'race'
+                ? $titlePrefix.($workout->workout_structure['race_name'] ?? 'Race')
+                : $titlePrefix.ucfirst(str_replace('_', ' ', $workout->type));
 
             $events[] = [
                 'id' => "custom_{$workout->id}",
@@ -206,12 +207,24 @@ class AthleteController extends Controller
                     'duration' => $workout->duration,
                     'difficulty' => $workout->difficulty,
                     'description' => $workout->description,
+                    'notes' => $workout->notes,
                     'status' => $workout->status,
                     'workout_structure' => $workout->workout_structure,
-                    'tracking' => null // Placeholder for now
-                ]
+                    'tracking' => null, // Placeholder for now
+                ],
             ];
         }
+
+        // Dedup: jika ada custom untuk tanggal tertentu, sembunyikan sesi program default di tanggal itu
+        $customDates = collect($customWorkouts)->map(fn ($w) => $w->workout_date->format('Y-m-d'))->unique()->toArray();
+        $events = array_values(array_filter($events, function ($ev) use ($customDates) {
+            $isCustom = isset($ev['extendedProps']['is_custom']) && $ev['extendedProps']['is_custom'];
+            if ($isCustom) {
+                return true;
+            }
+
+            return ! in_array($ev['start'], $customDates);
+        }));
 
         return response()->json($events);
     }
@@ -228,8 +241,8 @@ class AthleteController extends Controller
         ]);
 
         $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
-        
-        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
             abort(403);
         }
 
@@ -241,7 +254,7 @@ class AthleteController extends Controller
             [
                 'coach_feedback' => $validated['coach_feedback'],
                 'coach_rating' => $validated['coach_rating'],
-                // Ensure status is marked as completed if coach grades it? 
+                // Ensure status is marked as completed if coach grades it?
                 // Usually coach only grades completed sessions, but let's keep status as is or default to completed if not set
             ]
         );
@@ -252,7 +265,7 @@ class AthleteController extends Controller
     public function storeRace(Request $request, $enrollmentId)
     {
         $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
-        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
             abort(403);
         }
 
@@ -286,7 +299,7 @@ class AthleteController extends Controller
     public function storeWorkout(Request $request, $enrollmentId)
     {
         $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
-        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
             abort(403);
         }
 
@@ -297,32 +310,62 @@ class AthleteController extends Controller
             'distance' => 'nullable|numeric',
             'duration' => 'nullable|string',
             'description' => 'nullable|string',
+            'notes' => 'nullable|string',
             'workout_structure' => 'nullable|array',
         ]);
 
-        $workout = \App\Models\CustomWorkout::create([
-            'runner_id' => $enrollment->runner_id,
-            'workout_date' => $validated['workout_date'],
-            'type' => $validated['type'],
-            'difficulty' => $validated['difficulty'],
-            'distance' => $validated['distance'] ?? null,
-            'duration' => $validated['duration'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'workout_structure' => $validated['workout_structure'] ?? null,
-            'status' => 'pending',
-            // 'source' => 'coach', // Removed as column does not exist
-        ]);
+        // Upsert per tanggal untuk runner ini (override)
+        $existing = \App\Models\CustomWorkout::where('runner_id', $enrollment->runner_id)
+            ->whereDate('workout_date', $validated['workout_date'])
+            ->first();
 
-        // Notify Runner
-        \App\Models\Notification::create([
-            'user_id' => $enrollment->runner_id,
-            'type' => 'workout_assigned',
-            'title' => 'New Workout Assigned',
-            'message' => "Coach " . auth()->user()->name . " assigned a new workout for " . \Carbon\Carbon::parse($validated['workout_date'])->format('d M Y'),
-            'reference_type' => 'custom_workout',
-            'reference_id' => $workout->id,
-            'is_read' => false,
-        ]);
+        if ($existing) {
+            $existing->update([
+                'type' => $validated['type'],
+                'difficulty' => $validated['difficulty'],
+                'distance' => $validated['distance'] ?? null,
+                'duration' => $validated['duration'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'workout_structure' => $validated['workout_structure'] ?? null,
+                'status' => $existing->status ?? 'pending',
+            ]);
+
+            // Notify Runner (updated)
+            \App\Models\Notification::create([
+                'user_id' => $enrollment->runner_id,
+                'type' => 'workout_updated',
+                'title' => 'Workout Updated',
+                'message' => 'Coach '.auth()->user()->name.' updated your workout for '.\Carbon\Carbon::parse($validated['workout_date'])->format('d M Y'),
+                'reference_type' => 'custom_workout',
+                'reference_id' => $existing->id,
+                'is_read' => false,
+            ]);
+        } else {
+            $workout = \App\Models\CustomWorkout::create([
+                'runner_id' => $enrollment->runner_id,
+                'workout_date' => $validated['workout_date'],
+                'type' => $validated['type'],
+                'difficulty' => $validated['difficulty'],
+                'distance' => $validated['distance'] ?? null,
+                'duration' => $validated['duration'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'workout_structure' => $validated['workout_structure'] ?? null,
+                'status' => 'pending',
+            ]);
+
+            // Notify Runner (assigned)
+            \App\Models\Notification::create([
+                'user_id' => $enrollment->runner_id,
+                'type' => 'workout_assigned',
+                'title' => 'New Workout Assigned',
+                'message' => 'Coach '.auth()->user()->name.' assigned a new workout for '.\Carbon\Carbon::parse($validated['workout_date'])->format('d M Y'),
+                'reference_type' => 'custom_workout',
+                'reference_id' => $workout->id,
+                'is_read' => false,
+            ]);
+        }
 
         return response()->json(['success' => true]);
     }
@@ -330,14 +373,14 @@ class AthleteController extends Controller
     public function updateWorkout(Request $request, $enrollmentId, $customWorkoutId)
     {
         $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
-        if ((int)$enrollment->program->coach_id !== (int)auth()->id()) {
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
             abort(403);
         }
 
         $workout = \App\Models\CustomWorkout::findOrFail($customWorkoutId);
 
         // Verify workout belongs to this runner
-        if ((int)$workout->runner_id !== (int)$enrollment->runner_id) {
+        if ((int) $workout->runner_id !== (int) $enrollment->runner_id) {
             abort(403, 'Workout does not belong to this athlete');
         }
 
@@ -348,6 +391,7 @@ class AthleteController extends Controller
             'distance' => 'nullable|numeric',
             'duration' => 'nullable|string',
             'description' => 'nullable|string',
+            'notes' => 'nullable|string',
             'workout_structure' => 'nullable|array',
         ]);
 
@@ -358,6 +402,7 @@ class AthleteController extends Controller
             'distance' => $validated['distance'] ?? null,
             'duration' => $validated['duration'] ?? null,
             'description' => $validated['description'] ?? null,
+            'notes' => $validated['notes'] ?? null,
             'workout_structure' => $validated['workout_structure'] ?? null,
         ]);
 
@@ -366,11 +411,30 @@ class AthleteController extends Controller
             'user_id' => $enrollment->runner_id,
             'type' => 'workout_updated',
             'title' => 'Workout Updated',
-            'message' => "Coach " . auth()->user()->name . " updated your workout for " . \Carbon\Carbon::parse($validated['workout_date'])->format('d M Y'),
+            'message' => 'Coach '.auth()->user()->name.' updated your workout for '.\Carbon\Carbon::parse($validated['workout_date'])->format('d M Y'),
             'reference_type' => 'custom_workout',
             'reference_id' => $workout->id,
             'is_read' => false,
         ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyWorkout($enrollmentId, $customWorkoutId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $workout = \App\Models\CustomWorkout::findOrFail($customWorkoutId);
+
+        // Verify workout belongs to this runner
+        if ((int) $workout->runner_id !== (int) $enrollment->runner_id) {
+            abort(403, 'Workout does not belong to this athlete');
+        }
+
+        $workout->delete();
 
         return response()->json(['success' => true]);
     }

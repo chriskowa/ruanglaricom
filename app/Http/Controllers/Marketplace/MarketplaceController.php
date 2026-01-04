@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Marketplace;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Marketplace\MarketplaceProduct;
-use App\Models\Marketplace\MarketplaceCategory;
-use App\Models\Marketplace\MarketplaceBrand;
 use App\Models\City;
+use App\Models\Marketplace\MarketplaceBrand;
+use App\Models\Marketplace\MarketplaceCategory;
+use App\Models\Marketplace\MarketplaceProduct;
+use Illuminate\Http\Request;
 
 class MarketplaceController extends Controller
 {
@@ -32,15 +32,15 @@ class MarketplaceController extends Controller
 
         // Search
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
-                $q->where('title', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%'.$request->search.'%')
+                    ->orWhere('description', 'like', '%'.$request->search.'%');
             });
         }
 
         // City Filter (Seller's Location)
         if ($request->filled('city')) {
-            $query->whereHas('seller', function($q) use ($request) {
+            $query->whereHas('seller', function ($q) use ($request) {
                 $q->where('city_id', $request->city);
             });
         }
@@ -95,7 +95,7 @@ class MarketplaceController extends Controller
         $brands = MarketplaceBrand::with('categories:id')->orderBy('name')->get();
         // Fetch cities that have sellers? Or just all cities. All cities might be too many.
         // Optimization: Only fetch cities that have active listings.
-        $cities = City::whereHas('users.marketplaceProducts', function($q) {
+        $cities = City::whereHas('users.marketplaceProducts', function ($q) {
             $q->where('is_active', true);
         })->orderBy('name')->get();
 

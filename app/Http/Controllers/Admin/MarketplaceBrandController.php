@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Marketplace\MarketplaceBrand;
 use App\Models\Marketplace\MarketplaceCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MarketplaceBrandController extends Controller
 {
@@ -15,6 +15,7 @@ class MarketplaceBrandController extends Controller
     {
         $brands = MarketplaceBrand::with('categories')->orderBy('name')->get();
         $categories = MarketplaceCategory::whereNull('parent_id')->with('children')->orderBy('name')->get();
+
         return view('admin.marketplace.brands.index', compact('brands', 'categories'));
     }
 
@@ -88,6 +89,7 @@ class MarketplaceBrandController extends Controller
             Storage::disk('public')->delete($brand->logo);
         }
         $brand->delete();
+
         return redirect()->route('admin.marketplace.brands.index')->with('success', 'Brand deleted successfully.');
     }
 }

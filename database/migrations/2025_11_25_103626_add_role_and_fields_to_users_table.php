@@ -40,7 +40,7 @@ return new class extends Migration
             $table->dropColumn([
                 'role', 'city_id', 'package_tier', 'bank_account', 'bank_verified_at',
                 'wallet_id', 'referral_code', 'referred_by', 'avatar', 'phone',
-                'date_of_birth', 'address', 'strava_token', 'google_calendar_token'
+                'date_of_birth', 'address', 'strava_token', 'google_calendar_token',
             ]);
         });
     }

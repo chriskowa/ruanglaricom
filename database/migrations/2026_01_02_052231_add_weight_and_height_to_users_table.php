@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'weight')) {
+            if (! Schema::hasColumn('users', 'weight')) {
                 $table->decimal('weight', 5, 2)->nullable()->after('date_of_birth')->comment('Weight in kg');
             }
-            if (!Schema::hasColumn('users', 'height')) {
+            if (! Schema::hasColumn('users', 'height')) {
                 $table->integer('height')->nullable()->after('weight')->comment('Height in cm');
             }
         });

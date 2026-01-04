@@ -8,14 +8,16 @@ class WhatsApp
     {
         $appkey = env('WHATSAPP_APPKEY');
         $authkey = env('WHATSAPP_AUTHKEY');
-        if (!$appkey || !$authkey || !$to) return;
+        if (! $appkey || ! $authkey || ! $to) {
+            return;
+        }
 
         $payload = [
             'appkey' => $appkey,
             'authkey' => $authkey,
             'to' => $to,
             'message' => $message,
-            'sandbox' => 'false'
+            'sandbox' => 'false',
         ];
 
         $ch = curl_init();
@@ -30,4 +32,3 @@ class WhatsApp
         curl_close($ch);
     }
 }
-

@@ -37,7 +37,7 @@ class CartController extends Controller
     public function add(Request $request, Program $program)
     {
         // Check if program is published and active
-        if (!$program->is_published || !$program->is_active) {
+        if (! $program->is_published || ! $program->is_active) {
             return back()->withErrors(['error' => 'Program tidak tersedia.']);
         }
 
@@ -128,7 +128,7 @@ class CartController extends Controller
     public function count()
     {
         $count = Cart::where('user_id', Auth::id())->count();
-        
+
         return response()->json(['count' => $count]);
     }
 }

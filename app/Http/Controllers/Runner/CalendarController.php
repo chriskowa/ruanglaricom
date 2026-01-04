@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Runner;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomWorkout;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
-use App\Models\CustomWorkout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +15,7 @@ class CalendarController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         // Get active enrollments for workout plan list
         $enrollments = ProgramEnrollment::where('runner_id', $user->id)
             ->where('status', 'active')
@@ -38,13 +38,13 @@ class CalendarController extends Controller
             ->with(['program.coach'])
             ->orderBy('updated_at', 'desc')
             ->get();
-        
+
         // Training Profile Data via service
         $trainingProfile = app(\App\Services\RunningProfileService::class)->getProfile($user);
 
         // Check 40 Days Challenge Enrollment
         $isEnrolled40Days = $enrollments->contains(function ($enrollment) {
-            return $enrollment->program_id == 9 || 
+            return $enrollment->program_id == 9 ||
                    ($enrollment->program && ($enrollment->program->hardcoded === '40days' || \Illuminate\Support\Str::contains($enrollment->program->slug, '40days')));
         });
 
@@ -66,7 +66,7 @@ class CalendarController extends Controller
         $user = auth()->user();
         $start = $request->get('start'); // ISO date string
         $end = $request->get('end'); // ISO date string
-        
+
         // Get user training paces
         $paces = $user->training_paces;
 
@@ -84,8 +84,8 @@ class CalendarController extends Controller
             $program = $enrollment->program;
             $programJson = $program->program_json ?? [];
             $sessions = $programJson['sessions'] ?? [];
-            
-            if (!is_array($sessions) || empty($sessions)) {
+
+            if (! is_array($sessions) || empty($sessions)) {
                 continue;
             }
 
@@ -97,33 +97,33 @@ class CalendarController extends Controller
 
             $totalWeeks = $program->duration_weeks ?? 12;
             $difficulty = $program->difficulty ?? 'beginner';
-            
+
             foreach ($sessions as $index => $session) {
-                if (!isset($session['day']) || !is_numeric($session['day'])) {
+                if (! isset($session['day']) || ! is_numeric($session['day'])) {
                     continue;
                 }
 
                 try {
-                    $sessionDate = $startDate->copy()->addDays((int)$session['day'] - 1);
+                    $sessionDate = $startDate->copy()->addDays((int) $session['day'] - 1);
                 } catch (\Exception $e) {
                     continue;
                 }
 
                 // Check for rescheduled date
                 $tracking = ProgramSessionTracking::where('enrollment_id', $enrollment->id)
-                    ->where('session_day', (int)$session['day'])
+                    ->where('session_day', (int) $session['day'])
                     ->first();
-                
+
                 if ($tracking && $tracking->rescheduled_date) {
                     $sessionDate = Carbon::parse($tracking->rescheduled_date);
                 }
-                
+
                 // Only include sessions within the requested date range
                 if ($start && $end) {
                     try {
                         $startCarbon = Carbon::parse($start);
                         $endCarbon = Carbon::parse($end);
-                        
+
                         if ($sessionDate->lt($startCarbon) || $sessionDate->gt($endCarbon)) {
                             continue;
                         }
@@ -132,12 +132,12 @@ class CalendarController extends Controller
                     }
                 }
 
-                $phase = $this->getTrainingPhase((int)$session['day'], $totalWeeks);
+                $phase = $this->getTrainingPhase((int) $session['day'], $totalWeeks);
                 $colors = $this->getEventColors($difficulty, $phase);
-                
+
                 $sessionType = $session['type'] ?? 'Run';
                 $paceInfo = $this->getPaceForSessionType($sessionType, $paces);
-                $title = $sessionType . ($paceInfo ? " ({$paceInfo})" : "");
+                $title = $sessionType.($paceInfo ? " ({$paceInfo})" : '');
 
                 $events[] = [
                     'id' => "program_{$enrollment->id}_session_{$index}",
@@ -163,7 +163,7 @@ class CalendarController extends Controller
 
         // Add custom workouts
         $customWorkouts = CustomWorkout::where('runner_id', $user->id)
-            ->when($start, function($query) use ($start, $end) {
+            ->when($start, function ($query) use ($start, $end) {
                 try {
                     $startCarbon = Carbon::parse($start);
                     $endCarbon = Carbon::parse($end);
@@ -176,16 +176,16 @@ class CalendarController extends Controller
 
         foreach ($customWorkouts as $workout) {
             $colors = $this->getEventColors($workout->difficulty ?? 'moderate', null);
-            
+
             if ($workout->type === 'race') {
                 $colors['background'] = '#FFD700'; // Gold
                 $colors['border'] = '#DAA520';
                 $colors['text'] = '#000000';
             }
-            
+
             $events[] = [
                 'id' => "custom_workout_{$workout->id}",
-                'title' => ($workout->type === 'race' ? '🏆 ' : '') . ($workout->workout_structure['race_name'] ?? $workout->type ?? 'Run'),
+                'title' => ($workout->type === 'race' ? '🏆 ' : '').($workout->workout_structure['race_name'] ?? $workout->type ?? 'Run'),
                 'start' => $workout->workout_date->format('Y-m-d'),
                 'allDay' => true,
                 'backgroundColor' => $colors['background'],
@@ -207,6 +207,17 @@ class CalendarController extends Controller
             ];
         }
 
+        // Dedup: jika ada custom pada tanggal tertentu, sembunyikan program_session tanggal itu
+        $customDates = collect($customWorkouts)->map(fn ($w) => $w->workout_date->format('Y-m-d'))->unique()->toArray();
+        $events = array_values(array_filter($events, function ($ev) use ($customDates) {
+            $isProgram = isset($ev['extendedProps']['type']) && $ev['extendedProps']['type'] === 'program_session';
+            if (! $isProgram) {
+                return true;
+            }
+
+            return ! in_array($ev['start'], $customDates);
+        }));
+
         return response()->json($events);
     }
 
@@ -215,8 +226,10 @@ class CalendarController extends Controller
      */
     private function getPaceForSessionType($type, $paces)
     {
-        if (!$paces) return null;
-        
+        if (! $paces) {
+            return null;
+        }
+
         $type = strtolower($type);
         $pace = null;
         $label = '';
@@ -242,9 +255,10 @@ class CalendarController extends Controller
             // Format pace min/km
             $m = floor($pace);
             $s = round(($pace - $m) * 60);
-            return sprintf("@ %d:%02d/km", $m, $s);
+
+            return sprintf('@ %d:%02d/km', $m, $s);
         }
-        
+
         return null;
     }
 
@@ -290,7 +304,7 @@ class CalendarController extends Controller
         try {
             $user = auth()->user();
             $filter = $request->get('filter', 'all'); // all, unfinished, finished
-            
+
             // Get user training paces
             $paces = $user->training_paces;
 
@@ -303,18 +317,19 @@ class CalendarController extends Controller
                 ->get();
 
             $workoutPlans = [];
+            $plansByDate = [];
 
             foreach ($enrollments as $enrollment) {
                 $program = $enrollment->program;
-                
-                if (!$program) {
+
+                if (! $program) {
                     continue;
                 }
-                
+
                 $programJson = $program->program_json ?? [];
                 $sessions = $programJson['sessions'] ?? [];
 
-                if (empty($sessions) || !is_array($sessions)) {
+                if (empty($sessions) || ! is_array($sessions)) {
                     continue;
                 }
 
@@ -326,29 +341,29 @@ class CalendarController extends Controller
 
                 foreach ($sessions as $index => $session) {
                     // Skip if session doesn't have 'day' field
-                    if (!isset($session['day']) || !is_numeric($session['day'])) {
+                    if (! isset($session['day']) || ! is_numeric($session['day'])) {
                         continue;
                     }
 
                     try {
-                        $sessionDate = $startDate->copy()->addDays((int)$session['day'] - 1);
+                        $sessionDate = $startDate->copy()->addDays((int) $session['day'] - 1);
                     } catch (\Exception $e) {
                         continue;
                     }
 
                     // Get tracking status and rescheduled date
                     $tracking = ProgramSessionTracking::where('enrollment_id', $enrollment->id)
-                        ->where('session_day', (int)$session['day'])
+                        ->where('session_day', (int) $session['day'])
                         ->first();
 
                     if ($tracking && $tracking->rescheduled_date) {
                         $sessionDate = Carbon::parse($tracking->rescheduled_date);
                     }
-                    
+
                     // Check if session is in the future
                     // Removed to show all upcoming plans as per user request
                     // if ($sessionDate->isFuture()) {
-                    //    continue; 
+                    //    continue;
                     // }
 
                     $status = 'pending';
@@ -366,22 +381,22 @@ class CalendarController extends Controller
                     if ($filter === 'in_progress' && $status !== 'started') {
                         continue;
                     }
-                    
+
                     $sessionType = $session['type'] ?? 'run';
                     $paceInfo = $this->getPaceForSessionType($sessionType, $paces);
                     $description = $session['description'] ?? null;
                     if ($paceInfo) {
-                        $description = ($description ? $description . "\n" : "") . "Target Pace: " . $paceInfo;
+                        $description = ($description ? $description."\n" : '').'Target Pace: '.$paceInfo;
                     }
 
-                    $workoutPlans[] = [
+                    $plan = [
                         'id' => $tracking ? $tracking->id : null,
                         'tracking_id' => $tracking ? $tracking->id : null,
                         'enrollment_id' => $enrollment->id,
                         'program_id' => $program->id,
                         'program_title' => $program->title,
                         'program_difficulty' => $program->difficulty ?? 'beginner',
-                        'session_day' => (int)$session['day'],
+                        'session_day' => (int) $session['day'],
                         'date' => $sessionDate->format('Y-m-d'),
                         'date_formatted' => $sessionDate->format('d M Y'),
                         'day_name' => $sessionDate->format('D'),
@@ -401,13 +416,12 @@ class CalendarController extends Controller
                         'phase' => $this->getTrainingPhase($session['day'], $program->duration_weeks ?? 12),
                         'target_pace' => $paceInfo,
                     ];
+                    $plansByDate[$plan['date']] = $plan;
                 }
             }
 
-            // Sort by date ascending (oldest to newest) to show upcoming timeline naturally
-            usort($workoutPlans, function($a, $b) {
-                return strtotime($a['date']) - strtotime($b['date']);
-            });
+            // Seed from program plans map
+            $workoutPlans = array_values($plansByDate);
 
             // Get custom workouts
             $customWorkouts = CustomWorkout::where('runner_id', $user->id)
@@ -415,7 +429,7 @@ class CalendarController extends Controller
 
             foreach ($customWorkouts as $workout) {
                 $status = $workout->status ?? 'pending';
-                
+
                 // Apply filter
                 if ($filter === 'unfinished' && $status === 'completed') {
                     continue;
@@ -427,8 +441,8 @@ class CalendarController extends Controller
                     continue;
                 }
 
-                $workoutPlans[] = [
-                    'id' => 'custom_' . $workout->id,
+                $customPlan = [
+                    'id' => 'custom_'.$workout->id,
                     'type' => 'custom_workout',
                     'activity_type' => $workout->type ?? 'run',
                     'workout_id' => $workout->id,
@@ -444,21 +458,26 @@ class CalendarController extends Controller
                     'completed_at' => $workout->completed_at ? $workout->completed_at->format('Y-m-d H:i:s') : null,
                     'workout_structure' => $workout->workout_structure,
                     'program_title' => 'Custom Workout',
+                    'notes' => $workout->notes,
                     'source' => 'custom',
                 ];
+                // Override program plan if same date
+                $plansByDate[$customPlan['date']] = $customPlan;
+                $workoutPlans = array_values($plansByDate);
             }
 
             // Re-sort with custom workouts included
-            usort($workoutPlans, function($a, $b) {
+            usort($workoutPlans, function ($a, $b) {
                 return strtotime($a['date']) - strtotime($b['date']);
             });
 
             return response()->json($workoutPlans);
         } catch (\Exception $e) {
-            \Log::error('Error in workoutPlans: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+            \Log::error('Error in workoutPlans: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
             ]);
-            return response()->json(['error' => 'Gagal memuat workout plans: ' . $e->getMessage()], 500);
+
+            return response()->json(['error' => 'Gagal memuat workout plans: '.$e->getMessage()], 500);
         }
     }
 
@@ -544,7 +563,7 @@ class CalendarController extends Controller
 
         $user = auth()->user();
 
-        // If workout_id exists, update; otherwise create new
+        // If workout_id exists, update; otherwise upsert by date
         if (isset($validated['workout_id'])) {
             $workout = CustomWorkout::where('id', $validated['workout_id'])
                 ->where('runner_id', $user->id)
@@ -566,23 +585,44 @@ class CalendarController extends Controller
                 'workout' => $workout,
             ]);
         } else {
-            $workout = CustomWorkout::create([
-                'runner_id' => $user->id,
-                'workout_date' => $validated['workout_date'],
-                'type' => $validated['type'],
-                'distance' => $validated['distance'] ?? null,
-                'duration' => $validated['duration'] ?? null,
-                'description' => $validated['description'] ?? null,
-                'difficulty' => $validated['difficulty'],
-                'workout_structure' => $validated['workout_structure'] ?? null,
-                'status' => 'pending',
-            ]);
+            $existing = CustomWorkout::where('runner_id', $user->id)
+                ->whereDate('workout_date', $validated['workout_date'])
+                ->first();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Workout berhasil ditambahkan',
-                'workout' => $workout,
-            ]);
+            if ($existing) {
+                $existing->update([
+                    'type' => $validated['type'],
+                    'distance' => $validated['distance'] ?? null,
+                    'duration' => $validated['duration'] ?? null,
+                    'description' => $validated['description'] ?? null,
+                    'difficulty' => $validated['difficulty'],
+                    'workout_structure' => $validated['workout_structure'] ?? null,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Workout berhasil diupdate',
+                    'workout' => $existing,
+                ]);
+            } else {
+                $workout = CustomWorkout::create([
+                    'runner_id' => $user->id,
+                    'workout_date' => $validated['workout_date'],
+                    'type' => $validated['type'],
+                    'distance' => $validated['distance'] ?? null,
+                    'duration' => $validated['duration'] ?? null,
+                    'description' => $validated['description'] ?? null,
+                    'difficulty' => $validated['difficulty'],
+                    'workout_structure' => $validated['workout_structure'] ?? null,
+                    'status' => 'pending',
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Workout berhasil ditambahkan',
+                    'workout' => $workout,
+                ]);
+            }
         }
     }
 
@@ -593,7 +633,7 @@ class CalendarController extends Controller
     {
         $user = auth()->user();
 
-        if ((int)$customWorkout->runner_id !== (int)$user->id) {
+        if ((int) $customWorkout->runner_id !== (int) $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
@@ -638,9 +678,10 @@ class CalendarController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus program: ' . $e->getMessage(),
+                'message' => 'Gagal menghapus program: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -692,8 +733,8 @@ class CalendarController extends Controller
 
         if ($hasActive) {
             return response()->json([
-                'success' => false, 
-                'message' => 'Anda sedang menjalankan program aktif. Harap selesaikan atau reset program saat ini terlebih dahulu.'
+                'success' => false,
+                'message' => 'Anda sedang menjalankan program aktif. Harap selesaikan atau reset program saat ini terlebih dahulu.',
             ], 422);
         }
 
@@ -701,7 +742,7 @@ class CalendarController extends Controller
             ->where('runner_id', $user->id)
             ->where('status', 'purchased')
             ->firstOrFail();
-            
+
         $program = $enrollment->program;
         $startDate = Carbon::parse($validated['start_date']);
         $durationWeeks = $program->duration_weeks ?? 12;
@@ -774,11 +815,11 @@ class CalendarController extends Controller
     public function weeklyVolume(Request $request)
     {
         $user = auth()->user();
-        
+
         // Range: 12 weeks back, 4 weeks forward
         $start = now()->startOfWeek()->subWeeks(12);
         $end = now()->endOfWeek()->addWeeks(4);
-        
+
         $weeks = [];
         $current = $start->copy();
         while ($current <= $end) {
@@ -801,41 +842,49 @@ class CalendarController extends Controller
 
         foreach ($enrollments as $enrollment) {
             $program = $enrollment->program;
-            if (!$program) continue;
-            
+            if (! $program) {
+                continue;
+            }
+
             $sessions = $program->program_json['sessions'] ?? [];
             $startDate = $enrollment->start_date;
-            if (!$startDate) continue;
+            if (! $startDate) {
+                continue;
+            }
 
             // Get trackings for this enrollment
             $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get()->keyBy('session_day');
 
             foreach ($sessions as $session) {
-                if (!isset($session['day'])) continue;
-                
-                $day = (int)$session['day'];
+                if (! isset($session['day'])) {
+                    continue;
+                }
+
+                $day = (int) $session['day'];
                 try {
                     $sessionDate = $startDate->copy()->addDays($day - 1);
                 } catch (\Exception $e) {
                     continue;
                 }
-                
+
                 // Check override
                 if (isset($trackings[$day]) && $trackings[$day]->rescheduled_date) {
                     $sessionDate = $trackings[$day]->rescheduled_date;
                 }
 
-                if ($sessionDate->lt($start) || $sessionDate->gt($end)) continue;
+                if ($sessionDate->lt($start) || $sessionDate->gt($end)) {
+                    continue;
+                }
 
                 $weekKey = $sessionDate->format('o-W');
-                $dist = (float)($session['distance'] ?? 0);
+                $dist = (float) ($session['distance'] ?? 0);
 
                 if (isset($weeks[$weekKey])) {
                     $weeks[$weekKey]['planned'] += $dist;
-                    
+
                     // Add to actual if completed
                     if (isset($trackings[$day]) && $trackings[$day]->status === 'completed') {
-                         $weeks[$weekKey]['actual'] += $dist;
+                        $weeks[$weekKey]['actual'] += $dist;
                     }
                 }
             }
@@ -843,19 +892,19 @@ class CalendarController extends Controller
 
         // 2. Custom Workouts
         $customWorkouts = CustomWorkout::where('runner_id', $user->id)
-             ->whereBetween('workout_date', [$start, $end])
-             ->get();
+            ->whereBetween('workout_date', [$start, $end])
+            ->get();
 
         foreach ($customWorkouts as $cw) {
-             $weekKey = $cw->workout_date->format('o-W');
-             if (isset($weeks[$weekKey])) {
-                 $weeks[$weekKey]['planned'] += $cw->distance;
-                 if ($cw->status === 'completed') {
-                     $weeks[$weekKey]['actual'] += $cw->distance;
-                 }
-             }
+            $weekKey = $cw->workout_date->format('o-W');
+            if (isset($weeks[$weekKey])) {
+                $weeks[$weekKey]['planned'] += $cw->distance;
+                if ($cw->status === 'completed') {
+                    $weeks[$weekKey]['actual'] += $cw->distance;
+                }
+            }
         }
-        
+
         return response()->json(array_values($weeks));
     }
 
@@ -881,16 +930,15 @@ class CalendarController extends Controller
             $workout = CustomWorkout::where('id', $validated['workout_id'])
                 ->where('runner_id', $user->id)
                 ->firstOrFail();
-            
+
             $workout->update(['workout_date' => $newDate]);
-            
+
             return response()->json(['success' => true, 'message' => 'Custom workout rescheduled']);
-        } 
-        else {
+        } else {
             $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
                 ->where('runner_id', $user->id)
                 ->firstOrFail();
-            
+
             ProgramSessionTracking::updateOrCreate(
                 [
                     'enrollment_id' => $enrollment->id,
@@ -921,11 +969,11 @@ class CalendarController extends Controller
         $user->update($validated);
 
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'message' => 'Personal Best updated',
             'vdot' => $user->vdot,
             'paces' => $user->training_paces,
-            'equivalent_race_times' => $user->equivalent_race_times
+            'equivalent_race_times' => $user->equivalent_race_times,
         ]);
     }
 }

@@ -9,13 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'bank_name')) {
+            if (! Schema::hasColumn('users', 'bank_name')) {
                 $table->string('bank_name')->nullable()->after('tiktok_url');
             }
-            if (!Schema::hasColumn('users', 'bank_account_name')) {
+            if (! Schema::hasColumn('users', 'bank_account_name')) {
                 $table->string('bank_account_name')->nullable()->after('bank_name');
             }
-            if (!Schema::hasColumn('users', 'bank_account_number')) {
+            if (! Schema::hasColumn('users', 'bank_account_number')) {
                 $table->string('bank_account_number')->nullable()->after('bank_account_name');
             }
         });

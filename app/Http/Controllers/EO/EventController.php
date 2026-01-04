@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Services\EventCacheService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
+use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class EventController extends Controller
 {
@@ -96,14 +96,14 @@ class EventController extends Controller
         ]);
 
         $validated['user_id'] = auth()->id();
-        
+
         // Auto-generate slug if not provided
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
             // Ensure uniqueness
             $count = Event::where('slug', $validated['slug'])->count();
             if ($count > 0) {
-                $validated['slug'] .= '-' . uniqid();
+                $validated['slug'] .= '-'.uniqid();
             }
         }
 
@@ -115,7 +115,7 @@ class EventController extends Controller
         if (isset($validated['facilities']) && is_array($validated['facilities'])) {
             $enabledFacilities = [];
             foreach ($validated['facilities'] as $key => $facility) {
-                if (!empty($facility['enabled']) && !empty($facility['name'])) {
+                if (! empty($facility['enabled']) && ! empty($facility['name'])) {
                     $facilityData = [
                         'name' => $facility['name'],
                         'description' => $facility['description'] ?? '',
@@ -129,7 +129,7 @@ class EventController extends Controller
                     $enabledFacilities[] = $facilityData;
                 }
             }
-            $validated['facilities'] = !empty($enabledFacilities) ? $enabledFacilities : null;
+            $validated['facilities'] = ! empty($enabledFacilities) ? $enabledFacilities : null;
         } else {
             $validated['facilities'] = null;
         }
@@ -169,19 +169,19 @@ class EventController extends Controller
             // Clear hero_image_url if uploaded image is provided
             $validated['hero_image_url'] = null;
         }
-        
+
         if ($request->hasFile('logo_image')) {
             $validated['logo_image'] = $this->processImage($request->file('logo_image'), 'events/logo', 800, 90);
         }
-        
+
         if ($request->hasFile('floating_image')) {
             $validated['floating_image'] = $this->processImage($request->file('floating_image'), 'events/floating', 800, 85);
         }
-        
+
         if ($request->hasFile('medal_image')) {
             $validated['medal_image'] = $this->processImage($request->file('medal_image'), 'events/medal', 1200, 90);
         }
-        
+
         if ($request->hasFile('jersey_image')) {
             $validated['jersey_image'] = $this->processImage($request->file('jersey_image'), 'events/jersey', 1200, 90);
         }
@@ -192,7 +192,7 @@ class EventController extends Controller
         // Create categories
         foreach ($categories as $categoryData) {
             $categoryData['event_id'] = $event->id;
-            $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool)$categoryData['is_active'] : true;
+            $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool) $categoryData['is_active'] : true;
             \App\Models\RaceCategory::create($categoryData);
         }
 
@@ -203,18 +203,18 @@ class EventController extends Controller
     public function show(Event $event)
     {
         $this->authorizeEvent($event);
-        
+
         $event->load(['categories', 'user']);
-        
+
         return view('eo.events.show', compact('event'));
     }
 
     public function edit(Event $event)
     {
         $this->authorizeEvent($event);
-        
+
         $event->load(['categories']);
-        
+
         return view('eo.events.edit', compact('event'));
     }
 
@@ -224,7 +224,7 @@ class EventController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:events,slug,' . $event->id,
+            'slug' => 'nullable|string|max:255|unique:events,slug,'.$event->id,
             'short_description' => 'nullable|string',
             'full_description' => 'nullable|string',
             'start_at' => 'required|date',
@@ -288,7 +288,7 @@ class EventController extends Controller
         if (isset($validated['facilities']) && is_array($validated['facilities'])) {
             $enabledFacilities = [];
             foreach ($validated['facilities'] as $key => $facility) {
-                if (!empty($facility['enabled']) && !empty($facility['name'])) {
+                if (! empty($facility['enabled']) && ! empty($facility['name'])) {
                     $facilityData = [
                         'name' => $facility['name'],
                         'description' => $facility['description'] ?? '',
@@ -297,25 +297,25 @@ class EventController extends Controller
                     // Handle facility image
                     if (isset($request->facilities[$key]['image']) && $request->hasFile("facilities.{$key}.image")) {
                         // Delete old image if exists (optional, if we track it)
-                         if (isset($facility['existing_image']) && !empty($facility['existing_image'])) {
+                        if (isset($facility['existing_image']) && ! empty($facility['existing_image'])) {
                             $this->deleteImage($facility['existing_image']);
                         }
                         $facilityData['image'] = $this->processImage($request->file("facilities.{$key}.image"), 'events/facilities', 800, 85);
-                    } elseif (isset($facility['existing_image']) && !empty($facility['existing_image'])) {
+                    } elseif (isset($facility['existing_image']) && ! empty($facility['existing_image'])) {
                         $facilityData['image'] = $facility['existing_image'];
                     }
 
                     $enabledFacilities[] = $facilityData;
                 }
             }
-            $validated['facilities'] = !empty($enabledFacilities) ? $enabledFacilities : null;
+            $validated['facilities'] = ! empty($enabledFacilities) ? $enabledFacilities : null;
         } else {
             $validated['facilities'] = null;
         }
 
         // Process Gallery
         $currentGallery = $event->gallery ?? [];
-        
+
         // Remove deleted images
         if ($request->has('remove_gallery_images')) {
             $imagesToRemove = $request->remove_gallery_images;
@@ -334,8 +334,8 @@ class EventController extends Controller
                 $currentGallery[] = $this->processImage($image, 'events/gallery', 1200, 85);
             }
         }
-        
-        $validated['gallery'] = !empty($currentGallery) ? $currentGallery : null;
+
+        $validated['gallery'] = ! empty($currentGallery) ? $currentGallery : null;
 
         // Process Theme Colors (remove nulls)
         if (isset($validated['theme_colors']) && is_array($validated['theme_colors'])) {
@@ -344,7 +344,6 @@ class EventController extends Controller
                 $validated['theme_colors'] = null;
             }
         }
-
 
         // Process jersey_sizes - ensure it's an array
         if (isset($validated['jersey_sizes']) && is_array($validated['jersey_sizes'])) {
@@ -369,7 +368,7 @@ class EventController extends Controller
             // Ensure uniqueness
             $count = Event::where('slug', $validated['slug'])->where('id', '!=', $event->id)->count();
             if ($count > 0) {
-                $validated['slug'] .= '-' . uniqid();
+                $validated['slug'] .= '-'.uniqid();
             }
         } elseif (empty($validated['slug'])) {
             unset($validated['slug']);
@@ -385,28 +384,28 @@ class EventController extends Controller
             // Clear hero_image_url if uploaded image is provided
             $validated['hero_image_url'] = null;
         }
-        
+
         if ($request->hasFile('logo_image')) {
             if ($event->logo_image) {
                 $this->deleteImage($event->logo_image);
             }
             $validated['logo_image'] = $this->processImage($request->file('logo_image'), 'events/logo', 800, 90);
         }
-        
+
         if ($request->hasFile('floating_image')) {
             if ($event->floating_image) {
                 $this->deleteImage($event->floating_image);
             }
             $validated['floating_image'] = $this->processImage($request->file('floating_image'), 'events/floating', 800, 85);
         }
-        
+
         if ($request->hasFile('medal_image')) {
             if ($event->medal_image) {
                 $this->deleteImage($event->medal_image);
             }
             $validated['medal_image'] = $this->processImage($request->file('medal_image'), 'events/medal', 1200, 90);
         }
-        
+
         if ($request->hasFile('jersey_image')) {
             if ($event->jersey_image) {
                 $this->deleteImage($event->jersey_image);
@@ -417,23 +416,23 @@ class EventController extends Controller
         $event->update($validated);
 
         // Handle categories if provided
-        if (!empty($categories)) {
+        if (! empty($categories)) {
             $existingCategoryIds = $event->categories->pluck('id')->toArray();
             $submittedCategoryIds = array_filter(array_column($categories, 'id'));
-            
+
             // Delete removed categories
             $categoriesToDelete = array_diff($existingCategoryIds, $submittedCategoryIds);
-            if (!empty($categoriesToDelete)) {
+            if (! empty($categoriesToDelete)) {
                 \App\Models\RaceCategory::whereIn('id', $categoriesToDelete)->delete();
             }
-            
+
             // Update or create categories
             foreach ($categories as $categoryData) {
                 if (isset($categoryData['id']) && in_array($categoryData['id'], $existingCategoryIds)) {
                     // Update existing category
                     $category = \App\Models\RaceCategory::find($categoryData['id']);
                     if ($category && $category->event_id === $event->id) {
-                        $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool)$categoryData['is_active'] : true;
+                        $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool) $categoryData['is_active'] : true;
                         unset($categoryData['id']);
                         $category->update($categoryData);
                     }
@@ -441,12 +440,12 @@ class EventController extends Controller
                     // Create new category
                     unset($categoryData['id']);
                     $categoryData['event_id'] = $event->id;
-                    $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool)$categoryData['is_active'] : true;
+                    $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool) $categoryData['is_active'] : true;
                     \App\Models\RaceCategory::create($categoryData);
                 }
             }
         }
-        
+
         // Invalidate cache
         $this->cacheService->invalidateEventCache($event);
 
@@ -460,7 +459,7 @@ class EventController extends Controller
     public function preview(Event $event)
     {
         $this->authorizeEvent($event);
-        
+
         return redirect()->route('events.show', $event->slug)
             ->with('preview', true);
     }
@@ -468,9 +467,9 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         $this->authorizeEvent($event);
-        
+
         $event->delete();
-        
+
         // Invalidate cache
         $this->cacheService->invalidateEventCache($event);
 
@@ -485,14 +484,14 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
-        $query = \App\Models\Participant::whereHas('transaction', function($q) use ($event) {
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
-        ->with(['transaction', 'category']);
+            ->with(['transaction', 'category']);
 
         // Filter by payment status
         if (request()->has('payment_status') && request()->payment_status) {
-            $query->whereHas('transaction', function($q) {
+            $query->whereHas('transaction', function ($q) {
                 $q->where('payment_status', request()->payment_status);
             });
         }
@@ -514,14 +513,14 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
-        $query = \App\Models\Participant::whereHas('transaction', function($q) use ($event) {
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
-        ->with(['transaction', 'category']);
+            ->with(['transaction', 'category']);
 
         // Apply same filters as list
         if (request()->has('payment_status') && request()->payment_status) {
-            $query->whereHas('transaction', function($q) {
+            $query->whereHas('transaction', function ($q) {
                 $q->where('payment_status', request()->payment_status);
             });
         }
@@ -532,19 +531,19 @@ class EventController extends Controller
 
         $participants = $query->orderBy('created_at', 'desc')->get();
 
-        $filename = 'participants_' . $event->slug . '_' . date('Y-m-d') . '.csv';
+        $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
-        $callback = function() use ($participants) {
+        $callback = function () use ($participants) {
             $file = fopen('php://output', 'w');
-            
+
             // BOM for Excel UTF-8 support
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+
             // Header
             fputcsv($file, [
                 'No',
@@ -560,7 +559,7 @@ class EventController extends Controller
                 'Status Pengambilan',
                 'Tanggal Registrasi',
                 'Tanggal Pengambilan',
-                'Diambil Oleh (PIC)'
+                'Diambil Oleh (PIC)',
             ]);
 
             // Data
@@ -579,7 +578,7 @@ class EventController extends Controller
                     $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
                     $participant->created_at->format('Y-m-d H:i:s'),
                     $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : '-',
-                    $participant->picked_up_by ?? '-'
+                    $participant->picked_up_by ?? '-',
                 ]);
             }
 
@@ -659,8 +658,12 @@ class EventController extends Controller
     protected function authorizeEvent(Event $event)
     {
         $user = auth()->user();
-        if ($user && ($user->role === 'admin' || $user->role === 'eo')) return;
-        if ($event->user_id !== auth()->id()) abort(403, 'Unauthorized');
+        if ($user && ($user->role === 'admin' || $user->role === 'eo')) {
+            return;
+        }
+        if ($event->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
     }
 
     /**
@@ -668,33 +671,33 @@ class EventController extends Controller
      */
     private function processImage($file, $folder = 'events', $maxWidth = 1920, $quality = 85)
     {
-        $manager = new ImageManager(new Driver());
-        
+        $manager = new ImageManager(new Driver);
+
         // Generate unique filename
-        $filename = uniqid() . '_' . time() . '.webp';
-        $path = $folder . '/' . $filename;
-        
+        $filename = uniqid().'_'.time().'.webp';
+        $path = $folder.'/'.$filename;
+
         // Process image
         $image = $manager->read($file);
-        
+
         // Resize if too large
         if ($image->width() > $maxWidth) {
             $image->scale(width: $maxWidth);
         }
-        
+
         // Convert to WebP
         $webpImage = $image->toWebp($quality);
-        
+
         // Ensure directory exists
         $directory = Storage::disk('public')->path($folder);
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             Storage::disk('public')->makeDirectory($folder);
         }
-        
+
         // Save image
         $fullPath = Storage::disk('public')->path($path);
         $webpImage->save($fullPath);
-        
+
         return $path;
     }
 
@@ -708,4 +711,3 @@ class EventController extends Controller
         }
     }
 }
-

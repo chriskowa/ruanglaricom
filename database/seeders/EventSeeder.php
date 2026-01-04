@@ -5,9 +5,8 @@ namespace Database\Seeders;
 use App\Models\Event;
 use App\Models\RaceCategory;
 use App\Models\User;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class EventSeeder extends Seeder
 {
@@ -18,9 +17,10 @@ class EventSeeder extends Seeder
     {
         // Get EO users
         $eos = User::where('role', 'eo')->get();
-        
+
         if ($eos->isEmpty()) {
             $this->command->warn('No EO users found. Please run UserSeeder first.');
+
             return;
         }
 
@@ -301,6 +301,6 @@ class EventSeeder extends Seeder
         }
 
         $this->command->info('Events seeded successfully!');
-        $this->command->info('Created ' . Event::count() . ' events with ' . RaceCategory::count() . ' categories.');
+        $this->command->info('Created '.Event::count().' events with '.RaceCategory::count().' categories.');
     }
 }

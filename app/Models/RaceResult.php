@@ -45,10 +45,10 @@ class RaceResult extends Model
      */
     public function getFormattedChipTime(): string
     {
-        if (!$this->chip_time) {
+        if (! $this->chip_time) {
             return '--:--:--';
         }
-        
+
         // Time field dari database sudah dalam format string H:i:s
         return $this->chip_time;
     }
@@ -58,10 +58,10 @@ class RaceResult extends Model
      */
     public function getFormattedGunTime(): string
     {
-        if (!$this->gun_time) {
+        if (! $this->gun_time) {
             return '--:--:--';
         }
-        
+
         // Time field dari database sudah dalam format string H:i:s
         return $this->gun_time;
     }
@@ -98,6 +98,3 @@ class RaceResult extends Model
         return $query->where('is_podium', true);
     }
 }
-
-
-

@@ -30,7 +30,7 @@ class EventPackageController extends Controller
         $validated['event_id'] = $event->id;
 
         $package = EventPackage::create($validated);
-        
+
         // Invalidate cache
         $this->cacheService->invalidateEventCache($event);
 
@@ -49,7 +49,7 @@ class EventPackageController extends Controller
         ]);
 
         $package->update($validated);
-        
+
         // Invalidate cache
         if ($package->event) {
             $this->cacheService->invalidateEventCache($package->event);
@@ -63,9 +63,9 @@ class EventPackageController extends Controller
     {
         $event = $package->event;
         $this->authorizePackage($package);
-        
+
         $package->delete();
-        
+
         // Invalidate cache
         if ($event) {
             $this->cacheService->invalidateEventCache($event);
@@ -84,10 +84,8 @@ class EventPackageController extends Controller
 
     protected function authorizePackage(EventPackage $package)
     {
-        if (!$package->event || $package->event->user_id !== auth()->id()) {
+        if (! $package->event || $package->event->user_id !== auth()->id()) {
             abort(403, 'Unauthorized');
         }
     }
 }
-
-

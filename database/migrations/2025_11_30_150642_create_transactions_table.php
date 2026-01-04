@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('midtrans_transaction_status')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->timestamps();
-            
+
             $table->index('event_id');
             $table->index('user_id');
             $table->index('midtrans_order_id');

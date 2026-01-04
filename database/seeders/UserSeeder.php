@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\City;
 use App\Models\User;
 use App\Models\Wallet;
-use App\Models\City;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
     {
         $malangKota = City::where('name', 'Malang Kota')->first();
         $surabaya = City::where('name', 'Surabaya')->first();
-        
+
         // Create Coach users
         $coaches = [
             [
@@ -42,8 +42,8 @@ class UserSeeder extends Seeder
                 ['email' => $coachData['email']],
                 $coachData
             );
-            
-            if (!$coach->wallet) {
+
+            if (! $coach->wallet) {
                 $wallet = Wallet::create([
                     'user_id' => $coach->id,
                     'balance' => 0,
@@ -89,8 +89,8 @@ class UserSeeder extends Seeder
                 ['email' => $runnerData['email']],
                 $runnerData
             );
-            
-            if (!$runner->wallet) {
+
+            if (! $runner->wallet) {
                 $wallet = Wallet::create([
                     'user_id' => $runner->id,
                     'balance' => 0,
@@ -127,8 +127,8 @@ class UserSeeder extends Seeder
                 ['email' => $eoData['email']],
                 $eoData
             );
-            
-            if (!$eo->wallet) {
+
+            if (! $eo->wallet) {
                 $wallet = Wallet::create([
                     'user_id' => $eo->id,
                     'balance' => 0,

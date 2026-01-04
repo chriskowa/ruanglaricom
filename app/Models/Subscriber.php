@@ -12,7 +12,7 @@ class Subscriber extends Model
     protected $fillable = [
         'email',
         'is_active',
-        'subscribed_at'
+        'subscribed_at',
     ];
 
     protected $casts = [

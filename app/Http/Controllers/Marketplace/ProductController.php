@@ -3,18 +3,19 @@
 namespace App\Http\Controllers\Marketplace;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Marketplace\MarketplaceProduct;
-use App\Models\Marketplace\MarketplaceCategory;
 use App\Models\Marketplace\MarketplaceBrand;
-use Illuminate\Support\Str;
+use App\Models\Marketplace\MarketplaceCategory;
+use App\Models\Marketplace\MarketplaceProduct;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
     public function index()
     {
         $products = MarketplaceProduct::where('user_id', Auth::id())->with('primaryImage')->latest()->paginate(10);
+
         return view('marketplace.seller.products.index', compact('products'));
     }
 
@@ -22,6 +23,7 @@ class ProductController extends Controller
     {
         $categories = MarketplaceCategory::all();
         $brands = MarketplaceBrand::with('categories:id,slug')->orderBy('name')->get();
+
         return view('marketplace.seller.products.create', compact('categories', 'brands'));
     }
 
@@ -44,7 +46,7 @@ class ProductController extends Controller
             'category_id' => $request->category_id,
             'brand_id' => $request->brand_id,
             'title' => $request->title,
-            'slug' => Str::slug($request->title) . '-' . Str::random(6),
+            'slug' => Str::slug($request->title).'-'.Str::random(6),
             'description' => $request->description,
             'price' => $request->price,
             'condition' => $request->condition,
@@ -66,16 +68,21 @@ class ProductController extends Controller
 
     public function edit(MarketplaceProduct $product)
     {
-        if ($product->user_id !== Auth::id()) abort(403);
+        if ($product->user_id !== Auth::id()) {
+            abort(403);
+        }
         $categories = MarketplaceCategory::all();
         $brands = MarketplaceBrand::with('categories:id,slug')->orderBy('name')->get();
+
         return view('marketplace.seller.products.edit', compact('product', 'categories', 'brands'));
     }
 
     public function update(Request $request, MarketplaceProduct $product)
     {
-        if ($product->user_id !== Auth::id()) abort(403);
-        
+        if ($product->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:marketplace_categories,id',
@@ -85,12 +92,12 @@ class ProductController extends Controller
         ]);
 
         $product->update($request->only(['title', 'category_id', 'brand_id', 'description', 'price', 'stock', 'condition']));
-        
+
         if ($request->hasFile('image')) {
-             $path = $request->file('image')->store('marketplace/products', 'public');
-             // Unset old primary
-             $product->images()->update(['is_primary' => false]);
-             $product->images()->create([
+            $path = $request->file('image')->store('marketplace/products', 'public');
+            // Unset old primary
+            $product->images()->update(['is_primary' => false]);
+            $product->images()->create([
                 'image_path' => $path,
                 'is_primary' => true,
             ]);
@@ -101,8 +108,11 @@ class ProductController extends Controller
 
     public function destroy(MarketplaceProduct $product)
     {
-        if ($product->user_id !== Auth::id()) abort(403);
+        if ($product->user_id !== Auth::id()) {
+            abort(403);
+        }
         $product->delete();
+
         return back()->with('success', 'Product deleted.');
     }
 }

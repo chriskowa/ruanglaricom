@@ -16,20 +16,20 @@ class CalendarController extends Controller
     public function getAiAnalysis(Request $request)
     {
         $data = $request->input('data');
-        
-        $prompt = "You are a professional running coach. Analyze the following weekly running data: " . json_encode($data) . ". Provide a concise summary of performance and 1 specific actionable tip for next week. Keep it under 100 words. Speak in Bahasa Indonesia style 'Coach Gaul'.";
+
+        $prompt = 'You are a professional running coach. Analyze the following weekly running data: '.json_encode($data).". Provide a concise summary of performance and 1 specific actionable tip for next week. Keep it under 100 words. Speak in Bahasa Indonesia style 'Coach Gaul'.";
 
         try {
             $response = Http::withoutVerifying()->withHeaders([
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
             ])->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBkGYYIr1MPrbqQsBijXb9s_w8gQ--Lx_w', [
-                "contents" => [
+                'contents' => [
                     [
-                        "parts" => [
-                            ["text" => $prompt]
-                        ]
-                    ]
-                ]
+                        'parts' => [
+                            ['text' => $prompt],
+                        ],
+                    ],
+                ],
             ]);
 
             if ($response->successful()) {
@@ -39,13 +39,14 @@ class CalendarController extends Controller
             Log::error('AI Analysis Failed', ['status' => $response->status(), 'body' => $response->body()]);
 
             return response()->json([
-                'error' => 'AI Service Unavailable', 
+                'error' => 'AI Service Unavailable',
                 'details' => $response->json() ?? $response->body(),
-                'upstream_status' => $response->status()
+                'upstream_status' => $response->status(),
             ], $response->status());
 
         } catch (\Exception $e) {
             Log::error('AI Analysis Exception', ['message' => $e->getMessage()]);
+
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -55,7 +56,7 @@ class CalendarController extends Controller
         try {
             // Fetch events from RuangLari
             $response = Http::withoutVerifying()->withHeaders([
-                'ruangLariKey' => 'Thinkpadx390'
+                'ruangLariKey' => 'Thinkpadx390',
             ])->get('https://ruanglari.com/wp-json/ruanglari/v1/events');
 
             if ($response->successful()) {
@@ -75,15 +76,15 @@ class CalendarController extends Controller
             'redirect_uri' => route('calendar.strava.callback'),
             'response_type' => 'code',
             'scope' => 'activity:read_all,profile:read_all',
-            'approval_prompt' => 'auto'
+            'approval_prompt' => 'auto',
         ]);
 
-        return redirect('https://www.strava.com/oauth/authorize?' . $query);
+        return redirect('https://www.strava.com/oauth/authorize?'.$query);
     }
 
     public function stravaCallback(Request $request)
     {
-        if (!$request->has('code')) {
+        if (! $request->has('code')) {
             return redirect()->route('calendar.public')->with('error', 'Authorization failed');
         }
 
@@ -97,7 +98,7 @@ class CalendarController extends Controller
 
             if ($response->successful()) {
                 $tokenData = $response->json();
-                
+
                 // Save to Authenticated User (if logged in)
                 if (auth()->check()) {
                     $user = auth()->user();
@@ -116,16 +117,16 @@ class CalendarController extends Controller
             $errorMessage = 'Token exchange failed';
             $body = $response->json();
             if (isset($body['message'])) {
-                $errorMessage .= ': ' . $body['message'];
+                $errorMessage .= ': '.$body['message'];
             }
             if (isset($body['errors'])) {
-                $errorMessage .= ' (' . json_encode($body['errors']) . ')';
+                $errorMessage .= ' ('.json_encode($body['errors']).')';
             }
 
             return redirect()->route('calendar.public')->with('error', $errorMessage);
 
         } catch (\Exception $e) {
-            return redirect()->route('calendar.public')->with('error', 'Connection error: ' . $e->getMessage());
+            return redirect()->route('calendar.public')->with('error', 'Connection error: '.$e->getMessage());
         }
     }
 }

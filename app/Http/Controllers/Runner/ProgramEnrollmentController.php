@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Runner;
 use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\ProgramEnrollment;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 class ProgramEnrollmentController extends Controller
 {
@@ -24,12 +22,12 @@ class ProgramEnrollmentController extends Controller
         }
 
         // Check if program is free
-        if (!$program->isFree()) {
+        if (! $program->isFree()) {
             return back()->with('error', 'Program ini berbayar. Silakan beli program terlebih dahulu.');
         }
 
         // Check if program is published and active
-        if (!$program->is_published || !$program->is_active) {
+        if (! $program->is_published || ! $program->is_active) {
             return back()->with('error', 'Program tidak tersedia.');
         }
 

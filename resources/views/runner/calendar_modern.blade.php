@@ -384,6 +384,7 @@
                                 <div>
                                     <button class="text-white font-bold hover:text-neon transition text-left" @click="showPlanDetail(plan)">@{{ plan.description || plan.type || 'Workout' }}</button>
                                     <div class="text-xs mt-1" :class="statusClass(plan.status)">@{{ statusText(plan.status) }}</div>
+                                    <div v-if="plan.notes" class="text-xs text-white font-bold mt-1">Note: @{{ plan.notes }}</div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
@@ -484,27 +485,47 @@
 
         <div v-if="showDetailModal" class="fixed inset-0 z-50 overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
-            <div class="relative z-10 max-w-lg mx-auto my-10 glass-panel rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-white font-bold">Workout Detail</h3>
-                    <button class="text-slate-400 hover:text-white" @click="closeDetail">×</button>
+            <div class="relative z-10 max-w-sm md:max-w-lg mx-auto my-10 glass-panel rounded-3xl p-6 border border-slate-700">
+                <div class="relative mb-4">
+                    <div class="absolute right-0 top-0 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full" :class="statusDotClass(detail.status)"></span>
+                        <span class="text-[11px] text-slate-400">@{{ statusText(detail.status) }}</span>
+                        <button class="text-slate-400 hover:text-white ml-2" @click="closeDetail">×</button>
+                    </div>
+                    <div class="flex flex-col items-center text-center mt-2">
+                        <div class="mb-2">
+                            <span class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-300 uppercase tracking-wide">@{{ activityLabel(detail.type) }}</span>
+                        </div>
+                        <div class="text-5xl md:text-6xl font-black text-white leading-none tracking-tight">@{{ primaryMetricValue }}</div>
+                        <div class="text-slate-500 text-xs mt-1">@{{ primaryMetricUnit }}</div>
+                    </div>
                 </div>
-                <div class="space-y-2 text-sm text-slate-300">
-                    <div class="text-white font-bold">@{{ detailTitle }}</div>
-                    <div><span class="text-slate-500">Date:</span> @{{ detail.date_formatted || formatDate(detail.date) }}</div>
-                    <div><span class="text-slate-500">Type:</span> @{{ activityLabel(detail.type) }}</div>
-                    <div v-if="detail.distance"><span class="text-slate-500">Distance:</span> @{{ detail.distance }} km</div>
-                    <div v-if="detail.duration"><span class="text-slate-500">Duration:</span> @{{ detail.duration }}</div>
-                    <div v-if="detail.program_difficulty || detail.difficulty"><span class="text-slate-500">Difficulty:</span> @{{ (detail.program_difficulty || detail.difficulty || '').toUpperCase() }}</div>
-                    <div v-if="detail.target_pace"><span class="text-slate-500">Target Pace:</span> <span class="text-neon font-bold">@{{ detail.target_pace }}</span></div>
-                    <div v-if="detail.recommended_pace"><span class="text-slate-500">Recommended Pace:</span> <span class="text-neon font-bold">@{{ detail.recommended_pace }}</span></div>
-                    <div v-if="detail.description"><span class="text-slate-500">Description:</span> @{{ detail.description }}</div>
-                    
-                    <!-- Structured Workout Display -->
-                    <div v-if="detail.workout_structure && detail.workout_structure.length > 0" class="mt-2 border-t border-slate-700 pt-2">
-                        <div class="text-xs font-bold text-slate-400 uppercase mb-2">Workout Steps</div>
+                <div>
+                    <div class="text-center text-white font-bold mb-2">@{{ detailTitle }}</div>
+                    <div class="text-center text-[12px] text-slate-400 mb-4">@{{ detail.date_formatted || formatDate(detail.date) }}</div>
+
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                            <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><path d="M4 12h16M8 16h8M10 8h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            <div class="text-[11px] text-slate-400">Pace</div>
+                            <div class="text-neon font-black text-sm">@{{ displayPace || '-' }}</div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                            <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            <div class="text-[11px] text-slate-400">Time</div>
+                            <div class="text-white font-bold text-sm">@{{ detail.duration || '-' }}</div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                            <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><path d="M12 3l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 19.5l1.5-6L3 9.5 9 9l3-6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                            <div class="text-[11px] text-slate-400">Difficulty</div>
+                            <div class="text-white font-bold text-sm">@{{ (detail.program_difficulty || detail.difficulty || '').toUpperCase() || '-' }}</div>
+                        </div>
+                    </div>
+
+                    <div v-if="detail.workout_structure && detail.workout_structure.length > 0" class="mt-2 border-t border-slate-700 pt-3">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Workout Steps</div>
                         <div class="space-y-1">
-                            <div v-for="(step, idx) in detail.workout_structure" :key="idx" class="flex justify-between items-center text-xs p-2 rounded bg-slate-800 border border-slate-700">
+                            <div v-for="(step, idx) in detail.workout_structure" :key="idx" class="flex justify-between items-center text-xs p-2 rounded-xl bg-slate-800 border border-slate-700">
                                 <div class="flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full" :class="{'bg-green-400': step.type==='warmup', 'bg-blue-400': step.type==='run', 'bg-orange-400': step.type==='interval', 'bg-yellow-400': step.type==='recovery', 'bg-purple-400': step.type==='cool_down'}"></span>
                                     <span class="font-bold uppercase text-slate-300">@{{ step.type.replace('_', ' ') }}</span>
@@ -517,11 +538,17 @@
                         </div>
                     </div>
 
-                    <div><span class="text-slate-500">Status:</span> 
-                        <span :class="statusClass(detail.status)">@{{ statusText(detail.status) }}</span>
+                    <div v-if="detail.description" class="mt-3 text-sm text-slate-300">
+                        <div class="text-[11px] text-slate-400 uppercase font-bold mb-1">Description</div>
+                        <div>@{{ detail.description }}</div>
                     </div>
-                    <div v-if="detail.strava_link"><span class="text-slate-500">Strava:</span> <a :href="detail.strava_link" target="_blank" class="text-neon hover:underline">View Activity</a></div>
-                    <div v-if="detail.notes"><span class="text-slate-500">Notes:</span> @{{ detail.notes }}</div>
+                    <div v-if="detail.strava_link" class="mt-3 text-sm">
+                        <a :href="detail.strava_link" target="_blank" class="text-neon hover:underline">View Strava Activity</a>
+                    </div>
+                    <div v-if="detail.notes" class="mt-2 text-sm text-slate-300">
+                        <div class="text-[11px] text-slate-400 uppercase font-bold mb-1">Notes</div>
+                        <div class="font-bold text-white">@{{ detail.notes }}</div>
+                    </div>
                 </div>
 
                 <!-- Coach Feedback Display -->
@@ -543,8 +570,8 @@
 
                 <!-- Action Buttons for Program Session -->
                 <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest'" class="mt-4 border-t border-slate-700 pt-4">
-                     <div v-if="detail.status === 'pending' || !detail.status">
-                        <button class="w-full py-2 rounded-lg bg-neon text-dark font-black text-sm hover:bg-neon/90 transition" @click="updateSessionStatus(detail, 'started')">Start Activity</button>
+                    <div v-if="detail.status === 'pending' || !detail.status">
+                        <button class="w-full py-3 rounded-xl bg-neon text-dark font-black text-sm hover:bg-neon/90 transition" @click="updateSessionStatus(detail, 'started')">Start Activity</button>
                     </div>
                     <div v-else-if="detail.status === 'started'">
                         <div class="space-y-3">
@@ -592,9 +619,9 @@
                     </div>
                 </div>
 
-                <div class="mt-4 flex justify-end gap-2">
-                    <button v-if="detail.source === 'custom' || detail.workout_id" class="px-3 py-2 rounded-lg bg-red-500 text-white text-sm" @click="deleteCustomWorkout(detail.workout_id)">Delete Workout</button>
-                    <button class="px-3 py-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-sm" @click="closeDetail">Close</button>
+                <div class="mt-4 flex justify-between items-center">
+                    <button v-if="detail.source === 'custom' || detail.workout_id" class="text-[12px] text-slate-400 hover:text-red-400" @click="deleteCustomWorkout(detail.workout_id)">Delete</button>
+                    <button class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm ml-auto" @click="closeDetail">Close</button>
                 </div>
             </div>
         </div>
@@ -948,6 +975,7 @@
 @endsection
 
 @push('scripts')
+@include('layouts.components.advanced-builder-utils')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script>
 const { createApp, ref, reactive, onMounted, computed, watch } = Vue;
@@ -980,6 +1008,19 @@ createApp({
         const notesInput = ref('');
         const rpeInput = ref('');
         const feelingInput = ref('');
+        const displayPace = computed(() => detail.target_pace || detail.recommended_pace || null);
+        const primaryMetricValue = computed(() => {
+            try {
+                if (detail.distance) {
+                    const num = parseFloat(detail.distance);
+                    return isNaN(num) ? detail.distance : num.toFixed(2);
+                }
+                if (detail.duration) return detail.duration;
+            } catch(e){}
+            return '--';
+        });
+        const primaryMetricUnit = computed(() => detail.distance ? 'km' : (detail.duration ? '' : ''));
+        const statusDotClass = (s) => s==='completed' ? 'bg-green-400' : (s==='started' ? 'bg-yellow-400' : 'bg-red-400');
         const showFormModal = ref(false);
         const form = reactive({ 
             workout_id:'', 
@@ -1763,7 +1804,8 @@ createApp({
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, weeklyVolume, maxVolume,
             assetStorage, assetProfile, runnerUrl, chatUrl, 
             showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,
-            ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent };
+            ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
+            displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass };
     }
 
 }).mount('#runner-calendar-app');

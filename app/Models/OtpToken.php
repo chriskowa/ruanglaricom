@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OtpToken extends Model
 {
-    protected $fillable = ['user_id','code','expires_at','used'];
+    protected $fillable = ['user_id', 'code', 'expires_at', 'used'];
 
     protected $casts = [
         'expires_at' => 'datetime',
@@ -19,4 +19,3 @@ class OtpToken extends Model
         return $this->belongsTo(User::class);
     }
 }
-

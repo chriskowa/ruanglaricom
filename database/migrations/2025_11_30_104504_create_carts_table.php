@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('quantity')->default(1);
             $table->decimal('price', 15, 2);
             $table->timestamps();
-            
+
             // Ensure one program per user in cart
             $table->unique(['user_id', 'program_id']);
         });

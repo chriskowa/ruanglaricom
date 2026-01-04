@@ -26,7 +26,7 @@ class WalletController extends Controller
     {
         $user = Auth::user();
         $user->load('wallet');
-        
+
         $wallet = $user->wallet ?? Wallet::create([
             'user_id' => $user->id,
             'balance' => 0,
@@ -68,7 +68,7 @@ class WalletController extends Controller
             $user = Auth::user();
 
             // Ensure user has wallet
-            if (!$user->wallet) {
+            if (! $user->wallet) {
                 $wallet = Wallet::create([
                     'user_id' => $user->id,
                     'balance' => 0,
@@ -78,15 +78,16 @@ class WalletController extends Controller
             }
 
             // Create top-up transaction
-            $result = $this->midtransService->createTopupTransaction($user, (float)$validated['amount']);
+            $result = $this->midtransService->createTopupTransaction($user, (float) $validated['amount']);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 if ($request->expectsJson() || $request->ajax()) {
                     return response()->json([
                         'success' => false,
                         'message' => $result['message'] ?? 'Gagal membuat transaksi top-up.',
                     ], 400);
                 }
+
                 return back()->withErrors(['amount' => $result['message'] ?? 'Gagal membuat transaksi top-up.']);
             }
 
@@ -101,6 +102,7 @@ class WalletController extends Controller
                         'amount' => $validated['amount'],
                     ]);
                 }
+
                 return response()->json($result);
             }
 
@@ -117,6 +119,7 @@ class WalletController extends Controller
                     'errors' => $e->errors(),
                 ], 422);
             }
+
             return back()->withErrors($e->errors());
         } catch (\Exception $e) {
             if ($request->expectsJson() || $request->ajax()) {
@@ -125,6 +128,7 @@ class WalletController extends Controller
                     'message' => $e->getMessage(),
                 ], 500);
             }
+
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
@@ -148,7 +152,7 @@ class WalletController extends Controller
             ]);
 
             $user = Auth::user();
-            if (!$user->wallet) {
+            if (! $user->wallet) {
                 $wallet = Wallet::create([
                     'user_id' => $user->id,
                     'balance' => 0,
@@ -157,14 +161,14 @@ class WalletController extends Controller
                 $user->refresh();
             }
 
-            if (!$user->bank_name || !$user->bank_account_name || !$user->bank_account_number) {
+            if (! $user->bank_name || ! $user->bank_account_name || ! $user->bank_account_number) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Lengkapi data bank di Profile terlebih dahulu.',
                 ], 422);
             }
 
-            $amount = (float)$validated['amount'];
+            $amount = (float) $validated['amount'];
             $user->wallet->refresh();
             if ($user->wallet->balance < $amount) {
                 return response()->json([

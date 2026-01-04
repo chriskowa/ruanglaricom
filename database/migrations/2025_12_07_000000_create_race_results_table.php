@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('race_results')) {
+        if (! Schema::hasTable('race_results')) {
             Schema::create('race_results', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
@@ -31,7 +31,7 @@ return new class extends Migration
                 $table->string('podium_position')->nullable(); // 1, 2, 3 atau null
                 $table->text('notes')->nullable();
                 $table->timestamps();
-                
+
                 // Indexes untuk performa query
                 $table->index('event_id');
                 $table->index('race_category_id');
@@ -50,4 +50,3 @@ return new class extends Migration
         Schema::dropIfExists('race_results');
     }
 };
-

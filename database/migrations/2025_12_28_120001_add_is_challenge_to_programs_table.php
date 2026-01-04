@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasTable('programs') && !Schema::hasColumn('programs', 'is_challenge')) {
+        if (Schema::hasTable('programs') && ! Schema::hasColumn('programs', 'is_challenge')) {
             Schema::table('programs', function (Blueprint $table) {
                 $table->boolean('is_challenge')->default(false)->after('is_published');
             });

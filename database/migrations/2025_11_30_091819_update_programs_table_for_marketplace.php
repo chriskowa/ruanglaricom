@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('enrolled_count')->default(0)->after('is_published');
             $table->decimal('average_rating', 3, 2)->default(0)->after('enrolled_count');
             $table->integer('total_reviews')->default(0)->after('average_rating');
-            
+
             // Self-generated program fields (for Daniels Formula)
             $table->boolean('is_self_generated')->default(false)->after('total_reviews');
             $table->json('daniels_params')->nullable()->after('is_self_generated');

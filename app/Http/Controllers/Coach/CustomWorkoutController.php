@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\MasterWorkout;
 use App\Models\WorkoutVisibilityLog;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CustomWorkoutController extends Controller
 {
@@ -39,14 +38,14 @@ class CustomWorkoutController extends Controller
 
         return response()->json([
             'message' => 'Custom workout created successfully',
-            'workout' => $workout
+            'workout' => $workout,
         ]);
     }
 
     public function update(Request $request, MasterWorkout $customWorkout)
     {
         // Authorization
-        if ((int)$customWorkout->coach_id !== (int)auth()->id()) {
+        if ((int) $customWorkout->coach_id !== (int) auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -83,13 +82,13 @@ class CustomWorkoutController extends Controller
 
         return response()->json([
             'message' => 'Custom workout updated successfully',
-            'workout' => $customWorkout
+            'workout' => $customWorkout,
         ]);
     }
 
     public function destroy(MasterWorkout $customWorkout)
     {
-        if ((int)$customWorkout->coach_id !== (int)auth()->id()) {
+        if ((int) $customWorkout->coach_id !== (int) auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

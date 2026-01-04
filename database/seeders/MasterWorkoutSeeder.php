@@ -2,15 +2,15 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\MasterWorkout;
+use Illuminate\Database\Seeder;
 
 class MasterWorkoutSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    public function run(): void 
+    public function run(): void
     {
         $workouts = [
             // 🟢 Easy & Recovery (Base)

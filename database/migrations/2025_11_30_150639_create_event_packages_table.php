@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('sold_count')->default(0);
             $table->boolean('is_sold_out')->default(false);
             $table->timestamps();
-            
+
             $table->index('event_id');
         });
     }

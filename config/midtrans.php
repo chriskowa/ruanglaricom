@@ -24,7 +24,7 @@ return [
     | Berguna untuk development dan testing
     |
     */
-    
+
     'testing_mode' => env('MIDTRANS_TESTING_MODE', false),
 
     /*
@@ -35,9 +35,8 @@ return [
     | Endpoint untuk sandbox dan production
     |
     */
-    
-    'base_url' => env('MIDTRANS_IS_PRODUCTION', false) 
-        ? 'https://app.midtrans.com' 
+
+    'base_url' => env('MIDTRANS_IS_PRODUCTION', false)
+        ? 'https://app.midtrans.com'
         : 'https://app.sandbox.midtrans.com',
 ];
-

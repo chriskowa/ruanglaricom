@@ -24,7 +24,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->string('banner_image')->nullable();
             $table->timestamps();
-            
+
             $table->index('organizer_id');
             $table->index('slug');
         });

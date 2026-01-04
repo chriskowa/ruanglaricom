@@ -6,7 +6,6 @@ use App\Models\Event;
 use App\Models\EventPackage;
 use App\Models\RaceCategory;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class EventCacheService
 {
@@ -14,7 +13,9 @@ class EventCacheService
      * Cache TTL in seconds
      */
     const CACHE_TTL_EVENT_DETAIL = 300; // 5 minutes
+
     const CACHE_TTL_PACKAGES = 60; // 1 minute
+
     const CACHE_TTL_QUOTA = 10; // 10 seconds
 
     /**
@@ -54,6 +55,7 @@ class EventCacheService
     public function getCachedEventDetail(string $slug): ?array
     {
         $cacheKey = "event:detail:{$slug}";
+
         return Cache::get($cacheKey);
     }
 
@@ -67,6 +69,7 @@ class EventCacheService
         return Cache::remember($cacheKey, self::CACHE_TTL_QUOTA, function () use ($package) {
             // Refresh package from database
             $package->refresh();
+
             return $package->getRemainingQuota();
         });
     }
@@ -77,6 +80,7 @@ class EventCacheService
     public function getCachedPackageQuota(int $packageId): ?int
     {
         $cacheKey = "package:quota:{$packageId}";
+
         return Cache::get($cacheKey);
     }
 
@@ -127,6 +131,7 @@ class EventCacheService
         return Cache::remember($cacheKey, self::CACHE_TTL_QUOTA, function () use ($category) {
             // Refresh category from database
             $category->refresh();
+
             return $category->getRemainingQuota();
         });
     }
@@ -137,6 +142,7 @@ class EventCacheService
     public function getCachedCategoryQuota(int $categoryId): ?int
     {
         $cacheKey = "category:quota:{$categoryId}";
+
         return Cache::get($cacheKey);
     }
 
@@ -152,5 +158,3 @@ class EventCacheService
         Cache::forget($category->getQuotaCacheKey());
     }
 }
-
-

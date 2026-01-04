@@ -16,14 +16,14 @@ class CoachRegistrationController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required','string','max:120'],
-            'email' => ['required','email','max:120','unique:users,email'],
-            'phone' => ['required','string','max:20'],
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:120', 'unique:users,email'],
+            'phone' => ['required', 'string', 'max:20'],
             'city' => ['required', 'string', 'max:100'],
             'specialization' => ['required', 'string', 'max:100'],
             'experience_years' => ['required', 'integer', 'min:0'],
             'certifications' => ['nullable', 'string'],
-            'image' => ['nullable','file','mimes:jpg,jpeg,png,webp','max:1024'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:1024'],
             'bio' => ['nullable', 'string'],
         ]);
 
@@ -45,12 +45,17 @@ class CoachRegistrationController extends Controller
             $imgInfo = getimagesize($path);
             if ($imgInfo) {
                 $dstPath = storage_path('app/public/coaches/'.uniqid('coach_').'.webp');
-                if (!is_dir(dirname($dstPath))) mkdir(dirname($dstPath), 0775, true);
+                if (! is_dir(dirname($dstPath))) {
+                    mkdir(dirname($dstPath), 0775, true);
+                }
                 $src = null;
                 switch ($imgInfo['mime']) {
-                    case 'image/jpeg': $src = imagecreatefromjpeg($path); break;
-                    case 'image/png': $src = imagecreatefrompng($path); break;
-                    case 'image/webp': $src = imagecreatefromwebp($path); break;
+                    case 'image/jpeg': $src = imagecreatefromjpeg($path);
+                        break;
+                    case 'image/png': $src = imagecreatefrompng($path);
+                        break;
+                    case 'image/webp': $src = imagecreatefromwebp($path);
+                        break;
                 }
                 if ($src) {
                     imagepalettetotruecolor($src);
@@ -64,16 +69,19 @@ class CoachRegistrationController extends Controller
         }
 
         // Create coach record
-        // Note: Assuming Coach model exists or needs to be created. 
+        // Note: Assuming Coach model exists or needs to be created.
         // If Coach model doesn't exist yet, we might store this in user_meta or a new table.
         // For now, I'll assume we can store basic info in user or create a Coach model.
-        
+
         // Check if Coach model exists, if not create it or use user meta
         if (class_exists('App\Models\Coach')) {
             $slugBase = $user->name;
             $slug = Str::slug($slugBase);
             $i = 1;
-            while (Coach::where('slug', $slug)->exists()) { $slug = Str::slug($slugBase.'-'.$i); $i++; }
+            while (Coach::where('slug', $slug)->exists()) {
+                $slug = Str::slug($slugBase.'-'.$i);
+                $i++;
+            }
 
             Coach::create([
                 'user_id' => $user->id,
@@ -89,12 +97,12 @@ class CoachRegistrationController extends Controller
                 'student_count' => 0,
             ]);
         } else {
-             // Fallback if Coach model doesn't exist (though ideally it should)
-             // We can just rely on the User model for now if simple
+            // Fallback if Coach model doesn't exist (though ideally it should)
+            // We can just rely on the User model for now if simple
         }
 
         // Create OTP and send via WhatsApp
-        $code = str_pad((string)random_int(0,999999), 6, '0', STR_PAD_LEFT);
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         \App\Models\OtpToken::create([
             'user_id' => $user->id,
             'code' => $code,
@@ -106,6 +114,6 @@ class CoachRegistrationController extends Controller
 
         // Reuse pacer OTP view/route for simplicity, or create a specific coach one if needed
         // For now, redirecting to pacer.otp is fine as it just asks for OTP for a user_id
-        return redirect()->route('pacer.otp', ['user' => $user->id])->with('success','Kami telah mengirim OTP ke WhatsApp Anda.');
+        return redirect()->route('pacer.otp', ['user' => $user->id])->with('success', 'Kami telah mengirim OTP ke WhatsApp Anda.');
     }
 }

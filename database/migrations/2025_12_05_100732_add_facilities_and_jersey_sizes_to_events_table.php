@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::table('events', function (Blueprint $table) {
             // Fasilitas event (JSON untuk checklist dan deskripsi)
-            if (!Schema::hasColumn('events', 'facilities')) {
+            if (! Schema::hasColumn('events', 'facilities')) {
                 $table->json('facilities')->nullable()->after('promo_code');
             }
-            
+
             // Ukuran jersey yang tersedia (JSON array)
-            if (!Schema::hasColumn('events', 'jersey_sizes')) {
+            if (! Schema::hasColumn('events', 'jersey_sizes')) {
                 $table->json('jersey_sizes')->nullable()->after('facilities');
             }
         });

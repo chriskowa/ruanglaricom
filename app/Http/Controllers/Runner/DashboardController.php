@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Runner;
 
 use App\Http\Controllers\Controller;
+use App\Models\CustomWorkout;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
-use App\Models\CustomWorkout;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -15,7 +14,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $user->load('wallet');
-        
+
         $activeEnrollments = ProgramEnrollment::where('runner_id', $user->id)
             ->where('status', 'active')
             ->with('program')
@@ -37,15 +36,21 @@ class DashboardController extends Controller
 
         foreach ($activeEnrollments as $enrollment) {
             $program = $enrollment->program;
-            if (!$program || !$enrollment->start_date) continue;
+            if (! $program || ! $enrollment->start_date) {
+                continue;
+            }
             $sessions = $program->program_json['sessions'] ?? [];
-            if (!is_array($sessions) || empty($sessions)) continue;
+            if (! is_array($sessions) || empty($sessions)) {
+                continue;
+            }
 
             $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get()->keyBy('session_day');
 
             foreach ($sessions as $session) {
-                $day = (int)($session['day'] ?? 0);
-                if ($day <= 0) continue;
+                $day = (int) ($session['day'] ?? 0);
+                if ($day <= 0) {
+                    continue;
+                }
 
                 try {
                     $sessionDate = $enrollment->start_date->copy()->addDays($day - 1);
@@ -57,9 +62,11 @@ class DashboardController extends Controller
                     $sessionDate = $trackings[$day]->rescheduled_date;
                 }
 
-                if ($sessionDate->lt($startOfWeek) || $sessionDate->gt($endOfWeek)) continue;
+                if ($sessionDate->lt($startOfWeek) || $sessionDate->gt($endOfWeek)) {
+                    continue;
+                }
 
-                $weeklyVolumeKm += (float)($session['distance'] ?? 0);
+                $weeklyVolumeKm += (float) ($session['distance'] ?? 0);
             }
         }
 
@@ -68,7 +75,7 @@ class DashboardController extends Controller
             ->whereBetween('workout_date', [$startOfWeek, $endOfWeek])
             ->get();
         foreach ($customWorkouts as $cw) {
-            $weeklyVolumeKm += (float)($cw->distance ?? 0);
+            $weeklyVolumeKm += (float) ($cw->distance ?? 0);
         }
 
         return view('runner.dashboard', [

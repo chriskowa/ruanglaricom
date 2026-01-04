@@ -14,6 +14,7 @@ class CustomWorkout extends Model
         'distance',
         'duration',
         'description',
+        'notes',
         'workout_structure',
         'difficulty',
         'status',

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessPaidEventTransaction;
 use App\Models\Transaction;
 use App\Services\MidtransService;
-use App\Jobs\ProcessPaidEventTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -29,11 +29,11 @@ class EventTransactionWebhookController extends Controller
         // Find transaction by order ID
         $transaction = Transaction::where('midtrans_order_id', $orderId)->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             Log::warning('Event transaction webhook: Transaction not found', [
                 'order_id' => $orderId,
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Transaction not found',
@@ -45,7 +45,7 @@ class EventTransactionWebhookController extends Controller
             if ($fraudStatus == 'accept') {
                 // Transaction is successful
                 $transaction->markAsPaid($orderId, $transactionStatus);
-                
+
                 // Dispatch job to process payment
                 ProcessPaidEventTransaction::dispatch($transaction);
 
@@ -65,15 +65,15 @@ class EventTransactionWebhookController extends Controller
                 'success' => true,
                 'message' => 'Transaction pending',
             ]);
-        } elseif ($transactionStatus == 'deny' || 
-                  $transactionStatus == 'expire' || 
+        } elseif ($transactionStatus == 'deny' ||
+                  $transactionStatus == 'expire' ||
                   $transactionStatus == 'cancel') {
             // Transaction failed
             $transaction->markAsFailed($orderId, $transactionStatus);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Transaction ' . $transactionStatus,
+                'message' => 'Transaction '.$transactionStatus,
             ]);
         }
 
@@ -83,12 +83,3 @@ class EventTransactionWebhookController extends Controller
         ]);
     }
 }
-
-
-
-
-
-
-
-
-

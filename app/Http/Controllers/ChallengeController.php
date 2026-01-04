@@ -6,7 +6,6 @@ use App\Models\ChallengeActivity;
 use App\Models\LeaderboardStat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class ChallengeController extends Controller
 {
@@ -36,10 +35,10 @@ class ChallengeController extends Controller
         $runners = $query->get();
 
         // Prepare data for Vue to avoid complex Blade logic
-        $runnersJson = $runners->map(function($stat) {
+        $runnersJson = $runners->map(function ($stat) {
             $user = $stat->user;
-            $avatar = $user && $user->avatar 
-                ? (str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . $user->avatar)) 
+            $avatar = $user && $user->avatar
+                ? (str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/'.$user->avatar))
                 : 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'Runner');
 
             return [
@@ -53,7 +52,7 @@ class ChallengeController extends Controller
                 'old_pb' => $stat->old_pb,
                 'new_pb' => $stat->new_pb,
                 'gap' => $stat->gap,
-                'pace' => $stat->pace ?? '0:00'
+                'pace' => $stat->pace ?? '0:00',
             ];
         });
 
@@ -66,7 +65,7 @@ class ChallengeController extends Controller
         $activities = ChallengeActivity::where('user_id', Auth::id())
             ->orderBy('date', 'desc')
             ->get();
-            
+
         return view('challenge.submit', compact('activities'));
     }
 
@@ -79,7 +78,7 @@ class ChallengeController extends Controller
             'duration_minutes' => 'required|integer|min:0|max:59',
             'duration_seconds' => 'required|integer|min:0|max:59',
             'image' => 'required|image|max:5120', // 5MB max
-            'strava_link' => 'nullable|url'
+            'strava_link' => 'nullable|url',
         ]);
 
         $user = Auth::user();
@@ -93,7 +92,7 @@ class ChallengeController extends Controller
         if ($existing) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda sudah menyetor aktivitas untuk tanggal ini! Mohon tunggu persetujuan atau setor untuk tanggal lain.'
+                'message' => 'Anda sudah menyetor aktivitas untuk tanggal ini! Mohon tunggu persetujuan atau setor untuk tanggal lain.',
             ], 422);
         }
 
@@ -103,7 +102,7 @@ class ChallengeController extends Controller
         if ($totalSeconds <= 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Durasi tidak boleh 0!'
+                'message' => 'Durasi tidak boleh 0!',
             ], 422);
         }
 
@@ -118,24 +117,25 @@ class ChallengeController extends Controller
             'duration_seconds' => $totalSeconds,
             'image_path' => $imagePath,
             'strava_link' => $request->strava_link,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         return response()->json([
-            'success' => true, 
-            'message' => "Lari berhasil disetor dan menunggu persetujuan admin!",
-            'is_pb' => false
+            'success' => true,
+            'message' => 'Lari berhasil disetor dan menunggu persetujuan admin!',
+            'is_pb' => false,
         ]);
     }
 
-    private function comparePace($pace1, $pace2) {
+    private function comparePace($pace1, $pace2)
+    {
         // Returns -1 if pace1 < pace2 (faster), 0 if equal, 1 if pace1 > pace2 (slower)
-        list($m1, $s1) = explode(':', $pace1);
-        list($m2, $s2) = explode(':', $pace2);
-        
+        [$m1, $s1] = explode(':', $pace1);
+        [$m2, $s2] = explode(':', $pace2);
+
         $sec1 = $m1 * 60 + $s1;
         $sec2 = $m2 * 60 + $s2;
-        
+
         return $sec1 <=> $sec2;
     }
 }

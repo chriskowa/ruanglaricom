@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\City;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -12,7 +12,7 @@ class UserController extends Controller
     {
         // Get role from route parameter or query string
         $role = $request->route('role') ?? $request->query('role');
-        
+
         $query = User::query();
 
         // Filter by role
@@ -25,9 +25,9 @@ class UserController extends Controller
 
         // Search by name or email
         if ($request->has('q') && $request->q) {
-            $query->where(function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->q . '%')
-                  ->orWhere('email', 'like', '%' . $request->q . '%');
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->q.'%')
+                    ->orWhere('email', 'like', '%'.$request->q.'%');
             });
         }
 
@@ -49,7 +49,7 @@ class UserController extends Controller
 
         $users = $query->with('city.province', 'wallet')
             ->withCount('programs')
-            ->when($role === 'coach', function($q) {
+            ->when($role === 'coach', function ($q) {
                 $q->with('programs');
             })
             ->paginate(12);

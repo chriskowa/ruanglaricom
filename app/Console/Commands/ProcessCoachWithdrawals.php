@@ -34,6 +34,7 @@ class ProcessCoachWithdrawals extends Command
 
         if ($withdrawals->isEmpty()) {
             $this->info('No pending withdrawals found.');
+
             return 0;
         }
 
@@ -61,7 +62,7 @@ class ProcessCoachWithdrawals extends Command
                     'processed_at' => now(),
                 ]);
 
-                $this->info("Processed withdrawal #{$withdrawal->id} - Rp " . number_format($withdrawal->amount, 0, ',', '.'));
+                $this->info("Processed withdrawal #{$withdrawal->id} - Rp ".number_format($withdrawal->amount, 0, ',', '.'));
                 $processed++;
 
             } catch (\Exception $e) {

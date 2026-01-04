@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignId('marketplace_category_id')->constrained('marketplace_categories')->onDelete('cascade');
             $table->foreignId('marketplace_brand_id')->constrained('marketplace_brands')->onDelete('cascade');
             $table->timestamps();
-            
+
             // Ensure unique pairs
             $table->unique(['marketplace_category_id', 'marketplace_brand_id'], 'cat_brand_unique');
         });

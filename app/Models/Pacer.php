@@ -12,7 +12,7 @@ class Pacer extends Model
 
     protected $fillable = [
         'user_id', 'seo_slug', 'nickname', 'category', 'pace', 'image_url',
-        'whatsapp', 'verified', 'total_races', 'bio', 'stats', 'tags', 'race_portfolio'
+        'whatsapp', 'verified', 'total_races', 'bio', 'stats', 'tags', 'race_portfolio',
     ];
 
     protected $casts = [

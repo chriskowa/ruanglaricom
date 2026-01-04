@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Transaction;
 use App\Models\Wallet;
-use App\Models\WalletTransaction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -83,7 +82,7 @@ class ProcessPaidEventTransaction implements ShouldQueue
 
         foreach ($participants as $participant) {
             $bibNumber = sprintf('%s-%s-%04d', $eventCode, $year, $baseNumber);
-            
+
             // Ensure unique BIB number
             while (\App\Models\Participant::where('bib_number', $bibNumber)->exists()) {
                 $baseNumber++;
@@ -101,15 +100,16 @@ class ProcessPaidEventTransaction implements ShouldQueue
     protected function depositToEOWallet(): void
     {
         $organizer = $this->transaction->event->user;
-        
-        if (!$organizer) {
+
+        if (! $organizer) {
             Log::warning('ProcessPaidEventTransaction: Event has no organizer', [
                 'transaction_id' => $this->transaction->id,
                 'event_id' => $this->transaction->event_id,
             ]);
+
             return;
         }
-        
+
         // Get or create wallet for organizer
         $wallet = Wallet::firstOrCreate(
             ['user_id' => $organizer->id],
@@ -127,7 +127,7 @@ class ProcessPaidEventTransaction implements ShouldQueue
             'balance_before' => $balanceBefore,
             'balance_after' => $balanceAfter,
             'status' => 'completed',
-            'description' => 'Pembayaran event: ' . $this->transaction->event->name,
+            'description' => 'Pembayaran event: '.$this->transaction->event->name,
             'reference_id' => $this->transaction->id,
             'reference_type' => Transaction::class,
             'metadata' => [

@@ -25,9 +25,9 @@ class PublicEventController extends Controller
         // Filters
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(function($q) use ($s){
-                $q->where('name','like',"%{$s}%")
-                  ->orWhere('location_name','like',"%{$s}%");
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('location_name', 'like', "%{$s}%");
             });
         }
 
@@ -40,26 +40,27 @@ class PublicEventController extends Controller
         }
 
         // Load categories for distance chips
-        $query->with(['categories' => function($q){
+        $query->with(['categories' => function ($q) {
             $q->where('is_active', true);
         }]);
 
         $events = $query->orderByRaw('COALESCE(start_at, created_at) ASC')->paginate(12);
 
         // Distinct filters
-        $months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         $locations = Event::select('location_name')->whereNotNull('location_name')->distinct()->pluck('location_name');
-        $distances = ['5K','10K','HM','FM','Ultra'];
+        $distances = ['5K', '10K', 'HM', 'FM', 'Ultra'];
 
-        return view('events.index', compact('events','months','locations','distances'));
+        return view('events.index', compact('events', 'months', 'locations', 'distances'));
     }
 
     private function mapMonthNameToNumber(string $name): int
     {
         $map = [
-            'Januari'=>1,'Februari'=>2,'Maret'=>3,'April'=>4,'Mei'=>5,'Juni'=>6,
-            'Juli'=>7,'Agustus'=>8,'September'=>9,'Oktober'=>10,'November'=>11,'Desember'=>12
+            'Januari' => 1, 'Februari' => 2, 'Maret' => 3, 'April' => 4, 'Mei' => 5, 'Juni' => 6,
+            'Juli' => 7, 'Agustus' => 8, 'September' => 9, 'Oktober' => 10, 'November' => 11, 'Desember' => 12,
         ];
+
         return $map[$name] ?? date('n');
     }
 
@@ -73,13 +74,13 @@ class PublicEventController extends Controller
 
         if ($cached) {
             $event = Event::find($cached['event']['id']);
-            if (!$event) {
+            if (! $event) {
                 abort(404);
             }
-            
+
             // Load categories if not in cache
             $categories = $event->categories()->where('is_active', true)->get();
-            
+
             return view('events.show', [
                 'event' => $event,
                 'categories' => $categories,
@@ -103,4 +104,3 @@ class PublicEventController extends Controller
         ]);
     }
 }
-

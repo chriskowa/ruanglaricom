@@ -13,14 +13,14 @@ class AdminUserSeeder extends Seeder
     {
         // Check if admin already exists
         $admin = User::where('email', 'admin@ruanglari.com')->first();
-        
-        if (!$admin) {
+
+        if (! $admin) {
             $admin = User::create([
                 'name' => 'Administrator',
                 'email' => 'admin@ruanglari.com',
                 'password' => Hash::make('admin123'),
                 'role' => 'admin',
-                'referral_code' => 'ADMIN' . strtoupper(substr(md5(uniqid()), 0, 4)),
+                'referral_code' => 'ADMIN'.strtoupper(substr(md5(uniqid()), 0, 4)),
             ]);
 
             // Create wallet for admin

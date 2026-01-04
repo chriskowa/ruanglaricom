@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class MasterWorkout extends Model
 {
@@ -40,8 +40,8 @@ class MasterWorkout extends Model
     {
         return $query->where(function ($q) use ($user) {
             $q->whereNull('coach_id') // System workouts
-              ->orWhere('is_public', true) // Public workouts
-              ->orWhere('coach_id', $user->id); // Own workouts
+                ->orWhere('is_public', true) // Public workouts
+                ->orWhere('coach_id', $user->id); // Own workouts
         });
     }
 }

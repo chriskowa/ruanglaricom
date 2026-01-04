@@ -2,8 +2,8 @@
 
 namespace App\Models\Marketplace;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 
 class MarketplaceOrder extends Model
 {

@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Marketplace;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Marketplace\MarketplaceProduct;
-use App\Models\Marketplace\MarketplaceOrder;
 use App\Models\AppSettings;
+use App\Models\Marketplace\MarketplaceOrder;
+use App\Models\Marketplace\MarketplaceProduct;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Midtrans\Snap;
 use Midtrans\Config;
+use Midtrans\Snap;
 
 class CheckoutController extends Controller
 {
@@ -25,14 +25,14 @@ class CheckoutController extends Controller
     public function init(Request $request)
     {
         $request->validate(['product_id' => 'required|exists:marketplace_products,id']);
-        
+
         $product = MarketplaceProduct::findOrFail($request->product_id);
-        
-        if($product->stock < 1) {
+
+        if ($product->stock < 1) {
             return back()->with('error', 'Product is out of stock.');
         }
 
-        if($product->user_id == Auth::id()) {
+        if ($product->user_id == Auth::id()) {
             return back()->with('error', 'You cannot buy your own product.');
         }
 
@@ -43,7 +43,7 @@ class CheckoutController extends Controller
 
         // Create Order
         $order = MarketplaceOrder::create([
-            'invoice_number' => 'INV-RL-' . strtoupper(Str::random(10)),
+            'invoice_number' => 'INV-RL-'.strtoupper(Str::random(10)),
             'buyer_id' => Auth::id(),
             'seller_id' => $product->user_id,
             'total_amount' => $product->price,
@@ -76,24 +76,28 @@ class CheckoutController extends Controller
                     'price' => (int) $product->price,
                     'quantity' => 1,
                     'name' => substr($product->title, 0, 50),
-                ]
-            ]
+                ],
+            ],
         ];
 
         try {
             $snapToken = Snap::getSnapToken($params);
             $order->update(['snap_token' => $snapToken]);
-            
+
             return redirect()->route('marketplace.checkout.pay', $order->id);
         } catch (\Exception $e) {
-            return back()->with('error', 'Payment gateway error: ' . $e->getMessage());
+            return back()->with('error', 'Payment gateway error: '.$e->getMessage());
         }
     }
 
     public function pay(MarketplaceOrder $order)
     {
-        if($order->buyer_id !== Auth::id()) abort(403);
-        if($order->status !== 'pending') return redirect()->route('marketplace.index')->with('info', 'Order already processed.');
+        if ($order->buyer_id !== Auth::id()) {
+            abort(403);
+        }
+        if ($order->status !== 'pending') {
+            return redirect()->route('marketplace.index')->with('info', 'Order already processed.');
+        }
 
         return view('marketplace.checkout.pay', compact('order'));
     }

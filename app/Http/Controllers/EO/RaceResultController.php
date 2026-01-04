@@ -5,11 +5,8 @@ namespace App\Http\Controllers\EO;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\RaceResult;
-use App\Models\RaceCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class RaceResultController extends Controller
 {
@@ -178,23 +175,24 @@ class RaceResultController extends Controller
 
         $file = $request->file('csv_file');
         $path = $file->getRealPath();
-        
+
         $data = array_map('str_getcsv', file($path));
-        
+
         // Skip header row
         $header = array_shift($data);
-        
+
         // Expected CSV format: BIB, Name, Gender, Category, Gun Time, Chip Time, Pace, Nationality
         $errors = [];
         $successCount = 0;
-        
+
         DB::beginTransaction();
         try {
             foreach ($data as $index => $row) {
                 $rowNumber = $index + 2; // +2 karena header dan 0-indexed
-                
+
                 if (count($row) < 6) {
                     $errors[] = "Baris {$rowNumber}: Format tidak valid (minimal 6 kolom)";
+
                     continue;
                 }
 
@@ -210,11 +208,13 @@ class RaceResultController extends Controller
 
                 if (empty($bibNumber) || empty($runnerName) || empty($chipTime)) {
                     $errors[] = "Baris {$rowNumber}: BIB, Nama, dan Chip Time wajib diisi";
+
                     continue;
                 }
 
-                if (!in_array($gender, ['M', 'F'])) {
+                if (! in_array($gender, ['M', 'F'])) {
                     $errors[] = "Baris {$rowNumber}: Gender harus M atau F";
+
                     continue;
                 }
 
@@ -254,9 +254,10 @@ class RaceResultController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage(),
+                'message' => 'Error: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -344,6 +345,3 @@ class RaceResultController extends Controller
         return null;
     }
 }
-
-
-

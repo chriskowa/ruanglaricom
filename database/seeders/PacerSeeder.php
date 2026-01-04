@@ -12,13 +12,15 @@ class PacerSeeder extends Seeder
     public function run(): void
     {
         $users = User::take(6)->get();
-        if ($users->isEmpty()) return;
+        if ($users->isEmpty()) {
+            return;
+        }
 
         $categories = ['HM (21K)', 'FM (42K)', '10K'];
-        $paces = ['04:15','05:00','05:30','06:00','03:55','07:00'];
+        $paces = ['04:15', '05:00', '05:30', '06:00', '03:55', '07:00'];
 
         foreach ($users as $i => $user) {
-            $nickname = ['The Rocket','Diesel Engine','Pace Master','Cruiser','Speedster','Consistent'][$i % 6];
+            $nickname = ['The Rocket', 'Diesel Engine', 'Pace Master', 'Cruiser', 'Speedster', 'Consistent'][$i % 6];
             $cat = $categories[$i % count($categories)];
             $pace = $paces[$i % count($paces)];
             $slugBase = $user->name.'-'.$nickname;
@@ -44,12 +46,11 @@ class PacerSeeder extends Seeder
                     'stats' => [
                         'pb5k' => '18:30',
                         'pb10k' => '38:45',
-                        'pbfm' => '3:05:00'
+                        'pbfm' => '3:05:00',
                     ],
-                    'tags' => ['NegativeSplit','Marathon','Coach']
+                    'tags' => ['NegativeSplit', 'Marathon', 'Coach'],
                 ]
             );
         }
     }
 }
-

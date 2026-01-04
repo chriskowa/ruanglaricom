@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Runner;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class RunnerRegistrationController extends Controller
 {

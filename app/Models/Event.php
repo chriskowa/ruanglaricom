@@ -94,9 +94,10 @@ class Event extends Model
      */
     public function getHeroImageUrl()
     {
-        if (!empty($this->attributes['hero_image'])) {
-            return asset('storage/' . $this->attributes['hero_image']);
+        if (! empty($this->attributes['hero_image'])) {
+            return asset('storage/'.$this->attributes['hero_image']);
         }
+
         // Fallback to hero_image_url if no uploaded image
         return $this->attributes['hero_image_url'] ?? null;
     }
@@ -107,8 +108,9 @@ class Event extends Model
     public function getLogoImageUrl()
     {
         if ($this->logo_image) {
-            return asset('storage/' . $this->logo_image);
+            return asset('storage/'.$this->logo_image);
         }
+
         return null;
     }
 
@@ -118,8 +120,9 @@ class Event extends Model
     public function getFloatingImageUrl()
     {
         if ($this->floating_image) {
-            return asset('storage/' . $this->floating_image);
+            return asset('storage/'.$this->floating_image);
         }
+
         return null;
     }
 
@@ -129,8 +132,9 @@ class Event extends Model
     public function getMedalImageUrl()
     {
         if ($this->medal_image) {
-            return asset('storage/' . $this->medal_image);
+            return asset('storage/'.$this->medal_image);
         }
+
         return null;
     }
 
@@ -140,8 +144,9 @@ class Event extends Model
     public function getJerseyImageUrl()
     {
         if ($this->jersey_image) {
-            return asset('storage/' . $this->jersey_image);
+            return asset('storage/'.$this->jersey_image);
         }
+
         return null;
     }
 
@@ -151,15 +156,15 @@ class Event extends Model
     public function isRegistrationOpen(): bool
     {
         $now = now();
-        
+
         if ($this->registration_open_at && $now < $this->registration_open_at) {
             return false;
         }
-        
+
         if ($this->registration_close_at && $now > $this->registration_close_at) {
             return false;
         }
-        
+
         return true;
     }
 }

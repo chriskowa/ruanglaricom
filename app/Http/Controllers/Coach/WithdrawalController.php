@@ -74,7 +74,8 @@ class WithdrawalController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Gagal membuat permintaan withdrawal: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal membuat permintaan withdrawal: '.$e->getMessage()]);
         }
     }
 }

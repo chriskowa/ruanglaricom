@@ -107,7 +107,7 @@ class Program extends Model
         }
 
         // Check if program is published
-        if (!$this->is_published || !$this->is_active) {
+        if (! $this->is_published || ! $this->is_active) {
             return false;
         }
 
@@ -119,11 +119,11 @@ class Program extends Model
      */
     public function getThumbnailUrlAttribute(): ?string
     {
-        if (!$this->thumbnail) {
+        if (! $this->thumbnail) {
             return null;
         }
 
-        return asset('storage/' . ltrim($this->thumbnail, '/'));
+        return asset('storage/'.ltrim($this->thumbnail, '/'));
     }
 
     /**
@@ -131,11 +131,11 @@ class Program extends Model
      */
     public function getBannerUrlAttribute(): ?string
     {
-        if (!$this->banner) {
+        if (! $this->banner) {
             return null;
         }
 
-        return asset('storage/' . ltrim($this->banner, '/'));
+        return asset('storage/'.ltrim($this->banner, '/'));
     }
 
     /**

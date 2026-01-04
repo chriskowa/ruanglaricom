@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('jersey_size')->nullable();
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->timestamps();
-            
+
             $table->index('transaction_id');
             $table->index('event_package_id');
             $table->index('bib_number');

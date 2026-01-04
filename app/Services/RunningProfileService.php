@@ -19,7 +19,9 @@ class RunningProfileService
 
         $bestVdot = null;
         foreach ($pbs as $dist => $time) {
-            if (!$time) continue;
+            if (! $time) {
+                continue;
+            }
             try {
                 $vdot = $daniels->calculateVDOT($time, $dist);
                 if ($bestVdot === null || $vdot > $bestVdot) {

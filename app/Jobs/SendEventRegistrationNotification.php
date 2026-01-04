@@ -38,18 +38,18 @@ class SendEventRegistrationNotification implements ShouldQueue
             $participants = $this->transaction->participants;
 
             // Send email to PIC
-            if (!empty($picData['email'])) {
+            if (! empty($picData['email'])) {
                 $this->sendEmailNotification($picData['email'], $event, $participants);
             }
 
             // Send WhatsApp notification to PIC (if phone number available)
-            if (!empty($picData['phone'])) {
+            if (! empty($picData['phone'])) {
                 $this->sendWhatsAppNotification($picData['phone'], $event, $participants);
             }
 
             // Send email to each participant
             foreach ($participants as $participant) {
-                if (!empty($participant->email) && $participant->email !== $picData['email']) {
+                if (! empty($participant->email) && $participant->email !== $picData['email']) {
                     $this->sendEmailNotification($participant->email, $event, collect([$participant]));
                 }
             }
@@ -82,7 +82,7 @@ class SendEventRegistrationNotification implements ShouldQueue
 
             Mail::raw($message, function ($mail) use ($email, $subject) {
                 $mail->to($email)
-                     ->subject($subject);
+                    ->subject($subject);
             });
 
         } catch (\Exception $e) {
@@ -103,11 +103,11 @@ class SendEventRegistrationNotification implements ShouldQueue
         try {
             // Format phone number (remove +, spaces, etc.)
             $phone = preg_replace('/[^0-9]/', '', $phone);
-            
+
             // For now, just log. You can integrate with WhatsApp API later
             // Example: Twilio, WhatsApp Business API, etc.
             $message = $this->buildWhatsAppMessage($event, $participants);
-            
+
             Log::info('WhatsApp notification prepared', [
                 'phone' => $phone,
                 'transaction_id' => $this->transaction->id,
@@ -135,10 +135,10 @@ class SendEventRegistrationNotification implements ShouldQueue
         $message = "Terima kasih telah mendaftar di event {$event->name}!\n\n";
         $message .= "Detail Registrasi:\n";
         $message .= "Event: {$event->name}\n";
-        $message .= "Tanggal: " . ($event->start_at ? $event->start_at->format('d F Y H:i') : 'TBA') . "\n";
+        $message .= 'Tanggal: '.($event->start_at ? $event->start_at->format('d F Y H:i') : 'TBA')."\n";
         $message .= "Lokasi: {$event->location_name}\n";
-        $message .= "Total Pembayaran: Rp " . number_format($this->transaction->final_amount, 0, ',', '.') . "\n\n";
-        
+        $message .= 'Total Pembayaran: Rp '.number_format($this->transaction->final_amount, 0, ',', '.')."\n\n";
+
         $message .= "Peserta yang Terdaftar:\n";
         foreach ($participants as $participant) {
             $message .= "- {$participant->name}";
@@ -150,16 +150,16 @@ class SendEventRegistrationNotification implements ShouldQueue
             }
             $message .= "\n";
         }
-        
+
         $message .= "\n";
-        $message .= "Status Pembayaran: " . strtoupper($this->transaction->payment_status) . "\n";
-        
+        $message .= 'Status Pembayaran: '.strtoupper($this->transaction->payment_status)."\n";
+
         if ($this->transaction->payment_status === 'paid') {
             $message .= "\nPembayaran Anda telah dikonfirmasi. Silakan cek email untuk informasi lebih lanjut.\n";
         } else {
             $message .= "\nSilakan selesaikan pembayaran Anda untuk menyelesaikan registrasi.\n";
         }
-        
+
         $message .= "\nTerima kasih!";
 
         return $message;
@@ -172,12 +172,12 @@ class SendEventRegistrationNotification implements ShouldQueue
     {
         $message = "✅ *Registrasi Berhasil!*\n\n";
         $message .= "Event: *{$event->name}*\n";
-        $message .= "Tanggal: " . ($event->start_at ? $event->start_at->format('d F Y H:i') : 'TBA') . "\n";
+        $message .= 'Tanggal: '.($event->start_at ? $event->start_at->format('d F Y H:i') : 'TBA')."\n";
         $message .= "Lokasi: {$event->location_name}\n\n";
-        
-        $message .= "Total: Rp " . number_format($this->transaction->final_amount, 0, ',', '.') . "\n";
-        $message .= "Status: " . strtoupper($this->transaction->payment_status) . "\n\n";
-        
+
+        $message .= 'Total: Rp '.number_format($this->transaction->final_amount, 0, ',', '.')."\n";
+        $message .= 'Status: '.strtoupper($this->transaction->payment_status)."\n\n";
+
         if ($participants->count() > 0) {
             $message .= "Peserta:\n";
             foreach ($participants as $participant) {
@@ -191,7 +191,7 @@ class SendEventRegistrationNotification implements ShouldQueue
                 $message .= "\n";
             }
         }
-        
+
         $message .= "\nTerima kasih! 🏃‍♂️";
 
         return $message;

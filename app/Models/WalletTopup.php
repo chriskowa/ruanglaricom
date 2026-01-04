@@ -43,7 +43,7 @@ class WalletTopup extends Model
     /**
      * Mark topup as failed
      */
-    public function markAsFailed(string $midtransOrderId = null, string $transactionStatus = null): void
+    public function markAsFailed(?string $midtransOrderId = null, ?string $transactionStatus = null): void
     {
         $this->update([
             'status' => 'failed',

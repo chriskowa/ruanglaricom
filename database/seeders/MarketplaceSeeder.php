@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Marketplace\MarketplaceCategory;
 use App\Models\AppSettings;
+use App\Models\Marketplace\MarketplaceCategory;
+use Illuminate\Database\Seeder;
 
 class MarketplaceSeeder extends Seeder
 {

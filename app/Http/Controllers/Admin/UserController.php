@@ -55,7 +55,7 @@ class UserController extends Controller
             'active' => User::where('is_active', true)->count(),
         ];
 
-        $users = $query->with(['wallet', 'wallet.transactions' => function($q) {
+        $users = $query->with(['wallet', 'wallet.transactions' => function ($q) {
             $q->latest()->limit(5);
         }])->latest()->paginate(10)->withQueryString();
         $programs = Program::select('id', 'title')->where('is_active', true)->get();
@@ -94,7 +94,7 @@ class UserController extends Controller
         ]);
 
         // Enroll in Program if selected
-        if (!empty($validated['program_id']) && $validated['role'] === 'runner') {
+        if (! empty($validated['program_id']) && $validated['role'] === 'runner') {
             ProgramEnrollment::create([
                 'program_id' => $validated['program_id'],
                 'runner_id' => $user->id,
@@ -126,7 +126,7 @@ class UserController extends Controller
         ]);
 
         $balanceBefore = $wallet->balance;
-        
+
         if ($validated['type'] === 'deposit') {
             $wallet->increment('balance', $validated['amount']);
         } else {
@@ -146,13 +146,12 @@ class UserController extends Controller
             'balance_before' => $balanceBefore,
             'balance_after' => $balanceAfter,
             'status' => 'completed',
-            'description' => $validated['description'] . ' (Admin Adjustment)',
+            'description' => $validated['description'].' (Admin Adjustment)',
             'processed_at' => now(),
         ]);
 
         return back()->with('success', 'Wallet balance updated successfully.');
     }
-
 
     /**
      * Display the specified user.
@@ -180,13 +179,13 @@ class UserController extends Controller
             'date_of_birth' => 'nullable|date',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
-            
+
             // PBs
             'pb_5k' => 'nullable|string', // Assuming time string or simple text
             'pb_10k' => 'nullable|string',
             'pb_hm' => 'nullable|string',
             'pb_fm' => 'nullable|string',
-            
+
             // Socials
             'strava_url' => 'nullable|url',
             'instagram_url' => 'nullable|url',
@@ -206,7 +205,7 @@ class UserController extends Controller
         // Handle File Uploads
         if ($request->hasFile('avatar')) {
             // Delete old avatar if exists and not default
-            if ($user->avatar && Storage::exists('public/' . $user->avatar)) {
+            if ($user->avatar && Storage::exists('public/'.$user->avatar)) {
                 // Storage::delete('public/' . $user->avatar); // Optional: keep history or delete
             }
             $path = $request->file('avatar')->store('avatars', 'public');
@@ -214,7 +213,7 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('banner')) {
-             if ($user->banner && Storage::exists('public/' . $user->banner)) {
+            if ($user->banner && Storage::exists('public/'.$user->banner)) {
                 // Storage::delete('public/' . $user->banner);
             }
             $path = $request->file('banner')->store('banners', 'public');
@@ -229,21 +228,21 @@ class UserController extends Controller
         }
 
         // Handle boolean checkbox for is_active if not sent (html checkbox behavior)
-        if (!$request->has('is_active')) {
-             // If checkbox is unchecked, it sends nothing. 
-             // But usually we want to explicit set it. 
-             // If we use a hidden input before checkbox, we get 0.
-             // Let's assume the form handles this or we default to existing if not present?
-             // Actually, 'boolean' validation handles "on", "1", true.
-             // If missing, we might not want to update it OR assume false.
-             // For safety, let's only update if present in request or use default behavior.
-             // If the form sends '0' for unchecked, it's fine.
-             // If strictly API, missing means no change? 
-             // Let's rely on $request->all() containing it or not.
-             // A common pattern is $request->merge(['is_active' => $request->has('is_active')]);
-             // But wait, validation runs before.
+        if (! $request->has('is_active')) {
+            // If checkbox is unchecked, it sends nothing.
+            // But usually we want to explicit set it.
+            // If we use a hidden input before checkbox, we get 0.
+            // Let's assume the form handles this or we default to existing if not present?
+            // Actually, 'boolean' validation handles "on", "1", true.
+            // If missing, we might not want to update it OR assume false.
+            // For safety, let's only update if present in request or use default behavior.
+            // If the form sends '0' for unchecked, it's fine.
+            // If strictly API, missing means no change?
+            // Let's rely on $request->all() containing it or not.
+            // A common pattern is $request->merge(['is_active' => $request->has('is_active')]);
+            // But wait, validation runs before.
         }
-        
+
         // Fix is_active from checkbox (often "on" or missing)
         // If it's a checkbox in the form:
         $validated['is_active'] = $request->boolean('is_active');
@@ -275,10 +274,11 @@ class UserController extends Controller
             return back()->with('error', 'You cannot disable your own account.');
         }
 
-        $user->is_active = !$user->is_active;
+        $user->is_active = ! $user->is_active;
         $user->save();
 
         $status = $user->is_active ? 'activated' : 'deactivated';
+
         return back()->with('success', "User {$user->name} has been {$status}.");
     }
 

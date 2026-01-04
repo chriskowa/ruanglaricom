@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Post;
-use App\Models\PostLike;
-use App\Models\PostComment;
 use App\Models\Notification;
+use App\Models\Post;
+use App\Models\PostComment;
+use App\Models\PostLike;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class FeedController extends Controller
 {
@@ -57,7 +57,7 @@ class FeedController extends Controller
                 'user_id' => $follower->id,
                 'type' => 'post',
                 'title' => 'Post Baru',
-                'message' => Auth::user()->name . ' membuat post baru',
+                'message' => Auth::user()->name.' membuat post baru',
                 'reference_type' => 'Post',
                 'reference_id' => $post->id,
             ]);
@@ -82,7 +82,7 @@ class FeedController extends Controller
                     'user_id' => $post->user_id,
                     'type' => 'like',
                     'title' => 'Post Disukai',
-                    'message' => Auth::user()->name . ' menyukai post Anda',
+                    'message' => Auth::user()->name.' menyukai post Anda',
                     'reference_type' => 'Post',
                     'reference_id' => $post->id,
                 ]);
@@ -131,7 +131,7 @@ class FeedController extends Controller
                 'user_id' => $post->user_id,
                 'type' => 'comment',
                 'title' => 'Komentar Baru',
-                'message' => Auth::user()->name . ' mengomentari post Anda',
+                'message' => Auth::user()->name.' mengomentari post Anda',
                 'reference_type' => 'Post',
                 'reference_id' => $post->id,
             ]);
@@ -142,7 +142,7 @@ class FeedController extends Controller
 
     public function destroy(Post $post)
     {
-        if ($post->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+        if ($post->user_id !== Auth::id() && ! Auth::user()->isAdmin()) {
             abort(403);
         }
 
@@ -160,32 +160,32 @@ class FeedController extends Controller
 
     private function processImage($file, $folder = 'posts', $quality = 75)
     {
-        $manager = new ImageManager(new Driver());
-        
-        $filename = uniqid() . '_' . time() . '.webp';
-        $path = $folder . '/' . $filename;
-        
+        $manager = new ImageManager(new Driver);
+
+        $filename = uniqid().'_'.time().'.webp';
+        $path = $folder.'/'.$filename;
+
         // Process image: resize jika terlalu besar, compress, dan convert ke WebP
         $image = $manager->read($file);
-        
+
         // Resize jika dimensi lebih besar dari 1920px (untuk feed images)
         if ($image->width() > 1920) {
             $image->scale(width: 1920);
         }
-        
+
         // Convert ke WebP dengan quality 75% dan dapatkan encoded data
         $webpImage = $image->toWebp($quality);
-        
+
         // Pastikan directory ada
         $directory = Storage::disk('public')->path($folder);
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             Storage::disk('public')->makeDirectory($folder);
         }
-        
+
         // Simpan ke storage menggunakan save() method
         $fullPath = Storage::disk('public')->path($path);
         $webpImage->save($fullPath);
-        
+
         return $path;
     }
 }

@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Models\WalletTransaction;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ProgramPurchaseController extends Controller
@@ -26,7 +24,7 @@ class ProgramPurchaseController extends Controller
         }
 
         // Check if program can be purchased
-        if (!$program->canBePurchasedBy($user)) {
+        if (! $program->canBePurchasedBy($user)) {
             return back()->with('error', 'Program tidak dapat dibeli.');
         }
 
@@ -37,7 +35,7 @@ class ProgramPurchaseController extends Controller
 
         // Check wallet balance
         $wallet = $user->wallet;
-        if (!$wallet || $wallet->balance < $program->price) {
+        if (! $wallet || $wallet->balance < $program->price) {
             return back()->with('error', 'Saldo wallet tidak cukup. Silakan top-up terlebih dahulu.');
         }
 
@@ -66,7 +64,7 @@ class ProgramPurchaseController extends Controller
                 'balance_before' => $balanceBefore,
                 'balance_after' => $balanceAfter,
                 'status' => 'completed',
-                'description' => 'Pembelian program: ' . $program->title,
+                'description' => 'Pembelian program: '.$program->title,
                 'reference_id' => $enrollment->id,
                 'reference_type' => ProgramEnrollment::class,
                 'processed_at' => now(),
@@ -87,7 +85,8 @@ class ProgramPurchaseController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Terjadi kesalahan saat membeli program: ' . $e->getMessage());
+
+            return back()->with('error', 'Terjadi kesalahan saat membeli program: '.$e->getMessage());
         }
     }
 

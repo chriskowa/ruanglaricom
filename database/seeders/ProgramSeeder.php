@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\City;
 use App\Models\Program;
 use App\Models\User;
-use App\Models\City;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class ProgramSeeder extends Seeder
 {
@@ -19,6 +18,7 @@ class ProgramSeeder extends Seeder
         $coaches = User::where('role', 'coach')->get();
         if ($coaches->isEmpty()) {
             $this->command->warn('No coaches found. Please run UserSeeder first.');
+
             return;
         }
 

@@ -2,13 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\MasterWorkout;
-use App\Models\WorkoutVisibilityLog;
-use Illuminate\Support\Facades\Route;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class CustomWorkoutTest extends TestCase
 {
@@ -23,17 +20,17 @@ class CustomWorkoutTest extends TestCase
             'type' => 'interval',
             'description' => 'Hard intervals',
             'default_distance' => 5,
-            'is_public' => false
+            'is_public' => false,
         ]);
 
         $response->assertStatus(200)
-                 ->assertJsonPath('workout.title', 'My Custom Interval')
-                 ->assertJsonPath('workout.coach_id', $coach->id);
-        
+            ->assertJsonPath('workout.title', 'My Custom Interval')
+            ->assertJsonPath('workout.coach_id', $coach->id);
+
         $this->assertDatabaseHas('master_workouts', [
             'title' => 'My Custom Interval',
             'coach_id' => $coach->id,
-            'is_public' => false
+            'is_public' => false,
         ]);
     }
 
@@ -44,7 +41,7 @@ class CustomWorkoutTest extends TestCase
         $response = $this->actingAs($coach)->postJson(route('coach.custom-workouts.store'), [
             'title' => 'Public Workout',
             'type' => 'easy_run',
-            'is_public' => true
+            'is_public' => true,
         ]);
 
         $response->assertStatus(200);
@@ -55,7 +52,7 @@ class CustomWorkoutTest extends TestCase
             'master_workout_id' => $workout->id,
             'user_id' => $coach->id,
             'old_visibility' => false,
-            'new_visibility' => true
+            'new_visibility' => true,
         ]);
     }
 
@@ -68,7 +65,7 @@ class CustomWorkoutTest extends TestCase
             'title' => 'Private Workout',
             'type' => 'easy_run',
             'coach_id' => $creator->id,
-            'is_public' => false
+            'is_public' => false,
         ]);
 
         // Creator should see it
@@ -87,7 +84,7 @@ class CustomWorkoutTest extends TestCase
             'title' => 'Public Workout',
             'type' => 'easy_run',
             'coach_id' => $creator->id,
-            'is_public' => true
+            'is_public' => true,
         ]);
 
         // Creator should see it
@@ -105,16 +102,16 @@ class CustomWorkoutTest extends TestCase
         $response = $this->actingAs($coach)->postJson(route('coach.custom-workouts.store'), [
             'title' => 'My Workout',
             'type' => 'easy_run',
-            'is_public' => false
+            'is_public' => false,
         ]);
-        
+
         $workout = MasterWorkout::where('title', 'My Workout')->first();
 
         // Update to public
         $response = $this->actingAs($coach)->putJson(route('coach.custom-workouts.update', $workout), [
             'title' => 'My Workout',
             'type' => 'easy_run',
-            'is_public' => true
+            'is_public' => true,
         ]);
 
         $response->assertStatus(200);
@@ -122,7 +119,7 @@ class CustomWorkoutTest extends TestCase
         $this->assertDatabaseHas('workout_visibility_logs', [
             'master_workout_id' => $workout->id,
             'old_visibility' => false,
-            'new_visibility' => true
+            'new_visibility' => true,
         ]);
     }
 }

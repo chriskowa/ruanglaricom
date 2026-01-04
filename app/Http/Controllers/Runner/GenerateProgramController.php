@@ -7,10 +7,8 @@ use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Services\DanielsRunningService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 
 class GenerateProgramController extends Controller
 {
@@ -38,7 +36,7 @@ class GenerateProgramController extends Controller
         $user = auth()->user();
         $vdot = $user->vdot;
 
-        if (!$vdot) {
+        if (! $vdot) {
             return response()->json([
                 'success' => false,
                 'message' => 'Silakan update Personal Best (PB) Anda terlebih dahulu untuk menghitung VDOT.',
@@ -58,8 +56,8 @@ class GenerateProgramController extends Controller
             // Create program
             $program = Program::create([
                 'coach_id' => $user->id,
-                'title' => 'Program VDOT: ' . strtoupper($validated['goal_distance']) . ' (' . $programData['duration_weeks'] . ' Weeks)',
-                'slug' => 'vdot-' . strtolower($validated['goal_distance']) . '-' . Str::random(8),
+                'title' => 'Program VDOT: '.strtoupper($validated['goal_distance']).' ('.$programData['duration_weeks'].' Weeks)',
+                'slug' => 'vdot-'.strtolower($validated['goal_distance']).'-'.Str::random(8),
                 'description' => $this->generateDescription($validated, $programData),
                 'difficulty' => $this->determineDifficulty($validated['weekly_mileage']),
                 'distance_target' => $validated['goal_distance'],
@@ -107,9 +105,10 @@ class GenerateProgramController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal generate program: ' . $e->getMessage(),
+                'message' => 'Gagal generate program: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -120,17 +119,17 @@ class GenerateProgramController extends Controller
     private function generateDescription(array $params, array $programData): string
     {
         $description = "Program latihan yang di-generate menggunakan Daniels' Running Formula.\n\n";
-        $description .= "VDOT Score: " . ($programData['vdot'] ?? '-') . "\n";
+        $description .= 'VDOT Score: '.($programData['vdot'] ?? '-')."\n";
         $description .= "Training Paces:\n";
         if (isset($programData['training_paces'])) {
-            $description .= "- Easy (E): " . $this->formatPace($programData['training_paces']['E']) . "/km\n";
-            $description .= "- Threshold (T): " . $this->formatPace($programData['training_paces']['T']) . "/km\n";
-            $description .= "- Interval (I): " . $this->formatPace($programData['training_paces']['I']) . "/km\n";
+            $description .= '- Easy (E): '.$this->formatPace($programData['training_paces']['E'])."/km\n";
+            $description .= '- Threshold (T): '.$this->formatPace($programData['training_paces']['T'])."/km\n";
+            $description .= '- Interval (I): '.$this->formatPace($programData['training_paces']['I'])."/km\n";
         }
-        
+
         $durationWeeks = $programData['duration_weeks'] ?? 8;
-        $description .= "\nTarget: " . strtoupper($params['goal_distance']) . " (" . $durationWeeks . " Weeks)";
-        
+        $description .= "\nTarget: ".strtoupper($params['goal_distance']).' ('.$durationWeeks.' Weeks)';
+
         return $description;
     }
 
@@ -141,6 +140,7 @@ class GenerateProgramController extends Controller
     {
         $minutes = floor($minutesPerKm);
         $seconds = round(($minutesPerKm - $minutes) * 60);
+
         return sprintf('%d:%02d', $minutes, $seconds);
     }
 

@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
-use App\Models\Coupon;
-use App\Services\EventCacheService;
 use App\Actions\Events\StoreRegistrationAction;
+use App\Models\Coupon;
+use App\Models\Event;
+use App\Services\EventCacheService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class EventRegistrationController extends Controller
 {
     protected $cacheService;
+
     protected $storeAction;
 
     public function __construct(EventCacheService $cacheService, StoreRegistrationAction $storeAction)
@@ -44,14 +44,14 @@ class EventRegistrationController extends Controller
             ->where('event_id', $validated['event_id'])
             ->first();
 
-        if (!$coupon) {
+        if (! $coupon) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kode kupon tidak ditemukan',
             ], 404);
         }
 
-        if (!$coupon->canBeUsed()) {
+        if (! $coupon->canBeUsed()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kupon tidak valid atau sudah tidak dapat digunakan',
@@ -90,13 +90,13 @@ class EventRegistrationController extends Controller
             if ($category) {
                 // Count registered participants
                 $registeredCount = \App\Models\Participant::where('race_category_id', $categoryId)
-                    ->whereHas('transaction', function($query) {
+                    ->whereHas('transaction', function ($query) {
                         $query->whereIn('payment_status', ['pending', 'paid']);
                     })
                     ->count();
-                
+
                 $remainingQuota = $category->quota ? ($category->quota - $registeredCount) : 999999;
-                
+
                 $quotas[$categoryId] = [
                     'remaining_quota' => max(0, $remainingQuota),
                     'is_sold_out' => $category->quota && $remainingQuota <= 0,
@@ -116,10 +116,10 @@ class EventRegistrationController extends Controller
     public function store(Request $request, $slug)
     {
         $event = Event::where('slug', $slug)->firstOrFail();
-        
+
         try {
             $transaction = $this->storeAction->execute($request, $event);
-            
+
             // If AJAX request, return JSON
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -129,7 +129,7 @@ class EventRegistrationController extends Controller
                     'testing_mode' => config('midtrans.testing_mode', false),
                 ]);
             }
-            
+
             // Redirect back with success message and snap token
             return redirect()->route('events.show', $slug)
                 ->with('success', 'Registrasi berhasil!')
@@ -143,7 +143,7 @@ class EventRegistrationController extends Controller
                     'message' => $e->getMessage(),
                 ], 400);
             }
-            
+
             return redirect()->route('events.show', $slug)
                 ->withErrors(['error' => $e->getMessage()])
                 ->withInput();

@@ -56,7 +56,7 @@ class Transaction extends Model
     /**
      * Mark transaction as paid
      */
-    public function markAsPaid(string $midtransOrderId = null, string $transactionStatus = null): void
+    public function markAsPaid(?string $midtransOrderId = null, ?string $transactionStatus = null): void
     {
         $this->update([
             'payment_status' => 'paid',
@@ -69,7 +69,7 @@ class Transaction extends Model
     /**
      * Mark transaction as failed
      */
-    public function markAsFailed(string $midtransOrderId = null, string $transactionStatus = null): void
+    public function markAsFailed(?string $midtransOrderId = null, ?string $transactionStatus = null): void
     {
         $this->update([
             'payment_status' => 'failed',

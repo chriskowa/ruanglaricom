@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\EO;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -11,7 +10,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $user->load('wallet');
-        
+
         // Calculate total earnings from event ticket sales
         $totalEarnings = 0;
         if ($user->wallet) {

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\EO;
 
 use App\Http\Controllers\Controller;
-use App\Models\Event;
 use App\Models\Coupon;
+use App\Models\Event;
 use Illuminate\Http\Request;
 
 class CouponController extends Controller
@@ -22,7 +22,7 @@ class CouponController extends Controller
         ]);
 
         $validated['event_id'] = $event->id;
-        $validated['is_active'] = $request->has('is_active') ? (bool)$request->is_active : true;
+        $validated['is_active'] = $request->has('is_active') ? (bool) $request->is_active : true;
 
         Coupon::create($validated);
 
@@ -34,7 +34,7 @@ class CouponController extends Controller
     {
         $event = $coupon->event;
         $this->authorizeEvent($event);
-        
+
         $coupon->delete();
 
         return redirect()->route('eo.events.show', $event)
@@ -48,5 +48,3 @@ class CouponController extends Controller
         }
     }
 }
-
-

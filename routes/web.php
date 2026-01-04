@@ -1,11 +1,10 @@
 <?php
 
-use App\Http\Controllers\Runner\DashboardController;
 use App\Http\Controllers\Runner\CalendarController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-
+use App\Http\Controllers\Runner\DashboardController;
 use App\Services\StravaClubService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function (StravaClubService $stravaService) {
     $leaderboard = $stravaService->getLeaderboard();
@@ -34,7 +33,7 @@ Route::get('/', function (StravaClubService $stravaService) {
 Route::get('/challenge/40-days-challenge', function () {
     return view('programs.design', [
         'challengeMode' => true,
-        'challengeProgramId' => 9
+        'challengeProgramId' => 9,
     ]);
 })->name('challenge.40days');
 
@@ -58,9 +57,15 @@ Route::middleware('auth')->post('/challenge/40-days-challenge/assessment', funct
 
     // Update user fields (non-destructive)
     $updates = [];
-    if (!empty($data['name'])) $updates['name'] = $data['name'];
-    if (!empty($data['gender'])) $updates['gender'] = strtolower($data['gender']) === 'wanita' ? 'female' : 'male';
-    if (isset($data['weeklyVolume'])) $updates['weekly_volume'] = $data['weeklyVolume'];
+    if (! empty($data['name'])) {
+        $updates['name'] = $data['name'];
+    }
+    if (! empty($data['gender'])) {
+        $updates['gender'] = strtolower($data['gender']) === 'wanita' ? 'female' : 'male';
+    }
+    if (isset($data['weeklyVolume'])) {
+        $updates['weekly_volume'] = $data['weeklyVolume'];
+    }
 
     // Prepare audit entry
     $audit = $user->audit_history ?? [];
@@ -74,7 +79,7 @@ Route::middleware('auth')->post('/challenge/40-days-challenge/assessment', funct
     $updates['audit_history'] = $audit;
 
     // Persist
-    if (!empty($updates)) {
+    if (! empty($updates)) {
         $user->update($updates);
     }
 
@@ -99,7 +104,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/challenge/approve/{id}', [App\Http\Controllers\AdminChallengeController::class, 'approve'])->name('challenge.approve');
     Route::post('/challenge/reject/{id}', [App\Http\Controllers\AdminChallengeController::class, 'reject'])->name('challenge.reject');
     Route::post('/challenge/sync-strava', [App\Http\Controllers\AdminChallengeController::class, 'syncStrava'])->name('challenge.sync-strava');
-    Route::get('/challenge/sync-strava', function() { return redirect()->route('admin.challenge.index'); });
+    Route::get('/challenge/sync-strava', function () {
+        return redirect()->route('admin.challenge.index');
+    });
 });
 
 // Public routes
@@ -114,18 +121,21 @@ Route::get('/pacers', [App\Http\Controllers\PacerController::class, 'index'])->n
 Route::get('/pacer/{slug}', [App\Http\Controllers\PacerController::class, 'show'])->name('pacer.show');
 Route::get('/pacer-register', [App\Http\Controllers\PacerRegistrationController::class, 'create'])->name('pacer.register');
 Route::post('/pacer-register', [App\Http\Controllers\PacerRegistrationController::class, 'store'])->name('pacer.register.store');
-Route::get('/pacer-otp', function(Illuminate\Http\Request $request){ return view('pacer.otp'); })->name('pacer.otp');
-Route::post('/pacer-otp', function(Illuminate\Http\Request $request){
-    $data = $request->validate(['user_id'=>'required|integer','code'=>'required|string|size:6']);
-    $token = App\Models\OtpToken::where('user_id',$data['user_id'])->where('code',$data['code'])->where('used',false)->first();
-    if(!$token || $token->expires_at->isPast()){
-        return back()->with('success','Kode OTP tidak valid atau kedaluwarsa');
+Route::get('/pacer-otp', function (Illuminate\Http\Request $request) {
+    return view('pacer.otp');
+})->name('pacer.otp');
+Route::post('/pacer-otp', function (Illuminate\Http\Request $request) {
+    $data = $request->validate(['user_id' => 'required|integer', 'code' => 'required|string|size:6']);
+    $token = App\Models\OtpToken::where('user_id', $data['user_id'])->where('code', $data['code'])->where('used', false)->first();
+    if (! $token || $token->expires_at->isPast()) {
+        return back()->with('success', 'Kode OTP tidak valid atau kedaluwarsa');
     }
-    $token->update(['used'=>true]);
+    $token->update(['used' => true]);
     $user = App\Models\User::findOrFail($data['user_id']);
     Illuminate\Support\Facades\Auth::login($user);
     $user->update(['is_active' => true]);
-    return redirect()->route('profile.show')->with('success','Verifikasi berhasil!');
+
+    return redirect()->route('profile.show')->with('success', 'Verifikasi berhasil!');
 })->name('pacer.otp.verify');
 
 // Runner Profile (Public) - avoid conflicts with runner dashboard/calendar routes
@@ -140,10 +150,13 @@ Route::post('/coach-register', [App\Http\Controllers\CoachRegistrationController
 // Add Image Proxy Route
 Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
     $url = $request->query('url');
-    if (!$url) abort(404);
+    if (! $url) {
+        abort(404);
+    }
 
     try {
         $response = Illuminate\Support\Facades\Http::withoutVerifying()->get($url);
+
         return response($response->body())
             ->header('Content-Type', $response->header('Content-Type'))
             ->header('Access-Control-Allow-Origin', '*');
@@ -152,8 +165,12 @@ Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
     }
 })->name('image.proxy');
 
-Route::get('/realistic-running-program', function () { return view('programs.design'); })->name('programs.realistic');
-Route::get('/coach-ladder-program', function () { return view('coach.hub'); })->name('coach.hub');
+Route::get('/realistic-running-program', function () {
+    return view('programs.design');
+})->name('programs.realistic');
+Route::get('/coach-ladder-program', function () {
+    return view('coach.hub');
+})->name('coach.hub');
 Route::get('/programs', [App\Http\Controllers\PublicProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{slug}', [App\Http\Controllers\PublicProgramController::class, 'show'])->name('programs.show');
 
@@ -183,16 +200,17 @@ Route::post('/events/{slug}/register/quota', [App\Http\Controllers\EventRegistra
 // Public API: Upcoming events for home page
 Route::get('/api/events/upcoming', function () {
     try {
-        if (!Illuminate\Support\Facades\Schema::hasTable('events')) {
+        if (! Illuminate\Support\Facades\Schema::hasTable('events')) {
             return response()->json([]);
         }
 
-        $events = App\Models\Event::select('name','slug','start_at','location_name','created_at')
+        $events = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at')
             ->orderByRaw('COALESCE(start_at, created_at) ASC')
             ->limit(4)
             ->get()
-            ->map(function($e){
+            ->map(function ($e) {
                 $dt = $e->start_at ?: $e->created_at;
+
                 return [
                     'name' => $e->name,
                     'slug' => $e->slug ?: Illuminate\Support\Str::slug($e->name),
@@ -201,6 +219,7 @@ Route::get('/api/events/upcoming', function () {
                     'location' => $e->location_name,
                 ];
             });
+
         return response()->json($events);
     } catch (\Throwable $e) {
         return response()->json([]);
@@ -224,7 +243,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login']);
     Route::get('/register', [App\Http\Controllers\Auth\AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [App\Http\Controllers\Auth\AuthController::class, 'register']);
-    
+
     // Runner special registration
     Route::get('/runner-register', [App\Http\Controllers\Runner\RunnerRegistrationController::class, 'create'])->name('runner.register');
     Route::post('/runner-register', [App\Http\Controllers\Runner\RunnerRegistrationController::class, 'store'])->name('runner.register.store');
@@ -242,33 +261,35 @@ Route::middleware('auth')->group(function () {
     Route::post('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'store'])->name('challenge.store');
 
     Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->name('logout');
-    
+
     // Profile routes (accessible by all authenticated users)
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
-    
+
     // User list routes (accessible by all authenticated users)
     Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
-    Route::get('/users/runners', function(Request $request) {
+    Route::get('/users/runners', function (Request $request) {
         $request->merge(['role' => 'runner']);
+
         return app(App\Http\Controllers\UserController::class)->index($request);
     })->name('users.runners');
-    Route::get('/users/coaches', function(Request $request) {
+    Route::get('/users/coaches', function (Request $request) {
         $request->merge(['role' => 'coach']);
+
         return app(App\Http\Controllers\UserController::class)->index($request);
     })->name('users.coaches');
-    
+
     // Follow routes
     Route::post('/follow/{user}', [App\Http\Controllers\FollowController::class, 'follow'])->name('follow');
     Route::post('/unfollow/{user}', [App\Http\Controllers\FollowController::class, 'unfollow'])->name('unfollow');
-    
+
     // Chat routes
     Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/{user}', [App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
     Route::post('/chat/{user}', [App\Http\Controllers\ChatController::class, 'store'])->name('chat.store');
     Route::get('/api/chat/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('chat.conversations');
     Route::get('/api/chat/{userId}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
-    
+
     // Feed routes
     Route::get('/feed', [App\Http\Controllers\FeedController::class, 'index'])->name('feed.index');
     Route::post('/feed', [App\Http\Controllers\FeedController::class, 'store'])->name('feed.store');
@@ -276,30 +297,31 @@ Route::middleware('auth')->group(function () {
     Route::post('/feed/{post}/like', [App\Http\Controllers\FeedController::class, 'like'])->name('feed.like');
     Route::post('/feed/{post}/unlike', [App\Http\Controllers\FeedController::class, 'unlike'])->name('feed.unlike');
     Route::post('/feed/{post}/comment', [App\Http\Controllers\FeedController::class, 'comment'])->name('feed.comment');
-    
+
     // Notification routes
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/api/notifications/unread', [App\Http\Controllers\NotificationController::class, 'getUnread'])->name('notifications.unread');
     Route::post('/notifications/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
-    
+
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
-    // User Management
-    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
-    Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
-    Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
-    Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
+        // User Management
+        Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+        Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
+        Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
 
-    Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');
-    Route::post('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'update'])->name('marketplace.settings.update');
-    Route::resource('marketplace/categories', App\Http\Controllers\Admin\MarketplaceCategoryController::class)->names('marketplace.categories');
-    Route::resource('marketplace/brands', App\Http\Controllers\Admin\MarketplaceBrandController::class)->names('marketplace.brands');
+        Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');
+        Route::post('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'update'])->name('marketplace.settings.update');
+        Route::resource('marketplace/categories', App\Http\Controllers\Admin\MarketplaceCategoryController::class)->names('marketplace.categories');
+        Route::resource('marketplace/brands', App\Http\Controllers\Admin\MarketplaceBrandController::class)->names('marketplace.brands');
 
         Route::post('/leaderboard/sync', function () {
             Illuminate\Support\Facades\Artisan::call('leaderboard:sync');
+
             return response()->json(['ok' => true]);
         })->name('leaderboard.sync');
     });
@@ -310,6 +332,7 @@ Route::middleware('auth')->group(function () {
         // Challenge Programs listing (filtered)
         Route::get('/programs/challenges', function (Illuminate\Http\Request $request) {
             $request->merge(['challenge' => 1]);
+
             return app(App\Http\Controllers\PublicProgramController::class)->index($request);
         })->name('programs.challenges');
         Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
@@ -328,14 +351,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/calendar/reset-plan-list', [CalendarController::class, 'resetPlanList'])->name('calendar.reset-plan-list');
         Route::post('/calendar/reschedule', [CalendarController::class, 'reschedule'])->name('calendar.reschedule');
         Route::get('/calendar/weekly-volume', [CalendarController::class, 'weeklyVolume'])->name('calendar.weekly-volume');
-        
+
         // Program purchase & enrollment
         Route::post('/programs/{program}/purchase', [App\Http\Controllers\Runner\ProgramPurchaseController::class, 'purchase'])->name('programs.purchase');
         Route::post('/programs/{program}/enroll-free', [App\Http\Controllers\Runner\ProgramEnrollmentController::class, 'enrollFree'])->name('programs.enroll-free');
-        
+
         // Program reviews
         Route::post('/programs/{program}/reviews', [App\Http\Controllers\Runner\ProgramReviewController::class, 'store'])->name('programs.reviews.store');
-        
+
         // Generate program (Daniels Formula)
         Route::post('/programs/generate', [App\Http\Controllers\Runner\GenerateProgramController::class, 'generate'])->name('programs.generate');
     });
@@ -344,14 +367,14 @@ Route::middleware('auth')->group(function () {
     Route::prefix('marketplace')->name('marketplace.')->group(function () {
         // Seller Management
         Route::resource('seller/products', App\Http\Controllers\Marketplace\ProductController::class)->names('seller.products');
-        
+
         // Cart routes
         Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
-        
+
         // Checkout routes
         Route::post('/checkout/init', [App\Http\Controllers\Marketplace\CheckoutController::class, 'init'])->name('checkout.init');
         Route::get('/checkout/{order}/pay', [App\Http\Controllers\Marketplace\CheckoutController::class, 'pay'])->name('checkout.pay');
-        
+
         // My Orders
         Route::get('/orders', [App\Http\Controllers\Marketplace\OrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [App\Http\Controllers\Marketplace\OrderController::class, 'show'])->name('orders.show');
@@ -362,11 +385,11 @@ Route::middleware('auth')->group(function () {
         Route::put('/cart/{cart}', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
         Route::delete('/cart', [App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
         Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('cart.count');
-        
+
         // Checkout routes
         Route::get('/checkout', [App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
         Route::post('/checkout', [App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
-        
+
         // Order routes
         Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
@@ -376,7 +399,7 @@ Route::middleware('auth')->group(function () {
     // Coach routes
     Route::middleware('role:coach')->prefix('coach')->name('coach.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Coach\DashboardController::class, 'index'])->name('dashboard');
-        
+
         // Master Workouts
         Route::resource('master-workouts', App\Http\Controllers\Coach\MasterWorkoutController::class);
 
@@ -390,7 +413,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/programs/{program}/publish', [App\Http\Controllers\Coach\ProgramController::class, 'publish'])->name('programs.publish');
         Route::post('/programs/{program}/unpublish', [App\Http\Controllers\Coach\ProgramController::class, 'unpublish'])->name('programs.unpublish');
         Route::get('/programs/{program}/export-json', [App\Http\Controllers\Coach\ProgramController::class, 'exportJson'])->name('programs.export-json');
-        
+
         // Withdrawals
         Route::get('/withdrawals', [App\Http\Controllers\Coach\WithdrawalController::class, 'index'])->name('withdrawals.index');
         Route::post('/withdrawals/request', [App\Http\Controllers\Coach\WithdrawalController::class, 'request'])->name('withdrawals.request');
@@ -403,12 +426,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/athletes/{enrollment}/race', [App\Http\Controllers\Coach\AthleteController::class, 'storeRace'])->name('athletes.race.store');
         Route::post('/athletes/{enrollment}/workout', [App\Http\Controllers\Coach\AthleteController::class, 'storeWorkout'])->name('athletes.workout.store');
         Route::put('/athletes/{enrollment}/workout/{customWorkout}', [App\Http\Controllers\Coach\AthleteController::class, 'updateWorkout'])->name('athletes.workout.update');
+        Route::delete('/athletes/{enrollment}/workout/{customWorkout}', [App\Http\Controllers\Coach\AthleteController::class, 'destroyWorkout'])->name('athletes.workout.destroy');
     });
 
     // EO routes
     Route::middleware('role:eo')->prefix('eo')->name('eo.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\EO\DashboardController::class, 'index'])->name('dashboard');
-        
+
         // Event management
         Route::resource('events', App\Http\Controllers\EO\EventController::class);
         Route::get('events/{event}/preview', [App\Http\Controllers\EO\EventController::class, 'preview'])->name('events.preview');
@@ -421,7 +445,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('events/packages/{package}', [App\Http\Controllers\EO\EventPackageController::class, 'destroy'])->name('events.packages.destroy');
         Route::post('events/{event}/coupons', [App\Http\Controllers\EO\CouponController::class, 'store'])->name('events.coupons.store');
         Route::delete('events/coupons/{coupon}', [App\Http\Controllers\EO\CouponController::class, 'destroy'])->name('events.coupons.destroy');
-        
+
         // Race results management
         Route::get('events/{event}/results', [App\Http\Controllers\EO\RaceResultController::class, 'index'])->name('events.results');
         Route::post('events/{event}/results', [App\Http\Controllers\EO\RaceResultController::class, 'store'])->name('events.results.store');
@@ -438,11 +462,12 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/dashboard', function () {
-    if (!Illuminate\Support\Facades\Auth::check()) {
+    if (! Illuminate\Support\Facades\Auth::check()) {
         return redirect()->route('home');
     }
     $user = Illuminate\Support\Facades\Auth::user();
-    return match($user->role) {
+
+    return match ($user->role) {
         'admin' => redirect()->route('admin.dashboard'),
         'coach' => redirect()->route('coach.dashboard'),
         'runner' => redirect()->route('runner.dashboard'),

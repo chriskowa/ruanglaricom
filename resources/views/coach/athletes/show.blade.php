@@ -579,14 +579,21 @@
                     </select>
                 </div>
             </div>
+            <div class="mt-4">
+                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Notes Workout</label>
+                <textarea v-model="builderForm.notes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm" placeholder="Add notes for the athlete..."></textarea>
+            </div>
             <div class="mt-4 glass-panel rounded-xl p-4">
                 <div class="text-xs font-bold text-slate-400 uppercase mb-2">Summary</div>
                 <div class="text-white text-sm">@{{ builderSummary }}</div>
                 <div class="text-slate-400 text-xs mt-1">Total Distance: @{{ builderTotalDistance }} km</div>
             </div>
             <div class="flex justify-end items-center mt-4 gap-2">
+                <button v-if="form.workout_id" type="button" class="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm hover:bg-red-500/20 mr-auto" @click="deleteCustomWorkout">Delete</button>
                 <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="builderVisible = false">Cancel</button>
-                <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="saveBuilder">Save Configuration</button>
+                <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="submitBuilder">
+                    @{{ loading ? 'Saving...' : 'Save Workout' }}
+                </button>
             </div>
         </div>
     </div>
@@ -683,6 +690,7 @@
 @endsection
 
 @push('scripts')
+@include('layouts.components.advanced-builder-utils')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script>
 const { createApp, ref, reactive, onMounted, watch, computed } = Vue;
@@ -711,6 +719,7 @@ createApp({
             distance:'', 
             duration:'', 
             description:'',
+            notes:'',
             workout_structure: [] 
         });
 
@@ -719,6 +728,7 @@ createApp({
         const builderForm = reactive({
             type: 'easy_run',
             title: '',
+            notes: '',
             intensity: 'low',
             warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
             cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
@@ -793,46 +803,15 @@ createApp({
             builderForm.strength.plan.splice(idx, 1);
         };
 
-        const builderSummary = Vue.computed(() => {
-            const parts = [];
-            if (builderForm.warmup.enabled) {
-                parts.push(`WU: ${builderForm.warmup.by==='distance' ? `${builderForm.warmup.distanceKm}km` : builderForm.warmup.duration}`);
-            }
-            if (builderForm.type==='interval') {
-                if (builderForm.interval.by==='distance') {
-                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repDistanceKm}km${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
-                } else {
-                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repTime}${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
-                }
-                parts.push(`Rec ${builderForm.interval.recovery}`);
-            } else if (builderForm.type==='tempo') {
-                if (builderForm.tempo.by==='distance') {
-                    parts.push(`${builderForm.tempo.distanceKm}km @${builderForm.tempo.pace} ${builderForm.tempo.effort}`);
-                } else {
-                    parts.push(`${builderForm.tempo.duration} @${builderForm.tempo.pace} ${builderForm.tempo.effort}`);
-                }
-            } else if (builderForm.type==='long_run') {
-                parts.push(`Long Run ${builderForm.main.by==='distance'?builderForm.main.distanceKm+'km':builderForm.main.duration}`);
-                if (builderForm.longRun.fastFinish.enabled) {
-                    parts.push(`+ ${builderForm.longRun.fastFinish.distanceKm}km Fast Finish`);
-                }
-            } else if (builderForm.type==='easy_run') {
-                parts.push(`Easy Run ${builderForm.main.by==='distance'?builderForm.main.distanceKm+'km':builderForm.main.duration}`);
-            } else if (builderForm.type==='strength') {
-                parts.push(`Strength: ${builderForm.strength.plan.length} exercises`);
-            } else if (builderForm.type==='rest') {
-                parts.push('Rest Day');
-            }
-
-            if (builderForm.cooldown.enabled) {
-                parts.push(`CD: ${builderForm.cooldown.by==='distance' ? `${builderForm.cooldown.distanceKm}km` : builderForm.cooldown.duration}`);
-            }
-            return parts.join(' + ');
-        });
+        const builderSummary = Vue.computed(() => RLBuilderUtils.buildSummary(builderForm));
 
         const parseDurationMinutes = (str) => {
             if (!str) return 0;
-            const parts = str.split(':').map(Number);
+            // Handle number input (already minutes)
+            if (typeof str === 'number') return str;
+            
+            const parts = str.toString().split(':').map(Number);
+            if (parts.length === 1) return parts[0]; // "30" -> 30 mins
             if (parts.length === 2) return parts[0] + parts[1]/60;
             if (parts.length === 3) return parts[0]*60 + parts[1] + parts[2]/60;
             return 0;
@@ -845,32 +824,17 @@ createApp({
             return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         };
 
-        const builderTotalDistance = Vue.computed(() => {
-            let total = 0;
-            if (builderForm.warmup.enabled && builderForm.warmup.by === 'distance') total += (Number(builderForm.warmup.distanceKm) || 0);
-            
-            if (builderForm.type === 'easy_run' || builderForm.type === 'long_run') {
-                if (builderForm.main.by === 'distance') total += (Number(builderForm.main.distanceKm) || 0);
-                if (builderForm.type === 'long_run' && builderForm.longRun.fastFinish.enabled) total += (Number(builderForm.longRun.fastFinish.distanceKm) || 0);
-            } else if (builderForm.type === 'tempo') {
-                if (builderForm.tempo.by === 'distance') total += (Number(builderForm.tempo.distanceKm) || 0);
-            } else if (builderForm.type === 'interval') {
-                if (builderForm.interval.by === 'distance') total += (Number(builderForm.interval.reps) || 0) * (Number(builderForm.interval.repDistanceKm) || 0);
-            }
-            
-            if (builderForm.cooldown.enabled && builderForm.cooldown.by === 'distance') total += (Number(builderForm.cooldown.distanceKm) || 0);
-            
-            return Number(total.toFixed(2));
-        });
+        const builderTotalDistance = Vue.computed(() => RLBuilderUtils.computeTotalDistance(builderForm));
 
         const openBuilder = (isEditing) => {
             // Always reset to defaults first
             Object.assign(builderForm, {
                 type: 'easy_run',
                 title: '',
+                notes: '',
                 intensity: 'low',
-                warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
-                cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+                warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '', pace: '' },
+                cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '', pace: '' },
                 main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
                 longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
                 tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
@@ -887,22 +851,49 @@ createApp({
                 
                 if (config) {
                     Object.assign(builderForm, config);
+                    // Ensure notes are synced if present in main form but not in advanced config (legacy support)
+                    if (!builderForm.notes && form.notes) builderForm.notes = form.notes;
                 } else {
-                    // If no advanced config, try to match type
-                    if (['easy_run', 'long_run', 'tempo', 'interval', 'strength', 'rest'].includes(form.type)) {
-                        builderForm.type = form.type;
+                    // If no advanced config, try to match type and pre-fill from basic form
+                    // Map legacy/simple types to builder types
+            let targetType = RLBuilderUtils.normalizeType(form.type);
+                    
+                    if (['easy_run', 'long_run', 'tempo', 'interval', 'strength', 'rest'].includes(targetType)) {
+                        builderForm.type = targetType;
+                        builderForm.notes = form.notes || '';
+                        
+                        // Attempt to pre-fill main values from basic form
+                        if (['easy_run', 'long_run'].includes(targetType)) {
+                            if (form.distance) {
+                                builderForm.main.by = 'distance';
+                                builderForm.main.distanceKm = form.distance;
+                            } else if (form.duration) {
+                                builderForm.main.by = 'time';
+                                builderForm.main.duration = form.duration;
+                            }
+                        } else if (targetType === 'tempo') {
+                            if (form.distance) {
+                                builderForm.tempo.by = 'distance';
+                                builderForm.tempo.distanceKm = form.distance;
+                            } else if (form.duration) {
+                                builderForm.tempo.by = 'time';
+                                builderForm.tempo.duration = form.duration;
+                            }
+                        }
                     }
                 }
             }
             builderVisible.value = true;
         };
 
-        const saveBuilder = () => {
+        const submitBuilder = () => {
             // Update the main form with builder data
             const advancedConfig = JSON.parse(JSON.stringify(builderForm));
             form.workout_structure = { advanced: advancedConfig };
             form.description = builderSummary.value;
+            form.notes = builderForm.notes;
             form.distance = builderTotalDistance.value;
+            form.type = builderForm.type; // Sync type
             
             // Try to set duration if possible
             if (['easy_run', 'long_run'].includes(builderForm.type) && builderForm.main.by === 'time') {
@@ -915,7 +906,8 @@ createApp({
                 form.duration = minutesToHHMMSS(total);
             }
 
-            builderVisible.value = false;
+            // Submit to server
+            saveCustomWorkout();
         };
 
         // Workout Builder Helper Methods
@@ -970,7 +962,7 @@ createApp({
                     form.workout_structure = session.extendedProps.workout_structure || [];
                     
                     // Auto-open builder for editing
-                    setTimeout(() => openBuilder(true), 50);
+                    openBuilder(true);
                 } else {
                     form.workout_id = '';
                     form.workout_structure = [];
@@ -982,6 +974,12 @@ createApp({
                 form.distance = session.extendedProps.distance;
                 form.duration = session.extendedProps.duration || '';
                 form.description = session.extendedProps.description;
+                form.notes = session.extendedProps.notes || ''; // Add notes
+
+                // If it was not custom (standard program workout), we now open builder in edit mode (prefilled)
+                if (!session.extendedProps.is_custom) {
+                    openBuilder(true);
+                }
             } else {
                 // Create Mode
                 form.workout_id = '';
@@ -991,12 +989,38 @@ createApp({
                 form.distance = '';
                 form.duration = '';
                 form.description = '';
+                form.notes = '';
                 form.workout_structure = [];
                 
                 // Auto-open builder for creating
-                setTimeout(() => openBuilder(false), 50);
+                openBuilder(false);
             }
-            showFormModal.value = true;
+        };
+
+        const deleteCustomWorkout = async () => {
+            if(!confirm('Are you sure you want to delete this workout?')) return;
+            
+            loading.value = true;
+            try {
+                const url = `{{ route('coach.athletes.workout.destroy', ['enrollment' => $enrollment->id, 'customWorkout' => 'ID_PLACEHOLDER']) }}`.replace('ID_PLACEHOLDER', form.workout_id);
+                
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    builderVisible.value = false;
+                    alert('Workout deleted');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to delete');
+                }
+            } catch(e) {
+                alert('Error deleting workout');
+            } finally {
+                loading.value = false;
+            }
         };
 
         const saveCustomWorkout = async () => {
@@ -1009,6 +1033,7 @@ createApp({
                     distance: form.distance || null,
                     duration: form.duration || null,
                     description: form.description || null,
+                    notes: form.notes || null,
                     workout_structure: form.workout_structure,
                 };
                 
@@ -1302,9 +1327,9 @@ createApp({
             trainingProfile, profileTab, formatPace,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
-            showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance,
+            showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance, deleteCustomWorkout,
             // Advanced Builder
-            builderVisible, builderForm, openBuilder, saveBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise
+            builderVisible, builderForm, openBuilder, submitBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise
         };
     }
 }).mount('#coach-monitor-app');

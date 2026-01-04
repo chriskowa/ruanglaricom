@@ -2,21 +2,22 @@
 
 namespace App\Actions\Events;
 
+use App\Models\Coupon;
 use App\Models\Event;
-use App\Models\Transaction;
 use App\Models\Participant;
 use App\Models\RaceCategory;
-use App\Models\Coupon;
+use App\Models\Transaction;
 use App\Services\EventCacheService;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class StoreRegistrationAction
 {
     protected $cacheService;
+
     protected $midtransService;
 
     public function __construct(EventCacheService $cacheService, MidtransService $midtransService)
@@ -52,10 +53,10 @@ class StoreRegistrationAction
                     'id_card' => $p['id_card'],
                     'category_id' => $p['category_id'],
                 ];
-            })->sortBy(fn($p) => $p['email'] . ':' . $p['category_id'])->values()->toArray(),
+            })->sortBy(fn ($p) => $p['email'].':'.$p['category_id'])->values()->toArray(),
             'coupon' => $validated['coupon_code'] ?? null,
         ];
-        $idKey = 'reg:idempoten:' . md5(json_encode($fingerprint));
+        $idKey = 'reg:idempoten:'.md5(json_encode($fingerprint));
         $existingTxId = Cache::get($idKey);
         if ($existingTxId) {
             $existing = Transaction::find($existingTxId);
@@ -67,12 +68,12 @@ class StoreRegistrationAction
         // Validate coupon if provided
         $coupon = null;
         $discountAmount = 0;
-        if (!empty($validated['coupon_code'])) {
+        if (! empty($validated['coupon_code'])) {
             $coupon = Coupon::where('code', $validated['coupon_code'])
                 ->where('event_id', $event->id)
                 ->first();
 
-            if (!$coupon || !$coupon->canBeUsed()) {
+            if (! $coupon || ! $coupon->canBeUsed()) {
                 throw new \Exception('Kupon tidak valid atau sudah tidak dapat digunakan');
             }
         }
@@ -88,19 +89,19 @@ class StoreRegistrationAction
             // so we must enforce the "one active registration per category" rule here.
             $activeParticipantExists = Participant::where('race_category_id', $participant['category_id'])
                 ->where('id_card', $participant['id_card'])
-                ->whereHas('transaction', function($query) {
+                ->whereHas('transaction', function ($query) {
                     $query->whereIn('payment_status', ['pending', 'paid']);
                 })
                 ->exists();
 
             if ($activeParticipantExists) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'participants' => ["Peserta dengan ID Card {$participant['id_card']} sudah terdaftar (status Pending atau Paid) di kategori ini."]
+                    'participants' => ["Peserta dengan ID Card {$participant['id_card']} sudah terdaftar (status Pending atau Paid) di kategori ini."],
                 ]);
             }
 
             $categoryId = $participant['category_id'];
-            if (!isset($categoryQuantities[$categoryId])) {
+            if (! isset($categoryQuantities[$categoryId])) {
                 $categoryQuantities[$categoryId] = 0;
             }
             $categoryQuantities[$categoryId]++;
@@ -117,26 +118,26 @@ class StoreRegistrationAction
                 $lockKey = "event:category:{$categoryId}";
                 $lock = Cache::lock($lockKey, 5); // 5 second timeout
 
-                if (!$lock->get()) {
+                if (! $lock->get()) {
                     throw new \Exception('Gagal memperoleh lock untuk kategori. Silakan coba lagi.');
                 }
 
                 $categoryLocks[$categoryId] = $lock;
-                
+
                 // Lock category row for update
                 $category = RaceCategory::lockForUpdate()->findOrFail($categoryId);
                 $categories[$categoryId] = $category;
 
                 // Check quota
                 $quantity = $categoryQuantities[$categoryId];
-                
+
                 // Calculate remaining quota (optimized with index)
                 $registeredCount = Participant::where('race_category_id', $categoryId)
-                    ->whereHas('transaction', function($query) {
+                    ->whereHas('transaction', function ($query) {
                         $query->whereIn('payment_status', ['pending', 'paid']);
                     })
                     ->count();
-                
+
                 $remainingQuota = $category->quota ? ($category->quota - $registeredCount) : 999999;
 
                 if ($category->quota && $remainingQuota < $quantity) {
@@ -206,10 +207,10 @@ class StoreRegistrationAction
 
             // Load participants with category for Midtrans
             $transaction->load(['participants.category']);
-            
+
             // Request Snap Token from Midtrans
             $snapResult = $this->midtransService->createEventTransaction($transaction);
-            
+
             if ($snapResult['success']) {
                 $transaction->update([
                     'snap_token' => $snapResult['snap_token'],
@@ -217,7 +218,7 @@ class StoreRegistrationAction
                 ]);
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
             } else {
-                throw new \Exception('Gagal membuat token pembayaran: ' . ($snapResult['message'] ?? 'Unknown error'));
+                throw new \Exception('Gagal membuat token pembayaran: '.($snapResult['message'] ?? 'Unknown error'));
             }
 
             return $transaction;
@@ -248,7 +249,7 @@ class StoreRegistrationAction
     private function getCategoryPrice(RaceCategory $category, $now): int
     {
         // If no registration period, use regular or early price
-        if (!$category->reg_start_at || !$category->reg_end_at) {
+        if (! $category->reg_start_at || ! $category->reg_end_at) {
             return $category->price_regular ?? $category->price_early ?? 0;
         }
 
@@ -267,4 +268,3 @@ class StoreRegistrationAction
         }
     }
 }
-

@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Transaction as EventTransaction;
 use App\Models\User;
 use App\Models\WalletTopup;
-use App\Models\Transaction as EventTransaction;
 use Illuminate\Http\Request;
 use Midtrans\Config as MidtransConfig;
 use Midtrans\Snap;
@@ -23,10 +23,6 @@ class MidtransService
 
     /**
      * Create top-up transaction
-     *
-     * @param User $user
-     * @param float $amount
-     * @return array
      */
     public function createTopupTransaction(User $user, float $amount): array
     {
@@ -40,21 +36,21 @@ class MidtransService
 
         // Testing mode: Auto approve payment
         if (config('midtrans.testing_mode')) {
-            $orderId = 'TEST-' . $topup->id . '-' . time();
-            
+            $orderId = 'TEST-'.$topup->id.'-'.time();
+
             // Update topup as paid immediately
             $topup->update([
                 'midtrans_order_id' => $orderId,
                 'midtrans_transaction_status' => 'settlement',
                 'status' => 'success',
             ]);
-            
+
             // Add balance to user wallet
             if ($user->wallet) {
                 $balanceBefore = $user->wallet->balance;
                 $user->wallet->increment('balance', $amount);
                 $balanceAfter = $user->wallet->balance;
-                
+
                 // Create wallet transaction record
                 $user->wallet->transactions()->create([
                     'type' => 'deposit',
@@ -72,7 +68,7 @@ class MidtransService
                     'processed_at' => now(),
                 ]);
             }
-            
+
             return [
                 'success' => true,
                 'snap_token' => null, // No snap token in testing mode
@@ -86,7 +82,7 @@ class MidtransService
         // Prepare transaction parameters
         $params = [
             'transaction_details' => [
-                'order_id' => 'TOPUP-' . $topup->id . '-' . time(),
+                'order_id' => 'TOPUP-'.$topup->id.'-'.time(),
                 'gross_amount' => $amount,
             ],
             'customer_details' => [
@@ -106,7 +102,7 @@ class MidtransService
         try {
             // Get Snap Token from Midtrans
             $snapToken = Snap::getSnapToken($params);
-            
+
             // Update topup with order ID
             $topup->update([
                 'midtrans_order_id' => $params['transaction_details']['order_id'],
@@ -120,7 +116,7 @@ class MidtransService
             ];
         } catch (\Exception $e) {
             $topup->markAsFailed();
-            
+
             return [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -130,9 +126,6 @@ class MidtransService
 
     /**
      * Handle webhook/callback from Midtrans
-     *
-     * @param Request $request
-     * @return array
      */
     public function handleWebhook(Request $request): array
     {
@@ -143,7 +136,7 @@ class MidtransService
         // Find topup by order ID
         $topup = WalletTopup::where('midtrans_order_id', $orderId)->first();
 
-        if (!$topup) {
+        if (! $topup) {
             return [
                 'success' => false,
                 'message' => 'Topup not found',
@@ -155,14 +148,14 @@ class MidtransService
             if ($fraudStatus == 'accept') {
                 // Transaction is successful, update topup status
                 $topup->markAsPaid($orderId, $transactionStatus);
-                
+
                 // Add balance to user wallet
                 $user = $topup->user;
                 if ($user->wallet) {
                     $balanceBefore = $user->wallet->balance;
                     $user->wallet->increment('balance', $topup->amount);
                     $balanceAfter = $user->wallet->balance;
-                    
+
                     // Create wallet transaction record
                     $user->wallet->transactions()->create([
                         'type' => 'deposit',
@@ -197,15 +190,15 @@ class MidtransService
                 'success' => true,
                 'message' => 'Transaction pending',
             ];
-        } elseif ($transactionStatus == 'deny' || 
-                  $transactionStatus == 'expire' || 
+        } elseif ($transactionStatus == 'deny' ||
+                  $transactionStatus == 'expire' ||
                   $transactionStatus == 'cancel') {
             // Transaction failed
             $topup->markAsFailed($orderId, $transactionStatus);
 
             return [
                 'success' => false,
-                'message' => 'Transaction ' . $transactionStatus,
+                'message' => 'Transaction '.$transactionStatus,
             ];
         }
 
@@ -217,9 +210,6 @@ class MidtransService
 
     /**
      * Create event transaction (Snap Token)
-     *
-     * @param EventTransaction $transaction
-     * @return array
      */
     public function createEventTransaction(EventTransaction $transaction): array
     {
@@ -229,27 +219,27 @@ class MidtransService
         // Prepare item details from participants
         $itemDetails = [];
         $now = now();
-        
+
         foreach ($transaction->participants as $participant) {
             // Load category if not loaded
-            if (!$participant->relationLoaded('category')) {
+            if (! $participant->relationLoaded('category')) {
                 $participant->load('category');
             }
-            
-            if (!$participant->category) {
+
+            if (! $participant->category) {
                 continue; // Skip if no category
             }
-            
+
             $category = $participant->category;
-            
+
             // Calculate price based on registration period
             $price = $this->getCategoryPrice($category, $now);
-            
+
             $itemDetails[] = [
-                'id' => 'CATEGORY-' . $category->id,
+                'id' => 'CATEGORY-'.$category->id,
                 'price' => (float) $price,
                 'quantity' => 1,
-                'name' => $category->name . ' - ' . $participant->name,
+                'name' => $category->name.' - '.$participant->name,
             ];
         }
 
@@ -257,7 +247,7 @@ class MidtransService
         if ($transaction->discount_amount > 0) {
             $itemDetails[] = [
                 'id' => 'DISCOUNT',
-                'price' => - (float) $transaction->discount_amount,
+                'price' => -(float) $transaction->discount_amount,
                 'quantity' => 1,
                 'name' => 'Diskon',
             ];
@@ -266,7 +256,7 @@ class MidtransService
         // Prepare transaction parameters
         $params = [
             'transaction_details' => [
-                'order_id' => 'EVENT-' . $transaction->id . '-' . time(),
+                'order_id' => 'EVENT-'.$transaction->id.'-'.time(),
                 'gross_amount' => (float) $transaction->final_amount,
             ],
             'customer_details' => [
@@ -296,15 +286,12 @@ class MidtransService
 
     /**
      * Check transaction status
-     *
-     * @param string $orderId
-     * @return array
      */
     public function checkTransactionStatus(string $orderId): array
     {
         try {
             $status = Transaction::status($orderId);
-            
+
             return [
                 'success' => true,
                 'status' => $status,
@@ -320,14 +307,13 @@ class MidtransService
     /**
      * Get category price based on registration period
      *
-     * @param \App\Models\RaceCategory $category
-     * @param \Carbon\Carbon $now
-     * @return int
+     * @param  \App\Models\RaceCategory  $category
+     * @param  \Carbon\Carbon  $now
      */
     protected function getCategoryPrice($category, $now): int
     {
         // If no registration period, use regular or early price
-        if (!$category->reg_start_at || !$category->reg_end_at) {
+        if (! $category->reg_start_at || ! $category->reg_end_at) {
             return $category->price_regular ?? $category->price_early ?? 0;
         }
 
@@ -346,4 +332,3 @@ class MidtransService
         }
     }
 }
-
