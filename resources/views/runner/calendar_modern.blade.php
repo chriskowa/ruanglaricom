@@ -1569,6 +1569,9 @@ createApp({
                 });
                 const data = await res.json();
                 if (data.success) {
+                    if (data.message && data.message.includes('ditukar')) {
+                         alert(data.message);
+                    }
                     // Update plans list as well
                     await loadPlans();
                     await loadWeeklyVolume();

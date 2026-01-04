@@ -971,7 +971,37 @@ class CalendarController extends Controller
                 ->where('runner_id', $user->id)
                 ->firstOrFail();
 
-            $workout->update(['workout_date' => $newDate]);
+            try {
+                $workout->update(['workout_date' => $newDate]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Handle Duplicate Entry (1062) by Swapping
+                if ($e->errorInfo[1] == 1062) {
+                    $existingWorkout = CustomWorkout::where('runner_id', $user->id)
+                        ->where('workout_date', $newDate->format('Y-m-d'))
+                        ->first();
+
+                    if ($existingWorkout) {
+                        DB::transaction(function () use ($workout, $existingWorkout, $newDate) {
+                            $originalDate = $workout->workout_date;
+                            
+                            // 3-step swap to avoid unique constraint violation
+                            // 1. Move existing to a temporary safe date (far past)
+                            $tempDate = Carbon::parse('1970-01-01');
+                            // Ensure temp date is not taken (edge case)
+                            while (CustomWorkout::where('runner_id', $workout->runner_id)->where('workout_date', $tempDate->format('Y-m-d'))->exists()) {
+                                $tempDate->subDay();
+                            }
+
+                            $existingWorkout->update(['workout_date' => $tempDate]);
+                            $workout->update(['workout_date' => $newDate]);
+                            $existingWorkout->update(['workout_date' => $originalDate]);
+                        });
+
+                        return response()->json(['success' => true, 'message' => 'Jadwal latihan ditukar karena tanggal tujuan sudah terisi.']);
+                    }
+                }
+                throw $e;
+            }
 
             return response()->json(['success' => true, 'message' => 'Custom workout rescheduled']);
         } else {
