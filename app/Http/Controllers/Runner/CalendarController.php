@@ -976,4 +976,23 @@ class CalendarController extends Controller
             'equivalent_race_times' => $user->equivalent_race_times,
         ]);
     }
+
+    /**
+     * Update Runner Weekly Target
+     */
+    public function updateWeeklyTarget(Request $request)
+    {
+        $validated = $request->validate([
+            'weekly_km_target' => 'nullable|numeric|min:0|max:999.99',
+        ]);
+
+        $user = auth()->user();
+        $user->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Weekly target updated',
+            'weekly_km_target' => $user->weekly_km_target,
+        ]);
+    }
 }

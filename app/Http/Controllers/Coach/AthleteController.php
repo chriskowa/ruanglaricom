@@ -438,4 +438,36 @@ class AthleteController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function updateWeeklyTarget(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'weekly_km_target' => 'nullable|numeric|min:0|max:999.99',
+        ]);
+
+        $runner = $enrollment->runner;
+        $runner->update($validated);
+
+        // Notify Runner
+        \App\Models\Notification::create([
+            'user_id' => $runner->id,
+            'type' => 'target_updated',
+            'title' => 'Weekly Target Updated',
+            'message' => 'Coach '.auth()->user()->name.' updated your weekly target to '.($validated['weekly_km_target'] ?? 0).' km',
+            'reference_type' => 'user',
+            'reference_id' => $runner->id,
+            'is_read' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Weekly target updated',
+            'weekly_km_target' => $runner->weekly_km_target,
+        ]);
+    }
 }

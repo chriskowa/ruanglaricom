@@ -348,6 +348,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/calendar/apply-program', [CalendarController::class, 'applyProgram'])->name('calendar.apply-program');
         Route::post('/calendar/restore-program', [CalendarController::class, 'restoreProgram'])->name('calendar.restore-program');
         Route::post('/calendar/update-pb', [CalendarController::class, 'updatePb'])->name('calendar.update-pb');
+        Route::post('/calendar/update-weekly-target', [CalendarController::class, 'updateWeeklyTarget'])->name('calendar.update-weekly-target');
         Route::post('/calendar/reset-plan-list', [CalendarController::class, 'resetPlanList'])->name('calendar.reset-plan-list');
         Route::post('/calendar/reschedule', [CalendarController::class, 'reschedule'])->name('calendar.reschedule');
         Route::get('/calendar/weekly-volume', [CalendarController::class, 'weeklyVolume'])->name('calendar.weekly-volume');
@@ -427,6 +428,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/athletes/{enrollment}/workout', [App\Http\Controllers\Coach\AthleteController::class, 'storeWorkout'])->name('athletes.workout.store');
         Route::put('/athletes/{enrollment}/workout/{customWorkout}', [App\Http\Controllers\Coach\AthleteController::class, 'updateWorkout'])->name('athletes.workout.update');
         Route::delete('/athletes/{enrollment}/workout/{customWorkout}', [App\Http\Controllers\Coach\AthleteController::class, 'destroyWorkout'])->name('athletes.workout.destroy');
+        Route::post('/athletes/{enrollment}/update-weekly-target', [App\Http\Controllers\Coach\AthleteController::class, 'updateWeeklyTarget'])->name('athletes.update-weekly-target');
     });
 
     // EO routes
