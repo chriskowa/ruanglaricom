@@ -253,6 +253,16 @@
             var isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
             var poll;
             var currentUserId = null;
+            function getAvatarUrl(path) {
+                if (!path) return defaultAvatar17;
+                if (path.indexOf('http') === 0) return path;
+                // If path already contains storage/, use baseUrl instead of storageBase
+                if (path.indexOf('storage/') === 0 || path.indexOf('/storage/') === 0) {
+                     var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+                     return baseUrl + '/' + cleanPath;
+                }
+                return storageBase + path;
+            }
             function showBox(){ box.classList.remove('hidden'); }
             function hideBox(){ box.classList.add('hidden'); stopPoll(); }
             function showConversations(){ convList.classList.remove('hidden'); msgPanel.classList.add('hidden'); backBtn.classList.add('hidden'); }
@@ -281,7 +291,7 @@
                     list.forEach(function(conv){
                         var li = document.createElement('div');
                         li.className = 'p-3 hover:bg-slate-800 cursor-pointer flex items-center gap-1';
-                        var avatar = conv.user_avatar ? (storageBase + conv.user_avatar) : defaultAvatar17;
+                        var avatar = getAvatarUrl(conv.user_avatar);
                         li.innerHTML = '<img src="'+avatar+'" class="w-8 h-8 rounded-full border border-slate-700"><div class="flex-1"><div class="text-sm text-white font-bold">'+conv.user_name+'</div><div class="text-[11px] text-slate-400">'+(conv.last_message||'')+'</div></div>'+(conv.unread_count>0?'<span class="text-[10px] px-2 py-0.5 rounded bg-red-500 text-white">'+conv.unread_count+'</span>':'');
                         li.addEventListener('click', function(){ openChat(conv.user_id, conv.user_name, conv.user_avatar); });
                         convList.appendChild(li);
@@ -337,7 +347,8 @@
                 currentUserId = userId;
                 titleEl.textContent = name || 'Chat';
                 statusEl.textContent = 'Online';
-                avatarEl.innerHTML = '<a href="'+(avatar ? (storageBase+avatar) : defaultAvatar17)+'" target="_blank" rel="noopener"><img src="'+(avatar ? (storageBase+avatar) : defaultAvatar17)+'" class="w-8 h-8"></a>';
+                var avatarUrl = getAvatarUrl(avatar);
+                avatarEl.innerHTML = '<a href="'+avatarUrl+'" target="_blank" rel="noopener"><img src="'+avatarUrl+'" class="w-8 h-8"></a>';
                 showMessages();
                 showBox();
                 loadMessages(userId);
