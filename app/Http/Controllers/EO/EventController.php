@@ -668,9 +668,22 @@ class EventController extends Controller
     public function destroyParticipant(Request $request, Event $event, \App\Models\Participant $participant)
     {
         $this->authorizeEvent($event);
-        if (! $participant->transaction || $participant->transaction->event_id !== $event->id) {
-            abort(403, 'Unauthorized');
+
+        // Check if participant belongs to event via Transaction OR Category
+        $belongsToEvent = false;
+        
+        if ($participant->transaction && $participant->transaction->event_id === $event->id) {
+            $belongsToEvent = true;
+        } elseif ($participant->category && $participant->category->event_id === $event->id) {
+            $belongsToEvent = true;
+        } elseif ($participant->package && $participant->package->event_id === $event->id) {
+            $belongsToEvent = true;
         }
+
+        if (! $belongsToEvent) {
+            abort(403, 'Unauthorized: Participant does not belong to this event');
+        }
+
         $status = $participant->transaction->payment_status ?? 'pending';
         if ($status === 'paid') {
             return response()->json([
