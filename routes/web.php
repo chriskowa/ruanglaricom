@@ -485,3 +485,13 @@ Route::get('/dashboard', function () {
 Route::post('/wallet/topup/callback', [App\Http\Controllers\WalletController::class, 'topupCallback'])->name('wallet.topup.callback');
 Route::post('/events/transactions/webhook', [App\Http\Controllers\EventTransactionWebhookController::class, 'handle'])->name('events.transactions.webhook');
 Route::post('/marketplace/webhook', [App\Http\Controllers\Marketplace\WebhookController::class, 'handle'])->name('marketplace.webhook');
+
+Route::get('/run-queue-worker', function () {
+    // Security: Only allow admin or secure usage (optional, for now open for debug)
+    
+    $exitCode = Illuminate\Support\Facades\Artisan::call('queue:work', [
+        '--stop-when-empty' => true
+    ]);
+    
+    return 'Worker executed. Output: ' . Illuminate\Support\Facades\Artisan::output();
+});

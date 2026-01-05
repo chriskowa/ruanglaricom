@@ -12,3 +12,9 @@ Artisan::command('inspire', function () {
 Schedule::command('withdrawals:process')
     ->dailyAt('02:00')
     ->timezone('Asia/Jakarta');
+
+// Process queue jobs automatically (Shared Hosting friendly)
+// Runs worker every minute, processes all jobs, then stops.
+Schedule::command('queue:work --stop-when-empty')
+    ->everyMinute()
+    ->withoutOverlapping();
