@@ -45,9 +45,19 @@ class ChallengeController extends Controller
         // Prepare data for Vue to avoid complex Blade logic
         $runnersJson = $runners->map(function ($stat) {
             $user = $stat->user;
-            $avatar = $user && $user->avatar
-                ? (str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/'.$user->avatar))
-                : 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'Runner');
+            $avatar = null;
+            if ($user && $user->avatar) {
+                $raw = $user->avatar;
+                if (str_starts_with($raw, 'http')) {
+                    $avatar = $raw;
+                } elseif (Str::startsWith($raw, ['storage/', '/storage/'])) {
+                    $avatar = url('/').'/'.ltrim($raw, '/');
+                } else {
+                    $avatar = asset('storage/'.ltrim($raw, '/'));
+                }
+            } else {
+                $avatar = 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'Runner');
+            }
 
             return [
                 'user_id' => $stat->user_id,
