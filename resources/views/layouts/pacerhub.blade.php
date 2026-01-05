@@ -261,7 +261,13 @@
                      var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
                      return baseUrl + '/' + cleanPath;
                 }
-                return storageBase + path;
+                
+                // Ensure slash between storageBase and path
+                var prefix = storageBase;
+                if (prefix.slice(-1) !== '/') prefix += '/';
+                var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+                
+                return prefix + cleanPath;
             }
             function showBox(){ box.classList.remove('hidden'); }
             function hideBox(){ box.classList.add('hidden'); stopPoll(); }
