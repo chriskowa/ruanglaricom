@@ -153,7 +153,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-800 font-mono">
-                                <tr v-for="(runner, index) in filteredDiscipline" :key="runner.id" class="hover:bg-white/5 transition-colors group">
+                <tr v-for="(runner, index) in filteredDiscipline" :key="runner.id" class="hover:bg-white/5 transition-colors group">
                                     <td class="p-4 text-center font-bold text-xl font-orbitron">
                                         <span v-if="index === 0" class="text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]">1</span>
                                         <span v-else-if="index === 1" class="text-gray-300">2</span>
@@ -163,7 +163,7 @@
                                     <td class="p-4">
                                         <div class="flex items-center gap-4">
                                             <div class="relative">
-                                                <img :src="runner.avatar" class="w-10 h-10 grayscale group-hover:grayscale-0 transition-all border border-cyber-green p-0.5">
+                                                <img :src="getAvatarUrl(runner.avatar)" class="w-10 h-10 grayscale group-hover:grayscale-0 transition-all border border-cyber-green p-0.5">
                                             </div>
                                             <div>
                                                 <div class="font-bold text-white group-hover:text-cyber-green tracking-wide uppercase">{{ runner.name }}</div>
@@ -213,7 +213,7 @@
                                     </td>
                                     <td class="p-4">
                                         <div class="flex items-center gap-4">
-                                            <img :src="runner.avatar" class="w-10 h-10 grayscale group-hover:grayscale-0 border border-cyber-cyan p-0.5">
+                                            <img :src="getAvatarUrl(runner.avatar)" class="w-10 h-10 grayscale group-hover:grayscale-0 border border-cyber-cyan p-0.5">
                                             <div>
                                                 <div class="font-bold text-white group-hover:text-cyber-cyan uppercase">{{ runner.name }}</div>
                                                 <div class="text-[10px] text-gray-500">PACE: {{ runner.pace }}/KM</div>
@@ -291,6 +291,18 @@
             this.fetchData();
         },
         methods: {
+            getAvatarUrl(path) {
+                if (!path) return '/images/profile/17.jpg';
+                if (path.indexOf('http') === 0) return path;
+                const baseUrl = window.location.origin;
+                const storageBase = baseUrl + '/storage';
+                if (path.indexOf('storage/') === 0 || path.indexOf('/storage/') === 0) {
+                    const cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+                    return baseUrl + '/' + cleanPath;
+                }
+                const cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+                return storageBase + '/' + cleanPath;
+            },
             async fetchData() {
                 this.loading = true;
                 
