@@ -4,7 +4,7 @@
             <!-- Left Side: Logo -->
             <div class="flex items-center gap-1 pl-2">
                 <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
-                <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" class="text-2xl xs:text-xl font-black italic tracking-tighter flex items-center">
+                <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" class="text-xl xs:text-xl font-black italic tracking-tighter flex items-center">
                     RUANG<span class="pl-1 text-primary">LARI</span>
                 </a>
             </div>
