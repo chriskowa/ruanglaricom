@@ -744,7 +744,7 @@ class EventController extends Controller
         $transaction = \App\Models\Transaction::findOrFail($transaction_id);
 
         // Verify transaction belongs to this event
-        if ($transaction->event_id !== $event->id) {
+        if ($transaction->event_id != $event->id) {
             abort(403, 'Unauthorized');
         }
 
