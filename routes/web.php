@@ -93,9 +93,10 @@ Route::post('/challenge/send-otp', [ChallengeController::class, 'sendOtp'])->nam
 Route::post('/challenge/verify-otp', [ChallengeController::class, 'verifyOtp'])->name('challenge.verify-otp');
 
 Route::get('/challenge/leaderboard', [ChallengeController::class, 'index'])->name('challenge.index');
+Route::get('/challenge/submit', [ChallengeController::class, 'create'])->name('challenge.create');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/challenge/submit', [ChallengeController::class, 'create'])->name('challenge.create');
+    // Route::get('/challenge/submit', [ChallengeController::class, 'create'])->name('challenge.create'); // Moved to public
     Route::post('/challenge/submit', [ChallengeController::class, 'store'])->name('challenge.store');
 });
 
@@ -257,7 +258,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     // Challenge / Leaderboard Routes
-    Route::get('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'create'])->name('challenge.create');
+    // Route::get('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'create'])->name('challenge.create'); // Moved to public
     Route::post('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'store'])->name('challenge.store');
 
     Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->name('logout');

@@ -29,6 +29,14 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login successful',
+                    'user' => $user
+                ]);
+            }
+
             // Redirect ke intended URL atau dashboard berdasarkan role
             $dashboard = match ($user->role) {
                 'admin' => route('admin.dashboard'),
@@ -39,6 +47,13 @@ class AuthController extends Controller
             };
 
             return redirect()->intended($dashboard);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email atau password salah.'
+            ], 422);
         }
 
         return back()->withErrors([

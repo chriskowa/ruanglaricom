@@ -80,9 +80,13 @@ class ChallengeController extends Controller
     public function create()
     {
         // Check if user is enrolled
-        $activities = ChallengeActivity::where('user_id', Auth::id())
-            ->orderBy('date', 'desc')
-            ->get();
+        $activities = collect([]);
+
+        if (Auth::check()) {
+            $activities = ChallengeActivity::where('user_id', Auth::id())
+                ->orderBy('date', 'desc')
+                ->get();
+        }
 
         return view('challenge.submit', compact('activities'));
     }

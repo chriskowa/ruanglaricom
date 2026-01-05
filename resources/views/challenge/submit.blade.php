@@ -34,6 +34,47 @@
 @section('content')
     <div id="submit-app" class="relative z-10 w-full min-h-screen pb-24 pt-20 px-4">
         
+        @guest
+        <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md"></div>
+            <div class="relative bg-slate-800 border border-slate-700 rounded-3xl p-8 w-full max-w-sm shadow-2xl z-10 transform transition-all scale-100 opacity-100">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 rounded-full bg-slate-700 mx-auto flex items-center justify-center mb-4 ring-4 ring-slate-800">
+                        <i class="fas fa-lock text-neon text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-white italic tracking-tighter">LOGIN REQUIRED</h2>
+                    <p class="text-slate-400 text-sm mt-2">Silakan login untuk melaporkan aktivitas.</p>
+                </div>
+
+                <form @submit.prevent="handleLogin" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Email</label>
+                        <input type="email" v-model="loginForm.email" required class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors" placeholder="your@email.com">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Password</label>
+                        <input type="password" v-model="loginForm.password" required class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors" placeholder="••••••••">
+                    </div>
+                    
+                    <div v-if="loginError" class="bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center font-bold p-3 rounded-lg">
+                        @{{ loginError }}
+                    </div>
+
+                    <button type="submit" :disabled="isLoggingIn" class="w-full bg-neon text-slate-900 font-black text-lg py-3 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 mt-2">
+                        <span v-if="!isLoggingIn">LOGIN SEKARANG</span>
+                        <span v-else><i class="fas fa-circle-notch fa-spin"></i> VERIFYING...</span>
+                    </button>
+                </form>
+                
+                <div class="mt-6 text-center space-y-3">
+                    <p class="text-slate-500 text-xs">
+                        Belum punya akun? <a href="{{ route('register') }}" class="text-neon hover:text-white font-bold transition-colors">Daftar di sini</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        @endguest
+
         <div class="fixed inset-0 z-[-1] bg-fixed-image"></div>
         <div class="fixed inset-0 z-[-1] bg-slate-900/90"></div>
 
@@ -212,6 +253,41 @@
                 const previewImage = ref(null);
                 const message = ref('');
                 const messageType = ref('success');
+                
+                // Login State
+                const loginForm = ref({ email: '', password: '' });
+                const isLoggingIn = ref(false);
+                const loginError = ref('');
+
+                const handleLogin = async () => {
+                    isLoggingIn.value = true;
+                    loginError.value = '';
+                    
+                    try {
+                        const response = await fetch("{{ route('login') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(loginForm.value)
+                        });
+                        
+                        const data = await response.json();
+
+                        if (response.ok || (data.success && !data.errors)) {
+                             window.location.reload();
+                        } else {
+                             loginError.value = data.message || 'Login failed. Please check your credentials.';
+                        }
+                    } catch (e) {
+                        loginError.value = 'An error occurred. Please try again.';
+                    } finally {
+                        isLoggingIn.value = false;
+                    }
+                };
+
                 const form = ref({
                     date: new Date().toISOString().substr(0, 10),
                     distance: '',
@@ -327,7 +403,12 @@
                     messageType,
                     handleFileUpload,
                     submitActivity,
-                    calculatedPace
+                    calculatedPace,
+                    // Login related
+                    loginForm,
+                    isLoggingIn,
+                    loginError,
+                    handleLogin
                 };
             }
         }).mount('#submit-app');
