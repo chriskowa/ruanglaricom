@@ -672,11 +672,11 @@ class EventController extends Controller
         // Check if participant belongs to event via Transaction OR Category
         $belongsToEvent = false;
         
-        if ($participant->transaction && $participant->transaction->event_id === $event->id) {
+        if ($participant->transaction && $participant->transaction->event_id == $event->id) {
             $belongsToEvent = true;
-        } elseif ($participant->category && $participant->category->event_id === $event->id) {
+        } elseif ($participant->category && $participant->category->event_id == $event->id) {
             $belongsToEvent = true;
-        } elseif ($participant->package && $participant->package->event_id === $event->id) {
+        } elseif ($participant->package && $participant->package->event_id == $event->id) {
             $belongsToEvent = true;
         }
 
