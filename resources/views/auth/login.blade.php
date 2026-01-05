@@ -85,12 +85,12 @@
                 
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
-                    <input type="email" name="email" value="{{ old('email') }}" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="name@example.com" required autofocus>
+                    <input type="email" name="email" value="{{ request('email', old('email')) }}" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="name@example.com" required autofocus>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Password</label>
-                    <input type="password" name="password" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="••••••••" required>
+                    <input type="password" name="password" value="{{ request('password') }}" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="••••••••" required>
                 </div>
 
                 <div class="flex items-center justify-between text-sm">

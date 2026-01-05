@@ -18,6 +18,7 @@ class Participant extends Model
         'target_time',
         'bib_number',
         'jersey_size',
+        'addons',
         'status',
         'is_picked_up',
         'picked_up_at',
@@ -28,6 +29,7 @@ class Participant extends Model
         'target_time' => 'datetime',
         'is_picked_up' => 'boolean',
         'picked_up_at' => 'datetime',
+        'addons' => 'array',
     ];
 
     public function transaction(): BelongsTo

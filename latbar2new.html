@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Latihan Bersama - Stadion Gajayana Malang</title>
+    
+    <meta name="description" content="Registrasi online Latihan Lari Bersama di Stadion Gajayana Malang. Tingkatkan performa lari Anda dengan komunitas terbaik. Biaya mulai Rp 15.000.">
+    <meta name="keywords" content="Lari Malang, Stadion Gajayana, Latihan Bersama, Event Lari, Komunitas Lari Malang, Registrasi Lari">
+    <meta name="author" content="Gajayana Runners">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Latihan Bersama - Stadion Gajayana Malang">
+    <meta property="og:description" content="Gabung latihan lari sore ini! Fasilitas lengkap, refreshment segar. Daftar sekarang.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1533560782882-96025287f311?q=80&w=1200">
+    <meta property="og:url" content="https://gajayanarun.id">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsEvent",
+      "name": "Latihan Bersama Gajayana",
+      "startDate": "2023-11-25T16:00",
+      "location": {
+        "@type": "Place",
+        "name": "Stadion Gajayana",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Jl. Tenes, Kauman",
+          "addressLocality": "Malang",
+          "postalCode": "65119",
+          "addressCountry": "ID"
+        }
+      },
+      "image": [
+        "https://images.unsplash.com/photo-1533560782882-96025287f311?q=80&w=1200"
+      ],
+      "description": "Latihan lari sore bersama komunitas di track atletik standar internasional.",
+      "offers": {
+        "@type": "Offer",
+        "url": "https://gajayanarun.id",
+        "price": "15000",
+        "priceCurrency": "IDR",
+        "availability": "https://schema.org/InStock"
+      }
+    }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="YOUR_CLIENT_KEY_HERE"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Orbitron', 'monospace'], // Font futuristik untuk angka/timer
+                    },
+                    colors: {
+                        neon: {
+                            cyan: '#00f3ff',
+                            pink: '#ff00ff',
+                            lime: '#ccff00',
+                            dark: '#050505'
+                        }
+                    },
+                    boxShadow: {
+                        'glow-cyan': '0 0 15px rgba(0, 243, 255, 0.5)',
+                        'glow-pink': '0 0 15px rgba(255, 0, 255, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #050505; color: white; scroll-behavior: smooth; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+
+        /* Background Image Overlay */
+        .hero-bg {
+            background-image: url('https://images.unsplash.com/photo-1533560782882-96025287f311?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(20, 20, 30, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .text-glow { text-shadow: 0 0 10px rgba(0, 243, 255, 0.7); }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="relative overflow-x-hidden">
+
+        <section class="relative h-screen flex items-center justify-center hero-bg">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#050505]"></div>
+            
+            <div class="relative z-10 text-center px-4 max-w-4xl mx-auto mt-10">
+                <span class="inline-block py-1 px-3 rounded-full bg-neon-pink/20 border border-neon-pink text-neon-pink text-xs font-bold tracking-widest mb-4 animate-pulse">
+                    OPEN REGISTRATION
+                </span>
+                <h1 class="text-5xl md:text-7xl font-extrabold mb-2 leading-tight">
+                    GAJAYANA <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-neon-pink text-glow">NIGHT RUN</span>
+                </h1>
+                <p class="text-gray-300 text-lg md:text-xl mb-8 font-light">
+                    Rasakan sensasi lari malam di stadion legendaris Malang.
+                </p>
+
+                <div class="grid grid-cols-4 gap-4 max-w-lg mx-auto mb-10">
+                    <div class="glass rounded-xl p-3 flex flex-col items-center border-t-2 border-neon-cyan">
+                        <span class="font-mono text-3xl md:text-4xl font-bold text-white">{{ timer.days }}</span>
+                        <span class="text-xs text-gray-400 uppercase tracking-wider">Hari</span>
+                    </div>
+                    <div class="glass rounded-xl p-3 flex flex-col items-center border-t-2 border-neon-pink">
+                        <span class="font-mono text-3xl md:text-4xl font-bold text-white">{{ timer.hours }}</span>
+                        <span class="text-xs text-gray-400 uppercase tracking-wider">Jam</span>
+                    </div>
+                    <div class="glass rounded-xl p-3 flex flex-col items-center border-t-2 border-neon-cyan">
+                        <span class="font-mono text-3xl md:text-4xl font-bold text-white">{{ timer.minutes }}</span>
+                        <span class="text-xs text-gray-400 uppercase tracking-wider">Menit</span>
+                    </div>
+                    <div class="glass rounded-xl p-3 flex flex-col items-center border-t-2 border-neon-pink">
+                        <span class="font-mono text-3xl md:text-4xl font-bold text-white">{{ timer.seconds }}</span>
+                        <span class="text-xs text-gray-400 uppercase tracking-wider">Detik</span>
+                    </div>
+                </div>
+
+                <a href="#registration" class="inline-block bg-neon-cyan text-black font-bold py-4 px-10 rounded-full hover:bg-white hover:shadow-glow-cyan transition-all duration-300 transform hover:scale-105">
+                    DAFTAR SEKARANG
+                </a>
+            </div>
+            
+            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+            </div>
+        </section>
+
+        <div class="container mx-auto px-4 py-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
+            
+            <div id="registration" class="lg:col-span-7">
+                <div class="glass rounded-2xl p-6 md:p-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-neon-cyan blur-[80px] opacity-20"></div>
+
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <span class="w-1 h-8 bg-neon-pink mr-3 rounded-full"></span>
+                        Formulir Peserta
+                    </h2>
+
+                    <form @submit.prevent="processPayment" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Nama Lengkap</label>
+                                <input type="text" v-model="form.name" required placeholder="Nama Anda"
+                                    class="w-full bg-black/40 border border-gray-700 rounded-lg p-3 text-white focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">No. WhatsApp</label>
+                                <input type="tel" v-model="form.phone" required placeholder="08xxxx"
+                                    class="w-full bg-black/40 border border-gray-700 rounded-lg p-3 text-white focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan outline-none transition-all">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-xs uppercase tracking-wider mb-2">Email</label>
+                            <input type="email" v-model="form.email" required placeholder="email@anda.com"
+                                class="w-full bg-black/40 border border-gray-700 rounded-lg p-3 text-white focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan outline-none transition-all">
+                        </div>
+
+                        <div class="bg-gray-900/50 rounded-xl p-5 border border-gray-800">
+                            <h3 class="text-white font-semibold mb-4 text-sm uppercase">Detail Pembayaran</h3>
+                            
+                            <div class="flex justify-between items-center mb-4 pb-4 border-b border-gray-800">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-neon-pink/20 flex items-center justify-center text-neon-pink mr-3">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-white">Tiket Latihan</p>
+                                        <p class="text-xs text-gray-500">Akses Masuk & Loker</p>
+                                    </div>
+                                </div>
+                                <span class="font-mono text-neon-cyan">Rp 15.000</span>
+                            </div>
+
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between cursor-pointer group">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" v-model="form.addons.juice" class="w-5 h-5 rounded border-gray-600 bg-gray-800 text-neon-pink focus:ring-0 checked:bg-neon-pink">
+                                        <span class="ml-3 text-gray-300 group-hover:text-white transition">Jus Buah Sruput (Segar!)</span>
+                                    </div>
+                                    <span class="text-gray-400 font-mono text-sm">+ Rp 7.000</span>
+                                </label>
+                                
+                                <label class="flex items-center justify-between cursor-pointer group">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" v-model="form.addons.isotonic" class="w-5 h-5 rounded border-gray-600 bg-gray-800 text-neon-pink focus:ring-0 checked:bg-neon-pink">
+                                        <span class="ml-3 text-gray-300 group-hover:text-white transition">Isotonik (Hydration)</span>
+                                    </div>
+                                    <span class="text-gray-400 font-mono text-sm">+ Rp 3.000</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <div class="flex justify-between items-end mb-6">
+                                <span class="text-gray-400">Total Tagihan</span>
+                                <span class="text-4xl font-mono font-bold text-white">{{ formattedTotal }}</span>
+                            </div>
+                            
+                            <button type="submit" :disabled="isLoading" 
+                                class="w-full py-4 rounded-xl font-bold text-lg shadow-lg transform transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                :class="isLoading ? 'bg-gray-700 text-gray-400' : 'bg-gradient-to-r from-neon-pink to-purple-600 hover:from-neon-cyan hover:to-blue-600 text-white'">
+                                <span v-if="isLoading" class="flex items-center justify-center">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    Memproses...
+                                </span>
+                                <span v-else>Bayar Sekarang</span>
+                            </button>
+                            <p class="text-center text-xs text-gray-500 mt-3">
+                                Pembayaran aman & instan via QRIS/Gopay/Transfer (Midtrans)
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5">
+                <div class="glass rounded-2xl p-6 h-full border-l-4 border-l-neon-cyan">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">Peserta Terdaftar</h2>
+                        <span class="bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-mono border border-gray-600">
+                            {{ participants.length }} Runners
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto pr-2">
+                        
+                        <div v-for="(person, index) in participants" :key="index" class="flex flex-col items-center group">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-black border border-gray-700 flex items-center justify-center mb-2 group-hover:border-neon-cyan group-hover:shadow-glow-cyan transition-all duration-300 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <span class="font-mono text-lg font-bold text-gray-300 group-hover:text-white">
+                                    {{ getInitials(person.name) }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-400 text-center truncate w-full group-hover:text-neon-cyan transition-colors">
+                                {{ person.name }}
+                            </p>
+                        </div>
+
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-neon-cyan/5 rounded-lg border border-neon-cyan/20 text-center">
+                        <p class="text-xs text-neon-cyan">Daftar sekarang dan nama Anda akan muncul di sini!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="py-8 text-center text-gray-600 text-sm border-t border-gray-900 mt-10">
+            <p>&copy; 2024 Gajayana Runners Community. Built with Neon Spirit.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                // --- STATE FORM ---
+                const form = ref({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    addons: {
+                        juice: false,
+                        isotonic: false
+                    }
+                });
+
+                const isLoading = ref(false);
+
+                // --- STATE PRICING ---
+                const prices = {
+                    base: 15000,
+                    juice: 7000,
+                    isotonic: 3000
+                };
+
+                // --- STATE PARTICIPANTS (Dummy Data) ---
+                const participants = ref([
+                    { name: 'Andi Saputra' }, { name: 'Budi Hartono' }, { name: 'Citra Kirana' },
+                    { name: 'Doni Tata' }, { name: 'Eka Gustiwana' }, { name: 'Ferry Salim' },
+                    { name: 'Gita Gutawa' }, { name: 'Heri Purnomo' }, { name: 'Indra Bekti' },
+                    { name: 'Joko Anwar' }, { name: 'Kartika Putri' }, { name: 'Luna Maya' },
+                    { name: 'Maudy Ayunda' }, { name: 'Nicholas S' }, { name: 'Oki Setiana' }
+                ]);
+
+                // --- STATE TIMER ---
+                const timer = ref({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+                const eventDate = new Date();
+                eventDate.setDate(eventDate.getDate() + 5); // Set event 5 hari dari sekarang
+
+                // --- LOGIC ---
+
+                const formattedTotal = computed(() => {
+                    let total = prices.base;
+                    if (form.value.addons.juice) total += prices.juice;
+                    if (form.value.addons.isotonic) total += prices.isotonic;
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(total);
+                });
+
+                const rawTotal = computed(() => {
+                    let total = prices.base;
+                    if (form.value.addons.juice) total += prices.juice;
+                    if (form.value.addons.isotonic) total += prices.isotonic;
+                    return total;
+                });
+
+                const getInitials = (name) => {
+                    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+                };
+
+                const startTimer = () => {
+                    setInterval(() => {
+                        const now = new Date().getTime();
+                        const distance = eventDate.getTime() - now;
+
+                        timer.value.days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        timer.value.hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        timer.value.minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        timer.value.seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    }, 1000);
+                };
+
+                const processPayment = async () => {
+                    isLoading.value = true;
+                    try {
+                        // 1. BACKEND CALL (WAJIB DIBUAT SENDIRI, lihat penjelasan di bawah)
+                        // Mocking backend response seolah-olah sukses dapat token
+                        // const response = await fetch('/api/get-token', { method: 'POST', body: JSON.stringify({...})});
+                        
+                        // SIMULASI TOKEN DUMMY (Akan error jika diproses Snap beneran karena token palsu)
+                        // Di real project, token ini datang dari endpoint server Anda.
+                        console.log("Mengirim data:", { ...form.value, total: rawTotal.value });
+                        
+                        await new Promise(r => setTimeout(r, 1500)); // Delay efek loading
+
+                        alert("Integrasi Backend Diperlukan: Kode ini memerlukan 'snap_token' yang dihasilkan server backend Anda menggunakan Midtrans Server Key.");
+                        
+                        // CONTOH JIKA SUDAH ADA TOKEN DARI BACKEND:
+                        /*
+                        window.snap.pay('TOKEN_DARI_BACKEND', {
+                            onSuccess: function(result){
+                                // Tambahkan user ke list peserta secara realtime (frontend optimistic UI)
+                                participants.value.unshift({ name: form.value.name });
+                                alert("Pembayaran Berhasil!");
+                            },
+                            onPending: function(result){ alert("Menunggu pembayaran!"); },
+                            onError: function(result){ alert("Pembayaran gagal!"); }
+                        });
+                        */
+
+                    } catch (e) {
+                        alert("Error");
+                    } finally {
+                        isLoading.value = false;
+                    }
+                };
+
+                onMounted(() => {
+                    startTimer();
+                });
+
+                return {
+                    form,
+                    participants,
+                    timer,
+                    isLoading,
+                    formattedTotal,
+                    getInitials,
+                    processPayment
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

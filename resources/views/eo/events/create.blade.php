@@ -65,12 +65,16 @@
                 </h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Name <span class="text-red-400">*</span></label>
                         <input type="text" name="name" value="{{ old('name') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. Jakarta Marathon 2025" required>
-                        @error('name') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Hardcoded Template</label>
+                        <input type="text" name="hardcoded" value="{{ old('hardcoded') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="misal: latbarkamis">
+                        @error('hardcoded') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Slug (SEO URL)</label>
                         <div class="flex">
@@ -146,6 +150,28 @@
                 </div>
             </div>
 
+            <!-- Add-ons -->
+            <div class="border-b border-slate-700 pb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-sm border border-yellow-500/50">3</span>
+                        Add-ons
+                    </h3>
+                    <button type="button" onclick="addAddon()" class="px-4 py-2 rounded-lg bg-slate-800 text-yellow-400 border border-yellow-500/30 hover:bg-slate-700 hover:border-yellow-400 transition-all text-sm font-bold flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        Add Add-on
+                    </button>
+                </div>
+                <div id="addons_container" class="space-y-4">
+                    <!-- Add-ons will be added here -->
+                </div>
+                <div id="empty_addons_msg" class="text-center py-8 border-2 border-dashed border-slate-800 rounded-xl">
+                    <p class="text-slate-500 mb-2">Belum ada add-on.</p>
+                    <p class="text-xs text-slate-600">Klik "Add Add-on" untuk menambahkan opsi tambahan.</p>
+                </div>
+                @error('addons') <p class="text-red-400 text-xs mt-2">{{ $message }}</p> @enderror
+            </div>
+
             <!-- Race Categories (New) -->
             <div class="border-b border-slate-700 pb-8">
                 <div class="flex justify-between items-center mb-6">
@@ -217,6 +243,26 @@
                     Create Event
                 </button>
             </div>
+
+            <!-- Template for Addon Item -->
+            <template id="addon-template">
+                <div class="addon-item bg-slate-800/50 border border-slate-700 rounded-xl p-4 relative group hover:border-slate-500 transition-colors">
+                    <button type="button" class="remove-addon absolute top-4 right-4 text-slate-500 hover:text-red-400 transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div class="md:col-span-6">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Addon Name <span class="text-red-400">*</span></label>
+                            <input type="text" class="addon-name w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="e.g. Jersey Finisher" required>
+                        </div>
+                        <div class="md:col-span-6">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Price (IDR)</label>
+                            <input type="number" class="addon-price w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="150000">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
         </form>
     </div>
 </div>
@@ -295,6 +341,42 @@
 
         container.appendChild(item);
         categoryIndex++;
+    }
+
+    // Addons Logic
+    let addonIndex = 0;
+    const addonsContainer = document.getElementById('addons_container');
+    const emptyAddonsMsg = document.getElementById('empty_addons_msg');
+    const addonTemplate = document.getElementById('addon-template');
+
+    function addAddon(data = null) {
+        emptyAddonsMsg.classList.add('hidden');
+        
+        const clone = addonTemplate.content.cloneNode(true);
+        const item = clone.querySelector('.addon-item');
+        
+        // Set names with index
+        const inputs = {
+            'addon-name': 'name',
+            'addon-price': 'price'
+        };
+        
+        for (const [cls, field] of Object.entries(inputs)) {
+            const input = item.querySelector(`.${cls}`);
+            input.name = `addons[${addonIndex}][${field}]`;
+            if (data) input.value = data[field];
+        }
+
+        // Remove button
+        item.querySelector('.remove-addon').addEventListener('click', function() {
+            item.remove();
+            if (addonsContainer.children.length === 0) {
+                emptyAddonsMsg.classList.remove('hidden');
+            }
+        });
+
+        addonsContainer.appendChild(item);
+        addonIndex++;
     }
 
     // Initialize with one empty category if none exist (optional, or wait for user)

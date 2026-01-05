@@ -2,9 +2,11 @@
 
 namespace App\Jobs;
 
+use App\Helpers\WhatsApp;
 use App\Models\Transaction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -104,8 +106,6 @@ class SendEventRegistrationNotification implements ShouldQueue
             // Format phone number (remove +, spaces, etc.)
             $phone = preg_replace('/[^0-9]/', '', $phone);
 
-            // For now, just log. You can integrate with WhatsApp API later
-            // Example: Twilio, WhatsApp Business API, etc.
             $message = $this->buildWhatsAppMessage($event, $participants);
 
             Log::info('WhatsApp notification prepared', [
@@ -114,9 +114,7 @@ class SendEventRegistrationNotification implements ShouldQueue
                 'message_preview' => substr($message, 0, 100),
             ]);
 
-            // TODO: Integrate with WhatsApp API
-            // Example:
-            // $whatsappService->send($phone, $message);
+            WhatsApp::send($phone, $message);
 
         } catch (\Exception $e) {
             Log::error('Failed to send WhatsApp notification', [
@@ -189,6 +187,24 @@ class SendEventRegistrationNotification implements ShouldQueue
                     $message .= " - BIB: {$participant->bib_number}";
                 }
                 $message .= "\n";
+            }
+        }
+
+        if ($this->transaction->payment_status === 'paid') {
+            $message .= "\nTerima kasih sudah menyelesaikan registrasi. Sampai jumpa di lokasi pada tanggal dan waktu tertera.\n";
+        } elseif ($this->transaction->payment_status === 'cod') {
+            $message .= "\nMetode Pembayaran: *COD*\nSilakan melakukan pembayaran di lokasi saat pengambilan race pack. Nomor tiket akan dikonfirmasi setelah pembayaran.\n";
+        }
+
+        $createdUsers = collect($this->transaction->pic_data['created_users'] ?? []);
+        if ($createdUsers->count() > 0) {
+            $loginUrl = route('login');
+            $message .= "\nAkses akun baru:\n";
+            foreach ($createdUsers as $email) {
+                $pwd = Cache::get('new_user_password:'.$email);
+                if ($pwd) {
+                    $message .= "• Login: {$loginUrl}\n  Email: {$email}\n  Password: {$pwd}\n";
+                }
             }
         }
 

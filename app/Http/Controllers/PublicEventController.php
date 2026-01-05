@@ -80,6 +80,19 @@ class PublicEventController extends Controller
 
             // Load categories if not in cache
             $categories = $event->categories()->where('is_active', true)->get();
+            if ($event->hardcoded === 'latbarkamis') {
+                $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                        $q->where('event_id', $event->id)->whereIn('payment_status', ['pending', 'paid']);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->limit(50)
+                    ->get(['id','name']);
+                return view('events.latbar3', [
+                    'event' => $event,
+                    'categories' => $categories,
+                    'participants' => $participants,
+                ]);
+            }
 
             return view('events.show', [
                 'event' => $event,
@@ -97,6 +110,20 @@ class PublicEventController extends Controller
 
         // Get categories
         $categories = $event->categories()->where('is_active', true)->get();
+
+        if ($event->hardcoded === 'latbarkamis') {
+            $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id)->whereIn('payment_status', ['pending', 'paid']);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get(['id','name']);
+            return view('events.latbar3', [
+                'event' => $event,
+                'categories' => $categories,
+                'participants' => $participants,
+            ]);
+        }
 
         return view('events.show', [
             'event' => $event,

@@ -39,6 +39,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:events,slug',
+            'hardcoded' => 'nullable|string|max:50',
             'short_description' => 'nullable|string',
             'full_description' => 'nullable|string',
             'start_at' => 'required|date',
@@ -79,6 +80,9 @@ class EventController extends Controller
             'theme_colors.danger' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'jersey_sizes' => 'nullable|array',
             'jersey_sizes.*' => 'nullable|string|in:XS,S,M,L,XL,XXL',
+            'addons' => 'nullable|array',
+            'addons.*.name' => 'required_with:addons|string|max:255',
+            'addons.*.price' => 'nullable|numeric|min:0',
             'categories' => 'required|array|min:1',
             'categories.*.name' => 'required|string|max:255',
             'categories.*.distance_km' => 'nullable|numeric|min:0',
@@ -225,6 +229,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:events,slug,'.$event->id,
+            'hardcoded' => 'nullable|string|max:50',
             'short_description' => 'nullable|string',
             'full_description' => 'nullable|string',
             'start_at' => 'required|date',
@@ -267,6 +272,9 @@ class EventController extends Controller
             'theme_colors.danger' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'jersey_sizes' => 'nullable|array',
             'jersey_sizes.*' => 'nullable|string|in:XS,S,M,L,XL,XXL',
+            'addons' => 'nullable|array',
+            'addons.*.name' => 'required_with:addons|string|max:255',
+            'addons.*.price' => 'nullable|numeric|min:0',
             'categories' => 'nullable|array|min:1',
             'categories.*.id' => 'nullable|exists:race_categories,id',
             'categories.*.name' => 'required_with:categories|string|max:255',
@@ -353,6 +361,22 @@ class EventController extends Controller
             }
         } else {
             $validated['jersey_sizes'] = null;
+        }
+
+        // Process addons
+        if (isset($validated['addons']) && is_array($validated['addons'])) {
+            $processedAddons = [];
+            foreach ($validated['addons'] as $addon) {
+                if (! empty($addon['name'])) {
+                    $processedAddons[] = [
+                        'name' => $addon['name'],
+                        'price' => isset($addon['price']) ? (int) $addon['price'] : 0,
+                    ];
+                }
+            }
+            $validated['addons'] = ! empty($processedAddons) ? $processedAddons : null;
+        } else {
+            $validated['addons'] = null;
         }
 
         // Extract categories if provided
@@ -501,7 +525,57 @@ class EventController extends Controller
             $query->where('is_picked_up', request()->is_picked_up == '1');
         }
 
+        // Search filter
+        if (request()->has('search') && trim(request()->search) !== '') {
+            $search = trim(request()->search);
+            $query->where(function ($qq) use ($search) {
+                $qq->where('name', 'like', "%{$search}%")
+                   ->orWhere('email', 'like', "%{$search}%")
+                   ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
         $participants = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        if (request()->ajax() || request()->wantsJson()) {
+            $items = $participants->getCollection()->map(function ($p) use ($event) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'email' => $p->email,
+                    'phone' => $p->phone,
+                    'category' => $p->category ? $p->category->name : '-',
+                    'bib_number' => $p->bib_number,
+                    'created_at' => $p->created_at ? $p->created_at->format('d M Y') : '',
+                    'is_picked_up' => (bool) $p->is_picked_up,
+                    'picked_up_by' => $p->picked_up_by,
+                    'transaction_id' => optional($p->transaction)->id,
+                    'payment_status' => optional($p->transaction)->payment_status ?? 'pending',
+                    'payment_update_url' => route('eo.events.transactions.payment-status', [$event, optional($p->transaction)->id]),
+                ];
+            });
+
+            $stats = [
+                'total_registered' => $participants->total(),
+                'paid_confirmed' => \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status', 'paid'); })->count(),
+                'race_pack_picked_up' => \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id); })->where('is_picked_up', true)->count(),
+                'pending_pickup' => \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status', 'paid'); })->where('is_picked_up', false)->count(),
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $items,
+                'stats' => $stats,
+                'meta' => [
+                    'current_page' => $participants->currentPage(),
+                    'last_page' => $participants->lastPage(),
+                    'per_page' => $participants->perPage(),
+                    'total' => $participants->total(),
+                    'next_page_url' => $participants->nextPageUrl(),
+                    'prev_page_url' => $participants->previousPageUrl(),
+                ],
+            ]);
+        }
 
         return view('eo.events.participants', compact('event', 'participants'));
     }
@@ -589,6 +663,32 @@ class EventController extends Controller
     }
 
     /**
+     * Delete a participant (only if not paid)
+     */
+    public function destroyParticipant(Request $request, Event $event, \App\Models\Participant $participant)
+    {
+        $this->authorizeEvent($event);
+        if (! $participant->transaction || $participant->transaction->event_id !== $event->id) {
+            abort(403, 'Unauthorized');
+        }
+        $status = $participant->transaction->payment_status ?? 'pending';
+        if ($status === 'paid') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Peserta dengan transaksi paid tidak dapat dihapus',
+            ], 422);
+        }
+        $participant->delete();
+        if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Peserta berhasil dihapus',
+            ]);
+        }
+        return back()->with('success', 'Peserta berhasil dihapus');
+    }
+
+    /**
      * Update participant picked up status
      */
     public function updateParticipantStatus(Request $request, Event $event, \App\Models\Participant $participant)
@@ -636,13 +736,17 @@ class EventController extends Controller
         }
 
         $validated = $request->validate([
-            'payment_status' => 'required|in:pending,paid,failed,expired',
+            'payment_status' => 'required|in:pending,paid,failed,expired,cod',
         ]);
 
         $transaction->update([
             'payment_status' => $validated['payment_status'],
             'paid_at' => $validated['payment_status'] === 'paid' ? now() : null,
         ]);
+
+        if ($validated['payment_status'] === 'paid') {
+            \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
+        }
 
         // Always return JSON for AJAX requests
         if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
