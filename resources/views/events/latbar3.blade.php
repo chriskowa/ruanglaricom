@@ -497,9 +497,26 @@
                         return;
                     }
                     if ((form.value.payment_method || 'midtrans') === 'midtrans' && data.snap_token) {
-                        window.snap.pay(data.snap_token);
+                        window.snap.pay(data.snap_token, {
+                            onSuccess: function(result){
+                                alert("Pembayaran berhasil!");
+                                window.location.reload();
+                            },
+                            onPending: function(result){
+                                alert("Menunggu pembayaran!");
+                                window.location.reload();
+                            },
+                            onError: function(result){
+                                alert("Pembayaran gagal!");
+                                window.location.reload();
+                            },
+                            onClose: function(){
+                                alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                            }
+                        });
                     } else {
                         alert('Registrasi COD berhasil. Silakan lakukan pembayaran di lokasi.');
+                        window.location.reload();
                     }
                 } catch (e) {
                     alert('Terjadi kesalahan: ' + e.message);
