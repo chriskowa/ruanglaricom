@@ -36,8 +36,9 @@
             <a href="{{ route('chat.show', $otherUser) }}" class="block p-4 border-b border-slate-800/50 transition-colors group {{ $isActive ? 'bg-slate-800 border-l-2 border-l-neon' : 'hover:bg-slate-800/50' }}">
                 <div class="flex items-start gap-3">
                     <div class="relative">
-                        <img src="{{ $otherUser->avatar ? asset('storage/' . $otherUser->avatar) : asset('images/profile/17.jpg') }}" 
-                             class="w-12 h-12 rounded-full object-cover border-2 {{ $isActive ? 'border-neon' : 'border-slate-700 group-hover:border-neon' }} transition-colors" 
+                        <img src="/images/profile/17.jpg"
+                             data-avatar="{{ $otherUser->avatar }}"
+                             class="sidebar-avatar w-12 h-12 rounded-full object-cover border-2 {{ $isActive ? 'border-neon' : 'border-slate-700 group-hover:border-neon' }} transition-colors" 
                              alt="{{ $otherUser->name }}">
                     </div>
                     <div class="flex-1 min-w-0">

@@ -17,8 +17,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </a>
-                <a href="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/profile/17.jpg') }}" target="_blank" rel="noopener">
-                    <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/profile/17.jpg') }}" 
+                <a href="#" id="header-avatar-link" target="_blank" rel="noopener">
+                    <img src="/images/profile/17.jpg" id="header-avatar-img"
                          class="w-10 h-10 rounded-full object-cover border border-slate-700" alt="{{ $user->name }}">
                 </a>
                 <div>
@@ -42,8 +42,9 @@
                 <div class="flex w-full {{ $isOwn ? 'justify-end' : 'justify-start' }}">
                     <div class="max-w-[85%] md:max-w-[70%] flex {{ $isOwn ? 'flex-row-reverse' : 'flex-row' }} gap-2">
                         @if(!$isOwn)
-                            <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/profile/17.jpg') }}" 
-                                 class="w-8 h-8 rounded-full object-cover self-end mb-1 hidden md:block border border-slate-700">
+                            <img src="/images/profile/17.jpg" 
+                                 data-avatar="{{ $user->avatar }}"
+                                 class="message-avatar w-8 h-8 rounded-full object-cover self-end mb-1 hidden md:block border border-slate-700">
                         @endif
                         
                         <div>
@@ -107,6 +108,27 @@
 
 @push('scripts')
 <script>
+    function getAvatarUrl(path) {
+        if (!path) return '/images/profile/17.jpg';
+        if (path.indexOf('http') === 0) return path;
+        
+        var baseUrl = "{{ url('/') }}";
+        var storageBase = "{{ asset('storage') }}";
+        
+        // If path already contains storage/, use baseUrl instead of storageBase
+        if (path.indexOf('storage/') === 0 || path.indexOf('/storage/') === 0) {
+             var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+             return baseUrl + '/' + cleanPath;
+        }
+        
+        // Ensure slash between storageBase and path
+        var prefix = storageBase;
+        if (prefix.slice(-1) !== '/') prefix += '/';
+        var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+        
+        return prefix + cleanPath;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const messagesContainer = document.getElementById('chat-messages');
         const form = document.getElementById('chat-form');
@@ -118,6 +140,17 @@
         const userId = {{ $user->id }};
         const messagesUrl = "{{ route('chat.messages', $user->id) }}";
         const currentUserId = {{ auth()->id() }};
+        
+        // Initial Avatar Setup
+        const userAvatar = @json($user->avatar);
+        const headerAvatarUrl = getAvatarUrl(userAvatar);
+        document.getElementById('header-avatar-link').href = headerAvatarUrl;
+        document.getElementById('header-avatar-img').src = headerAvatarUrl;
+
+        // Update initial message avatars
+        document.querySelectorAll('img.message-avatar').forEach(img => {
+            img.src = getAvatarUrl(img.dataset.avatar);
+        });
 
         // Scroll to bottom
         function scrollToBottom() {
@@ -143,8 +176,9 @@
         // Helper: Create Message Bubble HTML
         function createMessageBubble(msg, isOwn) {
             const time = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const avatarUrl = !isOwn ? getAvatarUrl(msg.sender.avatar) : '';
             const avatarHtml = !isOwn 
-                ? `<img src="${msg.sender.avatar ? '/storage/' + msg.sender.avatar : '/images/profile/17.jpg'}" class="w-8 h-8 rounded-full object-cover self-end mb-1 hidden md:block border border-slate-700">`
+                ? `<img src="${avatarUrl}" class="w-8 h-8 rounded-full object-cover self-end mb-1 hidden md:block border border-slate-700">`
                 : '';
             
             const readReceipt = (isOwn && msg.is_read) 

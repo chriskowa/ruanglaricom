@@ -25,4 +25,35 @@
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #ccff00; }
 </style>
+@push('scripts')
+<script>
+    function getAvatarUrl(path) {
+        if (!path) return '/images/profile/17.jpg';
+        if (path.indexOf('http') === 0) return path;
+        
+        var baseUrl = "{{ url('/') }}";
+        var storageBase = "{{ asset('storage') }}";
+        
+        // If path already contains storage/, use baseUrl instead of storageBase
+        if (path.indexOf('storage/') === 0 || path.indexOf('/storage/') === 0) {
+             var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+             return baseUrl + '/' + cleanPath;
+        }
+        
+        // Ensure slash between storageBase and path
+        var prefix = storageBase;
+        if (prefix.slice(-1) !== '/') prefix += '/';
+        var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
+        
+        return prefix + cleanPath;
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update sidebar avatars
+        document.querySelectorAll('img.sidebar-avatar').forEach(img => {
+            img.src = getAvatarUrl(img.dataset.avatar);
+        });
+    });
+</script>
+@endpush
 @endsection
