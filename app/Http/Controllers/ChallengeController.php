@@ -259,7 +259,7 @@ class ChallengeController extends Controller
                 Log::error('Email OTP failed: '.$e->getMessage());
             }
         } else {
-            \App\Helpers\WhatsApp::send($phone, 'Kode OTP 40 Days Challenge Anda: '.$code.' (berlaku 10 menit)');
+            \App\Helpers\WhatsApp::send($data['whatsapp'], 'Kode OTP 40 Days Challenge: '.$code.' (berlaku 10 menit) Gabung Grup Untuk Pengumuman `https://chat.whatsapp.com/Ht9mz3P3Tje9xGBpl73Htg` ');
         }
 
         return response()->json([
@@ -291,23 +291,22 @@ class ChallengeController extends Controller
 
         Auth::login($user);
 
-        // Enroll in Challenge (Program ID 9)
-        $programId = 9;
-        $program = Program::find($programId);
+        // Enroll in Program
+        $program = Program::where('hardcoded', '40days')->first();
 
         if ($program) {
             $exists = ProgramEnrollment::where('runner_id', $user->id)
-                ->where('program_id', $programId)
+                ->where('program_id', $program->id)
                 ->exists();
 
             if (! $exists) {
                 ProgramEnrollment::create([
                     'runner_id' => $user->id,
-                    'program_id' => $programId,
-                    'status' => 'purchased',
+                    'program_id' => $program->id,
+                    'status' => 'active',
                     'payment_status' => 'paid',
-                    'start_date' => null,
-                    'end_date' => null,
+                    'start_date' => now()->addDay(),
+                    'end_date' => now()->addWeeks($program->duration_weeks ?? 8),
                 ]);
                 $program->increment('enrolled_count');
             }
