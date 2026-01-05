@@ -11,7 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->validateCsrfToken(except: [
+        $middleware->validateCsrfTokens(except: [
             'events/transactions/webhook',
             'marketplace/webhook',
             'wallet/topup/callback',
