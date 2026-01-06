@@ -9,6 +9,7 @@ class ChallengeActivity extends Model
     protected $fillable = [
         'user_id',
         'date',
+        'activity_time',
         'distance',
         'duration_seconds',
         'image_path',

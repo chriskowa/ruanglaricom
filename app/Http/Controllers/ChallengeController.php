@@ -99,26 +99,37 @@ class ChallengeController extends Controller
             'duration_hours' => 'required|integer|min:0',
             'duration_minutes' => 'required|integer|min:0|max:59',
             'duration_seconds' => 'required|integer|min:0|max:59',
-            'image' => 'required|image|max:5120', // 5MB max
+            'image' => 'required|image|max:5120',
             'strava_link' => 'nullable|url',
+            'time_hour' => 'required|integer|min:1|max:12',
+            'time_minute' => 'required|integer|min:0|max:59',
+            'time_ampm' => 'required|in:AM,PM',
         ]);
 
         $user = Auth::user();
 
-        // Check for duplicate submission for the same date
+        $hour12 = (int) $request->time_hour;
+        $minute = (int) $request->time_minute;
+        $ampm = $request->time_ampm;
+        $hour24 = $hour12 % 12;
+        if ($ampm === 'PM') {
+            $hour24 += 12;
+        }
+        $activityTime = sprintf('%02d:%02d:00', $hour24, $minute);
+
         $existing = ChallengeActivity::where('user_id', $user->id)
             ->where('date', $request->date)
+            ->where('activity_time', $activityTime)
             ->whereIn('status', ['pending', 'approved'])
             ->exists();
 
         if ($existing) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda sudah menyetor aktivitas untuk tanggal ini! Mohon tunggu persetujuan atau setor untuk tanggal lain.',
+                'message' => 'Duplikat aktivitas: tanggal dan waktu yang sama sudah disetor.',
             ], 422);
         }
 
-        // Calculate total seconds
         $totalSeconds = ($request->duration_hours * 3600) + ($request->duration_minutes * 60) + $request->duration_seconds;
 
         if ($totalSeconds <= 0) {
@@ -128,13 +139,12 @@ class ChallengeController extends Controller
             ], 422);
         }
 
-        // Upload Image
         $imagePath = $request->file('image')->store('activity_proofs', 'public');
 
-        // Create Activity Record
         ChallengeActivity::create([
             'user_id' => $user->id,
             'date' => $request->date,
+            'activity_time' => $activityTime,
             'distance' => $request->distance,
             'duration_seconds' => $totalSeconds,
             'image_path' => $imagePath,

@@ -149,6 +149,19 @@
                             <input type="date" v-model="form.date" required
                                 class="w-full bg-slate-800/80 border border-slate-700/50 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors">
                         </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Time</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="number" v-model="form.time_hour" placeholder="HH" min="1" max="12" inputmode="numeric"
+                                    class="w-full bg-slate-800/80 border border-slate-700/50 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors text-center">
+                                <input type="number" v-model="form.time_minute" placeholder="MM" min="0" max="59" inputmode="numeric"
+                                    class="w-full bg-slate-800/80 border border-slate-700/50 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors text-center">
+                                <select v-model="form.time_ampm" class="w-full bg-slate-800/80 border border-slate-700/50 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon transition-colors">
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
+                                </select>
+                            </div>
+                        </div>
                         
                         <div class="space-y-2">
                             <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Strava / Activity Link</label>
@@ -214,7 +227,12 @@
                                 </div>
                                 <div>
                                     <div class="text-white font-bold text-base">{{ $activity->distance }} KM</div>
-                                    <div class="text-xs text-slate-400 font-mono">{{ gmdate('H:i:s', $activity->duration_seconds) }}</div>
+                                    <div class="text-xs text-slate-400 font-mono">
+                                        {{ gmdate('H:i:s', $activity->duration_seconds) }}
+                                        @if(!empty($activity->activity_time))
+                                            • {{ \Carbon\Carbon::parse($activity->date.' '.$activity->activity_time)->format('h:i A') }}
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                             <div class="text-right">
@@ -294,6 +312,9 @@
                     duration_hours: '',
                     duration_minutes: '',
                     duration_seconds: '',
+                    time_hour: 7,
+                    time_minute: 0,
+                    time_ampm: 'AM',
                     stravaLink: '',
                     image: null
                 });
@@ -349,6 +370,9 @@
                         formData.append('duration_hours', form.value.duration_hours || 0);
                         formData.append('duration_minutes', form.value.duration_minutes || 0);
                         formData.append('duration_seconds', form.value.duration_seconds || 0);
+                        formData.append('time_hour', form.value.time_hour || 7);
+                        formData.append('time_minute', form.value.time_minute || 0);
+                        formData.append('time_ampm', form.value.time_ampm || 'AM');
                         formData.append('strava_link', form.value.stravaLink);
                         formData.append('image', form.value.image);
 
@@ -374,6 +398,9 @@
                             form.value.duration_hours = '';
                             form.value.duration_minutes = '';
                             form.value.duration_seconds = '';
+                            form.value.time_hour = 7;
+                            form.value.time_minute = 0;
+                            form.value.time_ampm = 'AM';
                             form.value.stravaLink = '';
                             form.value.image = null;
                             previewImage.value = null;
