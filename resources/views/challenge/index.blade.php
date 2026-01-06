@@ -52,7 +52,7 @@
                 </div>
             </div>
 
-            <div class="flex justify-center items-end gap-4 mb-12 h-48">
+            <div class="flex justify-center items-end gap-4 mb-12 mt-20 h-48">
                 
                 <!-- Rank 2 -->
                 <div class="flex flex-col items-center w-1/3 group cursor-pointer" v-if="sortedRunners[1]">
