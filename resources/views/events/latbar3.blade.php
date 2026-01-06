@@ -171,7 +171,7 @@
     <div id="ph-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
     @include('layouts.components.pacerhub-sidebar')
     <div id="app" class="relative min-h-screen flex flex-col pt-20" v-cloak>
-        <header class="relative h-[120vh] lg:h-[90vh] flex items-center justify-center overflow-hidden">
+        <header class="relative h-[90vh] lg:h-[90vh] flex items-center justify-center overflow-hidden">
             <img src="{{ $event->getHeroImageUrl() ?? 'https://images.unsplash.com/photo-1532444458054-01a7dd3e9fca?q=80&w=1600&auto=format&fit=crop' }}"
                  alt="{{ $event->name }}"
                  class="absolute inset-0 w-full h-full object-cover"
