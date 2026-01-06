@@ -59,21 +59,21 @@
             @endguest
             
             <!-- Right Side: Navigation & Actions -->
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-2">
                 <button id="ph-sidebar-toggle" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors" title="Menu">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
 
                 <!-- Desktop Search -->
-                <div class="hidden md:block">
+                <!--<div class="hidden md:block">
                     <form action="{{ route('users.index') }}" method="GET">
                         <input name="q" placeholder="Search runners, clubs..." class="px-4 py-2 w-64 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
                     </form>
-                </div>
+                </div>-->
                 
                 <!-- Cart Icon -->
                 @auth
-                <a href="{{ route('marketplace.cart.index') }}" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Cart">
+                <a href="{{ route('marketplace.cart.index') }}" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Cart">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     <span id="nav-cart-count" class="absolute top-1.5 right-1 w-4 h-4 bg-neon text-dark text-[10px] font-bold rounded-full flex items-center justify-center hidden">0</span>
                 </a>
@@ -81,7 +81,7 @@
 
                 <!-- Chat / Messages -->
                 @auth
-                <a href="{{ route('chat.index') }}" class="hidden md:block p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Messages">
+                <a href="{{ route('chat.index') }}" class="hidden md:block p-1 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Messages">
                     @include('layouts.components.svg-chat')
                 </a>
                 @endauth
@@ -89,7 +89,7 @@
                 <!-- Notifications -->
                 @auth
                 <div class="relative" id="notification-container">
-                    <button id="nav-bell-btn" class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Notifications">
+                    <button id="nav-bell-btn" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Notifications">
                         @include('layouts.components.svg-bell')
                         <span id="notification-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-dark hidden"></span>
                     </button>
@@ -151,7 +151,7 @@
                 @endauth
                 
                 @guest
-                <div class="flex items-center gap-3 xs:gap-1">
+                <div class="flex items-center gap-3 xs:gap-2">
                     <a href="{{ route('login') }}" class="text-sm font-bold text-slate-300 hover:text-white transition-colors">Login</a>
                     <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-bold bg-neon text-dark rounded-xl hover:bg-lime-400 hover:shadow-lg hover:shadow-neon/20 transition-all transform hover:-translate-y-0.5">Register</a>
                 </div>
