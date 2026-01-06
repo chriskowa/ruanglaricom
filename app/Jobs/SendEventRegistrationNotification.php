@@ -103,8 +103,14 @@ class SendEventRegistrationNotification implements ShouldQueue
     protected function sendWhatsAppNotification(string $phone, $event, $participants): void
     {
         try {
-            // Format phone number (remove +, spaces, etc.)
-            $phone = preg_replace('/[^0-9]/', '', $phone);
+            // Normalisasi nomor WhatsApp ke format 62XXXXXXXX (hilangkan non-digit, ubah leading 0 -> 62, pastikan prefix 62)
+            $normalized = preg_replace('/\D+/', '', $phone);
+            if (str_starts_with($normalized, '0')) {
+                $normalized = '62'.substr($normalized, 1);
+            } elseif (! str_starts_with($normalized, '62')) {
+                $normalized = '62'.$normalized;
+            }
+            $phone = $normalized;
 
             $message = $this->buildWhatsAppMessage($event, $participants);
 
