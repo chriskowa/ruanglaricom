@@ -31,6 +31,27 @@
                 <h1 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter">
                     {{ strtoupper(auth()->user()->name) }}
                 </h1>
+                <!-- Subscription Tier Badge -->
+                @if(auth()->user()->package_tier && auth()->user()->package_tier !== 'basic')
+                <div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 backdrop-blur-sm">
+                    @php
+                        $tierColor = match(auth()->user()->package_tier) {
+                            'elite' => 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]',
+                            'pro' => 'bg-neon-yellow shadow-[0_0_10px_rgba(234,179,8,0.5)]', // using yellow-500 hex approx
+                            'lite' => 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]',
+                            default => 'bg-slate-400'
+                        };
+                        $tierText = match(auth()->user()->package_tier) {
+                            'elite' => 'text-purple-400',
+                            'pro' => 'text-yellow-400',
+                            'lite' => 'text-cyan-400',
+                            default => 'text-slate-400'
+                        };
+                    @endphp
+                    <span class="w-2 h-2 rounded-full {{ $tierColor }}"></span>
+                    <span class="text-xs font-bold {{ $tierText }} uppercase tracking-wider">{{ auth()->user()->package_tier }} MEMBER</span>
+                </div>
+                @endif
             </div>
             <div class="flex gap-3">
                 <a href="{{ route('eo.events.create') }}" class="px-6 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-yellow-400 hover:text-yellow-400 transition-all font-bold text-sm flex items-center gap-2">

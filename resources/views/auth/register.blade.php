@@ -58,6 +58,15 @@
         .role-radio:checked + .role-card .role-icon {
             color: #ccff00;
         }
+        
+        /* Package Radio Styles */
+        .package-radio:checked + .package-card {
+            border-color: #ccff00;
+            background-color: rgba(204, 255, 0, 0.05);
+        }
+        .package-radio:checked + .package-card h3 {
+            color: #ccff00;
+        }
     </style>
 </head>
 
@@ -126,6 +135,65 @@
                     </div>
                 </div>
 
+                <!-- Package Selection for EO -->
+                <div id="eo-package-selection" class="hidden space-y-4">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Select Package</label>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <!-- Lite Package -->
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="package_tier" value="lite" class="package-radio hidden" {{ old('package_tier') == 'lite' ? 'checked' : '' }}>
+                            <div class="package-card border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-all">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-bold text-white group-hover:text-neon transition-colors">LITE</h3>
+                                    <span class="text-xs font-semibold bg-slate-700 text-slate-300 px-2 py-1 rounded">Self-Service</span>
+                                </div>
+                                <p class="text-sm text-slate-400 mb-3">Cocok untuk komunitas kecil, Fun Run lokal, atau Virtual Run.</p>
+                                <ul class="text-xs text-slate-500 space-y-1 list-disc pl-4">
+                                    <li>Landing Page Standar</li>
+                                    <li>Registrasi Quick Reg</li>
+                                    <li>Payment Gateway Otomatis</li>
+                                </ul>
+                            </div>
+                        </label>
+
+                        <!-- Pro Package -->
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="package_tier" value="pro" class="package-radio hidden" {{ old('package_tier') == 'pro' ? 'checked' : '' }}>
+                            <div class="package-card border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-all relative overflow-hidden">
+                                <div class="absolute top-0 right-0 bg-neon text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg">POPULAR</div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-bold text-white group-hover:text-neon transition-colors">PRO</h3>
+                                    <span class="text-xs font-semibold bg-slate-700 text-slate-300 px-2 py-1 rounded">Mid-Scale</span>
+                                </div>
+                                <p class="text-sm text-slate-400 mb-3">Untuk event 500-2.000 peserta dengan otomasi komunikasi.</p>
+                                <ul class="text-xs text-slate-500 space-y-1 list-disc pl-4">
+                                    <li>WhatsApp Blaster</li>
+                                    <li>Manajemen BIB & Kategori</li>
+                                    <li>Race Results & Pacer</li>
+                                </ul>
+                            </div>
+                        </label>
+
+                        <!-- Elite Package -->
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="package_tier" value="elite" class="package-radio hidden" {{ old('package_tier') == 'elite' ? 'checked' : '' }}>
+                            <div class="package-card border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-all">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-lg font-bold text-white group-hover:text-neon transition-colors">ELITE</h3>
+                                    <span class="text-xs font-semibold bg-slate-700 text-slate-300 px-2 py-1 rounded">Full Management</span>
+                                </div>
+                                <p class="text-sm text-slate-400 mb-3">Untuk Race Director profesional & event besar.</p>
+                                <ul class="text-xs text-slate-500 space-y-1 list-disc pl-4">
+                                    <li>Custom Premium Landing Page</li>
+                                    <li>Race Director Dashboard</li>
+                                    <li>Race Management Advance</li>
+                                </ul>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
                     <input type="text" name="name" value="{{ old('name') }}" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="John Doe" required>
@@ -134,6 +202,12 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
                     <input type="email" name="email" value="{{ old('email') }}" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="name@example.com" required>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp Number</label>
+                    <input type="tel" name="phone" value="{{ old('phone') }}" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="62xxxxxxxxxx" required>
+                    <small class="text-slate-500 text-xs">Gunakan format 62 di depan nomor.</small>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -186,5 +260,30 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleRadios = document.querySelectorAll('input[name="role"]');
+            const eoPackageSelection = document.getElementById('eo-package-selection');
+            const packageRadios = document.querySelectorAll('input[name="package_tier"]');
+
+            function togglePackageSelection() {
+                const selectedRole = document.querySelector('input[name="role"]:checked')?.value;
+                if (selectedRole === 'eo') {
+                    eoPackageSelection.classList.remove('hidden');
+                } else {
+                    eoPackageSelection.classList.add('hidden');
+                    // Uncheck packages
+                    packageRadios.forEach(radio => radio.checked = false);
+                }
+            }
+
+            roleRadios.forEach(radio => {
+                radio.addEventListener('change', togglePackageSelection);
+            });
+
+            // Initial check
+            togglePackageSelection();
+        });
+    </script>
 </body>
 </html>

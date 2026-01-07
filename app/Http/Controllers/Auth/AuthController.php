@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Models\OtpToken;
+use App\Helpers\WhatsApp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -28,6 +32,18 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+
+            if (! $user->is_active) {
+                Auth::logout();
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Akun belum terverifikasi. Silakan masukkan kode OTP.'
+                    ], 403);
+                }
+                return redirect()->route('pacer.otp', ['user' => $user->id])
+                    ->with('success', 'Akun belum terverifikasi. Silakan masukkan kode OTP yang dikirim.');
+            }
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -82,20 +98,36 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:coach,runner,eo', // Admin tidak bisa didaftar via form
+            'package_tier' => 'nullable|required_if:role,eo|in:lite,pro,elite',
         ]);
+
+        $phone = preg_replace('/\D+/', '', $validated['phone']);
+        if (str_starts_with($phone, '0')) {
+            $phone = '62'.substr($phone, 1);
+        } elseif (! str_starts_with($phone, '62')) {
+            $phone = '62'.$phone;
+        }
+
+        if (User::where('phone', $phone)->exists()) {
+            return back()
+                ->withErrors(['phone' => 'Nomor WhatsApp sudah terdaftar.'])
+                ->withInput();
+        }
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'phone' => $phone,
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
-            'is_active' => true,
+            'is_active' => false,
             'referral_code' => $this->generateReferralCode(),
+            'package_tier' => $validated['role'] === 'eo' ? $validated['package_tier'] : 'basic',
         ]);
 
-        // Create wallet for user
         $wallet = Wallet::create([
             'user_id' => $user->id,
             'balance' => 0,
@@ -104,9 +136,31 @@ class AuthController extends Controller
 
         $user->update(['wallet_id' => $wallet->id]);
 
-        Auth::login($user);
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        OtpToken::create([
+            'user_id' => $user->id,
+            'code' => $code,
+            'expires_at' => now()->addMinutes(10),
+            'used' => false,
+        ]);
 
-        return redirect()->intended(route($user->role.'.dashboard'));
+        $otpChannel = env('OTP_CHANNEL', 'whatsapp');
+        $successMsg = 'Kami telah mengirim OTP ke WhatsApp Anda.';
+
+        if ($otpChannel === 'email') {
+            try {
+                Mail::raw('Kode OTP RuangLari Anda: '.$code.' (berlaku 10 menit)', function ($message) use ($user) {
+                    $message->to($user->email)->subject('Kode OTP RuangLari');
+                });
+                $successMsg = 'Kami telah mengirim OTP ke Email Anda.';
+            } catch (\Exception $e) {
+                Log::error('Email OTP failed: '.$e->getMessage());
+            }
+        } else {
+            WhatsApp::send($phone, 'Kode OTP RuangLari Anda: '.$code.' (berlaku 10 menit)');
+        }
+
+        return redirect()->route('pacer.otp', ['user' => $user->id])->with('success', $successMsg);
     }
 
     public function showForgotPassword()
