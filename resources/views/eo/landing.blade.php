@@ -58,12 +58,12 @@
                 </ul>
 
                 <div class="mt-6">
-                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition">
+                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition after:absolute after:inset-0">
                         <i class="fas fa-rocket"></i> Mulai dari Paket LITE
                     </a>
                 </div>
 
-                <div class="absolute inset-0 rounded-2xl ring-1 ring-white/5 group-hover:ring-neon/30 transition"></div>
+                <div class="absolute inset-0 rounded-2xl ring-1 ring-white/5 group-hover:ring-neon/30 transition pointer-events-none"></div>
             </div>
 
             <!-- Paket PRO -->
@@ -111,12 +111,12 @@
                 </ul>
 
                 <div class="mt-6">
-                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-yellow-400 text-black font-black hover:bg-yellow-300 transition">
+                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-yellow-400 text-black font-black hover:bg-yellow-300 transition after:absolute after:inset-0">
                         <i class="fas fa-bolt"></i> Upgrade ke PRO
                     </a>
                 </div>
 
-                <div class="absolute inset-0 rounded-2xl ring-1 ring-white/5 group-hover:ring-yellow-300/40 transition"></div>
+                <div class="absolute inset-0 rounded-2xl ring-1 ring-white/5 group-hover:ring-yellow-300/40 transition pointer-events-none"></div>
             </div>
 
             <!-- Paket ELITE -->
@@ -168,12 +168,12 @@
                 </ul>
 
                 <div class="mt-6">
-                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-purple-500 text-white font-black hover:bg-purple-400 transition">
+                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-purple-500 text-white font-black hover:bg-purple-400 transition after:absolute after:inset-0">
                         <i class="fas fa-crown"></i> Konsultasi Paket ELITE
                     </a>
                 </div>
 
-                <div class="absolute inset-0 rounded-2xl ring-1 ring-white/5 group-hover:ring-purple-400/40 transition"></div>
+                <div class="absolute inset-0 rounded-2xl ring-1 ring-white/5 group-hover:ring-purple-400/40 transition pointer-events-none"></div>
             </div>
         </div>
 
