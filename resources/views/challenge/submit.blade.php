@@ -60,6 +60,10 @@
                         @{{ loginError }}
                     </div>
 
+                    <div class="flex justify-center my-2">
+                        <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
+                    </div>
+
                     <button type="submit" :disabled="isLoggingIn" class="w-full bg-neon text-slate-900 font-black text-lg py-3 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 mt-2">
                         <span v-if="!isLoggingIn">LOGIN SEKARANG</span>
                         <span v-else><i class="fas fa-circle-notch fa-spin"></i> VERIFYING...</span>
@@ -196,6 +200,8 @@
                         </div>
                     </div>
 
+
+
                     <!-- Submit Button -->
                     <button type="submit" :disabled="isSubmitting"
                         class="w-full bg-neon text-slate-900 font-black text-lg py-4 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4">
@@ -262,6 +268,7 @@
     </div>
 
 @push('scripts')
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         const { createApp, ref, computed, watch } = Vue;
 
@@ -281,6 +288,13 @@
                     isLoggingIn.value = true;
                     loginError.value = '';
                     
+                    const recaptchaResponse = grecaptcha.getResponse();
+                    if (!recaptchaResponse) {
+                        loginError.value = 'Mohon selesaikan verifikasi reCAPTCHA.';
+                        isLoggingIn.value = false;
+                        return;
+                    }
+
                     try {
                         const response = await fetch("{{ route('login') }}", {
                             method: 'POST',
@@ -289,7 +303,10 @@
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                                 'Accept': 'application/json'
                             },
-                            body: JSON.stringify(loginForm.value)
+                            body: JSON.stringify({
+                                ...loginForm.value,
+                                'g-recaptcha-response': recaptchaResponse
+                            })
                         });
                         
                         const data = await response.json();
@@ -298,9 +315,11 @@
                              window.location.reload();
                         } else {
                              loginError.value = data.message || 'Login failed. Please check your credentials.';
+                             grecaptcha.reset();
                         }
                     } catch (e) {
                         loginError.value = 'An error occurred. Please try again.';
+                        grecaptcha.reset();
                     } finally {
                         isLoggingIn.value = false;
                     }
@@ -375,6 +394,8 @@
                         formData.append('time_ampm', form.value.time_ampm || 'AM');
                         formData.append('strava_link', form.value.stravaLink);
                         formData.append('image', form.value.image);
+
+
 
                         // CSRF Token
                         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
