@@ -198,6 +198,11 @@ Route::post('/events/{slug}/register', [App\Http\Controllers\EventRegistrationCo
 Route::post('/events/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
 Route::post('/events/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
 
+// EO Landing Page
+Route::get('/event-organizer', function () {
+    return view('eo.landing');
+})->name('eo.landing');
+
 // Public API: Upcoming events for home page
 Route::get('/api/events/upcoming', function () {
     try {
