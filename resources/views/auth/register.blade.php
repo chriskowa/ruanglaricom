@@ -13,6 +13,7 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         tailwind.config = {
             theme: {
@@ -219,6 +220,10 @@
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Confirm</label>
                         <input type="password" name="password_confirmation" class="w-full px-4 py-3 rounded-xl input-glass transition-all" placeholder="••••••••" required>
                     </div>
+                </div>
+
+                <div class="flex justify-center pt-2">
+                    <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
                 </div>
 
                 <div class="pt-2">

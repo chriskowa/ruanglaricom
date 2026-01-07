@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -23,10 +24,23 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+            'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
+                $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'response' => $value,
+                    'remoteip' => request()->ip(),
+                ]);
+
+                if (! $response->json('success')) {
+                    $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                }
+            }],
         ]);
+
+        $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
@@ -102,6 +116,17 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:coach,runner,eo', // Admin tidak bisa didaftar via form
             'package_tier' => 'nullable|required_if:role,eo|in:lite,pro,elite',
+            'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
+                $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'response' => $value,
+                    'remoteip' => request()->ip(),
+                ]);
+
+                if (! $response->json('success')) {
+                    $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                }
+            }],
         ]);
 
         $phone = preg_replace('/\D+/', '', $validated['phone']);

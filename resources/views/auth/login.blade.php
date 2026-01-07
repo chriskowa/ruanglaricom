@@ -13,6 +13,7 @@
     
     <!-- Tailwind CSS (via CDN for simplicity, or use asset('css/app.css') if built) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         tailwind.config = {
             theme: {
@@ -52,7 +53,7 @@
     </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center relative overflow-hidden">
+<body class="min-h-screen flex items-center justify-center relative overflow-auto">
     
     <!-- Background Effects -->
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
@@ -99,6 +100,10 @@
                         <span>Remember me</span>
                     </label>
                     <a href="{{ route('password.request') }}" class="text-cyan-400 hover:text-cyan-300 transition-colors">Forgot Password?</a>
+                </div>
+
+                <div class="flex justify-center">
+                    <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
                 </div>
 
                 <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.02]">
