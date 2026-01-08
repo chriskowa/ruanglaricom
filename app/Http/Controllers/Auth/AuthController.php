@@ -148,7 +148,7 @@ class AuthController extends Controller
             'phone' => $phone,
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
-            'is_active' => false,
+            'is_active' => !env('LOGIN_OTP_ENABLED', true),
             'referral_code' => $this->generateReferralCode(),
             'package_tier' => $validated['role'] === 'eo' ? $validated['package_tier'] : 'basic',
         ]);
@@ -160,6 +160,18 @@ class AuthController extends Controller
         ]);
 
         $user->update(['wallet_id' => $wallet->id]);
+
+        if (!env('LOGIN_OTP_ENABLED', true)) {
+            Auth::login($user);
+            $dashboard = match ($user->role) {
+                'admin' => route('admin.dashboard'),
+                'coach' => route('coach.dashboard'),
+                'runner' => route('runner.dashboard'),
+                'eo' => route('eo.dashboard'),
+                default => route('runner.dashboard'),
+            };
+            return redirect()->intended($dashboard);
+        }
 
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         OtpToken::create([

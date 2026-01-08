@@ -49,7 +49,7 @@ class CoachRegistrationController extends Controller
             'phone' => $phone,
             'password' => bcrypt(str()->random(12)),
             'role' => 'coach',
-            'is_active' => false,
+            'is_active' => !env('LOGIN_OTP_ENABLED', true),
             'city' => $data['city'],
         ]);
 

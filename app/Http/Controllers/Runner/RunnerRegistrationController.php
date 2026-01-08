@@ -68,7 +68,13 @@ class RunnerRegistrationController extends Controller
             'pb_42k_time' => $validated['pb_42k_time'] ?? null,
             'cooper_distance' => $validated['cooper_distance'] ?? null,
             'resting_hr' => $validated['resting_hr'] ?? null,
+            'is_active' => !env('LOGIN_OTP_ENABLED', true),
         ]);
+
+        if (!env('LOGIN_OTP_ENABLED', true)) {
+            Auth::login($user);
+            return redirect()->route('runner.dashboard');
+        }
 
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         OtpToken::create([
