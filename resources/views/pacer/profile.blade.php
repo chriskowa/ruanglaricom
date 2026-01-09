@@ -14,7 +14,7 @@
 
 @section('content')
 
-    <div class="absolute h-64 md:h-80 w-full rounded-b-3xl overflow-hidden group">
+    <div class="absolute h-64 md:h-80 w-full rounded-b-3xl overflow-hidden group pt-20">
         <div class="absolute inset-0 bg-slate-900">
             @if($pacer->user->banner)
                 <img src="{{ asset('storage/' . $pacer->user->banner) }}" alt="Banner" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700">
