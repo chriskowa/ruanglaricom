@@ -26,7 +26,6 @@ class Participant extends Model
     ];
 
     protected $casts = [
-        'target_time' => 'datetime',
         'is_picked_up' => 'boolean',
         'picked_up_at' => 'datetime',
         'addons' => 'array',

@@ -49,6 +49,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     

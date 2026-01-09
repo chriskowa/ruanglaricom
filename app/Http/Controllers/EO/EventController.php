@@ -83,6 +83,8 @@ class EventController extends Controller
             'addons' => 'nullable|array',
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
+            'premium_amenities' => 'nullable|array',
+            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal',
             'categories' => 'required|array|min:1',
             'categories.*.name' => 'required|string|max:255',
             'categories.*.distance_km' => 'nullable|numeric|min:0',
@@ -100,6 +102,18 @@ class EventController extends Controller
         ]);
 
         $validated['user_id'] = auth()->id();
+
+        // Default premium_amenities to empty array if not present (for new events to not be treated as legacy)
+        if (!isset($validated['premium_amenities'])) {
+            $validated['premium_amenities'] = [];
+        } else {
+            // Re-index nested items arrays to ensure JSON array structure (not object)
+            foreach ($validated['premium_amenities'] as $key => &$amenity) {
+                if (isset($amenity['items']) && is_array($amenity['items'])) {
+                    $amenity['items'] = array_values($amenity['items']);
+                }
+            }
+        }
 
         // Auto-generate slug if not provided
         if (empty($validated['slug'])) {
@@ -275,6 +289,8 @@ class EventController extends Controller
             'addons' => 'nullable|array',
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
+            'premium_amenities' => 'nullable|array',
+            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal',
             'categories' => 'nullable|array|min:1',
             'categories.*.id' => 'nullable|exists:race_categories,id',
             'categories.*.name' => 'required_with:categories|string|max:255',
@@ -291,6 +307,18 @@ class EventController extends Controller
             'categories.*.reg_end_at' => 'nullable|date|after:categories.*.reg_start_at',
             'categories.*.is_active' => 'nullable|boolean',
         ]);
+
+        // Default premium_amenities to empty array if not present (to allow unchecking all)
+        if (!isset($validated['premium_amenities'])) {
+            $validated['premium_amenities'] = [];
+        } else {
+            // Re-index nested items arrays to ensure JSON array structure (not object)
+            foreach ($validated['premium_amenities'] as $key => &$amenity) {
+                if (isset($amenity['items']) && is_array($amenity['items'])) {
+                    $amenity['items'] = array_values($amenity['items']);
+                }
+            }
+        }
 
         // Process facilities - filter only enabled facilities
         if (isset($validated['facilities']) && is_array($validated['facilities'])) {

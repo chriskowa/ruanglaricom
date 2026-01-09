@@ -78,14 +78,19 @@ class SendEventRegistrationNotification implements ShouldQueue
     protected function sendEmailNotification(string $email, $event, $participants): void
     {
         try {
-            // For now, use simple mail. You can create a Mailable class later
-            $subject = "Konfirmasi Registrasi: {$event->name}";
-            $message = $this->buildEmailMessage($event, $participants);
+            $notifiableName = $participants->first()->name ?? 'Peserta';
+            
+            // If sending to PIC, use PIC name
+            if ($email === ($this->transaction->pic_data['email'] ?? '')) {
+                $notifiableName = $this->transaction->pic_data['name'] ?? $notifiableName;
+            }
 
-            Mail::raw($message, function ($mail) use ($email, $subject) {
-                $mail->to($email)
-                    ->subject($subject);
-            });
+            Mail::to($email)->send(new \App\Mail\EventRegistrationSuccess(
+                $event, 
+                $this->transaction, 
+                $participants, 
+                $notifiableName
+            ));
 
         } catch (\Exception $e) {
             Log::error('Failed to send email notification', [
@@ -129,44 +134,6 @@ class SendEventRegistrationNotification implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
         }
-    }
-
-    /**
-     * Build email message content
-     */
-    protected function buildEmailMessage($event, $participants): string
-    {
-        $message = "Terima kasih telah mendaftar di event {$event->name}!\n\n";
-        $message .= "Detail Registrasi:\n";
-        $message .= "Event: {$event->name}\n";
-        $message .= 'Tanggal: '.($event->start_at ? $event->start_at->format('d F Y H:i') : 'TBA')."\n";
-        $message .= "Lokasi: {$event->location_name}\n";
-        $message .= 'Total Pembayaran: Rp '.number_format($this->transaction->final_amount, 0, ',', '.')."\n\n";
-
-        $message .= "Peserta yang Terdaftar:\n";
-        foreach ($participants as $participant) {
-            $message .= "- {$participant->name}";
-            if ($participant->category) {
-                $message .= " ({$participant->category->name})";
-            }
-            if ($participant->bib_number) {
-                $message .= " - BIB: {$participant->bib_number}";
-            }
-            $message .= "\n";
-        }
-
-        $message .= "\n";
-        $message .= 'Status Pembayaran: '.strtoupper($this->transaction->payment_status)."\n";
-
-        if ($this->transaction->payment_status === 'paid') {
-            $message .= "\nPembayaran Anda telah dikonfirmasi. Silakan cek email untuk informasi lebih lanjut.\n";
-        } else {
-            $message .= "\nSilakan selesaikan pembayaran Anda untuk menyelesaikan registrasi.\n";
-        }
-
-        $message .= "\nTerima kasih!";
-
-        return $message;
     }
 
     /**

@@ -41,7 +41,7 @@ class StoreRegistrationAction
             'participants.*.phone' => 'required|string|max:20',
             'participants.*.id_card' => 'required|string|max:50',
             'participants.*.category_id' => 'required|exists:race_categories,id',
-            'participants.*.target_time' => 'nullable|date_format:H:i',
+            'participants.*.target_time' => 'nullable|string|max:50',
             'participants.*.jersey_size' => 'nullable|string|max:10',
             'coupon_code' => 'nullable|string|max:50',
             'payment_method' => 'nullable|in:midtrans,cod',

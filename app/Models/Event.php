@@ -38,6 +38,8 @@ class Event extends Model
         'jersey_sizes',
         'gallery',
         'theme_colors',
+        'premium_amenities',
+        'template',
     ];
 
     protected $casts = [
@@ -50,6 +52,7 @@ class Event extends Model
         'jersey_sizes' => 'array',
         'gallery' => 'array',
         'theme_colors' => 'array',
+        'premium_amenities' => 'array',
     ];
 
     protected static function boot()

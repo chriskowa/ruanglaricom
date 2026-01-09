@@ -65,7 +65,6 @@
                 </h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Name <span class="text-red-400">*</span></label>
                         <input type="text" name="name" value="{{ old('name') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. Jakarta Marathon 2025" required>
@@ -75,6 +74,73 @@
                         <input type="text" name="hardcoded" value="{{ old('hardcoded') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="misal: latbarkamis">
                         @error('hardcoded') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Event Template</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <label class="relative cursor-pointer group">
+                                <input type="radio" name="template" value="modern-dark" class="peer sr-only" {{ old('template', 'modern-dark') == 'modern-dark' ? 'checked' : '' }}>
+                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
+                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                        <div class="w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-black relative">
+                                            <div class="absolute top-2 left-2 w-8 h-2 bg-yellow-400/50 rounded-sm"></div>
+                                            <div class="absolute top-6 left-2 w-16 h-2 bg-slate-700 rounded-sm"></div>
+                                            <div class="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-yellow-400/20 border border-yellow-400"></div>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-bold text-white mb-1">Modern Dark</h4>
+                                    <p class="text-xs text-slate-400">Desain gelap, elegan, dengan aksen neon. Cocok untuk event malam atau premium.</p>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <div class="bg-yellow-400 rounded-full p-1">
+                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="relative cursor-pointer group">
+                                <input type="radio" name="template" value="light-clean" class="peer sr-only" {{ old('template') == 'light-clean' ? 'checked' : '' }}>
+                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
+                                    <div class="bg-slate-200 h-24 rounded-lg mb-3 border border-slate-300 flex items-center justify-center overflow-hidden">
+                                        <div class="w-full h-full bg-gradient-to-br from-white via-slate-50 to-slate-100 relative">
+                                            <div class="absolute top-2 left-2 w-8 h-2 bg-blue-500/50 rounded-sm"></div>
+                                            <div class="absolute top-6 left-2 w-16 h-2 bg-slate-300 rounded-sm"></div>
+                                            <div class="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-blue-500/20 border border-blue-500"></div>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-bold text-white mb-1">Light Clean</h4>
+                                    <p class="text-xs text-slate-400">Tampilan terang, bersih, dan profesional. Cocok untuk fun run atau event siang hari.</p>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <div class="bg-yellow-400 rounded-full p-1">
+                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="relative cursor-pointer group">
+                                <input type="radio" name="template" value="simple-minimal" class="peer sr-only" {{ old('template') == 'simple-minimal' ? 'checked' : '' }}>
+                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
+                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                        <div class="w-full h-full bg-slate-900 relative flex flex-col items-center justify-center gap-2">
+                                            <div class="w-12 h-2 bg-slate-700 rounded-sm"></div>
+                                            <div class="w-20 h-2 bg-slate-700 rounded-sm"></div>
+                                            <div class="w-16 h-2 bg-slate-700 rounded-sm"></div>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-bold text-white mb-1">Simple Minimal</h4>
+                                    <p class="text-xs text-slate-400">Fokus pada konten, tanpa banyak ornamen. Ringan dan cepat dimuat.</p>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <div class="bg-yellow-400 rounded-full p-1">
+                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        @error('template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Slug (SEO URL)</label>
                         <div class="flex">
@@ -89,14 +155,17 @@
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Short Description</label>
-                        <textarea name="short_description" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="Brief summary for card view...">{{ old('short_description') }}</textarea>
+                        <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                            <div id="short_description_editor"></div>
+                            <textarea name="short_description" id="short_description" class="hidden">{{ old('short_description') }}</textarea>
+                        </div>
                         @error('short_description') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Full Description</label>
                         <div class="bg-white rounded-xl overflow-hidden text-slate-900">
-                            <div id="ckeditor"></div>
+                            <div id="full_description_editor"></div>
                             <textarea name="full_description" id="full_description" class="hidden">{{ old('full_description') }}</textarea>
                         </div>
                         @error('full_description') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
@@ -114,12 +183,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">Start Date & Time <span class="text-red-400">*</span></label>
-                        <input type="datetime-local" name="start_at" value="{{ old('start_at') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" required>
+                        <input type="datetime-local" name="start_at" value="{{ old('start_at') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors [color-scheme:dark]" required>
                         @error('start_at') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">End Date & Time</label>
-                        <input type="datetime-local" name="end_at" value="{{ old('end_at') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors">
+                        <input type="datetime-local" name="end_at" value="{{ old('end_at') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors [color-scheme:dark]">
                         @error('end_at') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -176,9 +245,9 @@
             <div class="border-b border-slate-700 pb-8">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-sm border border-yellow-500/50">3</span>
-                        Race Categories
-                    </h3>
+                    <span class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-sm border border-yellow-500/50">4</span>
+                    Race Categories
+                </h3>
                     <button type="button" onclick="addCategory()" class="px-4 py-2 rounded-lg bg-slate-800 text-yellow-400 border border-yellow-500/30 hover:bg-slate-700 hover:border-yellow-400 transition-all text-sm font-bold flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                         Add Category
@@ -195,10 +264,12 @@
                 @error('categories') <p class="text-red-400 text-xs mt-2">{{ $message }}</p> @enderror
             </div>
 
-            <!-- Media & Branding -->
+            <!-- Premium Amenities -->
+            @include('eo.events.partials.premium-amenities', ['event' => new \App\Models\Event()])
+
             <div class="border-b border-slate-700 pb-8">
                 <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-sm border border-yellow-500/50">4</span>
+                    <span class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-sm border border-yellow-500/50">6</span>
                     Media & Branding
                 </h3>
 
@@ -383,11 +454,26 @@
     // addCategory(); 
 
     // CKEditor Init
+    const commonConfig = {
+        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+    };
+
+    // Short Description
     ClassicEditor
-        .create(document.querySelector('#ckeditor'), {
-            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
-        })
+        .create(document.querySelector('#short_description_editor'), commonConfig)
         .then(editor => {
+            editor.setData(`{!! old('short_description') !!}`);
+            editor.model.document.on('change:data', () => {
+                document.querySelector('#short_description').value = editor.getData();
+            });
+        })
+        .catch(error => console.error(error));
+
+    // Full Description
+    ClassicEditor
+        .create(document.querySelector('#full_description_editor'), commonConfig)
+        .then(editor => {
+            editor.setData(`{!! old('full_description') !!}`);
             editor.model.document.on('change:data', () => {
                 document.querySelector('#full_description').value = editor.getData();
             });
