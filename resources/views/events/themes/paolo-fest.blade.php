@@ -158,10 +158,10 @@
                 </h1>
                 
                 <p class="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0 font-medium">
-                    {{ $event->short_description ?? 'Rasakan sensasi berlari dengan pemandangan terbaik. Rute aman, steril, dan atmosfer kompetitif yang menyenangkan.' }}
+                    {!! $event->short_description ?? 'Rasakan sensasi berlari dengan pemandangan terbaik. Rute aman, steril, dan atmosfer kompetitif yang menyenangkan.' !!}
                 </p>
 
-                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-8">
                     @if($isRegOpen)
                     <a href="#register" class="px-8 py-4 bg-accent-500 text-white font-bold rounded-xl shadow-lg shadow-accent-500/20 hover:bg-accent-600 transition hover:-translate-y-1">
                         Amankan Slot
@@ -174,6 +174,26 @@
                     <a href="#rute" class="px-8 py-4 bg-white text-slate-700 border border-slate-200 font-bold rounded-xl hover:bg-slate-50 transition shadow-sm">
                         Lihat Rute
                     </a>
+                </div>
+
+                <!-- Countdown -->
+                <div id="hero-countdown" class="flex gap-6 justify-center md:justify-start">
+                    <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
+                        <span class="block text-2xl font-bold text-brand-600" id="cd-days">00</span>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold">Hari</span>
+                    </div>
+                    <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
+                        <span class="block text-2xl font-bold text-brand-600" id="cd-hours">00</span>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold">Jam</span>
+                    </div>
+                    <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
+                        <span class="block text-2xl font-bold text-brand-600" id="cd-minutes">00</span>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold">Menit</span>
+                    </div>
+                    <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
+                        <span class="block text-2xl font-bold text-brand-600" id="cd-seconds">00</span>
+                        <span class="text-[10px] text-slate-500 uppercase font-bold">Detik</span>
+                    </div>
                 </div>
             </div>
 
@@ -217,7 +237,16 @@
                 <p class="mt-4 text-lg text-slate-600">Sesuaikan dengan target latihanmu.</p>
             </div>
 
-            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            @php
+                $catCount = $categories->count();
+                $gridClass = match($catCount) {
+                    1 => 'lg:grid-cols-1 max-w-xl mx-auto',
+                    2 => 'lg:grid-cols-2 max-w-5xl mx-auto',
+                    default => 'lg:grid-cols-3'
+                };
+            @endphp
+
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 {{ $gridClass }}">
                 @foreach($categories as $cat)
                 <div class="relative flex flex-col bg-white border border-slate-200 rounded-3xl shadow-card hover:shadow-xl hover:border-brand-200 transition-all duration-300 group reveal">
                     <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-600 to-accent-500 rounded-t-3xl"></div>
@@ -690,6 +719,44 @@
                     btn.innerHTML = originalText;
                 });
             });
+        })();
+
+        // F. Countdown Timer
+        (function() {
+            const targetDateStr = "{{ $event->start_at->format('Y-m-d H:i:s') }}"; 
+            // Replace space with T for ISO format compatibility
+            const targetDate = new Date(targetDateStr.replace(' ', 'T')).getTime(); 
+
+            const daysEl = document.getElementById('cd-days');
+            const hoursEl = document.getElementById('cd-hours');
+            const minutesEl = document.getElementById('cd-minutes');
+            const secondsEl = document.getElementById('cd-seconds');
+            const countdownContainer = document.getElementById('hero-countdown');
+            
+            if(!daysEl || !countdownContainer) return;
+
+            const updateCountdown = () => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    countdownContainer.innerHTML = '<div class="text-brand-600 font-bold text-xl bg-white px-6 py-3 rounded-xl border border-slate-100 shadow-sm">Event Telah Dimulai! 🏃💨</div>';
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                daysEl.innerText = days.toString().padStart(2, '0');
+                hoursEl.innerText = hours.toString().padStart(2, '0');
+                minutesEl.innerText = minutes.toString().padStart(2, '0');
+                secondsEl.innerText = seconds.toString().padStart(2, '0');
+            };
+
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
         })();
     </script>
 </body>
