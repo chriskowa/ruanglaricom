@@ -90,6 +90,17 @@
 
         $now = now();
         $isRegOpen = !($event->registration_open_at && $now < $event->registration_open_at) && !($event->registration_close_at && $now > $event->registration_close_at);
+
+        $countdownTarget = $event->start_at;
+        $countdownLabel = 'Event Dimulai Dalam';
+
+        if ($event->registration_open_at && $now < $event->registration_open_at) {
+            $countdownTarget = $event->registration_open_at;
+            $countdownLabel = 'Pendaftaran Dibuka Dalam';
+        } elseif ($isRegOpen && $event->registration_close_at) {
+            $countdownTarget = $event->registration_close_at;
+            $countdownLabel = 'Pendaftaran Ditutup Dalam';
+        }
     @endphp
 
     <nav class="fixed w-full z-50 transition-all duration-300 bg-white/80 backdrop-blur-sm border-b border-slate-100" id="navbar">
@@ -177,6 +188,9 @@
                 </div>
 
                 <!-- Countdown -->
+                <div class="mb-2 text-center md:text-left">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">{{ $countdownLabel }}</span>
+                </div>
                 <div id="hero-countdown" class="flex gap-6 justify-center md:justify-start">
                     <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
                         <span class="block text-2xl font-bold text-brand-600" id="cd-days">00</span>
@@ -723,9 +737,9 @@
 
         // F. Countdown Timer
         (function() {
-            const targetDateStr = "{{ $event->start_at->format('Y-m-d H:i:s') }}"; 
+            const targetDateStr = "{{ $countdownTarget ? $countdownTarget->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s') }}"; 
             // Replace space with T for ISO format compatibility
-            const targetDate = new Date(targetDateStr.replace(' ', 'T')).getTime(); 
+            const targetDate = new Date(targetDateStr.replace(' ', 'T')).getTime();  
 
             const daysEl = document.getElementById('cd-days');
             const hoursEl = document.getElementById('cd-hours');
