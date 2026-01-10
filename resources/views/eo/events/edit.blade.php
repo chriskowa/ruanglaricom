@@ -62,6 +62,7 @@
         <form action="{{ route('eo.events.update', $event) }}" method="POST" enctype="multipart/form-data" id="eventForm" class="space-y-8">
             @csrf
             @method('PUT')
+            <div id="removed_sponsors_container"></div>
 
             <!-- Basic Info -->
             <div class="border-b border-slate-700 pb-8">
@@ -389,6 +390,41 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Sponsor Logos (Max 30, 300kb/each)</label>
+                        <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-yellow-400 transition-colors cursor-pointer relative" onclick="document.getElementById('sponsors').click()">
+                            <input type="file" name="sponsors[]" id="sponsors" class="hidden" accept="image/*" multiple onchange="previewSponsors(this)">
+                            
+                            <!-- New Uploads Preview -->
+                            <div id="sponsors_preview" class="hidden grid grid-cols-4 md:grid-cols-6 gap-4 mb-2"></div>
+                            
+                            <div id="sponsors_placeholder" class="{{ ($event->sponsors && count($event->sponsors) > 0) ? 'hidden' : '' }}">
+                                <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                <p class="text-sm text-slate-400">Click to upload multiple logos</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-500 text-xs mt-1" id="sponsors_count">0 files selected</p>
+                        @error('sponsors') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        @error('sponsors.*') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+
+                        <!-- Existing Sponsors -->
+                        @if($event->sponsors && count($event->sponsors) > 0)
+                        <div class="mt-4">
+                            <label class="block text-xs font-medium text-slate-400 mb-2">Existing Sponsors</label>
+                            <div class="grid grid-cols-4 md:grid-cols-6 gap-4">
+                                @foreach($event->sponsors as $sponsor)
+                                <div class="group relative aspect-square bg-slate-800 rounded-lg overflow-hidden border border-slate-600">
+                                    <img src="{{ asset('storage/' . $sponsor) }}" class="w-full h-full object-contain p-2">
+                                    <button type="button" onclick="removeSponsor(this, '{{ $sponsor }}')" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                    </div>
                 </div>
             </div>
 
@@ -432,6 +468,20 @@
             <div class="md:col-span-2">
                 <label class="block text-xs font-medium text-slate-400 mb-1">COT (Mins)</label>
                 <input type="number" class="cat-cot w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="120">
+            </div>
+        </div>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 1</label>
+                <input type="text" class="cat-prize-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 5.000.000 / Trofi / dll">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 2</label>
+                <input type="text" class="cat-prize-2 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 3.000.000 / Trofi / dll">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 3</label>
+                <input type="text" class="cat-prize-3 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 1.500.000 / Trofi / dll">
             </div>
         </div>
     </div>
@@ -506,6 +556,51 @@
     const emptyMsg = document.getElementById('empty_categories_msg');
     const template = document.getElementById('category-template');
 
+    // Sponsor Preview Logic
+    function previewSponsors(input) {
+        const preview = document.getElementById('sponsors_preview');
+        const placeholder = document.getElementById('sponsors_placeholder');
+        const count = document.getElementById('sponsors_count');
+        
+        preview.innerHTML = '';
+        
+        if (input.files && input.files.length > 0) {
+            placeholder.classList.add('hidden');
+            preview.classList.remove('hidden');
+            count.textContent = input.files.length + ' files selected';
+            
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'aspect-square bg-slate-800 rounded-lg overflow-hidden border border-slate-600 relative';
+                    div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    preview.appendChild(div);
+                }
+                reader.readAsDataURL(file);
+            });
+        } else {
+            placeholder.classList.remove('hidden');
+            preview.classList.add('hidden');
+            count.textContent = '0 files selected';
+        }
+    }
+
+    // Remove Sponsor Logic
+    function removeSponsor(btn, path) {
+        if(confirm('Are you sure you want to remove this sponsor logo?')) {
+            const container = document.getElementById('removed_sponsors_container');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'remove_sponsors[]';
+            input.value = path;
+            container.appendChild(input);
+            
+            // Remove the visual element
+            btn.closest('.group').remove();
+        }
+    }
+
     function addCategory(data = null) {
         emptyMsg.classList.add('hidden');
         
@@ -519,13 +614,24 @@
             'cat-distance': 'distance_km',
             'cat-quota': 'quota',
             'cat-price': 'price_regular',
-            'cat-cot': 'cutoff_minutes'
+            'cat-cot': 'cutoff_minutes',
+            'cat-prize-1': 'prizes][1',
+            'cat-prize-2': 'prizes][2',
+            'cat-prize-3': 'prizes][3'
         };
 
         for (const [cls, name] of Object.entries(inputs)) {
             const input = item.querySelector('.' + cls);
             input.name = `categories[${categoryIndex}][${name}]`;
             if (data && data[name]) input.value = data[name];
+        }
+        if (data && data.prizes) {
+            const p1 = item.querySelector('.cat-prize-1');
+            const p2 = item.querySelector('.cat-prize-2');
+            const p3 = item.querySelector('.cat-prize-3');
+            if (p1 && data.prizes[1] !== undefined) p1.value = data.prizes[1];
+            if (p2 && data.prizes[2] !== undefined) p2.value = data.prizes[2];
+            if (p3 && data.prizes[3] !== undefined) p3.value = data.prizes[3];
         }
 
         // Remove button

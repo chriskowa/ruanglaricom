@@ -105,6 +105,8 @@
                     {!! $event->full_description ?? $event->short_description !!}
                 </div>
 
+                @include('events.partials.prizes-section', ['categories' => $categories])
+
                 <div>
                     <h3 class="text-lg font-bold text-gray-900 mb-4 border-l-4 border-black pl-3">Kategori & Harga</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -204,6 +206,8 @@
                                             </select>
                                         </div>
                                         <input type="text" name="participants[0][id_card]" placeholder="No. KTP/SIM" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                        <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
                                         <input type="text" name="participants[0][target_time]" placeholder="Target Waktu (Optional)" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition">
                                     </div>
                                 </div>
@@ -258,6 +262,13 @@
             </div>
         </div>
     </main>
+
+    @include('events.partials.sponsor-carousel', [
+        'gradientFrom' => 'from-white',
+        'titleColor' => 'text-gray-400',
+        'containerClass' => 'bg-white border border-gray-100',
+        'sectionClass' => 'py-12 border-t border-gray-100 max-w-5xl mx-auto px-4'
+    ])
 
     <footer class="border-t border-gray-100 py-8 text-center text-xs text-gray-400">
         &copy; {{ date('Y') }} {{ $event->name }}. All rights reserved.

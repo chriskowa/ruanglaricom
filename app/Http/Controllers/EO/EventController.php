@@ -71,6 +71,8 @@ class EventController extends Controller
             'facilities.*.image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
             'gallery' => 'nullable|array',
             'gallery.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
+            'sponsors' => 'nullable|array|max:30',
+            'sponsors.*' => 'image|mimes:jpeg,jpg,png,webp|max:300',
             'theme_colors' => 'nullable|array',
             'theme_colors.dark' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'theme_colors.card' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
@@ -101,6 +103,10 @@ class EventController extends Controller
             'categories.*.reg_start_at' => 'nullable|date',
             'categories.*.reg_end_at' => 'nullable|date|after:categories.*.reg_start_at',
             'categories.*.is_active' => 'nullable|boolean',
+            'categories.*.prizes' => 'nullable|array',
+            'categories.*.prizes.1' => 'nullable|string|max:255',
+            'categories.*.prizes.2' => 'nullable|string|max:255',
+            'categories.*.prizes.3' => 'nullable|string|max:255',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -163,6 +169,17 @@ class EventController extends Controller
             $validated['gallery'] = $galleryPaths;
         } else {
             $validated['gallery'] = null;
+        }
+
+        // Process Sponsors
+        if ($request->hasFile('sponsors')) {
+            $sponsorPaths = [];
+            foreach ($request->file('sponsors') as $image) {
+                $sponsorPaths[] = $this->processImage($image, 'events/sponsors', 400, 85);
+            }
+            $validated['sponsors'] = $sponsorPaths;
+        } else {
+            $validated['sponsors'] = null;
         }
 
         // Process Theme Colors (remove nulls)
@@ -279,6 +296,9 @@ class EventController extends Controller
             'gallery' => 'nullable|array',
             'gallery.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
             'remove_gallery_images' => 'nullable|array',
+            'sponsors' => 'nullable|array|max:30',
+            'sponsors.*' => 'image|mimes:jpeg,jpg,png,webp|max:300',
+            'remove_sponsors' => 'nullable|array',
             'theme_colors' => 'nullable|array',
             'theme_colors.dark' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'theme_colors.card' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
@@ -310,6 +330,10 @@ class EventController extends Controller
             'categories.*.reg_start_at' => 'nullable|date',
             'categories.*.reg_end_at' => 'nullable|date|after:categories.*.reg_start_at',
             'categories.*.is_active' => 'nullable|boolean',
+            'categories.*.prizes' => 'nullable|array',
+            'categories.*.prizes.1' => 'nullable|string|max:255',
+            'categories.*.prizes.2' => 'nullable|string|max:255',
+            'categories.*.prizes.3' => 'nullable|string|max:255',
         ]);
 
         // Default premium_amenities to empty array if not present (to allow unchecking all)
@@ -377,6 +401,31 @@ class EventController extends Controller
 
         $validated['gallery'] = ! empty($currentGallery) ? $currentGallery : null;
 
+        // Process Sponsors
+        $currentSponsors = $event->sponsors ?? [];
+
+        // Remove deleted images
+        if ($request->has('remove_sponsors')) {
+            $imagesToRemove = $request->remove_sponsors;
+            foreach ($imagesToRemove as $imagePath) {
+                if (($key = array_search($imagePath, $currentSponsors)) !== false) {
+                    $this->deleteImage($imagePath);
+                    unset($currentSponsors[$key]);
+                }
+            }
+            $currentSponsors = array_values($currentSponsors); // Re-index
+        }
+
+        // Add new images
+        if ($request->hasFile('sponsors')) {
+            foreach ($request->file('sponsors') as $image) {
+                if (count($currentSponsors) >= 30) break; // Limit 30
+                $currentSponsors[] = $this->processImage($image, 'events/sponsors', 400, 85);
+            }
+        }
+
+        $validated['sponsors'] = ! empty($currentSponsors) ? $currentSponsors : null;
+
         // Process Theme Colors (remove nulls)
         if (isset($validated['theme_colors']) && is_array($validated['theme_colors'])) {
             $validated['theme_colors'] = array_filter($validated['theme_colors']);
@@ -411,10 +460,9 @@ class EventController extends Controller
             $validated['addons'] = null;
         }
 
-        // Extract categories if provided
         $categories = [];
-        if ($request->has('categories') && is_array($request->categories)) {
-            $categories = $request->categories;
+        if (isset($validated['categories']) && is_array($validated['categories'])) {
+            $categories = $validated['categories'];
         }
         unset($validated['categories']);
 

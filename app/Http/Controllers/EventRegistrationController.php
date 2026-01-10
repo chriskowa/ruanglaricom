@@ -134,6 +134,8 @@ class EventRegistrationController extends Controller
             return redirect()->route('events.show', $slug)
                 ->with('success', 'Registrasi berhasil!')
                 ->with('snap_token', $transaction->snap_token);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             // If AJAX request, return JSON error
             if ($request->ajax() || $request->wantsJson()) {

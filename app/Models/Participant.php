@@ -16,6 +16,8 @@ class Participant extends Model
         'phone',
         'email',
         'id_card',
+        'emergency_contact_name',
+        'emergency_contact_number',
         'target_time',
         'bib_number',
         'jersey_size',

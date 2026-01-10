@@ -286,6 +286,15 @@
         </div>
     </section>
 
+    @include('events.partials.sponsor-carousel', [
+        'gradientFrom' => 'from-white',
+        'titleColor' => 'text-slate-400',
+        'containerClass' => 'bg-white border border-slate-100 shadow-sm',
+        'sectionClass' => 'py-20 bg-white'
+    ])
+
+    @include('events.partials.prizes-section', ['categories' => $categories])
+
     <section id="register" class="py-24 bg-brand-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -328,53 +337,68 @@
                                 Data Peserta Lari
                             </h3>
                             
-                            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-4 relative group">
-                                <p class="text-xs font-bold text-slate-400 uppercase mb-4">Peserta #1</p>
-                                
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Kategori</label>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            @foreach($categories as $cat)
-                                            <label class="cursor-pointer relative">
-                                                <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $cat->price_regular }}" required>
-                                                <div class="p-4 bg-white border border-slate-200 rounded-xl peer-checked:border-brand-500 peer-checked:ring-2 peer-checked:ring-brand-500/20 transition hover:border-brand-300">
-                                                    <div class="flex justify-between items-center mb-1">
-                                                        <span class="font-bold text-slate-900">{{ $cat->name }}</span>
-                                                        <span class="text-sm font-bold text-brand-600">Rp {{ number_format($cat->price_regular/1000,0) }}k</span>
+                            <div id="participantsWrapper">
+                                <div class="participant-item p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-4 relative group" data-index="0">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <p class="text-xs font-bold text-slate-400 uppercase participant-title">Peserta #1</p>
+                                        <button type="button" class="text-xs text-red-500 hover:text-red-700 font-medium remove-participant hidden">Hapus</button>
+                                    </div>
+                                    
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Kategori</label>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                @foreach($categories as $cat)
+                                                <label class="cursor-pointer relative">
+                                                    <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $cat->price_regular }}" required>
+                                                    <div class="p-4 bg-white border border-slate-200 rounded-xl peer-checked:border-brand-500 peer-checked:ring-2 peer-checked:ring-brand-500/20 transition hover:border-brand-300">
+                                                        <div class="flex justify-between items-center mb-1">
+                                                            <span class="font-bold text-slate-900">{{ $cat->name }}</span>
+                                                            <span class="text-sm font-bold text-brand-600">Rp {{ number_format($cat->price_regular/1000,0) }}k</span>
+                                                        </div>
+                                                        <p class="text-xs text-slate-500">{{ $cat->distance_km }}KM • {{ $cat->quota }} Slot</p>
                                                     </div>
-                                                    <p class="text-xs text-slate-500">{{ $cat->distance_km }}KM • {{ $cat->quota }} Slot</p>
-                                                </div>
-                                            </label>
-                                            @endforeach
+                                                </label>
+                                                @endforeach
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input type="text" name="participants[0][name]" placeholder="Nama Peserta (di BIB)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
-                                        <select name="participants[0][gender]" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
-                                            <option value="">Pilih Gender</option>
-                                            <option value="male">Laki-laki</option>
-                                            <option value="female">Perempuan</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
-                                    
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input type="text" name="participants[0][phone]" placeholder="No. HP / WA" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
-                                        <input type="text" name="participants[0][id_card]" placeholder="No. KTP/SIM/Kartu Pelajar" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
-                                    </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" name="participants[0][name]" placeholder="Nama Peserta (di BIB)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                            <select name="participants[0][gender]" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                                <option value="">Pilih Gender</option>
+                                                <option value="male">Laki-laki</option>
+                                                <option value="female">Perempuan</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" name="participants[0][phone]" placeholder="No. HP / WA" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                            <input type="text" name="participants[0][id_card]" placeholder="No. KTP/SIM/Kartu Pelajar" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                        </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                         <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
-                                            <option value="">Ukuran Jersey</option>
-                                            @foreach(['S','M','L','XL','XXL'] as $s) <option value="{{ $s }}">{{ $s }}</option> @endforeach
-                                        </select>
-                                        <input type="text" name="participants[0][target_time]" placeholder="Target Waktu (Opsional)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                            <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                             <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                                <option value="">Ukuran Jersey</option>
+                                                @foreach(['S','M','L','XL','XXL'] as $s) <option value="{{ $s }}">{{ $s }}</option> @endforeach
+                                            </select>
+                                            <input type="text" name="participants[0][target_time]" placeholder="Target Waktu (Opsional)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <button type="button" id="addParticipantBtn" class="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-bold hover:border-brand-500 hover:text-brand-600 transition flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                Tambah Peserta Lain
+                            </button>
                         </div>
                     </div>
 
@@ -459,20 +483,84 @@
         const formatRupiah = (num) => 'Rp ' + new Intl.NumberFormat('id-ID').format(num);
 
         // Update Price Logic
-        const radios = document.querySelectorAll('.cat-radio');
+        const wrapper = document.getElementById('participantsWrapper');
+        const addBtn = document.getElementById('addParticipantBtn');
         const subDisplay = document.getElementById('subtotalDisplay');
         const totalDisplay = document.getElementById('totalDisplay');
+        
+        // Template initialization
+        let template;
+        // Ensure template is captured after DOM is ready or immediately if at end of body
+        const firstItem = wrapper.querySelector('.participant-item');
+        if(firstItem) {
+            template = firstItem.cloneNode(true);
+        }
+        
+        let participantIndex = 1;
 
         function updatePrice() {
             let total = 0;
-            radios.forEach(r => {
-                if(r.checked) total += parseFloat(r.getAttribute('data-price') || 0);
+            document.querySelectorAll('.participant-item').forEach(item => {
+                const checkedRadio = item.querySelector('.cat-radio:checked');
+                if (checkedRadio) {
+                    total += parseFloat(checkedRadio.getAttribute('data-price') || 0);
+                }
             });
-            subDisplay.textContent = formatRupiah(total);
-            totalDisplay.textContent = formatRupiah(total);
+            if(subDisplay) subDisplay.textContent = formatRupiah(total);
+            if(totalDisplay) totalDisplay.textContent = formatRupiah(total);
         }
 
-        radios.forEach(r => r.addEventListener('change', updatePrice));
+        // Add Participant
+        if(addBtn) {
+            addBtn.addEventListener('click', () => {
+                if(!template) return;
+                
+                const newItem = template.cloneNode(true);
+                const idx = participantIndex++;
+                
+                newItem.setAttribute('data-index', idx);
+                newItem.querySelector('.participant-title').textContent = `Peserta #${wrapper.children.length + 1}`;
+                
+                newItem.querySelectorAll('input, select').forEach(el => {
+                    const name = el.getAttribute('name');
+                    if(name) {
+                        el.setAttribute('name', name.replace(/participants\[\d+\]/, `participants[${idx}]`));
+                        if(el.type !== 'radio' && el.type !== 'hidden') {
+                            el.value = '';
+                        }
+                        if(el.type === 'radio') {
+                            el.checked = false;
+                        }
+                    }
+                });
+
+                const removeBtn = newItem.querySelector('.remove-participant');
+                if(removeBtn) removeBtn.classList.remove('hidden');
+                
+                wrapper.appendChild(newItem);
+                
+                newItem.querySelectorAll('.cat-radio').forEach(r => {
+                    r.addEventListener('change', updatePrice);
+                });
+            });
+        }
+
+        // Remove Participant
+        if(wrapper) {
+            wrapper.addEventListener('click', (e) => {
+                if(e.target.classList.contains('remove-participant')) {
+                    e.target.closest('.participant-item').remove();
+                    
+                    wrapper.querySelectorAll('.participant-item').forEach((item, i) => {
+                        item.querySelector('.participant-title').textContent = `Peserta #${i + 1}`;
+                    });
+                    
+                    updatePrice();
+                }
+            });
+        }
+
+        document.querySelectorAll('.cat-radio').forEach(r => r.addEventListener('change', updatePrice));
 
         // Submit Logic
         const form = document.getElementById('registrationForm');

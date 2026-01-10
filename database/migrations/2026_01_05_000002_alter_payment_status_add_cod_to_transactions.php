@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('transactions')) {
+        if (Schema::hasTable('transactions') && Schema::getConnection()->getDriverName() !== 'sqlite') {
             DB::statement("ALTER TABLE `transactions` MODIFY COLUMN `payment_status` ENUM('pending','paid','failed','expired','cod') NOT NULL DEFAULT 'pending'");
         }
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('transactions')) {
+        if (Schema::hasTable('transactions') && Schema::getConnection()->getDriverName() !== 'sqlite') {
             DB::statement("ALTER TABLE `transactions` MODIFY COLUMN `payment_status` ENUM('pending','paid','failed','expired') NOT NULL DEFAULT 'pending'");
         }
     }

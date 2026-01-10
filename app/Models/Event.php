@@ -42,6 +42,7 @@ class Event extends Model
         'premium_amenities',
         'template',
         'platform_fee',
+        'sponsors',
     ];
 
     protected $casts = [
@@ -55,6 +56,7 @@ class Event extends Model
         'gallery' => 'array',
         'theme_colors' => 'array',
         'premium_amenities' => 'array',
+        'sponsors' => 'array',
     ];
 
     protected static function boot()

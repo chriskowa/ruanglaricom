@@ -22,12 +22,14 @@ class RaceCategory extends Model
         'reg_start_at',
         'reg_end_at',
         'is_active',
+        'prizes',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'reg_start_at' => 'datetime',
         'reg_end_at' => 'datetime',
+        'prizes' => 'array',
     ];
 
     public function event(): BelongsTo

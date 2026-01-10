@@ -629,6 +629,8 @@
         </section>
         @endif
 
+        @include('events.partials.prizes-section', ['categories' => $categories])
+
         <section id="registrasi" class="py-24 relative overflow-hidden">
              <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-neon/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
 
@@ -732,6 +734,14 @@
                                                 <div class="space-y-1">
                                                     <label class="text-[10px] text-slate-500 uppercase font-bold">No. ID (KTP)</label>
                                                     <input type="text" name="participants[0][id_card]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
+                                                </div>
+                                                <div class="space-y-1">
+                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Nama Kontak Darurat</label>
+                                                    <input type="text" name="participants[0][emergency_contact_name]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
+                                                </div>
+                                                <div class="space-y-1">
+                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">No. Kontak Darurat</label>
+                                                    <input type="text" name="participants[0][emergency_contact_number]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
                                                 </div>
                                                 <div class="md:col-span-2 space-y-1">
                                                     <label class="text-[10px] text-slate-500 uppercase font-bold">Kategori</label>
@@ -1275,6 +1285,14 @@
             </div>
         </section>
 
+        <!-- Sponsor Carousel -->
+        @include('events.partials.sponsor-carousel', [
+            'gradientFrom' => 'from-dark',
+            'titleColor' => 'text-slate-400',
+            'containerClass' => 'bg-slate-800/50 border border-slate-700/50',
+            'sectionClass' => 'py-12 bg-dark border-t border-slate-800'
+        ])
+
     </main>
 
     <footer class="bg-slate-950 border-t border-slate-900 py-12 text-sm text-slate-500">
@@ -1544,6 +1562,12 @@
                         const pId = item.querySelector(`[name="participants[${idx}][id_card]"]`);
                         if(pId && (!pId.value.trim() || !/^\d+$/.test(pId.value))) showError(pId, 'ID Card harus angka');
                         
+                        const pEmergencyName = item.querySelector(`[name="participants[${idx}][emergency_contact_name]"]`);
+                        if(pEmergencyName && !pEmergencyName.value.trim()) showError(pEmergencyName, 'Nama kontak darurat wajib diisi');
+
+                        const pEmergencyNumber = item.querySelector(`[name="participants[${idx}][emergency_contact_number]"]`);
+                        if(pEmergencyNumber && !pEmergencyNumber.value.trim()) showError(pEmergencyNumber, 'Nomor kontak darurat wajib diisi');
+
                         const pCat = item.querySelector(`[name="participants[${idx}][category_id]"]`);
                         if(pCat && !pCat.value) showError(pCat, 'Pilih kategori');
                     });

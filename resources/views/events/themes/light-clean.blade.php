@@ -344,6 +344,8 @@
             </div>
         </section>
 
+        @include('events.partials.prizes-section', ['categories' => $categories])
+
         <section id="registrasi" class="py-24 bg-white relative">
             <div class="max-w-6xl mx-auto px-4">
                 
@@ -445,6 +447,14 @@
                                                     <input type="text" name="participants[0][id_card]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">
                                                 </div>
                                                 <div>
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Kontak Darurat</label>
+                                                    <input type="text" name="participants[0][emergency_contact_name]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">No. Kontak Darurat</label>
+                                                    <input type="text" name="participants[0][emergency_contact_number]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">
+                                                </div>
+                                                <div>
                                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gender</label>
                                                     <select name="participants[0][gender]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">
                                                         <option value="male">Laki-laki</option>
@@ -542,6 +552,13 @@
             </div>
         </div>
         @endif
+
+        @include('events.partials.sponsor-carousel', [
+            'gradientFrom' => 'from-[#fafafa]',
+            'titleColor' => 'text-slate-400',
+            'containerClass' => 'bg-white/60 backdrop-blur-md border border-white/50 shadow-glass',
+            'sectionClass' => 'py-20 relative z-10'
+        ])
 
     </main>
 

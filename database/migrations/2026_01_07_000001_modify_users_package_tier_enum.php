@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip for SQLite testing environment
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Strategy to handle ENUM change with data migration:
         // 1. Change to VARCHAR to allow intermediate values
         DB::statement("ALTER TABLE users MODIFY COLUMN package_tier VARCHAR(255) DEFAULT 'basic'");
@@ -28,6 +33,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip for SQLite testing environment
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE users MODIFY COLUMN package_tier ENUM('basic', 'pro', 'business') DEFAULT 'basic'");
     }
 };
