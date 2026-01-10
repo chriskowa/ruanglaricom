@@ -137,6 +137,26 @@
                                     </div>
                                 </div>
                             </label>
+
+                            <label class="relative cursor-pointer group">
+                                <input type="radio" name="template" value="professional-city-run" class="peer sr-only" {{ old('template') == 'professional-city-run' ? 'checked' : '' }}>
+                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
+                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                        <div class="w-full h-full bg-slate-50 relative flex flex-col items-center justify-center">
+                                            <div class="absolute top-0 w-full h-8 bg-blue-600"></div>
+                                            <div class="w-16 h-2 bg-slate-300 rounded-sm mt-4"></div>
+                                            <div class="w-12 h-2 bg-slate-300 rounded-sm mt-1"></div>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-bold text-white mb-1">Professional City</h4>
+                                    <p class="text-xs text-slate-400">Tampilan profesional untuk city run dan marathon besar.</p>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <div class="bg-yellow-400 rounded-full p-1">
+                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                            </label>
                         </div>
                         @error('template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
