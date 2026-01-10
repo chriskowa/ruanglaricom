@@ -105,6 +105,23 @@
                         <option value="1" {{ request('is_picked_up') === '1' ? 'selected' : '' }}>Picked Up</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Gender</label>
+                    <select name="gender" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                        <option value="">All Gender</option>
+                        <option value="male" {{ request('gender') === 'male' ? 'selected' : '' }}>Male</option>
+                        <option value="female" {{ request('gender') === 'female' ? 'selected' : '' }}>Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Category</label>
+                    <select name="category_id" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                        <option value="">All Categories</option>
+                        @foreach($event->categories as $cat)
+                            <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Search</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama, email, atau nomor WA" class="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
@@ -123,7 +140,7 @@
                 <thead class="bg-slate-900/50 text-xs uppercase font-bold text-slate-300">
                     <tr>
                         <th class="px-6 py-4">Participant</th>
-                        <th class="px-6 py-4">Contact</th>
+                        <th class="px-6 py-4">Jersey Size</th>
                         <th class="px-6 py-4">Category & BIB</th>
                         <th class="px-6 py-4">Payment</th>
                         <th class="px-6 py-4">Pickup Status</th>
@@ -135,11 +152,16 @@
                     <tr class="hover:bg-slate-800/50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="font-medium text-white">{{ $participant->name }}</div>
-                            <div class="text-xs text-slate-500">Reg: {{ $participant->created_at->format('d M Y') }}</div>
+                            <div class="text-xs text-slate-500 mb-1">
+                                {{ ucfirst($participant->gender) }} • Reg: {{ $participant->created_at->format('d M') }}
+                            </div>
+                            <div class="text-xs text-slate-400">{{ $participant->email }}</div>
+                            <div class="text-xs text-slate-400">{{ $participant->phone }}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-white">{{ $participant->email }}</div>
-                            <div class="text-xs">{{ $participant->phone }}</div>
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
+                                {{ $participant->jersey_size ?? '-' }}
+                            </span>
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col gap-1">
@@ -322,9 +344,11 @@
                     '<button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus(\''+ p.payment_update_url +'\', \'expired\', this)">Expired</button>'+
                     '<button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus(\''+ p.payment_update_url +'\', \'cod\', this)">COD</button>'+
                 '</div>';
+                var genderLabel = p.gender ? (p.gender.charAt(0).toUpperCase() + p.gender.slice(1)) : '-';
+                var regDate = p.created_at ? p.created_at.split(' ').slice(0, 2).join(' ') : '-';
                 html += '<tr class="hover:bg-slate-800/50 transition-colors">'+
-                    '<td class="px-6 py-4"><div class="font-medium text-white">'+ p.name +'</div><div class="text-xs text-slate-500">Reg: '+ p.created_at +'</div></td>'+
-                    '<td class="px-6 py-4"><div class="text-white">'+ (p.email || '') +'</div><div class="text-xs">'+ (p.phone || '') +'</div></td>'+
+                    '<td class="px-6 py-4"><div class="font-medium text-white">'+ p.name +'</div><div class="text-xs text-slate-500 mb-1">'+ genderLabel +' • Reg: '+ regDate +'</div><div class="text-xs text-slate-400">'+ (p.email || '') +'</div><div class="text-xs text-slate-400">'+ (p.phone || '') +'</div></td>'+
+                    '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
                     '<td class="px-6 py-4"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
                     '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div></td>'+
                     '<td class="px-6 py-4">'+ pickedBadge +'</td>'+

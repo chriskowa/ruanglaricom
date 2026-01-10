@@ -37,6 +37,7 @@ class StoreRegistrationAction
             'pic_phone' => 'required|string|max:20',
             'participants' => 'required|array|min:1',
             'participants.*.name' => 'required|string|max:255',
+            'participants.*.gender' => 'required|in:male,female',
             'participants.*.email' => 'required|email|max:255',
             'participants.*.phone' => 'required|string|max:20',
             'participants.*.id_card' => 'required|string|max:50',
@@ -223,7 +224,13 @@ class StoreRegistrationAction
             if ($coupon) {
                 $discountAmount = $coupon->applyDiscount($totalOriginal);
             }
-            $finalAmount = $totalOriginal - $discountAmount;
+            
+            // Calculate Platform Fee
+            $totalParticipants = count($validated['participants']);
+            $platformFeePerParticipant = $event->platform_fee ?? 0;
+            $totalAdminFee = $platformFeePerParticipant * $totalParticipants;
+
+            $finalAmount = ($totalOriginal - $discountAmount) + $totalAdminFee;
 
         // Create transaction
         $transaction = Transaction::create([
@@ -239,6 +246,7 @@ class StoreRegistrationAction
             'total_original' => $totalOriginal,
             'coupon_id' => $coupon?->id,
             'discount_amount' => $discountAmount,
+            'admin_fee' => $totalAdminFee,
             'final_amount' => $finalAmount,
             'payment_status' => 'pending',
         ]);
@@ -252,6 +260,7 @@ class StoreRegistrationAction
                     'transaction_id' => $transaction->id,
                     'race_category_id' => $categoryId,
                     'name' => $participantData['name'],
+                    'gender' => $participantData['gender'],
                     'phone' => $participantData['phone'],
                     'email' => $participantData['email'],
                     'id_card' => $participantData['id_card'],

@@ -42,6 +42,7 @@ class EventController extends Controller
             'hardcoded' => 'nullable|string|max:50',
             'short_description' => 'nullable|string',
             'full_description' => 'nullable|string',
+            'terms_and_conditions' => 'nullable|string',
             'start_at' => 'required|date',
             'end_at' => 'nullable|date|after:start_at',
             'location_name' => 'required|string|max:255',
@@ -85,6 +86,7 @@ class EventController extends Controller
             'addons.*.price' => 'nullable|numeric|min:0',
             'premium_amenities' => 'nullable|array',
             'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal',
+            'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'required|array|min:1',
             'categories.*.name' => 'required|string|max:255',
             'categories.*.distance_km' => 'nullable|numeric|min:0',
@@ -246,6 +248,7 @@ class EventController extends Controller
             'hardcoded' => 'nullable|string|max:50',
             'short_description' => 'nullable|string',
             'full_description' => 'nullable|string',
+            'terms_and_conditions' => 'nullable|string',
             'start_at' => 'required|date',
             'end_at' => 'nullable|date|after:start_at',
             'location_name' => 'required|string|max:255',
@@ -290,7 +293,8 @@ class EventController extends Controller
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
             'premium_amenities' => 'nullable|array',
-            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal',
+            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,profesional-city-run',
+            'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'nullable|array|min:1',
             'categories.*.id' => 'nullable|exists:race_categories,id',
             'categories.*.name' => 'required_with:categories|string|max:255',
@@ -553,6 +557,16 @@ class EventController extends Controller
             $query->where('is_picked_up', request()->is_picked_up == '1');
         }
 
+        // Filter by gender
+        if (request()->has('gender') && request()->gender) {
+            $query->where('gender', request()->gender);
+        }
+
+        // Filter by category
+        if (request()->has('category_id') && request()->category_id) {
+            $query->where('race_category_id', request()->category_id);
+        }
+
         // Search filter
         if (request()->has('search') && trim(request()->search) !== '') {
             $search = trim(request()->search);
@@ -570,10 +584,12 @@ class EventController extends Controller
                 return [
                     'id' => $p->id,
                     'name' => $p->name,
+                    'gender' => $p->gender,
                     'email' => $p->email,
                     'phone' => $p->phone,
                     'category' => $p->category ? $p->category->name : '-',
                     'bib_number' => $p->bib_number,
+                    'jersey_size' => $p->jersey_size,
                     'created_at' => $p->created_at ? $p->created_at->format('d M Y') : '',
                     'is_picked_up' => (bool) $p->is_picked_up,
                     'picked_up_by' => $p->picked_up_by,
@@ -631,6 +647,16 @@ class EventController extends Controller
             $query->where('is_picked_up', request()->is_picked_up == '1');
         }
 
+        // Filter by gender
+        if (request()->has('gender') && request()->gender) {
+            $query->where('gender', request()->gender);
+        }
+
+        // Filter by category
+        if (request()->has('category_id') && request()->category_id) {
+            $query->where('race_category_id', request()->category_id);
+        }
+
         $participants = $query->orderBy('created_at', 'desc')->get();
 
         $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.csv';
@@ -650,6 +676,7 @@ class EventController extends Controller
             fputcsv($file, [
                 'No',
                 'Nama',
+                'Gender',
                 'Email',
                 'Phone',
                 'ID Card',
@@ -669,6 +696,7 @@ class EventController extends Controller
                 fputcsv($file, [
                     $index + 1,
                     $participant->name,
+                    ucfirst($participant->gender ?? '-'),
                     $participant->email,
                     $participant->phone,
                     $participant->id_card,

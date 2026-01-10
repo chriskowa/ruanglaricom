@@ -12,6 +12,7 @@ class Participant extends Model
         'event_package_id',
         'race_category_id',
         'name',
+        'gender',
         'phone',
         'email',
         'id_card',

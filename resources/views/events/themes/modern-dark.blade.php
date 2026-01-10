@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ $event->name }} - Official Race Event</title>
     <meta name="description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
+    <meta name="keywords" content="lari, event lari, lomba lari, marathon, {{ $event->name }}, {{ $event->location_name }}" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ request()->url() }}" />
+    <meta property="og:title" content="{{ $event->name }} - Official Race Event" />
+    <meta property="og:description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
+    <meta property="og:image" content="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/default-event-og.jpg') }}" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="{{ request()->url() }}" />
+    <meta property="twitter:title" content="{{ $event->name }} - Official Race Event" />
+    <meta property="twitter:description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
+    <meta property="twitter:image" content="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/default-event-og.jpg') }}" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -697,6 +712,14 @@
                                                     <input type="email" name="participants[0][email]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
                                                 </div>
                                                 <div class="space-y-1">
+                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Gender</label>
+                                                    <select name="participants[0][gender]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
+                                                        <option value="">-- Pilih --</option>
+                                                        <option value="male">Laki-laki</option>
+                                                        <option value="female">Perempuan</option>
+                                                    </select>
+                                                </div>
+                                                <div class="space-y-1">
                                                     <label class="text-[10px] text-slate-500 uppercase font-bold">No. HP</label>
                                                     <input type="text" name="participants[0][phone]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
                                                 </div>
@@ -759,34 +782,75 @@
                                         </div>
                                         
                                         <h3 class="text-lg font-bold text-white mb-6">RINGKASAN</h3>
-                                        <div class="space-y-3 mb-6 border-b border-slate-600 pb-6">
-                                            <div class="flex justify-between text-sm text-slate-300">
-                                                <span>Subtotal</span>
-                                                <span id="subtotal" class="font-mono">Rp 0</span>
-                                            </div>
-                                            <div id="discountRow" class="flex justify-between text-sm text-neon hidden">
-                                                <span>Diskon</span>
-                                                <span id="discountAmount" class="font-mono">-Rp 0</span>
-                                            </div>
+                                        <div class="space-y-3 mb-6 border-b border-slate-700 pb-6">
+                                        <div class="flex justify-between text-sm text-slate-400">
+                                            <span>Subtotal</span>
+                                            <span id="subtotal" class="font-mono text-white">Rp 0</span>
                                         </div>
-                                        <div class="flex justify-between items-end mb-6">
-                                            <span class="text-slate-300 text-sm font-bold">TOTAL BAYAR</span>
-                                            <span id="totalAmount" class="text-3xl font-mono font-bold text-white tracking-tight">Rp 0</span>
+                                        <div id="feeRow" class="flex justify-between text-sm text-slate-400 {{ $event->platform_fee > 0 ? '' : 'hidden' }}">
+                                            <span>Biaya Admin</span>
+                                            <span id="feeAmount" class="font-mono text-white">Rp 0</span>
                                         </div>
-                                        <button type="submit" id="submitBtn" class="w-full py-4 bg-neon text-dark font-black text-lg rounded-xl hover:bg-white hover:scale-[1.02] transition shadow-lg">
-                                            BAYAR SEKARANG
-                                        </button>
-                                        <div class="text-center mt-4 flex items-center justify-center gap-2 opacity-50">
-                                            <span class="text-[10px] text-slate-400">Powered by Midtrans</span>
+                                        <div id="discountRow" class="flex justify-between text-sm text-green-400 hidden">
+                                            <span>Diskon</span>
+                                            <span id="discountAmount" class="font-mono">-Rp 0</span>
                                         </div>
+                                    </div>
+
+                                    @if($event->terms_and_conditions)
+                                    <div class="mb-6">
+                                        <label class="flex items-start gap-3 cursor-pointer group">
+                                            <input type="checkbox" name="terms_agreed" required class="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-800 text-neon focus:ring-neon cursor-pointer">
+                                            <span class="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
+                                                Saya menyetujui <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="text-neon hover:underline font-bold">Syarat & Ketentuan</button> yang berlaku untuk event ini.
+                                            </span>
+                                        </label>
+                                    </div>
+                                    @endif
+
+                                    <div class="flex justify-between items-end mb-6">
+                                        <span class="text-slate-300 text-sm font-bold">TOTAL BAYAR</span>
+                                        <span id="totalAmount" class="text-3xl font-mono font-bold text-white tracking-tight">Rp 0</span>
+                                    </div>
+                                    <button type="submit" id="submitBtn" class="w-full py-4 bg-neon text-dark font-black text-lg rounded-xl hover:bg-white hover:scale-[1.02] transition shadow-lg">
+                                        BAYAR SEKARANG
+                                    </button>
+                                    <div class="text-center mt-4 flex items-center justify-center gap-2 opacity-50">
+                                        <span class="text-[10px] text-slate-400">Powered by Midtrans</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </form>
-                @endif
+                    </div>
+                </form>
+            @endif
+        </div>
+    </section>
+
+    <!-- Terms Modal -->
+    @if($event->terms_and_conditions)
+    <div id="termsModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative">
+                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Syarat & Ketentuan</h3>
+                    <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-slate-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto prose prose-invert prose-sm max-w-none">
+                    {!! $event->terms_and_conditions !!}
+                </div>
+                <div class="p-6 border-t border-slate-800 bg-slate-900/50 rounded-b-2xl">
+                    <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition">
+                        Tutup
+                    </button>
+                </div>
             </div>
-        </section>
+        </div>
+    </div>
+    @endif
 
         <section class="py-24 bg-card relative overflow-hidden">
           <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#ccff00 1px, transparent 1px); background-size: 30px 30px;"></div>
@@ -1270,6 +1334,7 @@
             const template = participantsWrapper ? participantsWrapper.querySelector('.participant-item').cloneNode(true) : null;
             const eventId = {{ $event->id }};
             const eventSlug = '{{ $event->slug }}';
+            const platformFee = {{ $event->platform_fee ?? 0 }};
             let appliedCoupon = null;
             const formatCurrency = (num) => new Intl.NumberFormat('id-ID').format(Math.round(num));
 
@@ -1338,10 +1403,20 @@
             // Update Total
             function updatePriceSummary() {
                 let subtotal = 0;
+                let count = 0;
                 document.querySelectorAll('.category-select').forEach(el => {
                     subtotal += parseFloat(el.getAttribute('data-active-price') || 0);
+                    if (el.value) count++;
                 });
+                
+                const totalFee = count * platformFee;
                 document.getElementById('subtotal').textContent = `Rp ${formatCurrency(subtotal)}`;
+                
+                if (platformFee > 0) {
+                    document.getElementById('feeAmount').textContent = `Rp ${formatCurrency(totalFee)}`;
+                }
+
+                let total = subtotal + totalFee;
                 
                 if(appliedCoupon && subtotal > 0) {
                      // Re-trigger coupon check logically
@@ -1349,11 +1424,11 @@
                      document.getElementById('discountRow').classList.remove('hidden');
                      // Note: Real implementation should re-fetch backend to get accurate discount
                 } else {
-                    document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(subtotal)}`;
+                    document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(total)}`;
                 }
                 
                 // For simple frontend update without re-fetching coupon repeatedly:
-                if(!appliedCoupon) document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(subtotal)}`;
+                if(!appliedCoupon) document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(total)}`;
             }
 
             // Coupon Logic (Frontend Trigger)

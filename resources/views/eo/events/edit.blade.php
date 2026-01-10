@@ -144,6 +144,26 @@
                                     </div>
                                 </div>
                             </label>
+
+                            <label class="relative cursor-pointer group">
+                                <input type="radio" name="template" value="profesional-city-run" class="peer sr-only" {{ old('template', $event->template) == 'profesional-city-run' ? 'checked' : '' }}>
+                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
+                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                        <div class="w-full h-full bg-gradient-to-br from-blue-900 via-slate-800 to-black relative">
+                                            <div class="absolute top-4 left-4 w-12 h-8 bg-blue-500/20 border border-blue-500 rounded-md"></div>
+                                            <div class="absolute bottom-0 right-0 w-20 h-16 bg-slate-700/50 clip-path-polygon"></div>
+                                            <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-400"></div>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-bold text-white mb-1">Professional City Run</h4>
+                                    <p class="text-xs text-slate-400">Desain modern urban, cocok untuk city run atau marathon skala besar.</p>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <div class="bg-yellow-400 rounded-full p-1">
+                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                            </label>
                         </div>
                         @error('template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -178,6 +198,23 @@
                             <textarea name="full_description" id="full_description" class="hidden">{{ old('full_description', $event->full_description) }}</textarea>
                         </div>
                         @error('full_description') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Terms & Conditions</label>
+                        <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                            <div id="terms_and_conditions_editor"></div>
+                            <textarea name="terms_and_conditions" id="terms_and_conditions" class="hidden">{{ old('terms_and_conditions', $event->terms_and_conditions) }}</textarea>
+                        </div>
+                        @error('terms_and_conditions') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Platform Fee (Per Participant)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-3 text-slate-500 text-sm">Rp</span>
+                            <input type="number" name="platform_fee" value="{{ old('platform_fee', $event->platform_fee) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="0">
+                        </div>
+                        <p class="text-slate-500 text-xs mt-1">Biaya tambahan yang dikenakan per peserta (masuk ke Platform).</p>
+                        @error('platform_fee') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>
@@ -412,6 +449,17 @@
             editor.setData(`{!! old('full_description', $event->full_description) !!}`);
             editor.model.document.on('change:data', () => {
                 document.querySelector('#full_description').value = editor.getData();
+            });
+        })
+        .catch(error => console.error(error));
+
+    // Terms and Conditions
+    ClassicEditor
+        .create(document.querySelector('#terms_and_conditions_editor'), commonConfig)
+        .then(editor => {
+            editor.setData(`{!! old('terms_and_conditions', $event->terms_and_conditions) !!}`);
+            editor.model.document.on('change:data', () => {
+                document.querySelector('#terms_and_conditions').value = editor.getData();
             });
         })
         .catch(error => console.error(error));

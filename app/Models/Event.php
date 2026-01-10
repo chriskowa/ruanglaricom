@@ -14,6 +14,7 @@ class Event extends Model
         'name',
         'short_description',
         'full_description',
+        'terms_and_conditions',
         'start_at',
         'end_at',
         'location_name',
@@ -40,6 +41,7 @@ class Event extends Model
         'theme_colors',
         'premium_amenities',
         'template',
+        'platform_fee',
     ];
 
     protected $casts = [

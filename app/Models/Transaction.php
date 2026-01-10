@@ -17,6 +17,7 @@ class Transaction extends Model
         'total_original',
         'coupon_id',
         'discount_amount',
+        'admin_fee',
         'final_amount',
         'payment_status',
         'snap_token',
@@ -29,6 +30,7 @@ class Transaction extends Model
         'pic_data' => 'array',
         'total_original' => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'admin_fee' => 'decimal:2',
         'final_amount' => 'decimal:2',
         'paid_at' => 'datetime',
     ];
