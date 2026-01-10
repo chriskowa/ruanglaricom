@@ -448,14 +448,26 @@
                 <input type="number" class="cat-quota w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="1000">
             </div>
             <div class="md:col-span-2">
-                <label class="block text-xs font-medium text-slate-400 mb-1">Price (IDR)</label>
-                <input type="number" class="cat-price w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="150000">
-            </div>
-            <div class="md:col-span-2">
                 <label class="block text-xs font-medium text-slate-400 mb-1">COT (Mins)</label>
                 <input type="number" class="cat-cot w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="120">
             </div>
         </div>
+
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Early Price (IDR)</label>
+                <input type="number" class="cat-price-early w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="150000">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Regular Price (IDR)</label>
+                <input type="number" class="cat-price w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="150000">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Late Price (IDR)</label>
+                <input type="number" class="cat-price-late w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="150000">
+            </div>
+        </div>
+
         <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 1</label>
@@ -496,14 +508,16 @@
             'cat-name': 'name',
             'cat-distance': 'distance_km',
             'cat-quota': 'quota',
+            'cat-price-early': 'price_early',
             'cat-price': 'price_regular',
+            'cat-price-late': 'price_late',
             'cat-cot': 'cutoff_minutes'
         };
 
         for (const [cls, name] of Object.entries(inputs)) {
             const input = item.querySelector('.' + cls);
             input.name = `categories[${categoryIndex}][${name}]`;
-            if (data && data[name]) input.value = data[name];
+            if (data && data[name] !== undefined && data[name] !== null) input.value = data[name];
         }
 
         // Handle prizes separately
@@ -516,7 +530,7 @@
         for (const [cls, pIdx] of Object.entries(prizeInputs)) {
             const input = item.querySelector('.' + cls);
             input.name = `categories[${categoryIndex}][prizes][${pIdx}]`;
-            if (data && data.prizes && data.prizes[pIdx]) {
+            if (data && data.prizes && data.prizes[pIdx] !== undefined && data.prizes[pIdx] !== null) {
                 input.value = data.prizes[pIdx];
             }
         }
