@@ -497,10 +497,7 @@
             'cat-distance': 'distance_km',
             'cat-quota': 'quota',
             'cat-price': 'price_regular',
-            'cat-cot': 'cutoff_minutes',
-            'cat-prize-1': 'prizes][1',
-            'cat-prize-2': 'prizes][2',
-            'cat-prize-3': 'prizes][3'
+            'cat-cot': 'cutoff_minutes'
         };
 
         for (const [cls, name] of Object.entries(inputs)) {
@@ -508,13 +505,20 @@
             input.name = `categories[${categoryIndex}][${name}]`;
             if (data && data[name]) input.value = data[name];
         }
-        if (data && data.prizes) {
-            const p1 = item.querySelector('.cat-prize-1');
-            const p2 = item.querySelector('.cat-prize-2');
-            const p3 = item.querySelector('.cat-prize-3');
-            if (p1 && data.prizes[1] !== undefined) p1.value = data.prizes[1];
-            if (p2 && data.prizes[2] !== undefined) p2.value = data.prizes[2];
-            if (p3 && data.prizes[3] !== undefined) p3.value = data.prizes[3];
+
+        // Handle prizes separately
+        const prizeInputs = {
+            'cat-prize-1': 1,
+            'cat-prize-2': 2,
+            'cat-prize-3': 3
+        };
+
+        for (const [cls, pIdx] of Object.entries(prizeInputs)) {
+            const input = item.querySelector('.' + cls);
+            input.name = `categories[${categoryIndex}][prizes][${pIdx}]`;
+            if (data && data.prizes && data.prizes[pIdx]) {
+                input.value = data.prizes[pIdx];
+            }
         }
 
         // Remove button
