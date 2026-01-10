@@ -3,9 +3,30 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ $event->name }} - Official Race Event</title>
-    <meta name="description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
+    <title>{{ $seo['title'] ?? ($event->name.' | RuangLari') }}</title>
+    <meta name="description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}" />
+    <meta name="keywords" content="{{ $seo['keywords'] ?? '' }}">
+    <link rel="canonical" href="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    <meta name="theme-color" content="#ffffff">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
+    <meta property="og:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
+    <meta property="og:url" content="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    <meta property="og:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
+    <meta name="twitter:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
+    <meta name="twitter:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/green/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+
+    @if(env('RECAPTCHA_SITE_KEY'))
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @endif
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -334,6 +355,16 @@
                 @else
                     <form action="{{ route('events.register.store', $event->slug) }}" method="POST" id="registrationForm" class="reveal-up">
                         @csrf
+
+                        @if($errors->any())
+                            <div class="mb-8 p-5 rounded-2xl bg-red-50 border border-red-200 text-red-700">
+                                <ul class="list-disc pl-5 space-y-1 text-sm">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                             
                             <div class="lg:col-span-8 space-y-10">
@@ -467,6 +498,12 @@
                                                 </span>
                                             </label>
                                         </div>
+                                        @endif
+
+                                        @if(env('RECAPTCHA_SITE_KEY'))
+                                            <div class="mb-6 flex justify-center">
+                                                <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
+                                            </div>
                                         @endif
 
                                         <button type="submit" id="submitBtn" class="w-full py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-2xl transition-all shadow-glow flex justify-center items-center gap-2 group">

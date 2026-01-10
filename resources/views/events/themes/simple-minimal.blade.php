@@ -3,8 +3,30 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <title>{{ $event->name }}</title>
+    <title>{{ $seo['title'] ?? ($event->name.' | RuangLari') }}</title>
+    <meta name="description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}" />
+    <meta name="keywords" content="{{ $seo['keywords'] ?? '' }}">
+    <link rel="canonical" href="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    <meta name="theme-color" content="#111827">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
+    <meta property="og:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
+    <meta property="og:url" content="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    <meta property="og:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
+    <meta name="twitter:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
+    <meta name="twitter:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/green/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+
+    @if(env('RECAPTCHA_SITE_KEY'))
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @endif
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -214,6 +236,12 @@
                                         </span>
                                     </label>
                                     @endif
+
+                                    @if(env('RECAPTCHA_SITE_KEY'))
+                                        <div class="flex justify-center">
+                                            <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="light"></div>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <button type="submit" id="submitBtn" class="w-full bg-black text-white font-bold py-4 rounded-xl hover:bg-gray-800 hover:shadow-lg transform transition active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed">
@@ -347,6 +375,15 @@
         if(form) {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
+
+                if (typeof grecaptcha !== 'undefined') {
+                    const recaptchaResponse = grecaptcha.getResponse();
+                    if (!recaptchaResponse) {
+                        alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+                        return;
+                    }
+                }
+
                 const btn = document.getElementById('submitBtn');
                 const originalText = btn.innerHTML;
                 

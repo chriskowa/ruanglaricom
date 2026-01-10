@@ -3,9 +3,30 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ $event->name }} - Official Race Event</title>
-    <meta name="description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
+    <title>{{ $seo['title'] ?? ($event->name.' | RuangLari') }}</title>
+    <meta name="description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}" />
+    <meta name="keywords" content="{{ $seo['keywords'] ?? '' }}">
+    <link rel="canonical" href="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    <meta name="theme-color" content="{{ $event->theme_colors['dark'] ?? '#0f172a' }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
+    <meta property="og:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
+    <meta property="og:url" content="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    <meta property="og:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
+    <meta name="twitter:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
+    <meta name="twitter:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/green/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+
+    @if(env('RECAPTCHA_SITE_KEY'))
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @endif
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -793,6 +814,12 @@
                                     </div>
                                     @endif
 
+                                    @if(env('RECAPTCHA_SITE_KEY'))
+                                        <div class="mb-6 flex justify-center">
+                                            <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
+                                        </div>
+                                    @endif
+
                                     <div class="flex justify-between items-end mb-6">
                                         <span class="text-slate-300 text-sm font-bold">TOTAL BAYAR</span>
                                         <span id="totalAmount" class="text-3xl font-mono font-bold text-white tracking-tight">Rp 0</span>
@@ -1524,6 +1551,14 @@
                     if(!isValid) {
                         if(firstError) firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
                         return;
+                    }
+
+                    if (typeof grecaptcha !== 'undefined') {
+                        const recaptchaResponse = grecaptcha.getResponse();
+                        if (!recaptchaResponse) {
+                            alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+                            return;
+                        }
                     }
 
                     // --- AJAX Submit ---

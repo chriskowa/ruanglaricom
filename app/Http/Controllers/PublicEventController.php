@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Services\EventCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PublicEventController extends Controller
 {
@@ -80,6 +81,7 @@ class PublicEventController extends Controller
 
             // Load categories if not in cache
             $categories = $event->categories()->where('is_active', true)->get();
+            $seo = $this->buildSeo($event);
             if ($event->hardcoded === 'latbarkamis') {
                 $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                         $q->where('event_id', $event->id)->whereIn('payment_status', ['pending', 'paid']);
@@ -97,6 +99,7 @@ class PublicEventController extends Controller
             return view('events.show', [
                 'event' => $event,
                 'categories' => $categories,
+                'seo' => $seo,
             ]);
         }
 
@@ -110,6 +113,7 @@ class PublicEventController extends Controller
 
         // Get categories
         $categories = $event->categories()->where('is_active', true)->get();
+        $seo = $this->buildSeo($event);
 
         if ($event->hardcoded === 'latbarkamis') {
             $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
@@ -128,6 +132,52 @@ class PublicEventController extends Controller
         return view('events.show', [
             'event' => $event,
             'categories' => $categories,
+            'seo' => $seo,
         ]);
+    }
+
+    private function buildSeo(Event $event): array
+    {
+        $baseTitle = trim((string) ($event->name ?? ''));
+        $locationPart = $event->location_name ? (' di '.$event->location_name) : '';
+
+        $rawDescription = strip_tags((string) ($event->short_description ?? ''));
+        if ($rawDescription === '') {
+            $rawDescription = strip_tags((string) ($event->full_description ?? ''));
+        }
+        if ($rawDescription === '') {
+            $rawDescription = $baseTitle.$locationPart;
+        }
+
+        $description = preg_replace('/\s+/', ' ', $rawDescription);
+        $description = Str::limit(trim((string) $description), 160);
+
+        $url = route('events.show', $event->slug);
+        $image = $event->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
+
+        $keywordsParts = [
+            'ruang lari',
+            'ruanglari',
+            'event lari',
+            'race',
+            'running',
+            'marathon',
+        ];
+
+        if ($baseTitle !== '') {
+            $keywordsParts[] = strtolower($baseTitle);
+        }
+
+        if ($event->location_name) {
+            $keywordsParts[] = strtolower($event->location_name);
+        }
+
+        return [
+            'title' => ($baseTitle !== '' ? $baseTitle.' | RuangLari' : 'RuangLari'),
+            'description' => $description,
+            'keywords' => implode(', ', array_unique($keywordsParts)),
+            'url' => $url,
+            'image' => $image,
+        ];
     }
 }

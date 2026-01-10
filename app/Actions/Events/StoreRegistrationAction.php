@@ -13,6 +13,7 @@ use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -49,6 +50,27 @@ class StoreRegistrationAction
             'addons' => 'nullable|array',
             'addons.*.name' => 'required|string',
             'addons.*.price' => 'required|numeric',
+            'g-recaptcha-response' => [env('RECAPTCHA_SECRET_KEY') ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($request) {
+                $secret = env('RECAPTCHA_SECRET_KEY');
+                if (! $secret) {
+                    return;
+                }
+
+                if (! $value) {
+                    $fail('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+                    return;
+                }
+
+                $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'secret' => $secret,
+                    'response' => $value,
+                    'remoteip' => $request->ip(),
+                ]);
+
+                if (! $response->json('success')) {
+                    $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                }
+            }],
         ]);
 
         $paymentMethod = strtolower($validated['payment_method'] ?? 'midtrans');

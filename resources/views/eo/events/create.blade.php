@@ -157,6 +157,27 @@
                                     </div>
                                 </div>
                             </label>
+
+                            <label class="relative cursor-pointer group">
+                                <input type="radio" name="template" value="paolo-fest" class="peer sr-only" {{ old('template') == 'paolo-fest' ? 'checked' : '' }}>
+                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
+                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                        <div class="w-full h-full bg-blue-600 relative flex flex-col items-center justify-center">
+                                            <div class="absolute inset-0 bg-gradient-to-tr from-blue-700 to-orange-500 opacity-50"></div>
+                                            <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                                <div class="w-8 h-8 bg-white rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-bold text-white mb-1">Paolo Fest</h4>
+                                    <p class="text-xs text-slate-400">Desain festif, cerah, dan modern. Cocok untuk event komunitas dan festival lari.</p>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <div class="bg-yellow-400 rounded-full p-1">
+                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                            </label>
                         </div>
                         @error('template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -227,6 +248,21 @@
                         <label class="block text-sm font-medium text-slate-300 mb-2">End Date & Time</label>
                         <input type="datetime-local" name="end_at" value="{{ old('end_at') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors [color-scheme:dark]">
                         @error('end_at') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Registration Open <span class="text-slate-500 text-xs">(Optional)</span></label>
+                        <input type="datetime-local" name="registration_open_at" value="{{ old('registration_open_at') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors [color-scheme:dark]">
+                        <p class="text-xs text-slate-500 mt-1">Leave empty to open immediately.</p>
+                        @error('registration_open_at') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Registration Close <span class="text-slate-500 text-xs">(Optional)</span></label>
+                        <input type="datetime-local" name="registration_close_at" value="{{ old('registration_close_at') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors [color-scheme:dark]">
+                        <p class="text-xs text-slate-500 mt-1">Leave empty to close when event starts.</p>
+                        @error('registration_close_at') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 

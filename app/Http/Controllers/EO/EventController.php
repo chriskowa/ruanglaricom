@@ -293,7 +293,7 @@ class EventController extends Controller
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
             'premium_amenities' => 'nullable|array',
-            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,profesional-city-run,professional-city-run',
+            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,profesional-city-run,professional-city-run,paolo-fest',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'nullable|array|min:1',
             'categories.*.id' => 'nullable|exists:race_categories,id',
