@@ -5,21 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ $event->name }} - Official Race Event</title>
     <meta name="description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
-    <meta name="keywords" content="lari, event lari, lomba lari, marathon, {{ $event->name }}, {{ $event->location_name }}" />
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="{{ request()->url() }}" />
-    <meta property="og:title" content="{{ $event->name }} - Official Race Event" />
-    <meta property="og:description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
-    <meta property="og:image" content="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/default-event-og.jpg') }}" />
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="{{ request()->url() }}" />
-    <meta property="twitter:title" content="{{ $event->name }} - Official Race Event" />
-    <meta property="twitter:description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
-    <meta property="twitter:image" content="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/default-event-og.jpg') }}" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     
     <script src="https://cdn.tailwindcss.com"></script>
