@@ -140,12 +140,12 @@
         }
     @endphp
 
-    <nav class="fixed w-full z-50 transition-all duration-300 bg-white/0 border-b border-transparent" id="navbar">
+    <nav class="fixed w-full z-50 pr-5 transition-all duration-300 bg-white/0 border-b border-transparent" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <a href="#top" class="flex items-center gap-3 group">
                     @if($event->logo_image)
-                        <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-10 w-auto group-hover:scale-105 transition duration-300">
+                        <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-[75px] w-auto group-hover:scale-105 transition duration-300">
                     @else
                         <div class="h-10 w-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-600/30 group-hover:rotate-6 transition duration-300">
                             {{ substr($event->name, 0, 1) }}
@@ -944,7 +944,7 @@
         'gradientFrom' => 'from-white',
         'titleColor' => 'text-slate-400',
         'containerClass' => 'bg-white/50 grayscale hover:grayscale-0 transition-all duration-500 border border-slate-100',
-        'sectionClass' => 'py-16 bg-slate-50 border-t border-slate-200'
+        'sectionClass' => 'hidden md:block py-16 bg-slate-50 border-t border-slate-200'
     ])
 
     <footer class="bg-slate-900 border-t border-slate-800 py-12 text-slate-400 text-sm">
