@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Services\EventCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -517,41 +520,63 @@ class EventController extends Controller
             $validated['jersey_image'] = $this->processImage($request->file('jersey_image'), 'events/jersey', 1200, 90);
         }
 
-        $event->update($validated);
+        $affectedCategoryIds = [];
+        $deletedCategoryIds = [];
 
-        // Handle categories if provided
-        if (! empty($categories)) {
-            $existingCategoryIds = $event->categories->pluck('id')->toArray();
-            $submittedCategoryIds = array_filter(array_column($categories, 'id'));
+        DB::transaction(function () use ($event, $validated, $categories, &$affectedCategoryIds, &$deletedCategoryIds) {
+            $event->update($validated);
 
-            // Delete removed categories
-            $categoriesToDelete = array_diff($existingCategoryIds, $submittedCategoryIds);
-            if (! empty($categoriesToDelete)) {
-                \App\Models\RaceCategory::whereIn('id', $categoriesToDelete)->delete();
-            }
+            // Handle categories if provided
+            if (! empty($categories)) {
+                $existingCategoryIds = $event->categories()->pluck('id')->toArray();
+                $submittedCategoryIds = array_values(array_filter(array_column($categories, 'id')));
+                $raceCategoryColumns = Schema::getColumnListing('race_categories');
+                $raceCategoryColumnMap = array_flip($raceCategoryColumns);
 
-            // Update or create categories
-            foreach ($categories as $categoryData) {
-                if (isset($categoryData['id']) && in_array($categoryData['id'], $existingCategoryIds)) {
-                    // Update existing category
-                    $category = \App\Models\RaceCategory::find($categoryData['id']);
-                    if ($category && $category->event_id === $event->id) {
-                        $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool) $categoryData['is_active'] : true;
-                        unset($categoryData['id']);
-                        $category->update($categoryData);
+                // Delete removed categories
+                if (! empty($submittedCategoryIds)) {
+                    $categoriesToDelete = array_diff($existingCategoryIds, $submittedCategoryIds);
+                    if (! empty($categoriesToDelete)) {
+                        \App\Models\RaceCategory::whereIn('id', $categoriesToDelete)->delete();
+                        $deletedCategoryIds = array_merge($deletedCategoryIds, $categoriesToDelete);
                     }
-                } else {
-                    // Create new category
+                }
+
+                // Update or create categories
+                foreach ($categories as $categoryData) {
+                    $categoryId = $categoryData['id'] ?? null;
                     unset($categoryData['id']);
-                    $categoryData['event_id'] = $event->id;
-                    $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool) $categoryData['is_active'] : true;
-                    \App\Models\RaceCategory::create($categoryData);
+
+                    if (isset($categoryData['prizes']) && ! isset($raceCategoryColumnMap['prizes'])) {
+                        unset($categoryData['prizes']);
+                    }
+
+                    $categoryData = array_intersect_key($categoryData, $raceCategoryColumnMap);
+
+                    if ($categoryId && in_array($categoryId, $existingCategoryIds)) {
+                        // Update existing category
+                        $category = $event->categories()->whereKey($categoryId)->first();
+                        if ($category) {
+                            $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool) $categoryData['is_active'] : true;
+                            $category->update($categoryData);
+                            $affectedCategoryIds[] = $category->id;
+                        }
+                    } else {
+                        // Create new category
+                        $categoryData['event_id'] = $event->id;
+                        $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool) $categoryData['is_active'] : true;
+                        $category = \App\Models\RaceCategory::create($categoryData);
+                        $affectedCategoryIds[] = $category->id;
+                    }
                 }
             }
-        }
+        });
 
         // Invalidate cache
         $this->cacheService->invalidateEventCache($event);
+        foreach (array_unique(array_merge($affectedCategoryIds, $deletedCategoryIds)) as $categoryId) {
+            Cache::forget("category:quota:{$categoryId}");
+        }
 
         return redirect()->route('eo.events.index')
             ->with('success', 'Event berhasil diperbarui!');
