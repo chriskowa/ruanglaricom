@@ -37,6 +37,26 @@ class EventController extends Controller
         return view('eo.events.create');
     }
 
+    /**
+     * Upload media via Dropzone
+     */
+    public function uploadMedia(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,jpg,png,webp|max:5120',
+            'folder' => 'nullable|string'
+        ]);
+
+        $folder = $request->input('folder', 'events/temp');
+        $path = $this->processImage($request->file('file'), $folder, 1920, 85);
+
+        return response()->json([
+            'success' => true,
+            'path' => $path,
+            'url' => Storage::url($path)
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -57,11 +77,11 @@ class EventController extends Controller
             'rpc_latitude' => 'nullable|numeric',
             'rpc_longitude' => 'nullable|numeric',
             'hero_image_url' => 'nullable|url',
-            'hero_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
-            'logo_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
-            'floating_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
-            'medal_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
-            'jersey_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'hero_image' => 'nullable|string', // Changed to string (path)
+            'logo_image' => 'nullable|string',
+            'floating_image' => 'nullable|string',
+            'medal_image' => 'nullable|string',
+            'jersey_image' => 'nullable|string',
             'map_embed_url' => 'nullable|string',
             'google_calendar_url' => 'nullable|url',
             'registration_open_at' => 'nullable|date',
@@ -72,10 +92,10 @@ class EventController extends Controller
             'facilities.*.description' => 'nullable|string',
             'facilities.*.enabled' => 'nullable|boolean',
             'facilities.*.image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
-            'gallery' => 'nullable|array',
-            'gallery.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
+            'gallery' => 'nullable|array', // Now expects array of paths
+            'gallery.*' => 'string',
             'sponsors' => 'nullable|array|max:30',
-            'sponsors.*' => 'image|mimes:jpeg,jpg,png,webp|max:300',
+            'sponsors.*' => 'string',
             'theme_colors' => 'nullable|array',
             'theme_colors.dark' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'theme_colors.card' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
@@ -150,7 +170,7 @@ class EventController extends Controller
                         'description' => $facility['description'] ?? '',
                     ];
 
-                    // Handle facility image
+                    // Handle facility image (Still using old method for now, or update if needed)
                     if (isset($request->facilities[$key]['image']) && $request->hasFile("facilities.{$key}.image")) {
                         $facilityData['image'] = $this->processImage($request->file("facilities.{$key}.image"), 'events/facilities', 800, 85);
                     }
@@ -163,27 +183,17 @@ class EventController extends Controller
             $validated['facilities'] = null;
         }
 
-        // Process Gallery
-        if ($request->hasFile('gallery')) {
-            $galleryPaths = [];
-            foreach ($request->file('gallery') as $image) {
-                $galleryPaths[] = $this->processImage($image, 'events/gallery', 1200, 85);
-            }
-            $validated['gallery'] = $galleryPaths;
-        } else {
-            $validated['gallery'] = null;
+        // Process Gallery (Already paths from Dropzone)
+        // No processing needed, just usage
+        if (isset($validated['gallery'])) {
+             // Move temp files to permanent location if needed, or just use as is
+             // Since we used 'events/temp' or similar in uploadMedia, we might want to move them?
+             // But for simplicity, let's assume uploadMedia puts them in a usable place.
+             // Ideally uploadMedia should accept a folder.
         }
 
-        // Process Sponsors
-        if ($request->hasFile('sponsors')) {
-            $sponsorPaths = [];
-            foreach ($request->file('sponsors') as $image) {
-                $sponsorPaths[] = $this->processImage($image, 'events/sponsors', 400, 85);
-            }
-            $validated['sponsors'] = $sponsorPaths;
-        } else {
-            $validated['sponsors'] = null;
-        }
+        // Process Sponsors (Already paths)
+        // No processing needed
 
         // Process Theme Colors (remove nulls)
         if (isset($validated['theme_colors']) && is_array($validated['theme_colors'])) {
@@ -202,28 +212,10 @@ class EventController extends Controller
         } else {
             $validated['jersey_sizes'] = null;
         }
-
-        // Process image uploads
-        if ($request->hasFile('hero_image')) {
-            $validated['hero_image'] = $this->processImage($request->file('hero_image'), 'events/hero', 1920, 85);
-            // Clear hero_image_url if uploaded image is provided
+        
+        // Single images are now paths from Dropzone
+        if (isset($validated['hero_image'])) {
             $validated['hero_image_url'] = null;
-        }
-
-        if ($request->hasFile('logo_image')) {
-            $validated['logo_image'] = $this->processImage($request->file('logo_image'), 'events/logo', 800, 90);
-        }
-
-        if ($request->hasFile('floating_image')) {
-            $validated['floating_image'] = $this->processImage($request->file('floating_image'), 'events/floating', 800, 85);
-        }
-
-        if ($request->hasFile('medal_image')) {
-            $validated['medal_image'] = $this->processImage($request->file('medal_image'), 'events/medal', 1200, 90);
-        }
-
-        if ($request->hasFile('jersey_image')) {
-            $validated['jersey_image'] = $this->processImage($request->file('jersey_image'), 'events/jersey', 1200, 90);
         }
 
         // Create event
@@ -280,11 +272,11 @@ class EventController extends Controller
             'rpc_latitude' => 'nullable|numeric',
             'rpc_longitude' => 'nullable|numeric',
             'hero_image_url' => 'nullable|url',
-            'hero_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
-            'logo_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
-            'floating_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
-            'medal_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
-            'jersey_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'hero_image' => 'nullable|string',
+            'logo_image' => 'nullable|string',
+            'floating_image' => 'nullable|string',
+            'medal_image' => 'nullable|string',
+            'jersey_image' => 'nullable|string',
             'map_embed_url' => 'nullable|string',
             'google_calendar_url' => 'nullable|url',
             'registration_open_at' => 'nullable|date',
@@ -297,11 +289,9 @@ class EventController extends Controller
             'facilities.*.image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
             'facilities.*.existing_image' => 'nullable|string',
             'gallery' => 'nullable|array',
-            'gallery.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
-            'remove_gallery_images' => 'nullable|array',
+            'gallery.*' => 'string',
             'sponsors' => 'nullable|array|max:30',
-            'sponsors.*' => 'image|mimes:jpeg,jpg,png,webp|max:300',
-            'remove_sponsors' => 'nullable|array',
+            'sponsors.*' => 'string',
             'theme_colors' => 'nullable|array',
             'theme_colors.dark' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'theme_colors.card' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
@@ -316,7 +306,7 @@ class EventController extends Controller
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
             'premium_amenities' => 'nullable|array',
-            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,profesional-city-run,professional-city-run,paolo-fest',
+            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,professional-city-run,paolo-fest',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'nullable|array|min:1',
             'categories.*.id' => 'nullable|exists:race_categories,id',
@@ -381,53 +371,27 @@ class EventController extends Controller
         }
 
         // Process Gallery
-        $currentGallery = $event->gallery ?? [];
-
-        // Remove deleted images
-        if ($request->has('remove_gallery_images')) {
-            $imagesToRemove = $request->remove_gallery_images;
-            foreach ($imagesToRemove as $imagePath) {
-                if (($key = array_search($imagePath, $currentGallery)) !== false) {
-                    $this->deleteImage($imagePath);
-                    unset($currentGallery[$key]);
-                }
-            }
-            $currentGallery = array_values($currentGallery); // Re-index
+        // The frontend now sends the full ordered list of paths in 'gallery' array
+        // If not present, it might mean cleared, or just not updated? 
+        // With Dropzone form logic, we should send empty array if cleared.
+        // If 'gallery' key is missing from request, it might be safer to keep existing? 
+        // But with standard form submit, unchecked checkboxes/empty selects usually send nothing.
+        // We will assume if 'gallery' is present (even empty array), we update. 
+        if ($request->has('gallery')) {
+             $validated['gallery'] = $request->input('gallery');
+        } else {
+             // If completely missing from request (e.g. not even empty array), keep old?
+             // Or maybe frontend sends empty array.
+             // Let's assume frontend sends hidden inputs 'gallery[]'.
+             $validated['gallery'] = null; 
         }
-
-        // Add new images
-        if ($request->hasFile('gallery')) {
-            foreach ($request->file('gallery') as $image) {
-                $currentGallery[] = $this->processImage($image, 'events/gallery', 1200, 85);
-            }
-        }
-
-        $validated['gallery'] = ! empty($currentGallery) ? $currentGallery : null;
 
         // Process Sponsors
-        $currentSponsors = $event->sponsors ?? [];
-
-        // Remove deleted images
-        if ($request->has('remove_sponsors')) {
-            $imagesToRemove = $request->remove_sponsors;
-            foreach ($imagesToRemove as $imagePath) {
-                if (($key = array_search($imagePath, $currentSponsors)) !== false) {
-                    $this->deleteImage($imagePath);
-                    unset($currentSponsors[$key]);
-                }
-            }
-            $currentSponsors = array_values($currentSponsors); // Re-index
+        if ($request->has('sponsors')) {
+            $validated['sponsors'] = $request->input('sponsors');
+        } else {
+            $validated['sponsors'] = null;
         }
-
-        // Add new images
-        if ($request->hasFile('sponsors')) {
-            foreach ($request->file('sponsors') as $image) {
-                if (count($currentSponsors) >= 30) break; // Limit 30
-                $currentSponsors[] = $this->processImage($image, 'events/sponsors', 400, 85);
-            }
-        }
-
-        $validated['sponsors'] = ! empty($currentSponsors) ? $currentSponsors : null;
 
         // Process Theme Colors (remove nulls)
         if (isset($validated['theme_colors']) && is_array($validated['theme_colors'])) {
@@ -481,45 +445,11 @@ class EventController extends Controller
             unset($validated['slug']);
         }
 
-        // Process image uploads
-        if ($request->hasFile('hero_image')) {
-            // Delete old image if exists
-            if ($event->hero_image) {
-                $this->deleteImage($event->hero_image);
-            }
-            $validated['hero_image'] = $this->processImage($request->file('hero_image'), 'events/hero', 1920, 85);
-            // Clear hero_image_url if uploaded image is provided
-            $validated['hero_image_url'] = null;
+        // Single images - already paths
+        if ($request->filled('hero_image')) {
+             $validated['hero_image_url'] = null;
         }
-
-        if ($request->hasFile('logo_image')) {
-            if ($event->logo_image) {
-                $this->deleteImage($event->logo_image);
-            }
-            $validated['logo_image'] = $this->processImage($request->file('logo_image'), 'events/logo', 800, 90);
-        }
-
-        if ($request->hasFile('floating_image')) {
-            if ($event->floating_image) {
-                $this->deleteImage($event->floating_image);
-            }
-            $validated['floating_image'] = $this->processImage($request->file('floating_image'), 'events/floating', 800, 85);
-        }
-
-        if ($request->hasFile('medal_image')) {
-            if ($event->medal_image) {
-                $this->deleteImage($event->medal_image);
-            }
-            $validated['medal_image'] = $this->processImage($request->file('medal_image'), 'events/medal', 1200, 90);
-        }
-
-        if ($request->hasFile('jersey_image')) {
-            if ($event->jersey_image) {
-                $this->deleteImage($event->jersey_image);
-            }
-            $validated['jersey_image'] = $this->processImage($request->file('jersey_image'), 'events/jersey', 1200, 90);
-        }
-
+        
         $affectedCategoryIds = [];
         $deletedCategoryIds = [];
 

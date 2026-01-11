@@ -12,7 +12,6 @@
 
 <div x-data="{
     amenities: {
-        gallery: {{ $isEnabled('gallery') ? 'true' : 'false' }},
         jersey: {{ $isEnabled('jersey') ? 'true' : 'false' }},
         medal: {{ $isEnabled('medal') ? 'true' : 'false' }},
         faq: {{ $isEnabled('faq') ? 'true' : 'false' }},
@@ -27,7 +26,6 @@
     </h3>
 
     <div class="space-y-4">
-        @include('eo.events.partials.amenities.gallery')
         @include('eo.events.partials.amenities.jersey')
         @include('eo.events.partials.amenities.medal')
         @include('eo.events.partials.amenities.faq')

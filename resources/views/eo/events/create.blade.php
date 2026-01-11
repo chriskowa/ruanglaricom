@@ -4,6 +4,59 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    <style>
+        .dropzone {
+            background: rgba(15, 23, 42, 0.5);
+            border: 2px dashed #334155;
+            border-radius: 0.75rem;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .dropzone:hover {
+            border-color: #facc15;
+        }
+        .dropzone .dz-preview {
+            background: transparent;
+            margin: 0;
+        }
+        .dropzone .dz-preview .dz-image {
+            border-radius: 0.5rem;
+            width: 100px;
+            height: 100px;
+        }
+        .dropzone .dz-preview .dz-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .dropzone .dz-remove {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            z-index: 10;
+            background: #ef4444;
+            color: white;
+            border-radius: 9999px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .dropzone .dz-remove:hover {
+            text-decoration: none;
+            background: #dc2626;
+        }
+    </style>
     <script>
         tailwind.config.theme.extend = {
             ...tailwind.config.theme.extend,
@@ -340,6 +393,7 @@
             <!-- Premium Amenities -->
             @include('eo.events.partials.premium-amenities', ['event' => new \App\Models\Event()])
 
+            <!-- Media & Branding -->
             <div class="border-b border-slate-700 pb-8">
                 <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                     <span class="w-8 h-8 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-sm border border-yellow-500/50">6</span>
@@ -349,46 +403,48 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">Hero Image <span class="text-red-400">*</span></label>
-                        <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-yellow-400 transition-colors cursor-pointer relative" onclick="document.getElementById('hero_image').click()">
-                            <input type="file" name="hero_image" id="hero_image" class="hidden" accept="image/*" onchange="previewImage(this, 'hero_preview')">
-                            <div id="hero_preview" class="hidden mb-2">
-                                <img src="" class="max-h-40 mx-auto rounded-lg shadow-lg">
-                            </div>
-                            <div id="hero_placeholder">
+                        <div id="hero-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors">
+                            <div class="dz-message text-center py-8">
                                 <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                <p class="text-sm text-slate-400">Click to upload (16:9 recommended)</p>
+                                <p class="text-sm text-slate-400">Click or Drag Image (16:9)</p>
                             </div>
                         </div>
+                        <input type="hidden" name="hero_image" id="hero_image_input">
                         @error('hero_image') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Logo</label>
-                        <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-yellow-400 transition-colors cursor-pointer relative" onclick="document.getElementById('logo_image').click()">
-                            <input type="file" name="logo_image" id="logo_image" class="hidden" accept="image/*" onchange="previewImage(this, 'logo_preview')">
-                            <div id="logo_preview" class="hidden mb-2">
-                                <img src="" class="max-h-40 mx-auto rounded-lg shadow-lg">
-                            </div>
-                            <div id="logo_placeholder">
+                        <div id="logo-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors">
+                            <div class="dz-message text-center py-8">
                                 <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                <p class="text-sm text-slate-400">Click to upload (Square recommended)</p>
+                                <p class="text-sm text-slate-400">Click or Drag Logo (Square)</p>
                             </div>
                         </div>
+                        <input type="hidden" name="logo_image" id="logo_image_input">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Event Gallery (Multiple, Drag to Reorder)</label>
+                        <div id="gallery-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors min-h-[150px]">
+                             <div class="dz-message text-center py-8">
+                                <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <p class="text-sm text-slate-400">Click or Drag Photos</p>
+                            </div>
+                        </div>
+                        <div id="gallery-inputs"></div>
+                        @error('gallery') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Sponsor Logos (Max 30, 300kb/each)</label>
-                        <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-yellow-400 transition-colors cursor-pointer relative" onclick="document.getElementById('sponsors').click()">
-                            <input type="file" name="sponsors[]" id="sponsors" class="hidden" accept="image/*" multiple onchange="previewSponsors(this)">
-                            <div id="sponsors_preview" class="hidden grid grid-cols-4 md:grid-cols-6 gap-4 mb-2">
-                                <!-- Previews will be here -->
-                            </div>
-                            <div id="sponsors_placeholder">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Sponsor Logos (Max 30, Drag to Reorder)</label>
+                        <div id="sponsors-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors min-h-[150px]">
+                             <div class="dz-message text-center py-8">
                                 <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                <p class="text-sm text-slate-400">Click to upload multiple logos</p>
+                                <p class="text-sm text-slate-400">Click or Drag Logos</p>
                             </div>
                         </div>
-                        <p class="text-slate-500 text-xs mt-1" id="sponsors_count">0 files selected</p>
+                        <div id="sponsors-inputs"></div>
                         @error('sponsors') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                         @error('sponsors.*') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -490,8 +546,168 @@
 @push('scripts')
 <script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
-    // Categories Logic
+    Dropzone.autoDiscover = false;
+
+    function initDropzone(id, inputName, maxFiles = 1, existingFiles = []) {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        const container = document.getElementById(id.replace('-dropzone', '-inputs')) || el.parentNode; // Fallback
+        
+        // Ensure container for inputs exists if not provided
+        if (id.includes('hero') || id.includes('logo')) {
+            // For single files, we use a single hidden input that might already exist
+            // But we will handle it dynamically
+        }
+
+        const dz = new Dropzone("#" + id, {
+            url: "{{ route('eo.events.upload-media') }}",
+            paramName: "file",
+            maxFiles: maxFiles,
+            maxFilesize: 5, // MB
+            acceptedFiles: "image/*",
+            addRemoveLinks: true,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            params: {
+                folder: id.includes('hero') ? 'events/hero' : (id.includes('logo') ? 'events/logo' : (id.includes('gallery') ? 'events/gallery' : 'events/sponsors'))
+            },
+            success: function(file, response) {
+                if (response.success) {
+                    file.serverPath = response.path; // Store path
+                    addHiddenInput(inputName, response.path);
+                } else {
+                    this.removeFile(file);
+                    alert('Upload failed');
+                }
+            },
+            removedfile: function(file) {
+                if (file.serverPath) {
+                    removeHiddenInput(inputName, file.serverPath);
+                }
+                if (file.previewElement != null && file.previewElement.parentNode != null) {
+                    file.previewElement.parentNode.removeChild(file.previewElement);
+                }
+                return this._updateMaxFilesReachedClass();
+            },
+            init: function() {
+                const myDropzone = this;
+                
+                // Load existing files
+                if (existingFiles && existingFiles.length > 0) {
+                    existingFiles.forEach(path => {
+                        // Mock file
+                        const mockFile = { name: path.split('/').pop(), size: 12345, serverPath: path, accepted: true };
+                        myDropzone.emit("addedfile", mockFile);
+                        myDropzone.emit("thumbnail", mockFile, "{{ asset('storage') }}/" + path);
+                        myDropzone.emit("complete", mockFile);
+                        myDropzone.files.push(mockFile);
+                        
+                        addHiddenInput(inputName, path);
+                    });
+                }
+
+                // Sortable
+                if (maxFiles > 1) {
+                    new Sortable(el, {
+                        animation: 150,
+                        ghostClass: 'bg-slate-800',
+                        onEnd: function() {
+                            // Reorder hidden inputs based on DOM order
+                            reorderInputs(myDropzone, inputName);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    function addHiddenInput(name, value) {
+        // For single file, replace value
+        if (!name.includes('[]')) {
+            let input = document.getElementById(name + '_input');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.id = name + '_input';
+                document.getElementById('eventForm').appendChild(input);
+            }
+            input.value = value;
+            return;
+        }
+
+        // For array
+        const container = document.getElementById(name.replace('[]', '') + '-inputs');
+        if (!container) return; // Should exist
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        input.className = 'dz-hidden-input'; // Marker
+        input.dataset.path = value;
+        container.appendChild(input);
+    }
+
+    function removeHiddenInput(name, value) {
+        if (!name.includes('[]')) {
+            const input = document.getElementById(name + '_input');
+            if (input) input.value = '';
+            return;
+        }
+
+        const container = document.getElementById(name.replace('[]', '') + '-inputs');
+        if (!container) return;
+
+        const input = container.querySelector(`input[value="${value}"]`);
+        if (input) input.remove();
+    }
+
+    function reorderInputs(dropzoneInstance, inputName) {
+        const container = document.getElementById(inputName.replace('[]', '') + '-inputs');
+        if (!container) return;
+
+        // Get all preview elements in current order
+        const previews = dropzoneInstance.element.querySelectorAll('.dz-preview');
+        
+        // Clear container
+        container.innerHTML = '';
+
+        // Re-add inputs in order
+        previews.forEach(preview => {
+            // Find the file object corresponding to this preview
+            // Dropzone doesn't link DOM to File object easily in reverse, 
+            // but we can assume the preview element has the image src or we can use the file object if we can find it.
+            // Actually, Sortable sorts the DOM elements.
+            // We need to find which file corresponds to this DOM element.
+            
+            // Simpler approach: Dropzone attaches 'file' property to previewElement? No.
+            // But we can iterate through dropzone.files and match previewElement.
+            const file = dropzoneInstance.files.find(f => f.previewElement === preview);
+            if (file && file.serverPath) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = inputName;
+                input.value = file.serverPath;
+                container.appendChild(input);
+            }
+        });
+    }
+
+    // Initialize Dropzones
+    document.addEventListener("DOMContentLoaded", function() {
+        initDropzone('hero-dropzone', 'hero_image', 1);
+        initDropzone('logo-dropzone', 'logo_image', 1);
+        initDropzone('gallery-dropzone', 'gallery[]', 10);
+        initDropzone('sponsors-dropzone', 'sponsors[]', 30);
+    });
+
+    // Categories LogicCategories Logic
     let categoryIndex = 0;
     const container = document.getElementById('categories_container');
     const emptyMsg = document.getElementById('empty_categories_msg');

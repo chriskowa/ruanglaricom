@@ -445,6 +445,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\EO\DashboardController::class, 'index'])->name('dashboard');
 
         // Event management
+        Route::post('events/upload-media', [App\Http\Controllers\EO\EventController::class, 'uploadMedia'])->name('events.upload-media');
         Route::resource('events', App\Http\Controllers\EO\EventController::class);
         Route::get('events/{event}/preview', [App\Http\Controllers\EO\EventController::class, 'preview'])->name('events.preview');
         Route::get('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participants'])->name('events.participants');

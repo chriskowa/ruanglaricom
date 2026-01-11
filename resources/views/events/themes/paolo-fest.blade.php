@@ -103,6 +103,10 @@
         
         /* Sticky Navigation */
         .nav-scrolled { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1); }
+        .nav-scrolled .nav-link { color: #475569 !important; }
+        .nav-scrolled .nav-link:hover { color: #1e40af !important; }
+        .nav-scrolled .nav-brand { color: #0f172a !important; }
+        .nav-scrolled .mobile-toggle { color: #1e293b !important; }
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 10px; }
@@ -146,16 +150,16 @@
                         <div class="h-10 w-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-600/30 group-hover:rotate-6 transition duration-300">
                             {{ substr($event->name, 0, 1) }}
                         </div>
-                        <span class="font-extrabold text-xl tracking-tight text-slate-900 uppercase group-hover:text-brand-600 transition">{{ $event->name }}</span>
+                        <span class="nav-brand font-extrabold text-xl tracking-tight text-white uppercase group-hover:text-brand-600 transition">{{ $event->name }}</span>
                     @endif
                 </a>
 
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#about" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Tentang</a>
-                    <a href="#categories" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Kategori</a>
-                    <a href="#venue" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Lokasi</a>
-                    <a href="#racepack" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Race Pack</a>
-                    <a href="#info" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Info</a>
+                    <a href="#about" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Tentang</a>
+                    <a href="#categories" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Kategori</a>
+                    <a href="#venue" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Lokasi</a>
+                    <a href="#racepack" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Race Pack</a>
+                    <a href="#info" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Info</a>
                     
                     @if($isRegOpen)
                         <a href="#register" class="bg-brand-600 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all duration-300">
@@ -168,7 +172,7 @@
                     @endif
                 </div>
 
-                <button id="mobileMenuBtn" class="md:hidden text-slate-800 p-2 hover:bg-slate-100 rounded-lg transition">
+                <button id="mobileMenuBtn" class="mobile-toggle md:hidden text-white p-2 hover:bg-white/10 rounded-lg transition">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
