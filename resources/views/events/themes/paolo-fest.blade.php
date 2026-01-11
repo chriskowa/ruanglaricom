@@ -167,10 +167,11 @@
                     {{ strtoupper($event->name) }}
                     <span class="text-brand-600 block">RUN FEST.</span>
                 </h1>
-                
-                <p class="text-lg text-slate-600 mb-20 leading-relaxed max-w-lg mx-auto md:mx-0 font-medium">
-                    {!! $event->short_description ?? 'Rasakan sensasi berlari dengan pemandangan terbaik. Rute aman, steril, dan atmosfer kompetitif yang menyenangkan.' !!}
-                </p>
+                <div class="mb-8">
+                    <p class="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0 font-medium">
+                        {!! $event->short_description ?? 'Rasakan sensasi berlari dengan pemandangan terbaik. Rute aman, steril, dan atmosfer kompetitif yang menyenangkan.' !!}
+                    </p>
+                </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-8">
                     @if($isRegOpen)
