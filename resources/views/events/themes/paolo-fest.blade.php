@@ -12,7 +12,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     @php $midtransUrl = config('midtrans.base_url', 'https://app.sandbox.midtrans.com'); @endphp
     <link rel="stylesheet" href="{{ $midtransUrl }}/snap/snap.css" />
@@ -26,12 +26,17 @@
                         brand: {
                             50: '#eff6ff',
                             100: '#dbeafe',
-                            600: '#1e40af', /* Royal Blue (Logo Base) */
-                            700: '#1e3a8a',
-                            900: '#0f172a', /* Dark Navy */
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#1e40af', /* Royal Blue */
+                            700: '#1d4ed8',
+                            800: '#1e3a8a',
+                            900: '#172554',
                         },
                         accent: {
-                            500: '#f97316', /* Orange (Energy/Action) */
+                            500: '#f97316', /* Orange */
                             600: '#ea580c',
                         }
                     },
@@ -40,7 +45,24 @@
                     },
                     boxShadow: {
                         'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
-                        'card': '0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04)',
+                        'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
+                        'card': '0 0 0 1px rgba(0,0,0,0.03), 0 4px 20px rgba(0,0,0,0.08)',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'blob': 'blob 7s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
                     }
                 }
             }
@@ -51,20 +73,22 @@
         /* Custom Styles */
         body { background-color: #F8FAFC; color: #1e293b; }
         
-        /* Shape Divider untuk Hero */
+        /* Shape Divider */
         .custom-shape-divider-bottom {
             position: absolute;
-            bottom: 0;
+            bottom: -1px; /* Fix gap */
             left: 0;
             width: 100%;
             overflow: hidden;
             line-height: 0;
+            transform: rotate(180deg);
+            z-index: 2;
         }
         .custom-shape-divider-bottom svg {
             position: relative;
             display: block;
-            width: calc(130% + 1.3px);
-            height: 100px;
+            width: calc(100% + 1.3px);
+            height: 120px;
         }
         .custom-shape-divider-bottom .shape-fill {
             fill: #FFFFFF;
@@ -73,9 +97,18 @@
         /* Reveal Animation */
         .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
         
-        /* Sticky Navigation Shadow transition */
-        .nav-scrolled { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        /* Sticky Navigation */
+        .nav-scrolled { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen">
@@ -103,26 +136,28 @@
         }
     @endphp
 
-    <nav class="fixed w-full z-50 transition-all duration-300 bg-white/80 backdrop-blur-sm border-b border-slate-100" id="navbar">
+    <nav class="fixed w-full z-50 transition-all duration-300 bg-white/0 border-b border-transparent" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <a href="#top" class="flex items-center gap-3">
+                <a href="#top" class="flex items-center gap-3 group">
                     @if($event->logo_image)
-                        <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-10 w-auto hover:scale-105 transition">
+                        <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-10 w-auto group-hover:scale-105 transition duration-300">
                     @else
-                        <div class="h-10 w-10 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-600/30">P</div>
-                        <span class="font-extrabold text-xl tracking-tight text-slate-900 uppercase">{{ $event->name }}</span>
+                        <div class="h-10 w-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-600/30 group-hover:rotate-6 transition duration-300">
+                            {{ substr($event->name, 0, 1) }}
+                        </div>
+                        <span class="font-extrabold text-xl tracking-tight text-slate-900 uppercase group-hover:text-brand-600 transition">{{ $event->name }}</span>
                     @endif
                 </a>
 
                 <div class="hidden md:flex items-center space-x-8">
+                    <a href="#about" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Tentang</a>
                     <a href="#categories" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Kategori</a>
-                    <a href="#fasilitas" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Fasilitas</a>
                     <a href="#racepack" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Race Pack</a>
-                    <a href="#rute" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Rute</a>
+                    <a href="#info" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Info</a>
                     
                     @if($isRegOpen)
-                        <a href="#register" class="bg-brand-600 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:-translate-y-0.5 transition-all">
+                        <a href="#register" class="bg-brand-600 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all duration-300">
                             Daftar Sekarang
                         </a>
                     @else
@@ -132,106 +167,150 @@
                     @endif
                 </div>
 
-                <button id="mobileMenuBtn" class="md:hidden text-slate-800 p-2">
+                <button id="mobileMenuBtn" class="md:hidden text-slate-800 p-2 hover:bg-slate-100 rounded-lg transition">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
             
-            <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-100 absolute w-full left-0 px-4 py-4 space-y-4 shadow-xl">
-                <a href="#categories" class="block text-slate-700 font-medium">Kategori</a>
-                <a href="#racepack" class="block text-slate-700 font-medium">Race Pack</a>
-                <a href="#register" class="block text-brand-600 font-bold">Registrasi</a>
+            <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-100 absolute w-full left-0 px-4 py-4 space-y-4 shadow-xl rounded-b-2xl">
+                <a href="#about" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Tentang</a>
+                <a href="#categories" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Kategori</a>
+                <a href="#racepack" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Race Pack</a>
+                <a href="#info" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Info Event</a>
+                <a href="#register" class="block text-center bg-brand-600 text-white font-bold p-3 rounded-xl">Registrasi</a>
             </div>
         </div>
     </nav>
 
-    <header id="top" class="relative pt-20 overflow-hidden bg-slate-50">
+    <header id="top" class="relative pt-24 pb-12 overflow-hidden bg-slate-900 min-h-[85vh] flex items-center">
+        <!-- Dynamic Background -->
         <div class="absolute inset-0 z-0">
             @if($event->hero_image)
-                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent"></div>
+                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover opacity-60">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/40 to-transparent"></div>
             @else
-                <div class="w-full h-full bg-slate-50" style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 30px 30px;"></div>
-                <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-100/50 rounded-full blur-3xl"></div>
+                <div class="absolute inset-0 bg-slate-900"></div>
+                <div class="absolute top-0 -left-4 w-72 h-72 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+                <div class="absolute top-0 -right-4 w-72 h-72 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+                <div class="absolute -bottom-8 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
             @endif
         </div>
 
-        <div class="relative z-10 max-w-7xl mx-auto px-4 pt-16 pb-32 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center gap-12">
-            <div class="flex-1 text-center md:text-left reveal active">
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm mb-6">
-                    <span class="w-2 h-2 rounded-full bg-accent-500 animate-pulse"></span>
-                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">{{ $event->start_at->format('d F Y') }} • {{ $event->location_name }}</span>
-                </div>
-                
-                <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6">
-                    {{ strtoupper($event->name) }}
-                    <span class="text-brand-600 block">RUN FEST.</span>
-                </h1>
-                <div class="mb-8">
-                    <p class="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0 font-medium">
-                        {!! $event->short_description ?? 'Rasakan sensasi berlari dengan pemandangan terbaik. Rute aman, steril, dan atmosfer kompetitif yang menyenangkan.' !!}
-                    </p>
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-8">
-                    @if($isRegOpen)
-                    <a href="#register" class="px-8 py-4 bg-accent-500 text-white font-bold rounded-xl shadow-lg shadow-accent-500/20 hover:bg-accent-600 transition hover:-translate-y-1">
-                        Amankan Slot
-                    </a>
-                    @else
-                    <button disabled class="px-8 py-4 bg-slate-200 text-slate-400 font-bold rounded-xl cursor-not-allowed">
-                        Pendaftaran Ditutup
-                    </button>
-                    @endif
-                    <a href="#rute" class="px-8 py-4 bg-white text-slate-700 border border-slate-200 font-bold rounded-xl hover:bg-slate-50 transition shadow-sm">
-                        Lihat Rute
-                    </a>
-                </div>
-
-                <!-- Countdown -->
-                <div class="mb-2 text-center md:text-left">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">{{ $countdownLabel }}</span>
-                </div>
-                <div id="hero-countdown" class="flex gap-6 justify-center md:justify-start">
-                    <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
-                        <span class="block text-2xl font-bold text-brand-600" id="cd-days">00</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold">Hari</span>
-                    </div>
-                    <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
-                        <span class="block text-2xl font-bold text-brand-600" id="cd-hours">00</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold">Jam</span>
-                    </div>
-                    <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
-                        <span class="block text-2xl font-bold text-brand-600" id="cd-minutes">00</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold">Menit</span>
-                    </div>
-                    <div class="text-center bg-white p-3 rounded-xl border border-slate-100 shadow-sm min-w-[70px]">
-                        <span class="block text-2xl font-bold text-brand-600" id="cd-seconds">00</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold">Detik</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex-1 w-full max-w-md mx-auto reveal delay-200">
-                <div class="bg-white p-8 rounded-[2rem] shadow-2xl border border-slate-100 transform rotate-2 hover:rotate-0 transition duration-500">
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <p class="text-sm text-slate-400 font-bold uppercase">Event Status</p>
-                            <p class="text-2xl font-bold text-slate-900">Ready to Race</p>
-                        </div>
-                        <div class="w-12 h-12 bg-brand-50 rounded-full flex items-center justify-center text-brand-600">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        </div>
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div class="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+                <div class="flex-1 text-center md:text-left reveal active">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-lg mb-8 hover:bg-white/20 transition cursor-default">
+                        <span class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-accent-500"></span>
+                        </span>
+                        <span class="text-xs font-bold text-white uppercase tracking-wider">{{ $event->start_at->format('d F Y') }} • {{ $event->location_name }}</span>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                            <span class="block text-3xl font-bold text-brand-600">{{ $categories->count() }}</span>
-                            <span class="text-xs text-slate-500 font-bold uppercase">Kategori</span>
+                    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none mb-6 drop-shadow-lg">
+                        {{ strtoupper($event->name) }}
+                    </h1>
+                    
+                    <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0 font-light">
+                        {!! $event->short_description ?? 'Rasakan sensasi berlari dengan atmosfer kompetitif yang menyenangkan.' !!}
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
+                        @if($isRegOpen)
+                        <a href="#register" class="group px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-600/30 hover:bg-brand-500 hover:shadow-brand-500/50 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
+                            Amankan Slot
+                            <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </a>
+                        @else
+                        <button disabled class="px-8 py-4 bg-slate-700 text-slate-400 font-bold rounded-2xl cursor-not-allowed border border-slate-600">
+                            Pendaftaran Ditutup
+                        </button>
+                        @endif
+                        <a href="#about" class="px-8 py-4 bg-white/10 text-white border border-white/20 backdrop-blur-sm font-bold rounded-2xl hover:bg-white/20 transition flex items-center justify-center">
+                            Explore Event
+                        </a>
+                    </div>
+
+                    <!-- Countdown -->
+                    <div class="flex flex-col items-center md:items-start">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{{ $countdownLabel }}</span>
+                        <div id="hero-countdown" class="flex gap-4">
+                            <div class="text-center">
+                                <div class="bg-white/10 backdrop-blur-md border border-white/20 w-16 h-16 rounded-xl flex items-center justify-center mb-1">
+                                    <span class="text-2xl font-bold text-white" id="cd-days">00</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 uppercase font-bold">Hari</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="bg-white/10 backdrop-blur-md border border-white/20 w-16 h-16 rounded-xl flex items-center justify-center mb-1">
+                                    <span class="text-2xl font-bold text-white" id="cd-hours">00</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 uppercase font-bold">Jam</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="bg-white/10 backdrop-blur-md border border-white/20 w-16 h-16 rounded-xl flex items-center justify-center mb-1">
+                                    <span class="text-2xl font-bold text-white" id="cd-minutes">00</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 uppercase font-bold">Menit</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="bg-white/10 backdrop-blur-md border border-white/20 w-16 h-16 rounded-xl flex items-center justify-center mb-1">
+                                    <span class="text-2xl font-bold text-white" id="cd-seconds">00</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 uppercase font-bold">Detik</span>
+                            </div>
                         </div>
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                            <span class="block text-3xl font-bold text-brand-600">{{ $event->start_at->format('H:i') }}</span>
-                            <span class="text-xs text-slate-500 font-bold uppercase">Flag Off</span>
+                    </div>
+                </div>
+
+                <!-- Floating Info Card -->
+                <div class="flex-1 w-full max-w-md mx-auto reveal delay-200 hidden lg:block">
+                    <div class="bg-white/10 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 shadow-2xl animate-float">
+                        <div class="flex justify-between items-start mb-8">
+                            <div>
+                                <p class="text-xs text-brand-300 font-bold uppercase tracking-wider mb-1">EVENT STATUS</p>
+                                <p class="text-3xl font-black text-white">READY TO RACE</p>
+                            </div>
+                            <div class="w-14 h-14 bg-brand-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/40">
+                                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-accent-500/20 flex items-center justify-center text-accent-500">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <div>
+                                    <span class="block text-white font-bold">{{ $event->location_name }}</span>
+                                    <span class="text-xs text-slate-400">Venue Location</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div>
+                                    <span class="block text-white font-bold">{{ $event->start_at->format('H:i') }} WIB</span>
+                                    <span class="text-xs text-slate-400">Flag Off Time</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-8 border-t border-white/10 grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <span class="block text-2xl font-bold text-white">{{ $categories->count() }}</span>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase">Kategori</span>
+                            </div>
+                            <div>
+                                <span class="block text-2xl font-bold text-white">1000+</span>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase">Runners</span>
+                            </div>
+                            <div>
+                                <span class="block text-2xl font-bold text-white">5+</span>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase">Sponsor</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -245,11 +324,81 @@
         </div>
     </header>
 
+    <!-- About Section -->
+    <section id="about" class="py-24 bg-white relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="reveal">
+                    <span class="text-brand-600 font-bold uppercase tracking-widest text-sm mb-2 block">Tentang Event</span>
+                    <h2 class="text-4xl font-extrabold text-slate-900 mb-6 leading-tight">Berlari Melampaui Batas,<br>Nikmati Setiap Langkah</h2>
+                    <div class="prose prose-lg text-slate-600">
+                        {!! $event->full_description ?? $event->short_description !!}
+                    </div>
+                    
+                    <div class="mt-8 grid grid-cols-2 gap-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 shrink-0">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Rute Steril</h4>
+                                <p class="text-sm text-slate-500 mt-1">Keamanan pelari adalah prioritas utama kami dengan rute bebas kendaraan.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900">Refreshment</h4>
+                                <p class="text-sm text-slate-500 mt-1">Water station tiap 2.5KM dengan air mineral dan isotonik.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative reveal delay-200">
+                    <div class="absolute -top-10 -right-10 w-64 h-64 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+                    <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition duration-500">
+                        @if($event->hero_image)
+                            <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-auto">
+                        @else
+                            <div class="bg-slate-200 w-full aspect-[4/3] flex items-center justify-center text-slate-400 font-bold">Event Image</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section (New) -->
+    @if(isset($event->gallery) && count($event->gallery) > 0)
+    <section id="gallery" class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 reveal">
+                <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Dokumentasi</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-2">Event Gallery</h2>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
+                @foreach(array_slice($event->gallery, 0, 8) as $img)
+                <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-pointer">
+                    <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300"></div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
+
+    <!-- Categories Section -->
     <section id="categories" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
-                <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl">Pilih Kategori</h2>
-                <p class="mt-4 text-lg text-slate-600">Sesuaikan dengan target latihanmu.</p>
+                <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Kategori Lomba</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl mt-2">Pilih Tantanganmu</h2>
+                <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">Tersedia berbagai kategori jarak yang sesuai dengan target latihanmu.</p>
             </div>
 
             @php
@@ -274,50 +423,61 @@
                         $displayPrice = $priceLate;
                     }
                 @endphp
-                <div class="relative flex flex-col bg-white border border-slate-200 rounded-3xl shadow-card hover:shadow-xl hover:border-brand-200 transition-all duration-300 group reveal">
-                    <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-600 to-accent-500 rounded-t-3xl"></div>
+                <div class="relative flex flex-col bg-white rounded-[2rem] border border-slate-100 shadow-card hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group reveal overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-500 to-accent-500"></div>
                     
                     <div class="p-8 flex-1">
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-brand-50 text-brand-700">
-                                {{ $cat->distance_km ?? '?' }} KM
+                        <div class="flex justify-between items-start mb-6">
+                            <span class="inline-flex items-center px-4 py-2 rounded-xl text-lg font-black bg-slate-50 text-slate-900 border border-slate-100">
+                                {{ $cat->distance_km ?? '?' }}K
                             </span>
                             @if($cat->quota < 50 && $cat->quota > 0)
-                                <span class="text-xs font-bold text-red-500 animate-pulse">Sisa Sedikit!</span>
+                                <span class="px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs font-bold animate-pulse">
+                                    🔥 Sisa Sedikit
+                                </span>
                             @endif
                         </div>
 
-                        <h3 class="text-2xl font-bold text-slate-900 mb-2">{{ $cat->name }}</h3>
-                        <p class="text-slate-500 text-sm mb-6">Cut Off Time: <strong class="text-slate-900">{{ $cat->cot_hours ?? '-' }} Jam</strong></p>
+                        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ $cat->name }}</h3>
+                        <p class="text-slate-500 text-sm mb-8 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Cut Off Time: <strong class="text-slate-900">{{ $cat->cot_hours ?? '-' }} Jam</strong>
+                        </p>
 
-                        <ul class="space-y-3 mb-8">
-                            <li class="flex items-center text-sm text-slate-600">
-                                <svg class="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-center text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded-xl">
+                                <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 shrink-0">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
                                 Official Jersey & BIB
                             </li>
-                            <li class="flex items-center text-sm text-slate-600">
-                                <svg class="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                Finisher Medal (All Finishers)
+                            <li class="flex items-center text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded-xl">
+                                <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 shrink-0">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                Finisher Medal
                             </li>
-                            <li class="flex items-center text-sm text-slate-600">
-                                <svg class="w-5 h-5 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <li class="flex items-center text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded-xl">
+                                <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 shrink-0">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
                                 Refreshment & Medic
                             </li>
                         </ul>
                     </div>
                     
-                    <div class="p-6 bg-slate-50 rounded-b-3xl border-t border-slate-100">
+                    <div class="p-6 bg-slate-50 border-t border-slate-100">
                         <div class="flex items-baseline justify-between mb-4">
-                            <span class="text-sm text-slate-500 font-medium">Biaya Pendaftaran</span>
+                            <span class="text-sm text-slate-500 font-bold uppercase">Registrasi</span>
                             <div class="text-right">
                                 @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                     <div class="text-xs font-bold text-slate-400 line-through">Rp {{ number_format($priceRegular/1000, 0) }}k</div>
                                 @endif
-                                <div class="text-2xl font-bold text-slate-900">Rp {{ number_format($displayPrice/1000, 0) }}k</div>
+                                <div class="text-3xl font-black text-brand-600">Rp {{ number_format($displayPrice/1000, 0) }}k</div>
                             </div>
                         </div>
-                        <a href="#register" class="block w-full py-3 px-4 bg-white border-2 border-brand-600 text-brand-600 font-bold text-center rounded-xl hover:bg-brand-600 hover:text-white transition group-hover:shadow-md">
-                            Daftar Kategori Ini
+                        <a href="#register" class="block w-full py-4 px-4 bg-brand-600 text-white font-bold text-center rounded-xl shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/40 transition-all duration-300">
+                            Daftar Sekarang
                         </a>
                     </div>
                 </div>
@@ -326,66 +486,244 @@
         </div>
     </section>
 
-    <section id="fasilitas" class="py-24 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 reveal">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:-translate-y-1 transition">
-                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Medical Safety</h3>
-                    <p class="text-slate-500">Ambulans & Tim Medis profesional siaga di sepanjang rute.</p>
-                </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:-translate-y-1 transition">
-                    <div class="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Hydration Point</h3>
-                    <p class="text-slate-500">Water station tersedia setiap 2.5 KM (Air & Isotonik).</p>
-                </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:-translate-y-1 transition">
-                    <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-2">Rute Steril</h3>
-                    <p class="text-slate-500">Rute steril tanpa gangguan kendaraan</p>
-                </div>
-            </div>
-
-            @if($showSection('jersey'))
-            <div id="racepack" class="bg-brand-900 rounded-[3rem] p-8 md:p-16 text-white overflow-hidden relative reveal">
-                <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');"></div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
-                    <div>
-                        <div class="inline-block bg-accent-500 px-3 py-1 rounded text-xs font-bold uppercase tracking-widest mb-4">Premium Gear</div>
-                        <h2 class="text-4xl md:text-5xl font-black mb-6">THE RACE PACK</h2>
-                        <p class="text-slate-300 text-lg mb-8 leading-relaxed">
-                            Kami menghadirkan jersey dengan material <em>Dry-Fit</em> kualitas ekspor yang ringan, menyerap keringat, dan anti-bakteri. Didesain untuk kenyamanan maksimal saat berlari.
-                        </p>
-                        <div class="flex gap-6">
-                            <div class="border border-white/20 rounded-2xl p-4 bg-white/5 backdrop-blur-sm">
-                                <p class="text-sm text-slate-400 uppercase font-bold">Material</p>
-                                <p class="text-lg font-bold">Premium Dry-Fit</p>
-                            </div>
-                            <div class="border border-white/20 rounded-2xl p-4 bg-white/5 backdrop-blur-sm">
-                                <p class="text-sm text-slate-400 uppercase font-bold">Medal</p>
-                                <p class="text-lg font-bold">Zinc Alloy 3D</p>
-                            </div>
+    <!-- Medal Section (New) -->
+    @if($event->medal_image)
+    <section id="medal" class="py-24 bg-slate-900 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-20" style="background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col md:flex-row items-center gap-16">
+                <div class="flex-1 text-center md:text-left reveal">
+                    <span class="text-accent-500 font-bold uppercase tracking-widest text-sm mb-2 block">Finisher Reward</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-white mb-6">THE MEDAL</h2>
+                    <p class="text-slate-400 text-lg mb-8 leading-relaxed">
+                        Simbol pencapaian Anda menaklukkan rute ini. Didesain eksklusif dengan material Zinc Alloy 3D berkualitas tinggi, berat, dan solid.
+                    </p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                            <span class="block text-2xl font-bold text-white">3D</span>
+                            <span class="text-xs text-slate-400 uppercase">Design</span>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                            <span class="block text-2xl font-bold text-white">High</span>
+                            <span class="text-xs text-slate-400 uppercase">Quality</span>
                         </div>
                     </div>
-                    <div class="relative">
-                        <div class="relative bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-600 rounded-3xl p-2 shadow-2xl transform rotate-3 hover:rotate-0 transition duration-500">
+                </div>
+                <div class="flex-1 reveal delay-200">
+                    <div class="relative group">
+                        <div class="absolute inset-0 bg-accent-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                        <img src="{{ asset('storage/' . $event->medal_image) }}" class="relative w-full max-w-md mx-auto drop-shadow-2xl transform group-hover:scale-105 transition duration-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
+
+    <!-- Race Pack & Facilities -->
+    <section id="racepack" class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Race Entitlements</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl mt-2">Fasilitas & Race Pack</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+                <!-- Jersey Card -->
+                <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 overflow-hidden relative group reveal">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-brand-50 rounded-full -mr-16 -mt-16 transition group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 bg-brand-100 rounded-2xl flex items-center justify-center text-brand-600">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900">Official Jersey</h3>
+                        </div>
+                        <p class="text-slate-600 mb-8">Jersey lari eksklusif dengan bahan Dry-Fit premium yang ringan dan menyerap keringat.</p>
+                        <div class="rounded-3xl overflow-hidden bg-slate-100 border border-slate-200">
                              @if($event->jersey_image)
-                                <img src="{{ asset('storage/' . $event->jersey_image) }}" class="w-full rounded-2xl" alt="Jersey">
+                                <img src="{{ asset('storage/' . $event->jersey_image) }}" class="w-full h-auto object-cover hover:scale-105 transition duration-700">
                              @else
-                                <div class="aspect-video bg-slate-800 rounded-2xl flex items-center justify-center text-slate-500 font-bold">Jersey Preview</div>
+                                <div class="aspect-video flex items-center justify-center text-slate-400 font-bold">Preview Jersey</div>
                              @endif
                         </div>
                     </div>
                 </div>
+
+                <!-- Facilities Grid -->
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-100">
+                        <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-900 mb-2">Timing System</h4>
+                            <p class="text-slate-500">Pencatatan waktu akurat menggunakan chip timing system berstandar nasional.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-200">
+                        <div class="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center shrink-0">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-900 mb-2">Water Station</h4>
+                            <p class="text-slate-500">Pos hidrasi tersedia setiap 2.5 KM dilengkapi tim medis.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-300">
+                        <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shrink-0">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-900 mb-2">Race Photography</h4>
+                            <p class="text-slate-500">Dokumentasi foto berkualitas tinggi di sepanjang rute untuk Anda.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            @endif
+        </div>
+    </section>
+
+    <!-- Info Section (RPC & Venue) -->
+    <section id="info" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- RPC Info -->
+                <div class="reveal">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">Race Pack Collection</h3>
+                    </div>
+                    <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100">
+                        <p class="text-slate-600 mb-6">Pengambilan race pack akan dilakukan pada:</p>
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex gap-4">
+                                <svg class="w-5 h-5 text-brand-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <div>
+                                    <strong class="block text-slate-900">Tanggal</strong>
+                                    <span class="text-slate-600">H-2 & H-1 Sebelum Race Day</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-4">
+                                <svg class="w-5 h-5 text-brand-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <div>
+                                    <strong class="block text-slate-900">Waktu</strong>
+                                    <span class="text-slate-600">10:00 - 20:00 WIB</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-4">
+                                <svg class="w-5 h-5 text-brand-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                                <div>
+                                    <strong class="block text-slate-900">Lokasi</strong>
+                                    <span class="text-slate-600">{{ $event->rpc_location_name ?? 'To Be Announced' }}</span>
+                                    <p class="text-sm text-slate-500 mt-1">{{ $event->rpc_location_address }}</p>
+                                </div>
+                            </li>
+                        </ul>
+                        @if($event->rpc_latitude && $event->rpc_longitude)
+                        <a href="https://maps.google.com/?q={{ $event->rpc_latitude }},{{ $event->rpc_longitude }}" target="_blank" class="inline-flex items-center text-sm font-bold text-brand-600 hover:text-brand-700">
+                            Buka Google Maps
+                            <svg class="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Venue Info -->
+                <div class="reveal delay-200">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-accent-500 rounded-full flex items-center justify-center text-white">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">Venue & Parking</h3>
+                    </div>
+                    <div class="bg-white border border-slate-200 shadow-lg rounded-3xl overflow-hidden h-full min-h-[300px] relative group">
+                         @if($event->map_embed_url)
+                            <iframe src="{{ $event->map_embed_url }}" class="w-full h-full min-h-[300px] border-0" allowfullscreen="" loading="lazy"></iframe>
+                         @else
+                            <div class="absolute inset-0 bg-slate-100 flex items-center justify-center text-slate-400 font-bold">Map Loading...</div>
+                         @endif
+                         <div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-white/50 shadow-sm">
+                             <strong class="block text-slate-900">{{ $event->location_name }}</strong>
+                             <p class="text-xs text-slate-500 truncate">{{ $event->location_address }}</p>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What to Bring & FAQ -->
+    <section class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+                <!-- What to Bring -->
+                <div class="reveal">
+                    <h3 class="text-2xl font-bold text-slate-900 mb-8">What To Bring</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="text-sm font-bold text-slate-700">Running Shoes</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="text-sm font-bold text-slate-700">Jersey & BIB</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="text-sm font-bold text-slate-700">ID Card</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="text-sm font-bold text-slate-700">Sunscreen</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ -->
+                <div class="reveal delay-200">
+                    <h3 class="text-2xl font-bold text-slate-900 mb-8">FAQ</h3>
+                    <div class="space-y-4">
+                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                            <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                Apakah tiket bisa di-refund?
+                                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="px-6 pb-4 text-sm text-slate-600 hidden">
+                                Tiket yang sudah dibeli tidak dapat dikembalikan (non-refundable), namun dapat dipindahtangankan sesuai syarat dan ketentuan yang berlaku.
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                            <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                Kapan batas akhir pendaftaran?
+                                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="px-6 pb-4 text-sm text-slate-600 hidden">
+                                Pendaftaran ditutup pada {{ $event->registration_close_at ? $event->registration_close_at->format('d F Y') : 'H-7 sebelum acara' }} atau saat kuota terpenuhi.
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                            <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                                Apakah ada penitipan barang?
+                                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="px-6 pb-4 text-sm text-slate-600 hidden">
+                                Ya, kami menyediakan area deposit bag (penitipan tas) di area Race Village bagi peserta.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -795,7 +1133,7 @@
                 const distance = targetDate - now;
 
                 if (distance < 0) {
-                    countdownContainer.innerHTML = '<div class="text-brand-600 font-bold text-xl bg-white px-6 py-3 rounded-xl border border-slate-100 shadow-sm">Event Telah Dimulai! 🏃💨</div>';
+                    countdownContainer.innerHTML = '<div class="text-brand-400 font-bold text-xl bg-white/10 px-6 py-3 rounded-xl border border-white/20">Event Telah Dimulai! 🏃💨</div>';
                     return;
                 }
 
