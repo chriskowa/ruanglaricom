@@ -153,6 +153,7 @@
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="#about" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Tentang</a>
                     <a href="#categories" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Kategori</a>
+                    <a href="#venue" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Lokasi</a>
                     <a href="#racepack" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Race Pack</a>
                     <a href="#info" class="text-sm font-semibold text-slate-600 hover:text-brand-600 transition">Info</a>
                     
@@ -175,6 +176,7 @@
             <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-100 absolute w-full left-0 px-4 py-4 space-y-4 shadow-xl rounded-b-2xl">
                 <a href="#about" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Tentang</a>
                 <a href="#categories" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Kategori</a>
+                <a href="#venue" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Lokasi</a>
                 <a href="#racepack" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Race Pack</a>
                 <a href="#info" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Info Event</a>
                 <a href="#register" class="block text-center bg-brand-600 text-white font-bold p-3 rounded-xl">Registrasi</a>
@@ -211,11 +213,11 @@
                     <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none mb-6 drop-shadow-lg">
                         {{ strtoupper($event->name) }}
                     </h1>
-                    <div class="text-white mb-10">
-                        <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0 font-light">
-                            {!! $event->short_description ?? 'Rasakan sensasi berlari dengan atmosfer kompetitif yang menyenangkan.' !!}
-                        </p>
-                    </div>
+                    
+                    <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0 font-light">
+                        {!! $event->short_description ?? 'Rasakan sensasi berlari dengan atmosfer kompetitif yang menyenangkan.' !!}
+                    </p>
+
                     <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
                         @if($isRegOpen)
                         <a href="#register" class="group px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-600/30 hover:bg-brand-500 hover:shadow-brand-500/50 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
@@ -318,7 +320,7 @@
         </div>
 
         <div class="custom-shape-divider-bottom">
-            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 120" preserveAspectRatio="none">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
                 <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
             </svg>
         </div>
@@ -360,8 +362,18 @@
                     <div class="absolute -top-10 -right-10 w-64 h-64 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
                     <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
                     <div class="relative rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition duration-500">
-                        @if($event->hero_image)
-                            <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-auto">
+                        @php
+                            // Logic: Use First Gallery Image, fallback to Hero Image
+                            $aboutImgSrc = null;
+                            if (isset($event->gallery) && is_array($event->gallery) && count($event->gallery) > 0) {
+                                $aboutImgSrc = $event->gallery[0];
+                            } elseif ($event->hero_image) {
+                                $aboutImgSrc = $event->hero_image;
+                            }
+                        @endphp
+                        
+                        @if($aboutImgSrc)
+                            <img src="{{ asset('storage/' . $aboutImgSrc) }}" class="w-full h-auto object-cover">
                         @else
                             <div class="bg-slate-200 w-full aspect-[4/3] flex items-center justify-center text-slate-400 font-bold">Event Image</div>
                         @endif
@@ -381,10 +393,13 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
-                @foreach(array_slice($event->gallery, 0, 8) as $img)
-                <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-pointer">
+                @foreach(array_slice($event->gallery, 0, 8) as $index => $img)
+                <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-zoom-in" onclick="openLightbox({{ $index }})">
                     <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300"></div>
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                        <svg class="w-10 h-10 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                    </div>
                 </div>
                 @endforeach
             </div>
@@ -632,7 +647,7 @@
                 </div>
 
                 <!-- Venue Info -->
-                <div class="reveal delay-200">
+                <div class="reveal delay-200" id="venue">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 bg-accent-500 rounded-full flex items-center justify-center text-white">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -941,6 +956,25 @@
         </div>
     </footer>
 
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="fixed inset-0 z-[60] bg-black/95 hidden backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <button class="absolute top-4 right-4 text-white hover:text-gray-300 z-50 p-2" onclick="closeLightbox()">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        
+        <button class="absolute top-1/2 left-4 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-4 bg-black/20 rounded-full hover:bg-black/50 transition" onclick="prevImage()">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+
+        <button class="absolute top-1/2 right-4 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-4 bg-black/20 rounded-full hover:bg-black/50 transition" onclick="nextImage()">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <div class="flex items-center justify-center h-full p-4 md:p-12">
+            <img id="lightbox-img" src="" class="max-h-full max-w-full object-contain rounded-lg shadow-2xl">
+        </div>
+    </div>
+
     <script>
         // A. Utilities
         const formatCurrency = (num) => 'Rp ' + new Intl.NumberFormat('id-ID').format(num);
@@ -1151,6 +1185,61 @@
             setInterval(updateCountdown, 1000);
             updateCountdown();
         })();
+
+        // G. Lightbox Logic
+        const galleryImages = @json(isset($event->gallery) ? array_map(fn($img) => asset('storage/'.$img), $event->gallery) : []);
+        let currentImageIndex = 0;
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        function openLightbox(index) {
+            if (galleryImages.length === 0) return;
+            currentImageIndex = index;
+            lightboxImg.src = galleryImages[currentImageIndex];
+            lightbox.classList.remove('hidden');
+            // Small delay to allow display:block to apply before opacity transition
+            setTimeout(() => lightbox.classList.remove('opacity-0'), 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.add('opacity-0');
+            setTimeout(() => {
+                lightbox.classList.add('hidden');
+                lightboxImg.src = '';
+            }, 300);
+            document.body.style.overflow = 'auto';
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+            lightboxImg.src = galleryImages[currentImageIndex];
+        }
+
+        function prevImage() {
+            currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+            lightboxImg.src = galleryImages[currentImageIndex];
+        }
+
+        // Close on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeLightbox();
+            }
+            if (event.key === "ArrowRight") {
+                nextImage();
+            }
+            if (event.key === "ArrowLeft") {
+                prevImage();
+            }
+        });
+
+        // Close when clicking outside image
+        lightbox.addEventListener('click', function(e) {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
     </script>
 </body>
 </html>
