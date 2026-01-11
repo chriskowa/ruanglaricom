@@ -374,7 +374,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Marketplace routes (accessible by all authenticated users)
-    Route::prefix('marketplace')->name('marketplace.')->group(function () {
+    Route::middleware(['role:runner,coach,eo'])->prefix('marketplace')->name('marketplace.')->group(function () {
         // Seller Management
         Route::resource('seller/products', App\Http\Controllers\Marketplace\ProductController::class)->names('seller.products');
 

@@ -21,7 +21,17 @@ class CheckRole
 
         $user = auth()->user();
 
-        if (! in_array($user->role, $roles)) {
+        // Handle pipe-separated roles
+        $allowedRoles = [];
+        foreach ($roles as $role) {
+            if (str_contains($role, '|')) {
+                $allowedRoles = array_merge($allowedRoles, explode('|', $role));
+            } else {
+                $allowedRoles[] = $role;
+            }
+        }
+
+        if (! in_array($user->role, $allowedRoles)) {
             abort(403, 'Unauthorized action.');
         }
 
