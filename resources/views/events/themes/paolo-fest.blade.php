@@ -211,11 +211,11 @@
                     <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none mb-6 drop-shadow-lg">
                         {{ strtoupper($event->name) }}
                     </h1>
-                    
-                    <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0 font-light">
-                        {!! $event->short_description ?? 'Rasakan sensasi berlari dengan atmosfer kompetitif yang menyenangkan.' !!}
-                    </p>
-
+                    <div class="text-white mb-10">
+                        <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0 font-light">
+                            {!! $event->short_description ?? 'Rasakan sensasi berlari dengan atmosfer kompetitif yang menyenangkan.' !!}
+                        </p>
+                    </div>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
                         @if($isRegOpen)
                         <a href="#register" class="group px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-600/30 hover:bg-brand-500 hover:shadow-brand-500/50 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
@@ -318,7 +318,7 @@
         </div>
 
         <div class="custom-shape-divider-bottom">
-            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 120" preserveAspectRatio="none">
                 <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
             </svg>
         </div>
