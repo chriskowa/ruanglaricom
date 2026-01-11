@@ -549,6 +549,14 @@
         </div>
     </section>
 
+    <!-- Sponsor Carousel -->
+    @include('events.partials.sponsor-carousel', [
+        'gradientFrom' => 'from-white',
+        'titleColor' => 'text-slate-400',
+        'containerClass' => 'bg-white/50 grayscale hover:grayscale-0 transition-all duration-500 border border-slate-100',
+        'sectionClass' => 'py-16 bg-slate-50 border-t border-slate-200'
+    ])
+
     <footer class="bg-slate-900 border-t border-slate-800 py-12 text-slate-400 text-sm">
         <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
             <div class="text-center md:text-left">
