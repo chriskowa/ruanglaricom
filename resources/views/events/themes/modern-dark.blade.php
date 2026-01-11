@@ -1419,10 +1419,24 @@
                     return;
                 }
 
+                const pEarly = parseFloat(option.dataset.priceEarly || 0);
                 const pReg = parseFloat(option.dataset.priceRegular || 0);
-                // Simplified price logic for display
-                const currentPrice = pReg; 
-                if(infoEl) infoEl.textContent = `Harga: Rp ${formatCurrency(currentPrice)} | Sisa Kuota: ${option.dataset.quota}`;
+                const pLate = parseFloat(option.dataset.priceLate || 0);
+
+                let currentPrice = pReg;
+                if (pEarly > 0) {
+                    currentPrice = pEarly;
+                } else if (pLate > 0) {
+                    currentPrice = pLate;
+                }
+
+                if (infoEl) {
+                    if (currentPrice !== pReg && pReg > 0) {
+                        infoEl.innerHTML = `Harga: <span class="line-through opacity-70">Rp ${formatCurrency(pReg)}</span> <span class="font-bold">Rp ${formatCurrency(currentPrice)}</span> | Sisa Kuota: ${option.dataset.quota}`;
+                    } else {
+                        infoEl.textContent = `Harga: Rp ${formatCurrency(currentPrice)} | Sisa Kuota: ${option.dataset.quota}`;
+                    }
+                }
                 select.setAttribute('data-active-price', currentPrice);
                 updatePriceSummary();
             }

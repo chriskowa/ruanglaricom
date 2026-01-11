@@ -111,6 +111,17 @@
                     <h3 class="text-lg font-bold text-gray-900 mb-4 border-l-4 border-black pl-3">Kategori & Harga</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @foreach($categories as $cat)
+                        @php
+                            $priceRegular = (int) ($cat->price_regular ?? 0);
+                            $priceEarly = (int) ($cat->price_early ?? 0);
+                            $priceLate = (int) ($cat->price_late ?? 0);
+                            $displayPrice = $priceRegular;
+                            if ($priceEarly > 0) {
+                                $displayPrice = $priceEarly;
+                            } elseif ($priceLate > 0) {
+                                $displayPrice = $priceLate;
+                            }
+                        @endphp
                         <div class="border border-gray-200 p-5 rounded-xl hover:border-black transition duration-200">
                             <div class="flex justify-between items-start">
                                 <div>
@@ -118,7 +129,10 @@
                                     <p class="text-xs text-gray-500 mt-1">Jarak: {{ $cat->distance_km }}KM</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="font-bold">Rp {{ number_format($cat->price_regular, 0, ',', '.') }}</p>
+                                    @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                        <p class="text-xs font-bold text-gray-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</p>
+                                    @endif
+                                    <p class="font-bold">Rp {{ number_format($displayPrice, 0, ',', '.') }}</p>
                                     @if($cat->quota > 0)
                                         <span class="inline-block mt-1 w-2 h-2 bg-green-500 rounded-full"></span>
                                     @else
@@ -178,11 +192,27 @@
                                         <div class="grid grid-cols-1 gap-2">
                                             <p class="text-xs text-gray-500 mb-1">Pilih Kategori:</p>
                                             @foreach($categories as $cat)
+                                            @php
+                                                $priceRegular = (int) ($cat->price_regular ?? 0);
+                                                $priceEarly = (int) ($cat->price_early ?? 0);
+                                                $priceLate = (int) ($cat->price_late ?? 0);
+                                                $displayPrice = $priceRegular;
+                                                if ($priceEarly > 0) {
+                                                    $displayPrice = $priceEarly;
+                                                } elseif ($priceLate > 0) {
+                                                    $displayPrice = $priceLate;
+                                                }
+                                            @endphp
                                             <label class="cursor-pointer relative">
-                                                <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only category-radio" data-price="{{ $cat->price_regular }}" required>
+                                                <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only category-radio" data-price="{{ $displayPrice }}" required>
                                                 <div class="p-3 border border-gray-200 rounded-lg peer-checked:border-black peer-checked:bg-gray-50 peer-checked:ring-1 peer-checked:ring-black transition flex justify-between items-center">
                                                     <span class="text-sm font-medium">{{ $cat->name }}</span>
-                                                    <span class="text-sm font-bold">Rp {{ number_format($cat->price_regular/1000, 0) }}k</span>
+                                                    <span class="text-sm font-bold">
+                                                        @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                                            <span class="text-xs text-gray-400 line-through mr-1">Rp {{ number_format($priceRegular/1000, 0) }}k</span>
+                                                        @endif
+                                                        Rp {{ number_format($displayPrice/1000, 0) }}k
+                                                    </span>
                                                 </div>
                                             </label>
                                             @endforeach

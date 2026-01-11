@@ -263,6 +263,17 @@
 
             <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 {{ $gridClass }}">
                 @foreach($categories as $cat)
+                @php
+                    $priceRegular = (int) ($cat->price_regular ?? 0);
+                    $priceEarly = (int) ($cat->price_early ?? 0);
+                    $priceLate = (int) ($cat->price_late ?? 0);
+                    $displayPrice = $priceRegular;
+                    if ($priceEarly > 0) {
+                        $displayPrice = $priceEarly;
+                    } elseif ($priceLate > 0) {
+                        $displayPrice = $priceLate;
+                    }
+                @endphp
                 <div class="relative flex flex-col bg-white border border-slate-200 rounded-3xl shadow-card hover:shadow-xl hover:border-brand-200 transition-all duration-300 group reveal">
                     <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-600 to-accent-500 rounded-t-3xl"></div>
                     
@@ -298,7 +309,12 @@
                     <div class="p-6 bg-slate-50 rounded-b-3xl border-t border-slate-100">
                         <div class="flex items-baseline justify-between mb-4">
                             <span class="text-sm text-slate-500 font-medium">Biaya Pendaftaran</span>
-                            <span class="text-2xl font-bold text-slate-900">Rp {{ number_format($cat->price_regular/1000, 0) }}k</span>
+                            <div class="text-right">
+                                @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                    <div class="text-xs font-bold text-slate-400 line-through">Rp {{ number_format($priceRegular/1000, 0) }}k</div>
+                                @endif
+                                <div class="text-2xl font-bold text-slate-900">Rp {{ number_format($displayPrice/1000, 0) }}k</div>
+                            </div>
                         </div>
                         <a href="#register" class="block w-full py-3 px-4 bg-white border-2 border-brand-600 text-brand-600 font-bold text-center rounded-xl hover:bg-brand-600 hover:text-white transition group-hover:shadow-md">
                             Daftar Kategori Ini
@@ -441,12 +457,28 @@
                                             <label class="block text-sm font-semibold text-slate-700 mb-1">Kategori Lomba</label>
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 @foreach($categories as $cat)
+                                                @php
+                                                    $priceRegular = (int) ($cat->price_regular ?? 0);
+                                                    $priceEarly = (int) ($cat->price_early ?? 0);
+                                                    $priceLate = (int) ($cat->price_late ?? 0);
+                                                    $displayPrice = $priceRegular;
+                                                    if ($priceEarly > 0) {
+                                                        $displayPrice = $priceEarly;
+                                                    } elseif ($priceLate > 0) {
+                                                        $displayPrice = $priceLate;
+                                                    }
+                                                @endphp
                                                 <label class="cursor-pointer relative">
-                                                    <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $cat->price_regular }}" required>
+                                                    <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $displayPrice }}" required>
                                                     <div class="p-3 bg-white border border-slate-300 rounded-xl peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:ring-1 peer-checked:ring-brand-600 transition hover:border-brand-400">
                                                         <div class="flex justify-between items-center">
                                                             <span class="font-bold text-slate-900 text-sm">{{ $cat->name }}</span>
-                                                            <span class="text-xs font-bold text-brand-600">Rp {{ number_format($cat->price_regular/1000,0) }}k</span>
+                                                            <span class="text-xs font-bold text-brand-600">
+                                                                @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                                                    <span class="text-slate-400 line-through mr-1">Rp {{ number_format($priceRegular/1000,0) }}k</span>
+                                                                @endif
+                                                                Rp {{ number_format($displayPrice/1000,0) }}k
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </label>
