@@ -44,7 +44,7 @@ class EventController extends Controller
     {
         $request->validate([
             'file' => 'required|image|mimes:jpeg,jpg,png,webp|max:5120',
-            'folder' => 'nullable|string'
+            'folder' => 'nullable|string',
         ]);
 
         $folder = $request->input('folder', 'events/temp');
@@ -53,7 +53,7 @@ class EventController extends Controller
         return response()->json([
             'success' => true,
             'path' => $path,
-            'url' => Storage::url($path)
+            'url' => Storage::url($path),
         ]);
     }
 
@@ -110,7 +110,7 @@ class EventController extends Controller
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
             'premium_amenities' => 'nullable|array',
-            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,paolo-fest,professional-city-run',
+            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,paolo-fest,paolo-fest-dark,professional-city-run',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'required|array|min:1',
             'categories.*.name' => 'required|string|max:255',
@@ -135,7 +135,7 @@ class EventController extends Controller
         $validated['user_id'] = auth()->id();
 
         // Default premium_amenities to empty array if not present (for new events to not be treated as legacy)
-        if (!isset($validated['premium_amenities'])) {
+        if (! isset($validated['premium_amenities'])) {
             $validated['premium_amenities'] = [];
         } else {
             // Re-index nested items arrays to ensure JSON array structure (not object)
@@ -186,10 +186,10 @@ class EventController extends Controller
         // Process Gallery (Already paths from Dropzone)
         // No processing needed, just usage
         if (isset($validated['gallery'])) {
-             // Move temp files to permanent location if needed, or just use as is
-             // Since we used 'events/temp' or similar in uploadMedia, we might want to move them?
-             // But for simplicity, let's assume uploadMedia puts them in a usable place.
-             // Ideally uploadMedia should accept a folder.
+            // Move temp files to permanent location if needed, or just use as is
+            // Since we used 'events/temp' or similar in uploadMedia, we might want to move them?
+            // But for simplicity, let's assume uploadMedia puts them in a usable place.
+            // Ideally uploadMedia should accept a folder.
         }
 
         // Process Sponsors (Already paths)
@@ -212,7 +212,7 @@ class EventController extends Controller
         } else {
             $validated['jersey_sizes'] = null;
         }
-        
+
         // Single images are now paths from Dropzone
         if (isset($validated['hero_image'])) {
             $validated['hero_image_url'] = null;
@@ -306,7 +306,7 @@ class EventController extends Controller
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
             'premium_amenities' => 'nullable|array',
-            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,professional-city-run,paolo-fest',
+            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,professional-city-run,paolo-fest,paolo-fest-dark',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'nullable|array|min:1',
             'categories.*.id' => 'nullable|exists:race_categories,id',
@@ -330,7 +330,7 @@ class EventController extends Controller
         ]);
 
         // Default premium_amenities to empty array if not present (to allow unchecking all)
-        if (!isset($validated['premium_amenities'])) {
+        if (! isset($validated['premium_amenities'])) {
             $validated['premium_amenities'] = [];
         } else {
             // Re-index nested items arrays to ensure JSON array structure (not object)
@@ -372,18 +372,18 @@ class EventController extends Controller
 
         // Process Gallery
         // The frontend now sends the full ordered list of paths in 'gallery' array
-        // If not present, it might mean cleared, or just not updated? 
+        // If not present, it might mean cleared, or just not updated?
         // With Dropzone form logic, we should send empty array if cleared.
-        // If 'gallery' key is missing from request, it might be safer to keep existing? 
+        // If 'gallery' key is missing from request, it might be safer to keep existing?
         // But with standard form submit, unchecked checkboxes/empty selects usually send nothing.
-        // We will assume if 'gallery' is present (even empty array), we update. 
+        // We will assume if 'gallery' is present (even empty array), we update.
         if ($request->has('gallery')) {
-             $validated['gallery'] = $request->input('gallery');
+            $validated['gallery'] = $request->input('gallery');
         } else {
-             // If completely missing from request (e.g. not even empty array), keep old?
-             // Or maybe frontend sends empty array.
-             // Let's assume frontend sends hidden inputs 'gallery[]'.
-             $validated['gallery'] = null; 
+            // If completely missing from request (e.g. not even empty array), keep old?
+            // Or maybe frontend sends empty array.
+            // Let's assume frontend sends hidden inputs 'gallery[]'.
+            $validated['gallery'] = null;
         }
 
         // Process Sponsors
@@ -447,9 +447,9 @@ class EventController extends Controller
 
         // Single images - already paths
         if ($request->filled('hero_image')) {
-             $validated['hero_image_url'] = null;
+            $validated['hero_image_url'] = null;
         }
-        
+
         $affectedCategoryIds = [];
         $deletedCategoryIds = [];
 
@@ -575,8 +575,8 @@ class EventController extends Controller
             $search = trim(request()->search);
             $query->where(function ($qq) use ($search) {
                 $qq->where('name', 'like', "%{$search}%")
-                   ->orWhere('email', 'like', "%{$search}%")
-                   ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -604,9 +604,15 @@ class EventController extends Controller
 
             $stats = [
                 'total_registered' => $participants->total(),
-                'paid_confirmed' => \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status', 'paid'); })->count(),
-                'race_pack_picked_up' => \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id); })->where('is_picked_up', true)->count(),
-                'pending_pickup' => \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status', 'paid'); })->where('is_picked_up', false)->count(),
+                'paid_confirmed' => \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                    $q->where('event_id', $event->id)->where('payment_status', 'paid');
+                })->count(),
+                'race_pack_picked_up' => \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                    $q->where('event_id', $event->id);
+                })->where('is_picked_up', true)->count(),
+                'pending_pickup' => \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                    $q->where('event_id', $event->id)->where('payment_status', 'paid');
+                })->where('is_picked_up', false)->count(),
             ];
 
             return response()->json([
@@ -730,7 +736,7 @@ class EventController extends Controller
 
         // Check if participant belongs to event via Transaction OR Category
         $belongsToEvent = false;
-        
+
         if ($participant->transaction && $participant->transaction->event_id == $event->id) {
             $belongsToEvent = true;
         } elseif ($participant->category && $participant->category->event_id == $event->id) {
@@ -757,6 +763,7 @@ class EventController extends Controller
                 'message' => 'Peserta berhasil dihapus',
             ]);
         }
+
         return back()->with('success', 'Peserta berhasil dihapus');
     }
 

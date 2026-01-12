@@ -239,6 +239,27 @@
                                     </div>
                                 </div>
                             </label>
+
+                            <label class="relative cursor-pointer group">
+                                <input type="radio" name="template" value="paolo-fest-dark" class="peer sr-only" {{ old('template', $event->template) == 'paolo-fest-dark' ? 'checked' : '' }}>
+                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
+                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                        <div class="w-full h-full bg-gradient-to-br from-slate-950 via-blue-950 to-black relative flex flex-col items-center justify-center">
+                                            <div class="absolute inset-0 bg-gradient-to-tr from-blue-600/30 via-slate-900/0 to-fuchsia-500/20"></div>
+                                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-blue-400/30">
+                                                <div class="w-8 h-8 bg-blue-400/70 rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-bold text-white mb-1">Paolo Fest Dark</h4>
+                                    <p class="text-xs text-slate-400">Versi gelap dengan aksen neon. Cocok untuk tampilan malam/premium.</p>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <div class="bg-yellow-400 rounded-full p-1">
+                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                            </label>
                         </div>
                         @error('template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>

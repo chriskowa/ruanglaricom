@@ -6,6 +6,8 @@
     @include('events.themes.professional-city-run')
 @elseif($event->template === 'paolo-fest')
     @include('events.themes.paolo-fest')
+@elseif($event->template === 'paolo-fest-dark')
+    @include('events.themes.paolo-fest-dark')
 @else
     @include('events.themes.modern-dark')
 @endif

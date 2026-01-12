@@ -2,7 +2,7 @@
 @php
     $template = $variant ?? ($event->template ?? null);
     $template = $template ?: 'modern-dark';
-    $isDark = $template === 'modern-dark';
+    $isDark = in_array($template, ['modern-dark', 'paolo-fest', 'paolo-fest-dark']); // Dark for paolo-fest too
 
     $sectionBg = $isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-900';
     $subText = $isDark ? 'text-slate-400' : 'text-slate-600';
@@ -42,14 +42,14 @@
         $blob2 = 'bg-sky-400/10';
         $tabActive = 'bg-brand-600 text-white border-brand-600';
         $tabHover = 'hover:border-brand-600 hover:text-brand-600';
-    } elseif ($template === 'paolo-fest') {
+    } elseif (in_array($template, ['paolo-fest', 'paolo-fest-dark'], true)) {
         $accentFrom = 'from-brand-600';
-        $accentTo = 'to-accent-500';
-        $badgeShadow = 'shadow-lg shadow-brand-600/15';
-        $blob1 = 'bg-brand-600/10';
-        $blob2 = 'bg-accent-500/10';
-        $tabActive = 'bg-brand-600 text-white border-brand-600';
-        $tabHover = 'hover:border-brand-600 hover:text-brand-600';
+        $accentTo = 'to-blue-400';
+        $badgeShadow = 'shadow-[0_0_15px_rgba(59,130,246,0.5)]';
+        $blob1 = 'bg-brand-600/20';
+        $blob2 = 'bg-blue-500/20';
+        $tabActive = 'bg-brand-600 text-white border-brand-600 shadow-[0_0_10px_rgba(59,130,246,0.5)]';
+        $tabHover = 'hover:border-blue-400 hover:text-blue-400';
     } elseif ($template === 'professional-city-run' || $template === 'profesional-city-run') {
         $accentFrom = 'from-brand-600';
         $accentTo = 'to-action-500';

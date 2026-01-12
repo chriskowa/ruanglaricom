@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ $event->name }} - Official Event</title>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <meta name="keywords" content="{{ $seo['keywords'] ?? '' }}">
+    <link rel="canonical" href="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    <meta name="theme-color" content="#0f172a">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
+    <meta property="og:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
+    <meta property="og:url" content="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    <meta property="og:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
+    <meta name="twitter:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
+    <meta name="twitter:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
     @if(env('RECAPTCHA_SITE_KEY'))
         <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     @endif
@@ -18,8 +30,34 @@
     <link rel="stylesheet" href="{{ $midtransUrl }}/snap/snap.css" />
     <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
 
+    <!-- Custom Neon Theme CSS -->
+    <link rel="stylesheet" href="{{ asset('css/themes/paolo-fest-neon.css') }}">
+
+    @php
+        $demoImages = [];
+        if (! empty($event->jersey_image)) {
+            $demoImages[] = asset('storage/'.$event->jersey_image);
+        }
+        if (! empty($event->medal_image)) {
+            $demoImages[] = asset('storage/'.$event->medal_image);
+        }
+        if (count($demoImages) < 2 && isset($event->gallery) && is_array($event->gallery)) {
+            foreach ($event->gallery as $img) {
+                $url = asset('storage/'.$img);
+                if (! in_array($url, $demoImages, true)) {
+                    $demoImages[] = $url;
+                }
+                if (count($demoImages) >= 2) {
+                    break;
+                }
+            }
+        }
+        $demoImages = array_slice($demoImages, 0, 2);
+    @endphp
+
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -30,14 +68,15 @@
                             300: '#93c5fd',
                             400: '#60a5fa',
                             500: '#3b82f6',
-                            600: '#1e40af', /* Royal Blue */
+                            600: '#1e40af', /* Royal Blue Main */
                             700: '#1d4ed8',
                             800: '#1e3a8a',
                             900: '#172554',
                         },
-                        accent: {
-                            500: '#f97316', /* Orange */
-                            600: '#ea580c',
+                        neon: {
+                            blue: '#3b82f6',
+                            light: '#60a5fa',
+                            glow: 'rgba(59, 130, 246, 0.5)'
                         }
                     },
                     fontFamily: {
@@ -45,12 +84,14 @@
                     },
                     boxShadow: {
                         'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
-                        'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
-                        'card': '0 0 0 1px rgba(0,0,0,0.03), 0 4px 20px rgba(0,0,0,0.08)',
+                        'neon': '0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3)',
+                        'neon-hover': '0 0 15px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4)',
+                        'card': '0 0 0 1px rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.2)',
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
                         'blob': 'blob 7s infinite',
+                        'pulse-neon': 'pulse-neon 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         float: {
@@ -62,60 +103,18 @@
                             '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
                             '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
                             '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        'pulse-neon': {
+                            '0%, 100%': { opacity: 1, boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)' },
+                            '50%': { opacity: .8, boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' },
                         }
                     }
                 }
             }
         }
     </script>
-
-    <style>
-        /* Custom Styles */
-        body { background-color: #F8FAFC; color: #1e293b; overflow-x: hidden; }
-        
-        /* Shape Divider */
-        .custom-shape-divider-bottom {
-            position: absolute;
-            bottom: -1px; /* Fix gap */
-            left: 0;
-            width: 100%;
-            overflow: hidden;
-            line-height: 0;
-            transform: rotate(180deg);
-            z-index: 2;
-        }
-        .custom-shape-divider-bottom svg {
-            position: relative;
-            display: block;
-            width: calc(100% + 1.3px);
-            height: 120px;
-        }
-        .custom-shape-divider-bottom .shape-fill {
-            fill: #FFFFFF;
-        }
-
-        /* Reveal Animation */
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-        .delay-100 { transition-delay: 100ms; }
-        .delay-200 { transition-delay: 200ms; }
-        .delay-300 { transition-delay: 300ms; }
-        
-        /* Sticky Navigation */
-        .nav-scrolled { background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1); }
-        .nav-scrolled .nav-link { color: #475569 !important; }
-        .nav-scrolled .nav-link:hover { color: #1e40af !important; }
-        .nav-scrolled .nav-brand { color: #0f172a !important; }
-        .nav-scrolled .mobile-toggle { color: #1e293b !important; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen">
+<body class="antialiased flex flex-col min-h-screen bg-slate-900 text-slate-200">
 
     @php
         $pa = $event->premium_amenities ?? null;
@@ -140,84 +139,85 @@
         }
     @endphp
 
-    <nav class="fixed w-full z-50 transition-all duration-300 bg-white/0 border-b border-transparent" id="navbar">
+    <nav class="fixed w-full z-50 pr-5 transition-all duration-300 bg-slate-900/0 border-b border-transparent" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <a href="#top" class="flex items-center gap-3 group">
                     @if($event->logo_image)
-                        <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-10 w-auto group-hover:scale-105 transition duration-300">
+                        <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-[75px] w-auto group-hover:scale-105 transition duration-300 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">
                     @else
-                        <div class="h-10 w-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-600/30 group-hover:rotate-6 transition duration-300">
+                        <div class="h-10 w-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-neon group-hover:rotate-6 transition duration-300">
                             {{ substr($event->name, 0, 1) }}
                         </div>
-                        <span class="nav-brand font-extrabold text-xl tracking-tight text-white uppercase group-hover:text-brand-600 transition">{{ $event->name }}</span>
+                        <span class="nav-brand font-extrabold text-xl tracking-tight text-white uppercase group-hover:text-neon-light transition drop-shadow-md">{{ $event->name }}</span>
                     @endif
                 </a>
 
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#about" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Tentang</a>
-                    <a href="#categories" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Kategori</a>
-                    <a href="#venue" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Lokasi</a>
-                    <a href="#racepack" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Race Pack</a>
-                    <a href="#info" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Info</a>
+                    <a href="#about" class="nav-link text-base font-semibold text-white/80 hover:text-neon-light transition">Tentang</a>
+                    <a href="#categories" class="nav-link text-base font-semibold text-white/80 hover:text-neon-light transition">Kategori</a>
+                    <a href="#venue" class="nav-link text-base font-semibold text-white/80 hover:text-neon-light transition">Lokasi</a>
+                    <a href="#racepack" class="nav-link text-base font-semibold text-white/80 hover:text-neon-light transition">Race Pack</a>
+                    <a href="#info" class="nav-link text-base font-semibold text-white/80 hover:text-neon-light transition">Info</a>
                     
                     @if($isRegOpen)
-                        <a href="#register" class="bg-brand-600 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all duration-300">
+                        <a href="#register" class="bg-brand-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-neon hover:shadow-neon-hover hover:-translate-y-0.5 transition-all duration-300 border border-brand-500">
                             Daftar Sekarang
                         </a>
                     @else
-                        <span class="bg-slate-100 text-slate-400 px-6 py-2.5 rounded-full text-sm font-bold cursor-not-allowed border border-slate-200">
+                        <span class="bg-slate-800 text-slate-500 px-6 py-2.5 rounded-lg text-sm font-bold cursor-not-allowed border border-slate-700">
                             Closed
                         </span>
                     @endif
                 </div>
 
                 <button id="mobileMenuBtn" class="mobile-toggle md:hidden text-white p-2 hover:bg-white/10 rounded-lg transition">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
             
-            <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-100 absolute inset-x-0 left-0 px-4 py-4 space-y-4 shadow-xl rounded-b-2xl">
-                <a href="#about" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Tentang</a>
-                <a href="#categories" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Kategori</a>
-                <a href="#venue" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Lokasi</a>
-                <a href="#racepack" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Race Pack</a>
-                <a href="#info" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Info Event</a>
-                <a href="#register" class="block text-center bg-brand-600 text-white font-bold p-3 rounded-xl">Registrasi</a>
+            <div id="mobileMenu" class="hidden md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 absolute inset-x-0 left-0 px-4 py-4 space-y-4 shadow-2xl rounded-b-2xl border-b border-brand-500/30">
+                <a href="#about" class="block text-slate-300 font-medium p-3 hover:bg-slate-800 rounded-lg text-lg">Tentang</a>
+                <a href="#categories" class="block text-slate-300 font-medium p-3 hover:bg-slate-800 rounded-lg text-lg">Kategori</a>
+                <a href="#venue" class="block text-slate-300 font-medium p-3 hover:bg-slate-800 rounded-lg text-lg">Lokasi</a>
+                <a href="#racepack" class="block text-slate-300 font-medium p-3 hover:bg-slate-800 rounded-lg text-lg">Race Pack</a>
+                <a href="#info" class="block text-slate-300 font-medium p-3 hover:bg-slate-800 rounded-lg text-lg">Info Event</a>
+                <a href="#register" class="block text-center bg-brand-600 text-white font-bold p-4 rounded-xl shadow-neon text-lg mt-4">Registrasi</a>
             </div>
         </div>
     </nav>
 
-    <header id="top" class="relative pt-24 pb-12 overflow-hidden bg-slate-900 min-h-[85vh] flex items-center">
+    <header id="top" class="relative pt-32 pb-20 overflow-hidden min-h-[90vh] flex items-center">
         <!-- Dynamic Background -->
         <div class="absolute inset-0 z-0">
             @if($event->hero_image)
-                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover opacity-60">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
-                <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/40 to-transparent"></div>
+                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover opacity-40 mix-blend-overlay">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/30"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/60 to-transparent"></div>
             @else
                 <div class="absolute inset-0 bg-slate-900"></div>
-                <div class="absolute top-0 -left-4 w-72 h-72 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-                <div class="absolute top-0 -right-4 w-72 h-72 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-                <div class="absolute -bottom-8 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+                <!-- Neon Blobs -->
+                <div class="absolute top-0 -left-4 w-96 h-96 bg-brand-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-blob"></div>
+                <div class="absolute top-0 -right-4 w-96 h-96 bg-neon-blue rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-blob animation-delay-2000"></div>
+                <div class="absolute -bottom-32 left-1/2 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-blob animation-delay-4000"></div>
             @endif
         </div>
 
         <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div class="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
                 <div class="flex-1 text-center md:text-left reveal active">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-lg mb-8 hover:bg-white/20 transition cursor-default">
+                    <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-slate-800/50 border border-brand-500/30 backdrop-blur-md shadow-neon mb-8 hover:bg-slate-800/80 transition cursor-default group">
                         <span class="relative flex h-3 w-3">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-3 w-3 bg-accent-500"></span>
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-light opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-neon-blue"></span>
                         </span>
-                        <span class="text-xs font-bold text-white uppercase tracking-wider">{{ $event->start_at->format('d F Y') }} • {{ $event->location_name }}</span>
+                        <span class="text-sm font-bold text-neon-light uppercase tracking-wider group-hover:text-white transition">{{ $event->start_at->format('d F Y') }} • {{ $event->location_name }}</span>
                     </div>
                     
-                    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none mb-6 drop-shadow-lg">
+                    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-brand-300 tracking-tight leading-none mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]">
                         {{ strtoupper($event->name) }}
                     </h1>
-                    <div class="text-white mb-10">
+                    <div class="mb-10">
                         <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0 font-light">
                             {!! $event->short_description ?? 'Rasakan sensasi berlari dengan atmosfer kompetitif yang menyenangkan.' !!}
                         </p>
@@ -225,68 +225,52 @@
 
                     <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
                         @if($isRegOpen)
-                        <a href="#register" class="group px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-600/30 hover:bg-brand-500 hover:shadow-brand-500/50 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <a href="#register" class="group px-8 py-4 bg-brand-600 text-white font-bold rounded-xl shadow-neon hover:shadow-neon-hover transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2 border border-brand-500">
                             Amankan Slot
                             <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
                         @else
-                        <button disabled class="px-8 py-4 bg-slate-700 text-slate-400 font-bold rounded-2xl cursor-not-allowed border border-slate-600">
+                        <button disabled class="px-8 py-4 bg-slate-800 text-slate-500 font-bold rounded-xl cursor-not-allowed border border-slate-700">
                             Pendaftaran Ditutup
                         </button>
                         @endif
-                        <a href="#about" class="px-8 py-4 bg-white/10 text-white border border-white/20 backdrop-blur-sm font-bold rounded-2xl hover:bg-white/20 transition flex items-center justify-center">
+                        <a href="#about" class="px-8 py-4 bg-slate-800/50 text-white border border-white/10 backdrop-blur-sm font-bold rounded-xl hover:bg-slate-800/80 hover:border-brand-500/50 transition flex items-center justify-center">
                             Explore Event
                         </a>
                     </div>
 
                     <!-- Countdown -->
                     <div class="flex flex-col items-center md:items-start">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{{ $countdownLabel }}</span>
+                        <span class="text-xs font-bold text-neon-light uppercase tracking-widest mb-4 drop-shadow-sm">{{ $countdownLabel }}</span>
                         <div id="hero-countdown" class="flex gap-4">
+                            @foreach(['days' => 'Hari', 'hours' => 'Jam', 'minutes' => 'Menit', 'seconds' => 'Detik'] as $id => $label)
                             <div class="text-center">
-                                <div class="bg-white/10 backdrop-blur-md border border-white/20 w-16 h-16 rounded-xl flex items-center justify-center mb-1">
-                                    <span class="text-2xl font-bold text-white" id="cd-days">00</span>
+                                <div class="bg-slate-800/60 backdrop-blur-md border border-brand-500/30 w-16 h-16 rounded-xl flex items-center justify-center mb-1 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+                                    <span class="text-2xl font-bold text-white" id="cd-{{ $id }}">00</span>
                                 </div>
-                                <span class="text-[10px] text-slate-400 uppercase font-bold">Hari</span>
+                                <span class="text-[10px] text-slate-400 uppercase font-bold">{{ $label }}</span>
                             </div>
-                            <div class="text-center">
-                                <div class="bg-white/10 backdrop-blur-md border border-white/20 w-16 h-16 rounded-xl flex items-center justify-center mb-1">
-                                    <span class="text-2xl font-bold text-white" id="cd-hours">00</span>
-                                </div>
-                                <span class="text-[10px] text-slate-400 uppercase font-bold">Jam</span>
-                            </div>
-                            <div class="text-center">
-                                <div class="bg-white/10 backdrop-blur-md border border-white/20 w-16 h-16 rounded-xl flex items-center justify-center mb-1">
-                                    <span class="text-2xl font-bold text-white" id="cd-minutes">00</span>
-                                </div>
-                                <span class="text-[10px] text-slate-400 uppercase font-bold">Menit</span>
-                            </div>
-                            <div class="text-center">
-                                <div class="bg-white/10 backdrop-blur-md border border-white/20 w-16 h-16 rounded-xl flex items-center justify-center mb-1">
-                                    <span class="text-2xl font-bold text-white" id="cd-seconds">00</span>
-                                </div>
-                                <span class="text-[10px] text-slate-400 uppercase font-bold">Detik</span>
-                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
 
                 <!-- Floating Info Card -->
                 <div class="flex-1 w-full max-w-md mx-auto reveal delay-200 hidden lg:block">
-                    <div class="bg-white/10 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 shadow-2xl animate-float">
+                    <div class="glass-card p-8 rounded-[2rem] animate-float">
                         <div class="flex justify-between items-start mb-8">
                             <div>
-                                <p class="text-xs text-brand-300 font-bold uppercase tracking-wider mb-1">EVENT STATUS</p>
-                                <p class="text-3xl font-black text-white">READY TO RACE</p>
+                                <p class="text-xs text-neon-light font-bold uppercase tracking-wider mb-1">EVENT STATUS</p>
+                                <p class="text-3xl font-black text-white drop-shadow-md">READY TO RACE</p>
                             </div>
-                            <div class="w-14 h-14 bg-brand-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/40">
+                            <div class="w-14 h-14 bg-brand-600 rounded-2xl flex items-center justify-center text-white shadow-neon">
                                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             </div>
                         </div>
                         
                         <div class="space-y-4">
-                            <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-accent-500/20 flex items-center justify-center text-accent-500">
+                            <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex items-center gap-4 hover:border-brand-500/30 transition">
+                                <div class="w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
                                 <div>
@@ -294,8 +278,8 @@
                                     <span class="text-xs text-slate-400">Venue Location</span>
                                 </div>
                             </div>
-                            <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                            <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex items-center gap-4 hover:border-brand-500/30 transition">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>
                                 <div>
@@ -311,7 +295,7 @@
                                 <span class="text-[10px] text-slate-400 font-bold uppercase">Kategori</span>
                             </div>
                             <div>
-                                <span class="block text-2xl font-bold text-white">1000+</span>
+                                <span class="block text-2xl font-bold text-white">1K+</span>
                                 <span class="text-[10px] text-slate-400 font-bold uppercase">Runners</span>
                             </div>
                             <div>
@@ -332,43 +316,42 @@
     </header>
 
     <!-- About Section -->
-    <section id="about" class="py-24 bg-white relative z-10">
+    <section id="about" class="py-24 bg-slate-900 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div class="reveal">
-                    <span class="text-brand-600 font-bold uppercase tracking-widest text-sm mb-2 block">Tentang Event</span>
-                    <h2 class="text-4xl font-extrabold text-slate-900 mb-6 leading-tight">Berlari Melampaui Batas,<br>Nikmati Setiap Langkah</h2>
-                    <div class="prose prose-lg text-slate-600">
+                    <span class="text-neon-light font-bold uppercase tracking-widest text-sm mb-2 block">Tentang Event</span>
+                    <h2 class="text-4xl font-extrabold text-white mb-6 leading-tight drop-shadow-sm">Berlari Melampaui Batas,<br>Nikmati Setiap Langkah</h2>
+                    <div class="prose prose-lg text-slate-300">
                         {!! $event->full_description ?? $event->short_description !!}
                     </div>
                     
                     <div class="mt-8 grid grid-cols-2 gap-6">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 shrink-0">
+                        <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-800 transition border border-transparent hover:border-slate-700">
+                            <div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-green-400 shrink-0 border border-slate-700 shadow-lg">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-900">Rute Steril</h4>
-                                <p class="text-sm text-slate-500 mt-1">Keamanan pelari adalah prioritas utama kami dengan rute bebas kendaraan.</p>
+                                <h4 class="font-bold text-white">Rute Steril</h4>
+                                <p class="text-sm text-slate-400 mt-1">Keamanan pelari adalah prioritas utama kami dengan rute bebas kendaraan.</p>
                             </div>
                         </div>
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                        <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-800 transition border border-transparent hover:border-slate-700">
+                            <div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-blue-400 shrink-0 border border-slate-700 shadow-lg">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-900">Refreshment</h4>
-                                <p class="text-sm text-slate-500 mt-1">Water station tiap 2.5KM dengan air mineral dan isotonik.</p>
+                                <h4 class="font-bold text-white">Refreshment</h4>
+                                <p class="text-sm text-slate-400 mt-1">Water station tiap 2.5KM dengan air mineral dan isotonik.</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="relative reveal delay-200">
-                    <div class="absolute -top-10 -right-10 w-64 h-64 bg-brand-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
-                    <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-accent-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
-                    <div class="relative rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition duration-500">
+                    <div class="absolute -top-10 -right-10 w-64 h-64 bg-brand-600 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
+                    <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition duration-500 border border-slate-700/50">
                         @php
-                            // Logic: Use First Gallery Image, fallback to Hero Image
                             $aboutImgSrc = null;
                             if (isset($event->gallery) && is_array($event->gallery) && count($event->gallery) > 0) {
                                 $aboutImgSrc = $event->gallery[0];
@@ -378,9 +361,9 @@
                         @endphp
                         
                         @if($aboutImgSrc)
-                            <img src="{{ asset('storage/' . $aboutImgSrc) }}" class="w-full h-auto object-cover">
+                            <img src="{{ asset('storage/' . $aboutImgSrc) }}" class="w-full h-auto object-cover grayscale hover:grayscale-0 transition duration-700">
                         @else
-                            <div class="bg-slate-200 w-full aspect-[4/3] flex items-center justify-center text-slate-400 font-bold">Event Image</div>
+                            <div class="bg-slate-800 w-full aspect-[4/3] flex items-center justify-center text-slate-500 font-bold">Event Image</div>
                         @endif
                     </div>
                 </div>
@@ -390,18 +373,18 @@
 
     <!-- Gallery Section (New) -->
     @if(isset($event->gallery) && count($event->gallery) > 0)
-    <section id="gallery" class="py-24 bg-slate-50">
+    <section id="gallery" class="py-24 bg-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 reveal">
-                <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Dokumentasi</span>
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mt-2">Event Gallery</h2>
+                <span class="text-neon-light font-bold uppercase tracking-widest text-sm">Dokumentasi</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white mt-2">Event Gallery</h2>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
                 @foreach(array_slice($event->gallery, 0, 8) as $index => $img)
-                <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-zoom-in" onclick="openLightbox({{ $index }})">
-                    <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300"></div>
+                <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-zoom-in border border-slate-700 hover:border-brand-500 transition" onclick="openLightbox({{ $index }})">
+                    <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" loading="lazy">
+                    <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition duration-300"></div>
                     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
                         <svg class="w-10 h-10 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
                     </div>
@@ -413,12 +396,12 @@
     @endif
 
     <!-- Categories Section -->
-    <section id="categories" class="py-24 bg-white">
+    <section id="categories" class="py-24 bg-slate-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
-                <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Kategori Lomba</span>
-                <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl mt-2">Pilih Tantanganmu</h2>
-                <p class="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">Tersedia berbagai kategori jarak yang sesuai dengan target latihanmu.</p>
+                <span class="text-neon-light font-bold uppercase tracking-widest text-sm">Kategori Lomba</span>
+                <h2 class="text-3xl font-extrabold text-white sm:text-4xl mt-2">Pilih Tantanganmu</h2>
+                <p class="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">Tersedia berbagai kategori jarak yang sesuai dengan target latihanmu.</p>
             </div>
 
             @php
@@ -443,42 +426,42 @@
                         $displayPrice = $priceLate;
                     }
                 @endphp
-                <div class="relative flex flex-col bg-white rounded-[2rem] border border-slate-100 shadow-card hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group reveal overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-500 to-accent-500"></div>
+                <div class="relative flex flex-col glass-card rounded-[2rem] hover:-translate-y-2 transition-all duration-300 group reveal overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 to-neon-light shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
                     
                     <div class="p-8 flex-1">
                         <div class="flex justify-between items-start mb-6">
-                            <span class="inline-flex items-center px-4 py-2 rounded-xl text-lg font-black bg-slate-50 text-slate-900 border border-slate-100">
+                            <span class="inline-flex items-center px-4 py-2 rounded-xl text-lg font-black bg-slate-800 text-white border border-slate-700 shadow-inner">
                                 {{ $cat->distance_km ?? '?' }}K
                             </span>
                             @if($cat->quota < 50 && $cat->quota > 0)
-                                <span class="px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs font-bold animate-pulse">
+                                <span class="px-3 py-1 rounded-full bg-red-900/50 text-red-400 text-xs font-bold animate-pulse border border-red-500/30">
                                     🔥 Sisa Sedikit
                                 </span>
                             @endif
                         </div>
 
-                        <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ $cat->name }}</h3>
-                        <p class="text-slate-500 text-sm mb-8 flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Cut Off Time: <strong class="text-slate-900">{{ $cat->cot_hours ?? '-' }} Jam</strong>
+                        <h3 class="text-3xl font-bold text-white mb-2">{{ $cat->name }}</h3>
+                        <p class="text-slate-400 text-sm mb-8 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Cut Off Time: <strong class="text-white">{{ $cat->cot_hours ?? '-' }} Jam</strong>
                         </p>
 
                         <ul class="space-y-4 mb-8">
-                            <li class="flex items-center text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded-xl">
-                                <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 shrink-0">
+                            <li class="flex items-center text-sm font-medium text-slate-300 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                                <div class="w-6 h-6 rounded-full bg-green-900/50 text-green-400 flex items-center justify-center mr-3 shrink-0">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
                                 Official Jersey & BIB
                             </li>
-                            <li class="flex items-center text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded-xl">
-                                <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 shrink-0">
+                            <li class="flex items-center text-sm font-medium text-slate-300 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                                <div class="w-6 h-6 rounded-full bg-green-900/50 text-green-400 flex items-center justify-center mr-3 shrink-0">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
                                 Finisher Medal
                             </li>
-                            <li class="flex items-center text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded-xl">
-                                <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 shrink-0">
+                            <li class="flex items-center text-sm font-medium text-slate-300 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                                <div class="w-6 h-6 rounded-full bg-green-900/50 text-green-400 flex items-center justify-center mr-3 shrink-0">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
                                 Refreshment & Medic
@@ -486,17 +469,17 @@
                         </ul>
                     </div>
                     
-                    <div class="p-6 bg-slate-50 border-t border-slate-100">
+                    <div class="p-6 bg-slate-800/80 border-t border-slate-700">
                         <div class="flex items-baseline justify-between mb-4">
-                            <span class="text-sm text-slate-500 font-bold uppercase">Registrasi</span>
+                            <span class="text-sm text-slate-400 font-bold uppercase">Registrasi</span>
                             <div class="text-right">
                                 @if($displayPrice !== $priceRegular && $priceRegular > 0)
-                                    <div class="text-xs font-bold text-slate-400 line-through">Rp {{ number_format($priceRegular/1000, 0) }}k</div>
+                                    <div class="text-xs font-bold text-slate-500 line-through">Rp {{ number_format($priceRegular/1000, 0) }}k</div>
                                 @endif
-                                <div class="text-3xl font-black text-brand-600">Rp {{ number_format($displayPrice/1000, 0) }}k</div>
+                                <div class="text-3xl font-black text-neon-light drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]">Rp {{ number_format($displayPrice/1000, 0) }}k</div>
                             </div>
                         </div>
-                        <a href="#register" class="block w-full py-4 px-4 bg-brand-600 text-white font-bold text-center rounded-xl shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/40 transition-all duration-300">
+                        <a href="#register" class="block w-full py-4 px-4 bg-brand-600 text-white font-bold text-center rounded-xl shadow-neon hover:shadow-neon-hover transition-all duration-300 border border-brand-500">
                             Daftar Sekarang
                         </a>
                     </div>
@@ -506,24 +489,24 @@
         </div>
     </section>
 
-    <!-- Medal Section (New) -->
+    <!-- Medal Section -->
     @if($event->medal_image)
-    <section id="medal" class="py-24 bg-slate-900 relative overflow-hidden">
-        <div class="absolute inset-0 opacity-20" style="background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');"></div>
+    <section id="medal" class="py-24 bg-slate-950 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="flex flex-col md:flex-row items-center gap-16">
                 <div class="flex-1 text-center md:text-left reveal">
-                    <span class="text-accent-500 font-bold uppercase tracking-widest text-sm mb-2 block">Finisher Reward</span>
+                    <span class="text-neon-light font-bold uppercase tracking-widest text-sm mb-2 block">Finisher Reward</span>
                     <h2 class="text-4xl md:text-5xl font-black text-white mb-6">THE MEDAL</h2>
                     <p class="text-slate-400 text-lg mb-8 leading-relaxed">
                         Simbol pencapaian Anda menaklukkan rute ini. Didesain eksklusif dengan material Zinc Alloy 3D berkualitas tinggi, berat, dan solid.
                     </p>
                     <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                        <div class="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:border-brand-500/50 transition">
                             <span class="block text-2xl font-bold text-white">3D</span>
                             <span class="text-xs text-slate-400 uppercase">Design</span>
                         </div>
-                        <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                        <div class="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:border-brand-500/50 transition">
                             <span class="block text-2xl font-bold text-white">High</span>
                             <span class="text-xs text-slate-400 uppercase">Quality</span>
                         </div>
@@ -531,8 +514,8 @@
                 </div>
                 <div class="flex-1 reveal delay-200">
                     <div class="relative group">
-                        <div class="absolute inset-0 bg-accent-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                        <img src="{{ asset('storage/' . $event->medal_image) }}" class="relative w-full max-w-md mx-auto drop-shadow-2xl transform group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-brand-600 rounded-full blur-[80px] opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                        <img src="{{ asset('storage/' . $event->medal_image) }}" class="relative w-full max-w-md mx-auto drop-shadow-2xl transform group-hover:scale-105 transition duration-500" loading="lazy">
                     </div>
                 </div>
             </div>
@@ -541,30 +524,30 @@
     @endif
 
     <!-- Race Pack & Facilities -->
-    <section id="racepack" class="py-24 bg-slate-50">
+    <section id="racepack" class="py-24 bg-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
-                <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Race Entitlements</span>
-                <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl mt-2">Fasilitas & Race Pack</h2>
+                <span class="text-neon-light font-bold uppercase tracking-widest text-sm">Race Entitlements</span>
+                <h2 class="text-3xl font-extrabold text-white sm:text-4xl mt-2">Fasilitas & Race Pack</h2>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
                 <!-- Jersey Card -->
-                <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 overflow-hidden relative group reveal">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-brand-50 rounded-full -mr-16 -mt-16 transition group-hover:scale-110"></div>
+                <div class="glass-card rounded-[2.5rem] p-8 shadow-xl overflow-hidden relative group reveal">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-brand-600 rounded-full -mr-16 -mt-16 transition group-hover:scale-110 opacity-20 filter blur-2xl"></div>
                     <div class="relative z-10">
                         <div class="flex items-center gap-4 mb-6">
-                            <div class="w-12 h-12 bg-brand-100 rounded-2xl flex items-center justify-center text-brand-600">
+                            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-brand-400 border border-slate-700">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             </div>
-                            <h3 class="text-2xl font-bold text-slate-900">Official Jersey</h3>
+                            <h3 class="text-2xl font-bold text-white">Official Jersey</h3>
                         </div>
-                        <p class="text-slate-600 mb-8">Jersey lari eksklusif dengan bahan Dry-Fit premium yang ringan dan menyerap keringat.</p>
-                        <div class="rounded-3xl overflow-hidden bg-slate-100 border border-slate-200">
+                        <p class="text-slate-400 mb-8">Jersey lari eksklusif dengan bahan Dry-Fit premium yang ringan dan menyerap keringat.</p>
+                        <div class="rounded-3xl overflow-hidden bg-slate-900 border border-slate-700">
                              @if($event->jersey_image)
-                                <img src="{{ asset('storage/' . $event->jersey_image) }}" class="w-full h-auto object-cover hover:scale-105 transition duration-700">
+                                <img src="{{ asset('storage/' . $event->jersey_image) }}" class="w-full h-auto object-cover hover:scale-105 transition duration-700" loading="lazy">
                              @else
-                                <div class="aspect-video flex items-center justify-center text-slate-400 font-bold">Preview Jersey</div>
+                                <div class="aspect-video flex items-center justify-center text-slate-500 font-bold">Preview Jersey</div>
                              @endif
                         </div>
                     </div>
@@ -572,31 +555,31 @@
 
                 <!-- Facilities Grid -->
                 <div class="grid grid-cols-1 gap-6">
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-100">
-                        <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <div class="glass-card p-8 rounded-3xl flex items-start gap-6 hover:bg-slate-800 transition reveal delay-100">
+                        <div class="w-14 h-14 bg-blue-900/30 text-blue-400 rounded-2xl flex items-center justify-center shrink-0 border border-blue-500/20">
                             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <div>
-                            <h4 class="text-xl font-bold text-slate-900 mb-2">Timing System</h4>
-                            <p class="text-slate-500">Pencatatan waktu akurat menggunakan chip timing system berstandar nasional.</p>
+                            <h4 class="text-xl font-bold text-white mb-2">Timing System</h4>
+                            <p class="text-slate-400">Pencatatan waktu akurat menggunakan chip timing system berstandar nasional.</p>
                         </div>
                     </div>
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-200">
-                        <div class="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <div class="glass-card p-8 rounded-3xl flex items-start gap-6 hover:bg-slate-800 transition reveal delay-200">
+                        <div class="w-14 h-14 bg-orange-900/30 text-orange-400 rounded-2xl flex items-center justify-center shrink-0 border border-orange-500/20">
                             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                         </div>
                         <div>
-                            <h4 class="text-xl font-bold text-slate-900 mb-2">Water Station</h4>
-                            <p class="text-slate-500">Pos hidrasi tersedia setiap 2.5 KM dilengkapi tim medis.</p>
+                            <h4 class="text-xl font-bold text-white mb-2">Water Station</h4>
+                            <p class="text-slate-400">Pos hidrasi tersedia setiap 2.5 KM dilengkapi tim medis.</p>
                         </div>
                     </div>
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-300">
-                        <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <div class="glass-card p-8 rounded-3xl flex items-start gap-6 hover:bg-slate-800 transition reveal delay-300">
+                        <div class="w-14 h-14 bg-purple-900/30 text-purple-400 rounded-2xl flex items-center justify-center shrink-0 border border-purple-500/20">
                             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </div>
                         <div>
-                            <h4 class="text-xl font-bold text-slate-900 mb-2">Race Photography</h4>
-                            <p class="text-slate-500">Dokumentasi foto berkualitas tinggi di sepanjang rute untuk Anda.</p>
+                            <h4 class="text-xl font-bold text-white mb-2">Race Photography</h4>
+                            <p class="text-slate-400">Dokumentasi foto berkualitas tinggi di sepanjang rute untuk Anda.</p>
                         </div>
                     </div>
                 </div>
@@ -604,46 +587,98 @@
         </div>
     </section>
 
+    <section id="demo" class="py-24 bg-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 reveal">
+                <span class="text-neon-light font-bold uppercase tracking-widest text-sm">Demo</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white mt-2">Preview Race Pack</h2>
+                <p class="mt-4 text-slate-400 max-w-2xl mx-auto">Klik gambar untuk melihat detail lebih besar.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 reveal">
+                <div class="glass-card rounded-3xl overflow-hidden border border-slate-700/60 group">
+                    @if(!empty($demoImages[0]))
+                        <button type="button" class="w-full text-left cursor-zoom-in" onclick="openLightbox(0, 'demo')">
+                            <div class="relative aspect-[4/3] bg-slate-900">
+                                <img src="{{ $demoImages[0] }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" alt="Demo Image 1">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-70"></div>
+                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
+                                    <div class="text-white font-bold">Demo 1</div>
+                                    <div class="text-xs text-white/80 font-bold bg-black/40 border border-white/10 rounded-full px-3 py-1">Klik untuk zoom</div>
+                                </div>
+                            </div>
+                        </button>
+                    @else
+                        <div class="aspect-[4/3] bg-slate-900 flex items-center justify-center text-slate-500 font-bold">Demo Image</div>
+                    @endif
+                </div>
+
+                <div class="glass-card rounded-3xl overflow-hidden border border-slate-700/60 group">
+                    @if(!empty($demoImages[1]))
+                        <button type="button" class="w-full text-left cursor-zoom-in" onclick="openLightbox(1, 'demo')">
+                            <div class="relative aspect-[4/3] bg-slate-900">
+                                <img src="{{ $demoImages[1] }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" alt="Demo Image 2">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-70"></div>
+                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
+                                    <div class="text-white font-bold">Demo 2</div>
+                                    <div class="text-xs text-white/80 font-bold bg-black/40 border border-white/10 rounded-full px-3 py-1">Klik untuk zoom</div>
+                                </div>
+                            </div>
+                        </button>
+                    @else
+                        <div class="aspect-[4/3] bg-slate-900 flex items-center justify-center text-slate-500 font-bold">Demo Image</div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="mt-10 flex justify-center reveal">
+                <a href="#register" class="inline-flex items-center justify-center px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-neon hover:shadow-neon-hover transition-all duration-300 border border-brand-500">
+                    Daftar Sekarang
+                </a>
+            </div>
+        </div>
+    </section>
+
     <!-- Info Section (RPC & Venue) -->
-    <section id="info" class="py-24 bg-white">
+    <section id="info" class="py-24 bg-slate-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <!-- RPC Info -->
                 <div class="reveal">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white">
+                        <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-white border border-slate-700">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </div>
-                        <h3 class="text-2xl font-bold text-slate-900">Race Pack Collection</h3>
+                        <h3 class="text-2xl font-bold text-white">Race Pack Collection</h3>
                     </div>
-                    <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100">
-                        <p class="text-slate-600 mb-6">Pengambilan race pack akan dilakukan pada:</p>
+                    <div class="glass-card rounded-3xl p-8">
+                        <p class="text-slate-300 mb-6">Pengambilan race pack akan dilakukan pada:</p>
                         <ul class="space-y-4 mb-8">
                             <li class="flex gap-4">
-                                <svg class="w-5 h-5 text-brand-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <svg class="w-5 h-5 text-brand-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 <div>
-                                    <strong class="block text-slate-900">Tanggal</strong>
-                                    <span class="text-slate-600">H-2 & H-1 Sebelum Race Day</span>
+                                    <strong class="block text-white">Tanggal</strong>
+                                    <span class="text-slate-400">H-2 & H-1 Sebelum Race Day</span>
                                 </div>
                             </li>
                             <li class="flex gap-4">
-                                <svg class="w-5 h-5 text-brand-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <svg class="w-5 h-5 text-brand-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <div>
-                                    <strong class="block text-slate-900">Waktu</strong>
-                                    <span class="text-slate-600">10:00 - 20:00 WIB</span>
+                                    <strong class="block text-white">Waktu</strong>
+                                    <span class="text-slate-400">10:00 - 20:00 WIB</span>
                                 </div>
                             </li>
                             <li class="flex gap-4">
-                                <svg class="w-5 h-5 text-brand-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                                <svg class="w-5 h-5 text-brand-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                                 <div>
-                                    <strong class="block text-slate-900">Lokasi</strong>
-                                    <span class="text-slate-600">{{ $event->rpc_location_name ?? 'To Be Announced' }}</span>
+                                    <strong class="block text-white">Lokasi</strong>
+                                    <span class="text-slate-400">{{ $event->rpc_location_name ?? 'To Be Announced' }}</span>
                                     <p class="text-sm text-slate-500 mt-1">{{ $event->rpc_location_address }}</p>
                                 </div>
                             </li>
                         </ul>
                         @if($event->rpc_latitude && $event->rpc_longitude)
-                        <a href="https://maps.google.com/?q={{ $event->rpc_latitude }},{{ $event->rpc_longitude }}" target="_blank" class="inline-flex items-center text-sm font-bold text-brand-600 hover:text-brand-700">
+                        <a href="https://maps.google.com/?q={{ $event->rpc_latitude }},{{ $event->rpc_longitude }}" target="_blank" class="inline-flex items-center text-sm font-bold text-neon-light hover:text-white transition">
                             Buka Google Maps
                             <svg class="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
@@ -654,20 +689,20 @@
                 <!-- Venue Info -->
                 <div class="reveal delay-200" id="venue">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-accent-500 rounded-full flex items-center justify-center text-white">
+                        <div class="w-10 h-10 bg-brand-600 rounded-full flex items-center justify-center text-white shadow-neon">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         </div>
-                        <h3 class="text-2xl font-bold text-slate-900">Venue & Parking</h3>
+                        <h3 class="text-2xl font-bold text-white">Venue & Parking</h3>
                     </div>
-                    <div class="bg-white border border-slate-200 shadow-lg rounded-3xl overflow-hidden h-full min-h-[300px] relative group">
+                    <div class="bg-slate-800 border border-slate-700 shadow-lg rounded-3xl overflow-hidden h-full min-h-[300px] relative group">
                          @if($event->map_embed_url)
-                            <iframe src="{{ $event->map_embed_url }}" class="w-full h-full min-h-[300px] border-0" allowfullscreen="" loading="lazy"></iframe>
+                            <iframe src="{{ $event->map_embed_url }}" class="w-full h-full min-h-[300px] border-0 opacity-80 group-hover:opacity-100 transition" allowfullscreen="" loading="lazy"></iframe>
                          @else
-                            <div class="absolute inset-0 bg-slate-100 flex items-center justify-center text-slate-400 font-bold">Map Loading...</div>
+                            <div class="absolute inset-0 bg-slate-800 flex items-center justify-center text-slate-500 font-bold">Map Loading...</div>
                          @endif
-                         <div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-white/50 shadow-sm">
-                             <strong class="block text-slate-900">{{ $event->location_name }}</strong>
-                             <p class="text-xs text-slate-500 truncate">{{ $event->location_address }}</p>
+                         <div class="absolute bottom-4 left-4 right-4 bg-slate-900/90 backdrop-blur-sm p-4 rounded-xl border border-white/10 shadow-sm">
+                             <strong class="block text-white">{{ $event->location_name }}</strong>
+                             <p class="text-xs text-slate-400 truncate">{{ $event->location_address }}</p>
                          </div>
                     </div>
                 </div>
@@ -675,71 +710,28 @@
         </div>
     </section>
 
-    <!-- What to Bring & FAQ -->
-    <section class="py-24 bg-slate-50">
+    <!-- FAQ -->
+    <section class="py-24 bg-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
-                <!-- What to Bring -->
-                <div class="reveal">
-                    <h3 class="text-2xl font-bold text-slate-900 mb-8">What To Bring</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-sm font-bold text-slate-700">Running Shoes</span>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-sm font-bold text-slate-700">Jersey & BIB</span>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-sm font-bold text-slate-700">ID Card</span>
-                        </div>
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-sm font-bold text-slate-700">Sunscreen</span>
+            <div class="reveal">
+                <h3 class="text-2xl font-bold text-white mb-8 text-center">Frequently Asked Questions</h3>
+                <div class="space-y-4 max-w-3xl mx-auto">
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <button class="w-full px-6 py-4 text-left font-bold text-white flex justify-between items-center hover:bg-slate-700/50 transition" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            Apakah tiket bisa di-refund?
+                            <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="px-6 pb-4 text-sm text-slate-400 hidden">
+                            Tiket yang sudah dibeli tidak dapat dikembalikan (non-refundable), namun dapat dipindahtangankan sesuai syarat dan ketentuan yang berlaku.
                         </div>
                     </div>
-                </div>
-
-                <!-- FAQ -->
-                <div class="reveal delay-200">
-                    <h3 class="text-2xl font-bold text-slate-900 mb-8">FAQ</h3>
-                    <div class="space-y-4">
-                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                            <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                                Apakah tiket bisa di-refund?
-                                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            <div class="px-6 pb-4 text-sm text-slate-600 hidden">
-                                Tiket yang sudah dibeli tidak dapat dikembalikan (non-refundable), namun dapat dipindahtangankan sesuai syarat dan ketentuan yang berlaku.
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                            <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                                Kapan batas akhir pendaftaran?
-                                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            <div class="px-6 pb-4 text-sm text-slate-600 hidden">
-                                Pendaftaran ditutup pada {{ $event->registration_close_at ? $event->registration_close_at->format('d F Y') : 'H-7 sebelum acara' }} atau saat kuota terpenuhi.
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                            <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                                Apakah ada penitipan barang?
-                                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            <div class="px-6 pb-4 text-sm text-slate-600 hidden">
-                                Ya, kami menyediakan area deposit bag (penitipan tas) di area Race Village bagi peserta.
-                            </div>
+                    <div class="glass-card rounded-2xl overflow-hidden">
+                        <button class="w-full px-6 py-4 text-left font-bold text-white flex justify-between items-center hover:bg-slate-700/50 transition" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            Kapan batas akhir pendaftaran?
+                            <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="px-6 pb-4 text-sm text-slate-400 hidden">
+                            Pendaftaran ditutup pada {{ $event->registration_close_at ? $event->registration_close_at->format('d F Y') : 'H-7 sebelum acara' }} atau saat kuota terpenuhi.
                         </div>
                     </div>
                 </div>
@@ -749,19 +741,20 @@
 
     @include('events.partials.prizes-section', ['categories' => $categories])
 
-    <section id="register" class="py-24 bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="register" class="py-24 bg-slate-900 relative">
+        <div class="absolute inset-0 bg-brand-900/10"></div>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             
             <div class="text-center mb-12 reveal">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Registrasi Peserta</h2>
-                <p class="mt-4 text-slate-600">Pastikan data yang Anda masukkan sesuai dengan identitas (KTP/SIM).</p>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white">Registrasi Peserta</h2>
+                <p class="mt-4 text-slate-400">Pastikan data yang Anda masukkan sesuai dengan identitas (KTP/SIM).</p>
             </div>
 
             @if(!$isRegOpen)
-                <div class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-12 text-center max-w-2xl mx-auto">
-                    <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Pendaftaran Ditutup</h3>
-                    <p class="text-slate-500">Mohon maaf, pendaftaran saat ini tidak tersedia.</p>
+                <div class="bg-slate-800 border-2 border-slate-700 rounded-3xl p-12 text-center max-w-2xl mx-auto">
+                    <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <h3 class="text-2xl font-bold text-white mb-2">Pendaftaran Ditutup</h3>
+                    <p class="text-slate-400">Mohon maaf, pendaftaran saat ini tidak tersedia.</p>
                 </div>
             @else
                 <form action="{{ route('events.register.store', $event->slug) }}" method="POST" id="registrationForm" class="flex flex-col lg:flex-row gap-8 reveal">
@@ -769,50 +762,50 @@
                     
                     <div class="flex-1 space-y-8">
                         
-                        <div class="bg-white border border-slate-200 shadow-card rounded-3xl p-8">
-                            <h3 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <span class="w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-sm">1</span>
+                        <div class="glass-card rounded-3xl p-8">
+                            <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-sm shadow-neon">1</span>
                                 Data Penanggung Jawab
                             </h3>
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
-                                    <input type="text" name="pic_name" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition" placeholder="Sesuai KTP" required>
+                                    <label class="block text-sm font-semibold text-slate-300 mb-1">Nama Lengkap</label>
+                                    <input type="text" name="pic_name" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue focus:border-neon-blue outline-none transition text-white placeholder-slate-500" placeholder="Sesuai KTP" required>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
-                                        <input type="email" name="pic_email" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition" placeholder="email@contoh.com" required>
+                                        <label class="block text-sm font-semibold text-slate-300 mb-1">Email</label>
+                                        <input type="email" name="pic_email" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue focus:border-neon-blue outline-none transition text-white placeholder-slate-500" placeholder="email@contoh.com" required>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">No. WhatsApp</label>
-                                        <input type="text" name="pic_phone" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition" placeholder="0812xxxx" required>
+                                        <label class="block text-sm font-semibold text-slate-300 mb-1">No. WhatsApp</label>
+                                        <input type="text" name="pic_phone" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue focus:border-neon-blue outline-none transition text-white placeholder-slate-500" placeholder="0812xxxx" required>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="bg-white border border-slate-200 shadow-card rounded-3xl p-8">
+                        <div class="glass-card rounded-3xl p-8">
                             <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                    <span class="w-8 h-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-sm">2</span>
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-sm shadow-neon">2</span>
                                     Data Peserta
                                 </h3>
-                                <button type="button" id="addParticipant" class="text-sm font-bold text-brand-600 border border-brand-600 px-4 py-2 rounded-full hover:bg-brand-50 transition">
+                                <button type="button" id="addParticipant" class="text-sm font-bold text-neon-light border border-neon-light px-4 py-2 rounded-full hover:bg-brand-900/50 transition">
                                     + Tambah Peserta
                                 </button>
                             </div>
 
                             <div id="participantsWrapper" class="space-y-6">
-                                <div class="participant-item bg-slate-50 border border-slate-200 p-6 rounded-2xl relative" data-index="0">
-                                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
+                                <div class="participant-item bg-slate-800/50 border border-slate-700 p-6 rounded-2xl relative" data-index="0">
+                                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
                                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider participant-title">Peserta #1</span>
-                                        <button type="button" class="remove-participant hidden text-red-500 hover:text-red-600 text-xs font-bold uppercase">Hapus</button>
+                                        <button type="button" class="remove-participant hidden text-red-400 hover:text-red-500 text-xs font-bold uppercase">Hapus</button>
                                     </div>
 
                                     <div class="space-y-4">
                                         <div>
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">Kategori Lomba</label>
+                                            <label class="block text-sm font-semibold text-slate-300 mb-1">Kategori Lomba</label>
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 @foreach($categories as $cat)
                                                 @php
@@ -828,12 +821,12 @@
                                                 @endphp
                                                 <label class="cursor-pointer relative">
                                                     <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $displayPrice }}" required>
-                                                    <div class="p-3 bg-white border border-slate-300 rounded-xl peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:ring-1 peer-checked:ring-brand-600 transition hover:border-brand-400">
+                                                    <div class="p-3 bg-slate-800 border border-slate-600 rounded-xl peer-checked:border-neon-blue peer-checked:bg-brand-900/30 peer-checked:ring-1 peer-checked:ring-neon-blue transition hover:border-brand-500">
                                                         <div class="flex justify-between items-center">
-                                                            <span class="font-bold text-slate-900 text-sm">{{ $cat->name }}</span>
-                                                            <span class="text-xs font-bold text-brand-600">
+                                                            <span class="font-bold text-white text-sm">{{ $cat->name }}</span>
+                                                            <span class="text-xs font-bold text-neon-light">
                                                                 @if($displayPrice !== $priceRegular && $priceRegular > 0)
-                                                                    <span class="text-slate-400 line-through mr-1">Rp {{ number_format($priceRegular/1000,0) }}k</span>
+                                                                    <span class="text-slate-500 line-through mr-1">Rp {{ number_format($priceRegular/1000,0) }}k</span>
                                                                 @endif
                                                                 Rp {{ number_format($displayPrice/1000,0) }}k
                                                             </span>
@@ -845,27 +838,27 @@
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input type="text" name="participants[0][name]" placeholder="Nama Peserta (BIB Name)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                            <select name="participants[0][gender]" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                                <option value="">Pilih Gender</option>
-                                                <option value="male">Laki-laki</option>
-                                                <option value="female">Perempuan</option>
+                                            <input type="text" name="participants[0][name]" placeholder="Nama Peserta (BIB Name)" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
+                                            <select name="participants[0][gender]" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white" required>
+                                                <option value="" class="bg-slate-800">Pilih Gender</option>
+                                                <option value="male" class="bg-slate-800">Laki-laki</option>
+                                                <option value="female" class="bg-slate-800">Perempuan</option>
                                             </select>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                            <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                            <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
+                                            <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                        <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                            <option value="">Ukuran Jersey</option>
-                                            @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}">{{ $size }}</option> @endforeach
+                                        <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
+                                        <select name="participants[0][jersey_size]" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white" required>
+                                            <option value="" class="bg-slate-800">Ukuran Jersey</option>
+                                            @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}" class="bg-slate-800">{{ $size }}</option> @endforeach
                                         </select>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                        <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
+                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
                                     </div>
                                     </div>
                                 </div>
@@ -876,17 +869,17 @@
                     <div class="lg:w-96 flex-shrink-0">
                         <div class="sticky top-28 space-y-6">
                             
-                            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                                <label class="text-sm font-bold text-slate-700 mb-2 block">Kode Promo</label>
+                            <div class="glass-card rounded-2xl p-6">
+                                <label class="text-sm font-bold text-slate-300 mb-2 block">Kode Promo</label>
                                 <div class="flex gap-2">
-                                    <input type="text" id="coupon_code" placeholder="KODE..." class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm uppercase font-bold outline-none focus:border-brand-600">
-                                    <button type="button" id="applyCoupon" class="bg-slate-800 text-white px-4 rounded-lg text-sm font-bold hover:bg-slate-900 transition">Pakai</button>
+                                    <input type="text" id="coupon_code" placeholder="KODE..." class="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-3 text-sm uppercase font-bold outline-none focus:border-neon-blue text-white">
+                                    <button type="button" id="applyCoupon" class="bg-brand-600 text-white px-4 rounded-lg text-sm font-bold hover:bg-brand-700 transition shadow-neon">Pakai</button>
                                 </div>
                                 <div id="couponMessage" class="mt-2 text-xs font-medium"></div>
                             </div>
 
-                            <div class="bg-brand-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-                                <div class="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-brand-700 rounded-full opacity-50 blur-2xl"></div>
+                            <div class="bg-brand-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden border border-brand-700">
+                                <div class="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-brand-600 rounded-full opacity-50 blur-2xl animate-pulse"></div>
 
                                 <h3 class="text-lg font-bold mb-6 relative z-10">Ringkasan Biaya</h3>
                                 
@@ -913,13 +906,13 @@
 
                                 <div class="flex justify-between items-end mb-8 relative z-10">
                                     <span class="text-slate-300 font-bold text-sm">TOTAL</span>
-                                    <span id="totalDisplay" class="text-3xl font-bold text-accent-500 tracking-tight">Rp 0</span>
+                                    <span id="totalDisplay" class="text-3xl font-bold text-neon-light tracking-tight drop-shadow-md">Rp 0</span>
                                 </div>
 
                                 @if($event->terms_and_conditions)
                                 <div class="mb-6 relative z-10">
                                     <label class="flex items-start gap-3 cursor-pointer">
-                                        <input type="checkbox" name="terms_agreed" required class="mt-1 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-500 bg-brand-800">
+                                        <input type="checkbox" name="terms_agreed" required class="mt-1 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-500 bg-slate-800">
                                         <span class="text-xs text-slate-400">
                                             Saya setuju dengan <a href="#" class="text-white underline font-bold">Syarat & Ketentuan</a>.
                                         </span>
@@ -927,10 +920,10 @@
                                 </div>
                                 @endif
 
-                                <button type="submit" id="submitBtn" class="w-full py-4 bg-white text-brand-900 font-bold rounded-xl hover:bg-slate-100 transition shadow-lg relative z-10">
+                                <button type="submit" id="submitBtn" class="w-full py-4 bg-white text-brand-900 font-bold rounded-xl hover:bg-slate-100 transition shadow-neon hover:shadow-neon-hover relative z-10">
                                     Lanjut Pembayaran
                                 </button>
-                                <p class="text-[10px] text-center text-slate-500 mt-4 uppercase tracking-widest relative z-10">Secure Payment by Midtrans</p>
+                                <p class="text-[10px] text-center text-slate-400 mt-4 uppercase tracking-widest relative z-10">Secure Payment by Midtrans</p>
                             </div>
                         </div>
                     </div>
@@ -941,13 +934,13 @@
 
     <!-- Sponsor Carousel -->
     @include('events.partials.sponsor-carousel', [
-        'gradientFrom' => 'from-white',
-        'titleColor' => 'text-slate-400',
-        'containerClass' => 'bg-white/50 grayscale hover:grayscale-0 transition-all duration-500 border border-slate-100',
-        'sectionClass' => 'py-16 bg-slate-50 border-t border-slate-200'
+        'gradientFrom' => 'from-slate-900',
+        'titleColor' => 'text-slate-500',
+        'containerClass' => 'bg-slate-800/50 grayscale hover:grayscale-0 transition-all duration-500 border border-slate-800',
+        'sectionClass' => 'hidden md:block py-16 bg-slate-900 border-t border-slate-800'
     ])
 
-    <footer class="bg-slate-900 border-t border-slate-800 py-12 text-slate-400 text-sm">
+    <footer class="bg-slate-950 border-t border-slate-900 py-12 text-slate-500 text-sm">
         <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
             <div class="text-center md:text-left">
                 <strong class="text-white text-lg block mb-1">{{ $event->name }}</strong>
@@ -967,11 +960,11 @@
             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
         
-        <button class="absolute top-1/2 left-4 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-4 bg-black/20 rounded-full hover:bg-black/50 transition" onclick="prevImage()">
+        <button id="lightbox-prev" class="absolute top-1/2 left-4 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-4 bg-black/20 rounded-full hover:bg-black/50 transition" onclick="prevImage()">
             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </button>
 
-        <button class="absolute top-1/2 right-4 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-4 bg-black/20 rounded-full hover:bg-black/50 transition" onclick="nextImage()">
+        <button id="lightbox-next" class="absolute top-1/2 right-4 -translate-y-1/2 text-white hover:text-gray-300 z-50 p-4 bg-black/20 rounded-full hover:bg-black/50 transition" onclick="nextImage()">
             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </button>
 
@@ -1172,7 +1165,7 @@
                 const distance = targetDate - now;
 
                 if (distance < 0) {
-                    countdownContainer.innerHTML = '<div class="text-brand-400 font-bold text-xl bg-white/10 px-6 py-3 rounded-xl border border-white/20">Event Telah Dimulai! 🏃💨</div>';
+                    countdownContainer.innerHTML = '<div class="text-neon-light font-bold text-xl bg-slate-800/50 px-6 py-3 rounded-xl border border-white/10">Event Telah Dimulai! 🏃💨</div>';
                     return;
                 }
 
@@ -1193,18 +1186,33 @@
 
         // G. Lightbox Logic
         const galleryImages = @json(isset($event->gallery) ? array_map(fn($img) => asset('storage/'.$img), $event->gallery) : []);
+        const demoImages = @json($demoImages);
+        const lightboxLists = { gallery: galleryImages, demo: demoImages };
+        let currentLightboxList = 'gallery';
         let currentImageIndex = 0;
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxPrevBtn = document.getElementById('lightbox-prev');
+        const lightboxNextBtn = document.getElementById('lightbox-next');
 
-        function openLightbox(index) {
-            if (galleryImages.length === 0) return;
-            currentImageIndex = index;
-            lightboxImg.src = galleryImages[currentImageIndex];
+        function updateLightboxNav() {
+            const list = lightboxLists[currentLightboxList] || [];
+            const shouldShowNav = list.length > 1;
+            if (lightboxPrevBtn) lightboxPrevBtn.classList.toggle('hidden', !shouldShowNav);
+            if (lightboxNextBtn) lightboxNextBtn.classList.toggle('hidden', !shouldShowNav);
+        }
+
+        function openLightbox(index, listName = 'gallery') {
+            const list = lightboxLists[listName] || [];
+            if (list.length === 0) return;
+            currentLightboxList = listName;
+            currentImageIndex = Math.max(0, Math.min(index, list.length - 1));
+            lightboxImg.src = list[currentImageIndex];
             lightbox.classList.remove('hidden');
             // Small delay to allow display:block to apply before opacity transition
             setTimeout(() => lightbox.classList.remove('opacity-0'), 10);
             document.body.style.overflow = 'hidden';
+            updateLightboxNav();
         }
 
         function closeLightbox() {
@@ -1217,17 +1225,22 @@
         }
 
         function nextImage() {
-            currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
-            lightboxImg.src = galleryImages[currentImageIndex];
+            const list = lightboxLists[currentLightboxList] || [];
+            if (list.length === 0) return;
+            currentImageIndex = (currentImageIndex + 1) % list.length;
+            lightboxImg.src = list[currentImageIndex];
         }
 
         function prevImage() {
-            currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
-            lightboxImg.src = galleryImages[currentImageIndex];
+            const list = lightboxLists[currentLightboxList] || [];
+            if (list.length === 0) return;
+            currentImageIndex = (currentImageIndex - 1 + list.length) % list.length;
+            lightboxImg.src = list[currentImageIndex];
         }
 
         // Close on escape key
         document.addEventListener('keydown', function(event) {
+            if (lightbox.classList.contains('hidden')) return;
             if (event.key === "Escape") {
                 closeLightbox();
             }
