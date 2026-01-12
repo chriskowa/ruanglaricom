@@ -86,6 +86,9 @@ class PublicEventController extends Controller
                 $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                         $q->where('event_id', $event->id)->whereIn('payment_status', ['pending', 'paid']);
                     })
+                    ->when($event->registration_open_at, function($q) use ($event) {
+                        $q->where('created_at', '>=', $event->registration_open_at);
+                    })
                     ->orderBy('created_at', 'desc')
                     ->limit(50)
                     ->get(['id','name']);
@@ -118,6 +121,9 @@ class PublicEventController extends Controller
         if ($event->hardcoded === 'latbarkamis') {
             $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                 $q->where('event_id', $event->id)->whereIn('payment_status', ['pending', 'paid']);
+            })
+            ->when($event->registration_open_at, function($q) use ($event) {
+                $q->where('created_at', '>=', $event->registration_open_at);
             })
             ->orderBy('created_at', 'desc')
             ->limit(50)
