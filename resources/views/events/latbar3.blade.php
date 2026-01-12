@@ -341,10 +341,18 @@
                             </div>
                         </div>
                         @php
-                            $codCount = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','cod'); })->count();
-                            $paidCount = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','paid'); })->count();
-                            $codNames = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','cod'); })->orderBy('created_at','desc')->limit(10)->get(['name']);
-                            $paidNames = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','paid'); })->orderBy('created_at','desc')->limit(10)->get(['name']);
+                            $codCount = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','cod'); })
+                                ->when($event->registration_open_at, function($q) use ($event) { $q->where('created_at', '>=', $event->registration_open_at); })
+                                ->count();
+                            $paidCount = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','paid'); })
+                                ->when($event->registration_open_at, function($q) use ($event) { $q->where('created_at', '>=', $event->registration_open_at); })
+                                ->count();
+                            $codNames = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','cod'); })
+                                ->when($event->registration_open_at, function($q) use ($event) { $q->where('created_at', '>=', $event->registration_open_at); })
+                                ->orderBy('created_at','desc')->limit(10)->get(['name']);
+                            $paidNames = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','paid'); })
+                                ->when($event->registration_open_at, function($q) use ($event) { $q->where('created_at', '>=', $event->registration_open_at); })
+                                ->orderBy('created_at','desc')->limit(10)->get(['name']);
                         @endphp
                         <div class="grid grid-cols-2 gap-3 mb-6">
                             <div class="p-3 bg-white/5 border border-white/10 rounded-xl">
