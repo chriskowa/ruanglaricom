@@ -32,7 +32,7 @@
 @endpush
 
 @section('content')
-    <div id="submit-app" class="relative z-10 w-full min-h-screen pb-24 pt-20 px-4">
+    <div id="submit-app" class="relative z-10 w-full min-h-screen pb-24 pt-20 px-4" v-cloak>
         
         @guest
         <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -99,6 +99,13 @@
             <div class="glass-panel rounded-3xl p-1 shadow-2xl overflow-hidden">
                 <form @submit.prevent="submitActivity" class="bg-slate-900/50 p-5 space-y-6">
                     
+                    <!-- Advanced Builder Button -->
+                    <div class="flex justify-end">
+                        <button type="button" @click="openBuilder" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-neon hover:bg-slate-700 transition flex items-center gap-2">
+                            <i class="fas fa-layer-group"></i> Workout Builder
+                        </button>
+                    </div>
+
                     <!-- Distance Input (Hero) -->
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Distance (KM)</label>
@@ -200,8 +207,6 @@
                         </div>
                     </div>
 
-
-
                     <!-- Submit Button -->
                     <button type="submit" :disabled="isSubmitting"
                         class="w-full bg-neon text-slate-900 font-black text-lg py-4 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4">
@@ -239,6 +244,9 @@
                                             • {{ \Carbon\Carbon::parse($activity->date.' '.$activity->activity_time)->format('h:i A') }}
                                         @endif
                                     </div>
+                                    @if($activity->type && $activity->type != 'easy_run')
+                                        <div class="text-[10px] text-neon uppercase mt-1">{{ str_replace('_', ' ', $activity->type) }}</div>
+                                    @endif
                                 </div>
                             </div>
                             <div class="text-right">
@@ -265,12 +273,266 @@
                 </div>
             </div>
         </div>
+
+        <!-- WORKOUT BUILDER MODAL -->
+        <div v-if="builderVisible" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80" @click="closeBuilder"></div>
+            <div class="relative z-10 max-w-2xl mx-auto my-10 glass-panel rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-white font-bold text-lg">Advanced Workout Builder</h3>
+                    <button class="text-slate-400 hover:text-white" @click="closeBuilder">×</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Type</label>
+                        <select v-model="builderForm.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                            <option value="easy_run">Easy Run</option>
+                            <option value="long_run">Long Run</option>
+                            <option value="tempo">Tempo</option>
+                            <option value="interval">Intervals</option>
+                            <option value="strength">Strength</option>
+                            <option value="custom">Custom / Mixed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Title</label>
+                        <input v-model="builderForm.title" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" placeholder="Optional">
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4" v-if="builderForm.type !== 'custom' && builderForm.type !== 'strength'">
+                    <div class="glass-panel rounded-xl p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs font-bold text-slate-400 uppercase">Warm Up</div>
+                            <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                                <input type="checkbox" v-model="builderForm.warmup.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                                Enable
+                            </label>
+                        </div>
+                        <div v-if="builderForm.warmup.enabled" class="mt-3 grid grid-cols-2 gap-2">
+                            <select v-model="builderForm.warmup.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.warmup.by==='distance'" type="number" step="0.1" v-model.number="builderForm.warmup.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                            <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-xl p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs font-bold text-slate-400 uppercase">Cool Down</div>
+                            <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                                <input type="checkbox" v-model="builderForm.cooldown.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                                Enable
+                            </label>
+                        </div>
+                        <div v-if="builderForm.cooldown.enabled" class="mt-3 grid grid-cols-2 gap-2">
+                            <select v-model="builderForm.cooldown.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.cooldown.by==='distance'" type="number" step="0.1" v-model.number="builderForm.cooldown.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                            <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4" v-if="builderForm.type !== 'custom'">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Intensity</label>
+                        <select v-model="builderForm.intensity" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4 glass-panel rounded-xl p-4">
+                    <div class="text-xs font-bold text-slate-400 uppercase mb-2">Main</div>
+                    <div v-if="builderForm.type==='easy_run'">
+                        <div class="grid grid-cols-3 gap-2">
+                            <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                            <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
+                            <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='long_run'">
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <select v-model="builderForm.main.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Total Distance (km)">
+                            <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
+                            <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                                <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
+                                Fast Finish
+                            </label>
+                            <div class="grid grid-cols-2 gap-2" v-if="builderForm.longRun.fastFinish.enabled">
+                                <input type="number" step="0.1" v-model.number="builderForm.longRun.fastFinish.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                                <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace">
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='tempo'">
+                        <div class="grid grid-cols-4 gap-2">
+                            <select v-model="builderForm.tempo.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.tempo.by==='distance'" type="number" step="0.1" v-model.number="builderForm.tempo.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                            <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
+                            <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
+                            <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="moderate">Moderate</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='interval'">
+                        <div class="space-y-3">
+                            <div class="text-xs text-slate-400 uppercase font-bold">Add Interval Set</div>
+                            <div class="grid grid-cols-6 gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 items-end">
+                                <div>
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Reps</label>
+                                    <input type="number" v-model.number="builderForm.interval.newReps" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-white text-sm" placeholder="6">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Type</label>
+                                    <select v-model="builderForm.interval.newBy" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-1 py-2 text-white text-xs">
+                                        <option value="distance">Dist</option>
+                                        <option value="time">Time</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Value</label>
+                                    <input v-if="builderForm.interval.newBy==='distance'" type="number" step="0.1" v-model.number="builderForm.interval.newDist" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-white text-sm" placeholder="km">
+                                    <input v-else type="text" v-model="builderForm.interval.newTime" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-white text-sm" placeholder="00:03:00">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Pace</label>
+                                    <input type="text" v-model="builderForm.interval.newPace" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-white text-sm" placeholder="mm:ss">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 uppercase block mb-1">Rec</label>
+                                    <input type="text" v-model="builderForm.interval.newRec" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-white text-sm" placeholder="2:00">
+                                </div>
+                            </div>
+                            <button type="button" class="w-full py-2 bg-slate-700 hover:bg-neon hover:text-dark text-white text-xs font-bold rounded-lg transition" @click="addIntervalSet">
+                                <i class="fas fa-plus mr-1"></i> Add Set
+                            </button>
+
+                            <!-- List of Sets -->
+                            <div class="space-y-2" v-if="builderForm.interval.sets && builderForm.interval.sets.length">
+                                <div v-for="(set, idx) in builderForm.interval.sets" :key="idx" class="bg-slate-800 border border-slate-700 rounded-lg p-3 flex justify-between items-center group">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-400">@{{ idx + 1 }}</div>
+                                        <div>
+                                            <div class="text-white text-sm font-bold">
+                                                @{{ set.reps }} x @{{ set.by === 'distance' ? set.dist + ' km' : set.time }}
+                                                <span v-if="set.pace" class="text-neon ml-1">@@{{ set.pace }}</span>
+                                            </div>
+                                            <div class="text-xs text-slate-500">Recovery: @{{ set.rec }}</div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition" @click="removeIntervalSet(idx)">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div v-else class="text-center py-4 text-xs text-slate-500 border border-dashed border-slate-700 rounded-lg">
+                                No interval sets added yet.
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='strength'">
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <select v-model="builderForm.strength.category" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="">Select Category</option>
+                                    <option value="full_body">Full Body</option>
+                                    <option value="legs_lower_body">Legs/Lower Body</option>
+                                    <option value="core">Core</option>
+                                    <option value="upper_body">Upper Body</option>
+                                </select>
+                                <select v-model="builderForm.strength.exercise" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="">Select Exercise</option>
+                                    <option v-for="ex in strengthOptions" :key="ex.name" :value="ex.name">@{{ ex.name }}</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" v-model="builderForm.strength.sets" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Sets">
+                                <input type="text" v-model="builderForm.strength.reps" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Reps/Dur">
+                                <input type="text" v-model="builderForm.strength.equipment" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Equipment">
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="button" class="px-3 py-2 rounded-lg bg-slate-800 text-white text-xs" @click="addStrengthExercise">Add Exercise</button>
+                            </div>
+                            <div class="space-y-2" v-if="builderForm.strength.plan && builderForm.strength.plan.length">
+                                <div v-for="(item, idx) in builderForm.strength.plan" :key="idx" class="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white">
+                                    <div>@{{ item.name }} — @{{ item.sets }} x @{{ item.reps }} (@{{ item.equipment }})</div>
+                                    <button type="button" class="text-slate-300 hover:text-white" @click="removeStrengthExercise(idx)">×</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="builderForm.type==='custom'">
+                        <div class="space-y-3">
+                            <div class="text-xs text-slate-400">Add dynamic workout segments (e.g. Run 5k, Swim 20m, Plank 2min)</div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                                <div class="md:col-span-2">
+                                    <input type="text" v-model="builderForm.custom.segmentName" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Segment Name (e.g. Warm up Run)">
+                                </div>
+                                <input type="number" step="0.01" v-model.number="builderForm.custom.segmentDistance" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist (km)">
+                                <input type="text" v-model="builderForm.custom.segmentDuration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Duration (e.g. 15:00)">
+                                <div class="md:col-span-3">
+                                    <input type="text" v-model="builderForm.custom.segmentNote" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Notes (Pace, Intensity, etc)">
+                                </div>
+                                <button type="button" class="w-full bg-neon text-dark font-bold text-xs rounded-xl hover:bg-neon/90 transition" @click="addCustomSegment">ADD</button>
+                            </div>
+
+                            <div class="space-y-2" v-if="builderForm.custom.segments && builderForm.custom.segments.length">
+                                <div v-for="(seg, idx) in builderForm.custom.segments" :key="idx" class="bg-slate-800 border border-slate-700 rounded-lg p-3 flex justify-between items-start">
+                                    <div>
+                                        <div class="font-bold text-white text-sm">@{{ seg.name }}</div>
+                                        <div class="text-xs text-slate-400">
+                                            <span v-if="seg.distance > 0">@{{ seg.distance }} km</span>
+                                            <span v-if="seg.distance > 0 && seg.duration"> • </span>
+                                            <span v-if="seg.duration">@{{ seg.duration }}</span>
+                                        </div>
+                                        <div v-if="seg.note" class="text-xs text-slate-500 italic mt-1">"@{{ seg.note }}"</div>
+                                    </div>
+                                    <button type="button" class="text-slate-400 hover:text-red-400 transition" @click="removeCustomSegment(idx)">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 glass-panel rounded-xl p-4">
+                    <div class="text-xs font-bold text-slate-400 uppercase mb-2">Summary</div>
+                    <div class="text-white text-sm">@{{ builderSummary }}</div>
+                    <div class="text-slate-400 text-xs mt-1">Total Distance: @{{ builderTotalDistance }} km</div>
+                </div>
+                <div class="flex justify-end items-center mt-4 gap-2">
+                    <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="closeBuilder">Cancel</button>
+                    <button type="button" class="px-4 py-2 rounded-lg bg-neon text-dark font-bold text-sm" @click="saveBuilderFromModal">Save & Apply</button>
+                </div>
+            </div>
+        </div>
     </div>
 
 @push('scripts')
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
-        const { createApp, ref, computed, watch } = Vue;
+        const { createApp, ref, reactive, computed, watch } = Vue;
 
         createApp({
             setup() {
@@ -335,8 +597,316 @@
                     time_minute: 0,
                     time_ampm: 'AM',
                     stravaLink: '',
-                    image: null
+                    image: null,
+                    type: 'easy_run',
+                    advanced_config: null
                 });
+
+                // --- BUILDER LOGIC START ---
+                const builderVisible = ref(false);
+                const builderForm = reactive({
+                    type: 'easy_run',
+                    title: '',
+                    intensity: 'low',
+                    warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+                    cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
+                    main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
+                    longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
+                    tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+                    interval: { 
+                        sets: [], // Array of { reps, by, distance/time, pace, recovery }
+                        // Temporary inputs for adding new set
+                        newReps: 6, newBy: 'distance', newDist: 0.8, newTime: '', newPace: '', newRec: 'Jog 2:00' 
+                    },
+                    strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] },
+                    custom: { segmentName: '', segmentDistance: '', segmentDuration: '', segmentNote: '', segments: [] }
+                });
+
+                const strengthData = {
+                    strength_training: {
+                        full_body: [
+                            { name: 'Burpees', sets: '3', reps: '12-15', equipment: 'Bodyweight' },
+                            { name: 'Kettlebell Swing', sets: '3', reps: '15-20', equipment: 'Kettlebell' },
+                            { name: 'Clean and Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' },
+                            { name: 'Thrusters', sets: '3', reps: '10-12', equipment: 'Dumbbell/Barbell' }
+                        ],
+                        legs_lower_body: [
+                            { name: 'Squats', sets: '4', reps: '8-12', equipment: 'Barbell/Bodyweight' },
+                            { name: 'Lunges', sets: '3', reps: '10 each leg', equipment: 'Bodyweight/Dumbbell' },
+                            { name: 'Deadlifts', sets: '4', reps: '6-10', equipment: 'Barbell' },
+                            { name: 'Glute Bridge / Hip Thrust', sets: '3', reps: '12-15', equipment: 'Bodyweight/Barbell' },
+                            { name: 'Calf Raises', sets: '3', reps: '15-20', equipment: 'Bodyweight/Dumbbell' }
+                        ],
+                        core: [
+                            { name: 'Plank', sets: '3', reps: '45-60s', equipment: 'Bodyweight' },
+                            { name: 'Russian Twist', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight/Medicine Ball' },
+                            { name: 'Leg Raises', sets: '3', reps: '12-15', equipment: 'Bodyweight' },
+                            { name: 'Bicycle Crunch', sets: '3', reps: '20 (10 each side)', equipment: 'Bodyweight' },
+                            { name: 'Ab Rollout', sets: '3', reps: '8-12', equipment: 'Ab Wheel/Barbell' }
+                        ],
+                        upper_body: [
+                            { name: 'Push-Ups', sets: '3', reps: '12-20', equipment: 'Bodyweight' },
+                            { name: 'Bench Press', sets: '4', reps: '6-10', equipment: 'Barbell/Dumbbell' },
+                            { name: 'Pull-Ups / Chin-Ups', sets: '3', reps: '8-12', equipment: 'Bodyweight' },
+                            { name: 'Overhead Press', sets: '4', reps: '8-10', equipment: 'Barbell/Dumbbell' },
+                            { name: 'Bent Over Row', sets: '4', reps: '8-12', equipment: 'Barbell/Dumbbell' },
+                            { name: 'Bicep Curl', sets: '3', reps: '12-15', equipment: 'Dumbbell/Barbell' },
+                            { name: 'Tricep Dips', sets: '3', reps: '10-12', equipment: 'Bodyweight/Bench' }
+                        ]
+                    }
+                };
+
+                const strengthOptions = computed(() => {
+                    const cat = builderForm.strength.category;
+                    const all = strengthData.strength_training;
+                    const list = cat && all[cat] ? all[cat] : [];
+                    return list;
+                });
+
+                const addStrengthExercise = () => {
+                    const ex = builderForm.strength.exercise;
+                    const cat = builderForm.strength.category;
+                    const list = strengthData.strength_training[cat] || [];
+                    const found = list.find(i => i.name === ex);
+                    const item = {
+                        name: ex || '',
+                        sets: builderForm.strength.sets || (found ? found.sets : ''),
+                        reps: builderForm.strength.reps || (found ? found.reps : ''),
+                        equipment: builderForm.strength.equipment || (found ? found.equipment : '')
+                    };
+                    if (!builderForm.strength.plan) builderForm.strength.plan = [];
+                    builderForm.strength.plan.push(item);
+                    builderForm.strength.exercise = '';
+                    builderForm.strength.sets = '';
+                    builderForm.strength.reps = '';
+                    builderForm.strength.equipment = '';
+                };
+
+                const removeStrengthExercise = (idx) => {
+                    if (!builderForm.strength.plan) return;
+                    builderForm.strength.plan.splice(idx, 1);
+                };
+
+                const addIntervalSet = () => {
+                    // Access builderForm.interval directly
+                    const i = builderForm.interval;
+                    
+                    // Ensure defaults if undefined
+                    if (!i.newReps) i.newReps = 1;
+                    if (!i.newBy) i.newBy = 'distance';
+                    
+                    const set = {
+                        reps: parseInt(i.newReps) || 1,
+                        by: i.newBy,
+                        dist: parseFloat(i.newDist) || 0,
+                        time: i.newTime || '',
+                        pace: i.newPace || '',
+                        rec: i.newRec || ''
+                    };
+                    
+                    // Basic validation
+                    if (set.reps <= 0) return;
+                    if (set.by === 'distance' && set.dist <= 0) {
+                        alert('Please enter a valid distance');
+                        return;
+                    }
+                    if (set.by === 'time' && !set.time) {
+                        alert('Please enter a valid duration');
+                        return;
+                    }
+                    
+                    if (!i.sets) i.sets = [];
+                    i.sets.push(set);
+                    
+                    // Reset input defaults
+                    i.newReps = 6;
+                    i.newDist = 0.8;
+                    i.newTime = '';
+                    // Keep pace/rec as they are often same
+                };
+
+                const removeIntervalSet = (idx) => {
+                    if (!builderForm.interval.sets) return;
+                    builderForm.interval.sets.splice(idx, 1);
+                };
+
+                const addCustomSegment = () => {
+                    if (!builderForm.custom.segmentName) return;
+                    
+                    const segment = {
+                        name: builderForm.custom.segmentName,
+                        distance: parseFloat(builderForm.custom.segmentDistance) || 0,
+                        duration: builderForm.custom.segmentDuration || '',
+                        note: builderForm.custom.segmentNote || ''
+                    };
+                    
+                    if (!builderForm.custom.segments) builderForm.custom.segments = [];
+                    builderForm.custom.segments.push(segment);
+                    
+                    // Reset inputs
+                    builderForm.custom.segmentName = '';
+                    builderForm.custom.segmentDistance = '';
+                    builderForm.custom.segmentDuration = '';
+                    builderForm.custom.segmentNote = '';
+                };
+
+                const removeCustomSegment = (idx) => {
+                    if (!builderForm.custom.segments) return;
+                    builderForm.custom.segments.splice(idx, 1);
+                };
+
+                const parsePaceMinPerKm = (s) => {
+                    if (!s) return NaN;
+                    const m = s.trim().match(/^(\d{1,2}):(\d{2})/);
+                    if (!m) return NaN;
+                    const min = parseInt(m[1], 10);
+                    const sec = parseInt(m[2], 10);
+                    return min + sec/60;
+                };
+
+                const parseDurationMinutes = (s) => {
+                    if (!s) return NaN;
+                    const parts = s.trim().split(':').map(x => parseInt(x,10));
+                    if (parts.some(isNaN)) return NaN;
+                    let h=0,m=0,sec=0;
+                    if (parts.length === 3) { h=parts[0]; m=parts[1]; sec=parts[2]; }
+                    else if (parts.length === 2) { m=parts[0]; sec=parts[1]; }
+                    else { m=parts[0]; }
+                    return h*60 + m + sec/60;
+                };
+
+                const builderSummary = computed(() => {
+                    const parts = [];
+                    if (builderForm.warmup.enabled) {
+                        parts.push(`WU: ${builderForm.warmup.by==='distance' ? `${builderForm.warmup.distanceKm}km` : builderForm.warmup.duration}`);
+                    }
+                    if (builderForm.type==='interval') {
+                        if (builderForm.interval.sets && builderForm.interval.sets.length) {
+                            const first = builderForm.interval.sets[0];
+                            const desc = first.by==='distance' 
+                                ? `${first.reps}x${first.dist}km` 
+                                : `${first.reps}x${first.time}`;
+                            parts.push(`${desc}${builderForm.interval.sets.length > 1 ? '...' : ''}`);
+                        } else {
+                            parts.push('Interval Session');
+                        }
+                    } else if (builderForm.type==='tempo') {
+                        if (builderForm.tempo.by==='distance') {
+                            parts.push(`${builderForm.tempo.distanceKm}km${builderForm.tempo.pace ? ` @${builderForm.tempo.pace}`:''} ${builderForm.tempo.effort}`);
+                        } else {
+                            parts.push(`${builderForm.tempo.duration}${builderForm.tempo.pace ? ` @${builderForm.tempo.pace}`:''} ${builderForm.tempo.effort}`);
+                        }
+                    } else if (builderForm.type==='long_run') {
+                        if (builderForm.main.by==='distance') {
+                            parts.push(`${builderForm.main.distanceKm}km Long Run${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
+                        } else {
+                            parts.push(`${builderForm.main.duration} Long Run${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
+                        }
+                        if (builderForm.longRun.fastFinish.enabled) {
+                            parts.push(`FF ${builderForm.longRun.fastFinish.distanceKm}km @${builderForm.longRun.fastFinish.pace}`);
+                        }
+                    } else if (builderForm.type==='easy_run') {
+                        if (builderForm.main.by==='distance') {
+                            parts.push(`${builderForm.main.distanceKm}km Easy${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
+                        } else {
+                            parts.push(`${builderForm.main.duration} Easy${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
+                        }
+                    } else if (builderForm.type==='strength') {
+                        const cat = builderForm.strength.category ? builderForm.strength.category.replace('_',' ') : 'Strength';
+                        if (builderForm.strength.plan && builderForm.strength.plan.length) {
+                            const items = builderForm.strength.plan.slice(0,3).map(i => i.name).join(', ');
+                            parts.push(`${cat}: ${items}${builderForm.strength.plan.length>3 ? ', ...' : ''}`);
+                        } else {
+                            parts.push(cat);
+                        }
+                    } else if (builderForm.type==='custom') {
+                        if (builderForm.custom.segments && builderForm.custom.segments.length) {
+                            const count = builderForm.custom.segments.length;
+                            const first = builderForm.custom.segments[0].name;
+                            parts.push(`${count} Segment(s): ${first}${count > 1 ? ', ...' : ''}`);
+                        } else {
+                            parts.push('Custom Workout');
+                        }
+                    }
+                    if (builderForm.cooldown.enabled) {
+                        parts.push(`CD: ${builderForm.cooldown.by==='distance' ? `${builderForm.cooldown.distanceKm}km` : builderForm.cooldown.duration}`);
+                    }
+                    const base = parts.join(' | ');
+                    return builderForm.intensity ? `${base} | Intensity: ${builderForm.intensity}` : base;
+                });
+
+                const builderTotalDistance = computed(() => {
+                    let total = 0;
+                    if (builderForm.warmup.enabled && builderForm.warmup.by==='distance') total += Number(builderForm.warmup.distanceKm)||0;
+                    if (builderForm.cooldown.enabled && builderForm.cooldown.by==='distance') total += Number(builderForm.cooldown.distanceKm)||0;
+                    if (builderForm.type==='interval') {
+                        if (builderForm.interval.sets) {
+                            builderForm.interval.sets.forEach(set => {
+                                if (set.by==='distance') {
+                                    total += (Number(set.reps)||0) * (Number(set.dist)||0);
+                                } else {
+                                    const dMin = parseDurationMinutes(set.time);
+                                    const pMin = parsePaceMinPerKm(set.pace);
+                                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                                    total += (Number(set.reps)||0) * dist;
+                                }
+                            });
+                        }
+                    } else if (builderForm.type==='tempo') {
+                        if (builderForm.tempo.by==='distance') total += Number(builderForm.tempo.distanceKm)||0;
+                        else {
+                            const dMin = parseDurationMinutes(builderForm.tempo.duration);
+                            const pMin = parsePaceMinPerKm(builderForm.tempo.pace);
+                            const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                            total += dist;
+                        }
+                    } else if (builderForm.type==='long_run') {
+                        if (builderForm.main.by==='distance') total += Number(builderForm.main.distanceKm)||0;
+                        else {
+                            const dMin = parseDurationMinutes(builderForm.main.duration);
+                            const pMin = parsePaceMinPerKm(builderForm.main.pace);
+                            const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                            total += dist;
+                        }
+                    } else if (builderForm.type==='easy_run') {
+                        if (builderForm.main.by==='distance') total += Number(builderForm.main.distanceKm)||0;
+                        else {
+                            const dMin = parseDurationMinutes(builderForm.main.duration);
+                            const pMin = parsePaceMinPerKm(builderForm.main.pace);
+                            const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
+                            total += dist;
+                        }
+                    } else if (builderForm.type==='custom') {
+                        if (builderForm.custom.segments) {
+                            builderForm.custom.segments.forEach(seg => {
+                                total += Number(seg.distance) || 0;
+                            });
+                        }
+                    }
+                    return Number(total.toFixed(1));
+                });
+
+                const openBuilder = () => {
+                    builderVisible.value = true;
+                };
+
+                const closeBuilder = () => {
+                    builderVisible.value = false;
+                };
+
+                const saveBuilderFromModal = () => {
+                    form.value.type = builderForm.type;
+                    form.value.distance = builderTotalDistance.value;
+                    form.value.advanced_config = JSON.stringify(builderForm);
+                    
+                    // Close
+                    builderVisible.value = false;
+                    
+                    message.value = 'Workout applied! Please verify distance/duration and upload proof.';
+                    messageType.value = 'success';
+                };
+                // --- BUILDER LOGIC END ---
+
 
                 // Calculate Pace Automatically
                 const calculatedPace = computed(() => {
@@ -394,7 +964,14 @@
                         formData.append('time_ampm', form.value.time_ampm || 'AM');
                         formData.append('strava_link', form.value.stravaLink);
                         formData.append('image', form.value.image);
-
+                        
+                        // New fields
+                        if (form.value.type) {
+                            formData.append('type', form.value.type);
+                        }
+                        if (form.value.advanced_config) {
+                            formData.append('advanced_config', form.value.advanced_config);
+                        }
 
 
                         // CSRF Token
@@ -425,6 +1002,8 @@
                             form.value.stravaLink = '';
                             form.value.image = null;
                             previewImage.value = null;
+                            form.value.advanced_config = null;
+                            form.value.type = 'easy_run';
                             
                             // Reload page after delay to update history
                             setTimeout(() => {
@@ -456,7 +1035,11 @@
                     loginForm,
                     isLoggingIn,
                     loginError,
-                    handleLogin
+                    handleLogin,
+                    // Builder
+                    builderVisible, builderForm, openBuilder, closeBuilder, saveBuilderFromModal, builderSummary, builderTotalDistance,
+                    strengthOptions, addStrengthExercise, removeStrengthExercise,
+                    addIntervalSet, removeIntervalSet, addCustomSegment, removeCustomSegment
                 };
             }
         }).mount('#submit-app');

@@ -194,8 +194,16 @@ class StoreRegistrationAction
             // so we must enforce the "one active registration per category" rule here.
             $activeParticipantExists = Participant::where('race_category_id', $participant['category_id'])
                 ->where('id_card', $participant['id_card'])
-                ->whereHas('transaction', function ($query) {
+                ->whereHas('transaction', function ($query) use ($event) {
                     $query->whereIn('payment_status', ['pending', 'paid']);
+                    if ($event->hardcoded === 'latbarkamis') {
+                        if ($event->registration_open_at) {
+                            $query->where('created_at', '>=', $event->registration_open_at);
+                        }
+                        if ($event->registration_close_at) {
+                            $query->where('created_at', '<=', $event->registration_close_at);
+                        }
+                    }
                 })
                 ->exists();
 

@@ -16,6 +16,12 @@ class ChallengeActivity extends Model
         'strava_link',
         'status',
         'rejection_reason',
+        'type',
+        'advanced_config',
+    ];
+
+    protected $casts = [
+        'advanced_config' => 'array',
     ];
 
     public function user()

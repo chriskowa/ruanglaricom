@@ -105,6 +105,8 @@ class ChallengeController extends Controller
             'time_hour' => 'required|integer|min:1|max:12',
             'time_minute' => 'required|integer|min:0|max:59',
             'time_ampm' => 'required|in:AM,PM',
+            'type' => 'nullable|string',
+            'advanced_config' => 'nullable|string',
         ]);
 
         $user = Auth::user();
@@ -142,6 +144,11 @@ class ChallengeController extends Controller
 
         $imagePath = $request->file('image')->store('activity_proofs', 'public');
 
+        $advancedConfig = null;
+        if ($request->filled('advanced_config')) {
+            $advancedConfig = json_decode($request->advanced_config, true);
+        }
+
         ChallengeActivity::create([
             'user_id' => $user->id,
             'date' => $request->date,
@@ -151,6 +158,8 @@ class ChallengeController extends Controller
             'image_path' => $imagePath,
             'strava_link' => $request->strava_link,
             'status' => 'pending',
+            'type' => $request->type ?? 'easy_run',
+            'advanced_config' => $advancedConfig,
         ]);
 
         return response()->json([
