@@ -242,6 +242,13 @@
                                         <label for="email" class="form-label">EMAIL</label>
                                     </div>
                                 </div>
+                                <div class="form-input-group animate-fade-in delay-250">
+                                    <select id="gender" v-model="form.gender" required class="form-input">
+                                        <option value="male">Laki-laki</option>
+                                        <option value="female">Perempuan</option>
+                                    </select>
+                                    <label for="gender" class="form-label">GENDER</label>
+                                </div>
                                 
                                 <div class="form-input-group animate-fade-in delay-300">
                                     <input type="number" id="ticket" v-model="form.ticket_quantity" min="1" required class="form-input" placeholder=" ">
@@ -409,7 +416,7 @@
     const { createApp, ref, computed, onMounted } = Vue;
     createApp({
         setup() {
-            const form = ref({ name: '', email: '', phone: '', ticket_quantity: 1, addons: [] });
+            const form = ref({ name: '', email: '', phone: '', ticket_quantity: 1, addons: [], gender: 'male', emergency_contact_name: '', emergency_contact_number: '' });
             const isLoading = ref(false);
             const prices = { base: 15000 };
             
@@ -482,10 +489,13 @@
                     for (let i = 0; i < form.value.ticket_quantity; i++) {
                         participantsList.push({
                             name: form.value.name,
+                            gender: form.value.gender || 'male',
                             email: form.value.email,
                             phone: form.value.phone,
                             id_card: form.value.phone,
                             category_id: defaultCategoryId,
+                            emergency_contact_name: form.value.emergency_contact_name || form.value.name,
+                            emergency_contact_number: form.value.emergency_contact_number || form.value.phone,
                         });
                     }
 
