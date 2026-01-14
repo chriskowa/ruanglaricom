@@ -242,7 +242,7 @@
                                         <label for="email" class="form-label">EMAIL</label>
                                     </div>
                                 </div>
-                                <div class="form-input-group animate-fade-in delay-250">
+                                <div class="form-input-group animate-fade-in delay-250 pb-5">
                                     <select id="gender" v-model="form.gender" required class="form-input">
                                         <option value="male">Laki-laki</option>
                                         <option value="female">Perempuan</option>
