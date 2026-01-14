@@ -31,15 +31,29 @@ class StoreRegistrationAction
 
     public function execute(Request $request, Event $event): Transaction
     {
+        // Sanitize inputs
+        if ($request->has('pic_email')) {
+            $request->merge(['pic_email' => trim($request->pic_email)]);
+        }
+        if ($request->has('participants')) {
+            $participants = $request->participants;
+            foreach ($participants as &$p) {
+                if (isset($p['email'])) {
+                    $p['email'] = trim($p['email']);
+                }
+            }
+            $request->merge(['participants' => $participants]);
+        }
+
         // Validate input
         $validated = $request->validate([
             'pic_name' => 'required|string|max:255',
-            'pic_email' => 'required|email|max:255',
+            'pic_email' => 'required|email:rfc,dns|max:255',
             'pic_phone' => 'required|string|max:20',
             'participants' => 'required|array|min:1',
             'participants.*.name' => 'required|string|max:255',
             'participants.*.gender' => 'required|in:male,female',
-            'participants.*.email' => 'required|email|max:255',
+            'participants.*.email' => 'required|email:rfc,dns|max:255',
             'participants.*.phone' => 'required|string|max:20',
             'participants.*.id_card' => 'required|string|max:50',
             'participants.*.category_id' => 'required|exists:race_categories,id',

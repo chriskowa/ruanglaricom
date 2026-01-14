@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
     <script>
@@ -315,6 +316,11 @@
                                             @{{ formattedTotal }}
                                         </div>
                                     </div>
+                                    @if(env('RECAPTCHA_SITE_KEY'))
+                                    <div class="w-full md:w-auto">
+                                        <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
+                                    </div>
+                                    @endif
                                     <button type="submit" :disabled="isLoading" 
                                             class="group relative w-full md:w-auto bg-white hover:bg-sport-volt text-black font-black py-4 px-10 text-base uppercase tracking-widest transition-all duration-300 rounded-xl overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(204,255,0,0.3)]">
                                         <div class="relative z-10 flex items-center justify-center gap-3">
@@ -483,13 +489,27 @@
                         });
                     }
 
+                    let recaptchaToken = '';
+                    @if(env('RECAPTCHA_SITE_KEY'))
+                    if (window.grecaptcha && typeof grecaptcha.getResponse === 'function') {
+                        recaptchaToken = grecaptcha.getResponse();
+                    }
+                    @endif
+                    @if(env('RECAPTCHA_SECRET_KEY'))
+                    if (!recaptchaToken) {
+                        alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+                        isLoading.value = false;
+                        return;
+                    }
+                    @endif
                     const payload = {
                         pic_name: form.value.name,
                         pic_email: form.value.email,
                         pic_phone: form.value.phone,
                         payment_method: form.value.payment_method || 'midtrans',
                         addons: form.value.addons,
-                        participants: participantsList
+                        participants: participantsList,
+                        'g-recaptcha-response': recaptchaToken
                     };
                     const res = await fetch("{{ route('events.register.store', $event->slug) }}", {
                         method: 'POST',
@@ -531,6 +551,9 @@
                     alert('Terjadi kesalahan: ' + e.message);
                 } finally {
                     isLoading.value = false;
+                    if (window.grecaptcha && typeof grecaptcha.reset === 'function') {
+                        grecaptcha.reset();
+                    }
                 }
             };
             onMounted(() => {
