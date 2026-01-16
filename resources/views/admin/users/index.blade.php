@@ -7,7 +7,33 @@
 <div x-data="{ 
     showModal: false, 
     createModal: false,
-    selectedUser: null,
+    selectedUser: {
+        id: null,
+        name: '',
+        email: '',
+        username: '',
+        phone: '',
+        role: 'runner',
+        is_active: true,
+        gender: '',
+        date_of_birth: '',
+        address: '',
+        pb_5k: '',
+        pb_10k: '',
+        pb_hm: '',
+        pb_fm: '',
+        strava_url: '',
+        instagram_url: '',
+        facebook_url: '',
+        tiktok_url: '',
+        bank_name: '',
+        bank_account_name: '',
+        bank_account_number: '',
+        avatar: '',
+        banner: '',
+        wallet: { balance: 0, transactions: [] },
+        bank_account: null,
+    },
     
     // Create Form Data
     newUser: {
@@ -76,7 +102,33 @@
     },
     closeModal() {
         this.showModal = false;
-        this.selectedUser = null;
+        this.selectedUser = {
+            id: null,
+            name: '',
+            email: '',
+            username: '',
+            phone: '',
+            role: 'runner',
+            is_active: true,
+            gender: '',
+            date_of_birth: '',
+            address: '',
+            pb_5k: '',
+            pb_10k: '',
+            pb_hm: '',
+            pb_fm: '',
+            strava_url: '',
+            instagram_url: '',
+            facebook_url: '',
+            tiktok_url: '',
+            bank_name: '',
+            bank_account_name: '',
+            bank_account_number: '',
+            avatar: '',
+            banner: '',
+            wallet: { balance: 0, transactions: [] },
+            bank_account: null,
+        };
     },
     openCreateModal() {
         this.createModal = true;
