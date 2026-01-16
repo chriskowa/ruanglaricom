@@ -132,7 +132,7 @@
                     </div>
                     <h3 class="text-white font-bold mb-2">No Active Programs</h3>
                     <p class="text-slate-400 text-sm mb-6">Start your journey today with a personalized plan.</p>
-                    <a href="{{ route('programs.realistic') }}" class="inline-block px-6 py-3 rounded-xl bg-neon text-dark font-bold hover:bg-neon/90">Find a Program</a>
+                    <a href="{{ route('programs.index') }}" class="inline-block px-6 py-3 rounded-xl bg-neon text-dark font-bold hover:bg-neon/90">Find a Program</a>
                 </div>
             @endif
         </div>
