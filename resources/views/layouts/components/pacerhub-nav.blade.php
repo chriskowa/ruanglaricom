@@ -249,6 +249,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+    const userRole = {!! json_encode(auth()->check() ? auth()->user()->role : null) !!};
+    const supportsCartAndNotif = ['runner', 'coach', 'eo'].includes(userRole);
 
     // Dropdown Toggles
     const toggles = [
@@ -293,13 +295,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const notifList = document.getElementById('notification-list');
     
     function fetchNotifications() {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || !supportsCartAndNotif) return;
 
         fetch('{{ route("notifications.unread") }}', {
             headers: { 'Accept': 'application/json' }
         })
         .then(res => {
-            if (res.status === 401) return null; // Handle unauthorized
+            if (res.status === 401 || res.status === 403) return null;
             return res.json();
         })
         .then(data => {
@@ -349,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial fetch and interval (only when authenticated)
     if (notifList) {
-        if (isAuthenticated) {
+        if (isAuthenticated && supportsCartAndNotif) {
             fetchNotifications();
             setInterval(fetchNotifications, 60000); // Check every minute
         } else {
@@ -412,13 +414,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileCartBadge = document.getElementById('mobile-cart-count');
 
     function fetchCartCount() {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || !supportsCartAndNotif) return;
 
         fetch('{{ route("marketplace.cart.count") }}', {
             headers: { 'Accept': 'application/json' }
         })
         .then(res => {
-            if (res.status === 401) return null;
+            if (res.status === 401 || res.status === 403) return null;
             return res.json();
         })
         .then(data => {
@@ -441,10 +443,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(err => console.error('Cart error:', err));
     }
 
-    if (cartBadge || mobileCartBadge) {
+    if ((cartBadge || mobileCartBadge) && supportsCartAndNotif) {
         fetchCartCount();
-        // Update every time page is focused or periodically
         window.addEventListener('focus', fetchCartCount);
+    } else {
+        cartBadge?.classList.add('hidden');
+        mobileCartBadge?.classList.add('hidden');
     }
 
     // Mobile Menu Toggle

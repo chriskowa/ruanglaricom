@@ -20,10 +20,37 @@
     },
 
     openModal(user) {
-        // Clone user to avoid reference issues
         this.selectedUser = JSON.parse(JSON.stringify(user));
+
+        if (!this.selectedUser) {
+            return;
+        }
+
+        const nullableFields = [
+            'username',
+            'email',
+            'phone',
+            'gender',
+            'date_of_birth',
+            'address',
+            'pb_5k',
+            'pb_10k',
+            'pb_hm',
+            'pb_fm',
+            'strava_url',
+            'instagram_url',
+            'facebook_url',
+            'tiktok_url',
+            'avatar',
+            'banner'
+        ];
+
+        nullableFields.forEach(field => {
+            if (this.selectedUser[field] === null || this.selectedUser[field] === undefined) {
+                this.selectedUser[field] = '';
+            }
+        });
         
-        // Fix storage path for avatar and banner
         if (this.selectedUser.avatar) {
             this.selectedUser.avatar = this.selectedUser.avatar.replace(/^\/?storage\//, '');
         }
@@ -31,20 +58,18 @@
             this.selectedUser.banner = this.selectedUser.banner.replace(/^\/?storage\//, '');
         }
         
-        // Ensure bank_account exists
         let bank = this.selectedUser.bank_account || {};
         
-        // Map nested bank fields to top-level properties for the form
         this.selectedUser.bank_name = bank.bank_name || '';
         this.selectedUser.bank_account_name = bank.account_name || '';
         this.selectedUser.bank_account_number = bank.account_number || '';
+
+        this.selectedUser.wallet = this.selectedUser.wallet || { balance: 0, transactions: [] };
         
-        // Format date for input
         if (this.selectedUser.date_of_birth) {
             this.selectedUser.date_of_birth = this.selectedUser.date_of_birth.split('T')[0];
         }
         
-        // Ensure boolean for checkbox
         this.selectedUser.is_active = !!this.selectedUser.is_active;
 
         this.showModal = true;
