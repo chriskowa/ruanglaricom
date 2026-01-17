@@ -32,7 +32,7 @@
 @endpush
 
 @section('content')
-    <div id="submit-app" class="relative z-10 w-full min-h-screen pb-24 pt-20 px-4" v-cloak>
+    <div id="submit-app" class="relative z-[80] w-full min-h-screen pb-24 pt-20 px-4" v-cloak>
         
         @guest
         <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
