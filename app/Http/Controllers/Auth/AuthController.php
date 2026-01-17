@@ -25,7 +25,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|string',
             'password' => 'required',
             'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
                 $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
@@ -40,7 +40,14 @@ class AuthController extends Controller
             }],
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $loginValue = $request->input('email');
+
+        $credentialsField = filter_var($loginValue, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $credentialsField => $loginValue,
+            'password' => $request->input('password'),
+        ];
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
