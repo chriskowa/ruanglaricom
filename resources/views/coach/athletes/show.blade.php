@@ -261,7 +261,7 @@
                         </div>
 
                         <!-- Edit Button -->
-                        <div class="mb-4">
+                        <div class="mb-4" v-if="!selectedSession.extendedProps.is_strava">
                             <button @click="openForm(null, selectedSession)" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition border border-slate-700">
                                 <i class="fa-solid fa-pen"></i> @{{ selectedSession.extendedProps.is_custom ? 'Edit Custom Workout' : 'Customize / Edit Workout' }}
                             </button>
@@ -316,8 +316,75 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-else class="mb-6 border-t border-slate-700 pt-4 text-center text-slate-500 text-xs italic">
+                        <div v-else-if="!selectedSession.extendedProps.is_strava" class="mb-6 border-t border-slate-700 pt-4 text-center text-slate-500 text-xs italic">
                             Athlete has not completed this session yet.
+                        </div>
+
+                        <div v-if="stravaDetailsLoading" class="mb-6 border-t border-slate-700 pt-4">
+                            <div class="text-xs text-slate-400">Fetching Strava details…</div>
+                        </div>
+                        <div v-else-if="stravaDetailsError" class="mb-6 border-t border-slate-700 pt-4">
+                            <div class="text-xs text-red-300">@{{ stravaDetailsError }}</div>
+                        </div>
+                        <div v-else-if="stravaMetrics" class="mb-6 border-t border-slate-700 pt-4">
+                            <h4 class="text-[#FC4C02] font-black text-xs uppercase mb-3">Strava Details</h4>
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <div class="bg-slate-800 p-2 rounded">
+                                    <div class="text-[10px] text-slate-500">Distance</div>
+                                    <div class="font-black text-white">@{{ stravaMetrics.distance_m ? (stravaMetrics.distance_m / 1000).toFixed(2) : '-' }} km</div>
+                                </div>
+                                <div class="bg-slate-800 p-2 rounded">
+                                    <div class="text-[10px] text-slate-500">Avg Pace</div>
+                                    <div class="font-black text-neon">@{{ stravaMetrics.pace ? (stravaMetrics.pace + ' /km') : '-' }}</div>
+                                </div>
+                                <div class="bg-slate-800 p-2 rounded">
+                                    <div class="text-[10px] text-slate-500">Heart Rate</div>
+                                    <div class="font-black text-white">@{{ stravaMetrics.average_heartrate ? Math.round(stravaMetrics.average_heartrate) : '-' }} <span class="text-slate-500 text-[10px]">avg</span></div>
+                                    <div class="text-[10px] text-slate-500">max @{{ stravaMetrics.max_heartrate ? Math.round(stravaMetrics.max_heartrate) : '-' }}</div>
+                                </div>
+                                <div class="bg-slate-800 p-2 rounded">
+                                    <div class="text-[10px] text-slate-500">Cadence</div>
+                                    <div class="font-black text-white">@{{ stravaMetrics.average_cadence ? Math.round(stravaMetrics.average_cadence) : '-' }} <span class="text-slate-500 text-[10px]">spm</span></div>
+                                </div>
+                            </div>
+
+                            <div v-if="stravaStreams && stravaStreams.time && stravaStreams.time.length > 0" class="bg-slate-900/30 border border-slate-700 rounded-xl p-2 mb-3 h-44 relative group">
+                                <button @click="showStravaGraphModal = true" class="absolute top-2 right-2 p-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition z-10" title="Expand Chart">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                    </svg>
+                                </button>
+                                <canvas id="coachStravaMetricsChart" class="w-full h-full"></canvas>
+                            </div>
+
+                            <div v-if="stravaSplits.length > 0" class="mb-3">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Splits (per km)</div>
+                                <div class="max-h-40 overflow-y-auto space-y-1">
+                                    <div v-for="s in stravaSplits" :key="s.split" class="flex justify-between items-center text-xs p-2 rounded-xl bg-slate-800 border border-slate-700">
+                                        <div class="text-slate-300 font-bold">KM @{{ s.split || '-' }}</div>
+                                        <div class="text-right">
+                                            <div class="text-white font-mono">@{{ s.pace || '-' }}</div>
+                                            <div class="text-[10px] text-slate-500">@{{ formatSeconds(s.moving_time_s) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="stravaLaps.length > 0" class="mb-1">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Laps</div>
+                                <div class="max-h-40 overflow-y-auto space-y-1">
+                                    <div v-for="(l, idx) in stravaLaps" :key="idx" class="flex justify-between items-center text-xs p-2 rounded-xl bg-slate-800 border border-slate-700">
+                                        <div class="min-w-0">
+                                            <div class="text-slate-300 font-bold truncate">@{{ l.name || ('Lap ' + (idx + 1)) }}</div>
+                                            <div class="text-[10px] text-slate-500">@{{ l.distance_m ? (Math.round(l.distance_m) + ' m') : '-' }} • @{{ formatSeconds(l.moving_time_s) }}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-white font-mono">@{{ l.pace || '-' }}</div>
+                                            <div class="text-[10px] text-slate-500">@{{ l.average_heartrate ? (Math.round(l.average_heartrate) + ' bpm') : '' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Coach Feedback Form -->
@@ -662,6 +729,7 @@
                                 type="text" 
                                 v-model="eventSearchQuery"
                                 @focus="showEventDropdown = true"
+                                @blur="setTimeout(() => showEventDropdown = false, 200)"
                                 placeholder="Type to search event..."
                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-yellow-500 focus:outline-none pl-8"
                             >
@@ -733,12 +801,29 @@
             </div>
         </div>
     </div>
+    <!-- Strava Graph Modal -->
+    <div v-if="showStravaGraphModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div class="w-full max-w-5xl h-[80vh] bg-slate-900 border border-slate-700 rounded-2xl p-6 relative flex flex-col shadow-2xl shadow-neon/10">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-black text-[#FC4C02] italic uppercase flex items-center gap-2">
+                    <svg role="img" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                    Strava Analysis
+                </h3>
+                <button @click="showStravaGraphModal = false" class="text-slate-400 hover:text-white bg-slate-800 p-2 rounded-lg transition">✕</button>
+            </div>
+            <div class="flex-grow relative bg-slate-900/50 rounded-xl border border-slate-800 p-4">
+                <canvas id="coachStravaMetricsChartFullscreen" class="w-full h-full"></canvas>
+            </div>
+        </div>
+    </div>
+
 </main>
 @endsection
 
 @push('scripts')
 @include('layouts.components.advanced-builder-utils')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script src="{{ asset('vendor/chart-js/chart.bundle.min.js') }}"></script>
 <script>
 const { createApp, ref, reactive, onMounted, watch, computed } = Vue;
 
@@ -754,6 +839,15 @@ createApp({
             coach_rating: 0,
             coach_feedback: ''
         });
+        const coachUrl = @json(url('/coach'));
+        const enrollmentId = @json($enrollment->id);
+        const stravaDetailsLoading = ref(false);
+        const stravaDetailsError = ref('');
+        const stravaMetrics = ref(null);
+        const stravaSplits = ref([]);
+        const stravaLaps = ref([]);
+        const stravaStreams = ref(null);
+        let stravaChart = null;
 
         // Weekly Target State
         const showWeeklyTargetModal = ref(false);
@@ -1160,6 +1254,8 @@ createApp({
         const loadingEvents = ref(false);
         const eventSearchQuery = ref('');
         const showEventDropdown = ref(false);
+        const showStravaGraphModal = ref(false);
+        let stravaFullscreenChart = null;
         
         const filteredEvents = computed(() => {
             if (!eventSearchQuery.value) return ruangLariEvents.value;
@@ -1223,6 +1319,15 @@ createApp({
         watch(showRaceModal, (val) => {
             if (val) {
                 fetchRuangLariEvents();
+            }
+        });
+
+        watch(showStravaGraphModal, (val) => {
+            if (val && stravaStreams.value) {
+                setTimeout(() => {
+                    if (stravaFullscreenChart) stravaFullscreenChart.destroy();
+                    stravaFullscreenChart = renderChartToCanvas(stravaStreams.value, 'coachStravaMetricsChartFullscreen');
+                }, 100);
             }
         });
 
@@ -1338,6 +1443,242 @@ createApp({
             return 'bg-slate-700 text-slate-400';
         };
 
+        const formatSeconds = (s) => {
+            const sec = parseInt(s || 0, 10);
+            if (!sec || sec < 0) return '-';
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const ss = sec % 60;
+            if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+            return `${m}:${String(ss).padStart(2,'0')}`;
+        };
+
+        const destroyStravaChart = () => {
+            try {
+                if (stravaChart) stravaChart.destroy();
+                if (stravaFullscreenChart) stravaFullscreenChart.destroy();
+            } catch (e) {}
+            stravaChart = null;
+            stravaFullscreenChart = null;
+        };
+
+        const toPaceSecPerKm = (mps) => {
+            const v = parseFloat(mps || 0);
+            if (!v || v <= 0) return null;
+            return 1000 / v;
+        };
+
+        const formatPaceFromSec = (secPerKm) => {
+            const s = parseFloat(secPerKm || 0);
+            if (!s || s <= 0) return '-';
+            const mins = Math.floor(s / 60);
+            const secs = Math.round(s - (mins * 60));
+            return `${mins}:${String(secs).padStart(2,'0')}`;
+        };
+
+        const renderChartToCanvas = (streams, canvasId) => {
+            if (!streams || !streams.time || !window.Chart) return null;
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+
+            const time = Array.isArray(streams.time) ? streams.time : [];
+            const hr = Array.isArray(streams.heartrate) ? streams.heartrate : [];
+            const cad = Array.isArray(streams.cadence) ? streams.cadence : [];
+            const vel = Array.isArray(streams.velocity_smooth) ? streams.velocity_smooth : [];
+            const watts = Array.isArray(streams.watts) ? streams.watts : [];
+
+            const n = time.length;
+            if (n === 0) return null;
+
+            const maxPoints = 320;
+            const step = n > maxPoints ? Math.ceil(n / maxPoints) : 1;
+
+            const labels = [];
+            const pace = [];
+            const hrS = [];
+            const cadS = [];
+            const wattsS = [];
+
+            for (let i = 0; i < n; i += step) {
+                labels.push(formatSeconds(time[i]));
+                pace.push(toPaceSecPerKm(vel[i]));
+                hrS.push(typeof hr[i] === 'number' ? hr[i] : (hr[i] ? parseFloat(hr[i]) : null));
+                cadS.push(typeof cad[i] === 'number' ? cad[i] : (cad[i] ? parseFloat(cad[i]) : null));
+                wattsS.push(typeof watts[i] === 'number' ? watts[i] : (watts[i] ? parseFloat(watts[i]) : null));
+            }
+
+            const datasets = [
+                {
+                    label: 'Pace',
+                    data: pace,
+                    borderColor: '#06B6D4',
+                    backgroundColor: 'rgba(6,182,212,0.08)',
+                    yAxisID: 'yPace',
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    spanGaps: true,
+                },
+            ];
+
+            if (hrS.some(v => v !== null && !Number.isNaN(v))) {
+                datasets.push({
+                    label: 'Heart Rate',
+                    data: hrS,
+                    borderColor: '#EF4444',
+                    backgroundColor: 'rgba(239,68,68,0.08)',
+                    yAxisID: 'yMetric',
+                    pointRadius: 0,
+                    borderWidth: 1.5,
+                    spanGaps: true,
+                });
+            }
+            if (cadS.some(v => v !== null && !Number.isNaN(v))) {
+                datasets.push({
+                    label: 'Cadence',
+                    data: cadS,
+                    borderColor: '#A855F7',
+                    backgroundColor: 'rgba(168,85,247,0.08)',
+                    yAxisID: 'yMetric',
+                    pointRadius: 0,
+                    borderWidth: 1.5,
+                    spanGaps: true,
+                });
+            }
+            if (wattsS.some(v => v !== null && !Number.isNaN(v))) {
+                datasets.push({
+                    label: 'Power',
+                    data: wattsS,
+                    borderColor: '#22C55E',
+                    backgroundColor: 'rgba(34,197,94,0.08)',
+                    yAxisID: 'yMetric',
+                    pointRadius: 0,
+                    borderWidth: 1.5,
+                    spanGaps: true,
+                });
+            }
+
+            return new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#CBD5E1', boxWidth: 10 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const ds = context.dataset;
+                                    const val = context.parsed.y;
+                                    if (ds.label === 'Pace') return ` Pace: ${formatPaceFromSec(val)} /km`;
+                                    if (ds.label === 'Heart Rate') return ` HR: ${Math.round(val)} bpm`;
+                                    if (ds.label === 'Cadence') return ` Cadence: ${Math.round(val)} spm`;
+                                    if (ds.label === 'Power') return ` Power: ${Math.round(val)} w`;
+                                    return ` ${ds.label}: ${val}`;
+                                }
+                            }
+                        }
+                    },
+                    elements: { line: { tension: 0.25 } },
+                    scales: {
+                        x: {
+                            ticks: { color: '#64748B', maxTicksLimit: 6 },
+                            grid: { color: 'rgba(51,65,85,0.35)' }
+                        },
+                        yPace: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: {
+                                color: '#94A3B8',
+                                callback: function (v) { return formatPaceFromSec(v); }
+                            },
+                            grid: { color: 'rgba(51,65,85,0.35)' }
+                        },
+                        yMetric: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: { color: '#94A3B8' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        };
+
+        const renderStravaChart = (streams) => {
+            if (stravaChart) stravaChart.destroy();
+            stravaChart = renderChartToCanvas(streams, 'coachStravaMetricsChart');
+        };
+
+        const extractStravaActivityId = (url) => {
+            const m = String(url || '').match(/strava\.com\/activities\/(\d+)/i);
+            return m ? parseInt(m[1], 10) : null;
+        };
+
+        const resetStravaState = () => {
+            stravaDetailsLoading.value = false;
+            stravaDetailsError.value = '';
+            stravaMetrics.value = null;
+            stravaSplits.value = [];
+            stravaLaps.value = [];
+            stravaStreams.value = null;
+            destroyStravaChart();
+        };
+
+        const loadStravaForActivity = async (activityId) => {
+            const id = parseInt(activityId || 0, 10);
+            if (!id) return;
+
+            resetStravaState();
+            stravaDetailsLoading.value = true;
+            try {
+                const detailRes = await fetch(`${coachUrl}/athletes/${enrollmentId}/strava/activities/${id}/details`, { headers: { 'Accept': 'application/json' } });
+                const detailJson = await detailRes.json();
+                if (detailRes.ok && detailJson && detailJson.success) {
+                    stravaMetrics.value = detailJson.activity || null;
+                    stravaSplits.value = Array.isArray(detailJson.activity?.splits_metric) ? detailJson.activity.splits_metric : [];
+                    stravaLaps.value = Array.isArray(detailJson.activity?.laps) ? detailJson.activity.laps : [];
+                } else {
+                    stravaDetailsError.value = detailJson?.message || 'Gagal mengambil detail Strava.';
+                    return;
+                }
+
+                const streamsRes = await fetch(`${coachUrl}/athletes/${enrollmentId}/strava/activities/${id}/streams`, { headers: { 'Accept': 'application/json' } });
+                const streamsJson = await streamsRes.json();
+                if (streamsRes.ok && streamsJson && streamsJson.success) {
+                    stravaStreams.value = streamsJson.streams || null;
+                    setTimeout(() => renderStravaChart(stravaStreams.value), 50);
+                }
+            } catch (e) {
+                stravaDetailsError.value = 'Gagal mengambil detail Strava.';
+            } finally {
+                stravaDetailsLoading.value = false;
+            }
+        };
+
+        watch(showStravaGraphModal, (val) => {
+            if (val && stravaStreams.value) {
+                setTimeout(() => {
+                    if (stravaFullscreenChart) stravaFullscreenChart.destroy();
+                    stravaFullscreenChart = renderChartToCanvas(stravaStreams.value, 'coachStravaMetricsChartFullscreen');
+                }, 100);
+            } else {
+                if (stravaFullscreenChart) {
+                    stravaFullscreenChart.destroy();
+                    stravaFullscreenChart = null;
+                }
+            }
+        });
+
         const formatDate = (d) => {
             return new Date(d).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
         };
@@ -1375,6 +1716,24 @@ createApp({
             }
         };
 
+        watch(selectedSession, (ev) => {
+            resetStravaState();
+            if (!ev || !ev.extendedProps) {
+                return;
+            }
+
+            const props = ev.extendedProps || {};
+            let id = null;
+            if (props.is_strava && props.strava_activity_id) {
+                id = props.strava_activity_id;
+            } else if (props.tracking && props.tracking.strava_link) {
+                id = extractStravaActivityId(props.tracking.strava_link);
+            }
+            if (id) {
+                loadStravaForActivity(id);
+            }
+        });
+
         onMounted(() => {
             const el = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(el, {
@@ -1399,16 +1758,26 @@ createApp({
                 height: 'auto'
             });
             calendar.render();
+
+            setInterval(() => {
+                try {
+                    if (calendar) {
+                        calendar.refetchEvents();
+                    }
+                } catch (e) {}
+            }, 60_000);
         });
 
         return { 
             trainingProfile, profileTab, formatPace,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
+            stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps, stravaStreams, formatSeconds,
             showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance, deleteCustomWorkout,
             // Advanced Builder
-            builderVisible, builderForm, openBuilder, submitBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise
+            builderVisible, builderForm, openBuilder, submitBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise,
+            showStravaGraphModal
         };
     }
 }).mount('#coach-monitor-app');

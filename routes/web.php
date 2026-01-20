@@ -7,7 +7,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function (StravaClubService $stravaService) {
-    $leaderboard = $stravaService->getLeaderboard();
+    $homepageContent = \App\Models\HomepageContent::first();
+    $leaderboard = null;
+    $leaderboardCacheKey = 'home.leaderboard.last';
+    try {
+        $leaderboard = $stravaService->getLeaderboard();
+    } catch (\Throwable $e) {
+        $leaderboard = null;
+    }
+
+    $hasLeaderboard =
+        is_array($leaderboard)
+        && array_key_exists('fastest', $leaderboard)
+        && array_key_exists('distance', $leaderboard)
+        && array_key_exists('elevation', $leaderboard)
+        && ($leaderboard['fastest'] || $leaderboard['distance'] || $leaderboard['elevation']);
+
+    if ($hasLeaderboard) {
+        Illuminate\Support\Facades\Cache::forever($leaderboardCacheKey, $leaderboard);
+        Illuminate\Support\Facades\Cache::forever('home.leaderboard.last_at', now()->toISOString());
+    } else {
+        $leaderboard = Illuminate\Support\Facades\Cache::get($leaderboardCacheKey);
+    }
 
     $topRunner = \App\Models\User::where('role', 'runner')
         ->withCount(['followers', 'posts'])
@@ -26,7 +47,7 @@ Route::get('/', function (StravaClubService $stravaService) {
 
     $topCoach = $topCoachData ? \App\Models\User::find($topCoachData->coach_id) : null;
 
-    return view('home.index', compact('leaderboard', 'topRunner', 'topPacer', 'topCoach', 'topCoachData'));
+    return view('home.index', compact('homepageContent', 'leaderboard', 'topRunner', 'topPacer', 'topCoach', 'topCoachData'));
 })->name('home');
 
 // Challenge: 40 Days Challenge - reuse realistic program design view with challenge mode
@@ -108,9 +129,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/challenge/sync-strava', function () {
         return redirect()->route('admin.challenge.index');
     });
+
+    // Strava Config
+    Route::get('/strava/config', [App\Http\Controllers\Admin\StravaConfigController::class, 'index'])->name('strava.config');
+    Route::post('/strava/config', [App\Http\Controllers\Admin\StravaConfigController::class, 'update'])->name('strava.update');
+
+    // Pages Management
+    Route::resource('pages', App\Http\Controllers\Admin\PageController::class);
+    
+    // Homepage Content Management
+    Route::get('/homepage/content', [App\Http\Controllers\Admin\HomepageContentController::class, 'index'])->name('homepage.content');
+    Route::post('/homepage/content', [App\Http\Controllers\Admin\HomepageContentController::class, 'update'])->name('homepage.content.update');
 });
 
 // Public routes
+Route::get('/calculator', [App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
 Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');
 Route::get('/calendar/events-proxy', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.events.proxy');
 Route::get('/calendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
@@ -190,9 +223,16 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
     ->where('slug', '[a-z0-9\-]+')
     ->name('api.events.results');
 
-// Public event routes
+// Public event routes (Kalender Lari)
+Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
+Route::get('/event-lari/{slug}', [App\Http\Controllers\PublicRunningEventController::class, 'show'])->name('running-event.detail');
+
+// Legacy public event routes (keep if needed or redirect)
 Route::get('/events/{slug}', [App\Http\Controllers\PublicEventController::class, 'show'])->name('events.show');
-Route::get('/events', [App\Http\Controllers\PublicEventController::class, 'index'])->name('events.index');
+Route::get('/legacy-events', [App\Http\Controllers\PublicEventController::class, 'index'])->name('legacy.events.index'); // Renamed old one if exists
+
+
+
 Route::get('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
 Route::post('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:5,1')->name('events.register.store');
 Route::post('/events/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
@@ -202,6 +242,9 @@ Route::post('/events/{slug}/register/quota', [App\Http\Controllers\EventRegistra
 Route::get('/event-organizer', function () {
     return view('eo.landing');
 })->name('eo.landing');
+
+// Public Pages
+Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
 
 // Public API: Upcoming events for home page
 Route::get('/api/events/upcoming', function () {
@@ -232,6 +275,39 @@ Route::get('/api/events/upcoming', function () {
     }
 })->name('api.events.upcoming');
 
+// Public API: Latest blog articles for home page
+Route::get('/api/blog/latest', function () {
+    try {
+        if (! Illuminate\Support\Facades\Schema::hasTable('articles')) {
+            return response()->json([]);
+        }
+
+        return \App\Models\Article::published()
+            ->orderByRaw('COALESCE(published_at, created_at) DESC')
+            ->limit(3)
+            ->get()
+            ->map(function ($a) {
+                $img = $a->featured_image;
+                if ($img && ! str_starts_with($img, 'http')) {
+                    $img = asset('storage/' . ltrim($img, '/'));
+                }
+
+                $dt = $a->published_at ?: $a->created_at;
+
+                return [
+                    'title' => $a->title,
+                    'slug' => $a->slug,
+                    'excerpt' => $a->excerpt,
+                    'date' => optional($dt)->format('Y-m-d'),
+                    'image' => $img,
+                    'url' => $a->canonical_url ?: '#',
+                ];
+            });
+    } catch (\Throwable $e) {
+        return response()->json([]);
+    }
+})->name('api.blog.latest');
+
 // Public API: Cyberpunk Leaderboard (40days)
 Route::get('/api/leaderboard/40days', [\App\Http\Controllers\LeaderboardController::class, 'index'])
     ->name('api.leaderboard.40days');
@@ -259,6 +335,9 @@ Route::middleware('guest')->group(function () {
     // Google Auth
     Route::get('auth/google', [App\Http\Controllers\Auth\AuthController::class, 'redirectToGoogle'])->name('auth.google');
     Route::get('auth/google/callback', [App\Http\Controllers\Auth\AuthController::class, 'handleGoogleCallback']);
+
+    // Public Pages
+    Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
 });
 
 Route::middleware('auth')->group(function () {
@@ -305,7 +384,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/feed/{post}/comment', [App\Http\Controllers\FeedController::class, 'comment'])->name('feed.comment');
 
     // Notification routes
-    Route::middleware(['role:runner|coach|eo'])->group(function () {
+    Route::middleware(['role:runner|coach|eo|admin'])->group(function () {
         Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
         Route::get('/api/notifications/unread', [App\Http\Controllers\NotificationController::class, 'getUnread'])->name('notifications.unread');
         Route::post('/notifications/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
@@ -315,6 +394,11 @@ Route::middleware('auth')->group(function () {
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+
+        // Event Calendar Management
+        Route::get('events/import', [App\Http\Controllers\Admin\RunningEventController::class, 'import'])->name('events.import');
+        Route::post('events/import', [App\Http\Controllers\Admin\RunningEventController::class, 'storeImport'])->name('events.import.store');
+        Route::resource('events', App\Http\Controllers\Admin\RunningEventController::class);
 
         // User Management
         Route::resource('users', App\Http\Controllers\Admin\UserController::class);
@@ -327,16 +411,49 @@ Route::middleware('auth')->group(function () {
         Route::resource('marketplace/categories', App\Http\Controllers\Admin\MarketplaceCategoryController::class)->names('marketplace.categories');
         Route::resource('marketplace/brands', App\Http\Controllers\Admin\MarketplaceBrandController::class)->names('marketplace.brands');
 
+        // Page Management
+        Route::resource('pages', App\Http\Controllers\Admin\PageController::class);
+
+        // Menu Management
+        Route::resource('menus', App\Http\Controllers\Admin\MenuController::class)->except(['show', 'create']);
+        Route::post('menus/{menu}/items', [App\Http\Controllers\Admin\MenuController::class, 'addItem'])->name('menus.items.store');
+        Route::put('menus/items/{item}', [App\Http\Controllers\Admin\MenuController::class, 'updateItem'])->name('menus.items.update');
+        Route::delete('menus/items/{item}', [App\Http\Controllers\Admin\MenuController::class, 'deleteItem'])->name('menus.items.destroy');
+        Route::post('menus/{menu}/reorder', [App\Http\Controllers\Admin\MenuController::class, 'reorder'])->name('menus.reorder');
+
+        // Blog Management
+        Route::resource('blog/articles', App\Http\Controllers\Admin\Blog\ArticleController::class)->names('blog.articles');
+        Route::resource('blog/categories', App\Http\Controllers\Admin\Blog\CategoryController::class)->names('blog.categories');
+        Route::post('blog/images/upload', [App\Http\Controllers\Admin\Blog\ImageController::class, 'upload'])->name('blog.images.upload');
+        Route::get('blog/import', [App\Http\Controllers\Admin\Blog\ImportController::class, 'index'])->name('blog.import');
+        Route::post('blog/import', [App\Http\Controllers\Admin\Blog\ImportController::class, 'store'])->name('blog.import.store');
+        
+        // Media Library
+        Route::get('blog/media', [App\Http\Controllers\Admin\Blog\MediaController::class, 'index'])->name('blog.media.index');
+        Route::post('blog/media', [App\Http\Controllers\Admin\Blog\MediaController::class, 'store'])->name('blog.media.store');
+        Route::delete('blog/media/{media}', [App\Http\Controllers\Admin\Blog\MediaController::class, 'destroy'])->name('blog.media.destroy');
+
         Route::post('/leaderboard/sync', function () {
             Illuminate\Support\Facades\Artisan::call('leaderboard:sync');
 
             return response()->json(['ok' => true]);
         })->name('leaderboard.sync');
+
+        // Transaction Management
+        Route::get('transactions', [App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('transactions.index');
+        Route::post('transactions/withdrawals/{withdrawal}/approve', [App\Http\Controllers\Admin\TransactionController::class, 'approveWithdrawal'])->name('transactions.withdrawals.approve');
+        Route::post('transactions/withdrawals/{withdrawal}/reject', [App\Http\Controllers\Admin\TransactionController::class, 'rejectWithdrawal'])->name('transactions.withdrawals.reject');
     });
 
     // Runner routes
     Route::middleware('role:runner')->prefix('runner')->name('runner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/strava/connect', [App\Http\Controllers\Runner\StravaController::class, 'connect'])->name('strava.connect');
+        Route::get('/strava/callback', [App\Http\Controllers\Runner\StravaController::class, 'callback'])->name('strava.callback');
+        Route::post('/strava/sync', [App\Http\Controllers\Runner\StravaController::class, 'sync'])->name('strava.sync');
+        Route::get('/strava/activities/{stravaActivityId}/details', [App\Http\Controllers\Runner\StravaController::class, 'activityDetails'])->name('strava.activities.details');
+        Route::get('/strava/activities/{stravaActivityId}/streams', [App\Http\Controllers\Runner\StravaController::class, 'activityStreams'])->name('strava.activities.streams');
         // Challenge Programs listing (filtered)
         Route::get('/programs/challenges', function (Illuminate\Http\Request $request) {
             $request->merge(['challenge' => 1]);
@@ -432,6 +549,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/athletes', [App\Http\Controllers\Coach\AthleteController::class, 'index'])->name('athletes.index');
         Route::get('/athletes/{enrollment}', [App\Http\Controllers\Coach\AthleteController::class, 'show'])->name('athletes.show');
         Route::get('/athletes/{enrollment}/events', [App\Http\Controllers\Coach\AthleteController::class, 'calendarEvents'])->name('athletes.events');
+        Route::get('/athletes/{enrollment}/strava/activities/{stravaActivityId}/details', [App\Http\Controllers\Coach\AthleteController::class, 'stravaActivityDetails'])->name('athletes.strava.activities.details');
+        Route::get('/athletes/{enrollment}/strava/activities/{stravaActivityId}/streams', [App\Http\Controllers\Coach\AthleteController::class, 'stravaActivityStreams'])->name('athletes.strava.activities.streams');
         Route::post('/athletes/{enrollment}/feedback', [App\Http\Controllers\Coach\AthleteController::class, 'storeFeedback'])->name('athletes.feedback');
         Route::post('/athletes/{enrollment}/race', [App\Http\Controllers\Coach\AthleteController::class, 'storeRace'])->name('athletes.race.store');
         Route::post('/athletes/{enrollment}/workout', [App\Http\Controllers\Coach\AthleteController::class, 'storeWorkout'])->name('athletes.workout.store');

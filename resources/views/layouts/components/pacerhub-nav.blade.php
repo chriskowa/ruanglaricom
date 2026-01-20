@@ -1,4 +1,13 @@
 <nav class="border-b border-slate-800 backdrop-blur-md fixed w-full z-40 bg-dark/80">
+    @php
+        $headerMenu = \App\Models\Menu::where('location', 'header')
+            ->with(['items' => function($q) {
+                $q->whereNull('parent_id')
+                  ->with('children')
+                  ->orderBy('order');
+            }])
+            ->first();
+    @endphp
     <div class="max-w-7xl mx-auto p-2">
         <div class="flex items-center justify-between h-20">
             <!-- Left Side: Logo -->
@@ -10,51 +19,46 @@
             </div>
        
             <div class="flex-1 hidden md:flex items-center justify-center gap-1">
-                <a href="{{ route('marketplace.index') }}" class="px-3 py-2 text-sm font-bold {{ request()->routeIs('marketplace.*') ? 'text-neon' : 'text-slate-300 hover:text-neon' }} transition-colors">Marketplace</a>
-                <a href="{{ route('programs.index') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Programs</a>
-                <a href="{{ route('coaches.index') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Coach</a>
-                <a href="{{ route('calendar.public') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Calendar</a>
-                
-                <!-- Pacers Dropdown -->
-                <div class="relative">
-                    <button id="nav-pacers-btn" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none">
-                        Pacers
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                    <div id="nav-pacers-dropdown" class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl hidden transform transition-all origin-top-left z-50">
-                        <div class="p-1 space-y-1">
-                            <a href="{{ route('pacer.index') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                                Find Pacers
+                @if($headerMenu)
+                    @foreach($headerMenu->items as $item)
+                        @if($item->children->count() > 0)
+                            <!-- Dropdown for {{ $item->title }} -->
+                            <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                                <button id="nav-{{ Str::slug($item->title) }}-btn" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none" :class="{ 'text-neon': open }">
+                                    {{ $item->title }}
+                                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div x-show="open" 
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                     class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl origin-top-left z-50">
+                                    <div class="p-1 space-y-1">
+                                        @foreach($item->children as $child)
+                                            <a href="{{ url($child->url) }}" target="{{ $child->target }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+                                                {{ $child->title }}
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <!-- Single Link {{ $item->title }} -->
+                            <a href="{{ url($item->url) }}" target="{{ $item->target }}" class="px-3 py-2 text-sm font-bold {{ request()->is(trim($item->url, '/') . '*') ? 'text-neon' : 'text-slate-300 hover:text-neon' }} transition-colors">
+                                {{ $item->title }}
                             </a>
-                            <a href="{{ route('pacer.register') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                                Register Pacer
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="relative">
-                    <button id="nav-challenge-btn" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none">
-                        Challenge
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                    <div id="nav-challenge-dropdown" class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl hidden transform transition-all origin-top-left z-50">
-                        <div class="p-1 space-y-1">
-                            <a href="{{ route('challenge.40days') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                                40 Days Running Challenge
-                            </a>
-                            <!--<a href="{{ route('leaderboard.cyberpunk') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                                Leaderboard
-                            </a>-->
-                            <a href="{{ route('challenge.index') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                                Leaderboard 40days
-                            </a>
-                            <a href="{{ route('challenge.create') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
-                                Lapor Aktivitas
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                        @endif
+                    @endforeach
+                @else
+                    <!-- Fallback if no menu found -->
+                    <a href="{{ route('marketplace.index') }}" class="px-3 py-2 text-sm font-bold {{ request()->routeIs('marketplace.*') ? 'text-neon' : 'text-slate-300 hover:text-neon' }} transition-colors">Marketplace</a>
+                    <a href="{{ route('programs.index') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Programs</a>
+                    <a href="{{ route('coaches.index') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Coach</a>
+                    <a href="{{ route('calendar.public') }}" class="px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors">Calendar</a>
+                @endif
             </div>
          
             
@@ -178,24 +182,46 @@
 
 <div id="mobile-menu-panel" class="md:hidden hidden fixed top-20 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-b-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
     <div class="p-3 grid grid-cols-1 gap-1">
-        <a href="{{ route('programs.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Programs</a>
-        <a href="{{ route('marketplace.index') }}" class="px-3 py-3 rounded-lg {{ request()->routeIs('marketplace.*') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }} transition-colors font-bold">Marketplace</a>
-        <a href="{{ route('coaches.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Coach</a>
-        <a href="{{ route('calendar.public') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Calendar</a>
-        
-        <div class="px-3 py-2">
-            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Pacers</div>
-            <a href="{{ route('pacer.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Find Pacers</a>
-            <a href="{{ route('pacer.register') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Register Pacer</a>
-        </div>
+        @if($headerMenu)
+            @foreach($headerMenu->items as $item)
+                @if($item->children->count() > 0)
+                    <!-- Submenu for {{ $item->title }} -->
+                    <div class="px-3 py-2">
+                        <div class="text-xs font-bold text-slate-500 uppercase mb-2">{{ $item->title }}</div>
+                        @foreach($item->children as $child)
+                            <a href="{{ url($child->url) }}" target="{{ $child->target }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">
+                                {{ $child->title }}
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <!-- Single Link {{ $item->title }} -->
+                    <a href="{{ url($item->url) }}" target="{{ $item->target }}" class="px-3 py-3 rounded-lg {{ request()->is(trim($item->url, '/') . '*') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }} transition-colors font-bold">
+                        {{ $item->title }}
+                    </a>
+                @endif
+            @endforeach
+        @else
+            <!-- Fallback -->
+            <a href="{{ route('programs.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Programs</a>
+            <a href="{{ route('marketplace.index') }}" class="px-3 py-3 rounded-lg {{ request()->routeIs('marketplace.*') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }} transition-colors font-bold">Marketplace</a>
+            <a href="{{ route('coaches.index') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Coach</a>
+            <a href="{{ route('calendar.public') }}" class="px-3 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors font-bold">Calendar</a>
+            
+            <div class="px-3 py-2">
+                <div class="text-xs font-bold text-slate-500 uppercase mb-2">Pacers</div>
+                <a href="{{ route('pacer.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Find Pacers</a>
+                <a href="{{ route('pacer.register') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Register Pacer</a>
+            </div>
 
-        <div class="px-3 py-2">
-            <div class="text-xs font-bold text-slate-500 uppercase mb-2">Challenge</div>
-            <a href="{{ route('challenge.40days') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">40 Days Challenge</a>
-            <!--<a href="{{ route('leaderboard.cyberpunk') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Leaderboard</a>-->
-            <a href="{{ route('challenge.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Leaderboard 40days</a>
-            <a href="{{ route('challenge.create') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Lapor Aktivitas</a>
-        </div>
+            <div class="px-3 py-2">
+                <div class="text-xs font-bold text-slate-500 uppercase mb-2">Challenge</div>
+                <a href="{{ route('challenge.40days') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">40 Days Challenge</a>
+                <a href="{{ route('challenge.index') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Leaderboard 40days</a>
+                <a href="{{ route('challenge.create') }}" class="block py-2 text-slate-300 hover:text-white pl-4 border-l border-slate-700 hover:border-neon transition-colors">Lapor Aktivitas</a>
+            </div>
+        @endif
+
 
         @auth
         <div class="px-3 py-2 border-t border-slate-800 mt-2">

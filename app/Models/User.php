@@ -202,6 +202,12 @@ class User extends Authenticatable
         return $this->hasMany(PostComment::class);
     }
 
+    // Blog Articles
+    public function articles()
+    {
+        return $this->hasMany(Article::class);
+    }
+
     // Notification relationships
     public function notifications()
     {

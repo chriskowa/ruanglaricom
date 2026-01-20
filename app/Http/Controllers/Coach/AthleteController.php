@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Coach;
 use App\Http\Controllers\Controller;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
+use App\Models\StravaActivity;
+use App\Services\StravaApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class AthleteController extends Controller
 {
@@ -86,6 +89,17 @@ class AthleteController extends Controller
         }
 
         $events = [];
+        $rangeStart = null;
+        $rangeEnd = null;
+        if ($request->filled('start') && $request->filled('end')) {
+            try {
+                $rangeStart = Carbon::parse($request->get('start'))->startOfDay();
+                $rangeEnd = Carbon::parse($request->get('end'))->endOfDay();
+            } catch (\Throwable $e) {
+                $rangeStart = null;
+                $rangeEnd = null;
+            }
+        }
 
         $typeColors = [
             'easy_run' => '#10B981', // Emerald 500
@@ -226,7 +240,229 @@ class AthleteController extends Controller
             return ! in_array($ev['start'], $customDates);
         }));
 
+        $stravaActivities = StravaActivity::query()
+            ->where('user_id', $enrollment->runner_id)
+            ->when($rangeStart && $rangeEnd, function ($q) use ($rangeStart, $rangeEnd) {
+                $q->whereBetween('start_date', [$rangeStart, $rangeEnd]);
+            })
+            ->orderBy('start_date')
+            ->get();
+
+        foreach ($stravaActivities as $act) {
+            if (! $act->start_date) {
+                continue;
+            }
+
+            $t = strtolower((string) $act->type);
+            $emoji = in_array($t, ['run', 'virtualrun', 'trailrun', 'treadmill'], true) ? '🏃 ' : (str_contains($t, 'ride') ? '🚴 ' : '🏋️ ');
+
+            $events[] = [
+                'id' => 'strava_'.$act->strava_activity_id,
+                'title' => $emoji.($act->name ?: 'Strava Activity'),
+                'start' => $act->start_date->format('Y-m-d'),
+                'allDay' => true,
+                'backgroundColor' => '#1F2937',
+                'borderColor' => '#FC4C02',
+                'textColor' => '#FFFFFF',
+                'extendedProps' => [
+                    'event_type' => 'strava_activity',
+                    'type' => $t ?: 'run',
+                    'status' => 'completed',
+                    'is_strava' => true,
+                    'strava_activity_id' => $act->strava_activity_id,
+                    'strava_url' => $act->strava_url,
+                    'distance' => $act->distance_m ? round(((float) $act->distance_m) / 1000, 2) : null,
+                    'duration' => $act->moving_time_s ? gmdate('H:i:s', (int) $act->moving_time_s) : null,
+                    'description' => $act->name,
+                    'tracking' => null,
+                ],
+            ];
+        }
+
         return response()->json($events);
+    }
+
+    public function stravaActivityDetails(Request $request, $enrollmentId, string $stravaActivityId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $activityId = (int) $stravaActivityId;
+        if ($activityId <= 0) {
+            return response()->json(['success' => false, 'message' => 'Invalid activity id.'], 422);
+        }
+
+        $runner = $enrollment->runner;
+        $api = app(StravaApiService::class);
+
+        $activity = StravaActivity::query()
+            ->where('user_id', $runner->id)
+            ->where('strava_activity_id', $activityId)
+            ->first();
+
+        if (! $activity) {
+            $details = $api->fetchActivityDetails($runner, $activityId);
+            if (! $details) {
+                return response()->json(['success' => false, 'message' => 'Gagal mengambil detail aktivitas Strava.'], 422);
+            }
+
+            $activity = StravaActivity::create([
+                'user_id' => $runner->id,
+                'strava_activity_id' => $activityId,
+                'name' => data_get($details, 'name'),
+                'type' => data_get($details, 'type'),
+                'start_date' => data_get($details, 'start_date'),
+                'distance_m' => (int) round((float) data_get($details, 'distance', 0)),
+                'moving_time_s' => (int) data_get($details, 'moving_time', 0),
+                'elapsed_time_s' => (int) data_get($details, 'elapsed_time', 0),
+                'average_speed' => data_get($details, 'average_speed'),
+                'total_elevation_gain' => data_get($details, 'total_elevation_gain'),
+                'raw' => ['details' => $details],
+            ]);
+        }
+
+        $raw = is_array($activity->raw) ? $activity->raw : [];
+        $details = data_get($raw, 'details');
+        if (! is_array($details) || empty($details)) {
+            $details = $api->fetchActivityDetails($runner, $activityId);
+            if (! $details) {
+                return response()->json(['success' => false, 'message' => 'Gagal mengambil detail aktivitas Strava.'], 422);
+            }
+            $activity->update(['raw' => array_merge($raw, ['details' => $details])]);
+        }
+
+        $avgSpeed = data_get($details, 'average_speed', $activity->average_speed);
+        $pace = $api->formatPaceFromSpeed($avgSpeed);
+
+        $splits = data_get($details, 'splits_metric', []);
+        $splitsOut = [];
+        if (is_array($splits)) {
+            foreach ($splits as $s) {
+                if (! is_array($s)) {
+                    continue;
+                }
+                $splitSpeed = data_get($s, 'average_speed');
+                $splitsOut[] = [
+                    'split' => data_get($s, 'split'),
+                    'distance_m' => data_get($s, 'distance'),
+                    'moving_time_s' => data_get($s, 'moving_time'),
+                    'elapsed_time_s' => data_get($s, 'elapsed_time'),
+                    'elevation_difference' => data_get($s, 'elevation_difference'),
+                    'average_speed' => $splitSpeed,
+                    'pace' => $api->formatPaceFromSpeed($splitSpeed),
+                ];
+            }
+        }
+
+        $laps = data_get($details, 'laps', []);
+        $lapsOut = [];
+        if (is_array($laps)) {
+            foreach ($laps as $l) {
+                if (! is_array($l)) {
+                    continue;
+                }
+                $lapSpeed = data_get($l, 'average_speed');
+                $lapsOut[] = [
+                    'name' => data_get($l, 'name'),
+                    'distance_m' => data_get($l, 'distance'),
+                    'moving_time_s' => data_get($l, 'moving_time'),
+                    'elapsed_time_s' => data_get($l, 'elapsed_time'),
+                    'average_speed' => $lapSpeed,
+                    'pace' => $api->formatPaceFromSpeed($lapSpeed),
+                    'average_heartrate' => data_get($l, 'average_heartrate'),
+                    'max_heartrate' => data_get($l, 'max_heartrate'),
+                    'average_cadence' => data_get($l, 'average_cadence'),
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'activity' => [
+                'strava_activity_id' => $activity->strava_activity_id,
+                'name' => $activity->name,
+                'type' => $activity->type,
+                'start_date' => $activity->start_date?->toIso8601String(),
+                'distance_m' => $activity->distance_m,
+                'moving_time_s' => $activity->moving_time_s,
+                'elapsed_time_s' => $activity->elapsed_time_s,
+                'average_speed' => $avgSpeed,
+                'pace' => $pace,
+                'average_heartrate' => data_get($details, 'average_heartrate'),
+                'max_heartrate' => data_get($details, 'max_heartrate'),
+                'average_cadence' => data_get($details, 'average_cadence'),
+                'splits_metric' => $splitsOut,
+                'laps' => $lapsOut,
+            ],
+        ]);
+    }
+
+    public function stravaActivityStreams(Request $request, $enrollmentId, string $stravaActivityId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $activityId = (int) $stravaActivityId;
+        if ($activityId <= 0) {
+            return response()->json(['success' => false, 'message' => 'Invalid activity id.'], 422);
+        }
+
+        $runner = $enrollment->runner;
+        $api = app(StravaApiService::class);
+
+        $activity = StravaActivity::query()
+            ->where('user_id', $runner->id)
+            ->where('strava_activity_id', $activityId)
+            ->first();
+
+        if (! $activity) {
+            $details = $api->fetchActivityDetails($runner, $activityId);
+            if (! $details) {
+                return response()->json(['success' => false, 'message' => 'Gagal mengambil aktivitas Strava.'], 422);
+            }
+
+            $activity = StravaActivity::create([
+                'user_id' => $runner->id,
+                'strava_activity_id' => $activityId,
+                'name' => data_get($details, 'name'),
+                'type' => data_get($details, 'type'),
+                'start_date' => data_get($details, 'start_date'),
+                'distance_m' => (int) round((float) data_get($details, 'distance', 0)),
+                'moving_time_s' => (int) data_get($details, 'moving_time', 0),
+                'elapsed_time_s' => (int) data_get($details, 'elapsed_time', 0),
+                'average_speed' => data_get($details, 'average_speed'),
+                'total_elevation_gain' => data_get($details, 'total_elevation_gain'),
+                'raw' => ['details' => $details],
+            ]);
+        }
+
+        $raw = is_array($activity->raw) ? $activity->raw : [];
+        $streams = data_get($raw, 'streams');
+        if (! is_array($streams) || empty($streams)) {
+            $streams = $api->fetchActivityStreams($runner, $activityId);
+            if (! $streams) {
+                return response()->json(['success' => false, 'message' => 'Gagal mengambil streams aktivitas Strava.'], 422);
+            }
+            $activity->update(['raw' => array_merge($raw, ['streams' => $streams])]);
+        }
+
+        $keys = ['time', 'heartrate', 'cadence', 'velocity_smooth', 'watts'];
+        $out = [];
+        foreach ($keys as $k) {
+            $data = data_get($streams, $k.'.data');
+            if (is_array($data)) {
+                $out[$k] = $data;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'streams' => $out,
+        ]);
     }
 
     /**

@@ -15,15 +15,62 @@ class StravaClubService
     {
         // Cache for 30 minutes to avoid hitting rate limits
         return Cache::remember('strava_club_leaderboard', 1800, function () {
-            $envToken = env('STRAVA_ACCESS_TOKEN');
-            if (! empty($envToken)) {
-                $activities = $this->fetchClubActivitiesByEnv();
-
+            $token = $this->getSystemToken();
+            if (! empty($token)) {
+                $activities = $this->fetchClubActivitiesByToken($token);
                 return $this->processLeaderboard($activities);
             }
 
             return $this->fetchClubActivities();
         });
+    }
+
+    private function getSystemToken()
+    {
+        // 1. Try DB Config
+        try {
+            $config = \App\Models\Admin\StravaConfig::first();
+            if ($config) {
+                // Check expiry
+                if ($config->refresh_token && (!$config->access_token || ($config->expires_at && now()->greaterThan($config->expires_at)))) {
+                    // Refresh it
+                    $response = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
+                        'client_id' => $config->client_id,
+                        'client_secret' => $config->client_secret,
+                        'grant_type' => 'refresh_token',
+                        'refresh_token' => $config->refresh_token,
+                    ]);
+    
+                    if ($response->successful()) {
+                        $data = $response->json();
+                        $config->update([
+                            'access_token' => $data['access_token'],
+                            'refresh_token' => $data['refresh_token'],
+                            'expires_at' => now()->addSeconds($data['expires_in']),
+                        ]);
+                        return $data['access_token'];
+                    }
+                }
+                if ($config->access_token) {
+                    return $config->access_token;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fallback to env if DB fails or table missing
+        }
+
+        // 2. Fallback to ENV
+        return env('STRAVA_ACCESS_TOKEN');
+    }
+
+    private function getClubId()
+    {
+        try {
+            $config = \App\Models\Admin\StravaConfig::first();
+            return $config->club_id ?? env('STRAVA_CLUB_ID', '1859982');
+        } catch (\Throwable $e) {
+            return env('STRAVA_CLUB_ID', '1859982');
+        }
     }
 
     private function fetchClubActivities()
@@ -274,13 +321,10 @@ class StravaClubService
         }, $members);
     }
 
-    private function fetchClubMembersByEnv(): array
+    private function fetchClubMembersByToken($token): array
     {
-        $clubId = env('STRAVA_CLUB_ID', $this->clubId);
-        $token = env('STRAVA_ACCESS_TOKEN');
-        if (empty($token)) {
-            return $this->getMockMembers();
-        }
+        $clubId = $this->getClubId();
+        
         $response = \Illuminate\Support\Facades\Http::withToken($token)
             ->withoutVerifying()
             ->get("https://www.strava.com/api/v3/clubs/{$clubId}/members", ['per_page' => 200]);

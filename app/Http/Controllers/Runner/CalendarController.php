@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomWorkout;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
+use App\Models\StravaActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -217,6 +218,50 @@ class CalendarController extends Controller
 
             return ! in_array($ev['start'], $customDates);
         }));
+
+        $stravaActivities = StravaActivity::query()
+            ->where('user_id', $user->id)
+            ->when($start && $end, function ($query) use ($start, $end) {
+                try {
+                    $startCarbon = Carbon::parse($start)->startOfDay();
+                    $endCarbon = Carbon::parse($end)->endOfDay();
+                    $query->whereBetween('start_date', [$startCarbon, $endCarbon]);
+                } catch (\Exception $e) {
+                }
+            })
+            ->orderBy('start_date')
+            ->get();
+
+        foreach ($stravaActivities as $act) {
+            if (! $act->start_date) {
+                continue;
+            }
+
+            $t = strtolower((string) $act->type);
+            $emoji = in_array($t, ['run', 'virtualrun', 'trailrun', 'treadmill'], true) ? '🏃 ' : (str_contains($t, 'ride') ? '🚴 ' : '🏋️ ');
+
+            $events[] = [
+                'id' => 'strava_'.$act->strava_activity_id,
+                'title' => $emoji.($act->name ?: 'Strava Activity'),
+                'start' => $act->start_date->format('Y-m-d'),
+                'allDay' => true,
+                'editable' => false,
+                'backgroundColor' => '#1F2937',
+                'borderColor' => '#F97316',
+                'textColor' => '#FFFFFF',
+                'extendedProps' => [
+                    'type' => 'strava_activity',
+                    'activity_id' => $act->id,
+                    'strava_activity_id' => $act->strava_activity_id,
+                    'activity_type' => $t,
+                    'name' => $act->name,
+                    'distance_km' => $act->distance_m ? round(((float) $act->distance_m) / 1000, 2) : null,
+                    'moving_time_s' => $act->moving_time_s,
+                    'elevation_gain' => $act->total_elevation_gain,
+                    'strava_url' => $act->strava_url,
+                ],
+            ];
+        }
 
         return response()->json($events);
     }
@@ -870,6 +915,9 @@ class CalendarController extends Controller
                 'full_date' => $current->format('Y-m-d'),
                 'planned' => 0,
                 'actual' => 0,
+                'actual_plan' => 0,
+                'actual_strava_unplanned' => 0,
+                'actual_total' => 0,
             ];
             $current->addWeek();
         }
@@ -924,7 +972,7 @@ class CalendarController extends Controller
 
                     // Add to actual if completed
                     if (isset($trackings[$day]) && $trackings[$day]->status === 'completed') {
-                        $weeks[$weekKey]['actual'] += $dist;
+                        $weeks[$weekKey]['actual_plan'] += $dist;
                     }
                 }
             }
@@ -940,9 +988,57 @@ class CalendarController extends Controller
             if (isset($weeks[$weekKey])) {
                 $weeks[$weekKey]['planned'] += $cw->distance;
                 if ($cw->status === 'completed') {
-                    $weeks[$weekKey]['actual'] += $cw->distance;
+                    $weeks[$weekKey]['actual_plan'] += $cw->distance;
                 }
             }
+        }
+
+        $enrollmentIds = $enrollments->pluck('id')->values()->all();
+        $linkedStravaActivityIds = [];
+        if (! empty($enrollmentIds)) {
+            $links = ProgramSessionTracking::query()
+                ->whereIn('enrollment_id', $enrollmentIds)
+                ->whereNotNull('strava_link')
+                ->pluck('strava_link');
+
+            foreach ($links as $link) {
+                if (! is_string($link) || $link === '') {
+                    continue;
+                }
+                if (preg_match('~strava\.com/activities/(\d+)~i', $link, $m)) {
+                    $linkedStravaActivityIds[(int) $m[1]] = true;
+                }
+            }
+        }
+
+        $stravaActivities = StravaActivity::query()
+            ->where('user_id', $user->id)
+            ->whereBetween('start_date', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+            ->whereIn('type', ['Run', 'VirtualRun', 'TrailRun', 'Treadmill', 'run', 'virtualrun', 'trailrun', 'treadmill'])
+            ->orderBy('start_date')
+            ->get(['strava_activity_id', 'start_date', 'distance_m', 'type']);
+
+        foreach ($stravaActivities as $act) {
+            if (! $act->start_date) {
+                continue;
+            }
+
+            $stravaId = (int) $act->strava_activity_id;
+            if ($stravaId && isset($linkedStravaActivityIds[$stravaId])) {
+                continue;
+            }
+
+            $weekKey = $act->start_date->format('o-W');
+            if (! isset($weeks[$weekKey])) {
+                continue;
+            }
+
+            $weeks[$weekKey]['actual_strava_unplanned'] += ((float) ($act->distance_m ?? 0)) / 1000;
+        }
+
+        foreach ($weeks as $key => $w) {
+            $weeks[$key]['actual_total'] = (float) $w['actual_plan'] + (float) $w['actual_strava_unplanned'];
+            $weeks[$key]['actual'] = (float) $weeks[$key]['actual_total'];
         }
 
         return response()->json(array_values($weeks));

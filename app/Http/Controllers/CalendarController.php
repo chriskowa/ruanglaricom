@@ -71,8 +71,10 @@ class CalendarController extends Controller
 
     public function stravaConnect()
     {
+        $clientId = \App\Models\Admin\StravaConfig::first()->client_id ?? env('STRAVA_CLIENT_ID');
+        
         $query = http_build_query([
-            'client_id' => env('STRAVA_CLIENT_ID'),
+            'client_id' => $clientId,
             'redirect_uri' => route('calendar.strava.callback'),
             'response_type' => 'code',
             'scope' => 'activity:read_all,profile:read_all',
@@ -89,9 +91,13 @@ class CalendarController extends Controller
         }
 
         try {
+            $config = \App\Models\Admin\StravaConfig::first();
+            $clientId = $config->client_id ?? env('STRAVA_CLIENT_ID');
+            $clientSecret = $config->client_secret ?? env('STRAVA_CLIENT_SECRET');
+
             $response = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
-                'client_id' => env('STRAVA_CLIENT_ID'),
-                'client_secret' => env('STRAVA_CLIENT_SECRET'),
+                'client_id' => $clientId,
+                'client_secret' => $clientSecret,
                 'code' => $request->code,
                 'grant_type' => 'authorization_code',
             ]);

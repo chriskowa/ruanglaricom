@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Wallet;
+use App\Models\Notification;
 use App\Models\WalletTopup;
 use App\Models\WalletTransaction;
 use App\Models\WalletWithdrawal;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class WalletController extends Controller
 {
@@ -169,47 +172,79 @@ class WalletController extends Controller
             }
 
             $amount = (float) $validated['amount'];
-            $user->wallet->refresh();
-            if ($user->wallet->balance < $amount) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Saldo tidak cukup.',
-                ], 400);
-            }
+            $withdrawalId = null;
 
-            $balanceBefore = $user->wallet->balance;
-            $user->wallet->decrement('balance', $amount);
-            $user->wallet->increment('locked_balance', $amount);
-            $balanceAfter = $user->wallet->fresh()->balance;
+            DB::transaction(function () use ($user, $amount, &$withdrawalId) {
+                $wallet = Wallet::query()->whereKey($user->wallet->id)->lockForUpdate()->firstOrFail();
+                $wallet->refresh();
 
-            $withdrawal = WalletWithdrawal::create([
-                'user_id' => $user->id,
-                'amount' => $amount,
-                'bank_name' => $user->bank_name,
-                'bank_account_name' => $user->bank_account_name,
-                'bank_account_number' => $user->bank_account_number,
-                'status' => 'pending',
-            ]);
+                if ((float) $wallet->balance < $amount) {
+                    throw new \RuntimeException('Saldo tidak cukup.');
+                }
 
-            WalletTransaction::create([
-                'wallet_id' => $user->wallet->id,
-                'type' => 'withdraw',
-                'amount' => $amount,
-                'balance_before' => $balanceBefore,
-                'balance_after' => $balanceAfter,
-                'status' => 'pending',
-                'description' => 'Withdraw request',
-                'reference_type' => WalletWithdrawal::class,
-                'reference_id' => $withdrawal->id,
-                'metadata' => [
-                    'withdrawal_id' => $withdrawal->id,
-                ],
-            ]);
+                $balanceBefore = (float) $wallet->balance;
+                $wallet->decrement('balance', $amount);
+                $wallet->increment('locked_balance', $amount);
+                $balanceAfter = (float) $wallet->fresh()->balance;
+
+                $withdrawal = WalletWithdrawal::create([
+                    'user_id' => $user->id,
+                    'amount' => $amount,
+                    'bank_name' => $user->bank_name,
+                    'bank_account_name' => $user->bank_account_name,
+                    'bank_account_number' => $user->bank_account_number,
+                    'status' => 'pending',
+                ]);
+                $withdrawalId = $withdrawal->id;
+
+                WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'type' => 'withdraw',
+                    'amount' => $amount,
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $balanceAfter,
+                    'status' => 'pending',
+                    'description' => 'Withdraw request',
+                    'reference_type' => WalletWithdrawal::class,
+                    'reference_id' => $withdrawal->id,
+                    'metadata' => [
+                        'withdrawal_id' => $withdrawal->id,
+                    ],
+                ]);
+
+                Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'wallet_withdrawal',
+                    'title' => 'Withdraw Diterima',
+                    'message' => 'Permintaan withdraw kamu sudah diterima dan menunggu persetujuan admin.',
+                    'reference_type' => WalletWithdrawal::class,
+                    'reference_id' => $withdrawal->id,
+                    'is_read' => false,
+                ]);
+
+                $adminIds = User::query()->where('role', 'admin')->pluck('id');
+                foreach ($adminIds as $adminId) {
+                    Notification::create([
+                        'user_id' => $adminId,
+                        'type' => 'wallet_withdrawal',
+                        'title' => 'Withdraw Baru',
+                        'message' => ($user->name ?? 'User') . ' mengajukan withdraw Rp ' . number_format($amount, 0, ',', '.') . '.',
+                        'reference_type' => WalletWithdrawal::class,
+                        'reference_id' => $withdrawal->id,
+                        'is_read' => false,
+                    ]);
+                }
+            });
 
             return response()->json([
                 'success' => true,
                 'message' => 'Withdraw berhasil dibuat dan menunggu proses.',
             ]);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,

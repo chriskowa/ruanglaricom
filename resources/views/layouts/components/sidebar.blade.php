@@ -12,6 +12,14 @@
                         <i class="flaticon-381-layer-1"></i>
                         <span class="nav-text">Approval Setoran</span>
                     </a></li>
+                    <li><a class="ai-icon" href="{{ route('admin.transactions.index') }}" aria-expanded="false">
+                        <i class="flaticon-381-list"></i>
+                        <span class="nav-text">Manajemen Transaksi</span>
+                    </a></li>
+                    <li><a class="ai-icon" href="{{ route('admin.menus.index') }}" aria-expanded="false">
+                        <i class="flaticon-381-menu"></i>
+                        <span class="nav-text">Menu Manager</span>
+                    </a></li>
                 @elseif(auth()->user()->isCoach())
                     <li class="menu-title">Main</li>
                     <li><a class="ai-icon" href="{{ route('coach.dashboard') }}" aria-expanded="false">
@@ -35,6 +43,10 @@
                     <li><a class="ai-icon" href="{{ route('runner.calendar') }}" aria-expanded="false">
                         <i class="flaticon-381-calendar"></i>
                         <span class="nav-text">Calendar</span>
+                    </a></li>
+                    <li><a class="ai-icon" href="{{ route('calculator') }}" aria-expanded="false">
+                        <i class="flaticon-381-controls-3"></i>
+                        <span class="nav-text">Calculator</span>
                     </a></li>
                     <li><a class="ai-icon" href="{{ route('programs.index') }}" aria-expanded="false">
                         <i class="flaticon-381-notepad"></i>
@@ -90,6 +102,10 @@
                 <li><a class="ai-icon" href="{{ route('calendar.public') }}" aria-expanded="false">
                     <i class="flaticon-381-calendar"></i>
                     <span class="nav-text">Calendar</span>
+                </a></li>
+                <li><a class="ai-icon" href="{{ route('calculator') }}" aria-expanded="false">
+                    <i class="flaticon-381-controls-3"></i>
+                    <span class="nav-text">Calculator</span>
                 </a></li>
                 <li><a class="ai-icon" href="{{ route('programs.index') }}" aria-expanded="false">
                     <i class="flaticon-381-notepad"></i>

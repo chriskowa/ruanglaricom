@@ -102,9 +102,13 @@ class AdminChallengeController extends Controller
         }
         // Priority 2: If we have a refresh token, try to refresh
         elseif ($user->strava_refresh_token) {
+            $config = \App\Models\Admin\StravaConfig::first();
+            $clientId = $config->client_id ?? config('services.strava.client_id') ?? env('STRAVA_CLIENT_ID');
+            $clientSecret = $config->client_secret ?? config('services.strava.client_secret') ?? env('STRAVA_CLIENT_SECRET');
+
             $response = Http::post('https://www.strava.com/oauth/token', [
-                'client_id' => config('services.strava.client_id') ?? env('STRAVA_CLIENT_ID'),
-                'client_secret' => config('services.strava.client_secret') ?? env('STRAVA_CLIENT_SECRET'),
+                'client_id' => $clientId,
+                'client_secret' => $clientSecret,
                 'refresh_token' => $user->strava_refresh_token,
                 'grant_type' => 'refresh_token',
             ]);
@@ -143,7 +147,7 @@ class AdminChallengeController extends Controller
         // Fetch Logic
         if ($usedClubMode) {
             // Club Mode - Mimic StravaClubService
-            $clubId = env('STRAVA_CLUB_ID', '1859982');
+            $clubId = \App\Models\Admin\StravaConfig::first()->club_id ?? env('STRAVA_CLUB_ID', '1859982');
 
             // Note: Club API usually ignores 'after', so we fetch latest 200 and filter in PHP
             $clubResponse = Http::withToken($accessToken)

@@ -48,12 +48,12 @@ class StoreRegistrationAction
         // Validate input
         $validated = $request->validate([
             'pic_name' => 'required|string|max:255',
-            'pic_email' => 'required|email:rfc,dns|max:255',
+            'pic_email' => 'required|email:rfc|max:255',
             'pic_phone' => 'required|string|max:20',
             'participants' => 'required|array|min:1',
             'participants.*.name' => 'required|string|max:255',
             'participants.*.gender' => 'required|in:male,female',
-            'participants.*.email' => 'required|email:rfc,dns|max:255',
+            'participants.*.email' => 'required|email:rfc|max:255',
             'participants.*.phone' => 'required|string|max:20',
             'participants.*.id_card' => 'required|string|max:50',
             'participants.*.category_id' => 'required|exists:race_categories,id',

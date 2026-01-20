@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Notification;
 use App\Models\Transaction as EventTransaction;
 use App\Models\User;
 use App\Models\WalletTopup;
@@ -67,6 +68,29 @@ class MidtransService
                     ],
                     'processed_at' => now(),
                 ]);
+
+                Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'wallet_deposit',
+                    'title' => 'Topup Berhasil',
+                    'message' => 'Topup Rp ' . number_format($amount, 0, ',', '.') . ' berhasil masuk ke wallet.',
+                    'reference_type' => WalletTopup::class,
+                    'reference_id' => $topup->id,
+                    'is_read' => false,
+                ]);
+
+                $adminIds = User::query()->where('role', 'admin')->pluck('id');
+                foreach ($adminIds as $adminId) {
+                    Notification::create([
+                        'user_id' => $adminId,
+                        'type' => 'wallet_deposit',
+                        'title' => 'Deposit Masuk (Topup)',
+                        'message' => ($user->name ?? 'User') . ' topup Rp ' . number_format($amount, 0, ',', '.') . ' (Testing Mode).',
+                        'reference_type' => WalletTopup::class,
+                        'reference_id' => $topup->id,
+                        'is_read' => false,
+                    ]);
+                }
             }
 
             return [
@@ -172,6 +196,29 @@ class MidtransService
                         ],
                         'processed_at' => now(),
                     ]);
+
+                    Notification::create([
+                        'user_id' => $user->id,
+                        'type' => 'wallet_deposit',
+                        'title' => 'Topup Berhasil',
+                        'message' => 'Topup Rp ' . number_format((float) $topup->amount, 0, ',', '.') . ' berhasil masuk ke wallet.',
+                        'reference_type' => WalletTopup::class,
+                        'reference_id' => $topup->id,
+                        'is_read' => false,
+                    ]);
+
+                    $adminIds = User::query()->where('role', 'admin')->pluck('id');
+                    foreach ($adminIds as $adminId) {
+                        Notification::create([
+                            'user_id' => $adminId,
+                            'type' => 'wallet_deposit',
+                            'title' => 'Deposit Masuk (Topup)',
+                            'message' => ($user->name ?? 'User') . ' topup Rp ' . number_format((float) $topup->amount, 0, ',', '.') . '.',
+                            'reference_type' => WalletTopup::class,
+                            'reference_id' => $topup->id,
+                            'is_read' => false,
+                        ]);
+                    }
                 }
 
                 return [

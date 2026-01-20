@@ -5,29 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Primary Meta Tags -->
-    <title>Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans</title>
-    <meta name="title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
-    <meta name="description" content="Ruang Lari adalah platform komunitas lari terbesar di Indonesia. Temukan pacer, ikuti event, pantau progres, dan raih personal best Anda. Dapatkan rencana latihan eksklusif, analisis performa, dan diskon event.">
+    <title>@yield('title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans')</title>
+    <meta name="title" content="@yield('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans')">
+    <meta name="description" content="@yield('meta_description', 'Ruang Lari adalah platform komunitas lari terbesar di Indonesia. Temukan pacer, ikuti event, pantau progres, dan raih personal best Anda. Dapatkan rencana latihan eksklusif, analisis performa, dan diskon event.')">
 
     <!-- Keywords -->
-    <meta name="keywords" content="ruang lari, komunitas lari indonesia, pacer indonesia, event lari, kalender lari, training plan, analisis performa, strava indonesia, sepatu lari lokal, fotografer olahraga, running calculator, personal best, marathon indonesia, 5K, 10K, half marathon, full marathon">
+    <meta name="keywords" content="@yield('meta_keywords', 'ruang lari, komunitas lari indonesia, pacer indonesia, event lari, kalender lari, training plan, analisis performa, strava indonesia, sepatu lari lokal, fotografer olahraga, running calculator, personal best, marathon indonesia, 5K, 10K, half marathon, full marathon')">
 
     <!-- Author -->
     <meta name="author" content="Ruang Lari Indonesia">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://ruanglari.id/">
-    <meta property="og:title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
-    <meta property="og:description" content="Gabung dengan Ruang Lari, komunitas lari terbesar di Indonesia. Ikuti event, temukan pacer, dan pecahkan personal record Anda.">
-    <meta property="og:image" content="https://ruanglari.id/assets/images/ruanglari-cover.jpg">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="@yield('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans')">
+    <meta property="og:description" content="@yield('meta_description', 'Gabung dengan Ruang Lari, komunitas lari terbesar di Indonesia. Ikuti event, temukan pacer, dan pecahkan personal record Anda.')">
+    <meta property="og:image" content="@yield('og_image', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg')">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://ruanglari.id/">
-    <meta name="twitter:title" content="Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans">
-    <meta name="twitter:description" content="Platform all-in-one untuk pelari, pacer, dan pelatih. Pantau progres, ikuti event, dan raih personal best Anda.">
-    <meta name="twitter:image" content="https://ruanglari.id/assets/images/ruanglari-cover.jpg">
+    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:title" content="@yield('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans')">
+    <meta name="twitter:description" content="@yield('meta_description', 'Platform all-in-one untuk pelari, pacer, dan pelatih. Pantau progres, ikuti event, dan raih personal best Anda.')">
+    <meta name="twitter:image" content="@yield('og_image', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg')">
 
     <!-- Canonical -->
     <link rel="canonical" href="{{ url()->current() }}">   
@@ -46,7 +46,7 @@
     <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
 
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
@@ -141,21 +141,26 @@
 
     <div id="app" class="flex flex-col min-h-screen">
         
-        @include('layouts.components.pacerhub-nav')
+        @if(!isset($hideNav) || !$hideNav)
+            @include('layouts.components.pacerhub-nav')
+        @endif
 
-        @if(isset($withSidebar) && $withSidebar)
+        @if(isset($withSidebar) && $withSidebar && (!isset($hideSidebar) || !$hideSidebar))
             <div id="ph-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
             @include('layouts.components.pacerhub-sidebar')
         @endif
 
-        <main class="flex-grow w-full pt-16">
+        <main class="flex-grow w-full {{ (!isset($hideNav) || !$hideNav) ? 'pt-16' : '' }}">
             @yield('content')
         </main>
 
-        @include('layouts.components.pacerhub-footer')
+        @if(!isset($hideFooter) || !$hideFooter)
+            @include('layouts.components.pacerhub-footer')
+        @endif
 
     </div>
 
+    @if(!isset($hideChat) || !$hideChat)
     <button id="chatbox-toggle" class="fixed bottom-5 right-6 z-50 w-14 h-14 rounded-full bg-neon text-dark font-black shadow-lg shadow-neon/30 flex items-center justify-center hover:bg-lime-400 transition">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-7 8l4-4h8a4 4 0 004-4V6a4 4 0 00-4-4H7a4 4 0 00-4 4v10a4 4 0 004 4z"/></svg>
         <span id="ph-chat-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
@@ -189,6 +194,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     @stack('scripts')
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -235,6 +241,7 @@
     <script>
         (function(){
             var toggle = document.getElementById('chatbox-toggle');
+            if(!toggle) return;
             var box = document.getElementById('ph-chatbox');
             var convList = document.getElementById('ph-chat-conv');
             var msgPanel = document.getElementById('ph-chat-msg');

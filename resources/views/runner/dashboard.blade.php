@@ -139,22 +139,176 @@
 
         <!-- Sidebar Widgets -->
         <div class="space-y-6">
+
+            @if (session('success'))
+                <div class="bg-green-500/10 border border-green-500/40 text-green-200 rounded-2xl p-4">
+                    <div class="font-bold">{{ session('success') }}</div>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="bg-red-500/10 border border-red-500/40 text-red-200 rounded-2xl p-4">
+                    <div class="font-bold">{{ session('error') }}</div>
+                </div>
+            @endif
+
+            <div x-data="{ syncing:false, result:null, error:null }" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Strava</div>
+                        <h3 class="text-lg font-black text-white italic tracking-tight">SYNC & ANALYTICS</h3>
+                        <p class="text-xs text-slate-400 mt-1">Aktivitas Strava otomatis tersambung ke Training Plan & Kalender.</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-300">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-4">
+                        <div class="text-xs text-slate-400">This Week (Strava)</div>
+                        <div class="text-2xl font-black text-white">{{ $stravaWeekDistanceKm ?? 0 }} <span class="text-sm font-bold text-slate-400">km</span></div>
+                        <div class="text-[11px] text-slate-500 mt-1">{{ $lastStravaSyncAt ? 'Last sync: '.$lastStravaSyncAt->format('d M H:i') : 'Belum pernah sync' }}</div>
+                    </div>
+                    <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-4">
+                        <div class="text-xs text-slate-400">Last Activity</div>
+                        <div class="text-sm font-bold text-white truncate">{{ $lastStravaActivity?->name ?? '—' }}</div>
+                        <div class="text-[11px] text-slate-500 mt-1">
+                            @if($lastStravaActivity && $lastStravaActivity->start_date)
+                                {{ $lastStravaActivity->start_date->format('d M Y') }} • {{ number_format(((float) ($lastStravaActivity->distance_m ?? 0)) / 1000, 1) }} km
+                            @else
+                                —
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex gap-2">
+                    @if($stravaConnected)
+                        <button
+                            type="button"
+                            @click="syncing=true; result=null; error=null; fetch('{{ route('runner.strava.sync') }}', { method:'POST', headers:{ 'X-CSRF-TOKEN':'{{ csrf_token() }}', 'Accept':'application/json' } }).then(r=>r.json().then(j=>({ok:r.ok, j}))).then(({ok,j})=>{ if(ok && j.success){ result=j; } else { error=j.message||'Sync gagal'; } }).catch(()=>{ error='Sync gagal'; }).finally(()=>{ syncing=false; })"
+                            class="flex-1 px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all disabled:opacity-60"
+                            :disabled="syncing"
+                        >
+                            <span x-show="!syncing">Sync Now</span>
+                            <span x-show="syncing">Syncing…</span>
+                        </button>
+                        <a href="{{ route('runner.calendar') }}" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-sm flex items-center justify-center">
+                            Open Calendar
+                        </a>
+                    @else
+                        <a href="{{ route('runner.strava.connect') }}" class="flex-1 px-4 py-3 rounded-xl bg-orange-500 text-white font-black hover:bg-orange-500/90 transition-all text-center">
+                            Connect Strava
+                        </a>
+                        <a href="{{ route('runner.calendar') }}" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-sm flex items-center justify-center">
+                            Open Calendar
+                        </a>
+                    @endif
+                </div>
+
+                <div x-show="result" x-cloak class="mt-4 bg-slate-900/40 border border-slate-700/60 rounded-2xl p-4 text-slate-200">
+                    <div class="text-xs text-slate-400">Hasil Sync</div>
+                    <div class="text-sm font-bold">Imported <span x-text="result?.imported ?? 0"></span> activities • Linked <span x-text="result?.linked_sessions ?? 0"></span> sessions</div>
+                    <div class="text-[11px] text-slate-500 mt-1">Refresh kalender untuk melihat event Strava.</div>
+                </div>
+                <div x-show="error" x-cloak class="mt-4 bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-red-200">
+                    <div class="text-sm font-bold" x-text="error"></div>
+                </div>
+
+                @if(isset($recentStravaActivities) && count($recentStravaActivities) > 0)
+                <div class="mt-6 border-t border-slate-700/50 pt-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Recent Activities</div>
+                        <a href="{{ route('runner.calendar') }}" class="text-xs text-neon hover:underline">View Calendar</a>
+                    </div>
+                    <div class="space-y-2">
+                        @foreach($recentStravaActivities as $act)
+                            <div class="bg-slate-900/40 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between group hover:border-slate-500 transition-colors" style="border-left: 3px solid {{ $act->border_color }};">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-xl">{{ $act->icon }}</div>
+                                    <div>
+                                        <div class="text-sm font-bold text-white group-hover:text-neon transition-colors">{{ $act->name }}</div>
+                                        <div class="text-[10px] text-slate-400">
+                                            {{ $act->start_date->format('D, d M H:i') }}
+                                            @if($act->distance_km > 0)
+                                             • {{ $act->distance_km }} km
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs font-mono text-slate-300">{{ $act->formatted_duration }}</div>
+                                    @if($act->pace_min_km !== '-')
+                                        <div class="text-[10px] text-slate-500">{{ $act->pace_min_km }} /km</div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+            </div>
+
+            <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Training</div>
+                        <h3 class="text-lg font-black text-white italic tracking-tight">NEXT 7 DAYS</h3>
+                        <p class="text-xs text-slate-400 mt-1">Ringkasan plan paling dekat dari program & custom.</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-neon/10 border border-neon/20 flex items-center justify-center text-neon">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    @forelse($upcomingWorkouts as $w)
+                        <div class="flex items-start justify-between gap-3 bg-slate-900/40 border border-slate-700/60 rounded-xl px-4 py-3">
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">{{ $w['date_label'] }}</div>
+                                <div class="text-sm font-bold text-white truncate">{{ $w['type'] }} <span class="text-slate-400 font-normal">• {{ $w['program_title'] }}</span></div>
+                                <div class="text-[11px] text-slate-500">
+                                    @if($w['distance']) {{ $w['distance'] }} km @endif
+                                    @if($w['duration']) <span class="text-slate-600">•</span> {{ $w['duration'] }} @endif
+                                </div>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <div class="text-xs font-bold {{ $w['status'] === 'completed' ? 'text-green-300' : ($w['status'] === 'started' ? 'text-yellow-300' : 'text-slate-400') }}">
+                                    {{ strtoupper($w['status']) }}
+                                </div>
+                                @if($w['strava_link'])
+                                    <a href="{{ $w['strava_link'] }}" target="_blank" class="text-[11px] text-orange-300 hover:underline">Strava</a>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-sm text-slate-400">Belum ada plan 7 hari ke depan.</div>
+                    @endforelse
+                </div>
+
+                <div class="mt-4">
+                    <a href="{{ route('runner.calendar') }}" class="inline-flex items-center gap-2 text-sm text-neon hover:underline font-bold">
+                        Buka Training Calendar
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </a>
+                </div>
+            </div>
             
             <!-- Quick Actions -->
             <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                 <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-700 pb-2">Quick Access</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <a href="#" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
+                    <a href="{{ route('runner.calendar') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
                         <svg class="w-6 h-6 text-purple-400 mx-auto mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                        <span class="text-xs text-slate-300 font-bold">Marketplace</span>
+                        <span class="text-xs text-slate-300 font-bold">Calendar</span>
                     </a>
-                    <a href="#" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
+                    <a href="{{ $stravaConnected ? route('runner.calendar') : route('runner.strava.connect') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
                         <svg class="w-6 h-6 text-cyan-400 mx-auto mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                        <span class="text-xs text-slate-300 font-bold">My Stats</span>
+                        <span class="text-xs text-slate-300 font-bold">Strava</span>
                     </a>
-                    <a href="#" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
+                    <a href="{{ route('wallet.index') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
                         <svg class="w-6 h-6 text-green-400 mx-auto mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                        <span class="text-xs text-slate-300 font-bold">Community</span>
+                        <span class="text-xs text-slate-300 font-bold">Wallet</span>
                     </a>
                     <a href="{{ route('profile.show') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
                         <svg class="w-6 h-6 text-pink-400 mx-auto mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
