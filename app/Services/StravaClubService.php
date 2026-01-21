@@ -191,6 +191,7 @@ class StravaClubService
         }
 
         $athletes = [];
+        $needsMemberAvatarLookup = false;
         $startOfWeek = Carbon::now()->startOfWeek()->subWeek(); // Get Last Week (Monday)
         $endOfWeek = Carbon::now()->startOfWeek(); // Until This Week Monday (Sunday night)
 
@@ -209,17 +210,30 @@ class StravaClubService
             // $activityDate = Carbon::parse($activity['start_date_local']);
             // if ($activityDate->lt($startOfWeek)) continue;
 
-            $athleteName = $activity['athlete']['firstname'].' '.$activity['athlete']['lastname'];
+            $athlete = $activity['athlete'] ?? [];
+            $athleteName = trim(($athlete['firstname'] ?? '').' '.($athlete['lastname'] ?? ''));
+            if ($athleteName === '') {
+                $athleteName = $activity['name'] ?? 'Unknown';
+            }
+            $athleteId = $athlete['id'] ?? null;
+            $profile = $athlete['profile'] ?? ($athlete['profile_medium'] ?? null);
 
             if (! isset($athletes[$athleteName])) {
                 $athletes[$athleteName] = [
                     'name' => $athleteName,
+                    'athlete_id' => $athleteId,
                     'distance' => 0,
                     'elevation' => 0,
                     'max_speed' => 0,
                     'fastest_pace' => 9999, // Minutes per km
-                    'avatar' => 'https://i.pravatar.cc/150?u='.md5($athleteName), // Fallback avatar if not available
+                    'avatar' => $profile ?: 'https://ui-avatars.com/api/?name='.urlencode($athleteName),
                 ];
+            }
+
+            if (! empty($profile)) {
+                $athletes[$athleteName]['avatar'] = $profile;
+            } elseif (! empty($athleteId)) {
+                $needsMemberAvatarLookup = true;
             }
 
             // Sum Distance (meters to km)
@@ -252,6 +266,26 @@ class StravaClubService
         $distanceLeader = collect($athletes)->sortByDesc('distance')->first();
         $elevationLeader = collect($athletes)->sortByDesc('elevation')->first();
         $paceLeader = collect($athletes)->sortBy('fastest_pace')->first();
+
+        if ($needsMemberAvatarLookup) {
+            $members = $this->getClubMembers();
+            $membersById = collect($members)->filter(fn ($m) => ! empty($m['id']))->keyBy('id');
+            foreach ($athletes as $k => $a) {
+                $id = $a['athlete_id'] ?? null;
+                if (! $id) {
+                    continue;
+                }
+                $member = $membersById->get($id);
+                $avatar = is_array($member) ? ($member['avatar'] ?? null) : null;
+                if ($avatar) {
+                    $athletes[$k]['avatar'] = $avatar;
+                }
+            }
+
+            $distanceLeader = collect($athletes)->sortByDesc('distance')->first();
+            $elevationLeader = collect($athletes)->sortByDesc('elevation')->first();
+            $paceLeader = collect($athletes)->sortBy('fastest_pace')->first();
+        }
 
         // Format for display
         return [
