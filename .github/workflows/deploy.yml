@@ -26,3 +26,5 @@ jobs:
             composer install --no-dev
             php artisan migrate --force
             php artisan cache:clear
+            php artisan view:clear
+            php artisan optimize:clear
