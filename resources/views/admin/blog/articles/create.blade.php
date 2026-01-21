@@ -131,11 +131,17 @@
                     <div class="space-y-4">
                         <div class="relative w-full aspect-video bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl overflow-hidden flex items-center justify-center group hover:border-neon transition-colors">
                             <input type="file" name="featured_image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
+                            <input type="hidden" name="featured_image_url" id="featured_image_url">
                             <img id="img-preview" class="absolute inset-0 w-full h-full object-cover hidden">
                             <div class="text-center p-4 pointer-events-none" id="img-placeholder">
                                 <svg class="w-8 h-8 text-slate-500 mx-auto mb-2 group-hover:text-neon transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                 <span class="text-xs text-slate-400">Click to upload</span>
                             </div>
+                        </div>
+                        <div class="flex justify-center">
+                            <button type="button" onclick="openMediaForFeatured()" class="px-4 py-2 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-700 border border-slate-700 transition-colors">
+                                Select from Media Library
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -160,45 +166,9 @@
         file_picker_callback: (callback, value, meta) => {
             // Check if we want image or file
             if (meta.filetype === 'image') {
-                // Open our own Media Library Modal
-                // We'll create a simple modal implementation here using standard JS/Tailwind
-                
-                // Create modal container if not exists
-                let modalId = 'media-library-modal';
-                let modal = document.getElementById(modalId);
-                
-                if (!modal) {
-                    modal = document.createElement('div');
-                    modal.id = modalId;
-                    modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 hidden';
-                    modal.innerHTML = `
-                        <div class="bg-slate-900 w-11/12 h-5/6 rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden">
-                            <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
-                                <h3 class="text-white font-bold">Select Media</h3>
-                                <button onclick="document.getElementById('${modalId}').classList.add('hidden')" class="text-slate-400 hover:text-white">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                </button>
-                            </div>
-                            <div class="flex-1 overflow-hidden relative">
-                                <iframe src="{{ route('admin.blog.media.index') }}?picker=true" class="w-full h-full border-0"></iframe>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(modal);
-                }
-
-                // Show modal
-                modal.classList.remove('hidden');
-
-                // Listen for message from iframe
-                const messageHandler = (event) => {
-                    if (event.data && event.data.mceAction === 'insertMedia') {
-                        callback(event.data.url, { alt: event.data.alt });
-                        modal.classList.add('hidden');
-                        window.removeEventListener('message', messageHandler);
-                    }
-                };
-                window.addEventListener('message', messageHandler);
+                openMediaModal((url, alt) => {
+                    callback(url, { alt: alt });
+                });
             }
         },
         images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
@@ -242,6 +212,54 @@
             xhr.send(formData);
         })
     });
+
+    function openMediaModal(onSelectCallback) {
+        let modalId = 'media-library-modal';
+        let modal = document.getElementById(modalId);
+        
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 hidden';
+            modal.innerHTML = `
+                <div class="bg-slate-900 w-11/12 h-5/6 rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden">
+                    <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
+                        <h3 class="text-white font-bold">Select Media</h3>
+                        <button onclick="document.getElementById('${modalId}').classList.add('hidden')" class="text-slate-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-hidden relative">
+                        <iframe src="{{ route('admin.blog.media.index') }}?picker=true" class="w-full h-full border-0"></iframe>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        modal.classList.remove('hidden');
+
+        const messageHandler = (event) => {
+            if (event.data && event.data.mceAction === 'insertMedia') {
+                onSelectCallback(event.data.url, event.data.alt);
+                modal.classList.add('hidden');
+                window.removeEventListener('message', messageHandler);
+            }
+        };
+        window.addEventListener('message', messageHandler);
+    }
+
+    function openMediaForFeatured() {
+        openMediaModal((url, alt) => {
+            document.getElementById('featured_image_url').value = url;
+            const imgPreview = document.getElementById('img-preview');
+            const imgPlaceholder = document.getElementById('img-placeholder');
+            
+            imgPreview.src = url;
+            imgPreview.classList.remove('hidden');
+            imgPlaceholder.classList.add('hidden');
+        });
+    }
 
     function previewImage(input) {
         if (input.files && input.files[0]) {

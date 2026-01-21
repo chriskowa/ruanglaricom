@@ -34,6 +34,7 @@ class ArticleController extends Controller
             'excerpt' => 'nullable|string',
             'content' => 'required|string',
             'featured_image' => 'nullable|image|max:2048',
+            'featured_image_url' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:blog_tags,id',
@@ -57,6 +58,8 @@ class ArticleController extends Controller
         if ($request->hasFile('featured_image')) {
             $path = $request->file('featured_image')->store('blog/featured', 'public');
             $validated['featured_image'] = $path;
+        } elseif ($request->filled('featured_image_url')) {
+            $validated['featured_image'] = $request->featured_image_url;
         }
 
         if ($validated['status'] === 'published') {
@@ -130,6 +133,12 @@ class ArticleController extends Controller
             }
             $path = $request->file('featured_image')->store('blog/featured', 'public');
             $validated['featured_image'] = $path;
+        } elseif ($request->filled('featured_image_url')) {
+            // If switching to URL, we might want to delete the old local file if it exists
+            if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
+                Storage::disk('public')->delete($article->featured_image);
+            }
+            $validated['featured_image'] = $request->featured_image_url;
         }
 
         if ($validated['status'] === 'published' && $article->status !== 'published') {
