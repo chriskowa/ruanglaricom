@@ -4,6 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    @php
+        $gsc = \App\Models\AppSettings::get('google_search_console');
+        $bsc = \App\Models\AppSettings::get('bing_search_console');
+        $ga = \App\Models\AppSettings::get('google_analytics');
+        $gads = \App\Models\AppSettings::get('google_ads_tag');
+    @endphp
+
+    @if($gsc)
+    <meta name="google-site-verification" content="{{ $gsc }}" />
+    @endif
+    @if($bsc)
+    <meta name="msvalidate.01" content="{{ $bsc }}" />
+    @endif
+
+    @if($ga || $gads)
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $ga ?: $gads }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      @if($ga)
+      gtag('config', '{{ $ga }}');
+      @endif
+      @if($gads)
+      gtag('config', '{{ $gads }}');
+      @endif
+    </script>
+    @endif
+
     <!-- Primary Meta Tags -->
     <title>@yield('title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans')</title>
     <meta name="title" content="@yield('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans')">

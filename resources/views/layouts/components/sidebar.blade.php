@@ -20,6 +20,10 @@
                         <i class="flaticon-381-menu"></i>
                         <span class="nav-text">Menu Manager</span>
                     </a></li>
+                    <li><a class="ai-icon" href="{{ route('admin.integration.settings') }}" aria-expanded="false">
+                        <i class="flaticon-381-settings-2"></i>
+                        <span class="nav-text">Settings</span>
+                    </a></li>
                 @elseif(auth()->user()->isCoach())
                     <li class="menu-title">Main</li>
                     <li><a class="ai-icon" href="{{ route('coach.dashboard') }}" aria-expanded="false">

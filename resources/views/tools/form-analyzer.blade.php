@@ -214,6 +214,15 @@
                                 </div>
 
                                 <div class="p-5 space-y-4 pb-20">
+                                    <div id="rlfa-visualization-wrap" class="hidden mb-6">
+                                        <div class="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-black">
+                                            <img id="rlfa-visualization-img" class="w-full h-auto object-cover opacity-90" src="" alt="Analysis Visualization">
+                                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-4">
+                                                <p class="text-neon text-[10px] font-bold tracking-widest uppercase">Biomechanics Visualization</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="bg-slate-900 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl rounded-tl-sm p-4 border border-slate-800 relative">
                                         <div class="absolute -top-3 left-0 bg-neon text-dark text-[10px] font-bold px-2 py-0.5 rounded">AI COACH SAYS:</div>
                                         <p class="text-sm text-slate-200 leading-relaxed mt-2" id="rlfa-coach-message"></p>
@@ -307,6 +316,76 @@
         return landmarkerPromise;
     };
 
+    const drawBiomechanics = (video, landmarks, width, height) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, width, height);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, width, height);
+        if (!landmarks) return canvas.toDataURL('image/jpeg', 0.8);
+        const drawLine = (start, end, color = '#ccff00', width = 3) => {
+            if (!start || !end) return;
+            ctx.beginPath();
+            ctx.moveTo(start.x * width, start.y * height);
+            ctx.lineTo(end.x * width, end.y * height);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+        };
+        const drawPoint = (pt, color = '#ffffff', radius = 4) => {
+            if (!pt) return;
+            ctx.beginPath();
+            ctx.arc(pt.x * width, pt.y * height, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+        };
+        const drawAngle = (center, text) => {
+            if (!center) return;
+            ctx.font = 'bold 16px monospace';
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = '#000000';
+            ctx.shadowBlur = 4;
+            ctx.fillText(text, (center.x * width) + 10, (center.y * height) - 10);
+        };
+        const L = {
+            leftShoulder: 11, rightShoulder: 12, leftHip: 23, rightHip: 24,
+            leftKnee: 25, rightKnee: 26, leftAnkle: 27, rightAnkle: 28,
+            leftFootIndex: 31, rightFootIndex: 32
+        };
+        const lVis = (landmarks[L.leftAnkle]?.visibility ?? 0) + (landmarks[L.leftKnee]?.visibility ?? 0);
+        const rVis = (landmarks[L.rightAnkle]?.visibility ?? 0) + (landmarks[L.rightKnee]?.visibility ?? 0);
+        const isLeft = lVis > rVis;
+        const hip = landmarks[isLeft ? L.leftHip : L.rightHip];
+        const knee = landmarks[isLeft ? L.leftKnee : L.rightKnee];
+        const ankle = landmarks[isLeft ? L.leftAnkle : L.rightAnkle];
+        const shoulder = landmarks[isLeft ? L.leftShoulder : L.rightShoulder];
+        const foot = landmarks[isLeft ? L.leftFootIndex : L.rightFootIndex];
+        drawLine(shoulder, hip, '#ccff00');
+        drawLine(hip, knee, '#ccff00');
+        drawLine(knee, ankle, '#ccff00');
+        drawLine(ankle, foot, '#ccff00');
+        drawPoint(shoulder);
+        drawPoint(hip);
+        drawPoint(knee);
+        drawPoint(ankle);
+        drawPoint(foot);
+        if (hip && knee && ankle) {
+             const kAngle = angle(hip, knee, ankle);
+             const flex = kAngle ? (180 - kAngle).toFixed(0) : '--';
+             drawAngle(knee, `${flex}°`);
+        }
+        if (knee && ankle) {
+             const dx = Math.abs(knee.x - ankle.x);
+             const dy = Math.abs(knee.y - ankle.y);
+             const ang = (dy > 0) ? toDeg(Math.atan2(dx, dy)).toFixed(0) : '--';
+             drawAngle(ankle, `${ang}°`);
+        }
+        return canvas.toDataURL('image/jpeg', 0.85);
+    };
+
     const analyzeVideoFile = async (file, onProgress) => {
         const landmarker = await getLandmarker();
 
@@ -325,6 +404,9 @@
         });
 
         const duration = Number(video.duration) || 0;
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+
         const targetSamples = clamp(Math.floor(duration * 2), 12, 28);
         const start = clamp(0.4, 0, Math.max(0, duration - 0.4));
         const end = clamp(duration - 0.4, 0, duration);
@@ -417,14 +499,14 @@
                 trunkAng,
                 cross,
                 hipY: hip.y,
+                landmarks: lm
             });
 
             if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: targetSamples });
         }
 
-        URL.revokeObjectURL(url);
-
         if (!frames.length) {
+            URL.revokeObjectURL(url);
             return {
                 confidence: 0,
                 samples: 0,
@@ -459,6 +541,29 @@
         const armCrossPct = 100 * (frames.reduce((a, f) => a + f.cross, 0) / frames.length);
         const verticalOsc = std(frames.map((f) => f.hipY));
 
+        let visualization = null;
+        try {
+            let bestFrame = null;
+            if (contact.length > 0) {
+                 bestFrame = contact.sort((a, b) => b.kneeFlex - a.kneeFlex)[0];
+            } else if (frames.length > 0) {
+                 bestFrame = frames[Math.floor(frames.length / 2)];
+            }
+
+            if (bestFrame && bestFrame.landmarks) {
+                video.currentTime = bestFrame.t;
+                await new Promise((resolve) => {
+                    const handler = () => { video.removeEventListener('seeked', handler); resolve(); };
+                    video.addEventListener('seeked', handler);
+                });
+                visualization = drawBiomechanics(video, bestFrame.landmarks, width, height);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
+        URL.revokeObjectURL(url);
+
         return {
             confidence: Number.isFinite(confidence) ? Number(confidence.toFixed(3)) : 0,
             samples: frames.length,
@@ -469,6 +574,7 @@
             trunk_lean_deg: Number.isFinite(trunkAng) ? Number(trunkAng.toFixed(1)) : null,
             arm_cross_pct: Number.isFinite(armCrossPct) ? Number(armCrossPct.toFixed(1)) : null,
             vertical_oscillation: Number.isFinite(verticalOsc) ? Number(verticalOsc.toFixed(4)) : null,
+            visualization: visualization
         };
     };
 
@@ -516,6 +622,8 @@
         const strengthEl = document.getElementById('rlfa-strength');
         const recoveryWrap = document.getElementById('rlfa-recovery-wrap');
         const recoveryEl = document.getElementById('rlfa-recovery');
+        const visualizationWrap = document.getElementById('rlfa-visualization-wrap');
+        const visualizationImg = document.getElementById('rlfa-visualization-img');
 
         const formatBytes = (bytes) => {
             if (!Number.isFinite(bytes) || bytes <= 0) return '--';
@@ -660,6 +768,16 @@
         };
 
         const renderResults = (result) => {
+            if (visualizationWrap && visualizationImg) {
+                if (result.visualization) {
+                    visualizationImg.src = result.visualization;
+                    visualizationWrap.classList.remove('hidden');
+                } else {
+                    visualizationWrap.classList.add('hidden');
+                    visualizationImg.src = '';
+                }
+            }
+
             const score = Number(result.score) || 0;
             scoreEl.textContent = String(score);
 
