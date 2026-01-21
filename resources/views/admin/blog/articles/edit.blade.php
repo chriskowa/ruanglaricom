@@ -133,12 +133,7 @@
                             <input type="file" id="featured_image_file" name="featured_image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
                             <input type="hidden" name="featured_image_url" id="featured_image_url">
                             @if($article->featured_image)
-                                @php
-                                    $imgSrc = Str::startsWith($article->featured_image, ['http://', 'https://']) 
-                                        ? $article->featured_image 
-                                        : asset('storage/' . $article->featured_image);
-                                @endphp
-                                <img id="img-preview" src="{{ $imgSrc }}" class="absolute inset-0 w-full h-full object-cover">
+                                <img id="img-preview" src="{{ Str::startsWith($article->featured_image, ['http://', 'https://']) ? $article->featured_image : asset('storage/' . $article->featured_image) }}" class="absolute inset-0 w-full h-full object-cover">
                                 <div class="text-center p-4 pointer-events-none hidden" id="img-placeholder">
                             @else
                                 <img id="img-preview" class="absolute inset-0 w-full h-full object-cover hidden">
