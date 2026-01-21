@@ -300,6 +300,11 @@
                 group: 1
             });
 
+            // Prevent Nestable from hijacking clicks on action buttons
+            $('.dd-nodrag').on('mousedown', function(e) {
+                e.stopPropagation();
+            });
+
             // Save Menu
             $('#save-menu').on('click', function() {
                 var btn = $(this);
@@ -348,8 +353,9 @@
         document.getElementById('edit-target').value = item.target;
         
         var form = document.getElementById('editForm');
-        // Use manual URL construction to avoid route helper issues with placeholders
-        form.action = "{{ url('admin/menus/items') }}/" + item.id;
+        // Fix: Use route helper with placeholder replacement for robust URL generation
+        var urlTemplate = "{{ route('admin.menus.items.update', ['item' => 'ITEM_ID']) }}";
+        form.action = urlTemplate.replace('ITEM_ID', item.id);
         
         document.getElementById('editModal').classList.remove('hidden');
     }
