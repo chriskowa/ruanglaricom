@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Blog;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Controller; 
 use App\Models\Article;
 use App\Models\BlogCategory;
 use App\Models\BlogTag;
