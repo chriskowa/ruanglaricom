@@ -37,6 +37,7 @@
                                      x-transition:leave-start="transform opacity-100 scale-100"
                                      x-transition:leave-end="transform opacity-0 scale-95"
                                      x-cloak
+                                     style="display: none;"
                                      class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl origin-top-left z-50">
                                     <div class="p-1 space-y-1">
                                         @foreach($item->children as $child)
