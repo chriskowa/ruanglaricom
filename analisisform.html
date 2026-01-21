@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuangLari AI Form Analyzer - Advanced Biomechanics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            neon: '#CCFF00', // Volt/Lime Green
+                            dark: '#0B1120', // Deep Navy/Black
+                            surface: '#1E293B',
+                            accent: '#334155'
+                        }
+                    },
+                    animation: {
+                        'scan': 'scan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        scan: {
+                            '0%, 100%': { top: '0%', opacity: 0 },
+                            '10%': { opacity: 1 },
+                            '90%': { opacity: 1 },
+                            '100%': { top: '100%', opacity: 0 },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Utilities */
+        body { background-color: #0B1120; color: white; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(204, 255, 0, 0.3);
+        }
+        .text-glow {
+            text-shadow: 0 0 10px rgba(204, 255, 0, 0.4);
+        }
+        /* Hide scrollbar for the phone screen */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+
+    <nav class="fixed w-full z-50 glass-panel border-b border-gray-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-brand-neon rounded flex items-center justify-center">
+                        <svg class="w-5 h-5 text-brand-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <span class="text-xl font-black tracking-tighter italic">RUANG<span class="text-brand-neon">LARI</span>.</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#how-it-works" class="text-sm font-medium text-gray-300 hover:text-brand-neon transition">Biomekanik</a>
+                    <a href="#demo" class="text-sm font-medium text-gray-300 hover:text-brand-neon transition">Live Demo</a>
+                    <a href="#expert" class="text-sm font-medium text-gray-300 hover:text-brand-neon transition">Dr. Maria</a>
+                </div>
+                <a href="#demo" class="bg-white text-brand-dark hover:bg-brand-neon transition font-bold px-5 py-2 rounded-full text-sm">
+                    Akses Early Bird
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none opacity-40">
+            <div class="absolute top-20 left-10 w-96 h-96 bg-brand-neon rounded-full mix-blend-multiply filter blur-[120px] animate-pulse-slow"></div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-[120px] opacity-70"></div>
+        </div>
+
+        <div class="max-w-5xl mx-auto px-4 relative z-10 text-center">
+            <div class="inline-flex items-center px-3 py-1 rounded-full border border-brand-neon/30 bg-brand-neon/5 text-brand-neon text-xs font-bold tracking-wide uppercase mb-8">
+                <span class="w-2 h-2 bg-brand-neon rounded-full mr-2 animate-pulse"></span>
+                AI Biomechanics Engine v2.0
+            </div>
+            
+            <h1 class="text-5xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-6 text-white">
+                Lari Kencang Percuma <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-neon to-emerald-400 text-glow">Kalau Menuju Cedera.</span>
+            </h1>
+            
+            <p class="text-lg lg:text-xl text-gray-400 mb-10 leading-relaxed max-w-2xl mx-auto">
+                Bukan sekadar hitung cadence. AI kami menganalisis kelemahan <em>glutes</em>, stabilitas <em>ankle</em>, hingga efisiensi ayunan tangan dalam 10 detik.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button onclick="document.getElementById('demo').scrollIntoView({behavior: 'smooth'})" class="w-full sm:w-auto bg-brand-neon text-brand-dark font-black px-8 py-4 rounded-full hover:bg-white hover:scale-105 transition transform shadow-[0_0_25px_rgba(204,255,0,0.4)]">
+                    ⚡ COBA DEMO ANALISIS
+                </button>
+                <div class="text-xs text-gray-500 font-mono mt-2 sm:mt-0">
+                    *Divalidasi Medis oleh Dr. Maria
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="py-20 bg-brand-dark relative border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="grid lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-5 space-y-8 order-2 lg:order-1">
+                    <h2 class="text-3xl font-bold text-white">Laboratorium Biomekanik <br>di Saku Anda.</h2>
+                    <p class="text-gray-400">Kami menggunakan <em>Computer Vision</em> untuk memetakan 33 titik sendi tubuh Anda dan mengubahnya menjadi data medis yang bisa dimengerti.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition border border-transparent hover:border-gray-700 cursor-default">
+                            <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white">Power Leakage Detector</h4>
+                                <p class="text-sm text-gray-400">Mendeteksi 'kebocoran' tenaga akibat Overstriding atau Heel Strike berlebih.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition border border-transparent hover:border-gray-700 cursor-default">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white">Muscle Weakness Logic</h4>
+                                <p class="text-sm text-gray-400">AI tahu jika lututmu goyang, berarti Glutes (bokong) kamu lemah.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 flex justify-center order-1 lg:order-2">
+                    <div class="relative w-[340px] h-[680px] bg-gray-900 border-[8px] border-gray-800 rounded-[3rem] shadow-2xl overflow-hidden ring-1 ring-gray-700 flex flex-col">
+                        
+                        <div class="absolute top-0 w-full h-8 bg-black/50 z-50 flex justify-between items-center px-6">
+                            <span class="text-[10px] font-bold text-white">RUANGLARI AI</span>
+                            <div class="flex gap-1"><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+                        </div>
+
+                        <div id="app-screen" class="w-full h-full bg-gray-900 relative">
+                            
+                            <div id="state-instructions" class="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-b from-gray-800 to-gray-900 transition-opacity duration-500 z-30">
+                                <div class="absolute top-0 left-0 w-full h-1/2 bg-[url('https://images.unsplash.com/photo-1596727147705-54a9d09e5f4d?q=80&w=600&auto=format&fit=crop')] bg-cover bg-center opacity-40 mask-image-gradient"></div>
+                                <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-transparent to-gray-900"></div>
+
+                                <div class="relative z-10 mb-4">
+                                    <h3 class="text-2xl font-black text-white mb-2">Analisis Form Lari</h3>
+                                    <p class="text-gray-400 text-sm mb-6">Untuk hasil akurat sesuai fisiologis, ikuti "Golden Rules" ini:</p>
+                                    
+                                    <div class="space-y-3 mb-8">
+                                        <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg border border-gray-700">
+                                            <span class="text-xl">📹</span>
+                                            <div class="text-xs text-gray-300">
+                                                <strong class="block text-white">Wajib Tampak Samping</strong>
+                                                Rekam tegak lurus (Sagittal Plane).
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg border border-gray-700">
+                                            <span class="text-xl">⏱️</span>
+                                            <div class="text-xs text-gray-300">
+                                                <strong class="block text-white">Durasi Pendek</strong>
+                                                Cukup 5-10 detik lari stabil.
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg border border-gray-700">
+                                            <span class="text-xl">🦵</span>
+                                            <div class="text-xs text-gray-300">
+                                                <strong class="block text-white">Pakaian Jelas</strong>
+                                                Agar sendi lutut & ankle terlihat.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button onclick="startDemo()" class="w-full bg-brand-neon text-brand-dark font-bold py-4 rounded-xl hover:bg-white transition flex items-center justify-center gap-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                        Upload Video & Analisis
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="state-scanning" class="absolute inset-0 bg-black hidden z-40">
+                                <img src="https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover opacity-60 grayscale filter contrast-125" alt="Running Analysis">
+                                
+                                <div class="absolute inset-0">
+                                    <div class="absolute w-full h-[2px] bg-brand-neon shadow-[0_0_20px_#ccff00] animate-scan z-50"></div>
+                                    
+                                    <div class="absolute top-[40%] left-[45%] w-3 h-3 bg-brand-neon rounded-full shadow-[0_0_10px_#ccff00] animate-pulse"></div> <div class="absolute top-[65%] left-[55%] w-3 h-3 bg-brand-neon rounded-full shadow-[0_0_10px_#ccff00] animate-pulse" style="animation-delay: 0.2s"></div> <div class="absolute top-[88%] left-[48%] w-3 h-3 bg-brand-neon rounded-full shadow-[0_0_10px_#ccff00] animate-pulse" style="animation-delay: 0.4s"></div> <div class="absolute top-[41%] left-[46%] w-[50px] h-[2px] bg-brand-neon/60 origin-top-left rotate-[65deg]"></div>
+                                    <div class="absolute top-[66%] left-[56%] w-[50px] h-[2px] bg-brand-neon/60 origin-top-left rotate-[110deg]"></div>
+
+                                    <div class="absolute top-20 left-4 bg-black/70 backdrop-blur-md p-2 rounded border-l-2 border-brand-neon">
+                                        <p class="text-[10px] text-gray-300 font-mono">KNEE FLEXION</p>
+                                        <p class="text-sm font-bold text-white font-mono" id="scan-metric-1">--°</p>
+                                    </div>
+                                    <div class="absolute bottom-32 right-4 bg-black/70 backdrop-blur-md p-2 rounded border-l-2 border-brand-neon">
+                                        <p class="text-[10px] text-gray-300 font-mono">SHIN ANGLE</p>
+                                        <p class="text-sm font-bold text-white font-mono" id="scan-metric-2">--°</p>
+                                    </div>
+
+                                    <div class="absolute bottom-10 w-full text-center">
+                                        <p class="text-brand-neon font-mono text-xs animate-pulse" id="scan-text">INITIALIZING...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="state-results" class="absolute inset-0 bg-gray-900 hidden flex-col z-50 overflow-y-auto no-scrollbar">
+                                
+                                <div class="p-6 pb-2 sticky top-0 bg-gray-900/95 backdrop-blur z-20 border-b border-gray-800">
+                                    <div class="flex justify-between items-end mb-2">
+                                        <div>
+                                            <p class="text-xs text-gray-400 uppercase tracking-widest">Efficiency Score</p>
+                                            <h2 class="text-4xl font-black text-white italic">72<span class="text-lg text-gray-500 font-normal">/100</span></h2>
+                                        </div>
+                                        <div class="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded text-xs font-bold border border-yellow-500/30">
+                                            NEEDS WORK ⚠️
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-5 space-y-4 pb-20">
+                                    
+                                    <div class="bg-gray-800 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl rounded-tl-sm p-4 border border-gray-700 relative">
+                                        <div class="absolute -top-3 left-0 bg-brand-neon text-brand-dark text-[10px] font-bold px-2 py-0.5 rounded">AI COACH SAYS:</div>
+                                        <p class="text-sm text-gray-300 leading-relaxed mt-2" id="coach-message">
+                                            </p>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <h4 class="text-xs font-bold text-gray-500 uppercase mt-4 mb-2">Biomechanics Breakdown</h4>
+                                        
+                                        <div class="bg-gray-800/50 p-3 rounded-lg border border-red-500/30">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-sm font-bold text-white">⚠️ Overstriding</span>
+                                                <span class="text-xs text-red-400 font-mono">HIGH RISK</span>
+                                            </div>
+                                            <p class="text-xs text-gray-400">Shin angle > 12°. Pendaratan terlalu jauh di depan Center of Mass.</p>
+                                        </div>
+
+                                        <div class="bg-gray-800/50 p-3 rounded-lg border border-yellow-500/30">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-sm font-bold text-white">⚠️ Weak Glutes Identified</span>
+                                                <span class="text-xs text-yellow-400 font-mono">DETECTED</span>
+                                            </div>
+                                            <p class="text-xs text-gray-400">Terdeteksi 'Hip Drop' saat mendarat. Indikasi otot bokong kurang stabil menahan beban.</p>
+                                        </div>
+
+                                        <div class="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-sm font-bold text-white">✅ Arm Swing</span>
+                                                <span class="text-xs text-brand-neon font-mono">GOOD</span>
+                                            </div>
+                                            <p class="text-xs text-gray-400">Ayunan tangan efisien, tidak menyilang tubuh (*crossing midline*).</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-4">
+                                        <button class="w-full bg-white text-brand-dark font-bold py-3 rounded-xl text-sm hover:bg-gray-200">
+                                            Lihat Resep Latihan Dr. Maria &rarr;
+                                        </button>
+                                        <button onclick="resetDemo()" class="w-full text-gray-500 text-xs py-3 hover:text-white">
+                                            Ulangi Analisis
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-gray-600 rounded-full z-50"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="py-20 bg-brand-surface border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold mb-4 text-white">Mengapa Analisis Form Itu Penting?</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Kami mengukur parameter yang tidak bisa dilihat mata telanjang. Setiap derajat kemiringan menentukan apakah Anda lari lebih cepat atau lebih dekat ke meja operasi.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-brand-dark p-8 rounded-2xl border border-gray-700/50 hover:border-brand-neon/50 transition duration-300">
+                    <div class="text-brand-neon text-4xl mb-4 font-black">01</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Shin Angle (Sudut Betis)</h3>
+                    <p class="text-gray-400 text-sm">Menentukan apakah Anda mengerem (*braking*) saat mendarat. Sudut betis yang positif berlebihan = Overstriding = Shin Splints.</p>
+                </div>
+                <div class="bg-brand-dark p-8 rounded-2xl border border-gray-700/50 hover:border-brand-neon/50 transition duration-300">
+                    <div class="text-brand-neon text-4xl mb-4 font-black">02</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Hip Drop (Kestabilan Panggul)</h3>
+                    <p class="text-gray-400 text-sm">Jika panggul miring saat satu kaki menapak, itu tanda <em>Glute Medius</em> lemah. Penyebab utama IT Band Syndrome.</p>
+                </div>
+                <div class="bg-brand-dark p-8 rounded-2xl border border-gray-700/50 hover:border-brand-neon/50 transition duration-300">
+                    <div class="text-brand-neon text-4xl mb-4 font-black">03</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Knee Flexion</h3>
+                    <p class="text-gray-400 text-sm">Kemampuan lutut menekuk saat mendarat untuk menyerap 2.5x berat badan tubuh (*shock absorption*).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-brand-dark border-t border-gray-800 py-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                 <span class="text-xl font-black tracking-tighter italic text-white">RUANG<span class="text-brand-neon">LARI</span>.</span>
+            </div>
+            <p class="text-gray-600 text-sm text-center md:text-right">
+                &copy; 2026 RuangLari Technology.<br>
+                Malang, Indonesia.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        const stateInstructions = document.getElementById('state-instructions');
+        const stateScanning = document.getElementById('state-scanning');
+        const stateResults = document.getElementById('state-results');
+        
+        // Scan Text Elements
+        const scanText = document.getElementById('scan-text');
+        const scanMetric1 = document.getElementById('scan-metric-1');
+        const scanMetric2 = document.getElementById('scan-metric-2');
+
+        // Text Scenarios (To make scan look real)
+        const loadingTexts = [
+            "Mendeteksi Sendi Lutut...",
+            "Mengukur Footstrike Angle...",
+            "Analisis Rotasi Panggul...",
+            "Cek Aktivasi Glutes...",
+            "Kompilasi Data..."
+        ];
+
+        function startDemo() {
+            // 1. Hide Instructions, Show Scan
+            stateInstructions.classList.add('hidden');
+            stateScanning.classList.remove('hidden');
+
+            // 2. Simulate Scanning Metrics
+            let step = 0;
+            const textInterval = setInterval(() => {
+                if (step < loadingTexts.length) {
+                    scanText.innerText = loadingTexts[step];
+                    // Random numbers for effect
+                    scanMetric1.innerText = Math.floor(Math.random() * (160 - 140) + 140) + "°";
+                    scanMetric2.innerText = Math.floor(Math.random() * (15 - 5) + 5) + "°";
+                    step++;
+                }
+            }, 800);
+
+            // 3. Finish Scan after 4.5 seconds
+            setTimeout(() => {
+                clearInterval(textInterval);
+                finishDemo();
+            }, 4500);
+        }
+
+        function finishDemo() {
+            stateScanning.classList.add('hidden');
+            stateResults.classList.remove('hidden');
+            stateResults.classList.add('flex');
+            
+            // TYPEWRITER EFFECT FOR THE COACH MESSAGE
+            const messageEl = document.getElementById('coach-message');
+            const fullMessage = "Halo! Saya sudah memindai 8 langkahmu. Postur atas oke, tapi ada PERINGATAN KRUSIAL:\n\n⚠️ Terdeteksi: Overstriding & Weak Glutes.\n\nArtinya kakimu mendarat terlalu jauh (mengerem) dan panggulmu tidak stabil. Ini membebani lutut. \n\n💡 SARAN: Fokus 'jatuh' ke depan, tingkatkan cadence, dan lakukan latihan 'Clamshells' untuk perkuat bokong.";
+            
+            messageEl.innerHTML = "";
+            let i = 0;
+            const typeWriter = setInterval(() => {
+                if (i < fullMessage.length) {
+                    if(fullMessage.charAt(i) === '\n') {
+                        messageEl.innerHTML += '<br>';
+                    } else {
+                        messageEl.innerHTML += fullMessage.charAt(i);
+                    }
+                    i++;
+                    // Auto scroll to bottom while typing
+                    stateResults.scrollTop = stateResults.scrollHeight; 
+                } else {
+                    clearInterval(typeWriter);
+                }
+            }, 20); // Typing speed
+        }
+
+        function resetDemo() {
+            stateResults.classList.add('hidden');
+            stateResults.classList.remove('flex');
+            stateInstructions.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

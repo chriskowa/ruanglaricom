@@ -144,6 +144,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
 // Public routes
 Route::get('/calculator', [App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
+Route::get('/tools/form-analyzer', [App\Http\Controllers\FormAnalyzerController::class, 'index'])->name('tools.form-analyzer');
+Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerController::class, 'analyze'])->name('tools.form-analyzer.analyze');
 Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');
 Route::get('/calendar/events-proxy', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.events.proxy');
 Route::get('/calendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
