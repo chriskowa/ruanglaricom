@@ -98,9 +98,10 @@ class StravaClubService
         }
 
         // 3. Fetch Club Activities
+        $clubId = $this->getClubId();
         $response = Http::withToken($accessToken)
             ->withoutVerifying()
-            ->get("https://www.strava.com/api/v3/clubs/{$this->clubId}/activities", [
+            ->get("https://www.strava.com/api/v3/clubs/{$clubId}/activities", [
                 'per_page' => 200, // Get enough data
             ]);
 
@@ -115,6 +116,22 @@ class StravaClubService
         $activities = $response->json();
 
         return $this->processLeaderboard($activities);
+    }
+
+    private function fetchClubActivitiesByToken(string $token): array
+    {
+        $clubId = $this->getClubId();
+        $response = Http::withToken($token)
+            ->withoutVerifying()
+            ->get("https://www.strava.com/api/v3/clubs/{$clubId}/activities", [
+                'per_page' => 200,
+            ]);
+
+        if ($response->failed()) {
+            return [];
+        }
+
+        return $response->json() ?: [];
     }
 
     public function fetchClubActivitiesByEnv(): array

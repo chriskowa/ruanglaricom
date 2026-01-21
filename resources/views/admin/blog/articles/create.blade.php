@@ -130,7 +130,7 @@
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Featured Image</h3>
                     <div class="space-y-4">
                         <div class="relative w-full aspect-video bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl overflow-hidden flex items-center justify-center group hover:border-neon transition-colors">
-                            <input type="file" name="featured_image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
+                            <input type="file" id="featured_image_file" name="featured_image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
                             <input type="hidden" name="featured_image_url" id="featured_image_url">
                             <img id="img-preview" class="absolute inset-0 w-full h-full object-cover hidden">
                             <div class="text-center p-4 pointer-events-none" id="img-placeholder">
@@ -252,6 +252,8 @@
     function openMediaForFeatured() {
         openMediaModal((url, alt) => {
             document.getElementById('featured_image_url').value = url;
+            const fileInput = document.getElementById('featured_image_file');
+            if (fileInput) fileInput.value = '';
             const imgPreview = document.getElementById('img-preview');
             const imgPlaceholder = document.getElementById('img-placeholder');
             
@@ -263,6 +265,8 @@
 
     function previewImage(input) {
         if (input.files && input.files[0]) {
+            const urlInput = document.getElementById('featured_image_url');
+            if (urlInput) urlInput.value = '';
             var reader = new FileReader();
             
             reader.onload = function(e) {

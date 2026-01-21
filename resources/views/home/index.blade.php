@@ -379,7 +379,7 @@
                     </div>
                     @auth
                         @if(auth()->user()->isAdmin())
-                            <a href="{{ route('calendar.strava.connect') }}" class="text-[10px] text-slate-500 hover:text-white ml-2">[Admin: Re-Connect Strava]</a>
+                            <a href="{{ route('calendar.strava.connect', ['return_to' => '/#leaderboard']) }}" class="text-[10px] text-slate-500 hover:text-white ml-2">[Admin: Re-Connect Strava]</a>
                         @endif
                     @endauth
                     <h2 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
@@ -524,7 +524,7 @@
                         <div class="col-span-3 text-center py-10">
                             <div class="inline-block p-6 rounded-2xl bg-slate-800/50 border border-slate-700">
                                 <p class="text-slate-400 mb-4">Belum ada data leaderboard minggu ini.</p>
-                                <a href="{{ route('calendar.strava.connect') }}" class="text-neon font-bold hover:underline">Hubungkan Strava untuk memulai tracking &rarr;</a>
+                                <a href="{{ route('calendar.strava.connect', ['return_to' => '/#leaderboard']) }}" class="text-neon font-bold hover:underline">Hubungkan Strava untuk memulai tracking &rarr;</a>
                             </div>
                         </div>
                     @endif

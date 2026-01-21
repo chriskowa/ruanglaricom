@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -69,9 +70,16 @@ class CalendarController extends Controller
         }
     }
 
-    public function stravaConnect()
+    public function stravaConnect(Request $request)
     {
         $clientId = \App\Models\Admin\StravaConfig::first()->client_id ?? env('STRAVA_CLIENT_ID');
+
+        $returnTo = $request->string('return_to')->toString();
+        if ($returnTo !== '' && str_starts_with($returnTo, '/') && ! str_starts_with($returnTo, '//')) {
+            session(['strava_return_to' => $returnTo]);
+        } else {
+            session()->forget('strava_return_to');
+        }
         
         $query = http_build_query([
             'client_id' => $clientId,
@@ -86,8 +94,10 @@ class CalendarController extends Controller
 
     public function stravaCallback(Request $request)
     {
+        $returnTo = session()->pull('strava_return_to') ?: (route('calendar.public').'#strava');
+
         if (! $request->has('code')) {
-            return redirect()->route('calendar.public')->with('error', 'Authorization failed');
+            return redirect($returnTo)->with('error', 'Authorization failed');
         }
 
         try {
@@ -116,8 +126,13 @@ class CalendarController extends Controller
                     ]);
                 }
 
+                Cache::forget('strava_club_leaderboard');
+
                 // Return a view that saves to localStorage and closes/redirects
-                return view('calendar.strava-callback', ['tokenData' => $tokenData]);
+                return view('calendar.strava-callback', [
+                    'tokenData' => $tokenData,
+                    'redirectTo' => $returnTo,
+                ]);
             }
 
             $errorMessage = 'Token exchange failed';
@@ -129,10 +144,10 @@ class CalendarController extends Controller
                 $errorMessage .= ' ('.json_encode($body['errors']).')';
             }
 
-            return redirect()->route('calendar.public')->with('error', $errorMessage);
+            return redirect($returnTo)->with('error', $errorMessage);
 
         } catch (\Exception $e) {
-            return redirect()->route('calendar.public')->with('error', 'Connection error: '.$e->getMessage());
+            return redirect($returnTo)->with('error', 'Connection error: '.$e->getMessage());
         }
     }
 }

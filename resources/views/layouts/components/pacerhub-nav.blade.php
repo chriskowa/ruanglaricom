@@ -1,3 +1,4 @@
+<style>[x-cloak]{display:none !important;}</style>
 <nav class="border-b border-slate-800 backdrop-blur-md fixed w-full z-40 bg-dark/80">
     @php
         $headerMenu = \App\Models\Menu::where('location', 'header')
@@ -23,8 +24,8 @@
                     @foreach($headerMenu->items as $item)
                         @if($item->children->count() > 0)
                             <!-- Dropdown for {{ $item->title }} -->
-                            <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                                <button id="nav-{{ Str::slug($item->title) }}-btn" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none" :class="{ 'text-neon': open }">
+                            <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" @keydown.escape.window="open = false" @click.outside="open = false">
+                                <button id="nav-{{ Str::slug($item->title) }}-btn" type="button" class="flex items-center gap-1 px-3 py-2 text-sm font-bold text-slate-300 hover:text-neon transition-colors focus:outline-none" :class="{ 'text-neon': open }" @click="open = !open">
                                     {{ $item->title }}
                                     <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                                 </button>
@@ -35,6 +36,7 @@
                                      x-transition:leave="transition ease-in duration-75"
                                      x-transition:leave-start="transform opacity-100 scale-100"
                                      x-transition:leave-end="transform opacity-0 scale-95"
+                                     x-cloak
                                      class="absolute left-0 mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-xl shadow-2xl origin-top-left z-50">
                                     <div class="p-1 space-y-1">
                                         @foreach($item->children as $child)

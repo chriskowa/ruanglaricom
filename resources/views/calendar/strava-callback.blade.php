@@ -5,6 +5,7 @@
     <script>
         // Data from backend
         const tokenData = @json($tokenData);
+        const redirectTo = @json($redirectTo ?? (route('calendar.public') . '#strava'));
         
         if(tokenData && tokenData.access_token) {
             // Save to localStorage
@@ -13,11 +14,10 @@
             localStorage.setItem('strava_expires_at', tokenData.expires_at);
             localStorage.setItem('strava_athlete', JSON.stringify(tokenData.athlete));
             
-            // Redirect back to calendar with hash to switch tab
-            window.location.href = "{{ route('calendar.public') }}#strava";
+            window.location.href = redirectTo;
         } else {
             alert('Failed to connect Strava. Please try again.');
-            window.location.href = "{{ route('calendar.public') }}";
+            window.location.href = redirectTo || "{{ route('calendar.public') }}";
         }
     </script>
 </head>

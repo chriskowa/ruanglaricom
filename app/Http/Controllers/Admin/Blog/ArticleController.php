@@ -108,6 +108,7 @@ class ArticleController extends Controller
             'excerpt' => 'nullable|string',
             'content' => 'required|string',
             'featured_image' => 'nullable|image|max:2048',
+            'featured_image_url' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:blog_tags,id',
