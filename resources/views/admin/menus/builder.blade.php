@@ -126,7 +126,7 @@
                                             <div class="text-xs text-slate-500">{{ $item->url }}</div>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity dd-nodrag">
+                                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity dd-nodrag" style="position: relative; z-index: 10;">
                                         <button onclick="editItem({{ $item }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         </button>
@@ -153,7 +153,7 @@
                                                             <div class="text-xs text-slate-500">{{ $child->url }}</div>
                                                         </div>
                                                     </div>
-                                                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity dd-nodrag" style="position: relative; z-index: 10;">
                                                         <button onclick="editItem({{ $child }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors">
                                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                         </button>
@@ -180,7 +180,7 @@
                                                                             <div class="text-xs text-slate-500">{{ $subchild->url }}</div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity dd-nodrag" style="position: relative; z-index: 10;">
                                                                         <button onclick="editItem({{ $subchild }})" type="button" class="p-1.5 rounded text-blue-400 hover:bg-blue-400/10 transition-colors">
                                                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                                         </button>
@@ -301,7 +301,7 @@
             });
 
             // Prevent Nestable from hijacking clicks on action buttons
-            $('.dd-nodrag').on('mousedown', function(e) {
+            $(document).on('mousedown touchstart', '.dd-nodrag, .dd-nodrag button, .dd-nodrag a, .dd-nodrag form', function(e) {
                 e.stopPropagation();
             });
 
