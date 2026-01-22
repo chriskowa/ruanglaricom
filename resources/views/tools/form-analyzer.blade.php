@@ -112,6 +112,11 @@
 
                         <div id="rlfa-app" class="w-full h-full bg-slate-950 relative">
                             <input id="rlfa-video-input" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska" class="hidden">
+                            <input id="rlfa-photo-input-landing" type="file" accept="image/*" capture="environment" class="hidden">
+                            <input id="rlfa-photo-input-lever" type="file" accept="image/*" capture="environment" class="hidden">
+                            <input id="rlfa-photo-input-push" type="file" accept="image/*" capture="environment" class="hidden">
+                            <input id="rlfa-photo-input-pull" type="file" accept="image/*" capture="environment" class="hidden">
+                            <input id="rlfa-photo-input-front" type="file" accept="image/*" capture="environment" class="hidden">
 
                             <div id="rlfa-state-instructions" class="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-b from-slate-800 to-slate-950 transition-opacity duration-500 z-30">
                                 <div class="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center opacity-40 mask-image-gradient" style="background-image: url('{{ asset('images/big/img6.jpg') }}')"></div>
@@ -136,6 +141,58 @@
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
                                         Upload Video & Analisis
                                     </button>
+
+                                    <div class="mt-3 grid grid-cols-2 gap-2">
+                                        <button id="rlfa-inputmode-video" type="button" class="px-3 py-2 rounded-xl border border-neon/40 bg-neon/10 text-neon font-bold text-xs">Mode Video</button>
+                                        <button id="rlfa-inputmode-photos" type="button" class="px-3 py-2 rounded-xl border border-slate-700 bg-slate-900/40 text-slate-300 font-bold text-xs hover:text-white">Mode 5 Foto</button>
+                                    </div>
+
+                                    <div id="rlfa-photo-slots" class="mt-4 hidden space-y-2">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button type="button" id="rlfa-photo-btn-landing" class="rlfa-photo-btn flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
+                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                                    <img id="rlfa-photo-prev-landing" class="hidden w-full h-full object-cover" alt="Landing">
+                                                    <i id="rlfa-photo-ico-landing" class="fa-regular fa-image text-slate-500"></i>
+                                                </span>
+                                                <span>Landing</span>
+                                            </button>
+                                            <button type="button" id="rlfa-photo-btn-lever" class="rlfa-photo-btn flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
+                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                                    <img id="rlfa-photo-prev-lever" class="hidden w-full h-full object-cover" alt="Lever">
+                                                    <i id="rlfa-photo-ico-lever" class="fa-regular fa-image text-slate-500"></i>
+                                                </span>
+                                                <span>Lever</span>
+                                            </button>
+                                            <button type="button" id="rlfa-photo-btn-push" class="rlfa-photo-btn flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
+                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                                    <img id="rlfa-photo-prev-push" class="hidden w-full h-full object-cover" alt="Push">
+                                                    <i id="rlfa-photo-ico-push" class="fa-regular fa-image text-slate-500"></i>
+                                                </span>
+                                                <span>Push</span>
+                                            </button>
+                                            <button type="button" id="rlfa-photo-btn-pull" class="rlfa-photo-btn flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
+                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                                    <img id="rlfa-photo-prev-pull" class="hidden w-full h-full object-cover" alt="Pull">
+                                                    <i id="rlfa-photo-ico-pull" class="fa-regular fa-image text-slate-500"></i>
+                                                </span>
+                                                <span>Pull</span>
+                                            </button>
+                                            <button type="button" id="rlfa-photo-btn-front" class="rlfa-photo-btn col-span-2 flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
+                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                                    <img id="rlfa-photo-prev-front" class="hidden w-full h-full object-cover" alt="Front">
+                                                    <i id="rlfa-photo-ico-front" class="fa-regular fa-image text-slate-500"></i>
+                                                </span>
+                                                <span>Front (opsional)</span>
+                                            </button>
+                                        </div>
+
+                                        <button id="rlfa-analyze-photos-btn" type="button" disabled class="w-full bg-white/10 text-white font-bold py-3 rounded-xl text-sm border border-slate-800 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white hover:text-dark transition">
+                                            Analisis 5 Foto
+                                        </button>
+                                        <div class="text-[10px] text-slate-400 leading-relaxed">
+                                            Minimal 4 foto (Landing, Lever, Push, Pull). Front opsional. Disarankan tampak samping untuk 4 foto pertama.
+                                        </div>
+                                    </div>
 
                                     <div class="mt-4 bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs text-slate-300">
                                         <label class="flex items-center gap-2">
@@ -284,6 +341,7 @@
     import { FilesetResolver, PoseLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
     let landmarkerPromise = null;
+    let landmarkerImagePromise = null;
 
     const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
     const toDeg = (rad) => rad * 180 / Math.PI;
@@ -314,6 +372,24 @@
             });
         })();
         return landmarkerPromise;
+    };
+
+    const getLandmarkerImage = async () => {
+        if (landmarkerImagePromise) return landmarkerImagePromise;
+        landmarkerImagePromise = (async () => {
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+            return await PoseLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+                },
+                runningMode: "IMAGE",
+                numPoses: 1,
+                minPoseDetectionConfidence: 0.5,
+                minPosePresenceConfidence: 0.5,
+                minTrackingConfidence: 0.5,
+            });
+        })();
+        return landmarkerImagePromise;
     };
 
     const drawBiomechanics = (video, landmarks, width, height) => {
@@ -383,6 +459,78 @@
              const ang = (dy > 0) ? toDeg(Math.atan2(dx, dy)).toFixed(0) : '--';
              drawAngle(ankle, `${ang}°`);
         }
+        return canvas.toDataURL('image/jpeg', 0.85);
+    };
+
+    const drawBiomechanicsImage = (img, landmarks, width, height) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.fillRect(0, 0, width, height);
+        if (!landmarks) return canvas.toDataURL('image/jpeg', 0.85);
+
+        const drawLine = (start, end, color = '#ccff00', widthPx = 3) => {
+            if (!start || !end) return;
+            ctx.beginPath();
+            ctx.moveTo(start.x * width, start.y * height);
+            ctx.lineTo(end.x * width, end.y * height);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = widthPx;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+        };
+        const drawPoint = (pt, color = '#ffffff', radius = 4) => {
+            if (!pt) return;
+            ctx.beginPath();
+            ctx.arc(pt.x * width, pt.y * height, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+        };
+        const drawAngle = (center, text) => {
+            if (!center) return;
+            ctx.font = 'bold 16px monospace';
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = '#000000';
+            ctx.shadowBlur = 4;
+            ctx.fillText(text, (center.x * width) + 10, (center.y * height) - 10);
+        };
+
+        const L = {
+            leftShoulder: 11, rightShoulder: 12, leftHip: 23, rightHip: 24,
+            leftKnee: 25, rightKnee: 26, leftAnkle: 27, rightAnkle: 28,
+            leftHeel: 29, rightHeel: 30, leftFootIndex: 31, rightFootIndex: 32
+        };
+        const lVis = (landmarks[L.leftAnkle]?.visibility ?? 0) + (landmarks[L.leftKnee]?.visibility ?? 0);
+        const rVis = (landmarks[L.rightAnkle]?.visibility ?? 0) + (landmarks[L.rightKnee]?.visibility ?? 0);
+        const isLeft = lVis >= rVis;
+        const hip = landmarks[isLeft ? L.leftHip : L.rightHip];
+        const knee = landmarks[isLeft ? L.leftKnee : L.rightKnee];
+        const ankle = landmarks[isLeft ? L.leftAnkle : L.rightAnkle];
+        const shoulder = landmarks[isLeft ? L.leftShoulder : L.rightShoulder];
+        const heel = landmarks[isLeft ? L.leftHeel : L.rightHeel];
+        const foot = landmarks[isLeft ? L.leftFootIndex : L.rightFootIndex];
+
+        drawLine(shoulder, hip, '#ccff00');
+        drawLine(hip, knee, '#ccff00');
+        drawLine(knee, ankle, '#ccff00');
+        drawLine(ankle, foot, '#ccff00');
+        drawLine(heel, ankle, '#ccff00', 2);
+        drawPoint(shoulder);
+        drawPoint(hip);
+        drawPoint(knee);
+        drawPoint(ankle);
+        drawPoint(heel, '#60a5fa', 4);
+        drawPoint(foot);
+
+        if (hip && knee && ankle) {
+            const kAngle = angle(hip, knee, ankle);
+            const flex = kAngle ? (180 - kAngle).toFixed(0) : '--';
+            drawAngle(knee, `${flex}°`);
+        }
+
         return canvas.toDataURL('image/jpeg', 0.85);
     };
 
@@ -578,7 +726,155 @@
         };
     };
 
-    window.RLFormAnalyzerPose = { analyzeVideoFile };
+    const analyzeImageFile = async (file) => {
+        const landmarker = await getLandmarkerImage();
+        const img = await createImageBitmap(file);
+        const r = landmarker.detect(img);
+        const lm = r?.landmarks?.[0];
+
+        const width = img.width;
+        const height = img.height;
+
+        const L = {
+            leftShoulder: 11,
+            rightShoulder: 12,
+            leftWrist: 15,
+            rightWrist: 16,
+            leftHip: 23,
+            rightHip: 24,
+            leftKnee: 25,
+            rightKnee: 26,
+            leftAnkle: 27,
+            rightAnkle: 28,
+            leftHeel: 29,
+            rightHeel: 30,
+            leftFootIndex: 31,
+            rightFootIndex: 32,
+        };
+
+        const getPt = (arr, idx) => arr?.[idx] ? { x: arr[idx].x, y: arr[idx].y, v: arr[idx].visibility ?? 0 } : null;
+        const pickSide = (arr) => {
+            const lv = arr?.[L.leftAnkle]?.visibility ?? 0;
+            const rv = arr?.[L.rightAnkle]?.visibility ?? 0;
+            return lv >= rv ? 'left' : 'right';
+        };
+
+        if (!lm || !Array.isArray(lm)) {
+            const visualization = drawBiomechanicsImage(img, null, width, height);
+            try { img.close(); } catch (e) {}
+            return { ok: false, confidence: 0, width, height, visualization };
+        }
+
+        const side = pickSide(lm);
+        const shoulder = getPt(lm, side === 'left' ? L.leftShoulder : L.rightShoulder);
+        const hip = getPt(lm, side === 'left' ? L.leftHip : L.rightHip);
+        const knee = getPt(lm, side === 'left' ? L.leftKnee : L.rightKnee);
+        const ankle = getPt(lm, side === 'left' ? L.leftAnkle : L.rightAnkle);
+        const heel = getPt(lm, side === 'left' ? L.leftHeel : L.rightHeel);
+        const footIndex = getPt(lm, side === 'left' ? L.leftFootIndex : L.rightFootIndex);
+        const lShoulder = getPt(lm, L.leftShoulder);
+        const rShoulder = getPt(lm, L.rightShoulder);
+        const lWrist = getPt(lm, L.leftWrist);
+        const rWrist = getPt(lm, L.rightWrist);
+
+        const confParts = [shoulder, hip, knee, ankle, heel, footIndex].filter(Boolean).map((p) => p.v ?? 0);
+        const confidence = confParts.length ? (confParts.reduce((a, b) => a + b, 0) / confParts.length) : 0;
+
+        const kneeFlex = (hip && knee && ankle) ? (180 - (angle(hip, knee, ankle) ?? 180)) : null;
+        const shinDx = (knee && ankle) ? Math.abs(knee.x - ankle.x) : null;
+        const shinDy = (knee && ankle) ? Math.abs(knee.y - ankle.y) : null;
+        const shinAng = (shinDx !== null && shinDy !== null && shinDy > 0) ? toDeg(Math.atan2(shinDx, shinDy)) : null;
+
+        const trunkDx = (shoulder && hip) ? Math.abs(shoulder.x - hip.x) : null;
+        const trunkDy = (shoulder && hip) ? Math.abs(shoulder.y - hip.y) : null;
+        const trunkAng = (trunkDx !== null && trunkDy !== null && trunkDy > 0) ? toDeg(Math.atan2(trunkDx, trunkDy)) : null;
+
+        let dir = 1;
+        if (footIndex && heel) dir = (footIndex.x - heel.x) >= 0 ? 1 : -1;
+        const overstride = (hip && ankle) ? (((ankle.x - hip.x) * dir) > 0.035) : null;
+        const heelStrike = (heel && footIndex) ? ((heel.y - footIndex.y) > 0.015) : null;
+
+        let armCross = null;
+        if (lShoulder && rShoulder && lWrist && rWrist) {
+            const mid = (lShoulder.x + rShoulder.x) / 2;
+            const leftCross = lWrist.x > mid;
+            const rightCross = rWrist.x < mid;
+            armCross = (leftCross || rightCross) ? 100 : 0;
+        }
+
+        const visualization = drawBiomechanicsImage(img, lm, width, height);
+        try { img.close(); } catch (e) {}
+
+        return {
+            ok: true,
+            confidence: Number.isFinite(confidence) ? Number(confidence.toFixed(3)) : 0,
+            width,
+            height,
+            knee_flex_deg: Number.isFinite(kneeFlex) ? Number(kneeFlex.toFixed(1)) : null,
+            shin_angle_deg: Number.isFinite(shinAng) ? Number(shinAng.toFixed(1)) : null,
+            trunk_lean_deg: Number.isFinite(trunkAng) ? Number(trunkAng.toFixed(1)) : null,
+            overstride: overstride,
+            heel_strike: heelStrike,
+            arm_cross_pct: Number.isFinite(armCross) ? Number(armCross.toFixed(1)) : null,
+            visualization,
+        };
+    };
+
+    const analyzePhotoSet = async (filesByPhase, onProgress) => {
+        const phases = ['landing', 'lever', 'push', 'pull', 'front'];
+        const results = {};
+        let done = 0;
+        const total = phases.filter((p) => !!filesByPhase?.[p]).length;
+
+        for (const p of phases) {
+            const f = filesByPhase?.[p];
+            if (!f) continue;
+            const r = await analyzeImageFile(f);
+            results[p] = r;
+            done += 1;
+            if (onProgress) onProgress({ phase: 'pose', done, total: Math.max(1, total) });
+        }
+
+        const landing = results.landing || null;
+        const lever = results.lever || null;
+        const push = results.push || null;
+        const pull = results.pull || null;
+        const front = results.front || null;
+
+        const pickNum = (x) => (typeof x === 'number' && Number.isFinite(x)) ? x : null;
+        const avg = (arr) => {
+            const xs = arr.map(pickNum).filter((v) => v !== null);
+            if (!xs.length) return null;
+            return xs.reduce((a, b) => a + b, 0) / xs.length;
+        };
+
+        const kneeFlex = avg([landing?.knee_flex_deg, lever?.knee_flex_deg, push?.knee_flex_deg, pull?.knee_flex_deg]);
+        const shinAng = avg([landing?.shin_angle_deg, lever?.shin_angle_deg]);
+        const trunkLean = avg([lever?.trunk_lean_deg, landing?.trunk_lean_deg]);
+
+        const overstridePct = landing?.overstride === null ? null : (landing.overstride ? 100 : 0);
+        const heelStrikePct = landing?.heel_strike === null ? null : (landing.heel_strike ? 100 : 0);
+
+        const confAvg = avg(Object.values(results).map((r) => r?.confidence));
+        const visualization = landing?.visualization || lever?.visualization || push?.visualization || pull?.visualization || front?.visualization || null;
+
+        return {
+            source: 'photos',
+            phases: results,
+            confidence: pickNum(confAvg) ? Number(confAvg.toFixed(3)) : 0,
+            samples: Object.keys(results).length,
+            heel_strike_pct: heelStrikePct,
+            overstride_pct: overstridePct,
+            shin_angle_deg: pickNum(shinAng) ? Number(shinAng.toFixed(1)) : null,
+            knee_flex_deg: pickNum(kneeFlex) ? Number(kneeFlex.toFixed(1)) : null,
+            trunk_lean_deg: pickNum(trunkLean) ? Number(trunkLean.toFixed(1)) : null,
+            arm_cross_pct: pickNum(front?.arm_cross_pct) ? Number(front.arm_cross_pct.toFixed(1)) : null,
+            vertical_oscillation: null,
+            visualization: visualization,
+        };
+    };
+
+    window.RLFormAnalyzerPose = { analyzeVideoFile, analyzePhotoSet };
 </script>
 <script>
     (function () {
@@ -594,6 +890,44 @@
         const retryBtn = document.getElementById('rlfa-retry-btn');
         const backBtn = document.getElementById('rlfa-back-btn');
         const modeDevice = document.getElementById('rlfa-mode-device');
+        const inputModeVideoBtn = document.getElementById('rlfa-inputmode-video');
+        const inputModePhotosBtn = document.getElementById('rlfa-inputmode-photos');
+        const photoSlotsWrap = document.getElementById('rlfa-photo-slots');
+        const analyzePhotosBtn = document.getElementById('rlfa-analyze-photos-btn');
+
+        const photoInputs = {
+            landing: document.getElementById('rlfa-photo-input-landing'),
+            lever: document.getElementById('rlfa-photo-input-lever'),
+            push: document.getElementById('rlfa-photo-input-push'),
+            pull: document.getElementById('rlfa-photo-input-pull'),
+            front: document.getElementById('rlfa-photo-input-front'),
+        };
+        const photoButtons = {
+            landing: document.getElementById('rlfa-photo-btn-landing'),
+            lever: document.getElementById('rlfa-photo-btn-lever'),
+            push: document.getElementById('rlfa-photo-btn-push'),
+            pull: document.getElementById('rlfa-photo-btn-pull'),
+            front: document.getElementById('rlfa-photo-btn-front'),
+        };
+        const photoPreviews = {
+            landing: document.getElementById('rlfa-photo-prev-landing'),
+            lever: document.getElementById('rlfa-photo-prev-lever'),
+            push: document.getElementById('rlfa-photo-prev-push'),
+            pull: document.getElementById('rlfa-photo-prev-pull'),
+            front: document.getElementById('rlfa-photo-prev-front'),
+        };
+        const photoIcons = {
+            landing: document.getElementById('rlfa-photo-ico-landing'),
+            lever: document.getElementById('rlfa-photo-ico-lever'),
+            push: document.getElementById('rlfa-photo-ico-push'),
+            pull: document.getElementById('rlfa-photo-ico-pull'),
+            front: document.getElementById('rlfa-photo-ico-front'),
+        };
+
+        const requiredPhotoPhases = ['landing', 'lever', 'push', 'pull'];
+        const photoFiles = { landing: null, lever: null, push: null, pull: null, front: null };
+        const photoPreviewUrls = { landing: null, lever: null, push: null, pull: null, front: null };
+        let inputMode = 'video';
 
         const scanText = document.getElementById('rlfa-scan-text');
         const scanSubtext = document.getElementById('rlfa-scan-subtext');
@@ -672,6 +1006,77 @@
             const p = document.createElement('p');
             p.textContent = message;
             clientWarningsBox.appendChild(p);
+        };
+
+        const setInputMode = (mode) => {
+            inputMode = mode === 'photos' ? 'photos' : 'video';
+            if (inputModeVideoBtn && inputModePhotosBtn) {
+                if (inputMode === 'video') {
+                    inputModeVideoBtn.className = 'px-3 py-2 rounded-xl border border-neon/40 bg-neon/10 text-neon font-bold text-xs';
+                    inputModePhotosBtn.className = 'px-3 py-2 rounded-xl border border-slate-700 bg-slate-900/40 text-slate-300 font-bold text-xs hover:text-white';
+                } else {
+                    inputModePhotosBtn.className = 'px-3 py-2 rounded-xl border border-neon/40 bg-neon/10 text-neon font-bold text-xs';
+                    inputModeVideoBtn.className = 'px-3 py-2 rounded-xl border border-slate-700 bg-slate-900/40 text-slate-300 font-bold text-xs hover:text-white';
+                }
+            }
+            if (photoSlotsWrap) {
+                photoSlotsWrap.classList.toggle('hidden', inputMode !== 'photos');
+            }
+            if (uploadBtn) {
+                if (inputMode === 'video') {
+                    uploadBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload Video & Analisis';
+                } else {
+                    uploadBtn.innerHTML = '<i class="fa-regular fa-images"></i> Pilih Foto';
+                }
+            }
+            syncAnalyzePhotosBtn();
+        };
+
+        const clearPhotoPreview = (phase) => {
+            const img = photoPreviews[phase];
+            const ico = photoIcons[phase];
+            if (photoPreviewUrls[phase]) {
+                try { URL.revokeObjectURL(photoPreviewUrls[phase]); } catch (e) {}
+                photoPreviewUrls[phase] = null;
+            }
+            if (img) {
+                img.src = '';
+                img.classList.add('hidden');
+            }
+            if (ico) {
+                ico.classList.remove('hidden');
+            }
+        };
+
+        const setPhotoPreview = (phase, file) => {
+            clearPhotoPreview(phase);
+            const img = photoPreviews[phase];
+            const ico = photoIcons[phase];
+            if (!file || !img) return;
+            const url = URL.createObjectURL(file);
+            photoPreviewUrls[phase] = url;
+            img.src = url;
+            img.classList.remove('hidden');
+            if (ico) ico.classList.add('hidden');
+        };
+
+        const syncAnalyzePhotosBtn = () => {
+            if (!analyzePhotosBtn) return;
+            if (inputMode !== 'photos') {
+                analyzePhotosBtn.disabled = true;
+                return;
+            }
+            const ok = requiredPhotoPhases.every((p) => !!photoFiles[p]);
+            analyzePhotosBtn.disabled = !ok;
+        };
+
+        const resetPhotoState = () => {
+            Object.keys(photoFiles).forEach((p) => {
+                photoFiles[p] = null;
+                clearPhotoPreview(p);
+                if (photoInputs[p]) photoInputs[p].value = '';
+            });
+            syncAnalyzePhotosBtn();
         };
 
         const scoreToBadge = (score) => {
@@ -760,7 +1165,7 @@
             }
             if (meta.width && meta.height) {
                 const isPortrait = meta.height > meta.width;
-                if (isPortrait) pushWarning('Video terdeteksi portrait. Untuk analisis form, landscape (horizontal) biasanya lebih optimal.');
+                if (isPortrait) pushWarning('Video portrait diperbolehkan. Pastikan seluruh tubuh masuk frame dan lutut/ankle terlihat jelas.');
                 if (Math.max(meta.width, meta.height) < 720) pushWarning('Resolusi cukup rendah. Usahakan minimal 720p agar lutut & ankle terbaca jelas.');
             }
 
@@ -854,14 +1259,20 @@
 
         const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-        const analyze = async (file, clientMeta, metrics) => {
+        const analyze = async (file, clientMeta, metrics, options = {}) => {
             showScanning();
             scanText.textContent = 'MENYIAPKAN...';
             scanSubtext.textContent = 'Jangan tutup halaman ini.';
             scanMetric1.textContent = '--';
             scanMetric2.textContent = '--';
 
-            const uploadVideo = modeDevice ? !modeDevice.checked : true;
+            const uploadVideo = (options.uploadVideoOverride !== undefined)
+                ? !!options.uploadVideoOverride
+                : (modeDevice ? !modeDevice.checked : true);
+
+            if (uploadVideo && !file) {
+                throw { error: 'Video wajib diupload.' };
+            }
 
             let attempt = 0;
             while (attempt < 25) {
@@ -904,9 +1315,9 @@
                     xhr.send(fd);
 
                     if (!uploadVideo) {
-                        scanText.textContent = 'MENGANTRI...';
+                        scanText.textContent = 'MENGIRIM METRICS...';
                         scanMetric1.textContent = 'LOCAL';
-                        scanMetric2.textContent = 'POSE';
+                        scanMetric2.textContent = 'AI';
                     }
                 });
 
@@ -932,7 +1343,7 @@
             throw { error: 'Antrian terlalu panjang. Coba lagi beberapa menit.' };
         };
 
-        const start = async () => {
+        const startVideo = async () => {
             const file = videoInput.files?.[0];
             if (!file) return;
             const v = await validateClient(file);
@@ -961,6 +1372,7 @@
                 }
 
                 const result = await analyze(file, v.meta, metrics);
+                if (metrics && metrics.visualization) result.visualization = metrics.visualization;
                 renderResults(result);
                 showResults();
             } catch (e) {
@@ -972,19 +1384,91 @@
             }
         };
 
+        const getPhotoMeta = async () => {
+            const firstPhase = requiredPhotoPhases.find((p) => !!photoFiles[p]) || 'front';
+            const file = photoFiles[firstPhase] || null;
+            if (!file) return { duration: 0, width: 0, height: 0 };
+            const img = await createImageBitmap(file);
+            const meta = { duration: 0, width: img.width || 0, height: img.height || 0 };
+            try { img.close(); } catch (e) {}
+            return meta;
+        };
+
+        const startPhotos = async () => {
+            resetWarnings();
+            const ok = requiredPhotoPhases.every((p) => !!photoFiles[p]);
+            if (!ok) {
+                pushWarning('Minimal 4 foto wajib diisi: Landing, Lever, Push, Pull.');
+                return;
+            }
+
+            try {
+                showScanning();
+                scanText.textContent = 'ANALISIS FOTO (DI PERANGKAT)...';
+                scanSubtext.textContent = 'Memindai pose per fase.';
+                scanMetric1.textContent = '0%';
+                scanMetric2.textContent = 'POSE';
+
+                let metrics = null;
+                if (window.RLFormAnalyzerPose?.analyzePhotoSet) {
+                    metrics = await window.RLFormAnalyzerPose.analyzePhotoSet(photoFiles, ({ done, total }) => {
+                        const pct = total ? Math.round((done / total) * 100) : 0;
+                        scanMetric1.textContent = pct + '%';
+                    });
+                }
+
+                const meta = await getPhotoMeta();
+                const result = await analyze(null, meta, metrics, { uploadVideoOverride: false });
+                if (metrics && metrics.visualization) result.visualization = metrics.visualization;
+                renderResults(result);
+                showResults();
+            } catch (e) {
+                const msg = e?.message || e?.error || 'Foto gagal diproses. Pastikan badan utuh terlihat dan pencahayaan cukup.';
+                showInstructions();
+                pushWarning(msg);
+            }
+        };
+
         uploadBtn?.addEventListener('click', () => {
             resetWarnings();
-            videoInput?.click();
+            if (inputMode === 'video') {
+                videoInput?.click();
+                return;
+            }
+            const next = requiredPhotoPhases.find((p) => !photoFiles[p]) || 'front';
+            photoInputs[next]?.click();
         });
-        videoInput?.addEventListener('change', start);
+        videoInput?.addEventListener('change', startVideo);
+        analyzePhotosBtn?.addEventListener('click', startPhotos);
         retryBtn?.addEventListener('click', () => {
             showInstructions();
             resetWarnings();
+            resetPhotoState();
         });
         backBtn?.addEventListener('click', () => {
             showInstructions();
             resetWarnings();
+            resetPhotoState();
         });
+
+        inputModeVideoBtn?.addEventListener('click', () => setInputMode('video'));
+        inputModePhotosBtn?.addEventListener('click', () => setInputMode('photos'));
+
+        Object.keys(photoButtons).forEach((phase) => {
+            photoButtons[phase]?.addEventListener('click', () => {
+                resetWarnings();
+                photoInputs[phase]?.click();
+            });
+            photoInputs[phase]?.addEventListener('change', () => {
+                const f = photoInputs[phase]?.files?.[0] || null;
+                if (!f) return;
+                photoFiles[phase] = f;
+                setPhotoPreview(phase, f);
+                syncAnalyzePhotosBtn();
+            });
+        });
+
+        setInputMode('video');
     })();
 </script>
 @endpush

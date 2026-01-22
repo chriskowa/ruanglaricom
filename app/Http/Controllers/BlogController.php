@@ -70,7 +70,9 @@ class BlogController extends Controller
             ->limit(5)
             ->get();
 
-        $ajax = $request->boolean('ajax') || $request->ajax();
+        if ($request->ajax()) {
+            return view('blog.partials.results', compact('articles'));
+        }
 
         return view('blog.index', compact(
             'categories',
@@ -80,8 +82,7 @@ class BlogController extends Controller
             'sort',
             'heroArticle',
             'articles',
-            'trending',
-            'ajax'
+            'trending'
         ));
     }
 

@@ -14,6 +14,15 @@ class PublicProgramController extends Controller
     {
         $query = Program::where('is_published', true)
             ->where('is_active', true)
+            ->whereHas('coach', function ($q) {
+                $q->where('role', 'coach');
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_self_generated')->orWhere('is_self_generated', false);
+            })
+            ->where(function ($q) {
+                $q->whereNull('is_vdot_generated')->orWhere('is_vdot_generated', false);
+            })
             ->with(['coach', 'city']);
 
         // Filter by category (distance_target)

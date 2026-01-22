@@ -20,19 +20,10 @@ class FormAnalyzerController extends Controller
 
     public function analyze(Request $request)
     {
-        [$slot, $slotLock] = $this->acquireSlot();
-        if (! $slotLock) {
-            return response()->json([
-                'ok' => false,
-                'queued' => true,
-                'retry_after' => 5,
-                'message' => 'Server sedang penuh. Anda masuk antrian, coba lagi beberapa detik.',
-                'max_concurrent' => self::MAX_CONCURRENT,
-            ], 429);
-        }
-
         $dir = null;
         $originalPath = null;
+        $slot = null;
+        $slotLock = null;
         try {
             $data = $request->validate([
                 'upload_video' => ['nullable', 'boolean'],
@@ -50,8 +41,6 @@ class FormAnalyzerController extends Controller
             ]);
 
             $uuid = (string) Str::uuid();
-            $dir = "tmp/form-analysis/{$uuid}";
-
             $uploadVideo = filter_var($data['upload_video'] ?? false, FILTER_VALIDATE_BOOL);
             $hasVideo = $request->hasFile('video');
 
@@ -68,6 +57,20 @@ class FormAnalyzerController extends Controller
                     'error' => 'Tidak ada data analisis.',
                     'message' => 'Pilih video untuk dianalisis.',
                 ], 422);
+            }
+
+            if ($hasVideo) {
+                [$slot, $slotLock] = $this->acquireSlot();
+                if (! $slotLock) {
+                    return response()->json([
+                        'ok' => false,
+                        'queued' => true,
+                        'retry_after' => 5,
+                        'message' => 'Server sedang penuh. Anda masuk antrian, coba lagi beberapa detik.',
+                        'max_concurrent' => self::MAX_CONCURRENT,
+                    ], 429);
+                }
+                $dir = "tmp/form-analysis/{$uuid}";
             }
 
             $metrics = $this->parseMetrics($data['metrics'] ?? null);
@@ -182,7 +185,9 @@ class FormAnalyzerController extends Controller
                 Storage::deleteDirectory($dir);
             }
             try {
-                $slotLock->release();
+                if ($slotLock) {
+                    $slotLock->release();
+                }
             } catch (\Throwable $e) {
             }
         }
