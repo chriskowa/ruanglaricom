@@ -10,10 +10,31 @@
     <div class="mb-10 relative z-10 mt-10" data-aos="fade-up">
         <div class="flex flex-col md:flex-row justify-between items-end gap-4">
             <div>
-                <p class="text-neon font-mono text-sm tracking-widest uppercase mb-1">Good Morning, Athlete</p>
+                <p id="dashboard-greeting" class="text-neon font-mono text-sm tracking-widest uppercase mb-1">{{ $greeting }}, Runner</p>
                 <h1 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter">
                     {{ strtoupper(auth()->user()->name) }}
                 </h1>
+                <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/50 border border-slate-700/60 text-xs text-slate-300">
+                        <span class="text-slate-400">Hari ini</span>
+                        <span id="dashboard-date" class="font-bold text-white"></span>
+                        <span class="text-slate-600">•</span>
+                        <span id="dashboard-time" class="font-mono text-slate-300"></span>
+                    </div>
+                    @if(!empty($nextWorkout))
+                        <a href="{{ route('runner.calendar') }}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neon/10 border border-neon/20 text-xs text-neon hover:bg-neon/15 transition">
+                            <span class="font-bold">Next</span>
+                            <span class="text-slate-200">{{ $nextWorkout['type'] }}</span>
+                            @if($nextWorkout['distance']) <span class="text-slate-400">•</span> <span class="text-slate-200">{{ $nextWorkout['distance'] }} km</span> @endif
+                            <span class="text-slate-400">•</span>
+                            <span class="text-slate-200">{{ $nextWorkout['date_label'] }}</span>
+                        </a>
+                    @else
+                        <a href="{{ route('programs.index') }}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/50 border border-slate-700/60 text-xs text-slate-200 hover:border-neon/40 hover:text-neon transition">
+                            Pilih program untuk mulai training
+                        </a>
+                    @endif
+                </div>
             </div>
             <div class="flex gap-3">
                 <a href="{{ route('programs.realistic') }}" class="px-6 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-sm flex items-center gap-2">
@@ -296,23 +317,95 @@
             
             <!-- Quick Actions -->
             <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-700 pb-2">Quick Access</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <a href="{{ route('runner.calendar') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
-                        <svg class="w-6 h-6 text-purple-400 mx-auto mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                        <span class="text-xs text-slate-300 font-bold">Calendar</span>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-700 pb-2">Quick Navigate</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <a href="{{ route('runner.calendar') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-300 group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">Training</div>
+                                <div class="text-sm font-bold text-white truncate">Calendar</div>
+                            </div>
+                        </div>
                     </a>
-                    <a href="{{ $stravaConnected ? route('runner.calendar') : route('runner.strava.connect') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
-                        <svg class="w-6 h-6 text-cyan-400 mx-auto mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                        <span class="text-xs text-slate-300 font-bold">Strava</span>
+                    <a href="{{ $stravaConnected ? route('runner.calendar') : route('runner.strava.connect') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-300 group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">{{ $stravaConnected ? 'Sync' : 'Connect' }}</div>
+                                <div class="text-sm font-bold text-white truncate">Strava</div>
+                            </div>
+                        </div>
                     </a>
-                    <a href="{{ route('wallet.index') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
-                        <svg class="w-6 h-6 text-green-400 mx-auto mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                        <span class="text-xs text-slate-300 font-bold">Wallet</span>
+                    <a href="{{ route('programs.index') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-neon/10 border border-neon/20 flex items-center justify-center text-neon group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">Explore</div>
+                                <div class="text-sm font-bold text-white truncate">Programs</div>
+                            </div>
+                        </div>
                     </a>
-                    <a href="{{ route('profile.show') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-center transition-colors group">
-                        <svg class="w-6 h-6 text-pink-400 mx-auto mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        <span class="text-xs text-slate-300 font-bold">Settings</span>
+                    <a href="{{ route('tools.form-analyzer') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-300 group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">Tools</div>
+                                <div class="text-sm font-bold text-white truncate">Form Analyzer</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ route('tools.pace-pro') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-300 group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" /></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">Tools</div>
+                                <div class="text-sm font-bold text-white truncate">Pace Pro</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ route('tools.buat-rute-lari') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-300 group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">Tools</div>
+                                <div class="text-sm font-bold text-white truncate">Buat Rute</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ route('wallet.index') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-300 group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">Finance</div>
+                                <div class="text-sm font-bold text-white truncate">Wallet</div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ route('profile.show') }}" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-300 group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-xs text-slate-400">Account</div>
+                                <div class="text-sm font-bold text-white truncate">Profile</div>
+                            </div>
+                        </div>
                     </a>
                 </div>
             </div>
@@ -339,6 +432,26 @@
 @push('scripts')
 <script>
     (function(){
+        function updateGreeting(){
+            var el = document.getElementById('dashboard-greeting');
+            if(!el) return;
+            var h = new Date().getHours();
+            var g = 'Selamat malam';
+            if(h >= 4 && h < 11) g = 'Selamat pagi';
+            else if(h >= 11 && h < 15) g = 'Selamat siang';
+            else if(h >= 15 && h < 19) g = 'Selamat sore';
+            el.textContent = g + ', Runner';
+        }
+        function updateDateTime(){
+            var dateEl = document.getElementById('dashboard-date');
+            var timeEl = document.getElementById('dashboard-time');
+            if(dateEl) dateEl.textContent = dayjs().format('ddd, D MMM');
+            if(timeEl) timeEl.textContent = dayjs().format('HH:mm');
+        }
+        updateGreeting();
+        updateDateTime();
+        setInterval(updateDateTime, 30000);
+
         var cityEl = document.getElementById('weather-city');
         var tempEl = document.getElementById('weather-temp');
         var timeEl = document.getElementById('weather-time');

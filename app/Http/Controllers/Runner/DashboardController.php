@@ -182,6 +182,16 @@ class DashboardController extends Controller
         usort($upcoming, fn ($a, $b) => strcmp($a['date'], $b['date']));
         $upcoming = array_slice($upcoming, 0, 8);
 
+        $nextWorkout = $upcoming[0] ?? null;
+        $now = Carbon::now();
+        $hour = (int) $now->format('H');
+        $greeting = match (true) {
+            $hour >= 4 && $hour < 11 => 'Selamat pagi',
+            $hour >= 11 && $hour < 15 => 'Selamat siang',
+            $hour >= 15 && $hour < 19 => 'Selamat sore',
+            default => 'Selamat malam',
+        };
+
         return view('runner.dashboard', [
             'activeEnrollments' => $activeEnrollments,
             'walletBalance' => $user->wallet ? $user->wallet->balance : 0,
@@ -193,6 +203,8 @@ class DashboardController extends Controller
             'stravaWeekDistanceKm' => round($stravaWeekDistanceKm, 1),
             'upcomingWorkouts' => $upcoming,
             'recentStravaActivities' => $recentStravaActivities,
+            'nextWorkout' => $nextWorkout,
+            'greeting' => $greeting,
         ]);
     }
 }
