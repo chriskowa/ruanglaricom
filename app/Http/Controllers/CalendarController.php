@@ -62,8 +62,10 @@ class CalendarController extends Controller
     public function getEvents()
     {
         try {
-            // 1. Fetch from unified Event table
+            // Fetch from unified Event table (Local API)
             $events = Event::select('id', 'name', 'start_at', 'slug', 'location_name')
+                ->where('status', 'published')
+                ->orderBy('start_at', 'desc')
                 ->get()
                 ->map(function ($ev) {
                     return [
@@ -76,36 +78,7 @@ class CalendarController extends Controller
                     ];
                 });
 
-            // 2. Fetch from RunningEvent (or backup) if exists, for completeness
-            $oldEvents = collect([]);
-            $tableName = null;
-
-            if (Schema::hasTable('running_events')) {
-                $tableName = 'running_events';
-            } elseif (Schema::hasTable('running_events_backup')) {
-                $tableName = 'running_events_backup';
-            }
-
-            if ($tableName) {
-                $oldEvents = DB::table($tableName)
-                    ->select('id', 'name', 'event_date', 'slug', 'location_name') // Assuming 'name' matches
-                    ->get()
-                    ->map(function ($ev) {
-                        return [
-                            'id' => 'old_' . $ev->id,
-                            'name' => $ev->name,
-                            'start_at' => $ev->event_date, // Map event_date to start_at
-                            'slug' => $ev->slug,
-                            'location_name' => $ev->location_name,
-                            'source' => 'running_events'
-                        ];
-                    });
-            }
-
-            // 3. Combine and Unique by slug (prefer 'events' table)
-            $combined = $events->concat($oldEvents)->unique('slug')->values();
-
-            return response()->json($combined);
+            return response()->json($events);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

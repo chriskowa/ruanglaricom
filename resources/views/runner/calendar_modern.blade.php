@@ -1038,7 +1038,7 @@
                 </div>
                 <form @submit.prevent="saveRace" class="space-y-4">
                     <div class="mb-4 bg-slate-800/50 p-3 rounded-xl border border-slate-700 relative">
-                        <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Import from RuangLari</label>
+                        <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Select Official Event</label>
                         
                         <!-- Search Input -->
                         <div class="relative">
@@ -1046,7 +1046,7 @@
                                 type="text" 
                                 v-model="eventSearchQuery"
                                 @focus="showEventDropdown = true"
-                                placeholder="Type to search event..."
+                                placeholder="Search events..."
                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-yellow-500 focus:outline-none pl-8"
                             >
                             <span class="absolute left-3 top-2.5 text-slate-500">🔍</span>
@@ -1061,10 +1061,10 @@
                                     @click="selectRuangLariEvent(event)"
                                     class="px-4 py-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-0"
                                 >
-                                    <div class="text-sm font-bold text-white">@{{ event.title }}</div>
+                                    <div class="text-sm font-bold text-white">@{{ event.name }}</div>
                                     <div class="text-xs text-slate-400 flex justify-between mt-1">
-                                        <span>📅 @{{ event.date }}</span>
-                                        <span>📍 @{{ event.location }}</span>
+                                        <span>📅 @{{ formatDate(event.start_at) }}</span>
+                                        <span>📍 @{{ event.location_name }}</span>
                                     </div>
                                 </li>
                             </ul>
@@ -1303,8 +1303,8 @@ createApp({
             if (!eventSearchQuery.value) return ruangLariEvents.value;
             const query = eventSearchQuery.value.toLowerCase();
             return ruangLariEvents.value.filter(e => 
-                (e.name || e.title || '').toLowerCase().includes(query) || 
-                ((e.location_name || e.location || '').toLowerCase().includes(query))
+                (e.name || '').toLowerCase().includes(query) || 
+                (e.location_name || '').toLowerCase().includes(query)
             );
         });
 
@@ -1324,7 +1324,7 @@ createApp({
         };
 
         const selectRuangLariEvent = (event) => {
-            eventSearchQuery.value = event.name || event.title;
+            eventSearchQuery.value = event.name;
             showEventDropdown.value = false;
             onSelectRuangLariEvent(event);
         };
@@ -1332,33 +1332,23 @@ createApp({
         const onSelectRuangLariEvent = (event) => {
             if (!event) return;
             // API Format: {"id":...,"name":"...","start_at":"yyyy-mm-dd hh:mm:ss",...}
-            raceForm.name = event.name || event.title;
+            raceForm.name = event.name;
             
             // Construct link from slug if available
-            const link = event.slug ? `/event-lari/${event.slug}` : (event.link || '');
-            raceForm.notes = link;
+            const link = event.slug ? `/event-lari/${event.slug}` : '';
+            raceForm.notes = link ? `Official Event: ${event.name}\nLink: ${link}` : `Official Event: ${event.name}`;
             
             // Parse date
-            let dateStr = event.start_at || event.date;
+            let dateStr = event.start_at;
             if (dateStr) {
                 // If it's already YYYY-MM-DD (start_at usually is datetime string)
                 if (dateStr.includes('-')) {
                      raceForm.date = dateStr.split(' ')[0];
                 } 
-                // Legacy mm/dd/yyyy support
-                else if (dateStr.includes('/')) {
-                    const parts = dateStr.split('/');
-                    if (parts.length === 3) {
-                        const mm = parts[0].padStart(2, '0');
-                        const dd = parts[1].padStart(2, '0');
-                        const yyyy = parts[2];
-                        raceForm.date = `${yyyy}-${mm}-${dd}`;
-                    }
-                }
             }
             
             // Guess distance
-            const title = (event.name || event.title || '').toLowerCase();
+            const title = (event.name || '').toLowerCase();
             if (title.includes('marathon') && !title.includes('half')) {
                 setRaceDist(42.2, 'FM');
             } else if (title.includes('half') || title.includes('hm') || title.includes('21k')) {
