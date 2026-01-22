@@ -521,8 +521,95 @@
         </div>
 
         <div v-if="showDetailModal" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80"></div>
-            <div class="relative z-10 max-w-sm md:max-w-lg mx-auto my-10 glass-panel rounded-3xl p-6 border border-slate-700">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
+            <!-- Dynamic Modal Width based on Type -->
+            <div class="relative z-10 mx-auto my-10 glass-panel rounded-3xl p-0 border border-slate-700 overflow-hidden transition-all duration-300"
+                 :class="detail.type === 'strength' ? 'max-w-2xl' : 'max-w-sm md:max-w-lg'">
+                
+                <!-- STRENGTH TRAINING UI -->
+                <div v-if="detail.type === 'strength'" class="flex flex-col h-full max-h-[85vh]">
+                    <!-- Header with Hero Image/Gradient -->
+                    <div class="relative h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-end p-6 overflow-hidden">
+                        <div class="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80')] bg-cover bg-center"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
+                        
+                        <div class="relative z-10 w-full flex justify-between items-end">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/50 text-[10px] text-purple-300 uppercase tracking-wide font-bold">Strength</span>
+                                    <span class="text-xs text-slate-400">@{{ detail.duration || '45 min' }}</span>
+                                </div>
+                                <h2 class="text-2xl font-black text-white leading-tight">@{{ detailTitle }}</h2>
+                            </div>
+                            <button class="w-8 h-8 rounded-full bg-black/40 hover:bg-white/10 flex items-center justify-center text-white backdrop-blur-md transition" @click="closeDetail">✕</button>
+                        </div>
+                    </div>
+
+                    <!-- Body: Scrollable Content -->
+                    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <!-- Overview Stats -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+                                <div class="text-[10px] text-slate-400 uppercase">Focus</div>
+                                <div class="text-sm font-bold text-white">@{{ detail.strength?.category || 'Full Body' }}</div>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+                                <div class="text-[10px] text-slate-400 uppercase">Difficulty</div>
+                                <div class="text-sm font-bold text-white capitalize">@{{ detail.difficulty || 'Moderate' }}</div>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+                                <div class="text-[10px] text-slate-400 uppercase">Exercises</div>
+                                <div class="text-sm font-bold text-white">@{{ countExercises(detail) }} Moves</div>
+                            </div>
+                        </div>
+
+                        <!-- Exercise List (Playlist) -->
+                        <div>
+                            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                                <span>📋</span> Workout Plan
+                            </h3>
+                            <div class="space-y-3">
+                                <div v-for="(exercise, idx) in parseStrengthExercises(detail)" :key="idx" 
+                                     class="group flex items-center gap-4 p-3 rounded-xl bg-slate-800/40 border border-slate-700 hover:bg-slate-800 transition cursor-pointer"
+                                     @click="previewExercise(exercise)">
+                                    <!-- Thumbnail Placeholder -->
+                                    <div class="w-16 h-16 rounded-lg bg-slate-700 flex-shrink-0 overflow-hidden relative">
+                                        <div class="absolute inset-0 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                                            @{{ getExerciseIcon(exercise.name) }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex-grow">
+                                        <div class="text-sm font-bold text-white">@{{ exercise.name }}</div>
+                                        <div class="text-xs text-slate-400 mt-0.5">@{{ exercise.sets }} Sets • @{{ exercise.reps }} Reps</div>
+                                        <div v-if="exercise.notes" class="text-[10px] text-slate-500 italic mt-1">"@{{ exercise.notes }}"</div>
+                                    </div>
+
+                                    <div class="w-8 h-8 rounded-full border border-slate-600 flex items-center justify-center text-slate-400 group-hover:border-purple-500 group-hover:text-purple-500 transition">
+                                        ▶
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Equipment -->
+                        <div v-if="detail.strength?.equipment || detail.description?.includes('Equipment')" class="text-xs text-slate-400 bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+                            <span class="font-bold text-slate-300">Equipment Needed:</span> @{{ detail.strength?.equipment || 'Dumbbells, Mat' }}
+                        </div>
+                    </div>
+
+                    <!-- Footer: Action -->
+                    <div class="p-4 border-t border-slate-800 bg-slate-900/80 backdrop-blur-md">
+                        <button class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-lg shadow-lg shadow-purple-900/30 hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-3"
+                                @click="startGuidedWorkout(detail)">
+                            <span>Start Guided Workout</span>
+                            <span class="bg-white/20 px-2 py-0.5 rounded text-xs">Beta</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STANDARD RUNNING/OTHER UI (Existing) -->
+                <div v-else class="p-6">
                 <div class="relative mb-4">
                     <div class="absolute right-0 top-0 flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full" :class="statusDotClass(detail.status)"></span>
@@ -1530,6 +1617,117 @@ createApp({
         };
 
 
+
+        // GUIDED WORKOUT STATE
+        const showGuidedPlayer = ref(false);
+        const guidedExercises = ref([]);
+        const currentExerciseIndex = ref(0);
+        const currentExercise = computed(() => guidedExercises.value[currentExerciseIndex.value]);
+        const isPlaying = ref(false);
+        const timerSeconds = ref(0);
+        let timerInterval = null;
+
+        const countExercises = (d) => {
+            if (d.strength?.plan && Array.isArray(d.strength.plan)) return d.strength.plan.length;
+            const parsed = parseStrengthExercises(d);
+            return parsed.length;
+        };
+
+        const parseStrengthExercises = (d) => {
+            // 1. Try structured plan
+            if (d.strength?.plan && Array.isArray(d.strength.plan)) {
+                return d.strength.plan.map(ex => ({
+                    name: ex.name || 'Exercise',
+                    sets: ex.sets || '3',
+                    reps: ex.reps || '10',
+                    notes: ex.notes || ''
+                }));
+            }
+            
+            // 2. Try parsing description text (Simple Heuristic)
+            // Assumes lines like: "3x15 Squats" or "Pushups: 3 sets of 10"
+            if (d.description) {
+                const lines = d.description.split('\n').filter(l => l.trim().length > 0);
+                const exercises = [];
+                
+                lines.forEach(line => {
+                    // Very basic parser: look for digits
+                    const hasNumbers = /\d/.test(line);
+                    if (hasNumbers) {
+                        exercises.push({
+                            name: line.replace(/^\d+x\d+\s*/, '').trim(), // Remove "3x10 " prefix if present
+                            sets: (line.match(/(\d+)\s*(?:sets|x)/i) || ['','3'])[1],
+                            reps: (line.match(/(?:x|of)\s*(\d+)/i) || ['','10'])[1],
+                            notes: line
+                        });
+                    }
+                });
+                
+                if (exercises.length > 0) return exercises;
+            }
+
+            // 3. Fallback
+            return [
+                { name: 'Warm Up', sets: '1', reps: '5 min', notes: 'General mobility' },
+                { name: 'Main Circuit', sets: '3', reps: '12', notes: 'Check description for details' },
+                { name: 'Cool Down', sets: '1', reps: '5 min', notes: 'Stretching' }
+            ];
+        };
+
+        const getExerciseIcon = (name) => {
+            const n = name.toLowerCase();
+            if (n.includes('squat')) return '🏋️';
+            if (n.includes('push')) return '💪';
+            if (n.includes('plank') || n.includes('core')) return '🧱';
+            if (n.includes('lunge')) return '🦵';
+            if (n.includes('run') || n.includes('warm')) return '🏃';
+            if (n.includes('yoga') || n.includes('stretch')) return '🧘';
+            return '⚡';
+        };
+
+        const startGuidedWorkout = (d) => {
+            guidedExercises.value = parseStrengthExercises(d);
+            currentExerciseIndex.value = 0;
+            showGuidedPlayer.value = true;
+            isPlaying.value = false;
+            timerSeconds.value = 0;
+        };
+
+        const togglePlay = () => {
+            isPlaying.value = !isPlaying.value;
+            if (isPlaying.value) {
+                timerInterval = setInterval(() => {
+                    timerSeconds.value++;
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+            }
+        };
+
+        const nextExercise = () => {
+            if (currentExerciseIndex.value < guidedExercises.value.length - 1) {
+                currentExerciseIndex.value++;
+                resetTimer();
+            }
+        };
+
+        const prevExercise = () => {
+            if (currentExerciseIndex.value > 0) {
+                currentExerciseIndex.value--;
+                resetTimer();
+            }
+        };
+
+        const resetTimer = () => {
+            isPlaying.value = false;
+            clearInterval(timerInterval);
+            timerSeconds.value = 0;
+        };
+
+        const previewExercise = (ex) => {
+            // In future: Show modal preview. For now, we rely on the list view.
+            console.log('Preview', ex);
+        };
 
         const updatePb = async () => {
             pbLoading.value = true;
