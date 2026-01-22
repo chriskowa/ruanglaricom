@@ -306,11 +306,12 @@
     <div class="relative flex flex-col md:flex-row gap-4 md:gap-6 h-full max-h-[90vh] w-full max-w-6xl">
         
         <!-- Preview Area -->
-        <div class="flex-1 flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 relative overflow-hidden group h-[44vh] sm:h-[48vh] md:h-auto">
+        <div class="flex-1 flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 relative overflow-hidden group"
+             :class="posterIsMobile ? (posterMobileSheetCollapsed ? 'h-[80vh]' : 'h-[44vh] sm:h-[48vh]') : 'h-auto'">
             
             <!-- Poster Container (Visible for Preview) -->
             <!-- Scale logic updated for better mobile view -->
-            <div class="relative transition-transform duration-300 transform scale-[0.45] sm:scale-[0.55] md:scale-[0.85] origin-center shadow-2xl">
+            <div class="relative transition-transform duration-300 transform scale-[0.85] sm:scale-[0.55] md:scale-[0.85] origin-center shadow-2xl">
                 
                 <div id="activity-poster-container" class="w-[400px] h-[711px] bg-[#0f172a] text-white overflow-hidden font-sans relative shadow-2xl">
                     
@@ -569,12 +570,18 @@
                             Styles
                         </button>
                     </div>
-                    <button @click="closePosterModal" class="text-slate-400 hover:text-white p-2 -mr-2">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+                    <div class="flex items-center gap-1 -mr-2">
+                        <button type="button" @click="posterMobileSheetCollapsed = !posterMobileSheetCollapsed" class="text-slate-400 hover:text-white p-2">
+                            <svg v-if="!posterMobileSheetCollapsed" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                        </button>
+                        <button @click="closePosterModal" class="text-slate-400 hover:text-white p-2">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="max-h-[56vh] overflow-y-auto p-4 md:p-0 md:max-h-none md:overflow-visible md:flex md:gap-6">
+                <div v-show="!posterIsMobile || !posterMobileSheetCollapsed" class="max-h-[56vh] overflow-y-auto p-4 md:p-0 md:max-h-none md:overflow-visible md:flex md:gap-6">
                     <div v-show="!posterIsMobile || posterMobileTab === 'customize'" class="w-full md:w-80 flex flex-col gap-4 md:bg-slate-900 md:p-6 md:rounded-2xl md:border md:border-slate-800 md:shadow-2xl md:overflow-y-auto md:max-h-[85vh] custom-scrollbar">
                         <div class="hidden md:flex justify-between items-center mb-2">
                             <h3 class="text-xl font-bold text-white">Customize</h3>
@@ -802,7 +809,7 @@
                     </div>
                 </div>
 
-                <div class="md:hidden grid grid-cols-2 gap-3 p-4 border-t border-slate-800">
+                <div v-show="!posterIsMobile || !posterMobileSheetCollapsed" class="md:hidden grid grid-cols-2 gap-3 p-4 border-t border-slate-800">
                     <button @click="resetPosterQuick" class="px-4 py-3 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700">
                         Reset
                     </button>
@@ -1182,6 +1189,7 @@
                         map: false,
                         splits: false,
                     },
+                    posterMobileSheetCollapsed: false,
                     posterIsMobile: false,
                     
                     // Recap Feature
@@ -2273,6 +2281,7 @@
                     this.showPosterModal = false;
                     this.posterMobileTab = 'customize';
                     this.posterMobileAccordion = { map: false, splits: false };
+                    this.posterMobileSheetCollapsed = false;
                 },
 
                 resetPosterQuick() {
