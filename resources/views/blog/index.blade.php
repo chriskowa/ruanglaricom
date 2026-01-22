@@ -387,6 +387,9 @@
             setStatus('');
             markActiveCats();
             setHeroVisibility(page);
+            if (typeof window.phHideLoader === 'function') {
+                window.phHideLoader();
+            }
 
             if (push) {
                 const fullUrl = new URL(window.location.href);
