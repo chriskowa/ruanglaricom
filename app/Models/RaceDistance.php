@@ -11,6 +11,6 @@ class RaceDistance extends Model
 
     public function events(): BelongsToMany
     {
-        return $this->belongsToMany(RunningEvent::class, 'running_event_distances');
+        return $this->belongsToMany(Event::class, 'event_distances');
     }
 }

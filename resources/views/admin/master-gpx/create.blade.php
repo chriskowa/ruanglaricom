@@ -36,11 +36,11 @@
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Running Event (opsional)</label>
-                    <select name="running_event_id" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Event (opsional)</label>
+                    <select name="event_id" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50">
                         <option value="">-</option>
                         @foreach($events as $ev)
-                            <option value="{{ $ev->id }}" @selected(old('running_event_id') == $ev->id)>{{ $ev->name }} ({{ optional($ev->event_date)->format('Y-m-d') }})</option>
+                            <option value="{{ $ev->id }}" @selected(old('event_id') == $ev->id)>{{ $ev->name }} ({{ optional($ev->start_at)->format('Y-m-d') }})</option>
                         @endforeach
                     </select>
                 </div>

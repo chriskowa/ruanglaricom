@@ -28,6 +28,10 @@ class CheckoutController extends Controller
 
         $product = MarketplaceProduct::findOrFail($request->product_id);
 
+        if ($product->sale_type === 'auction') {
+            return back()->with('error', 'Produk lelang tidak bisa dibeli langsung.');
+        }
+
         if ($product->stock < 1) {
             return back()->with('error', 'Product is out of stock.');
         }
@@ -39,7 +43,15 @@ class CheckoutController extends Controller
         // Calculate fees
         $commissionRate = AppSettings::get('marketplace_commission_percentage', 1);
         $commissionAmount = $product->price * ($commissionRate / 100);
-        $sellerAmount = $product->price - $commissionAmount;
+
+        $consignmentFeeRate = AppSettings::get('marketplace_consignment_fee_percentage', 0);
+        $consignmentFeeAmount = 0;
+        if ($product->fulfillment_mode === 'consignment') {
+            $consignmentFeeAmount = $product->price * ($consignmentFeeRate / 100);
+        }
+
+        $totalFee = $commissionAmount + $consignmentFeeAmount;
+        $sellerAmount = $product->price - $totalFee;
 
         // Create Order
         $order = MarketplaceOrder::create([
@@ -47,7 +59,7 @@ class CheckoutController extends Controller
             'buyer_id' => Auth::id(),
             'seller_id' => $product->user_id,
             'total_amount' => $product->price,
-            'commission_amount' => $commissionAmount,
+            'commission_amount' => $totalFee,
             'seller_amount' => $sellerAmount,
             'status' => 'pending',
         ]);
@@ -97,6 +109,37 @@ class CheckoutController extends Controller
         }
         if ($order->status !== 'pending') {
             return redirect()->route('marketplace.index')->with('info', 'Order already processed.');
+        }
+
+        if (! $order->snap_token) {
+            $items = $order->items()->with('product')->get();
+            $itemDetails = $items->map(function ($it) {
+                return [
+                    'id' => $it->product_id,
+                    'price' => (int) $it->price_snapshot,
+                    'quantity' => (int) $it->quantity,
+                    'name' => substr($it->product_title_snapshot, 0, 50),
+                ];
+            })->values()->all();
+
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $order->invoice_number,
+                    'gross_amount' => (int) $order->total_amount,
+                ],
+                'customer_details' => [
+                    'first_name' => Auth::user()->name,
+                    'email' => Auth::user()->email,
+                ],
+                'item_details' => $itemDetails,
+            ];
+
+            try {
+                $snapToken = Snap::getSnapToken($params);
+                $order->update(['snap_token' => $snapToken]);
+            } catch (\Exception $e) {
+                return back()->with('error', 'Payment gateway error: '.$e->getMessage());
+            }
         }
 
         return view('marketplace.checkout.pay', compact('order'));

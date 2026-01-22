@@ -14,7 +14,14 @@ class MarketplaceController extends Controller
     public function index(Request $request)
     {
         $query = MarketplaceProduct::with(['category', 'primaryImage', 'seller.city', 'brand'])
-            ->where('is_active', true);
+            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->where('sale_type', 'fixed')
+                    ->orWhere(function ($q2) {
+                        $q2->where('sale_type', 'auction')
+                            ->where('auction_status', 'running');
+                    });
+            });
 
         // Filter by Category (and sub-category if needed)
         if ($request->filled('category')) {
@@ -109,12 +116,16 @@ class MarketplaceController extends Controller
     public function show($slug)
     {
         $product = MarketplaceProduct::with(['category', 'images', 'seller.city', 'brand'])->where('slug', $slug)->firstOrFail();
+        $recentBids = collect();
+        if ($product->sale_type === 'auction') {
+            $recentBids = $product->bids()->with('bidder')->latest()->take(10)->get();
+        }
         $relatedProducts = MarketplaceProduct::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->with('primaryImage')
             ->take(4)
             ->get();
 
-        return view('marketplace.show', compact('product', 'relatedProducts'));
+        return view('marketplace.show', compact('product', 'relatedProducts', 'recentBids'));
     }
 }

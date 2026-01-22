@@ -15,6 +15,16 @@
                     <span class="bg-dark/80 backdrop-blur border border-slate-700 text-white text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
                         {{ $product->condition == 'new' ? 'NEW' : 'USED' }}
                     </span>
+                    @if($product->sale_type === 'auction')
+                    <span class="bg-neon/20 backdrop-blur border border-neon/40 text-neon text-xs font-black px-2 py-1 rounded uppercase tracking-wider">
+                        LELANG
+                    </span>
+                    @endif
+                    @if($product->fulfillment_mode === 'consignment')
+                    <span class="bg-cyan-500/15 backdrop-blur border border-cyan-400/30 text-cyan-300 text-xs font-black px-2 py-1 rounded uppercase tracking-wider">
+                        TITIP JUAL
+                    </span>
+                    @endif
                     @if($product->size)
                     <span class="bg-dark/80 backdrop-blur border border-slate-700 text-slate-300 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
                         {{ $product->size }}
@@ -39,8 +49,10 @@
                 </h3>
                 <div class="mt-auto pt-4 border-t border-slate-800 flex justify-between items-end">
                     <div>
-                        <div class="text-xs text-slate-500 mb-1">Price</div>
-                        <div class="text-xl font-black text-white italic">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
+                        <div class="text-xs text-slate-500 mb-1">{{ $product->sale_type === 'auction' ? 'Current Bid' : 'Price' }}</div>
+                        <div class="text-xl font-black text-white italic">
+                            Rp {{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}
+                        </div>
                     </div>
                     <div class="flex flex-col items-end gap-1">
                         <div class="flex items-center gap-2">

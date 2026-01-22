@@ -28,9 +28,9 @@ class MasterGpx extends Model
         ];
     }
 
-    public function runningEvent()
+    public function event()
     {
-        return $this->belongsTo(RunningEvent::class);
+        return $this->belongsTo(Event::class);
     }
 }
 

@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use App\Models\Event;
+
 class CalendarController extends Controller
 {
     public function index()
@@ -58,16 +62,50 @@ class CalendarController extends Controller
     public function getEvents()
     {
         try {
-            // Fetch events from RuangLari
-            $response = Http::withoutVerifying()->withHeaders([
-                'ruangLariKey' => 'Thinkpadx390',
-            ])->get('https://ruanglari.com/wp-json/ruanglari/v1/events');
+            // 1. Fetch from unified Event table
+            $events = Event::select('id', 'name', 'start_at', 'slug', 'location_name')
+                ->get()
+                ->map(function ($ev) {
+                    return [
+                        'id' => $ev->id,
+                        'name' => $ev->name,
+                        'start_at' => $ev->start_at,
+                        'slug' => $ev->slug,
+                        'location_name' => $ev->location_name,
+                        'source' => 'events'
+                    ];
+                });
 
-            if ($response->successful()) {
-                return $response->json();
+            // 2. Fetch from RunningEvent (or backup) if exists, for completeness
+            $oldEvents = collect([]);
+            $tableName = null;
+
+            if (Schema::hasTable('running_events')) {
+                $tableName = 'running_events';
+            } elseif (Schema::hasTable('running_events_backup')) {
+                $tableName = 'running_events_backup';
             }
 
-            return response()->json(['error' => 'Failed to fetch events from source'], 500);
+            if ($tableName) {
+                $oldEvents = DB::table($tableName)
+                    ->select('id', 'name', 'event_date', 'slug', 'location_name') // Assuming 'name' matches
+                    ->get()
+                    ->map(function ($ev) {
+                        return [
+                            'id' => 'old_' . $ev->id,
+                            'name' => $ev->name,
+                            'start_at' => $ev->event_date, // Map event_date to start_at
+                            'slug' => $ev->slug,
+                            'location_name' => $ev->location_name,
+                            'source' => 'running_events'
+                        ];
+                    });
+            }
+
+            // 3. Combine and Unique by slug (prefer 'events' table)
+            $combined = $events->concat($oldEvents)->unique('slug')->values();
+
+            return response()->json($combined);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

@@ -66,16 +66,39 @@
                                     <p class="text-slate-500 text-xs mt-0.5 uppercase tracking-wide">
                                         {{ $product->type }}
                                     </p>
+                                    <div class="mt-2 flex flex-wrap gap-2">
+                                        @if($product->sale_type === 'auction')
+                                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-neon/15 border border-neon/30 text-neon">Lelang</span>
+                                        @endif
+                                        @if($product->fulfillment_mode === 'consignment')
+                                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-400/20 text-cyan-200">Titip Jual</span>
+                                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">{{ $product->consignment_status }}</span>
+                                        @endif
+                                        @if(! $product->is_active)
+                                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-400/20 text-yellow-200">Hidden</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <p class="text-slate-300 font-mono text-sm">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                            <p class="text-slate-300 font-mono text-sm">
+                                Rp {{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}
+                            </p>
+                            @if($product->sale_type === 'auction' && $product->auction_end_at)
+                                <p class="text-slate-500 text-xs mt-1 font-mono">Ends {{ $product->auction_end_at->diffForHumans() }}</p>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $product->stock > 0 ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20' }}">
-                                {{ $product->stock }} Available
-                            </span>
+                            @if($product->fulfillment_mode === 'consignment' && $product->consignment_status === 'requested')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-200 border border-yellow-400/20">
+                                    Pending Admin
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $product->stock > 0 ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20' }}">
+                                    {{ $product->stock }} Available
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end gap-3">

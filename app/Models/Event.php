@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Models\RaceDistance;
 
 class Event extends Model
 {
@@ -99,6 +101,36 @@ class Event extends Model
         return "event:detail:{$this->slug}";
     }
 
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function raceType(): BelongsTo
+    {
+        return $this->belongsTo(RaceType::class);
+    }
+
+    public function raceDistances(): BelongsToMany
+    {
+        return $this->belongsToMany(RaceDistance::class, 'event_distances');
+    }
+
+    public function masterGpxes(): HasMany
+    {
+        return $this->hasMany(MasterGpx::class);
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_at', '>=', now())->orderBy('start_at', 'asc');
+    }
+
     /**
      * Get hero image URL (prioritize uploaded image over URL)
      */
@@ -176,5 +208,47 @@ class Event extends Model
         }
 
         return true;
+    }
+
+    /**
+     * Accessor for backward compatibility with RunningEvent
+     */
+    public function getEventDateAttribute()
+    {
+        return $this->start_at;
+    }
+
+    public function getStartTimeAttribute()
+    {
+        return $this->start_at;
+    }
+
+    public function getDistancesAttribute()
+    {
+        // Combine raceDistances and categories
+        $distances = collect();
+
+        if ($this->relationLoaded('raceDistances')) {
+            $distances = $distances->concat($this->getRelation('raceDistances'));
+        }
+
+        if ($this->relationLoaded('categories')) {
+            $mappedCategories = $this->getRelation('categories')->map(function ($cat) {
+                return new RaceDistance([
+                    'name' => $cat->name,
+                    'distance_meter' => ($cat->distance_km ?? 0) * 1000,
+                ]);
+            });
+            $distances = $distances->concat($mappedCategories);
+        }
+
+        return $distances->unique('name');
+    }
+
+    public function getIsEoAttribute()
+    {
+        // If user_id is not 1 (Admin), it's likely an EO event
+        // Or check if it has internal categories
+        return $this->user_id !== 1;
     }
 }

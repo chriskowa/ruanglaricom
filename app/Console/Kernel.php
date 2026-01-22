@@ -10,6 +10,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('leaderboard:sync')->dailyAt('02:00');
+        $schedule->command('marketplace:auctions:finalize')->everyMinute();
     }
 
     protected function commands(): void

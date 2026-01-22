@@ -1261,8 +1261,8 @@ createApp({
             if (!eventSearchQuery.value) return ruangLariEvents.value;
             const query = eventSearchQuery.value.toLowerCase();
             return ruangLariEvents.value.filter(e => 
-                e.title.toLowerCase().includes(query) || 
-                (e.location && e.location.toLowerCase().includes(query))
+                (e.name || e.title || '').toLowerCase().includes(query) || 
+                ((e.location_name || e.location || '').toLowerCase().includes(query))
             );
         });
 
@@ -1282,26 +1282,34 @@ createApp({
         };
 
         const selectRuangLariEvent = (event) => {
-            eventSearchQuery.value = event.title;
+            eventSearchQuery.value = event.name || event.title;
             showEventDropdown.value = false;
             onSelectRuangLariEvent(event);
         };
 
         const onSelectRuangLariEvent = (event) => {
             if (!event) return;
-            raceForm.name = event.title;
-            // Parse date mm/dd/yyyy to yyyy-mm-dd
-            if (event.date) {
-                const parts = event.date.split('/');
-                if (parts.length === 3) {
-                    const mm = parts[0].padStart(2, '0');
-                    const dd = parts[1].padStart(2, '0');
-                    const yyyy = parts[2];
-                    raceForm.date = `${yyyy}-${mm}-${dd}`;
+            raceForm.name = event.name || event.title;
+            
+            // Parse date
+            let dateStr = event.start_at || event.date;
+            if (dateStr) {
+                if (dateStr.includes('-')) {
+                     raceForm.date = dateStr.split(' ')[0];
+                } 
+                else if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        const mm = parts[0].padStart(2, '0');
+                        const dd = parts[1].padStart(2, '0');
+                        const yyyy = parts[2];
+                        raceForm.date = `${yyyy}-${mm}-${dd}`;
+                    }
                 }
             }
+            
             // Guess distance
-            const titleLower = event.title.toLowerCase();
+            const titleLower = (event.name || event.title || '').toLowerCase();
             if (titleLower.includes('marathon') && !titleLower.includes('half')) {
                 raceForm.distance = '42k';
             } else if (titleLower.includes('half') || titleLower.includes('hm')) {
@@ -1312,7 +1320,9 @@ createApp({
                 raceForm.distance = '5k';
             }
             
-            raceForm.notes = `Event Link: ${event.link}\nLocation: ${event.location}`;
+            const link = event.slug ? `/event-lari/${event.slug}` : (event.link || '');
+            const loc = event.location_name || event.location || '';
+            raceForm.notes = `Event Link: ${link}\nLocation: ${loc}`;
         };
 
         // Watch modal open to fetch events

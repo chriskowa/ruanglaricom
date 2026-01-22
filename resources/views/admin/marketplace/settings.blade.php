@@ -24,6 +24,17 @@
                 </p>
             </div>
 
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Consignment Fee Percentage (%)
+                </label>
+                <input type="number" step="0.1" name="consignment_fee" value="{{ $consignmentFee }}" 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <p class="text-xs text-gray-500 mt-1">
+                    Additional fee for Titip Jual fulfillment.
+                </p>
+            </div>
+
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                 Save Settings
             </button>

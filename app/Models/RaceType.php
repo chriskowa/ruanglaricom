@@ -11,6 +11,6 @@ class RaceType extends Model
 
     public function events(): HasMany
     {
-        return $this->hasMany(RunningEvent::class);
+        return $this->hasMany(Event::class);
     }
 }

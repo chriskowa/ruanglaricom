@@ -98,23 +98,108 @@
                     </div>
                 </div>
 
-                <!-- Price & Stock -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-6 bg-slate-800/30 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-500 uppercase tracking-widest mb-3">Mode Penjualan</div>
+                        <div class="flex flex-col gap-3">
+                            <label class="inline-flex items-center cursor-pointer group">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="sale_type" value="fixed" checked onchange="toggleSaleType(this.value)">
+                                <span class="ml-2 text-white group-hover:text-neon transition-colors">Jual Normal</span>
+                            </label>
+                            <label class="inline-flex items-center cursor-pointer group">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="sale_type" value="auction" onchange="toggleSaleType(this.value)">
+                                <span class="ml-2 text-white group-hover:text-neon transition-colors">Lelang (Bidding)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-slate-800/30 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-500 uppercase tracking-widest mb-3">Fulfillment</div>
+                        <div class="flex flex-col gap-3">
+                            <label class="inline-flex items-center cursor-pointer group">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="fulfillment_mode" value="self_ship" checked onchange="toggleFulfillment(this.value)">
+                                <span class="ml-2 text-white group-hover:text-neon transition-colors">Kirim Sendiri</span>
+                            </label>
+                            <label class="inline-flex items-center cursor-pointer group">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="fulfillment_mode" value="consignment" onchange="toggleFulfillment(this.value)">
+                                <span class="ml-2 text-white group-hover:text-neon transition-colors">Titip Jual</span>
+                            </label>
+                        </div>
+                        <div id="consignment-hint" class="mt-3 text-xs text-slate-400 hidden">
+                            Titip jual akan diproses admin terlebih dulu sebelum tampil di marketplace.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price & Stock -->
+                <div id="fixed-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Price (Rp)</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <span class="text-slate-400 font-bold">Rp</span>
                             </div>
-                            <input type="number" name="price" required min="0" 
+                            <input type="number" name="price" min="0"
                                 class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
                                 placeholder="0">
                         </div>
                     </div>
                     <div>
                         <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Stock</label>
-                        <input type="number" name="stock" required min="1" value="1" 
+                        <input type="number" name="stock" min="1" value="1"
                             class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                    </div>
+                </div>
+
+                <div id="auction-fields" class="p-6 bg-slate-800/30 rounded-xl border border-slate-700 hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Starting Price (Rp)</label>
+                            <input type="number" name="starting_price" min="0"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Min Increment (Rp)</label>
+                            <input type="number" name="min_increment" min="0" value="10000"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Auction Ends At</label>
+                            <input type="datetime-local" name="auction_end_at"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Buy Now Price (Optional)</label>
+                            <input type="number" name="buy_now_price" min="0"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                placeholder="0">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Reserve Price (Optional)</label>
+                        <input type="number" name="reserve_price" min="0"
+                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                            placeholder="0">
+                    </div>
+                </div>
+
+                <div id="consignment-fields" class="p-6 bg-slate-800/30 rounded-xl border border-slate-700 hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Dropoff Method</label>
+                            <input type="text" name="dropoff_method"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                placeholder="Dropoff / Pickup">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Dropoff Location</label>
+                            <input type="text" name="dropoff_location"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                placeholder="Kota / titik temu">
+                        </div>
                     </div>
                 </div>
 
@@ -204,6 +289,35 @@ function toggleType(val) {
         slotFields.style.display = 'none';
     }
 }
+
+function toggleSaleType(val) {
+    const fixed = document.getElementById('fixed-fields');
+    const auction = document.getElementById('auction-fields');
+    if (val === 'auction') {
+        fixed.classList.add('hidden');
+        auction.classList.remove('hidden');
+    } else {
+        auction.classList.add('hidden');
+        fixed.classList.remove('hidden');
+    }
+}
+
+function toggleFulfillment(val) {
+    const consignmentHint = document.getElementById('consignment-hint');
+    const consignmentFields = document.getElementById('consignment-fields');
+    if (val === 'consignment') {
+        consignmentHint.classList.remove('hidden');
+        consignmentFields.classList.remove('hidden');
+    } else {
+        consignmentHint.classList.add('hidden');
+        consignmentFields.classList.add('hidden');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    toggleSaleType('fixed');
+    toggleFulfillment('self_ship');
+});
 
 function previewImage(input) {
     const preview = document.getElementById('image-preview');

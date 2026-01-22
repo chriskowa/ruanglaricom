@@ -1303,8 +1303,8 @@ createApp({
             if (!eventSearchQuery.value) return ruangLariEvents.value;
             const query = eventSearchQuery.value.toLowerCase();
             return ruangLariEvents.value.filter(e => 
-                e.title.toLowerCase().includes(query) || 
-                (e.location && e.location.toLowerCase().includes(query))
+                (e.name || e.title || '').toLowerCase().includes(query) || 
+                ((e.location_name || e.location || '').toLowerCase().includes(query))
             );
         });
 
@@ -1324,30 +1324,41 @@ createApp({
         };
 
         const selectRuangLariEvent = (event) => {
-            eventSearchQuery.value = event.title;
+            eventSearchQuery.value = event.name || event.title;
             showEventDropdown.value = false;
             onSelectRuangLariEvent(event);
         };
 
         const onSelectRuangLariEvent = (event) => {
             if (!event) return;
-            // API Format: {"id":6001,"title":"...","date":"mm/dd/yyyy",...}
-            raceForm.name = event.title;
-            raceForm.notes = event.link || '';
+            // API Format: {"id":...,"name":"...","start_at":"yyyy-mm-dd hh:mm:ss",...}
+            raceForm.name = event.name || event.title;
             
-            // Parse date mm/dd/yyyy -> yyyy-mm-dd
-            if (event.date) {
-                const parts = event.date.split('/');
-                if (parts.length === 3) {
-                    const mm = parts[0].padStart(2, '0');
-                    const dd = parts[1].padStart(2, '0');
-                    const yyyy = parts[2];
-                    raceForm.date = `${yyyy}-${mm}-${dd}`;
+            // Construct link from slug if available
+            const link = event.slug ? `/event-lari/${event.slug}` : (event.link || '');
+            raceForm.notes = link;
+            
+            // Parse date
+            let dateStr = event.start_at || event.date;
+            if (dateStr) {
+                // If it's already YYYY-MM-DD (start_at usually is datetime string)
+                if (dateStr.includes('-')) {
+                     raceForm.date = dateStr.split(' ')[0];
+                } 
+                // Legacy mm/dd/yyyy support
+                else if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        const mm = parts[0].padStart(2, '0');
+                        const dd = parts[1].padStart(2, '0');
+                        const yyyy = parts[2];
+                        raceForm.date = `${yyyy}-${mm}-${dd}`;
+                    }
                 }
             }
             
             // Guess distance
-            const title = event.title.toLowerCase();
+            const title = (event.name || event.title || '').toLowerCase();
             if (title.includes('marathon') && !title.includes('half')) {
                 setRaceDist(42.2, 'FM');
             } else if (title.includes('half') || title.includes('hm') || title.includes('21k')) {

@@ -26,8 +26,8 @@ class City extends Model
         return $this->hasMany(User::class);
     }
 
-    public function runningEvents(): HasMany
+    public function events(): HasMany
     {
-        return $this->hasMany(RunningEvent::class);
+        return $this->hasMany(Event::class);
     }
 }

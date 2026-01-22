@@ -409,10 +409,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
         // Event Calendar Management
-        Route::get('events/import', [App\Http\Controllers\Admin\RunningEventController::class, 'import'])->name('events.import');
-        Route::post('events/import', [App\Http\Controllers\Admin\RunningEventController::class, 'storeImport'])->name('events.import.store');
-        Route::post('events/sync', [App\Http\Controllers\Admin\RunningEventController::class, 'sync'])->name('events.sync');
-        Route::resource('events', App\Http\Controllers\Admin\RunningEventController::class);
+        Route::get('events/import', [App\Http\Controllers\Admin\EventController::class, 'import'])->name('events.import');
+        Route::post('events/import', [App\Http\Controllers\Admin\EventController::class, 'storeImport'])->name('events.import.store');
+        Route::post('events/sync', [App\Http\Controllers\Admin\EventController::class, 'sync'])->name('events.sync');
+        Route::resource('events', App\Http\Controllers\Admin\EventController::class);
         Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class)->except(['show']);
 
         // User Management
@@ -425,6 +425,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'update'])->name('marketplace.settings.update');
         Route::resource('marketplace/categories', App\Http\Controllers\Admin\MarketplaceCategoryController::class)->names('marketplace.categories');
         Route::resource('marketplace/brands', App\Http\Controllers\Admin\MarketplaceBrandController::class)->names('marketplace.brands');
+        Route::get('/marketplace/auctions', [App\Http\Controllers\Admin\MarketplaceAuctionController::class, 'index'])->name('marketplace.auctions.index');
+        Route::get('/marketplace/auctions/{product}', [App\Http\Controllers\Admin\MarketplaceAuctionController::class, 'show'])->name('marketplace.auctions.show');
+        Route::post('/marketplace/auctions/{product}/cancel', [App\Http\Controllers\Admin\MarketplaceAuctionController::class, 'cancel'])->name('marketplace.auctions.cancel');
+        Route::post('/marketplace/auctions/{product}/finalize', [App\Http\Controllers\Admin\MarketplaceAuctionController::class, 'finalize'])->name('marketplace.auctions.finalize');
+        Route::get('/marketplace/consignments', [App\Http\Controllers\Admin\MarketplaceConsignmentController::class, 'index'])->name('marketplace.consignments.index');
+        Route::post('/marketplace/consignments/{intake}/received', [App\Http\Controllers\Admin\MarketplaceConsignmentController::class, 'markReceived'])->name('marketplace.consignments.received');
+        Route::post('/marketplace/consignments/{intake}/listed', [App\Http\Controllers\Admin\MarketplaceConsignmentController::class, 'markListed'])->name('marketplace.consignments.listed');
 
         // Page Management
         Route::resource('pages', App\Http\Controllers\Admin\PageController::class);
@@ -513,6 +520,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:runner,coach,eo'])->prefix('marketplace')->name('marketplace.')->group(function () {
         // Seller Management
         Route::resource('seller/products', App\Http\Controllers\Marketplace\ProductController::class)->names('seller.products');
+
+        Route::post('/product/{slug}/bid', [App\Http\Controllers\Marketplace\AuctionController::class, 'bid'])->name('auction.bid')->middleware('throttle:20,1');
 
         // Cart routes
         Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('cart.index');

@@ -92,22 +92,114 @@
                         class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed">
                 </div>
 
-                <!-- Price & Stock -->
+                @php
+                    $hasBids = $product->sale_type === 'auction' ? $product->bids()->exists() : false;
+                    $canSwitchFromConsignment = in_array($product->consignment_status, ['none', 'requested'], true);
+                @endphp
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Price (Rp)</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <span class="text-slate-400 font-bold">Rp</span>
-                            </div>
-                            <input type="number" name="price" value="{{ $product->price }}" required min="0" 
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                    <div class="p-6 bg-slate-800/30 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Mode Penjualan</div>
+                        <div class="text-white font-bold">
+                            {{ $product->sale_type === 'auction' ? 'Lelang (Bidding)' : 'Jual Normal' }}
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Stock</label>
-                        <input type="number" name="stock" value="{{ $product->stock }}" required min="0" 
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+
+                    <div class="p-6 bg-slate-800/30 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-500 uppercase tracking-widest mb-3">Fulfillment</div>
+                        <div class="flex flex-col gap-3">
+                            <label class="inline-flex items-center cursor-pointer group">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="fulfillment_mode" value="self_ship"
+                                    {{ $product->fulfillment_mode === 'self_ship' ? 'checked' : '' }}
+                                    {{ ($product->fulfillment_mode === 'consignment' && ! $canSwitchFromConsignment) ? 'disabled' : '' }}>
+                                <span class="ml-2 {{ ($product->fulfillment_mode === 'consignment' && ! $canSwitchFromConsignment) ? 'text-slate-500' : 'text-white group-hover:text-neon transition-colors' }}">Kirim Sendiri</span>
+                            </label>
+                            <label class="inline-flex items-center cursor-pointer group">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="fulfillment_mode" value="consignment"
+                                    {{ $product->fulfillment_mode === 'consignment' ? 'checked' : '' }}>
+                                <span class="ml-2 text-white group-hover:text-neon transition-colors">Titip Jual</span>
+                            </label>
+                        </div>
+                        @if($product->fulfillment_mode === 'consignment')
+                            <div class="mt-3 text-xs text-slate-400">
+                                Status titip jual: <span class="font-bold text-white">{{ strtoupper($product->consignment_status) }}</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Price & Stock -->
+                @if($product->sale_type === 'fixed')
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Price (Rp)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span class="text-slate-400 font-bold">Rp</span>
+                                </div>
+                                <input type="number" name="price" value="{{ $product->price }}" min="0" 
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Stock</label>
+                            <input type="number" name="stock" value="{{ $product->stock }}" min="0" 
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                        </div>
+                    </div>
+                @else
+                    <div class="p-6 bg-slate-800/30 rounded-xl border border-slate-700 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Starting Price</div>
+                                <div class="text-white font-bold">Rp {{ number_format($product->starting_price ?? $product->price, 0, ',', '.') }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Current Bid</div>
+                                <div class="text-white font-bold">Rp {{ number_format($product->current_price ?? $product->starting_price ?? $product->price, 0, ',', '.') }}</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Auction Ends At</label>
+                                <input type="datetime-local" name="auction_end_at"
+                                    value="{{ optional($product->auction_end_at)->format('Y-m-d\\TH:i') }}"
+                                    {{ $hasBids ? 'disabled' : '' }}
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all {{ $hasBids ? 'opacity-60 cursor-not-allowed' : '' }}">
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Buy Now Price</label>
+                                <input type="number" name="buy_now_price" min="0" value="{{ $product->buy_now_price }}"
+                                    {{ $hasBids ? 'disabled' : '' }}
+                                    class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all {{ $hasBids ? 'opacity-60 cursor-not-allowed' : '' }}">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Reserve Price</label>
+                            <input type="number" name="reserve_price" min="0" value="{{ $product->reserve_price }}"
+                                {{ $hasBids ? 'disabled' : '' }}
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all {{ $hasBids ? 'opacity-60 cursor-not-allowed' : '' }}">
+                        </div>
+                        @if($hasBids)
+                            <div class="text-xs text-slate-500">Auction settings terkunci karena sudah ada bid.</div>
+                        @endif
+                    </div>
+                @endif
+
+                <div id="consignment-fields" class="p-6 bg-slate-800/30 rounded-xl border border-slate-700 {{ $product->fulfillment_mode === 'consignment' ? '' : 'hidden' }} space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Dropoff Method</label>
+                            <input type="text" name="dropoff_method" value="{{ optional($product->consignmentIntake)->dropoff_method }}"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                placeholder="Dropoff / Pickup">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Dropoff Location</label>
+                            <input type="text" name="dropoff_location" value="{{ optional($product->consignmentIntake)->dropoff_location }}"
+                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                placeholder="Kota / titik temu">
+                        </div>
                     </div>
                 </div>
 
@@ -203,6 +295,15 @@
         
         // Run once on load
         filterBrands();
+
+        const radios = document.querySelectorAll('input[name="fulfillment_mode"]');
+        const consignmentFields = document.getElementById('consignment-fields');
+        radios.forEach(r => {
+            r.addEventListener('change', function() {
+                if (this.value === 'consignment') consignmentFields.classList.remove('hidden');
+                else consignmentFields.classList.add('hidden');
+            });
+        });
     });
 
 function previewImage(input) {

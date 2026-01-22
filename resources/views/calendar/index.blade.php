@@ -1701,9 +1701,9 @@
                         this.calendarLoading = true;
                         const calendarEl = document.getElementById('calendar');
                         this.calendarInstance = new FullCalendar.Calendar(calendarEl, {
-                            initialView: 'dayGridMonth',
-                            initialDate: '2025-12-01', // Set default date to Dec 2025 based on event data
-                            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                    initialView: 'dayGridMonth',
+                    // initialDate removed to default to current date
+                    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
                             dayMaxEventRows: 2,
                             moreLinkClick: 'popover',
                             displayEventTime: false,
@@ -1718,24 +1718,17 @@
                                     
                                     // Map data to FullCalendar format
                                     const events = Array.isArray(data) ? data.map(ev => {
-                                        // Handle date format MM/DD/YYYY
-                                        let start = ev.date;
-                                        if (start && start.includes('/')) {
-                                            const parts = start.split('/');
-                                            if (parts.length === 3) {
-                                                // Convert from MM/DD/YYYY to YYYY-MM-DD
-                                                start = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
-                                            }
-                                        }
-
                                         const internalUrl = ev.slug ? `/events/${ev.slug}` : null;
                                         return {
-                                            title: ev.title.rendered || ev.title,
-                                            start: start,
-                                            url: internalUrl || ev.link,
+                                            title: ev.name,
+                                            start: ev.start_at,
+                                            url: internalUrl,
                                             backgroundColor: '#ccff00',
                                             borderColor: '#ccff00',
-                                            textColor: '#0f172a'
+                                            textColor: '#0f172a',
+                                            extendedProps: {
+                                                location: ev.location_name
+                                            }
                                         };
                                     }) : [];
                                     

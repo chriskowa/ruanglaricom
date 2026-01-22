@@ -41,7 +41,7 @@
                                 <tr class="hover:bg-slate-900/40 transition">
                                     <td class="px-4 py-3 font-bold text-white">{{ $it->title }}</td>
                                     <td class="px-4 py-3 text-slate-300">
-                                        {{ $it->runningEvent?->name ?? '-' }}
+                                        {{ $it->event?->name ?? '-' }}
                                     </td>
                                     <td class="px-4 py-3 text-slate-300">
                                         {{ $it->distance_km ? number_format((float) $it->distance_km, 2) . ' km' : '-' }}
