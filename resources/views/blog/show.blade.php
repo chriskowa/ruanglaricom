@@ -21,9 +21,8 @@
 @endif
 
 @section('content')
-<div class="min-h-screen bg-dark pt-6"> <!-- Added pt-6 to fix header collision (80px header - 64px main padding + extra) -->
+<div class="min-h-screen bg-dark pt-6">
     
-    <!-- Breadcrumb -->
     <div class="container mx-auto px-4 md:px-8 py-4">
         <nav class="flex text-sm text-slate-400 font-mono" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -57,14 +56,12 @@
         </nav>
     </div>
 
-    <!-- Hero Section / Featured Image -->
     <div class="relative w-full h-[40vh] md:h-[50vh] lg:h-[60vh] overflow-hidden rounded-3xl mx-auto container px-4 md:px-8 mt-4">
         <div class="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
             <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/20 to-transparent z-10"></div>
             @if($bgImage)
                 <img src="{{ $bgImage }}" alt="{{ $article->title }}" class="w-full h-full object-cover">
             @else
-                <!-- Default gradient if no image -->
                 <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900"></div>
             @endif
             
@@ -95,11 +92,9 @@
         </div>
     </div>
 
-    <!-- Content Section -->
     <div class="relative z-20 mt-12">
         <div class="container mx-auto px-4 md:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                <!-- Main Content -->
                 <div class="lg:col-span-8 lg:col-start-3">
                     @if($article->excerpt)
                         <div class="text-xl md:text-2xl text-slate-300 leading-relaxed font-light mb-10 border-l-4 border-neon pl-6 italic">
@@ -122,17 +117,20 @@
                         
                     </article>
 
-                    <!-- Share / Back -->
+                    @php
+                        $shareUrl = urlencode(url()->current());
+                        $shareText = urlencode($article->title);
+                    @endphp
+
                     <div class="mt-16 pt-8 border-t border-slate-700/50 flex justify-between items-center">
                         <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
                             <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
-                            <span>Back to Home</span>
+                            <span>Kembali</span>
                         </a>
-                        <!-- Social Share (Optional Placeholder) -->
                         <div class="flex gap-4">
-                            <a href="#" class="text-slate-400 hover:text-neon transition-colors"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="text-slate-400 hover:text-neon transition-colors"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="text-slate-400 hover:text-neon transition-colors"><i class="fab fa-whatsapp"></i></a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-neon transition-colors" aria-label="Share ke Facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-neon transition-colors" aria-label="Share ke X"><i class="fab fa-x-twitter"></i></a>
+                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-neon transition-colors" aria-label="Share ke WhatsApp"><i class="fab fa-whatsapp"></i></a>
                         </div>
                     </div>
                 </div>
@@ -140,7 +138,6 @@
         </div>
     </div>
 
-    <!-- Related Articles -->
     @if($relatedArticles->count() > 0)
     <div class="mt-24 py-16 bg-slate-900/50 border-t border-slate-800">
         <div class="container mx-auto px-4 md:px-8">

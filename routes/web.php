@@ -260,6 +260,7 @@ Route::get('/event-organizer', function () {
 Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
 
 // Public Blog
+Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
 // Public API: Upcoming events for home page
