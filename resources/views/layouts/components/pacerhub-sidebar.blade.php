@@ -17,6 +17,7 @@
                         <li><a href="{{ route('admin.strava.config') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Strava Config</a></li>
                         <li><a href="{{ route('admin.blog.media.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Media Library</a></li>
                         <li><a href="{{ route('admin.menus.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Menu Manager</a></li>
+                        <li><a href="{{ route('admin.integration.settings') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Settings</a></li>
                         <li><a href="{{ route('admin.transactions.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Transactions</a></li>
                         
                         <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Commerce Marketplace</li>
