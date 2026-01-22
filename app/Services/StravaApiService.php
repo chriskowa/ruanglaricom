@@ -50,7 +50,7 @@ class StravaApiService
         return $accessToken;
     }
 
-    public function fetchActivityDetails(User $user, int $activityId): ?array
+    public function fetchActivityDetails(User $user, int|string $activityId): ?array
     {
         $accessToken = $this->getValidAccessToken($user);
         if (! $accessToken) {
@@ -59,7 +59,7 @@ class StravaApiService
 
         $res = Http::withoutVerifying()
             ->withToken($accessToken)
-            ->get('https://www.strava.com/api/v3/activities/'.$activityId, [
+            ->get('https://www.strava.com/api/v3/activities/'.rawurlencode((string) $activityId), [
                 'include_all_efforts' => true,
             ]);
 
@@ -71,7 +71,7 @@ class StravaApiService
         return is_array($json) ? $json : null;
     }
 
-    public function fetchActivityStreams(User $user, int $activityId, array $keys = ['time', 'heartrate', 'cadence', 'velocity_smooth', 'watts']): ?array
+    public function fetchActivityStreams(User $user, int|string $activityId, array $keys = ['time', 'heartrate', 'cadence', 'velocity_smooth', 'watts']): ?array
     {
         $accessToken = $this->getValidAccessToken($user);
         if (! $accessToken) {
@@ -80,7 +80,7 @@ class StravaApiService
 
         $res = Http::withoutVerifying()
             ->withToken($accessToken)
-            ->get('https://www.strava.com/api/v3/activities/'.$activityId.'/streams', [
+            ->get('https://www.strava.com/api/v3/activities/'.rawurlencode((string) $activityId).'/streams', [
                 'keys' => implode(',', $keys),
                 'key_by_type' => 'true',
             ]);
@@ -111,4 +111,3 @@ class StravaApiService
         return $mins.':'.str_pad((string) $secs, 2, '0', STR_PAD_LEFT);
     }
 }
-

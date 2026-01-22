@@ -289,10 +289,10 @@ class AthleteController extends Controller
             abort(403);
         }
 
-        $activityId = (int) $stravaActivityId;
-        if ($activityId <= 0) {
+        if (! is_numeric($stravaActivityId) || (string) $stravaActivityId === '0') {
             return response()->json(['success' => false, 'message' => 'Invalid activity id.'], 422);
         }
+        $activityId = (string) $stravaActivityId;
 
         $runner = $enrollment->runner;
         $api = app(StravaApiService::class);
@@ -406,10 +406,10 @@ class AthleteController extends Controller
             abort(403);
         }
 
-        $activityId = (int) $stravaActivityId;
-        if ($activityId <= 0) {
+        if (! is_numeric($stravaActivityId) || (string) $stravaActivityId === '0') {
             return response()->json(['success' => false, 'message' => 'Invalid activity id.'], 422);
         }
+        $activityId = (string) $stravaActivityId;
 
         $runner = $enrollment->runner;
         $api = app(StravaApiService::class);

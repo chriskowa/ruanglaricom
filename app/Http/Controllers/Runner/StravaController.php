@@ -161,10 +161,11 @@ class StravaController extends Controller
 
             DB::transaction(function () use ($user, $all, &$imported, &$linked, &$rangeStart, &$rangeEnd) {
                 foreach ($all as $a) {
-                    $activityId = (int) data_get($a, 'id');
-                    if (! $activityId) {
+                    $activityId = data_get($a, 'id');
+                    if (! is_numeric($activityId) || (string) $activityId === '0') {
                         continue;
                     }
+                    $activityId = (string) $activityId;
 
                     $startDate = data_get($a, 'start_date');
                     $start = $startDate ? Carbon::parse($startDate) : null;
@@ -302,13 +303,13 @@ class StravaController extends Controller
     public function activityDetails(Request $request, string $stravaActivityId)
     {
         $user = auth()->user();
-        $activityId = (int) $stravaActivityId;
-        if ($activityId <= 0) {
+        if (! is_numeric($stravaActivityId) || (string) $stravaActivityId === '0') {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid activity id.',
             ], 422);
         }
+        $activityId = (string) $stravaActivityId;
 
         $activity = StravaActivity::query()
             ->where('user_id', $user->id)
@@ -410,13 +411,13 @@ class StravaController extends Controller
     public function activityStreams(Request $request, string $stravaActivityId)
     {
         $user = auth()->user();
-        $activityId = (int) $stravaActivityId;
-        if ($activityId <= 0) {
+        if (! is_numeric($stravaActivityId) || (string) $stravaActivityId === '0') {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid activity id.',
             ], 422);
         }
+        $activityId = (string) $stravaActivityId;
 
         $activity = StravaActivity::query()
             ->where('user_id', $user->id)
