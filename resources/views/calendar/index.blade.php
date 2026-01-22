@@ -303,10 +303,10 @@
 
 <!-- Poster Modal -->
 <div v-if="showPosterModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4">
-    <div class="flex flex-col md:flex-row gap-6 h-full max-h-[90vh] w-full max-w-6xl">
+    <div class="relative flex flex-col md:flex-row gap-4 md:gap-6 h-full max-h-[90vh] w-full max-w-6xl">
         
         <!-- Preview Area -->
-        <div class="flex-1 flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 relative overflow-hidden group">
+        <div class="flex-1 flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 relative overflow-hidden group h-[44vh] sm:h-[48vh] md:h-auto">
             
             <!-- Poster Container (Visible for Preview) -->
             <!-- Scale logic updated for better mobile view -->
@@ -363,7 +363,7 @@
                         </div>
                         
                         <!-- Map Controls -->
-                        <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
+                        <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-50 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity pointer-events-auto">
                             <button @click.stop="mapScale = Math.min(mapScale + 0.1, 3)" class="bg-black/50 text-white p-1 rounded hover:bg-neon hover:text-black transition"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></button>
                             <button @click.stop="mapScale = Math.max(mapScale - 0.1, 0.5)" class="bg-black/50 text-white p-1 rounded hover:bg-neon hover:text-black transition"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg></button>
                             <button @click.stop="resetMapPosition" class="bg-black/50 text-white p-1 rounded hover:bg-neon hover:text-black transition"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
@@ -556,11 +556,29 @@
             </div>
         </div>
 
-            <!-- Sidebar Controls -->
-            <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50 overflow-y-auto max-h-[85vh] custom-scrollbar">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-xl font-bold text-white">Customize</h3>
+        <div class="md:static fixed inset-x-0 bottom-0 z-[120] md:z-auto px-4 md:px-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
+            <div class="bg-slate-900 border border-slate-800 rounded-t-3xl shadow-2xl md:bg-transparent md:border-0 md:rounded-none md:shadow-none">
+                <div class="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-800">
+                    <div class="flex gap-2">
+                        <button type="button" @click="posterMobileTab = 'customize'" class="px-3 py-1.5 rounded-full text-xs font-bold border transition"
+                                :class="posterMobileTab === 'customize' ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300'">
+                            Customize
+                        </button>
+                        <button type="button" @click="posterMobileTab = 'styles'" class="px-3 py-1.5 rounded-full text-xs font-bold border transition"
+                                :class="posterMobileTab === 'styles' ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300'">
+                            Styles
+                        </button>
+                    </div>
+                    <button @click="closePosterModal" class="text-slate-400 hover:text-white p-2 -mr-2">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
+
+                <div class="max-h-[56vh] overflow-y-auto p-4 md:p-0 md:max-h-none md:overflow-visible md:flex md:gap-6">
+                    <div v-show="!posterIsMobile || posterMobileTab === 'customize'" class="w-full md:w-80 flex flex-col gap-4 md:bg-slate-900 md:p-6 md:rounded-2xl md:border md:border-slate-800 md:shadow-2xl md:overflow-y-auto md:max-h-[85vh] custom-scrollbar">
+                        <div class="hidden md:flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-bold text-white">Customize</h3>
+                        </div>
 
                 <!-- Edit Data -->
                 <div class="space-y-3 border-b border-slate-800 pb-4">
@@ -659,8 +677,15 @@
                     </div>
                 </div>
                 
+                <div class="md:hidden mt-2" v-show="posterOptions.visibleElements.map">
+                    <button type="button" @click="posterMobileAccordion.map = !posterMobileAccordion.map" class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-800 border border-slate-700">
+                        <span class="text-xs font-bold text-white">Map Settings</span>
+                        <svg class="w-4 h-4 text-slate-300 transition-transform" :class="posterMobileAccordion.map ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                </div>
+
                 <!-- Map Position Control -->
-                <div class="space-y-2 mt-2 map-position hidden" v-show="posterOptions.visibleElements.map">
+                <div class="space-y-2 mt-2 map-position" v-show="posterOptions.visibleElements.map && (!posterIsMobile || posterMobileAccordion.map)">
                     <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Map Position</p>
                     <div class="grid grid-cols-3 gap-2">
                         <button @click="posterOptions.mapPosition = 'top-left'" :class="posterOptions.mapPosition==='top-left' ? 'bg-slate-700 text-white border-slate-500':'bg-slate-800 text-slate-500 border-slate-800'" class="text-[10px] py-1.5 rounded-lg border transition">Top-Left</button>
@@ -676,7 +701,7 @@
                 </div>
                 
                 <!-- Map Size & Offset Control -->
-                <div class="space-y-3 mt-2 map-position" v-show="posterOptions.visibleElements.map">
+                <div class="space-y-3 mt-2 map-position" v-show="posterOptions.visibleElements.map && (!posterIsMobile || posterMobileAccordion.map)">
                     <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Map Size</p>
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] text-slate-400">10%</span>
@@ -703,8 +728,15 @@
                     </div>
                 </div>
                 
+                <div class="md:hidden mt-2" v-show="posterOptions.visibleElements.splits">
+                    <button type="button" @click="posterMobileAccordion.splits = !posterMobileAccordion.splits" class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-800 border border-slate-700">
+                        <span class="text-xs font-bold text-white">Splits Settings</span>
+                        <svg class="w-4 h-4 text-slate-300 transition-transform" :class="posterMobileAccordion.splits ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                </div>
+
                 <!-- Splits Position & Size -->
-                <div class="space-y-3 mt-2 split-position" v-show="posterOptions.visibleElements.splits">
+                <div class="space-y-3 mt-2 split-position" v-show="posterOptions.visibleElements.splits && (!posterIsMobile || posterMobileAccordion.splits)">
                     <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Splits Position & Size</p>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2">
@@ -737,14 +769,13 @@
                         </div>
                     </div>
                 </div>
-            </div>
+                    </div>
 
-            <!-- Sidebar Styles (Right: Style & Download) -->
-            <div class="w-full md:w-80 flex flex-col gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl z-50 overflow-y-auto max-h-[85vh] custom-scrollbar">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-xl font-bold text-white">Styles</h3>
-                    <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-                </div>
+                    <div v-show="!posterIsMobile || posterMobileTab === 'styles'" class="w-full md:w-80 flex flex-col gap-4 md:bg-slate-900 md:p-6 md:rounded-2xl md:border md:border-slate-800 md:shadow-2xl md:overflow-y-auto md:max-h-[85vh] custom-scrollbar">
+                        <div class="hidden md:flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-bold text-white">Styles</h3>
+                            <button @click="closePosterModal" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                        </div>
 
                 <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mt-2">Select Style</p>
                 
@@ -762,13 +793,25 @@
                    </button>
                 </div>
                 
-                <div class="mt-auto pt-4 border-t border-slate-800">
+                <div class="hidden md:block mt-auto pt-4 border-t border-slate-800">
                     <button @click="downloadPoster" class="w-full bg-neon text-slate-900 font-bold py-3.5 rounded-xl hover:bg-[#b3e600] transition flex items-center justify-center gap-2 shadow-lg shadow-neon/20 active:scale-95 transform duration-100">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         Download Image
                     </button>
                 </div>
+                    </div>
+                </div>
+
+                <div class="md:hidden grid grid-cols-2 gap-3 p-4 border-t border-slate-800">
+                    <button @click="resetPosterQuick" class="px-4 py-3 rounded-xl bg-slate-800 text-slate-200 font-bold text-sm border border-slate-700">
+                        Reset
+                    </button>
+                    <button @click="downloadPoster" class="px-4 py-3 rounded-xl bg-neon text-slate-900 font-black text-sm">
+                        Download
+                    </button>
+                </div>
             </div>
+        </div>
     </div>
 
     <!-- Full Screen Download Loader -->
@@ -1134,6 +1177,12 @@
                     isDownloading: false,
                     currentPosterId: null,
                     showPosterModal: false,
+                    posterMobileTab: 'customize',
+                    posterMobileAccordion: {
+                        map: false,
+                        splits: false,
+                    },
+                    posterIsMobile: false,
                     
                     // Recap Feature
                     showRecapSetup: false,
@@ -1459,6 +1508,9 @@
                     this.activeTab = 'strava';
                 }
 
+                this.updatePosterIsMobile();
+                window.addEventListener('resize', this.updatePosterIsMobile);
+
                 // Check Strava Token
                 if (this.isAuthenticated) {
                     const token = localStorage.getItem('strava_access_token');
@@ -1474,6 +1526,9 @@
                 this.initData();
             },
                 methods: {
+                    updatePosterIsMobile() {
+                        this.posterIsMobile = window.innerWidth < 768;
+                    },
                     getMapAlignmentClasses() {
                         const pos = this.posterOptions.mapPosition;
                         const base = [];
@@ -2216,6 +2271,16 @@
 
                 closePosterModal() {
                     this.showPosterModal = false;
+                    this.posterMobileTab = 'customize';
+                    this.posterMobileAccordion = { map: false, splits: false };
+                },
+
+                resetPosterQuick() {
+                    this.resetMapPosition();
+                    this.splitsTopPercent = 20;
+                    this.splitsLeftPercent = 80;
+                    this.splitsWidth = 120;
+                    this.splitsOffset = { x: 0, y: 0 };
                 },
 
                 async downloadPoster() {
