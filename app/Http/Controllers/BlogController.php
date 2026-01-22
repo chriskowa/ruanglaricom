@@ -15,6 +15,14 @@ class BlogController extends Controller
         // Increment views count
         $article->increment('views_count');
         
-        return view('blog.show', compact('article'));
+        // Fetch related articles
+        $relatedArticles = Article::where('category_id', $article->category_id)
+            ->where('id', '!=', $article->id)
+            ->published()
+            ->latest('published_at')
+            ->limit(3)
+            ->get();
+
+        return view('blog.show', compact('article', 'relatedArticles'));
     }
 }
