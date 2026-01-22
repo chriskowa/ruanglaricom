@@ -200,4 +200,89 @@ class RunningEventController extends Controller
 
         return redirect()->route('admin.events.index')->with('success', $message);
     }
+
+    public function sync()
+    {
+        try {
+            $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+                ->withHeaders(['ruangLariKey' => 'Thinkpadx390'])
+                ->get('https://ruanglari.com/wp-json/ruanglari/v1/events');
+
+            if (!$response->successful()) {
+                return back()->with('error', 'Failed to fetch events from source.');
+            }
+
+            $events = $response->json();
+            $count = 0;
+            $updated = 0;
+
+            foreach ($events as $item) {
+                // Parse Date (MM/DD/YYYY -> YYYY-MM-DD)
+                try {
+                    $date = \Carbon\Carbon::createFromFormat('m/d/Y', $item['date']);
+                } catch (\Exception $e) {
+                    continue; // Skip invalid date
+                }
+
+                // Decode HTML entities in title
+                $name = html_entity_decode($item['title']);
+                
+                // Check for existing event by name and date to prevent duplicates
+                $existing = RunningEvent::withTrashed()
+                    ->where('name', $name)
+                    ->whereDate('event_date', $date->toDateString())
+                    ->first();
+
+                if ($existing) {
+                    if ($existing->trashed()) {
+                        $existing->restore(); // Restore if it was deleted
+                    }
+                    
+                    // Update link if missing
+                    if (empty($existing->registration_link) && !empty($item['link'])) {
+                        $existing->update(['registration_link' => $item['link']]);
+                        $updated++;
+                    }
+                    continue;
+                }
+
+                // Try to map City
+                $city = null;
+                if (!empty($item['location'])) {
+                    $location = trim($item['location']);
+                    $city = City::where('name', 'like', "%{$location}%")
+                        ->orWhere('name', 'like', "Kota {$location}%")
+                        ->orWhere('name', 'like', "Kabupaten {$location}%")
+                        ->first();
+                }
+
+                // Generate unique slug
+                $baseSlug = \Illuminate\Support\Str::slug($name);
+                $slug = $baseSlug;
+                $counter = 1;
+                while (RunningEvent::withTrashed()->where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+
+                RunningEvent::create([
+                    'name' => $name,
+                    'slug' => $slug,
+                    'event_date' => $date->toDateString(),
+                    'location_name' => $item['location'],
+                    'city_id' => $city ? $city->id : null,
+                    'registration_link' => $item['link'],
+                    'status' => 'published',
+                    'description' => 'Imported from RuangLari.com',
+                ]);
+                $count++;
+            }
+
+            return redirect()->route('admin.events.index')
+                ->with('success', "Synced successfully. Added {$count} new events, updated {$updated} events.");
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Sync failed: ' . $e->getMessage());
+        }
+    }
 }

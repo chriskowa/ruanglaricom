@@ -133,7 +133,7 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 @foreach($relatedEvents as $related)
-                                    <a href="{{ route('event.detail', $related->slug) }}" class="group block bg-slate-800/30 border border-slate-700 hover:border-neon/50 rounded-2xl overflow-hidden transition-all hover:bg-slate-800/50">
+                                    <a href="{{ route('running-event.detail', $related->slug) }}" class="group block bg-slate-800/30 border border-slate-700 hover:border-neon/50 rounded-2xl overflow-hidden transition-all hover:bg-slate-800/50">
                                         <div class="aspect-video relative overflow-hidden">
                                             @if($related->banner_image)
                                                 <img src="{{ $related->banner_image }}" alt="{{ $related->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
@@ -167,7 +167,7 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 @foreach($sameDateEvents as $sameDate)
-                                    <a href="{{ route('event.detail', $sameDate->slug) }}" class="group block bg-slate-800/30 border border-slate-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all hover:bg-slate-800/50">
+                                    <a href="{{ route('running-event.detail', $sameDate->slug) }}" class="group block bg-slate-800/30 border border-slate-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all hover:bg-slate-800/50">
                                         <div class="aspect-video relative overflow-hidden">
                                             @if($sameDate->banner_image)
                                                 <img src="{{ $sameDate->banner_image }}" alt="{{ $sameDate->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">

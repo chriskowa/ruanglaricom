@@ -400,6 +400,7 @@ Route::middleware('auth')->group(function () {
         // Event Calendar Management
         Route::get('events/import', [App\Http\Controllers\Admin\RunningEventController::class, 'import'])->name('events.import');
         Route::post('events/import', [App\Http\Controllers\Admin\RunningEventController::class, 'storeImport'])->name('events.import.store');
+        Route::post('events/sync', [App\Http\Controllers\Admin\RunningEventController::class, 'sync'])->name('events.sync');
         Route::resource('events', App\Http\Controllers\Admin\RunningEventController::class);
 
         // User Management

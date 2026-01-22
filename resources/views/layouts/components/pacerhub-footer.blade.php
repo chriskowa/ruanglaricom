@@ -1,18 +1,35 @@
+    @php
+        $siteTitle = \App\Models\AppSettings::get('site_title', 'Ruang Lari');
+        $siteTagline = \App\Models\AppSettings::get('site_tagline', 'Platform komunitas lari terbesar di Indonesia. Temukan pacer, pantau progres, dan raih personal best Anda bersama kami.');
+        $socialInsta = \App\Models\AppSettings::get('social_instagram', 'https://www.instagram.com/ruanglaricom/');
+        $socialTiktok = \App\Models\AppSettings::get('social_tiktok', 'https://www.tiktok.com/@ruanglaricom');
+        $socialFb = \App\Models\AppSettings::get('social_facebook', 'https://www.facebook.com/ruanglari');
+        $socialYt = \App\Models\AppSettings::get('social_youtube');
+    @endphp
         <footer class="bg-slate-950 border-t border-slate-900 pt-20 pb-10">
             <div class="max-w-7xl mx-auto p-5">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     <div class="col-span-1 md:col-span-1">
-                        <a href="https://ruanglari.com/" class="flex items-center gap-2 mb-6 group">
-                            <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto group-hover:scale-110 transition duration-300">
+                        <a href="{{ url('/') }}" class="flex items-center gap-2 mb-6 group">
+                            <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="{{ $siteTitle }}" class="h-8 w-auto group-hover:scale-110 transition duration-300">
                             <span class="text-2xl font-black italic tracking-tighter text-white">RUANG<span class="pl-1 text-neon">LARI</span></span>
                         </a>
                         <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                            Platform komunitas lari terbesar di Indonesia. Temukan pacer, pantau progres, dan raih personal best Anda bersama kami.
+                            {{ $siteTagline }}
                         </p>
                         <div class="flex gap-4">
-                            <a href="https://www.instagram.com/ruanglaricom/" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-instagram"></i></a>
-                            <a href="https://www.tiktok.com/@ruanglaricom" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-tiktok"></i></a>
-                            <a href="https://www.facebook.com/ruanglari" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-facebook-f"></i></a>
+                            @if($socialInsta)
+                            <a href="{{ $socialInsta }}" target="_blank" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-instagram"></i></a>
+                            @endif
+                            @if($socialTiktok)
+                            <a href="{{ $socialTiktok }}" target="_blank" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-tiktok"></i></a>
+                            @endif
+                            @if($socialFb)
+                            <a href="{{ $socialFb }}" target="_blank" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-facebook-f"></i></a>
+                            @endif
+                            @if($socialYt)
+                            <a href="{{ $socialYt }}" target="_blank" class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-neon hover:text-slate-900 transition"><i class="fab fa-youtube"></i></a>
+                            @endif
                         </div>
                     </div>
 
