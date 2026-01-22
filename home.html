@@ -397,24 +397,33 @@
             const container = document.getElementById('blogCards');
             if (!container) return;
             
-            // Commented out as per instruction: blog posts are no longer fetched from ruanglari.com
-            /*
             container.innerHTML = `
                 <div class="col-span-3 text-center text-gray-500">Memuat artikel...</div>
             `;
             try {
-                const res = await fetch('https://ruanglari.com/wp-json/wp/v2/posts?per_page=3&_embed');
+                const base = (window.location.pathname.indexOf('/ruanglari/public') !== -1) ? '/ruanglari/public' : '';
+                const res = await fetch(base + '/api/blog/latest');
                 const posts = await res.json();
                 container.innerHTML = '';
+
+                if (!posts || posts.length === 0) {
+                     container.innerHTML = '<div class="col-span-3 text-center text-slate-500">Belum ada artikel.</div>';
+                     return;
+                }
+
                 posts.forEach(post => {
-                    const link = post.link;
-                    const title = post.title?.rendered || 'Tanpa judul';
-                    const media = post._embedded?.['wp:featuredmedia']?.[0];
-                    const img = media?.source_url || 'ruanglari.png';
+                    const link = post.url;
+                    const title = post.title || 'Tanpa judul';
+                    const img = post.image || 'ruanglari.png';
                     const card = document.createElement('a');
                     card.href = link;
-                    card.target = '_blank';
-                    card.rel = 'noopener';
+                    
+                    // Open external links in new tab
+                    if (link.startsWith('http') && !link.includes(window.location.hostname)) {
+                        card.target = '_blank';
+                        card.rel = 'noopener';
+                    }
+
                     card.className = 'group block bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow hover:shadow-lg transition-shadow';
                     card.innerHTML = `
                         <div class="overflow-hidden">
@@ -422,6 +431,7 @@
                         </div>
                         <div class="p-4">
                             <div class="font-semibold text-white line-clamp-2 group-hover:text-primary transition">${title}</div>
+                            <div class="text-xs text-slate-400 mt-2 line-clamp-2">${post.excerpt || ''}</div>
                         </div>
                     `;
                     container.appendChild(card);
@@ -429,7 +439,6 @@
             } catch (e) {
                 container.innerHTML = '<div class="col-span-3 text-center text-red-500">Gagal memuat artikel.</div>';
             }
-            */
         }
 
         document.addEventListener('DOMContentLoaded', loadLatestBlogs);

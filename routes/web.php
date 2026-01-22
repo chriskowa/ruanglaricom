@@ -316,7 +316,7 @@ Route::get('/api/blog/latest', function () {
                     'excerpt' => $a->excerpt,
                     'date' => optional($dt)->format('Y-m-d'),
                     'image' => $img,
-                    'url' => $a->canonical_url ?: '#',
+                    'url' => $a->canonical_url ?: route('blog.show', $a->slug),
                 ];
             });
     } catch (\Throwable $e) {
