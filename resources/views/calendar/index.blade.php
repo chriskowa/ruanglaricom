@@ -302,16 +302,19 @@
 </div>
 
 <!-- Poster Modal -->
-<div v-if="showPosterModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4">
-    <div class="relative flex flex-col md:flex-row gap-4 md:gap-6 h-full max-h-[90vh] w-full max-w-6xl">
+<div v-if="showPosterModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm"
+     :class="posterIsMobile && posterMobilePreviewFull ? 'p-0' : 'p-4'">
+    <div class="relative flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-6xl"
+         :class="posterIsMobile && posterMobilePreviewFull ? 'h-full max-h-none' : 'h-full max-h-[90vh]'">
         
         <!-- Preview Area -->
         <div class="flex-1 flex items-center justify-center bg-slate-900/50 rounded-2xl border border-slate-800 relative overflow-hidden group"
-             :class="posterIsMobile ? (posterMobileSheetCollapsed ? 'h-[80vh]' : 'h-[44vh] sm:h-[48vh]') : 'h-auto'">
+             :class="posterIsMobile ? (posterMobilePreviewFull ? 'h-full' : (posterMobileSheetCollapsed ? 'h-[80vh]' : 'h-[44vh] sm:h-[48vh]')) : 'h-auto'">
             
             <!-- Poster Container (Visible for Preview) -->
             <!-- Scale logic updated for better mobile view -->
-            <div class="relative transition-transform duration-300 transform scale-[0.95] sm:scale-[0.55] md:scale-[0.85] origin-center shadow-2xl">                
+            <div class="relative transition-transform duration-300 transform origin-center shadow-2xl"
+                 :class="posterIsMobile ? (posterMobilePreviewFull ? 'scale-[0.62]' : 'scale-[0.45] sm:scale-[0.55]') : 'scale-[0.85]'">
                 <div id="activity-poster-container" class="w-[400px] h-[711px] bg-[#0f172a] text-white overflow-hidden font-sans relative shadow-2xl">
                     
                     <!-- 1. Background Layer -->
@@ -554,9 +557,23 @@
                     </div>
                 </div>
             </div>
+
+            <div v-if="posterIsMobile && posterMobilePreviewFull" class="absolute top-3 left-3 right-3 z-[130] flex items-center justify-between pointer-events-auto">
+                <button type="button" @click="posterMobilePreviewFull = false; posterMobileSheetCollapsed = false" class="px-3 py-2 rounded-full bg-black/50 border border-white/10 text-white text-xs font-bold backdrop-blur">
+                    Controls
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="downloadPoster" class="px-3 py-2 rounded-full bg-neon text-slate-900 text-xs font-black">
+                        Download
+                    </button>
+                    <button type="button" @click="closePosterModal" class="p-2 rounded-full bg-black/50 border border-white/10 text-white backdrop-blur">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="md:static fixed inset-x-0 bottom-0 z-[120] md:z-auto px-4 md:px-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
+        <div v-show="!posterIsMobile || !posterMobilePreviewFull" class="md:static fixed inset-x-0 bottom-0 z-[120] md:z-auto px-4 md:px-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
             <div class="bg-slate-900 border border-slate-800 rounded-t-3xl shadow-2xl md:bg-transparent md:border-0 md:rounded-none md:shadow-none">
                 <div class="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-800">
                     <div class="flex gap-2">
@@ -570,6 +587,9 @@
                         </button>
                     </div>
                     <div class="flex items-center gap-1 -mr-2">
+                        <button type="button" @click="posterMobilePreviewFull = true; posterMobileSheetCollapsed = true" class="text-slate-400 hover:text-white p-2">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </button>
                         <button type="button" @click="posterMobileSheetCollapsed = !posterMobileSheetCollapsed" class="text-slate-400 hover:text-white p-2">
                             <svg v-if="!posterMobileSheetCollapsed" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
@@ -1189,6 +1209,7 @@
                         splits: false,
                     },
                     posterMobileSheetCollapsed: false,
+                    posterMobilePreviewFull: false,
                     posterIsMobile: false,
                     
                     // Recap Feature
@@ -2281,6 +2302,7 @@
                     this.posterMobileTab = 'customize';
                     this.posterMobileAccordion = { map: false, splits: false };
                     this.posterMobileSheetCollapsed = false;
+                    this.posterMobilePreviewFull = false;
                 },
 
                 resetPosterQuick() {
