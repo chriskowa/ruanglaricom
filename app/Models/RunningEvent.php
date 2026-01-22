@@ -69,6 +69,11 @@ class RunningEvent extends Model
         return $this->belongsToMany(RaceDistance::class, 'running_event_distances');
     }
 
+    public function masterGpxes()
+    {
+        return $this->hasMany(MasterGpx::class);
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', 'published');

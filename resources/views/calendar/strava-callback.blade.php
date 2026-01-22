@@ -6,8 +6,9 @@
         // Data from backend
         const tokenData = @json($tokenData);
         const redirectTo = @json($redirectTo ?? (route('calendar.public') . '#strava'));
+        const isAuthenticated = @json(auth()->check());
         
-        if(tokenData && tokenData.access_token) {
+        if(isAuthenticated && tokenData && tokenData.access_token) {
             // Save to localStorage
             localStorage.setItem('strava_access_token', tokenData.access_token);
             localStorage.setItem('strava_refresh_token', tokenData.refresh_token);
@@ -16,8 +17,12 @@
             
             window.location.href = redirectTo;
         } else {
-            alert('Failed to connect Strava. Please try again.');
-            window.location.href = redirectTo || "{{ route('calendar.public') }}";
+            if (!isAuthenticated) {
+                window.location.href = "{{ route('login') }}";
+            } else {
+                alert('Failed to connect Strava. Please try again.');
+                window.location.href = redirectTo || "{{ route('calendar.public') }}";
+            }
         }
     </script>
 </head>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PacePro Strategy Planner - RuangLari</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { neon: '#CCFF00', dark: '#0F172A', surface: '#1E293B', accent: '#334155' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar for Table */
+        .custom-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #1E293B; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #CCFF00; }
+        
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body class="bg-brand-dark text-white antialiased min-h-screen flex flex-col">
+
+    <nav class="border-b border-gray-800 bg-brand-dark/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-xl font-black italic tracking-tighter">PACE<span class="text-brand-neon">PRO</span> PLANNER</span>
+                <span class="text-[10px] bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">BETA</span>
+            </div>
+            <div class="text-sm text-gray-400 hidden sm:block">Part of RuangLari Ecosystem</div>
+        </div>
+    </nav>
+
+    <main class="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-4 space-y-6">
+            
+            <div class="glass rounded-2xl p-6">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Konfigurasi Lomba
+                </h2>
+
+                <div class="flex p-1 bg-brand-surface rounded-lg mb-6">
+                    <button onclick="switchMode('manual')" id="tab-manual" class="flex-1 py-2 text-sm font-medium rounded-md bg-gray-600 text-white shadow-sm transition-all">Manual Distance</button>
+                    <button onclick="switchMode('gpx')" id="tab-gpx" class="flex-1 py-2 text-sm font-medium rounded-md text-gray-400 hover:text-white transition-all">Upload GPX</button>
+                </div>
+
+                <div id="input-manual" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Jarak Lomba</label>
+                        <select id="distance-select" class="w-full bg-brand-dark border border-gray-700 rounded-lg p-3 focus:border-brand-neon focus:ring-1 focus:ring-brand-neon outline-none text-white">
+                            <option value="5">5K (5.0 km)</option>
+                            <option value="10">10K (10.0 km)</option>
+                            <option value="21.0975">Half Marathon (21.1 km)</option>
+                            <option value="42.195">Full Marathon (42.2 km)</option>
+                            <option value="custom">Custom...</option>
+                        </select>
+                        <input type="number" id="custom-distance" placeholder="Masukkan km" class="hidden mt-2 w-full bg-brand-dark border border-gray-700 rounded-lg p-3 text-white">
+                    </div>
+                </div>
+
+                <div id="input-gpx" class="space-y-4 hidden">
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">File Rute (.gpx)</label>
+                    <div class="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center hover:border-brand-neon transition cursor-pointer relative">
+                        <input type="file" id="gpx-file" accept=".gpx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <svg class="w-8 h-8 text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <p class="text-sm text-gray-400" id="file-name">Klik untuk upload GPX</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Target Waktu (Jam:Menit:Detik)</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="number" id="time-h" placeholder="00" min="0" class="bg-brand-dark border border-gray-700 rounded-lg p-3 text-center text-white focus:border-brand-neon outline-none">
+                            <input type="number" id="time-m" placeholder="00" min="0" max="59" class="bg-brand-dark border border-gray-700 rounded-lg p-3 text-center text-white focus:border-brand-neon outline-none">
+                            <input type="number" id="time-s" placeholder="00" min="0" max="59" class="bg-brand-dark border border-gray-700 rounded-lg p-3 text-center text-white focus:border-brand-neon outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="block text-xs font-bold text-gray-400 uppercase">Strategi Pacing</label>
+                            <span id="strategy-label" class="text-xs font-bold text-brand-neon">Even Split</span>
+                        </div>
+                        <input type="range" id="strategy-slider" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-neon">
+                        <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                            <span>Negative Split (Faster Finish)</span>
+                            <span>Positive Split (Fly & Die)</span>
+                        </div>
+                    </div>
+
+                    <button onclick="calculatePlan()" class="w-full bg-brand-neon text-brand-dark font-black py-4 rounded-xl hover:bg-white transition shadow-[0_0_15px_rgba(204,255,0,0.3)] mt-6">
+                        GENERATE STRATEGY ⚡
+                    </button>
+                </div>
+            </div>
+
+            <div id="stats-card" class="glass rounded-2xl p-6 hidden animate-fade-in">
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-brand-dark p-3 rounded-lg">
+                        <p class="text-xs text-gray-400">Average Pace</p>
+                        <p class="text-xl font-bold text-white" id="avg-pace">--:--</p>
+                    </div>
+                    <div class="bg-brand-dark p-3 rounded-lg">
+                        <p class="text-xs text-gray-400">Total Distance</p>
+                        <p class="text-xl font-bold text-white" id="total-dist">-- km</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <div class="glass rounded-2xl p-1 h-[300px] relative overflow-hidden group">
+                <div id="map" class="w-full h-full rounded-xl bg-gray-800 z-10"></div>
+                <div class="absolute bottom-2 right-2 z-20 bg-black/50 px-2 py-1 rounded text-[10px] text-white backdrop-blur">
+                    © OpenStreetMap
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3" id="export-actions">
+                <button onclick="exportImage()" class="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Simpan Gambar
+                </button>
+                <button onclick="exportCSV()" class="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-semibold transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Export CSV
+                </button>
+            </div>
+
+            <div id="capture-area" class="glass rounded-2xl p-0 overflow-hidden bg-brand-dark">
+                <div class="p-4 border-b border-gray-800 bg-brand-surface flex justify-between items-center">
+                    <h3 class="font-bold text-white">Split Strategy</h3>
+                    <div class="text-xs text-brand-neon font-mono">PacePro Generated</div>
+                </div>
+                <div class="overflow-x-auto custom-scroll">
+                    <table class="w-full text-sm text-left" id="pace-table">
+                        <thead class="text-xs text-gray-400 uppercase bg-gray-900 border-b border-gray-800">
+                            <tr>
+                                <th class="px-6 py-3">Split (KM)</th>
+                                <th class="px-6 py-3">Target Pace</th>
+                                <th class="px-6 py-3">Split Time</th>
+                                <th class="px-6 py-3">Cumulative</th>
+                                <th class="px-6 py-3 text-right">Elev Gain</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800 font-mono text-gray-300">
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                    Silahkan input jarak dan waktu, lalu klik Generate Strategy.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        // --- GLOBAL VARIABLES ---
+        let map;
+        let polyline;
+        let inputMode = 'manual';
+        let gpxData = null; // Stores parsed GPX points {lat, lon, ele, distFromStart}
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init Map centered on Jakarta (placeholder)
+            map = L.map('map').setView([-6.2088, 106.8456], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Custom Distance Handler
+            document.getElementById('distance-select').addEventListener('change', (e) => {
+                const customInput = document.getElementById('custom-distance');
+                if (e.target.value === 'custom') {
+                    customInput.classList.remove('hidden');
+                } else {
+                    customInput.classList.add('hidden');
+                }
+            });
+
+            // Strategy Slider Handler
+            document.getElementById('strategy-slider').addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                const label = document.getElementById('strategy-label');
+                if (val === 0) label.innerText = "Even Split (Steady)";
+                else if (val < 0) label.innerText = `Negative Split ${val}% (Start Slow)`;
+                else label.innerText = `Positive Split +${val}% (Start Fast)`;
+            });
+
+            // GPX File Input
+            document.getElementById('gpx-file').addEventListener('change', handleGPXUpload);
+        });
+
+        // --- TAB SWITCHER ---
+        function switchMode(mode) {
+            inputMode = mode;
+            const btnManual = document.getElementById('tab-manual');
+            const btnGpx = document.getElementById('tab-gpx');
+            const boxManual = document.getElementById('input-manual');
+            const boxGpx = document.getElementById('input-gpx');
+
+            if (mode === 'manual') {
+                btnManual.className = "flex-1 py-2 text-sm font-medium rounded-md bg-gray-600 text-white shadow-sm transition-all";
+                btnGpx.className = "flex-1 py-2 text-sm font-medium rounded-md text-gray-400 hover:text-white transition-all";
+                boxManual.classList.remove('hidden');
+                boxGpx.classList.add('hidden');
+            } else {
+                btnGpx.className = "flex-1 py-2 text-sm font-medium rounded-md bg-gray-600 text-white shadow-sm transition-all";
+                btnManual.className = "flex-1 py-2 text-sm font-medium rounded-md text-gray-400 hover:text-white transition-all";
+                boxGpx.classList.remove('hidden');
+                boxManual.classList.add('hidden');
+            }
+        }
+
+        // --- CORE LOGIC: GPX PARSER ---
+        function handleGPXUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('file-name').innerText = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+                const trkpts = xmlDoc.getElementsByTagName("trkpt");
+                
+                let points = [];
+                let totalDist = 0;
+                
+                for (let i = 0; i < trkpts.length; i++) {
+                    const lat = parseFloat(trkpts[i].getAttribute("lat"));
+                    const lon = parseFloat(trkpts[i].getAttribute("lon"));
+                    const ele = trkpts[i].getElementsByTagName("ele").length > 0 ? parseFloat(trkpts[i].getElementsByTagName("ele")[0].textContent) : 0;
+                    
+                    if (i > 0) {
+                        const dist = getDistanceFromLatLonInKm(points[i-1].lat, points[i-1].lon, lat, lon);
+                        totalDist += dist;
+                    }
+
+                    points.push({ lat, lon, ele, distFromStart: totalDist });
+                }
+
+                gpxData = { points, totalDist };
+                
+                // Update Map
+                const latlngs = points.map(p => [p.lat, p.lon]);
+                if (polyline) map.removeLayer(polyline);
+                polyline = L.polyline(latlngs, {color: '#CCFF00', weight: 4}).addTo(map);
+                map.fitBounds(polyline.getBounds());
+
+                alert(`GPX Loaded! Total Distance: ${totalDist.toFixed(2)} km`);
+            };
+            reader.readAsText(file);
+        }
+
+        // --- MATH HELPERS ---
+        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+            var R = 6371; // Radius of the earth in km
+            var dLat = deg2rad(lat2-lat1);  
+            var dLon = deg2rad(lon2-lon1); 
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat1)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            var d = R * c; 
+            return d;
+        }
+
+        function deg2rad(deg) { return deg * (Math.PI/180); }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            
+            // Format H:MM:SS or MM:SS if hour is 0
+            if (h > 0) {
+                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+        
+        function parsePaceToSeconds(seconds) {
+             return seconds; // placeholder logic
+        }
+
+        // --- MAIN CALCULATION ENGINE ---
+        function calculatePlan() {
+            // 1. Get Inputs
+            const h = parseInt(document.getElementById('time-h').value) || 0;
+            const m = parseInt(document.getElementById('time-m').value) || 0;
+            const s = parseInt(document.getElementById('time-s').value) || 0;
+            const totalTargetSeconds = (h * 3600) + (m * 60) + s;
+
+            if (totalTargetSeconds === 0) {
+                alert("Mohon masukkan target waktu!");
+                return;
+            }
+
+            let totalDistance = 0;
+            let elevationProfile = []; // Array of elevation gain per KM
+
+            if (inputMode === 'manual') {
+                const selectVal = document.getElementById('distance-select').value;
+                if (selectVal === 'custom') {
+                    totalDistance = parseFloat(document.getElementById('custom-distance').value);
+                } else {
+                    totalDistance = parseFloat(selectVal);
+                }
+                // Mock flat elevation for manual
+                for(let i=0; i<Math.ceil(totalDistance); i++) elevationProfile.push(0);
+            } else {
+                if (!gpxData) { alert("Please upload GPX file first"); return; }
+                totalDistance = gpxData.totalDist;
+                
+                // Calculate Elevation Gain per KM from GPX
+                let currentKm = 1;
+                let kmGain = 0;
+                let lastEle = gpxData.points[0].ele;
+
+                for (let p of gpxData.points) {
+                    if (p.distFromStart >= currentKm) {
+                        elevationProfile.push(kmGain);
+                        kmGain = 0;
+                        currentKm++;
+                    }
+                    if (p.ele > lastEle) {
+                        kmGain += (p.ele - lastEle);
+                    }
+                    lastEle = p.ele;
+                }
+                elevationProfile.push(kmGain); // Push last segment
+            }
+
+            // 2. Calculate Base Pace
+            const avgPaceSeconds = totalTargetSeconds / totalDistance;
+            document.getElementById('avg-pace').innerText = formatTime(avgPaceSeconds) + " /km";
+            document.getElementById('total-dist').innerText = totalDistance.toFixed(2) + " km";
+            document.getElementById('stats-card').classList.remove('hidden');
+
+            // 3. Apply Strategy (Negative/Positive Split)
+            // Strategy Factor: -5 means start 5% slower, end 5% faster? 
+            // Usually Negative Split means: First half slower, second half faster.
+            // Let's use a Linear Progression.
+            // Split Factor (slider): -10 (Neg Split) to +10 (Pos Split).
+            // Logic: slope based on slider.
+            
+            const strategyVal = parseInt(document.getElementById('strategy-slider').value);
+            // Example: Strategy -5. Start pace = Avg + (5% of Avg). End pace = Avg - (5% of Avg).
+            // Wait, Negative Split means TIME is faster at end, so Pace Number is SMALLER at end.
+            // So: Slider -5 (Neg Split) -> Start Pace Slower (+sec), End Pace Faster (-sec).
+            
+            const intensity = strategyVal / 100; // e.g., -0.05
+            // If intensity is negative (Negative split), we want start pace > avg pace.
+            
+            const startFactor = 1 - (intensity); // If -0.05, startFactor = 1.05 (Slower start)
+            const endFactor = 1 + (intensity);   // If -0.05, endFactor = 0.95 (Faster end)
+
+            // 4. Generate Table Data
+            const tbody = document.querySelector('#pace-table tbody');
+            tbody.innerHTML = '';
+            
+            let cumulativeSeconds = 0;
+            let tableData = [];
+
+            for (let km = 1; km <= Math.ceil(totalDistance); km++) {
+                // Calculate Dist for this split (handling last partial km)
+                let dist = 1;
+                if (km > totalDistance) dist = totalDistance - (km - 1);
+                
+                // Calculate Target Pace for this specific KM based on Strategy Slope
+                // Linear interpolation between startFactor and endFactor
+                const progress = (km - 1) / (totalDistance - 1 || 1); 
+                const currentFactor = startFactor + (endFactor - startFactor) * progress;
+                
+                let targetPaceSec = avgPaceSeconds * currentFactor;
+
+                // Simple Grade Adjustment (Bonus Feature if GPX)
+                // If input is GPX, we adjust pace slightly based on elevation
+                if (inputMode === 'gpx') {
+                     // Simple logic: +10m gain adds 2 seconds (very rough rule of thumb)
+                     const gain = elevationProfile[km-1] || 0;
+                     if(gain > 0) targetPaceSec += (gain / 10) * 2; 
+                }
+
+                const splitTimeSec = targetPaceSec * dist; // Actual time taken for this segment
+                cumulativeSeconds += splitTimeSec;
+
+                // Render Row
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-800 transition border-b border-gray-800";
+                
+                const elevDisplay = (inputMode === 'gpx') ? `+${(elevationProfile[km-1] || 0).toFixed(0)}m` : '-';
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-white">${km}</td>
+                    <td class="px-6 py-4 text-brand-neon">${formatTime(targetPaceSec)}</td>
+                    <td class="px-6 py-4">${formatTime(splitTimeSec)}</td>
+                    <td class="px-6 py-4 text-gray-400">${formatTime(cumulativeSeconds)}</td>
+                    <td class="px-6 py-4 text-right text-gray-500">${elevDisplay}</td>
+                `;
+                tbody.appendChild(tr);
+
+                // Save for CSV
+                tableData.push([km, formatTime(targetPaceSec), formatTime(splitTimeSec), formatTime(cumulativeSeconds), elevDisplay]);
+            }
+            
+            // Store data globally for export
+            window.lastTableData = tableData;
+        }
+
+        // --- EXPORT FUNCTIONS ---
+        function exportCSV() {
+            if (!window.lastTableData) { alert("Generate strategy first!"); return; }
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "KM,Target Pace,Split Time,Cumulative Time,Elevation Gain\n";
+            
+            window.lastTableData.forEach(function(rowArray) {
+                let row = rowArray.join(",");
+                csvContent += row + "\r\n";
+            });
+
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "RuangLari_PacePro_Plan.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        function exportImage() {
+            const captureArea = document.getElementById('capture-area');
+            if(!window.lastTableData) { alert("Generate strategy first!"); return; }
+
+            html2canvas(captureArea, {
+                backgroundColor: "#0F172A",
+                scale: 2 // High res
+            }).then(canvas => {
+                var link = document.createElement('a');
+                link.download = 'RuangLari_Strategy.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>

@@ -39,11 +39,22 @@
             <div v-if="!loading && activeTab === 'strava' && !isStravaConnected" class="flex flex-col items-center justify-center py-20">
                 <div class="bg-card border border-slate-700 p-8 rounded-2xl text-center max-w-md">
                     <svg class="w-16 h-16 text-[#FC4C02] mx-auto mb-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                    <h3 class="text-2xl font-bold text-white mb-2">Connect to Strava</h3>
-                    <p class="text-slate-400 mb-6">Connect your Strava account to view your recent activities, stats, and shoe mileage directly on Ruanglari.</p>
-                    <a href="{{ route('calendar.strava.connect') }}" class="bg-[#FC4C02] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E34402] transition inline-flex items-center gap-2">
-                        Connect with Strava
-                    </a>
+                    <h3 class="text-2xl font-bold text-white mb-2">Connect Strava</h3>
+                    <p class="text-slate-400 mb-6">Untuk lihat aktivitas & analisis Strava di RuangLari, kamu harus login dulu.</p>
+                    @auth
+                        <a href="{{ route('calendar.strava.connect', ['return_to' => '/calendar#strava']) }}" class="bg-[#FC4C02] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E34402] transition inline-flex items-center gap-2">
+                            Connect with Strava
+                        </a>
+                    @else
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <a href="{{ route('calendar.strava.connect', ['return_to' => '/calendar#strava']) }}" class="bg-[#FC4C02] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E34402] transition inline-flex items-center justify-center gap-2">
+                                Login untuk Connect
+                            </a>
+                            <a href="{{ route('register') }}" class="bg-slate-800 border border-slate-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-slate-700 transition inline-flex items-center justify-center gap-2">
+                                Daftar Akun
+                            </a>
+                        </div>
+                    @endauth
                 </div>
             </div>
 
@@ -1094,6 +1105,7 @@
                     activeTab: 'calendar',
                     loading: true,
                     isStravaConnected: false,
+                    isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
                     calendarLoading: false,
                     calendarInstance: null,
                     // Data Containers
@@ -1448,10 +1460,15 @@
                 }
 
                 // Check Strava Token
-                const token = localStorage.getItem('strava_access_token');
-                if(token) {
-                    this.isStravaConnected = true;
-                    this.apiConfig.stravaToken = token;
+                if (this.isAuthenticated) {
+                    const token = localStorage.getItem('strava_access_token');
+                    if (token) {
+                        this.isStravaConnected = true;
+                        this.apiConfig.stravaToken = token;
+                    }
+                } else {
+                    this.isStravaConnected = false;
+                    this.apiConfig.stravaToken = null;
                 }
                 
                 this.initData();

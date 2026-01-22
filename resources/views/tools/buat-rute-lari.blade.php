@@ -1,0 +1,1570 @@
+@extends('layouts.pacerhub')
+
+@section('title', 'Ruang Lari Tools - Buat Rute Lari')
+
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <style>
+        #rl-route-map { height: calc(100vh - 190px); min-height: 520px; }
+        @media (max-width: 1024px) { #rl-route-map { height: calc(100vh - 260px); min-height: 520px; } }
+        @media (max-width: 640px) { #rl-route-map { height: calc(100vh - 250px); min-height: 420px; } }
+        .leaflet-control-attribution { font-size: 10px; opacity: .85; }
+        .leaflet-container { background: #0b1220; }
+    </style>
+@endpush
+
+@section('content')
+    <div class="min-h-screen pt-20 pb-10 px-4 md:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-6">
+                <div class="flex items-start justify-between gap-4 flex-wrap">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-black italic tracking-tighter text-white">
+                            BUAT <span class="text-neon">RUTE LARI</span>
+                        </h1>
+                        <p class="text-slate-400 mt-1 max-w-2xl">
+                            Tap peta untuk bikin rute. Simpan, share link, atau export GPX buat dipakai di jam/aplikasi favoritmu.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('calculator') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500 transition text-sm font-bold">
+                            Tools Lain
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            @if(session('success'))
+                <div class="mb-4 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 px-4 py-3 rounded-xl text-sm font-semibold">
+                    {{ session('success') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="mb-4 bg-red-500/10 border border-red-500/40 text-red-300 px-4 py-3 rounded-xl text-sm font-semibold">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm font-black tracking-wider text-slate-200 uppercase">Setup</div>
+                            <div id="rl-route-status" class="text-[11px] text-slate-500 font-bold">Siap</div>
+                        </div>
+
+                        <div class="mt-4 space-y-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Rute</label>
+                                <input id="rl-route-name" type="text" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" placeholder="Contoh: Long Run Minggu Pagi">
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Lokasi</label>
+                                <div class="mt-1 flex gap-2">
+                                    <input id="rl-search-q" type="text" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" placeholder="Ketik kota / landmark...">
+                                    <button id="rl-search-btn" type="button" class="px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition">
+                                        Cari
+                                    </button>
+                                </div>
+                                <div id="rl-search-results" class="mt-2 hidden"></div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Pace</label>
+                                    <div class="mt-1 flex items-center gap-2">
+                                        <input id="rl-pace-min" inputmode="numeric" type="number" min="0" class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" value="6">
+                                        <span class="text-slate-500 font-bold">:</span>
+                                        <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" value="0">
+                                        <span class="text-xs text-slate-500 font-bold">/km</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mode</label>
+                                    <select id="rl-mode" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50">
+                                        <option value="tap">Tap titik di peta</option>
+                                        <option value="freehand">Freehand (beta)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
+                                    <input id="rl-follow-road" type="checkbox" class="accent-neon">
+                                    Ikuti jalan (OSRM)
+                                </label>
+                                <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
+                                    <input id="rl-show-directions" type="checkbox" class="accent-neon" checked>
+                                    Tampilkan arah rute
+                                </label>
+                            </div>
+
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
+                                <div class="text-xs font-black tracking-wider text-slate-200 uppercase">Tampilan</div>
+                                <div class="mt-3 grid grid-cols-2 gap-3">
+                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Route</div>
+                                        <input id="rl-color-route" type="color" value="#ccff00" class="w-10 h-8 bg-transparent">
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Marker</div>
+                                        <input id="rl-color-marker" type="color" value="#60a5fa" class="w-10 h-8 bg-transparent">
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Start</div>
+                                        <input id="rl-color-start" type="color" value="#22c55e" class="w-10 h-8 bg-transparent">
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Finish</div>
+                                        <input id="rl-color-finish" type="color" value="#ef4444" class="w-10 h-8 bg-transparent">
+                                    </div>
+                                </div>
+                                <div class="mt-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Interval Arah</div>
+                                        <div id="rl-arrow-interval-label" class="text-xs font-black text-slate-200">80m</div>
+                                    </div>
+                                    <input id="rl-arrow-interval" type="range" min="30" max="300" step="10" value="80" class="mt-2 w-full">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5">
+                        <div class="text-sm font-black tracking-wider text-slate-200 uppercase">Ringkasan</div>
+                        <div class="mt-4 grid grid-cols-2 gap-3">
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
+                                <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Jarak</div>
+                                <div class="mt-1 text-2xl font-black text-white"><span id="rl-distance-km">0.00</span><span class="text-sm text-slate-400 font-bold ml-1">km</span></div>
+                            </div>
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
+                                <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Estimasi</div>
+                                <div class="mt-1 text-2xl font-black text-white"><span id="rl-est-time">00:00:00</span></div>
+                            </div>
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
+                                <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Titik</div>
+                                <div class="mt-1 text-2xl font-black text-white"><span id="rl-points-count">0</span></div>
+                            </div>
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
+                                <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Rata-rata</div>
+                                <div class="mt-1 text-2xl font-black text-white"><span id="rl-avg-seg">0.00</span><span class="text-sm text-slate-400 font-bold ml-1">km/seg</span></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-2 gap-2">
+                            <button id="rl-undo" type="button" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
+                                Undo
+                            </button>
+                            <button id="rl-clear" type="button" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-red-500/60 hover:text-red-300 transition">
+                                Reset
+                            </button>
+                            <button id="rl-save" type="button" class="px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition">
+                                Simpan
+                            </button>
+                            <button id="rl-load" type="button" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
+                                Muat
+                            </button>
+                            <button id="rl-share" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-500 transition">
+                                Share Link
+                            </button>
+                            <button id="rl-export-gpx" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
+                                Export GPX
+                            </button>
+                            <button id="rl-import-gpx" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
+                                Import GPX
+                            </button>
+                            <input id="rl-import-gpx-file" type="file" accept=".gpx" class="hidden">
+                        </div>
+
+                        <section class="mt-3 bg-slate-900/40 border border-slate-800 rounded-2xl p-4" id="strava-form-panel">
+                            @php($hasStrava = auth()->check() && auth()->user() && auth()->user()->strava_access_token && auth()->user()->strava_refresh_token)
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-9 h-9 rounded-xl bg-[#FC4C02]/15 border border-[#FC4C02]/40 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-[#FC4C02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-black text-white">Export ke Strava</div>
+                                        <div class="text-xs text-slate-500 font-semibold">Isi form lalu post activity otomatis setelah authorize.</div>
+                                    </div>
+                                </div>
+                                <button id="rl-strava-toggle" type="button" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:bg-slate-700 transition text-sm">
+                                    Buka
+                                </button>
+                            </div>
+
+                            <div id="rl-strava-panel-body" class="hidden mt-4 space-y-3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Aktivitas</label>
+                                        <input id="rl-strava-name" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="Mis. Easy Run">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanggal & Waktu</label>
+                                        <input id="rl-strava-start" type="datetime-local" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Device</label>
+                                        <select id="rl-strava-device" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60">
+                                            <option value="">Pilih device</option>
+                                            <option>Garmin</option>
+                                            <option>Coros</option>
+                                            <option>Polar</option>
+                                            <option>Suunto</option>
+                                            <option>Apple Watch</option>
+                                            <option>Android Phone</option>
+                                            <option>iPhone</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pace (menit/km)</label>
+                                        <input id="rl-strava-pace" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="Contoh: 4:30">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg HR</label>
+                                        <input id="rl-strava-hr" type="number" min="30" max="250" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="BPM">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg Cadence</label>
+                                        <input id="rl-strava-cadence" type="number" min="60" max="300" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="SPM">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg Power</label>
+                                        <input id="rl-strava-power" type="number" min="0" max="2000" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="W">
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between gap-3">
+                                    <label class="inline-flex items-center gap-2 text-sm font-bold text-slate-300">
+                                        <input id="rl-strava-private" type="checkbox" class="accent-[#FC4C02]">
+                                        Private
+                                    </label>
+                                    <div class="text-xs text-slate-500 font-semibold">Rute diubah jadi GPX lalu diupload ke Strava.</div>
+                                </div>
+
+                                @auth
+                                    @if($hasStrava)
+                                        <form id="rl-strava-direct-form" method="POST" action="{{ route('tools.buat-rute-lari.strava-upload') }}">
+                                            @csrf
+                                            <input type="hidden" name="points_json" id="rl-strava-points-json-direct">
+                                            <input type="hidden" name="name" id="rl-strava-name-direct">
+                                            <input type="hidden" name="start_at" id="rl-strava-start-direct">
+                                            <input type="hidden" name="device" id="rl-strava-device-direct">
+                                            <input type="hidden" name="pace_text" id="rl-strava-pace-direct">
+                                            <input type="hidden" name="hr" id="rl-strava-hr-direct">
+                                            <input type="hidden" name="cadence" id="rl-strava-cadence-direct">
+                                            <input type="hidden" name="power" id="rl-strava-power-direct">
+                                            <input type="hidden" name="private" id="rl-strava-private-direct" value="0">
+                                            <button id="rl-strava-submit-direct" type="submit" class="w-full px-4 py-3 rounded-xl bg-[#FC4C02] text-white font-black hover:bg-[#E34402] transition">
+                                                Export ke Strava
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form id="rl-strava-authorize-form" method="POST" action="{{ route('tools.buat-rute-lari.strava-authorize-and-post') }}">
+                                            @csrf
+                                            <input type="hidden" name="points_json" id="rl-strava-points-json-auth">
+                                            <input type="hidden" name="name" id="rl-strava-name-auth">
+                                            <input type="hidden" name="start_at" id="rl-strava-start-auth">
+                                            <input type="hidden" name="device" id="rl-strava-device-auth">
+                                            <input type="hidden" name="pace_text" id="rl-strava-pace-auth">
+                                            <input type="hidden" name="hr" id="rl-strava-hr-auth">
+                                            <input type="hidden" name="cadence" id="rl-strava-cadence-auth">
+                                            <input type="hidden" name="power" id="rl-strava-power-auth">
+                                            <input type="hidden" name="private" id="rl-strava-private-auth" value="0">
+                                            <button id="rl-strava-submit-auth" type="submit" class="w-full px-4 py-3 rounded-xl bg-[#FC4C02] text-white font-black hover:bg-[#E34402] transition">
+                                                Authorize & Post
+                                            </button>
+                                        </form>
+                                    @endif
+                                @else
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <a href="{{ route('login') }}" class="w-full px-4 py-3 rounded-xl bg-[#FC4C02] text-white font-black hover:bg-[#E34402] transition inline-flex items-center justify-center">
+                                            Login untuk Post
+                                        </a>
+                                        <a href="{{ route('register') }}" class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-black hover:bg-slate-700 transition inline-flex items-center justify-center">
+                                            Daftar Akun
+                                        </a>
+                                    </div>
+                                @endauth
+                            </div>
+                        </section>
+
+                        <div class="mt-4 text-xs text-slate-500 leading-relaxed">
+                            Tips: titik bisa di-drag buat rapihin rute. Kalau mau cepat, zoom-in dulu baru tap.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 space-y-4">
+                    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
+                        <div class="absolute top-3 left-3 z-[500] flex items-center gap-2">
+                            <button id="rl-center" type="button" class="px-3 py-2 rounded-xl bg-slate-900/70 border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500 transition text-sm font-black">
+                                Center
+                            </button>
+                            <button id="rl-fit" type="button" class="px-3 py-2 rounded-xl bg-slate-900/70 border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500 transition text-sm font-black">
+                                Fit Route
+                            </button>
+                        </div>
+                        <div id="rl-route-map"></div>
+                    </div>
+
+                    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5">
+                        <div class="flex items-start justify-between gap-3 flex-wrap">
+                            <div>
+                                <div class="text-sm font-black tracking-wider text-slate-200 uppercase">Profil Elevasi</div>
+                                <div id="rl-elev-sub" class="text-xs text-slate-500 font-semibold mt-1">Buat rute dulu untuk lihat grafik.</div>
+                            </div>
+                            <div id="rl-elev-meta" class="text-xs text-slate-500 font-bold"></div>
+                        </div>
+                        <div class="mt-3 bg-slate-950/40 border border-slate-800 rounded-2xl overflow-hidden">
+                            <svg id="rl-elev-svg" viewBox="0 0 1000 220" preserveAspectRatio="none" class="w-full h-[220px] block"></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="rl-modal" class="fixed inset-0 z-[9999] hidden">
+            <div class="absolute inset-0 bg-black/60"></div>
+            <div class="absolute inset-x-0 top-20 md:top-24 mx-auto max-w-xl px-4">
+                <div class="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <div id="rl-modal-title" class="text-sm font-black tracking-wider text-white uppercase">Muat Rute</div>
+                        <button id="rl-modal-close" type="button" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:bg-slate-700 transition">
+                            Tutup
+                        </button>
+                    </div>
+                    <div id="rl-modal-body" class="p-4 max-h-[65vh] overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        (function () {
+            var elMap = document.getElementById('rl-route-map');
+            if (!elMap || !window.L) return;
+
+            var STORAGE_KEY = 'rl.routeBuilder.v1.saved';
+            var STYLE_KEY = 'rl.routeBuilder.v1.style';
+
+            var els = {
+                status: document.getElementById('rl-route-status'),
+                name: document.getElementById('rl-route-name'),
+                q: document.getElementById('rl-search-q'),
+                searchBtn: document.getElementById('rl-search-btn'),
+                results: document.getElementById('rl-search-results'),
+                paceMin: document.getElementById('rl-pace-min'),
+                paceSec: document.getElementById('rl-pace-sec'),
+                mode: document.getElementById('rl-mode'),
+                followRoad: document.getElementById('rl-follow-road'),
+                showDirections: document.getElementById('rl-show-directions'),
+                colorRoute: document.getElementById('rl-color-route'),
+                colorMarker: document.getElementById('rl-color-marker'),
+                colorStart: document.getElementById('rl-color-start'),
+                colorFinish: document.getElementById('rl-color-finish'),
+                arrowInterval: document.getElementById('rl-arrow-interval'),
+                arrowIntervalLabel: document.getElementById('rl-arrow-interval-label'),
+                distanceKm: document.getElementById('rl-distance-km'),
+                estTime: document.getElementById('rl-est-time'),
+                pointsCount: document.getElementById('rl-points-count'),
+                avgSeg: document.getElementById('rl-avg-seg'),
+                undo: document.getElementById('rl-undo'),
+                clear: document.getElementById('rl-clear'),
+                save: document.getElementById('rl-save'),
+                load: document.getElementById('rl-load'),
+                share: document.getElementById('rl-share'),
+                exportGpx: document.getElementById('rl-export-gpx'),
+                importGpx: document.getElementById('rl-import-gpx'),
+                importGpxFile: document.getElementById('rl-import-gpx-file'),
+                stravaToggle: document.getElementById('rl-strava-toggle'),
+                stravaBody: document.getElementById('rl-strava-panel-body'),
+                stravaName: document.getElementById('rl-strava-name'),
+                stravaStart: document.getElementById('rl-strava-start'),
+                stravaDevice: document.getElementById('rl-strava-device'),
+                stravaPace: document.getElementById('rl-strava-pace'),
+                stravaHr: document.getElementById('rl-strava-hr'),
+                stravaCadence: document.getElementById('rl-strava-cadence'),
+                stravaPower: document.getElementById('rl-strava-power'),
+                stravaPrivate: document.getElementById('rl-strava-private'),
+                stravaDirectForm: document.getElementById('rl-strava-direct-form'),
+                stravaAuthorizeForm: document.getElementById('rl-strava-authorize-form'),
+                stravaPointsJsonDirect: document.getElementById('rl-strava-points-json-direct'),
+                stravaNameDirect: document.getElementById('rl-strava-name-direct'),
+                stravaStartDirect: document.getElementById('rl-strava-start-direct'),
+                stravaDeviceDirect: document.getElementById('rl-strava-device-direct'),
+                stravaPaceDirect: document.getElementById('rl-strava-pace-direct'),
+                stravaHrDirect: document.getElementById('rl-strava-hr-direct'),
+                stravaCadenceDirect: document.getElementById('rl-strava-cadence-direct'),
+                stravaPowerDirect: document.getElementById('rl-strava-power-direct'),
+                stravaPrivateDirect: document.getElementById('rl-strava-private-direct'),
+                stravaPointsJsonAuth: document.getElementById('rl-strava-points-json-auth'),
+                stravaNameAuth: document.getElementById('rl-strava-name-auth'),
+                stravaStartAuth: document.getElementById('rl-strava-start-auth'),
+                stravaDeviceAuth: document.getElementById('rl-strava-device-auth'),
+                stravaPaceAuth: document.getElementById('rl-strava-pace-auth'),
+                stravaHrAuth: document.getElementById('rl-strava-hr-auth'),
+                stravaCadenceAuth: document.getElementById('rl-strava-cadence-auth'),
+                stravaPowerAuth: document.getElementById('rl-strava-power-auth'),
+                stravaPrivateAuth: document.getElementById('rl-strava-private-auth'),
+                center: document.getElementById('rl-center'),
+                fit: document.getElementById('rl-fit'),
+                modal: document.getElementById('rl-modal'),
+                modalTitle: document.getElementById('rl-modal-title'),
+                modalBody: document.getElementById('rl-modal-body'),
+                modalClose: document.getElementById('rl-modal-close'),
+                elevSub: document.getElementById('rl-elev-sub'),
+                elevMeta: document.getElementById('rl-elev-meta'),
+                elevSvg: document.getElementById('rl-elev-svg'),
+            };
+
+            function setStatus(text) {
+                if (els.status) els.status.textContent = text;
+            }
+
+            function clamp(n, min, max) {
+                if (Number.isNaN(n)) return min;
+                return Math.max(min, Math.min(max, n));
+            }
+
+            function getStyle() {
+                try {
+                    var raw = localStorage.getItem(STYLE_KEY);
+                    var data = raw ? JSON.parse(raw) : null;
+                    if (!data || typeof data !== 'object') data = {};
+                    return {
+                        route: (data.route && /^#[0-9a-f]{6}$/i.test(data.route)) ? data.route : '#ccff00',
+                        marker: (data.marker && /^#[0-9a-f]{6}$/i.test(data.marker)) ? data.marker : '#60a5fa',
+                        start: (data.start && /^#[0-9a-f]{6}$/i.test(data.start)) ? data.start : '#22c55e',
+                        finish: (data.finish && /^#[0-9a-f]{6}$/i.test(data.finish)) ? data.finish : '#ef4444',
+                        arrowIntervalM: (typeof data.arrowIntervalM === 'number' && data.arrowIntervalM >= 30 && data.arrowIntervalM <= 300) ? data.arrowIntervalM : 80,
+                    };
+                } catch (e) {
+                    return { route: '#ccff00', marker: '#60a5fa', start: '#22c55e', finish: '#ef4444', arrowIntervalM: 80 };
+                }
+            }
+
+            function setStyle(next) {
+                var cur = getStyle();
+                var merged = {
+                    route: next.route ?? cur.route,
+                    marker: next.marker ?? cur.marker,
+                    start: next.start ?? cur.start,
+                    finish: next.finish ?? cur.finish,
+                    arrowIntervalM: typeof next.arrowIntervalM === 'number' ? next.arrowIntervalM : cur.arrowIntervalM,
+                };
+                localStorage.setItem(STYLE_KEY, JSON.stringify(merged));
+                applyStyleFromState(merged);
+            }
+
+            function applyStyleFromState(style) {
+                if (els.colorRoute) els.colorRoute.value = style.route;
+                if (els.colorMarker) els.colorMarker.value = style.marker;
+                if (els.colorStart) els.colorStart.value = style.start;
+                if (els.colorFinish) els.colorFinish.value = style.finish;
+                if (els.arrowInterval) els.arrowInterval.value = String(style.arrowIntervalM);
+                if (els.arrowIntervalLabel) els.arrowIntervalLabel.textContent = String(style.arrowIntervalM) + 'm';
+                if (routeLine) routeLine.setStyle({ color: style.route });
+                rebuildMarkers();
+                updateDirections();
+            }
+
+            function fmt2(n) {
+                return (Math.round(n * 100) / 100).toFixed(2);
+            }
+
+            function pad2(n) {
+                n = Math.floor(Math.max(0, n));
+                return String(n).padStart(2, '0');
+            }
+
+            function haversineKm(a, b) {
+                var R = 6371;
+                var toRad = function (d) { return d * Math.PI / 180; };
+                var dLat = toRad(b.lat - a.lat);
+                var dLon = toRad(b.lng - a.lng);
+                var lat1 = toRad(a.lat);
+                var lat2 = toRad(b.lat);
+                var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+                var c = 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+                return R * c;
+            }
+
+            function bearingDeg(a, b) {
+                var toRad = function (d) { return d * Math.PI / 180; };
+                var toDeg = function (r) { return r * 180 / Math.PI; };
+                var lat1 = toRad(a.lat);
+                var lat2 = toRad(b.lat);
+                var dLon = toRad(b.lng - a.lng);
+                var y = Math.sin(dLon) * Math.cos(lat2);
+                var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+                var brng = toDeg(Math.atan2(y, x));
+                brng = (brng + 360) % 360;
+                return brng;
+            }
+
+            function makeDotIcon(color, label) {
+                var hasLabel = !!label;
+                var html =
+                    '<div style="width:18px;height:18px;border-radius:999px;background:' + color + ';border:2px solid #0b1220;box-shadow:0 10px 22px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">'
+                    + (hasLabel ? '<div style="font-size:10px;line-height:10px;font-weight:900;color:#0b1220;">' + label + '</div>' : '')
+                    + '</div>';
+                return L.divIcon({
+                    className: '',
+                    html: html,
+                    iconSize: [18, 18],
+                    iconAnchor: [9, 9],
+                });
+            }
+
+            function parsePaceSecPerKm() {
+                var m = clamp(parseInt(els.paceMin.value || '0', 10), 0, 59);
+                var s = clamp(parseInt(els.paceSec.value || '0', 10), 0, 59);
+                return (m * 60) + s;
+            }
+
+            function fmtHMS(totalSec) {
+                totalSec = Math.max(0, Math.round(totalSec));
+                var h = Math.floor(totalSec / 3600);
+                var m = Math.floor((totalSec % 3600) / 60);
+                var s = totalSec % 60;
+                return pad2(h) + ':' + pad2(m) + ':' + pad2(s);
+            }
+
+            function toLatLngArray(points) {
+                return points.map(function (p) { return [p.lat, p.lng]; });
+            }
+
+            function getSaved() {
+                try {
+                    var raw = localStorage.getItem(STORAGE_KEY);
+                    var data = raw ? JSON.parse(raw) : [];
+                    return Array.isArray(data) ? data : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function setSaved(items) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+            }
+
+            function openModal(title, bodyElBuilder) {
+                els.modalTitle.textContent = title;
+                els.modalBody.innerHTML = '';
+                bodyElBuilder(els.modalBody);
+                els.modal.classList.remove('hidden');
+            }
+
+            function closeModal() {
+                els.modal.classList.add('hidden');
+            }
+
+            els.modalClose.addEventListener('click', closeModal);
+            els.modal.addEventListener('click', function (e) {
+                if (e.target === els.modal || e.target === els.modal.firstElementChild) closeModal();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeModal();
+            });
+
+            var map = L.map('rl-route-map', {
+                zoomControl: true,
+                attributionControl: true,
+            }).setView([-6.200000, 106.816666], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap',
+            }).addTo(map);
+
+            var routeLine = L.polyline([], {
+                color: '#ccff00',
+                weight: 4,
+                opacity: 0.9,
+            }).addTo(map);
+
+            var points = [];
+            var routePoints = [];
+            var markers = [];
+            var freehandActive = false;
+            var directionLayer = L.layerGroup().addTo(map);
+            var routingSeq = 0;
+            var elevSeq = 0;
+
+            function rebuildLine() {
+                routeLine.setLatLngs(toLatLngArray(routePoints));
+                updateDirections();
+            }
+
+            function rebuildMarkers() {
+                var style = getStyle();
+                markers.forEach(function (m) { map.removeLayer(m); });
+                markers = [];
+                points.forEach(function (p, idx) {
+                    var icon = makeDotIcon(style.marker, '');
+                    if (idx === 0) icon = makeDotIcon(style.start, 'S');
+                    if (idx === points.length - 1) icon = makeDotIcon(style.finish, 'F');
+                    var m = L.marker([p.lat, p.lng], { draggable: true, icon: icon });
+                    m.on('drag', function (ev) {
+                        var ll = ev.target.getLatLng();
+                        points[idx] = { lat: ll.lat, lng: ll.lng };
+                        if (els.followRoad && els.followRoad.checked) {
+                            routePoints = points.slice();
+                        } else {
+                            routePoints = points.slice();
+                        }
+                        rebuildLine();
+                        updateStats();
+                    });
+                    m.on('dragend', function () {
+                        updateRouteFromWaypoints();
+                    });
+                    m.on('click', function () {
+                        setStatus('Titik #' + (idx + 1));
+                    });
+                    m.addTo(map);
+                    markers.push(m);
+                });
+            }
+
+            function totalDistanceKm() {
+                if (routePoints.length < 2) return 0;
+                var total = 0;
+                for (var i = 1; i < routePoints.length; i++) {
+                    total += haversineKm(routePoints[i - 1], routePoints[i]);
+                }
+                return total;
+            }
+
+            function updateStats() {
+                var dist = totalDistanceKm();
+                var segAvg = points.length > 1 ? (dist / (points.length - 1)) : 0;
+                var pace = parsePaceSecPerKm();
+                var est = dist * pace;
+
+                els.distanceKm.textContent = fmt2(dist);
+                els.pointsCount.textContent = String(points.length);
+                els.avgSeg.textContent = fmt2(segAvg);
+                els.estTime.textContent = fmtHMS(est);
+            }
+
+            function addPoint(latlng) {
+                points.push({ lat: latlng.lat, lng: latlng.lng });
+                routePoints = points.slice();
+                rebuildLine();
+                rebuildMarkers();
+                updateStats();
+                updateRouteFromWaypoints();
+                setStatus('Titik ditambahkan (' + points.length + ')');
+            }
+
+            function undo() {
+                if (points.length === 0) return;
+                points.pop();
+                routePoints = points.slice();
+                rebuildLine();
+                rebuildMarkers();
+                updateStats();
+                updateRouteFromWaypoints();
+                setStatus('Undo');
+            }
+
+            function clearAll() {
+                points = [];
+                routePoints = [];
+                rebuildLine();
+                rebuildMarkers();
+                updateStats();
+                updateElevation();
+                setStatus('Reset');
+            }
+
+            function fitRoute() {
+                if (routePoints.length < 2) return;
+                map.fitBounds(routeLine.getBounds().pad(0.18));
+            }
+
+            function centerToUser() {
+                if (!navigator.geolocation) {
+                    setStatus('GPS tidak tersedia');
+                    return;
+                }
+                setStatus('Mencari lokasi...');
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    var lat = pos.coords.latitude;
+                    var lng = pos.coords.longitude;
+                    map.setView([lat, lng], 16);
+                    setStatus('Lokasi ditemukan');
+                }, function () {
+                    setStatus('Gagal akses lokasi');
+                }, { enableHighAccuracy: true, timeout: 8000 });
+            }
+
+            function buildShareUrl() {
+                if (points.length === 0) return null;
+                var base = window.location.origin + window.location.pathname;
+                var pts = points.map(function (p) { return p.lat.toFixed(6) + ',' + p.lng.toFixed(6); }).join(';');
+                var params = new URLSearchParams();
+                if (els.name.value.trim() !== '') params.set('name', els.name.value.trim());
+                params.set('pts', pts);
+                params.set('pm', clamp(parseInt(els.paceMin.value || '0', 10), 0, 59));
+                params.set('ps', clamp(parseInt(els.paceSec.value || '0', 10), 0, 59));
+                if (els.followRoad && els.followRoad.checked) params.set('snap', '1');
+                if (els.showDirections && els.showDirections.checked) params.set('dir', '1');
+                var style = getStyle();
+                params.set('rc', style.route.replace('#', ''));
+                params.set('mc', style.marker.replace('#', ''));
+                params.set('sc', style.start.replace('#', ''));
+                params.set('fc', style.finish.replace('#', ''));
+                params.set('ai', String(style.arrowIntervalM));
+                return base + '?' + params.toString();
+            }
+
+            function copyText(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(text);
+                }
+                return new Promise(function (resolve, reject) {
+                    try {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.position = 'fixed';
+                        ta.style.left = '-9999px';
+                        document.body.appendChild(ta);
+                        ta.focus();
+                        ta.select();
+                        var ok = document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        ok ? resolve() : reject(new Error('copy failed'));
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            }
+
+            function exportGpx() {
+                if (routePoints.length < 2) {
+                    setStatus('Minimal 2 titik');
+                    return;
+                }
+                var name = (els.name.value || 'rute-lari').trim() || 'rute-lari';
+                var now = new Date().toISOString();
+                var seg = routePoints.map(function (p) {
+                    return '<trkpt lat="' + p.lat.toFixed(6) + '" lon="' + p.lng.toFixed(6) + '"><time>' + now + '</time></trkpt>';
+                }).join('');
+
+                var gpx = '<?xml version="1.0" encoding="UTF-8"?>' +
+                    '<gpx version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1">' +
+                    '<metadata><name>' + escapeXml(name) + '</name><time>' + now + '</time></metadata>' +
+                    '<trk><name>' + escapeXml(name) + '</name><trkseg>' + seg + '</trkseg></trk>' +
+                    '</gpx>';
+
+                var blob = new Blob([gpx], { type: 'application/gpx+xml' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = safeFilename(name) + '.gpx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                setStatus('GPX diunduh');
+            }
+
+            function escapeXml(str) {
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&apos;');
+            }
+
+            function safeFilename(str) {
+                return String(str).toLowerCase().replace(/[^a-z0-9\-_]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            }
+
+            function saveCurrent() {
+                if (points.length < 2) {
+                    setStatus('Minimal 2 titik');
+                    return;
+                }
+                var name = (els.name.value || '').trim() || ('Rute ' + new Date().toLocaleString('id-ID'));
+                var entry = {
+                    id: 'rt_' + Date.now() + '_' + Math.random().toString(16).slice(2),
+                    name: name,
+                    createdAt: new Date().toISOString(),
+                    paceMin: clamp(parseInt(els.paceMin.value || '0', 10), 0, 59),
+                    paceSec: clamp(parseInt(els.paceSec.value || '0', 10), 0, 59),
+                    snap: !!(els.followRoad && els.followRoad.checked),
+                    dir: !!(els.showDirections && els.showDirections.checked),
+                    points: points.slice(),
+                };
+                var items = getSaved();
+                items.unshift(entry);
+                items = items.slice(0, 30);
+                setSaved(items);
+                setStatus('Tersimpan');
+            }
+
+            function loadEntry(entry) {
+                points = (entry.points || []).map(function (p) { return { lat: p.lat, lng: p.lng }; });
+                els.name.value = entry.name || '';
+                els.paceMin.value = String(entry.paceMin ?? 6);
+                els.paceSec.value = String(entry.paceSec ?? 0);
+                if (els.followRoad && typeof entry.snap !== 'undefined') els.followRoad.checked = !!entry.snap;
+                if (els.showDirections && typeof entry.dir !== 'undefined') els.showDirections.checked = !!entry.dir;
+                routePoints = points.slice();
+                rebuildLine();
+                rebuildMarkers();
+                updateStats();
+                updateRouteFromWaypoints();
+                if (points.length >= 2) fitRoute();
+                setStatus('Dimuat');
+            }
+
+            function showLoadModal() {
+                var items = getSaved();
+                openModal('Muat Rute', function (container) {
+                    if (items.length === 0) {
+                        var empty = document.createElement('div');
+                        empty.className = 'text-sm text-slate-400';
+                        empty.textContent = 'Belum ada rute tersimpan.';
+                        container.appendChild(empty);
+                        return;
+                    }
+                    var list = document.createElement('div');
+                    list.className = 'space-y-2';
+                    items.forEach(function (it) {
+                        var row = document.createElement('div');
+                        row.className = 'flex items-center justify-between gap-3 bg-slate-800/40 border border-slate-700 rounded-xl p-3';
+                        var left = document.createElement('div');
+                        left.className = 'min-w-0';
+                        var t = document.createElement('div');
+                        t.className = 'font-black text-white truncate';
+                        t.textContent = it.name || 'Untitled';
+                        var meta = document.createElement('div');
+                        meta.className = 'text-[11px] text-slate-500 font-bold';
+                        meta.textContent = (it.points ? it.points.length : 0) + ' titik • ' + (new Date(it.createdAt || Date.now())).toLocaleString('id-ID');
+                        left.appendChild(t);
+                        left.appendChild(meta);
+
+                        var actions = document.createElement('div');
+                        actions.className = 'flex items-center gap-2 shrink-0';
+                        var btnLoad = document.createElement('button');
+                        btnLoad.type = 'button';
+                        btnLoad.className = 'px-3 py-2 rounded-xl bg-neon text-dark font-black';
+                        btnLoad.textContent = 'Pakai';
+                        btnLoad.addEventListener('click', function () {
+                            loadEntry(it);
+                            closeModal();
+                        });
+                        var btnDel = document.createElement('button');
+                        btnDel.type = 'button';
+                        btnDel.className = 'px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-red-300 font-black hover:border-red-500/60 transition';
+                        btnDel.textContent = 'Hapus';
+                        btnDel.addEventListener('click', function () {
+                            var next = getSaved().filter(function (x) { return x.id !== it.id; });
+                            setSaved(next);
+                            showLoadModal();
+                        });
+                        actions.appendChild(btnLoad);
+                        actions.appendChild(btnDel);
+
+                        row.appendChild(left);
+                        row.appendChild(actions);
+                        list.appendChild(row);
+                    });
+                    container.appendChild(list);
+                });
+            }
+
+            function showShareModal(url) {
+                openModal('Share Link', function (container) {
+                    var wrap = document.createElement('div');
+                    wrap.className = 'space-y-3';
+                    var p = document.createElement('div');
+                    p.className = 'text-sm text-slate-300';
+                    p.textContent = 'Link ini akan buka rute yang sama (titik + pace).';
+                    var input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = url;
+                    input.readOnly = true;
+                    input.className = 'w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold';
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'w-full px-4 py-3 rounded-xl bg-neon text-dark font-black';
+                    btn.textContent = 'Copy Link';
+                    btn.addEventListener('click', function () {
+                        copyText(url).then(function () {
+                            setStatus('Link disalin');
+                            closeModal();
+                        }).catch(function () {
+                            setStatus('Gagal copy');
+                        });
+                    });
+                    wrap.appendChild(p);
+                    wrap.appendChild(input);
+                    wrap.appendChild(btn);
+                    container.appendChild(wrap);
+                });
+            }
+
+            function showInfoModal(title, message) {
+                openModal(title, function (container) {
+                    var wrap = document.createElement('div');
+                    wrap.className = 'space-y-3';
+                    var p = document.createElement('div');
+                    p.className = 'text-sm text-slate-300 leading-relaxed';
+                    p.textContent = message;
+                    wrap.appendChild(p);
+                    container.appendChild(wrap);
+                });
+            }
+
+            function toDatetimeLocalValue(d) {
+                var pad = function (n) { return String(n).padStart(2, '0'); };
+                return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            }
+
+            function syncStravaDefaults() {
+                if (!els.stravaName || !els.stravaStart || !els.stravaPace) return;
+                if ((els.stravaName.value || '').trim() === '') {
+                    var baseName = (els.name.value || '').trim();
+                    els.stravaName.value = baseName !== '' ? baseName : 'Easy Run';
+                }
+                if ((els.stravaStart.value || '').trim() === '') {
+                    els.stravaStart.value = toDatetimeLocalValue(new Date());
+                }
+                if ((els.stravaPace.value || '').trim() === '') {
+                    var paceM = clamp(parseInt(els.paceMin.value || '0', 10), 0, 59);
+                    var paceS = clamp(parseInt(els.paceSec.value || '0', 10), 0, 59);
+                    els.stravaPace.value = paceM + ':' + String(paceS).padStart(2, '0');
+                }
+            }
+
+            function fillHiddenStravaFields(kind) {
+                if (points.length < 2) {
+                    showInfoModal('Belum ada rute', 'Tambahkan minimal 2 titik di peta sebelum export ke Strava.');
+                    return false;
+                }
+
+                syncStravaDefaults();
+
+                var name = (els.stravaName && els.stravaName.value ? els.stravaName.value : '').trim();
+                var startAt = (els.stravaStart && els.stravaStart.value ? els.stravaStart.value : '').trim();
+                var device = (els.stravaDevice && els.stravaDevice.value ? els.stravaDevice.value : '').trim();
+                var paceText = (els.stravaPace && els.stravaPace.value ? els.stravaPace.value : '').trim();
+                var hr = (els.stravaHr && els.stravaHr.value ? els.stravaHr.value : '').trim();
+                var cadence = (els.stravaCadence && els.stravaCadence.value ? els.stravaCadence.value : '').trim();
+                var power = (els.stravaPower && els.stravaPower.value ? els.stravaPower.value : '').trim();
+                var isPrivate = !!(els.stravaPrivate && els.stravaPrivate.checked);
+
+                var gpxSource = (els.followRoad && els.followRoad.checked && routePoints.length >= 2) ? routePoints : points;
+                var json = JSON.stringify(gpxSource);
+                if (kind === 'direct') {
+                    if (els.stravaPointsJsonDirect) els.stravaPointsJsonDirect.value = json;
+                    if (els.stravaNameDirect) els.stravaNameDirect.value = name;
+                    if (els.stravaStartDirect) els.stravaStartDirect.value = startAt;
+                    if (els.stravaDeviceDirect) els.stravaDeviceDirect.value = device;
+                    if (els.stravaPaceDirect) els.stravaPaceDirect.value = paceText;
+                    if (els.stravaHrDirect) els.stravaHrDirect.value = hr;
+                    if (els.stravaCadenceDirect) els.stravaCadenceDirect.value = cadence;
+                    if (els.stravaPowerDirect) els.stravaPowerDirect.value = power;
+                    if (els.stravaPrivateDirect) els.stravaPrivateDirect.value = isPrivate ? '1' : '0';
+                } else {
+                    if (els.stravaPointsJsonAuth) els.stravaPointsJsonAuth.value = json;
+                    if (els.stravaNameAuth) els.stravaNameAuth.value = name;
+                    if (els.stravaStartAuth) els.stravaStartAuth.value = startAt;
+                    if (els.stravaDeviceAuth) els.stravaDeviceAuth.value = device;
+                    if (els.stravaPaceAuth) els.stravaPaceAuth.value = paceText;
+                    if (els.stravaHrAuth) els.stravaHrAuth.value = hr;
+                    if (els.stravaCadenceAuth) els.stravaCadenceAuth.value = cadence;
+                    if (els.stravaPowerAuth) els.stravaPowerAuth.value = power;
+                    if (els.stravaPrivateAuth) els.stravaPrivateAuth.value = isPrivate ? '1' : '0';
+                }
+
+                return true;
+            }
+
+            function applyFromQuery() {
+                var qs = new URLSearchParams(window.location.search || '');
+                if (els.followRoad) {
+                    els.followRoad.checked = qs.get('snap') === '1';
+                }
+                if (els.showDirections) {
+                    els.showDirections.checked = qs.get('dir') !== '0';
+                }
+                var rc = qs.get('rc');
+                var mc = qs.get('mc');
+                var sc = qs.get('sc');
+                var fc = qs.get('fc');
+                var ai = qs.get('ai');
+                var nextStyle = {};
+                if (rc && /^[0-9a-f]{6}$/i.test(rc)) nextStyle.route = '#' + rc;
+                if (mc && /^[0-9a-f]{6}$/i.test(mc)) nextStyle.marker = '#' + mc;
+                if (sc && /^[0-9a-f]{6}$/i.test(sc)) nextStyle.start = '#' + sc;
+                if (fc && /^[0-9a-f]{6}$/i.test(fc)) nextStyle.finish = '#' + fc;
+                if (ai && /^\d+$/.test(ai)) nextStyle.arrowIntervalM = clamp(parseInt(ai, 10), 30, 300);
+                if (Object.keys(nextStyle).length > 0) {
+                    setStyle(nextStyle);
+                } else {
+                    applyStyleFromState(getStyle());
+                }
+                var pts = qs.get('pts');
+                if (pts) {
+                    var parsed = pts.split(';').map(function (pair) {
+                        var parts = pair.split(',');
+                        if (parts.length !== 2) return null;
+                        var lat = parseFloat(parts[0]);
+                        var lng = parseFloat(parts[1]);
+                        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+                        return { lat: lat, lng: lng };
+                    }).filter(Boolean);
+                    if (parsed.length > 0) {
+                        points = parsed;
+                        routePoints = points.slice();
+                        rebuildLine();
+                        rebuildMarkers();
+                        updateStats();
+                        updateRouteFromWaypoints();
+                        setStatus('Rute dari link');
+                        setTimeout(fitRoute, 250);
+                    }
+                }
+                var name = qs.get('name');
+                if (name) els.name.value = name;
+                var pm = qs.get('pm');
+                var ps = qs.get('ps');
+                if (pm !== null) els.paceMin.value = String(clamp(parseInt(pm, 10), 0, 59));
+                if (ps !== null) els.paceSec.value = String(clamp(parseInt(ps, 10), 0, 59));
+            }
+
+            function updateDirections() {
+                var on = !!(els.showDirections && els.showDirections.checked);
+                directionLayer.clearLayers();
+                if (!on || routePoints.length < 2) return;
+
+                var style = getStyle();
+                var stepKm = (style.arrowIntervalM || 80) / 1000;
+                var acc = 0;
+                for (var i = 1; i < routePoints.length; i++) {
+                    var a = routePoints[i - 1];
+                    var b = routePoints[i];
+                    acc += haversineKm(a, b);
+                    if (acc < stepKm) continue;
+                    acc = 0;
+                    var angle = bearingDeg(a, b);
+                    var icon = L.divIcon({
+                        className: '',
+                        html: '<div style="transform:rotate(' + angle.toFixed(1) + 'deg);color:' + style.route + ';font-weight:900;font-size:16px;line-height:16px;text-shadow:0 0 10px rgba(0,0,0,.55)">➤</div>',
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8],
+                    });
+                    L.marker([b.lat, b.lng], { icon: icon, interactive: false }).addTo(directionLayer);
+                }
+            }
+
+            function parseGpxText(text) {
+                try {
+                    var parser = new DOMParser();
+                    var xml = parser.parseFromString(text, 'application/xml');
+                    var bad = xml.getElementsByTagName('parsererror');
+                    if (bad && bad.length > 0) return [];
+                    var pts = [];
+                    var nodes = xml.getElementsByTagName('trkpt');
+                    if (!nodes || nodes.length === 0) nodes = xml.getElementsByTagName('rtept');
+                    for (var i = 0; i < nodes.length; i++) {
+                        var lat = parseFloat(nodes[i].getAttribute('lat'));
+                        var lng = parseFloat(nodes[i].getAttribute('lon'));
+                        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+                        pts.push({ lat: lat, lng: lng });
+                    }
+                    return pts;
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function decimatePoints(arr, maxCount) {
+                if (!Array.isArray(arr)) return [];
+                if (arr.length <= maxCount) return arr.slice();
+                var step = Math.ceil(arr.length / maxCount);
+                var out = [];
+                for (var i = 0; i < arr.length; i += step) {
+                    out.push(arr[i]);
+                }
+                if (out.length > 0 && out[0] !== arr[0]) out.unshift(arr[0]);
+                var last = arr[arr.length - 1];
+                if (out[out.length - 1] !== last) out.push(last);
+                return out;
+            }
+
+            function importGpxFile(file) {
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function () {
+                    var text = String(reader.result || '');
+                    var parsed = parseGpxText(text);
+                    if (!parsed || parsed.length < 2) {
+                        showInfoModal('Import gagal', 'File GPX tidak berisi track/route points.');
+                        return;
+                    }
+                    routePoints = decimatePoints(parsed, 3000);
+                    points = decimatePoints(routePoints, 60);
+                    rebuildLine();
+                    rebuildMarkers();
+                    updateStats();
+                    updateElevation();
+                    setTimeout(fitRoute, 80);
+                    updateRouteFromWaypoints();
+                    setStatus('GPX dimuat');
+                };
+                reader.onerror = function () {
+                    showInfoModal('Import gagal', 'Gagal membaca file GPX.');
+                };
+                reader.readAsText(file);
+            }
+
+            function osrmRoute(waypoints) {
+                var coords = waypoints.map(function (p) { return p.lng.toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
+                var url = 'https://router.project-osrm.org/route/v1/foot/' + coords + '?overview=full&geometries=geojson&steps=false';
+                return fetch(url, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); })
+                    .then(function (res) {
+                        if (!res.ok || !res.json || res.json.code !== 'Ok') {
+                            throw new Error('osrm_failed');
+                        }
+                        var coords = res.json.routes && res.json.routes[0] && res.json.routes[0].geometry && res.json.routes[0].geometry.coordinates;
+                        if (!Array.isArray(coords) || coords.length < 2) {
+                            throw new Error('osrm_no_geometry');
+                        }
+                        return coords.map(function (c) { return { lat: c[1], lng: c[0] }; });
+                    });
+            }
+
+            function updateRouteFromWaypoints() {
+                if (!els.followRoad || !els.followRoad.checked) {
+                    routePoints = points.slice();
+                    rebuildLine();
+                    updateStats();
+                    updateElevation();
+                    return;
+                }
+                if (points.length < 2) {
+                    routePoints = points.slice();
+                    rebuildLine();
+                    updateStats();
+                    updateElevation();
+                    return;
+                }
+                if (points.length > 100) {
+                    routePoints = points.slice();
+                    rebuildLine();
+                    updateStats();
+                    updateElevation();
+                    setStatus('Terlalu banyak titik untuk routing');
+                    return;
+                }
+                routingSeq += 1;
+                var seq = routingSeq;
+                setStatus('Routing...');
+                osrmRoute(points.slice())
+                    .then(function (rp) {
+                        if (seq !== routingSeq) return;
+                        routePoints = rp;
+                        rebuildLine();
+                        updateStats();
+                        updateElevation();
+                        setStatus('Ikuti jalan aktif');
+                    })
+                    .catch(function () {
+                        if (seq !== routingSeq) return;
+                        routePoints = points.slice();
+                        rebuildLine();
+                        updateStats();
+                        updateElevation();
+                        setStatus('Routing gagal');
+                    });
+            }
+
+            function updateElevation() {
+                if (!els.elevSvg || !els.elevSub || !els.elevMeta) return;
+                if (routePoints.length < 2) {
+                    els.elevSub.textContent = 'Buat rute dulu untuk lihat grafik.';
+                    els.elevMeta.textContent = '';
+                    els.elevSvg.innerHTML = '';
+                    return;
+                }
+                elevSeq += 1;
+                var seq = elevSeq;
+                els.elevSub.textContent = 'Mengambil elevasi...';
+
+                var samples = [];
+                var maxSamples = 120;
+                if (routePoints.length <= maxSamples) {
+                    samples = routePoints.slice();
+                } else {
+                    for (var i = 0; i < maxSamples; i++) {
+                        var idx = Math.round((i * (routePoints.length - 1)) / (maxSamples - 1));
+                        samples.push(routePoints[idx]);
+                    }
+                }
+
+                var lats = samples.map(function (p) { return p.lat.toFixed(6); }).join(',');
+                var lngs = samples.map(function (p) { return p.lng.toFixed(6); }).join(',');
+                var url = 'https://api.open-meteo.com/v1/elevation?latitude=' + encodeURIComponent(lats) + '&longitude=' + encodeURIComponent(lngs);
+
+                fetch(url, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); })
+                    .then(function (res) {
+                        if (seq !== elevSeq) return;
+                        if (!res.ok || !res.json || !Array.isArray(res.json.elevation)) {
+                            throw new Error('elev_failed');
+                        }
+                        var elev = res.json.elevation.map(function (v) { return (typeof v === 'number' ? v : null); });
+                        if (elev.length !== samples.length) {
+                            throw new Error('elev_mismatch');
+                        }
+
+                        var dists = [0];
+                        var total = 0;
+                        for (var i = 1; i < samples.length; i++) {
+                            total += haversineKm(samples[i - 1], samples[i]);
+                            dists.push(total);
+                        }
+
+                        renderElevation(samples, dists, elev);
+                        els.elevSub.textContent = 'Hover untuk lihat elevasi per titik.';
+                    })
+                    .catch(function () {
+                        if (seq !== elevSeq) return;
+                        els.elevSub.textContent = 'Gagal mengambil elevasi.';
+                        els.elevMeta.textContent = '';
+                        els.elevSvg.innerHTML = '';
+                    });
+            }
+
+            function renderElevation(samples, distsKm, elevM) {
+                var minE = Infinity;
+                var maxE = -Infinity;
+                elevM.forEach(function (v) {
+                    if (typeof v !== 'number') return;
+                    minE = Math.min(minE, v);
+                    maxE = Math.max(maxE, v);
+                });
+                if (!Number.isFinite(minE) || !Number.isFinite(maxE)) {
+                    els.elevMeta.textContent = '';
+                    els.elevSvg.innerHTML = '';
+                    els.elevSub.textContent = 'Tidak ada data elevasi.';
+                    return;
+                }
+
+                var pad = 18;
+                var w = 1000;
+                var h = 220;
+                var innerW = w - pad * 2;
+                var innerH = h - pad * 2;
+                var totalDist = distsKm[distsKm.length - 1] || 0;
+                var range = Math.max(1, maxE - minE);
+
+                var pts = samples.map(function (_, i) {
+                    var x = pad + (totalDist > 0 ? (distsKm[i] / totalDist) * innerW : 0);
+                    var y = pad + (1 - ((elevM[i] - minE) / range)) * innerH;
+                    return { x: x, y: y, d: distsKm[i], e: elevM[i] };
+                });
+
+                var line = 'M ' + pts.map(function (p) { return p.x.toFixed(2) + ' ' + p.y.toFixed(2); }).join(' L ');
+                var area = line + ' L ' + (pad + innerW).toFixed(2) + ' ' + (pad + innerH).toFixed(2) + ' L ' + pad.toFixed(2) + ' ' + (pad + innerH).toFixed(2) + ' Z';
+
+                els.elevMeta.textContent = 'Min ' + Math.round(minE) + ' m • Max ' + Math.round(maxE) + ' m • ' + fmt2(totalDist) + ' km';
+                els.elevSvg.innerHTML = ''
+                    + '<defs>'
+                    + '<linearGradient id="rlElevFill" x1="0" x2="0" y1="0" y2="1">'
+                    + '<stop offset="0%" stop-color="#ccff00" stop-opacity="0.35"></stop>'
+                    + '<stop offset="100%" stop-color="#ccff00" stop-opacity="0.05"></stop>'
+                    + '</linearGradient>'
+                    + '</defs>'
+                    + '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="transparent"></rect>'
+                    + '<path d="' + area + '" fill="url(#rlElevFill)"></path>'
+                    + '<path d="' + line + '" fill="none" stroke="#ccff00" stroke-width="2"></path>'
+                    + '<line id="rlElevX" x1="0" y1="' + pad + '" x2="0" y2="' + (pad + innerH) + '" stroke="#94a3b8" stroke-width="1" opacity="0.6" style="display:none"></line>'
+                    + '<circle id="rlElevDot" cx="0" cy="0" r="4" fill="#ccff00" stroke="#0b1220" stroke-width="2" style="display:none"></circle>'
+                    + '<text id="rlElevTip" x="' + pad + '" y="' + (pad + 14) + '" fill="#e2e8f0" font-size="12" font-weight="700" style="display:none"></text>';
+
+                var elX = els.elevSvg.querySelector('#rlElevX');
+                var elDot = els.elevSvg.querySelector('#rlElevDot');
+                var elTip = els.elevSvg.querySelector('#rlElevTip');
+
+                function pickIndex(xView) {
+                    var target = (xView - pad) / innerW;
+                    target = Math.max(0, Math.min(1, target));
+                    var dist = target * totalDist;
+                    var best = 0;
+                    var bestErr = Infinity;
+                    for (var i = 0; i < pts.length; i++) {
+                        var err = Math.abs(pts[i].d - dist);
+                        if (err < bestErr) {
+                            bestErr = err;
+                            best = i;
+                        }
+                    }
+                    return best;
+                }
+
+                function onMove(e) {
+                    var rect = els.elevSvg.getBoundingClientRect();
+                    var x = e.clientX - rect.left;
+                    var xView = (x / rect.width) * w;
+                    var idx = pickIndex(xView);
+                    var p = pts[idx];
+                    elX.style.display = '';
+                    elDot.style.display = '';
+                    elTip.style.display = '';
+                    elX.setAttribute('x1', p.x.toFixed(2));
+                    elX.setAttribute('x2', p.x.toFixed(2));
+                    elDot.setAttribute('cx', p.x.toFixed(2));
+                    elDot.setAttribute('cy', p.y.toFixed(2));
+                    elTip.textContent = fmt2(p.d) + ' km • ' + Math.round(p.e) + ' m';
+                }
+
+                function onLeave() {
+                    elX.style.display = 'none';
+                    elDot.style.display = 'none';
+                    elTip.style.display = 'none';
+                }
+
+                els.elevSvg.onmousemove = onMove;
+                els.elevSvg.onmouseleave = onLeave;
+                els.elevSvg.ontouchmove = function (ev) {
+                    if (!ev.touches || ev.touches.length === 0) return;
+                    onMove({ clientX: ev.touches[0].clientX });
+                };
+                els.elevSvg.ontouchend = onLeave;
+            }
+
+            function showSearchResults(items) {
+                els.results.innerHTML = '';
+                if (!items || items.length === 0) {
+                    els.results.className = 'mt-2';
+                    els.results.innerHTML = '<div class="text-xs text-slate-500 font-bold">Tidak ada hasil.</div>';
+                    els.results.classList.remove('hidden');
+                    return;
+                }
+                var wrap = document.createElement('div');
+                wrap.className = 'bg-slate-900/60 border border-slate-700 rounded-xl overflow-hidden';
+                items.slice(0, 6).forEach(function (it) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'w-full text-left px-4 py-3 hover:bg-slate-800 transition border-b border-slate-800 last:border-b-0';
+                    var title = document.createElement('div');
+                    title.className = 'text-sm font-black text-white';
+                    title.textContent = it.display_name || 'Lokasi';
+                    var sub = document.createElement('div');
+                    sub.className = 'text-[11px] text-slate-500 font-bold';
+                    sub.textContent = (parseFloat(it.lat).toFixed(5) + ', ' + parseFloat(it.lon).toFixed(5));
+                    btn.appendChild(title);
+                    btn.appendChild(sub);
+                    btn.addEventListener('click', function () {
+                        els.results.classList.add('hidden');
+                        map.setView([parseFloat(it.lat), parseFloat(it.lon)], 15);
+                        setStatus('Lokasi dipilih');
+                    });
+                    wrap.appendChild(btn);
+                });
+                els.results.appendChild(wrap);
+                els.results.classList.remove('hidden');
+            }
+
+            function searchLocation() {
+                var q = (els.q.value || '').trim();
+                if (q === '') return;
+                setStatus('Mencari...');
+                fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q), {
+                    headers: { 'Accept': 'application/json' },
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        showSearchResults(Array.isArray(data) ? data : []);
+                        setStatus('Hasil pencarian');
+                    })
+                    .catch(function () {
+                        setStatus('Gagal mencari');
+                    });
+            }
+
+            els.searchBtn.addEventListener('click', searchLocation);
+            els.q.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchLocation();
+                }
+            });
+
+            els.paceMin.addEventListener('input', updateStats);
+            els.paceSec.addEventListener('input', updateStats);
+
+            els.undo.addEventListener('click', undo);
+            els.clear.addEventListener('click', clearAll);
+            els.save.addEventListener('click', saveCurrent);
+            els.load.addEventListener('click', showLoadModal);
+            els.center.addEventListener('click', centerToUser);
+            els.fit.addEventListener('click', fitRoute);
+            els.exportGpx.addEventListener('click', exportGpx);
+            els.share.addEventListener('click', function () {
+                var url = buildShareUrl();
+                if (!url) {
+                    setStatus('Minimal 1 titik');
+                    return;
+                }
+                showShareModal(url);
+            });
+
+            els.mode.addEventListener('change', function () {
+                freehandActive = (els.mode.value === 'freehand');
+                setStatus(freehandActive ? 'Freehand aktif' : 'Tap mode');
+            });
+
+            if (els.followRoad) {
+                els.followRoad.addEventListener('change', function () {
+                    updateRouteFromWaypoints();
+                });
+            }
+            if (els.showDirections) {
+                els.showDirections.addEventListener('change', function () {
+                    updateDirections();
+                });
+            }
+            if (els.colorRoute) {
+                els.colorRoute.addEventListener('input', function () { setStyle({ route: els.colorRoute.value }); });
+            }
+            if (els.colorMarker) {
+                els.colorMarker.addEventListener('input', function () { setStyle({ marker: els.colorMarker.value }); });
+            }
+            if (els.colorStart) {
+                els.colorStart.addEventListener('input', function () { setStyle({ start: els.colorStart.value }); });
+            }
+            if (els.colorFinish) {
+                els.colorFinish.addEventListener('input', function () { setStyle({ finish: els.colorFinish.value }); });
+            }
+            if (els.arrowInterval) {
+                els.arrowInterval.addEventListener('input', function () {
+                    var v = clamp(parseInt(els.arrowInterval.value || '80', 10), 30, 300);
+                    setStyle({ arrowIntervalM: v });
+                });
+            }
+            if (els.importGpx && els.importGpxFile) {
+                els.importGpx.addEventListener('click', function () { els.importGpxFile.click(); });
+                els.importGpxFile.addEventListener('change', function () {
+                    importGpxFile(els.importGpxFile.files && els.importGpxFile.files[0] ? els.importGpxFile.files[0] : null);
+                    els.importGpxFile.value = '';
+                });
+            }
+
+            if (els.stravaToggle && els.stravaBody) {
+                els.stravaToggle.addEventListener('click', function () {
+                    var isHidden = els.stravaBody.classList.contains('hidden');
+                    if (isHidden) {
+                        els.stravaBody.classList.remove('hidden');
+                        els.stravaToggle.textContent = 'Tutup';
+                        syncStravaDefaults();
+                        var panel = document.getElementById('strava-form-panel');
+                        if (panel) {
+                            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    } else {
+                        els.stravaBody.classList.add('hidden');
+                        els.stravaToggle.textContent = 'Buka';
+                    }
+                });
+            }
+
+            if (els.stravaDirectForm) {
+                els.stravaDirectForm.addEventListener('submit', function (e) {
+                    var ok = fillHiddenStravaFields('direct');
+                    if (!ok) e.preventDefault();
+                });
+            }
+            if (els.stravaAuthorizeForm) {
+                els.stravaAuthorizeForm.addEventListener('submit', function (e) {
+                    var ok = fillHiddenStravaFields('auth');
+                    if (!ok) e.preventDefault();
+                });
+            }
+
+            if (els.name) {
+                els.name.addEventListener('input', function () {
+                    if (!els.stravaName) return;
+                    if ((els.stravaName.value || '').trim() === '') {
+                        var v = (els.name.value || '').trim();
+                        if (v !== '') els.stravaName.value = v;
+                    }
+                });
+            }
+
+            var freehandPoints = [];
+            function onFreehandStart(e) {
+                if (!freehandActive) return;
+                freehandPoints = [];
+                map.dragging.disable();
+                freehandPoints.push(e.latlng);
+                setStatus('Freehand...');
+            }
+            function onFreehandMove(e) {
+                if (!freehandActive) return;
+                if (freehandPoints.length === 0) return;
+                freehandPoints.push(e.latlng);
+                if (freehandPoints.length % 4 === 0) {
+                    var ll = freehandPoints[freehandPoints.length - 1];
+                    points.push({ lat: ll.lat, lng: ll.lng });
+                    routePoints = points.slice();
+                    rebuildLine();
+                    updateStats();
+                }
+            }
+            function onFreehandEnd() {
+                if (!freehandActive) return;
+                map.dragging.enable();
+                rebuildMarkers();
+                updateStats();
+                updateRouteFromWaypoints();
+                setStatus('Freehand selesai');
+            }
+
+            map.on('click', function (e) {
+                if (freehandActive) return;
+                addPoint(e.latlng);
+            });
+            map.on('mousedown', onFreehandStart);
+            map.on('mousemove', onFreehandMove);
+            map.on('mouseup', onFreehandEnd);
+            map.on('touchstart', function (e) {
+                if (!freehandActive) return;
+                if (!e.latlng) return;
+                onFreehandStart(e);
+            });
+            map.on('touchmove', function (e) {
+                if (!freehandActive) return;
+                if (!e.latlng) return;
+                onFreehandMove(e);
+            });
+            map.on('touchend', onFreehandEnd);
+
+            updateStats();
+            routePoints = points.slice();
+            applyFromQuery();
+            updateRouteFromWaypoints();
+        })();
+    </script>
+@endpush

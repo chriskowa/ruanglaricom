@@ -146,10 +146,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::get('/tools/calculator', [App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
 Route::get('/tools/form-analyzer', [App\Http\Controllers\FormAnalyzerController::class, 'index'])->name('tools.form-analyzer');
 Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerController::class, 'analyze'])->name('tools.form-analyzer.analyze');
+Route::get('/tools/buat-rute-lari', function () {
+    return view('tools.buat-rute-lari', [
+        'withSidebar' => true,
+    ]);
+})->name('tools.buat-rute-lari');
+Route::middleware('auth')->post('/tools/buat-rute-lari/strava-upload', [App\Http\Controllers\CalendarController::class, 'uploadRouteToStrava'])->name('tools.buat-rute-lari.strava-upload');
+Route::middleware('auth')->post('/tools/buat-rute-lari/strava-authorize-and-post', [App\Http\Controllers\CalendarController::class, 'authorizeAndPostRouteToStrava'])->name('tools.buat-rute-lari.strava-authorize-and-post');
+Route::get('/tools/pace-pro', [App\Http\Controllers\PaceProController::class, 'index'])->name('tools.pace-pro');
+Route::get('/tools/pace-pro/gpx/{masterGpx}', [App\Http\Controllers\PaceProController::class, 'gpx'])->name('tools.pace-pro.gpx');
 Route::get('/calendar', [App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.public');
 Route::get('/calendar/events-proxy', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.events.proxy');
-Route::get('/calendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
-Route::get('/calendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
+Route::middleware('auth')->group(function () {
+    Route::get('/calendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
+    Route::get('/calendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
+});
 Route::post('/calendar/ai-analysis', [App\Http\Controllers\CalendarController::class, 'getAiAnalysis'])->name('calendar.ai.analysis');
 
 // Pacer listing and profile
@@ -402,6 +413,7 @@ Route::middleware('auth')->group(function () {
         Route::post('events/import', [App\Http\Controllers\Admin\RunningEventController::class, 'storeImport'])->name('events.import.store');
         Route::post('events/sync', [App\Http\Controllers\Admin\RunningEventController::class, 'sync'])->name('events.sync');
         Route::resource('events', App\Http\Controllers\Admin\RunningEventController::class);
+        Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class)->except(['show']);
 
         // User Management
         Route::resource('users', App\Http\Controllers\Admin\UserController::class);

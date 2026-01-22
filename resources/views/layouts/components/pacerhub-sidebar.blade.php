@@ -10,6 +10,7 @@
                     @if(auth()->user()->isAdmin())
                         <li><a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                         <li><a href="{{ route('admin.events.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Running Events</a></li>
+                        <li><a href="{{ route('admin.master-gpx.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Master GPX</a></li>
                         <li><a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Manage Users</a></li>
                         <li><a href="{{ route('admin.challenge.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Approval Setoran</a></li>
                         <li><a href="{{ route('admin.blog.articles.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Blog Articles</a></li>

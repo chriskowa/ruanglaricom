@@ -28,7 +28,7 @@ class StravaController extends Controller
             'client_id' => $clientId,
             'redirect_uri' => route('runner.strava.callback'),
             'response_type' => 'code',
-            'scope' => 'activity:read_all,profile:read_all',
+            'scope' => 'activity:read_all,profile:read_all,activity:write',
             'approval_prompt' => 'auto',
             'state' => Str::random(24),
         ]);

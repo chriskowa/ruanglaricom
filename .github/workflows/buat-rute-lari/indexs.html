@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>RunRoute – Bikin & Share Rute Lari</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+  <style>
+    /* Namespace untuk WordPress/Elementor - scope semua ke .rungo-wrapper */
+    .rungo-wrapper {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      color: #0f172a;
+      width: 100%;
+      isolation: isolate;
+    }
+
+    .rungo-wrapper *,
+    .rungo-wrapper *::before,
+    .rungo-wrapper *::after {
+      box-sizing: border-box;
+    }
+
+    /* Reset untuk mencegah konflik dengan theme WordPress */
+    .rungo-wrapper input,
+    .rungo-wrapper button,
+    .rungo-wrapper label {
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      margin: 0;
+    }
+
+    .rungo-wrapper input[type="checkbox"] {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    /* Pastikan Leaflet tidak terpengaruh theme */
+    .rungo-wrapper .leaflet-container {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .rungo-wrapper .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .rungo-wrapper header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .rungo-wrapper .logo {
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: 0.03em;
+      color: #0f172a;
+    }
+
+    .rungo-wrapper .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 100%);
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }    
+    .rungo-wrapper .panel,
+    .rungo-wrapper .search-panel {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      padding: 10px 14px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      backdrop-filter: saturate(180%) blur(6px);
+    }
+
+    .rungo-wrapper .info-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rungo-wrapper .info-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: baseline;
+    }
+
+    .rungo-wrapper .distance-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+    }
+
+    .rungo-wrapper .distance-value {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #111827;
+    }
+
+    .rungo-wrapper .mode-tag {
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f9fafb;
+      color: #111827;
+    }
+
+    .rungo-wrapper .options-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #374151;
+    }
+
+    .rungo-wrapper .options-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .rungo-wrapper .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .rungo-wrapper button {
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #dc3545;
+      color: #edf2f7;
+    }
+    .rungo-wrapper button:hover {
+      background: #b91c1c;
+      color: #fff;
+    }
+    .btn-danger:hover {
+      background: #b91c1c;
+      border-color: #b91c1c;
+    }
+    .btn-outline-danger:hover {
+      background: #b91c1c;
+      border-color: #b91c1c;
+      color: #fff;
+    }
+
+    .rungo-wrapper button:disabled {
+      opacity: 0.45;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .rungo-wrapper button:active:not(:disabled) {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: none !important;
+    }
+
+    .rungo-wrapper .btn-primary {
+      background: linear-gradient(180deg, #14b8a6 0%, #0f766e 100%);
+      color: white;
+      box-shadow: 0 10px 20px rgba(20, 184, 166, 0.35);
+    }
+
+    .rungo-wrapper .btn-primary:hover:not(:disabled) {
+      background: #0d665f;
+    }
+
+    .rungo-wrapper .btn-ghost {
+      background: #ffffff;
+      border-color: #cbd5e1;
+    }
+
+    .rungo-wrapper .btn-ghost:hover:not(:disabled) {
+      background: #f3f4f6;
+    }
+
+    .rungo-wrapper .btn-outline {
+      background: #ffffff;
+      border-color: #cbd5e1;
+    }
+
+    .rungo-wrapper .btn-outline:hover:not(:disabled) {
+      background: #eff6ff;
+      border-color: #60a5fa;
+    }
+
+    .rungo-wrapper .map-wrapper {
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 22px 45px rgba(15, 23, 42, 0.2);
+      border: 1px solid #e5e7eb;
+    }
+
+    .rungo-wrapper #map {      
+      width: 100%;
+      height: 65vh;
+      min-height: 380px;
+    }
+
+    .rungo-wrapper .hint {
+      font-size: 0.85rem;
+      color: #4b5563;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .rungo-wrapper .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e5e7eb;
+    }
+
+    .rungo-wrapper .share-output {
+      margin-top: 6px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .rungo-wrapper .share-output input {
+      flex: 1;
+      min-width: 220px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.85rem;
+      color: #111827;
+    }
+
+    .rungo-wrapper .share-output small {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .rungo-wrapper .search-panel {
+      justify-content: flex-start;
+      gap: 10px;
+    }
+    @media (max-width: 640px) {
+      .rungo-wrapper .search-panel {
+        position: sticky;
+        top: 8px;
+        z-index: 10;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(4px);
+      }
+      .rungo-wrapper .search-panel input {
+        width: 100%;
+      }
+    }
+
+    .rungo-wrapper .search-label {
+      font-size: 0.85rem;
+      color: #4b5563;
+      white-space: nowrap;
+    }
+
+    .rungo-wrapper .search-panel input {
+      flex: 1;
+      min-width: 200px;
+      max-width: 350px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.9rem;
+      color: #111827;
+    }
+
+    .rungo-wrapper .search-status {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    @media (max-width: 640px) {
+      .rungo-wrapper .panel {
+        padding: 10px;
+      }
+      .rungo-wrapper #map {
+        height: 60vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="rungo-wrapper">
+  <div class="app">
+    <nav class="navbar" style="padding:0;">
+      <div class="container-fluid" style="padding:0;display:flex;align-items:center;justify-content:space-between;">
+        <a class="navbar-brand d-flex align-items-center" href="https://ruanglari.com" style="gap:8px;">
+          <img src="https://res.cloudinary.com/dslfarxct/images/v1760833730/ruanglari_green/ruanglari_green.png" alt="Ruang Lari" style="height:28px;width:auto;" />
+          <span class="fw-bold">Ruang Lari</span>
+        </a>
+        <div class="d-flex align-items-center" style="gap:8px;">
+          <a class="btn btn-outline-danger btn-sm" href="https://ruanglari.com">Beranda</a>
+          <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#hintModal">Tips</button>
+        </div>
+      </div>
+    </nav>
+    <!--<header>
+      <div class="logo">
+        RunRoute
+        <span class="badge">
+          <span>🏃‍♂️</span>
+          <span>Plot & Share Rute Lari</span>
+        </span>
+      </div>
+    </header>!-->
+
+    <section class="panel">
+      <div class="info-group">
+        <div class="info-top">
+          <div>
+            <div class="distance-label">Total jarak</div>
+            <div class="distance-value" id="distance-display">0.00 km</div>			      
+          </div>
+          <div>
+            <div class="distance-label">Elevation gain</div>
+            <div class="distance-value" id="elev-display">0 m</div>
+          </div>
+		  <div>
+
+          <div id="mode-tag" class="mode-tag">Mode: edit rute</div>
+        </div>
+        <div class="options-row">
+          <label>
+            <input type="checkbox" id="follow-roads" checked />
+            Ikuti jalan (snap ke jalan)
+          </label>
+          <span style="font-size:0.8rem;color:#6b7280;">Routing: OSRM (foot)</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-outline-danger btn-sm" id="reset-btn">Reset</button>
+        <button class="btn btn-outline-danger btn-sm" id="undo-btn" disabled>Undo</button>
+        <button class="btn btn-outline-danger btn-sm" id="redo-btn" disabled>Redo</button>
+        <button class="btn btn-danger btn-sm" id="share-btn">Share link rute</button>
+      </div>
+
+      <div class="share-output" id="share-output">
+        <input id="share-url" readonly />
+        <small id="share-status"></small>
+      </div>
+    </section>
+
+    <section class="search-panel">
+      <span class="search-label">Cari lokasi:</span>
+      <input class="form-control form-control-sm" id="search-input" placeholder="Contoh: Malang, Monas, Alun-alun Jember" />
+      <button class="btn btn-outline-danger btn-sm" id="search-btn">Cari</button>
+      <span class="search-status" id="search-status"></span>
+    </section>
+
+    <section class="hint">
+      <span class="pill">💡 Klik di peta untuk menambah titik rute (muncul marker).</span>
+      <span class="pill">🛣 “Ikuti jalan” supaya rute ngikut jalan (jalan kaki/lari).</span>
+      <span class="pill">↩ Undo / Redo untuk langkah terakhir.</span>
+      <span class="pill">🔍 Gunakan kotak pencarian untuk lompat ke kota/lokasi tertentu.</span>
+    </section>
+    </div>
+
+    <section class="panel">
+      <div class="collapse show" id="cfgCollapse">
+      <div class="container-fluid" style="padding:0;">
+        <div class="row g-2">
+          <div class="col-sm-4"><input class="form-control form-control-sm" id="name-input" placeholder="Nama aktivitas (mis. Easy Run)" /></div>
+          <div class="col-sm-4"><input class="form-control form-control-sm" id="start-input" type="datetime-local" /></div>
+          <div class="col-sm-4"><select class="form-select form-select-sm" id="device-select">
+          <option value="">Pilih device</option>
+          <option>Garmin</option>
+          <option>Coros</option>
+          <option>Polar</option>
+          <option>Suunto</option>
+          <option>Apple Watch</option>
+          <option>Android Phone</option>
+          <option>iPhone</option>
+        </select></div>
+        </div>
+        <div class="row g-2" style="margin-top:6px;">
+          <div class="col-sm-4"><input class="form-control form-control-sm" id="pace-input" placeholder="Pace (menit/km) contoh 4:30" /></div>
+          <div class="col-sm-4"><input class="form-control form-control-sm" id="hr-input" placeholder="Heart rate rata-rata" type="number" min="30" max="250" /></div>
+          <div class="col-sm-4"><input class="form-control form-control-sm" id="cadence-input" placeholder="Cadence rata-rata (spm)" type="number" min="120" max="230" /></div>
+        </div>
+        <div class="row g-2" style="margin-top:6px; align-items:center;">
+          <div class="col-sm-6 d-flex gap-2">
+            <button class="btn btn-danger btn-sm" id="strava-btn">Export ke Strava</button>
+            <button class="btn btn-outline-danger btn-sm" id="strava-upload-route-btn">Generate TCX & Upload</button>
+            <button class="btn btn-outline-danger btn-sm" id="strava-auth-btn">Hubungkan Strava</button>
+          </div>
+          <div class="col-sm-6 d-flex gap-2">
+            <input class="form-control form-control-sm" style="max-width:240px;" type="file" id="file-upload" accept=".gpx,.tcx,.fit" />
+            <button class="btn btn-outline-danger btn-sm" id="upload-file-btn">Upload File ke Strava</button>
+            <small id="strava-status" style="margin-left:6px;color:#6b7280;"></small>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <div class="map-wrapper">
+      <div id="map"></div>
+    </div>
+	<div style="background:#fff;margin-top:8px;padding:12px;border-radius:12px;box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);">
+	  <div id="elev-chart" style="height:220px;"></div>
+	</div>
+
+  <div class="modal fade" id="hintModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body" style="font-size:0.95rem;">
+          <div class="d-flex flex-column" style="gap:8px;">
+            <div>💡 Klik di peta untuk menambah titik rute (muncul marker).</div>
+            <div>🛣 “Ikuti jalan” supaya rute ngikut jalan (jalan kaki/lari).</div>
+            <div>↩ Undo / Redo untuk langkah terakhir.</div>
+            <div>🔍 Gunakan kotak pencarian untuk lompat ke kota/lokasi tertentu.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger btn-sm" data-bs-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  
+
+  <script src="rungo.js"></script>
+  <script type="text/plain">
+    // ====== KONFIG MAPBOX (opsional) ======
+    // Isi token Mapbox di sini kalau mau tampilan lebih cakep:
+    const MAPBOX_TOKEN = ""; // contoh: "pk.eyJ1Ijo...."
+    const MAPBOX_STYLE = "mapbox/streets-v12"; // bisa ganti: outdoors-v12, light-v11, satellite-streets-v12
+
+    // ====== SETUP PETA ======
+    const map = L.map("map", {
+      zoomControl: true,
+    }).setView([-6.2, 106.8], 13); // default Jakarta
+
+    let tileUrl, tileOptions;
+
+    if (MAPBOX_TOKEN) {
+      tileUrl =
+        "https://api.mapbox.com/styles/v1/" +
+        MAPBOX_STYLE +
+        "/tiles/{z}/{x}/{y}?access_token=" +
+        MAPBOX_TOKEN;
+
+      tileOptions = {
+        tileSize: 512,
+        zoomOffset: -1,
+        maxZoom: 20,
+        attribution:
+          '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> ' +
+          '© <a href="https://www.mapbox.com/">Mapbox</a>',
+      };
+    } else {
+      tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+      tileOptions = {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors',
+      };
+    }
+
+    L.tileLayer(tileUrl, tileOptions).addTo(map);
+
+    // ====== STATE RUTE ======
+    let points = []; // semua titik polyline [lat, lng, elev?]
+    let polyline = null;
+    let modeViewOnly = false;
+    let followRoads = true; // default: ikuti jalan
+	let elevGain = 0;       // <--- di sini, nilai awal 0 m
+	let elevChart = null;
+
+    // History / Undo-Redo per klik
+    // Tiap klik disimpan sebagai { pointsAdded: [ [lat,lng], ... ], markerLatLng: L.latLng }
+    let clickHistory = [];
+    let redoStack = [];
+    let clickMarkers = [];
+
+    if (navigator.geolocation && !modeViewOnly) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          map.setView([latitude, longitude], 14);
+          L.circleMarker([latitude, longitude], { radius: 6, color: "#0f766e", fillColor: "#10b981", fillOpacity: 0.6 }).addTo(map);
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+
+    const distanceDisplay = document.getElementById("distance-display");
+	const elevDisplay = document.getElementById("elev-display");
+	
+    const modeTag = document.getElementById("mode-tag");
+    const shareBtn = document.getElementById("share-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const undoBtn = document.getElementById("undo-btn");
+    const redoBtn = document.getElementById("redo-btn");
+    const shareOutput = document.getElementById("share-output");
+    const shareUrlInput = document.getElementById("share-url");
+    const shareStatus = document.getElementById("share-status");
+    const followRoadsCheckbox = document.getElementById("follow-roads");
+    const searchInput = document.getElementById("search-input");
+    const searchBtn = document.getElementById("search-btn");
+    const searchStatus = document.getElementById("search-status");
+
+    followRoadsCheckbox.addEventListener("change", (e) => {
+      followRoads = e.target.checked;
+    });
+
+    function updateUndoRedoButtons() {
+      undoBtn.disabled = clickHistory.length === 0 || modeViewOnly;
+      redoBtn.disabled = redoStack.length === 0 || modeViewOnly;
+    }
+
+    // ====== Haversine: hitung jarak ======
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+      const toRad = (deg) => (deg * Math.PI) / 180;
+      const R = 6371000; // meter
+
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+          Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    async function fetchElevations(points) {
+      if (!points || points.length === 0) return;
+      
+      // Batch processing: API open-elevation punya limit, jadi kita batch per 100 titik
+      const BATCH_SIZE = 100;
+      for (let start = 0; start < points.length; start += BATCH_SIZE) {
+        const batch = points.slice(start, start + BATCH_SIZE);
+        const batchIndices = []; // simpan index asli di points array
+        
+        // Siapkan request body dengan format yang benar
+        const locations = batch.map((p, idx) => {
+          batchIndices.push(start + idx);
+          return {
+            latitude: p[0],
+            longitude: p[1]
+          };
+        });
+        
+        try {
+          const url = `https://api.open-elevation.com/api/v1/lookup`;
+          const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ locations: locations })
+          });
+          
+          if (!resp.ok) throw new Error("HTTP " + resp.status);
+          const data = await resp.json();
+          
+          if (data.results && data.results.length === batch.length) {
+            // Update points dengan elevasi (update di array asli, bukan batch)
+            for (let i = 0; i < batch.length; i++) {
+              const originalIdx = batchIndices[i];
+              points[originalIdx][2] = data.results[i].elevation;
+            }
+          }
+        } catch (err) {
+          console.error("Gagal ambil elevasi batch:", err);
+          // Set elevasi default 0 jika gagal
+          for (let i = 0; i < batch.length; i++) {
+            const originalIdx = batchIndices[i];
+            if (points[originalIdx][2] == null) points[originalIdx][2] = 0;
+          }
+        }
+      }
+    }
+
+    async function updateDistanceAndElevation() {
+	  // --- hitung jarak ---
+	  if (points.length < 2) {
+		distanceDisplay.textContent = "0.00 km";
+		elevDisplay.textContent = "0 m";
+		if (elevChart) {
+		  elevChart.destroy();
+		  elevChart = null;
+		}
+		return;
+	  } else {
+		let total = 0;
+		for (let i = 1; i < points.length; i++) {
+		  const [lat1, lon1] = points[i - 1];
+		  const [lat2, lon2] = points[i];
+		  total += haversineDistance(lat1, lon1, lat2, lon2);
+		}
+		const km = total / 1000;
+		distanceDisplay.textContent = km.toFixed(2) + " km";
+	  }
+
+	  // --- ambil elevasi jika belum ada ---
+	  const needsElevation = points.some(p => p[2] == null || p[2] === undefined);
+	  if (needsElevation) {
+		console.log("Mengambil elevasi untuk", points.length, "titik...");
+		await fetchElevations(points);
+		console.log("Elevasi diambil. Sample:", points.slice(0, 3).map(p => [p[0].toFixed(4), p[1].toFixed(4), p[2]]));
+	  }
+
+	  // --- hitung elev gain ---
+	  elevGain = calcElevationGain(points);
+	  console.log("Elevation gain:", elevGain, "m");
+	  elevDisplay.textContent = Math.round(elevGain) + " m";
+	  
+	  // --- update chart ---
+	  updateElevationChart(points);
+	}
+
+    function redrawPolyline() {
+      if (polyline) {
+        map.removeLayer(polyline);
+      }
+      if (points.length > 0) {
+        // Leaflet polyline hanya butuh [lat, lng], bukan elev
+        const latLngPoints = points.map(p => [p[0], p[1]]);
+        polyline = L.polyline(latLngPoints, { weight: 5, color: "#0f766e" }).addTo(map);
+      }
+    }
+
+    function addClickMarker(latlng) {
+      const marker = L.circleMarker(latlng, {
+        radius: 5,
+        weight: 2,
+        color: "#0f766e",
+        fillColor: "#34d399",
+        fillOpacity: 0.9,
+      }).addTo(map);
+      clickMarkers.push(marker);
+      return marker;
+    }
+
+    function removeLastMarker() {
+      const marker = clickMarkers.pop();
+      if (marker) {
+        map.removeLayer(marker);
+      }
+    }
+
+    function clearAllMarkers() {
+      clickMarkers.forEach((m) => map.removeLayer(m));
+      clickMarkers = [];
+    }
+
+    function setMode(viewOnly) {
+      modeViewOnly = viewOnly;
+      if (viewOnly) {
+        modeTag.textContent = "Mode: lihat rute (view only)";
+        modeTag.style.background = "#dcfce7";
+        resetBtn.disabled = true;
+        followRoadsCheckbox.disabled = true;
+      } else {
+        modeTag.textContent = "Mode: edit rute";
+        modeTag.style.background = "#f9fafb";
+        resetBtn.disabled = false;
+        followRoadsCheckbox.disabled = false;
+      }
+      updateUndoRedoButtons();
+    }
+
+    // ====== LOAD RUTE DARI URL (VIEW MODE) ======
+    async function loadRouteFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const encoded = params.get("route");
+      if (!encoded) {
+        setMode(false);
+        return;
+      }
+
+      try {
+        const json = atob(decodeURIComponent(encoded));
+        const data = JSON.parse(json);
+
+        if (Array.isArray(data) && data.length) {
+          points = data;
+          // Pastikan setiap point punya 3 elemen [lat, lng, elev?]
+          points = points.map(p => {
+            if (Array.isArray(p) && p.length >= 2) {
+              return [p[0], p[1], (p[2] != null && !isNaN(p[2])) ? p[2] : undefined];
+            }
+            return p;
+          });
+          redrawPolyline();
+          await updateDistanceAndElevation();
+          map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+          setMode(true);
+        } else {
+          setMode(false);
+        }
+      } catch (err) {
+        console.error("Gagal parse route param:", err);
+        setMode(false);
+      }
+    }
+
+    loadRouteFromUrl();
+
+    // ====== OSRM ROUTING ======
+    async function getRoadSegment(startLat, startLon, endLat, endLon) {
+      const url =
+        "https://router.project-osrm.org/route/v1/foot/" +
+        `${startLon},${startLat};${endLon},${endLat}` +
+        "?overview=full&geometries=geojson";
+
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        throw new Error("OSRM HTTP " + resp.status);
+      }
+      const data = await resp.json();
+      if (
+        !data.routes ||
+        !data.routes[0] ||
+        !data.routes[0].geometry ||
+        !data.routes[0].geometry.coordinates
+      ) {
+        throw new Error("OSRM response tidak valid");
+      }
+
+      const coords = data.routes[0].geometry.coordinates; // [lon,lat]
+      return coords.map(([lon, lat]) => [lat, lon]);
+    }
+
+    // ====== HANDLE KLIK PETA ======
+    map.on("click", async (e) => {
+      if (modeViewOnly) return;
+
+      const newPoint = [e.latlng.lat, e.latlng.lng, undefined]; // [lat, lng, elev]
+      const beforeLen = points.length;
+      let addedPoints = [];
+
+      if (points.length === 0 || !followRoads) {
+        points.push(newPoint);
+        addedPoints = [newPoint];
+      } else {
+        const [lastLat, lastLon] = points[points.length - 1];
+        try {
+          const segmentPoints = await getRoadSegment(
+            lastLat,
+            lastLon,
+            newPoint[0],
+            newPoint[1]
+          );
+
+          // Hindari duplikat titik awal, pastikan setiap titik punya struktur [lat, lng, elev?]
+          for (let i = 1; i < segmentPoints.length; i++) {
+            const pt = segmentPoints[i];
+            points.push([pt[0], pt[1], undefined]);
+          }
+          addedPoints = segmentPoints.slice(1).map(pt => [pt[0], pt[1], undefined]);
+        } catch (err) {
+          console.error("Gagal routing OSRM, fallback garis lurus:", err);
+          points.push(newPoint);
+          addedPoints = [newPoint];
+        }
+      }
+
+      // Marker hanya untuk titik klik user (ujung segmen)
+      const marker = addClickMarker(e.latlng);
+
+      // Simpan history untuk undo
+      clickHistory.push({
+        pointsAdded: addedPoints,
+        markerLatLng: e.latlng,
+      });
+      redoStack = []; // clear redo setelah langkah baru
+
+      redrawPolyline();
+      await updateDistanceAndElevation();
+      updateUndoRedoButtons();
+    });
+
+    // ====== UNDO / REDO ======
+    undoBtn.addEventListener("click", async () => {
+      if (modeViewOnly || clickHistory.length === 0) return;
+
+      const last = clickHistory.pop();
+      const removeCount = last.pointsAdded.length;
+      if (removeCount > 0) {
+        points.splice(points.length - removeCount, removeCount);
+      }
+      redoStack.push(last);
+
+      removeLastMarker();
+      redrawPolyline();
+      await updateDistanceAndElevation();
+      updateUndoRedoButtons();
+    });
+
+    redoBtn.addEventListener("click", async () => {
+      if (modeViewOnly || redoStack.length === 0) return;
+
+      const action = redoStack.pop();
+      points = points.concat(action.pointsAdded);
+
+      const marker = addClickMarker(action.markerLatLng);
+      // push lagi ke history
+      clickHistory.push(action);
+
+      redrawPolyline();
+      await updateDistanceAndElevation();
+      updateUndoRedoButtons();
+    });
+
+    // ====== RESET ======
+    resetBtn.addEventListener("click", async () => {
+      if (modeViewOnly) return;
+      points = [];
+      if (polyline) {
+        map.removeLayer(polyline);
+        polyline = null;
+      }
+      clickHistory = [];
+      redoStack = [];
+      clearAllMarkers();
+      await updateDistanceAndElevation();
+      shareOutput.style.display = "none";
+      updateUndoRedoButtons();
+    });
+
+    // ====== SHARE RUTE ======
+    shareBtn.addEventListener("click", () => {
+      if (points.length < 2) {
+        alert("Buat dulu rute minimal 2 titik di peta.");
+        return;
+      }
+      try {
+        const json = JSON.stringify(points);
+        const encoded = encodeURIComponent(btoa(json));
+        const url =
+          window.location.origin +
+          window.location.pathname +
+          "?route=" +
+          encoded;
+
+        shareOutput.style.display = "flex";
+        shareUrlInput.value = url;
+        shareStatus.textContent = "";
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(url)
+            .then(() => {
+              shareStatus.textContent = "Link sudah disalin ke clipboard.";
+            })
+            .catch(() => {
+              shareStatus.textContent = "Salin manual jika perlu.";
+            });
+        } else {
+          shareStatus.textContent = "Salin manual jika perlu.";
+        }
+      } catch (err) {
+        console.error("Gagal buat share URL:", err);
+        alert("Terjadi error saat membuat link rute.");
+      }
+    });
+
+    // ====== SEARCH LOKASI (Nominatim) ======
+    async function searchLocation(query) {
+      const q = query.trim();
+      if (!q) return;
+
+      searchStatus.textContent = "Mencari...";
+      try {
+        const url =
+          "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
+          encodeURIComponent(q);
+
+        const resp = await fetch(url, {
+          headers: {
+            "Accept-Language": "id",
+          },
+        });
+        if (!resp.ok) {
+          throw new Error("HTTP " + resp.status);
+        }
+        const data = await resp.json();
+        if (!data || data.length === 0) {
+          searchStatus.textContent = "Lokasi tidak ditemukan.";
+          return;
+        }
+        const item = data[0];
+        const lat = parseFloat(item.lat);
+        const lon = parseFloat(item.lon);
+
+        map.setView([lat, lon], 14);
+        L.popup()
+          .setLatLng([lat, lon])
+          .setContent(item.display_name || q)
+          .openOn(map);
+
+        searchStatus.textContent = "";
+      } catch (err) {
+        console.error("Error search:", err);
+        searchStatus.textContent = "Gagal mencari lokasi.";
+      }
+    }
+
+    searchBtn.addEventListener("click", () => {
+      searchLocation(searchInput.value);
+    });
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        searchLocation(searchInput.value);
+      }
+    });
+
+    function parsePaceToSeconds(p) {
+      if (!p) return null;
+      const parts = p.trim().split(":");
+      if (parts.length !== 2) return null;
+      const m = parseInt(parts[0], 10);
+      const s = parseInt(parts[1], 10);
+      if (isNaN(m) || isNaN(s)) return null;
+      return m * 60 + s;
+    }
+
+    function computeDistanceKm(points) {
+      if (!points || points.length < 2) return 0;
+      let dist = 0;
+      for (let i = 1; i < points.length; i++) {
+        const [lat1, lon1] = points[i - 1];
+        const [lat2, lon2] = points[i];
+        dist += haversineDistance(lat1, lon1, lat2, lon2) / 1000;
+      }
+      return dist;
+    }
+
+    const paceInput = document.getElementById("pace-input");
+    const hrInput = document.getElementById("hr-input");
+    const deviceSelect = document.getElementById("device-select");
+    const stravaBtn = document.getElementById("strava-btn");
+    const stravaStatus = document.getElementById("strava-status");
+
+    stravaBtn.addEventListener("click", async () => {
+      if (points.length < 2) {
+        stravaStatus.textContent = "Buat dulu rute minimal 2 titik";
+        return;
+      }
+      const paceSec = parsePaceToSeconds(paceInput.value);
+      if (paceSec == null || paceSec <= 0) {
+        stravaStatus.textContent = "Format pace tidak valid (contoh 4:30)";
+        return;
+      }
+      const hr = parseInt(hrInput.value, 10);
+      const device = deviceSelect.value || "";
+      const distanceKm = computeDistanceKm(points);
+      const elapsed = Math.round(distanceKm * paceSec);
+      stravaStatus.textContent = "Mengirim ke Strava...";
+      try {
+        const body = new URLSearchParams();
+        body.set("distance_km", String(distanceKm));
+        body.set("elapsed_time", String(elapsed));
+        body.set("pace", paceInput.value.trim());
+        if (!isNaN(hr)) body.set("hr", String(hr));
+        body.set("device", device);
+        body.set("name", "RunRoute Export");
+        const resp = await fetch("/wp-admin/admin-ajax.php?action=rungo_strava_export", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+        if (data && data.ok) {
+          stravaStatus.textContent = data.url ? ("Sukses: " + data.url) : "Sukses export ke Strava";
+        } else {
+          stravaStatus.textContent = (data && data.error) ? ("Gagal: " + data.error) : "Gagal export";
+        }
+      } catch (e) {
+        stravaStatus.textContent = "Gagal kirim ke Strava";
+      }
+    });
+	
+	function calcElevationGain(points) {
+	  if (!points || points.length < 2) return 0;
+
+	  let gain = 0;
+	  for (let i = 1; i < points.length; i++) {
+		const prevElev = points[i - 1][2]; // index 2 = elev
+		const currElev = points[i][2];
+
+		// Skip jika elevasi tidak tersedia
+		if (prevElev == null || currElev == null || 
+		    prevElev === undefined || currElev === undefined ||
+		    isNaN(prevElev) || isNaN(currElev)) {
+		  continue;
+		}
+
+		const diff = currElev - prevElev;
+
+		// Hanya hitung jika naik (gain positif)
+		if (diff > 0) {
+		  gain += diff;
+		}
+	  }
+	  return gain;
+	}
+
+	
+	
+
+    function updateElevationChart(points) {
+      if (!window.ApexCharts) return;
+      if (!points || points.length < 2) {
+        if (elevChart) {
+          elevChart.destroy();
+          elevChart = null;
+        }
+        const el = document.getElementById("elev-chart");
+        if (el) el.innerHTML = "";
+        return;
+      }
+
+      const xs = [];
+      const ys = [];
+
+      let dist = 0;
+      xs.push("0.00");
+      ys.push(points[0][2] || 0);
+      for (let i = 1; i < points.length; i++) {
+        const [lat1, lon1] = points[i - 1];
+        const [lat2, lon2] = points[i];
+        dist += haversineDistance(lat1, lon1, lat2, lon2) / 1000;
+        xs.push(dist.toFixed(2));
+        ys.push(points[i][2] || 0);
+      }
+
+      const el = document.getElementById("elev-chart");
+      if (elevChart) {
+        elevChart.destroy();
+        elevChart = null;
+        el.innerHTML = "";
+      }
+
+      const options = {
+        chart: {
+          type: "area",
+          height: 220,
+          toolbar: { show: false },
+          zoom: { enabled: false },
+          animations: { enabled: true, easing: "easeinout", speed: 400 }
+        },
+        theme: { mode: "light" },
+        stroke: { curve: "smooth", width: 2, colors: ["#0f766e"] },
+        fill: {
+          type: "gradient",
+          gradient: { shadeIntensity: 0.2, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 90, 100] }
+        },
+        dataLabels: { enabled: false },
+        grid: { strokeDashArray: 3 },
+        tooltip: { theme: "light", y: { formatter: (v) => Math.round(v) + " m" } },
+        xaxis: { categories: xs, title: { text: "Jarak (km)" }, tickAmount: Math.min(xs.length, 8), labels: { rotate: 0 } },
+        yaxis: { title: { text: "Elevasi (m)" } },
+        series: [{ name: "Elevasi (m)", data: ys }]
+      };
+
+      elevChart = new ApexCharts(el, options);
+      elevChart.render();
+    }
+
+
+  
+</body>
+</html>
