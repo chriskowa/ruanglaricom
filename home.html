@@ -396,6 +396,9 @@
         async function loadLatestBlogs() {
             const container = document.getElementById('blogCards');
             if (!container) return;
+            
+            // Commented out as per instruction: blog posts are no longer fetched from ruanglari.com
+            /*
             container.innerHTML = `
                 <div class="col-span-3 text-center text-gray-500">Memuat artikel...</div>
             `;
@@ -426,6 +429,7 @@
             } catch (e) {
                 container.innerHTML = '<div class="col-span-3 text-center text-red-500">Gagal memuat artikel.</div>';
             }
+            */
         }
 
         document.addEventListener('DOMContentLoaded', loadLatestBlogs);
