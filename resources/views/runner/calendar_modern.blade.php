@@ -881,7 +881,7 @@
                             <div>
                                 <label class="text-xs text-slate-400 block mb-1">Target Race Date</label>
                                 <input type="date" v-model="vdotForm.goal_race_date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                                <p class="text-[10px] text-slate-500 mt-1">Must be 18-24 weeks from now.</p>
+                                <p class="text-[10px] text-slate-500 mt-1">Recommended: 8-16 weeks from today for optimal results.</p>
                             </div>
                         </div>
                     </div>
