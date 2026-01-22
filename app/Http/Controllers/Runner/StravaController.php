@@ -9,6 +9,7 @@ use App\Models\ProgramSessionTracking;
 use App\Models\StravaActivity;
 use App\Services\StravaApiService;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -154,12 +155,22 @@ class StravaController extends Controller
                 }
             }
 
+            $uniqueById = [];
+            foreach ($all as $row) {
+                $id = data_get($row, 'id');
+                if (is_numeric($id) && (string) $id !== '0') {
+                    $uniqueById[(string) $id] = $row;
+                }
+            }
+            $all = array_values($uniqueById);
+
             $imported = 0;
             $linked = 0;
             $rangeStart = null;
             $rangeEnd = null;
+            $warnings = [];
 
-            DB::transaction(function () use ($user, $all, &$imported, &$linked, &$rangeStart, &$rangeEnd) {
+            DB::transaction(function () use ($user, $all, &$imported, &$linked, &$rangeStart, &$rangeEnd, &$warnings) {
                 foreach ($all as $a) {
                     $activityId = data_get($a, 'id');
                     if (! is_numeric($activityId) || (string) $activityId === '0') {
@@ -168,7 +179,15 @@ class StravaController extends Controller
                     $activityId = (string) $activityId;
 
                     $startDate = data_get($a, 'start_date');
-                    $start = $startDate ? Carbon::parse($startDate) : null;
+                    $start = null;
+                    if ($startDate) {
+                        try {
+                            $start = Carbon::parse($startDate);
+                        } catch (\Throwable $e) {
+                            $warnings[] = 'Aktivitas '.$activityId.' punya start_date tidak valid, dilewati.';
+                            $start = null;
+                        }
+                    }
                     if ($start) {
                         $rangeStart = $rangeStart ? min($rangeStart, $start) : $start;
                         $rangeEnd = $rangeEnd ? max($rangeEnd, $start) : $start;
@@ -188,12 +207,23 @@ class StravaController extends Controller
                         'raw' => $a,
                     ];
 
-                    $existing = StravaActivity::where('strava_activity_id', $activityId)->first();
-                    if ($existing) {
-                        $existing->update($payload);
-                    } else {
-                        StravaActivity::create($payload);
-                        $imported++;
+                    try {
+                        $row = StravaActivity::query()->where('strava_activity_id', $activityId)->first();
+                        if ($row) {
+                            $row->update($payload);
+                        } else {
+                            StravaActivity::create($payload);
+                            $imported++;
+                        }
+                    } catch (QueryException $e) {
+                        $dup = (int) ($e->errorInfo[1] ?? 0) === 1062;
+                        if (! $dup) {
+                            throw $e;
+                        }
+                        $row = StravaActivity::query()->where('strava_activity_id', $activityId)->first();
+                        if ($row) {
+                            $row->update($payload);
+                        }
                     }
                 }
 
@@ -242,17 +272,29 @@ class StravaController extends Controller
                         ->get()
                         ->keyBy('session_day');
 
-                    $startBase = Carbon::parse($enrollment->start_date);
+                    try {
+                        $startBase = Carbon::parse($enrollment->start_date);
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
+                    $seenDays = [];
                     foreach ($sessions as $session) {
                         $day = (int) data_get($session, 'day', 0);
                         if ($day <= 0) {
                             continue;
                         }
+                        if (isset($seenDays[$day])) {
+                            continue;
+                        }
+                        $seenDays[$day] = true;
 
                         $date = $startBase->copy()->addDays($day - 1);
                         $tracking = $trackings->get($day);
                         if ($tracking && $tracking->rescheduled_date) {
-                            $date = Carbon::parse($tracking->rescheduled_date);
+                            try {
+                                $date = Carbon::parse($tracking->rescheduled_date);
+                            } catch (\Throwable $e) {
+                            }
                         }
 
                         $key = $date->format('Y-m-d');
@@ -262,13 +304,31 @@ class StravaController extends Controller
                         }
 
                         if (! $tracking) {
-                            $tracking = ProgramSessionTracking::create([
-                                'enrollment_id' => $enrollment->id,
-                                'session_day' => $day,
-                                'status' => 'pending',
-                            ]);
+                            try {
+                                $tracking = ProgramSessionTracking::firstOrCreate([
+                                    'enrollment_id' => $enrollment->id,
+                                    'session_day' => $day,
+                                ], [
+                                    'status' => 'pending',
+                                ]);
+                            } catch (QueryException $e) {
+                                $dup = (int) ($e->errorInfo[1] ?? 0) === 1062;
+                                if (! $dup) {
+                                    throw $e;
+                                }
+                                $tracking = ProgramSessionTracking::query()
+                                    ->where('enrollment_id', $enrollment->id)
+                                    ->where('session_day', $day)
+                                    ->first();
+                            }
+                            if ($tracking) {
+                                $trackings->put($day, $tracking);
+                            }
                         }
 
+                        if (! $tracking) {
+                            continue;
+                        }
                         if ($tracking->strava_link) {
                             continue;
                         }
@@ -291,6 +351,7 @@ class StravaController extends Controller
                 'message' => 'Sync selesai.',
                 'imported' => $imported,
                 'linked_sessions' => $linked,
+                'warnings' => $warnings,
             ]);
         } catch (\Throwable $e) {
             return response()->json([
