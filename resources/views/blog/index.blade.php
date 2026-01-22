@@ -163,6 +163,13 @@
                         <div id="blog-status" class="text-xs font-mono text-slate-500"></div>
                     </div>
 
+                    <div id="blog-inline-loader" class="hidden mb-6 rounded-2xl border border-slate-700/60 bg-card/40 p-6">
+                        <div class="flex items-center gap-3 text-slate-300">
+                            <div class="w-5 h-5 border-2 border-slate-500 border-t-neon rounded-full animate-spin"></div>
+                            <div class="text-sm font-mono">Memuat artikel…</div>
+                        </div>
+                    </div>
+
                     <div id="blog-results">
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             @forelse($articles as $a)
@@ -290,6 +297,7 @@
     const sortSelect = document.getElementById('blog-sort');
     const resultsEl = document.getElementById('blog-results');
     const statusEl = document.getElementById('blog-status');
+    const inlineLoaderEl = document.getElementById('blog-inline-loader');
     const catButtons = () => Array.from(document.querySelectorAll('.blog-cat'));
     const heroEl = document.getElementById('blog-hero');
 
@@ -304,6 +312,11 @@
     const setStatus = (text) => {
         if (!statusEl) return;
         statusEl.textContent = text || '';
+    };
+
+    const setInlineLoading = (isLoading) => {
+        if (!inlineLoaderEl) return;
+        inlineLoaderEl.classList.toggle('hidden', !isLoading);
     };
 
     const buildUrl = (overrides = {}) => {
@@ -373,6 +386,7 @@
 
         const url = buildUrl({ page });
         setStatus('Memuat…');
+        setInlineLoading(true);
 
         try {
             const res = await fetch(url, {
@@ -385,6 +399,7 @@
             const html = await res.text();
             resultsEl.innerHTML = html;
             setStatus('');
+            setInlineLoading(false);
             markActiveCats();
             setHeroVisibility(page);
             if (typeof window.phHideLoader === 'function') {
@@ -400,6 +415,7 @@
         } catch (e) {
             if (e.name === 'AbortError') return;
             setStatus('Gagal memuat. Coba lagi.');
+            setInlineLoading(false);
         }
     };
 

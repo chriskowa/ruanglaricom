@@ -231,19 +231,24 @@
     @stack('scripts')
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        AOS.init({
-            duration: 800,
-            once: true,
-        });
+        try {
+            if (window.AOS && typeof window.AOS.init === 'function') {
+                window.AOS.init({
+                    duration: 800,
+                    once: true,
+                });
+            }
+        } catch (e) {}
         
         (function () {
             function hideLoader() {
                 var loader = document.getElementById('loader');
                 if (!loader) return;
-                if (loader.style.display === 'none') return;
+                if (loader.dataset.hidden === '1') return;
                 loader.style.opacity = '0';
                 setTimeout(function () {
-                    loader.style.display = 'none';
+                    loader.dataset.hidden = '1';
+                    try { loader.remove(); } catch (e) { loader.style.display = 'none'; }
                 }, 500);
             }
 
