@@ -99,12 +99,12 @@
                 </div>
 
                 <div class="mt-8 flex flex-wrap gap-2">
-                    <button type="button" data-category="" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug ? 'border-slate-700 text-slate-300 hover:text-white' : 'border-neon/40 bg-neon/10 text-neon' }}">
+                    <button type="button" data-cat-kind="chip" data-category="" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug ? 'border-slate-700 text-slate-300 hover:text-white' : 'border-neon/40 bg-neon/10 text-neon' }}">
                         Semua
                         <span class="text-xs font-mono text-slate-400">{{ $categories->sum('published_articles_count') }}</span>
                     </button>
                     @foreach($categories as $cat)
-                        <button type="button" data-category="{{ $cat->slug }}" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300 hover:text-white' }}">
+                        <button type="button" data-cat-kind="chip" data-category="{{ $cat->slug }}" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300 hover:text-white' }}">
                             {{ $cat->name }}
                             <span class="text-xs font-mono text-slate-500">{{ $cat->published_articles_count }}</span>
                         </button>
@@ -223,13 +223,13 @@
                         <a href="{{ route('blog.index') }}" class="text-xs font-mono text-slate-400 hover:text-neon transition-colors">Reset</a>
                     </div>
                     <div class="mt-4 space-y-2">
-                        <button type="button" data-category="" class="blog-cat w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all {{ $activeSlug ? 'border-slate-700 hover:border-slate-500' : 'border-neon/40 bg-neon/10' }}">
-                            <span class="{{ $activeSlug ? 'text-slate-200' : 'text-neon font-bold' }}">Semua</span>
+                        <button type="button" data-cat-kind="sidebar" data-category="" class="blog-cat w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all {{ $activeSlug ? 'border-slate-700 hover:border-slate-500' : 'border-neon/40 bg-neon/10' }}">
+                            <span data-cat-label class="{{ $activeSlug ? 'text-slate-200' : 'text-neon font-bold' }}">Semua</span>
                             <span class="text-xs font-mono text-slate-400">{{ $categories->sum('published_articles_count') }}</span>
                         </button>
                         @foreach($categories as $cat)
-                            <button type="button" data-category="{{ $cat->slug }}" class="blog-cat w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10' : 'border-slate-700 hover:border-slate-500' }}">
-                                <span class="{{ $activeSlug === $cat->slug ? 'text-neon font-bold' : 'text-slate-200' }}">{{ $cat->name }}</span>
+                            <button type="button" data-cat-kind="sidebar" data-category="{{ $cat->slug }}" class="blog-cat w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10' : 'border-slate-700 hover:border-slate-500' }}">
+                                <span data-cat-label class="{{ $activeSlug === $cat->slug ? 'text-neon font-bold' : 'text-slate-200' }}">{{ $cat->name }}</span>
                                 <span class="text-xs font-mono text-slate-500">{{ $cat->published_articles_count }}</span>
                             </button>
                         @endforeach
@@ -324,13 +324,40 @@
         return url.pathname + '?' + params.toString();
     };
 
+    const setCatButtonState = (btn, isActive) => {
+        btn.classList.remove('border-slate-700', 'text-slate-300', 'hover:text-white', 'hover:border-slate-500', 'border-neon/40', 'bg-neon/10', 'text-neon');
+
+        const kind = btn.getAttribute('data-cat-kind') || (btn.classList.contains('inline-flex') ? 'chip' : 'sidebar');
+        if (isActive) {
+            btn.classList.add('border-neon/40', 'bg-neon/10');
+            if (kind === 'chip') {
+                btn.classList.add('text-neon');
+            }
+        } else {
+            btn.classList.add('border-slate-700');
+            if (kind === 'chip') {
+                btn.classList.add('text-slate-300', 'hover:text-white');
+            } else {
+                btn.classList.add('hover:border-slate-500');
+            }
+        }
+
+        const label = btn.querySelector('[data-cat-label]');
+        if (label) {
+            label.classList.remove('text-neon', 'font-bold', 'text-slate-200');
+            if (isActive) {
+                label.classList.add('text-neon', 'font-bold');
+            } else {
+                label.classList.add('text-slate-200');
+            }
+        }
+    };
+
     const markActiveCats = () => {
         catButtons().forEach((btn) => {
             const slug = btn.getAttribute('data-category') || '';
             const isActive = (activeCategory || '') === slug;
-            btn.classList.toggle('border-neon/40', isActive);
-            btn.classList.toggle('bg-neon/10', isActive);
-            btn.classList.toggle('text-neon', isActive && btn.classList.contains('inline-flex'));
+            setCatButtonState(btn, isActive);
         });
     };
 
