@@ -311,8 +311,7 @@
             
             <!-- Poster Container (Visible for Preview) -->
             <!-- Scale logic updated for better mobile view -->
-            <div class="relative transition-transform duration-300 transform scale-[0.85] sm:scale-[0.55] md:scale-[0.85] origin-center shadow-2xl">
-                
+            <div class="relative transition-transform duration-300 transform scale-[0.85] sm:scale-[0.55] md:scale-[0.85] origin-center shadow-2xl">                
                 <div id="activity-poster-container" class="w-[400px] h-[711px] bg-[#0f172a] text-white overflow-hidden font-sans relative shadow-2xl">
                     
                     <!-- 1. Background Layer -->
