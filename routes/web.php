@@ -291,7 +291,7 @@ Route::get('/api/events/upcoming', function () {
             return response()->json([]);
         }
 
-        $events = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id')
+        $events = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id', 'external_registration_link')
             ->orderByRaw('COALESCE(start_at, created_at) ASC')
             ->limit(4)
             ->get()
@@ -305,6 +305,7 @@ Route::get('/api/events/upcoming', function () {
                     'date' => optional($dt)->format('Y-m-d'),
                     'time' => optional($dt)->format('H:i'),
                     'location' => $e->location_name,
+                    'url' => $e->public_url,
                 ];
             });
 

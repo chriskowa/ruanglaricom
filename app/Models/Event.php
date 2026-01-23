@@ -45,6 +45,11 @@ class Event extends Model
         'template',
         'platform_fee',
         'sponsors',
+        'external_registration_link',
+        'social_media_link',
+        'organizer_name',
+        'organizer_contact',
+        'contributor_contact',
     ];
 
     protected $casts = [
@@ -250,5 +255,18 @@ class Event extends Model
         // If user_id is not 1 (Admin), it's likely an EO event
         // Or check if it has internal categories
         return $this->user_id !== 1;
+    }
+
+    public function getPublicUrlAttribute()
+    {
+        // Jika ada external link, berarti ini event aggregator (ex running_events) -> /event-lari/
+        // Atau jika user_id == 1 (Admin) -> /event-lari/
+        // Jika event EO (internal registration) -> /events/
+        
+        if ($this->external_registration_link || $this->user_id === 1 || $this->user_id === null) {
+            return route('running-event.detail', $this->slug);
+        }
+
+        return route('events.show', $this->slug);
     }
 }
