@@ -76,8 +76,11 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/green/apple-touch-icon.png') }}">
 
     <!-- Versi Android/Manifest -->
-    <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
-
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="192x192" href="/images/android-icon-192x192.png">
     
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     
@@ -432,6 +435,17 @@
             var reopen = getOpen();
             if(reopen && isAuthenticated){ fetch(baseUrl+'/api/chat/'+reopen+'/messages', { headers:{'Accept':'application/json'} }).then(function(r){ if(r.ok){ r.json().then(function(j){ openChat(Number(reopen), (j && j.user && j.user.name) ? j.user.name : 'Chat', (j && j.user && j.user.avatar) ? j.user.avatar : null); }); } }); }
         })();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>

@@ -7,47 +7,62 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function (StravaClubService $stravaService) {
-    $homepageContent = \App\Models\HomepageContent::first();
-    $leaderboard = null;
-    $leaderboardCacheKey = 'home.leaderboard.last';
-    try {
-        $leaderboard = $stravaService->getLeaderboard();
-    } catch (\Throwable $e) {
-        $leaderboard = null;
-    }
+    $homepageContent = \Illuminate\Support\Facades\Cache::remember('home.content', 3600, function () {
+        return \App\Models\HomepageContent::first();
+    });
 
-    $hasLeaderboard =
-        is_array($leaderboard)
-        && array_key_exists('fastest', $leaderboard)
-        && array_key_exists('distance', $leaderboard)
-        && array_key_exists('elevation', $leaderboard)
-        && ($leaderboard['fastest'] || $leaderboard['distance'] || $leaderboard['elevation']);
+    $leaderboard = \Illuminate\Support\Facades\Cache::remember('home.leaderboard.data', 3600, function () use ($stravaService) {
+        try {
+            $data = $stravaService->getLeaderboard();
+            return (is_array($data) && ($data['fastest'] || $data['distance'] || $data['elevation'])) ? $data : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    });
 
-    if ($hasLeaderboard) {
-        Illuminate\Support\Facades\Cache::forever($leaderboardCacheKey, $leaderboard);
-        Illuminate\Support\Facades\Cache::forever('home.leaderboard.last_at', now()->toISOString());
+    // Fallback to permanent cache if recent fetch failed/returned null but we have old data
+    if (!$leaderboard) {
+        $leaderboard = \Illuminate\Support\Facades\Cache::get('home.leaderboard.last');
     } else {
-        $leaderboard = Illuminate\Support\Facades\Cache::get($leaderboardCacheKey);
+        // Update permanent cache
+        \Illuminate\Support\Facades\Cache::forever('home.leaderboard.last', $leaderboard);
+        \Illuminate\Support\Facades\Cache::forever('home.leaderboard.last_at', now()->toISOString());
     }
 
-    $topRunner = \App\Models\User::where('role', 'runner')
-        ->withCount(['followers', 'posts'])
-        ->orderByDesc('followers_count')
-        ->first();
+    $topStats = \Illuminate\Support\Facades\Cache::remember('home.top_stats', 3600, function () {
+        $runner = \App\Models\User::where('role', 'runner')
+            ->withCount(['followers', 'posts'])
+            ->orderByDesc('followers_count')
+            ->first();
 
-    $topPacer = \App\Models\Pacer::with('user')
-        ->orderByDesc('total_races')
-        ->first();
+        $pacer = \App\Models\Pacer::with('user')
+            ->orderByDesc('total_races')
+            ->first();
 
-    $topCoachData = \App\Models\ProgramEnrollment::selectRaw('programs.coach_id as coach_id, COUNT(*) as students_count')
-        ->join('programs', 'program_enrollments.program_id', '=', 'programs.id')
-        ->groupBy('programs.coach_id')
-        ->orderByDesc('students_count')
-        ->first();
+        $coachData = \App\Models\ProgramEnrollment::selectRaw('programs.coach_id as coach_id, COUNT(*) as students_count')
+            ->join('programs', 'program_enrollments.program_id', '=', 'programs.id')
+            ->groupBy('programs.coach_id')
+            ->orderByDesc('students_count')
+            ->first();
 
-    $topCoach = $topCoachData ? \App\Models\User::find($topCoachData->coach_id) : null;
+        $coach = $coachData ? \App\Models\User::find($coachData->coach_id) : null;
 
-    return view('home.index', compact('homepageContent', 'leaderboard', 'topRunner', 'topPacer', 'topCoach', 'topCoachData'));
+        return [
+            'runner' => $runner,
+            'pacer' => $pacer,
+            'coach' => $coach,
+            'coachData' => $coachData
+        ];
+    });
+
+    return view('home.index', [
+        'homepageContent' => $homepageContent,
+        'leaderboard' => $leaderboard,
+        'topRunner' => $topStats['runner'],
+        'topPacer' => $topStats['pacer'],
+        'topCoach' => $topStats['coach'],
+        'topCoachData' => $topStats['coachData']
+    ]);
 })->name('home');
 
 // Challenge: 40 Days Challenge - reuse realistic program design view with challenge mode
