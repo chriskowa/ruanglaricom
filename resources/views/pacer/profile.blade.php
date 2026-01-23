@@ -370,11 +370,11 @@
         </div>
     </div>
 
-    <div id="hire-modal" class="fixed inset-0 z-50 hidden">
+    <div id="hire-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div id="hire-modal-overlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        <div class="relative z-10 mx-auto my-8 max-w-lg px-4">
-            <div class="bg-card border border-slate-700 rounded-3xl overflow-y-auto shadow-2xl">
-                <div class="p-6 border-b border-slate-800 flex items-start justify-between gap-4">
+        <div class="relative z-10 w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div class="bg-card border border-slate-700 rounded-3xl shadow-2xl flex flex-col overflow-hidden max-h-full">
+                <div class="p-6 border-b border-slate-800 flex items-start justify-between gap-4 flex-shrink-0">
                     <div>
                         <div class="text-xs text-slate-400 uppercase tracking-widest font-bold">Hire Pacer</div>
                         <div class="text-white font-black text-xl mt-1">{{ $pacerName }}</div>
@@ -382,7 +382,7 @@
                     </div>
                     <button id="btnCloseHireModal" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 text-white flex items-center justify-center">✕</button>
                 </div>
-                <form id="hireBookingForm" method="POST" action="{{ route('pacer.bookings.store', $pacer->seo_slug) }}" class="p-6 space-y-4">
+                <form id="hireBookingForm" method="POST" action="{{ route('pacer.bookings.store', $pacer->seo_slug) }}" class="p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
                     @csrf
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -417,7 +417,7 @@
                         <pre id="hirePreview" class="mt-2 whitespace-pre-wrap text-sm text-slate-200 font-mono"></pre>
                     </div>
                 </form>
-                <div class="p-6 border-t border-slate-800 space-y-2">
+                <div class="p-6 border-t border-slate-800 space-y-2 flex-shrink-0">
                     <button id="btnProceedPayment" class="w-full py-4 rounded-2xl bg-neon text-dark font-black text-base hover:bg-neon/90 transition">Proceed to Payment</button>
                     <div class="text-xs text-slate-500 text-center">Pembayaran aman via Midtrans. Kontak pacer terbuka setelah paid.</div>
                 </div>
