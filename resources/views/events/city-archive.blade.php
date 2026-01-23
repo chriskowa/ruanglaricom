@@ -65,7 +65,7 @@
                         @endif
                     </div>
                     
-                    <a href="{{ isset($event->is_eo) && $event->is_eo ? route('events.show', $event->slug) : route('running-event.detail', $event->slug) }}" class="block group-hover:text-neon transition-colors">
+                    <a href="{{ $event->public_url }}" class="block group-hover:text-neon transition-colors">
                         <h3 class="text-lg font-bold text-white mb-2 line-clamp-2">{{ $event->name }}</h3>
                     </a>
                     

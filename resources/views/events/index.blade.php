@@ -64,7 +64,7 @@
                             <p class="text-[10px] text-slate-500 uppercase">Mulai dari</p>
                             <p class="font-mono font-bold text-white">{{ $event->starting_price ? 'Rp '.number_format($event->starting_price,0,',','.') : '-' }}</p>
                         </div>
-                        <a href="{{ route('events.show',$event->slug) }}" class="bg-white text-dark hover:bg-neon transition px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Detail</a>
+                        <a href="{{ $event->public_url }}" class="bg-white text-dark hover:bg-neon transition px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Detail</a>
                     </div>
                 </div>
             </div>
