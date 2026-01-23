@@ -443,10 +443,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class)->except(['show']);
 
         // User Management
-        Route::resource('users', App\Http\Controllers\Admin\UserController::class);
-        Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
-        Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
-        Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+    Route::get('users/{user}/transactions', [App\Http\Controllers\Admin\UserController::class, 'transactions'])->name('users.transactions');
+    Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
+    Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
+    Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
 
         Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');
         Route::post('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'update'])->name('marketplace.settings.update');

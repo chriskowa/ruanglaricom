@@ -55,12 +55,28 @@ class UserController extends Controller
             'active' => User::where('is_active', true)->count(),
         ];
 
-        $users = $query->with(['wallet', 'wallet.transactions' => function ($q) {
-            $q->latest()->limit(5);
-        }])->latest()->paginate(10)->withQueryString();
+        // Optimized query: remove wallet.transactions eager loading
+        $users = $query->with('wallet')->latest()->paginate(10)->withQueryString();
+        
+        if ($request->ajax()) {
+            return view('admin.users.partials.table', compact('users'))->render();
+        }
+
         $programs = Program::select('id', 'title')->where('is_active', true)->get();
 
         return view('admin.users.index', compact('users', 'stats', 'programs'));
+    }
+
+    /**
+     * Get user transactions.
+     */
+    public function transactions(User $user)
+    {
+        return response()->json([
+            'transactions' => $user->wallet 
+                ? $user->wallet->transactions()->latest()->limit(5)->get() 
+                : []
+        ]);
     }
 
     /**
