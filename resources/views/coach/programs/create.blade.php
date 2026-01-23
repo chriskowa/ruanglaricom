@@ -1310,7 +1310,8 @@ createApp({
             deleteWorkout, duplicateWorkout, builderIsEditing, builderSessionId,
             copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes,
-            masterWorkouts
+            masterWorkouts, cwForm, cwSummary, cwTotalDistance,
+            strengthOptions, addStrengthExercise, removeStrengthExercise
         };
     }
 }).mount('#program-builder-app');

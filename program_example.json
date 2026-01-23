@@ -1,0 +1,110 @@
+{
+  "duration_weeks": 4,
+  "sessions": [
+    {
+      "_id": "s_easy_1",
+      "day": 1,
+      "type": "easy_run",
+      "title": "Easy Run 5km",
+      "distance": 5,
+      "description": "5km Easy @ 06:00 min/km",
+      "duration": "00:30:00",
+      "advanced_config": {
+        "type": "easy_run",
+        "title": "Easy Run 5km",
+        "intensity": "low",
+        "warmup": { "enabled": false, "by": "distance", "distanceKm": 0, "duration": "" },
+        "cooldown": { "enabled": false, "by": "distance", "distanceKm": 0, "duration": "" },
+        "main": { "by": "distance", "distanceKm": 5, "duration": "", "pace": "06:00" },
+        "longRun": { "fastFinish": { "enabled": false, "distanceKm": 0, "pace": "" } },
+        "tempo": { "by": "distance", "distanceKm": 0, "duration": "", "pace": "", "effort": "moderate" },
+        "interval": { "reps": 6, "by": "distance", "repDistanceKm": 0.8, "repTime": "", "pace": "", "recovery": "Jog 2:00" },
+        "strength": { "category": "", "exercise": "", "sets": "", "reps": "", "equipment": "", "plan": [] }
+      }
+    },
+    {
+      "_id": "s_rest_1",
+      "day": 2,
+      "type": "rest",
+      "title": "Rest Day",
+      "distance": 0,
+      "description": "Rest",
+      "duration": "",
+      "advanced_config": {
+        "type": "rest",
+        "title": "Rest Day",
+        "intensity": "low",
+        "warmup": { "enabled": false },
+        "cooldown": { "enabled": false },
+        "main": { "by": "distance", "distanceKm": 0 },
+        "strength": { "plan": [] }
+      }
+    },
+    {
+      "_id": "s_tempo_1",
+      "day": 3,
+      "type": "tempo",
+      "title": "Tempo Run 7km",
+      "distance": 7,
+      "description": "5km Tempo with 1km WU/CD",
+      "duration": "",
+      "advanced_config": {
+        "type": "tempo",
+        "title": "Tempo Run 7km",
+        "intensity": "high",
+        "warmup": { "enabled": true, "by": "distance", "distanceKm": 1, "duration": "" },
+        "cooldown": { "enabled": true, "by": "distance", "distanceKm": 1, "duration": "" },
+        "main": { "by": "distance", "distanceKm": 0 },
+        "tempo": { "by": "distance", "distanceKm": 5, "duration": "", "pace": "05:00", "effort": "hard" },
+        "strength": { "plan": [] }
+      }
+    },
+    {
+      "_id": "s_strength_1",
+      "day": 4,
+      "type": "strength",
+      "title": "Full Body Strength",
+      "distance": 0,
+      "description": "Full Body: Squats, Push-Ups, Plank",
+      "duration": "",
+      "advanced_config": {
+        "type": "strength",
+        "title": "Full Body Strength",
+        "intensity": "medium",
+        "warmup": { "enabled": false },
+        "cooldown": { "enabled": false },
+        "strength": {
+          "category": "full_body",
+          "exercise": "",
+          "sets": "",
+          "reps": "",
+          "equipment": "",
+          "plan": [
+            { "name": "Squats", "sets": "3", "reps": "12", "equipment": "Bodyweight" },
+            { "name": "Push-Ups", "sets": "3", "reps": "12", "equipment": "Bodyweight" },
+            { "name": "Plank", "sets": "3", "reps": "60s", "equipment": "Bodyweight" }
+          ]
+        }
+      }
+    },
+    {
+      "_id": "s_long_1",
+      "day": 7,
+      "type": "long_run",
+      "title": "Long Run 10km",
+      "distance": 10,
+      "description": "10km LSD @ 06:30 min/km",
+      "duration": "",
+      "advanced_config": {
+        "type": "long_run",
+        "title": "Long Run 10km",
+        "intensity": "medium",
+        "warmup": { "enabled": false },
+        "cooldown": { "enabled": false },
+        "main": { "by": "distance", "distanceKm": 10, "duration": "", "pace": "06:30" },
+        "longRun": { "fastFinish": { "enabled": false } },
+        "strength": { "plan": [] }
+      }
+    }
+  ]
+}
