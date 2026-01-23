@@ -144,6 +144,10 @@
             </div>
             <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-[10] isolate pointer-events-auto" data-debug="runner-calendar-header-actions">
                 <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
+                <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#E34402] transition text-xs md:text-sm shadow-lg shadow-orange-600/20 flex items-center gap-1 disabled:opacity-70 disabled:cursor-not-allowed">
+                    <span v-if="isSyncingStrava" class="animate-spin">⟳</span>
+                    Sync Strava
+                </button>
                 @if($isEnrolled40Days)
                 <a href="{{ route('challenge.create') }}" class="relative z-[5001] px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-xs md:text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
                 @endif
@@ -1321,6 +1325,7 @@ createApp({
         const trainingProfile = ref(@json($trainingProfile ?? []));
         const showDetailModal = ref(false);
         const syncLoading = ref(false);
+        const isSyncingStrava = ref(false);
         const detail = reactive({});
         const detailTitle = ref('');
         const stravaLinkInput = ref('');
@@ -1549,6 +1554,32 @@ createApp({
         let calendar = null;
 
         // ... existing methods ...
+
+        const syncStrava = async () => {
+            if (isSyncingStrava.value) return;
+            isSyncingStrava.value = true;
+            try {
+                const res = await fetch('{{ route("runner.strava.sync") }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Strava activities synced successfully!');
+                    // Refresh calendar, plans and volume
+                    await loadPlans();
+                    if (calendar) calendar.refetchEvents();
+                    loadWeeklyVolume();
+                } else {
+                    alert(data.message || 'Failed to sync Strava activities');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('An error occurred while syncing Strava');
+            } finally {
+                isSyncingStrava.value = false;
+            }
+        };
 
         const syncTraining = async () => {
             syncLoading.value = true;
@@ -2764,7 +2795,7 @@ createApp({
             resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
             trainingProfile, formatPace, showPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
             stravaLinkInput, notesInput, rpeInput, feelingInput, finishActivityWithLink, profileTab, chatCoach,
-            addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, weeklyVolume, maxVolume,
+            addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, isSyncingStrava, syncStrava, weeklyVolume, maxVolume,
             assetStorage, assetProfile, runnerUrl, chatUrl, 
             showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
