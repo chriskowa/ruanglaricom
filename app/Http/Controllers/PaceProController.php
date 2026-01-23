@@ -11,10 +11,10 @@ class PaceProController extends Controller
     public function index(Request $request)
     {
         $gpxFiles = MasterGpx::query()
-            ->with(['runningEvent.city'])
+            ->with(['event.city'])
             ->where('is_published', true)
-            ->leftJoin('running_events', 'master_gpxes.running_event_id', '=', 'running_events.id')
-            ->orderByDesc('running_events.event_date')
+            ->leftJoin('events', 'master_gpxes.running_event_id', '=', 'events.id')
+            ->orderByDesc('events.start_at')
             ->orderByDesc('master_gpxes.created_at')
             ->select('master_gpxes.*')
             ->get()
@@ -24,9 +24,9 @@ class PaceProController extends Controller
                     'title' => $gpx->title,
                     'distance_km' => $gpx->distance_km,
                     'elevation_gain_m' => $gpx->elevation_gain_m,
-                    'event_name' => $gpx->runningEvent?->name,
-                    'event_date' => $gpx->runningEvent?->event_date?->format('Y-m-d'),
-                    'event_city' => $gpx->runningEvent?->city?->name,
+                    'event_name' => $gpx->event?->name,
+                    'event_date' => $gpx->event?->start_at?->format('Y-m-d'),
+                    'event_city' => $gpx->event?->city?->name,
                     'download_url' => route('tools.pace-pro.gpx', ['masterGpx' => $gpx->id]),
                 ];
             })

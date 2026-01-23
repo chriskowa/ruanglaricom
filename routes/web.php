@@ -58,6 +58,12 @@ Route::get('/challenge/40-days-challenge', function () {
     ]);
 })->name('challenge.40days');
 
+Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/v-card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');
+Route::get('/vcard', function () {
+    return redirect()->route('vcard.index', [], 301);
+});
+
 // Challenge assessment persistence (auth required)
 Route::middleware('auth')->post('/challenge/40-days-challenge/assessment', function (Illuminate\Http\Request $request) {
     $data = $request->validate([
