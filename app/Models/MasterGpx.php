@@ -10,7 +10,7 @@ class MasterGpx extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'running_event_id',
+        'event_id',
         'title',
         'gpx_path',
         'distance_km',

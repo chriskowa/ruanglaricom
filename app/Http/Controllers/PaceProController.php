@@ -13,7 +13,7 @@ class PaceProController extends Controller
         $gpxFiles = MasterGpx::query()
             ->with(['event.city'])
             ->where('is_published', true)
-            ->leftJoin('events', 'master_gpxes.running_event_id', '=', 'events.id')
+            ->leftJoin('events', 'master_gpxes.event_id', '=', 'events.id')
             ->orderByDesc('events.start_at')
             ->orderByDesc('master_gpxes.created_at')
             ->select('master_gpxes.*')

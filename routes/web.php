@@ -496,6 +496,10 @@ Route::middleware('auth')->group(function () {
         // V-Card Settings
         Route::get('/vcard-settings', [App\Http\Controllers\Admin\VCardSettingsController::class, 'index'])->name('vcard.settings');
         Route::post('/vcard-settings', [App\Http\Controllers\Admin\VCardSettingsController::class, 'update'])->name('vcard.settings.update');
+
+        // SEO Settings
+        Route::get('/seo-settings', [App\Http\Controllers\Admin\SeoSettingsController::class, 'index'])->name('seo.settings');
+        Route::post('/seo-settings', [App\Http\Controllers\Admin\SeoSettingsController::class, 'update'])->name('seo.settings.update');
     });
 
     // Runner routes
