@@ -142,14 +142,14 @@
                 <p class="text-neon font-mono text-sm tracking-widest uppercase">Training</p>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Runner Calendar</h1>
             </div>
-            <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-[60] pointer-events-auto">
-                <button type="button" @click="openVdotModal" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
+            <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-[10] isolate pointer-events-auto" data-debug="runner-calendar-header-actions">
+                <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
                 @if($isEnrolled40Days)
-                <a href="{{ route('challenge.create') }}" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-xs md:text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
+                <a href="{{ route('challenge.create') }}" class="relative z-[5001] px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-xs md:text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
                 @endif
-                <a href="{{ route('programs.index') }}" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-xs md:text-sm font-bold">Browse Programs</a>
-                <button type="button" @click="openFormForToday" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-xs md:text-sm">Add Custom Workout</button>
-                <button type="button" @click="openRaceForm" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-xs md:text-sm">Add Race</button>
+                <a href="{{ route('programs.index') }}" class="relative z-[5001] px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-xs md:text-sm font-bold">Browse Programs</a>
+                <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Custom Workout'); openFormForToday(); }" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-xs md:text-sm">Add Custom Workout</button>
+                <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Race'); openRaceForm(); }" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-xs md:text-sm">Add Race</button>
             </div>
         </div>
 
@@ -523,7 +523,7 @@
             </div>
         </div>
 
-        <div v-if="showDetailModal" class="fixed inset-0 z-[300] overflow-y-auto">
+        <div v-if="showDetailModal" class="fixed inset-0 z-[1050] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
             <!-- Dynamic Modal Width based on Type -->
             <div class="relative z-10 mx-auto my-10 glass-panel rounded-3xl p-0 border border-slate-700 overflow-hidden transition-all duration-300"
@@ -855,6 +855,7 @@
                 </div>
             </div>
         </div>
+        </div>
 
         <div v-if="showPbModal" class="fixed inset-0 z-[250] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
@@ -895,7 +896,7 @@
             </div>
         </div>
 
-        <div v-if="showVdotModal" class="fixed inset-0 z-[300] overflow-y-auto">
+        <div v-if="showVdotModal" class="fixed inset-0 z-[1050] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-2xl mx-auto my-10 glass-panel rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -1040,7 +1041,7 @@
             </div>
         </div>
 
-        <div v-if="showFormModal" class="fixed inset-0 z-[300] overflow-y-auto">
+        <div v-if="showFormModal" class="fixed inset-0 z-[1050] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-lg mx-auto my-10 glass-panel rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-3">
@@ -1142,7 +1143,7 @@
 
 
 
-        <div v-if="showRaceModal" class="fixed inset-0 z-[300] overflow-y-auto">
+        <div v-if="showRaceModal" class="fixed inset-0 z-[1050] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-lg mx-auto my-10 glass-panel rounded-2xl p-6 border-yellow-500/30 shadow-2xl shadow-yellow-500/10">
                 <div class="flex justify-between items-center mb-6">
@@ -1282,10 +1283,10 @@
     </div>
 </main>
 @endsection
-
 @push('scripts')
 @include('layouts.components.advanced-builder-utils')
 <script src="{{ asset('vendor/chart-js/chart.bundle.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script>
 const { createApp, ref, reactive, onMounted, computed, watch, nextTick } = Vue;
 (function(){
@@ -1294,7 +1295,16 @@ const { createApp, ref, reactive, onMounted, computed, watch, nextTick } = Vue;
 })();
 createApp({
     setup() {
-        const csrf = document.querySelector('meta[name="csrf-token"]').content;
+        // Define static assets/urls first (avoid TDZ/ReferenceError in helpers called early)
+        const assetStorage = @json(asset('storage'));
+        const assetProfile = @json(asset('images/profile/profile.png'));
+        const runnerUrl = @json(url('/runner'));
+        const chatUrl = @json(url('/chat'));
+
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        console.log('[RunnerCalendar] Setup Init', { runnerUrl, chatUrl, hasCsrf: !!csrf });
+
         const filter = ref('unfinished');
         const plans = ref([]);
         const weeklyVolume = ref([]);
@@ -1519,6 +1529,7 @@ createApp({
         });
 
         const openVdotModal = async () => {
+            console.log('Button Clicked: openVdotModal');
             try {
                 console.log('[RunnerCalendar] openVdotModal');
                 showDetailModal.value = false;
@@ -2718,11 +2729,6 @@ createApp({
         }[t] || 'Running');
         const formatDate = (d) => { try { const dt = new Date(d); return dt.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }); } catch { return d; } };
 
-        const assetStorage = @json(asset('storage'));
-        const assetProfile = @json(asset('images/profile/profile.png'));
-        const runnerUrl = @json(url('/runner'));
-        const chatUrl = @json(url('/chat'));
-
         const chatCoach = (coach) => {
             try {
                 if (window.openChat && coach) {
@@ -2740,7 +2746,16 @@ createApp({
         loadWeeklyVolume();
         
         onMounted(() => {
-            initCalendar();
+            console.log('[RunnerCalendar] onMounted');
+
+            try {
+                initCalendar();
+                console.log('[RunnerCalendar] initCalendar done');
+            } catch (e) {
+                console.error('[RunnerCalendar] initCalendar failed', e);
+            }
+
+           
         });
 
         return { filter, plans, plansLoading, enrollments, programBag, setFilter, dayName, statusText, statusClass, activityLabel, formatDate,
