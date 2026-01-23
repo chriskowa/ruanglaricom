@@ -8,6 +8,8 @@
 <style>
 .glass-panel{background:rgba(15,23,42,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
 .fc .fc-toolbar-title{font-size: medium;font-weight:800;color:#e2e8f0}
+#loader { pointer-events: none !important; }
+#ph-sidebar-backdrop.hidden { display: none !important; }
 .fc .fc-button{background:#1e293b;border-color:#334155;color:#cbd5e1}
 .fc .fc-button:hover{color:#ccff00;border-color:#ccff00}
 .fc-event{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:8px;padding:2px 6px}
@@ -139,7 +141,7 @@
                 <p class="text-neon font-mono text-sm tracking-widest uppercase">Training</p>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Runner Calendar</h1>
             </div>
-            <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-20">
+            <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-50">
                 <button type="button" @click="showVdotModal = true" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
                 @if($isEnrolled40Days)
                 <a href="{{ route('challenge.create') }}" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-xs md:text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>

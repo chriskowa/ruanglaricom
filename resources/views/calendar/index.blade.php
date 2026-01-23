@@ -1070,9 +1070,9 @@
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-white line-clamp-1">
-                                        <a :href="`https://www.strava.com/activities/${activity.id}`" target="_blank" class="hover:text-[#FC4C02] hover:underline transition relative z-10" @click.stop>
+                                        <span class="hover:text-[#FC4C02] hover:underline transition relative z-10 cursor-pointer">
                                             @{{ activity.name }}
-                                        </a>
+                                        </span>
                                     </h4>
                                     <p class="text-xs text-slate-500">@{{ formatDateFull(activity.start_date) }}</p>
                                 </div>
