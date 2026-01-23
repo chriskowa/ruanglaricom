@@ -182,7 +182,7 @@
             @include('layouts.components.pacerhub-sidebar')
         @endif
 
-        <main class="flex-grow w-full {{ (!isset($hideNav) || !$hideNav) ? 'pt-16' : '' }}">
+        <main class="flex-grow w-full {{ (!isset($hideNav) || !$hideNav) ? 'pt-20' : '' }}">
             @yield('content')
         </main>
 

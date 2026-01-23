@@ -143,6 +143,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 });
 
 // Public routes
+Route::get('/v-card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');
+Route::get('/v-card.html', function () {
+    return redirect()->route('vcard.index');
+});
 Route::get('/tools/calculator', [App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
 Route::get('/tools/form-analyzer', [App\Http\Controllers\FormAnalyzerController::class, 'index'])->name('tools.form-analyzer');
 Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerController::class, 'analyze'])->name('tools.form-analyzer.analyze');
@@ -482,6 +486,10 @@ Route::middleware('auth')->group(function () {
         // Integration Settings
         Route::get('/integration-settings', [App\Http\Controllers\Admin\IntegrationSettingsController::class, 'index'])->name('integration.settings');
         Route::post('/integration-settings', [App\Http\Controllers\Admin\IntegrationSettingsController::class, 'update'])->name('integration.settings.update');
+
+        // V-Card Settings
+        Route::get('/vcard-settings', [App\Http\Controllers\Admin\VCardSettingsController::class, 'index'])->name('vcard.settings');
+        Route::post('/vcard-settings', [App\Http\Controllers\Admin\VCardSettingsController::class, 'update'])->name('vcard.settings.update');
     });
 
     // Runner routes
