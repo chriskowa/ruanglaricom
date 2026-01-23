@@ -19,10 +19,18 @@ class VCardController extends Controller
         if (!is_array($featuredLinks) || count($featuredLinks) === 0) {
             $featuredLinks = [
                 [
-                    'title' => 'Latihan Bersama Robi Syianturi',
-                    'url' => 'https://app.ruanglari.com/events/latihan-bersama-jumat',
-                    'badge' => 'Join Latihan',
-                    'icon' => 'users',
+                    'title' => 'RuangLari Marketplace',
+                    'url' => route('marketplace.index'),
+                    'badge' => 'New Arrival',
+                    'icon' => 'shopping-bag',
+                    'color' => 'from-pink-500 to-rose-500'
+                ],
+                [
+                    'title' => 'Hire Professional Pacer',
+                    'url' => route('pacer.index'),
+                    'badge' => 'PacerHub',
+                    'icon' => 'running',
+                    'color' => 'from-neon to-lime-500 text-slate-900' // Custom handling for neon
                 ],
             ];
         }
@@ -30,14 +38,12 @@ class VCardController extends Controller
         $links = json_decode((string) AppSettings::get('vcard_links', ''), true);
         if (!is_array($links) || count($links) === 0) {
             $links = [
-                ['title' => '40 Days Challenge', 'url' => 'https://app.ruanglari.com/challenge/40-days-challenge', 'icon' => 'fire'],
-                ['title' => 'Official Website', 'url' => 'https://ruanglari.com', 'icon' => 'globe'],
-                ['title' => 'Free Program', 'url' => 'https://ruanglari.com/freeprogram/', 'icon' => 'gift'],
-                ['title' => 'Kalkulator Lari', 'url' => 'https://ruanglari.com/running-calculator/', 'icon' => 'calculator'],
-                ['title' => 'Pace Pro Tools', 'url' => 'https://ruanglari.com/ruang-lari-pace-pro/', 'icon' => 'gauge'],
-                ['title' => 'Kalender Event', 'url' => 'https://ruanglari.com/kalender-lari-nasional/', 'icon' => 'calendar'],
-                ['title' => 'Baca Blog', 'url' => 'https://ruanglari.com/blog', 'icon' => 'book-open'],
-                ['title' => 'Kontak Admin', 'url' => 'https://wa.me/6287866950667', 'icon' => 'whatsapp', 'external' => true],
+                ['title' => 'Kalender Lari Indonesia', 'url' => route('events.index'), 'icon' => 'calendar-alt'],
+                ['title' => 'Kalkulator Pace & Race', 'url' => route('calculator'), 'icon' => 'calculator'],
+                ['title' => 'Training Programs', 'url' => route('programs.index'), 'icon' => 'dumbbell'],
+                ['title' => '40 Days Challenge', 'url' => route('challenge.index'), 'icon' => 'fire'],
+                ['title' => 'Cek Foto Race (Gratis)', 'url' => 'https://ruanglari.com/foto', 'icon' => 'camera'],
+                ['title' => 'Baca Artikel & Tips', 'url' => 'https://ruanglari.com/blog', 'icon' => 'book-open'],
             ];
         }
 

@@ -1,166 +1,224 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ $title }}</title>
     <meta name="description" content="{{ $description }}">
-    <link rel="canonical" href="{{ url()->current() }}">
-
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta name="robots" content="index, follow">
     <meta property="og:title" content="{{ $title }}">
     <meta property="og:description" content="{{ $description }}">
     <meta property="og:image" content="{{ $ogImageUrl }}">
-
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $title }}">
-    <meta name="twitter:description" content="{{ $description }}">
-    <meta name="twitter:image" content="{{ $ogImageUrl }}">
-
-    @if($bgImageUrl)
-        <link rel="preload" as="image" href="{{ $bgImageUrl }}">
-    @endif
-    @if($logoUrl)
-        <link rel="preload" as="image" href="{{ $logoUrl }}">
-    @endif
-
-    <style>
-        :root { --bg:#0f172a; --card:rgba(15,23,42,.62); --line:rgba(148,163,184,.22); --txt:#e5e7eb; --muted:#94a3b8; --neon:#ccff00; }
-        *{box-sizing:border-box}
-        html,body{height:100%}
-        body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-        a{color:inherit;text-decoration:none}
-        .wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 16px}
-        .bg{position:fixed;inset:0;z-index:-2;overflow:hidden}
-        .bg img{width:100%;height:100%;object-fit:cover;filter:saturate(1.05)}
-        .shade{position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg, rgba(15,23,42,.86), rgba(15,23,42,.62), rgba(15,23,42,.92))}
-        .container{width:100%;max-width:520px}
-        .brand{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:18px}
-        .logo{width:184px;height:auto;filter:drop-shadow(0 18px 26px rgba(0,0,0,.45))}
-        .title{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0;text-align:center}
-        .desc{margin:6px 0 0 0;color:var(--muted);font-size:13px;line-height:1.45;text-align:center}
-        .featured{margin-top:18px}
-        .cardGlow{border-radius:18px;padding:1px;background:linear-gradient(135deg, rgba(204,255,0,.85), rgba(34,211,238,.55));box-shadow:0 18px 60px rgba(0,0,0,.5)}
-        .cardGlow > a{display:block;border-radius:17px;background:linear-gradient(135deg, rgba(16,185,129,.85), rgba(6,95,70,.85));padding:14px 14px}
-        .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-        .badge{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(236,253,245,.85);font-weight:800}
-        .featTitle{font-size:16px;font-weight:900;color:white;margin:2px 0 0 0}
-        .iconBox{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .arrow{width:34px;height:34px;border-radius:999px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .grid{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:10px;margin-top:14px}
-        .btn{border-radius:16px;background:rgba(255,255,255,.08);backdrop-filter: blur(12px);border:1px solid rgba(255,255,255,.14);padding:14px 12px;min-height:122px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:transform .18s ease,border-color .18s ease,background .18s ease}
-        .btn:hover{transform:translateY(-2px);border-color:rgba(204,255,0,.35);background:rgba(255,255,255,.11)}
-        .miniIcon{width:46px;height:46px;border-radius:999px;background:linear-gradient(180deg, rgba(204,255,0,.14), rgba(204,255,0,0));border:1px solid rgba(204,255,0,.18);display:flex;align-items:center;justify-content:center}
-        .btnTitle{font-size:13px;font-weight:800;color:#f1f5f9;text-align:center;line-height:1.2}
-        .ads{margin-top:14px;border-radius:16px;padding:16px;border:2px dashed rgba(148,163,184,.35);background:rgba(255,255,255,.04);transition:border-color .18s ease, background .18s ease}
-        .ads:hover{border-color:rgba(204,255,0,.45);background:rgba(15,23,42,.55)}
-        .adsTitle{font-size:13px;font-weight:900;color:#e2e8f0;margin:0}
-        .adsDesc{font-size:12px;color:rgba(148,163,184,.9);margin:6px 0 0 0}
-        .footer{margin-top:18px;text-align:center}
-        .social{display:flex;justify-content:center;gap:12px;margin:10px 0 12px}
-        .social a{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);transition:transform .18s ease,border-color .18s ease}
-        .social a:hover{transform:translateY(-2px);border-color:rgba(204,255,0,.35)}
-        .copy{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(148,163,184,.7)}
-        .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
-        @media (prefers-reduced-motion: reduce){
-            .btn,.social a,.cardGlow > a{transition:none}
-            .btn:hover,.social a:hover{transform:none}
+    
+    <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                        neon: '#ccff00',
+                        primary: '#ccff00',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+                            '50%': { opacity: '.8', transform: 'scale(1.02)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
         }
-    </style>
-
-    <script type="application/ld+json">
-        {!! json_encode([
-            '@context' => 'https://schema.org',
-            '@type' => 'WebSite',
-            'name' => 'Ruang Lari Indonesia',
-            'url' => url('/'),
-        ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) !!}
     </script>
+    <style>
+        body { background-color: #0f172a; color: white; -webkit-tap-highlight-color: transparent; }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass:hover {
+            background: rgba(30, 41, 59, 0.9);
+            border-color: rgba(204, 255, 0, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(204, 255, 0, 0.15);
+        }
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
-<body>
-    <div class="bg" aria-hidden="true">
+<body class="min-h-screen flex flex-col items-center relative overflow-x-hidden selection:bg-neon selection:text-dark">
+
+    <!-- Background -->
+    <div class="fixed inset-0 z-[-1]">
         @if($bgImageUrl)
-            <img src="{{ $bgImageUrl }}" alt="" decoding="async" fetchpriority="high">
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 blur-sm scale-105" style="background-image: url('{{ $bgImageUrl }}');"></div>
         @endif
+        <div class="absolute inset-0 bg-gradient-to-b from-dark/80 via-dark/95 to-dark"></div>
+        <div class="absolute inset-0 bg-grid-pattern opacity-20 mask-image-gradient"></div>
     </div>
-    <div class="shade" aria-hidden="true"></div>
 
-    <main class="wrap">
-        <div class="container">
-            <header class="brand">
-                @if($logoUrl)
-                    <img class="logo" src="{{ $logoUrl }}" alt="Ruang Lari" decoding="async" fetchpriority="high">
-                @endif
-                <div>
-                    <h1 class="title">Selamat Datang di Ruang Lari</h1>
-                    <p class="desc">{{ $description }}</p>
+    <!-- Main Content -->
+    <main class="w-full max-w-md mx-auto px-5 py-10 flex flex-col items-center relative z-10 min-h-screen">
+        
+        <!-- Header Profile -->
+        <div class="flex flex-col items-center text-center mb-8 w-full animate-slide-up" style="animation-delay: 0.1s;">
+            <div class="relative group cursor-pointer mb-4">
+                <div class="absolute -inset-1 bg-neon rounded-full blur opacity-20 group-hover:opacity-50 transition duration-500"></div>
+                <div class="relative w-28 h-28 rounded-full bg-dark p-1 border border-slate-700 overflow-hidden shadow-2xl">
+                    <img src="{{ $logoUrl }}" alt="Logo" class="w-full h-full object-contain rounded-full bg-slate-900">
                 </div>
-            </header>
-
-            <section class="featured" aria-label="Featured">
-                @foreach($featuredLinks as $feat)
-                    <div class="cardGlow">
-                        <a href="{{ $feat['url'] ?? '#' }}" {{ !empty($feat['external']) ? 'target=_blank rel=noopener' : '' }} aria-label="{{ $feat['title'] ?? 'Featured' }}">
-                            <div class="row">
-                                <div class="row" style="gap:12px;align-items:center;">
-                                    <div class="iconBox" aria-hidden="true">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div class="badge">{{ $feat['badge'] ?? 'Featured' }}</div>
-                                        <div class="featTitle">{{ $feat['title'] ?? '' }}</div>
-                                    </div>
-                                </div>
-                                <div class="arrow" aria-hidden="true">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                @endforeach
-            </section>
-
-            <section class="grid" aria-label="Links">
-                @foreach($links as $link)
-                    <a class="btn" href="{{ $link['url'] ?? '#' }}" {{ !empty($link['external']) ? 'target=_blank rel=noopener' : '' }} aria-label="{{ $link['title'] ?? 'Link' }}">
-                        <div class="miniIcon" aria-hidden="true">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--neon)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 2v20"></path><path d="M2 12h20"></path>
-                            </svg>
-                        </div>
-                        <div class="btnTitle">{{ $link['title'] ?? '' }}</div>
-                    </a>
-                @endforeach
-            </section>
-
-            @if($adsUrl)
-                <a class="ads" href="{{ $adsUrl }}" target="_blank" rel="noopener" aria-label="Iklan">
-                    <p class="adsTitle">{{ $adsTitle }}</p>
-                    <p class="adsDesc">{{ $adsDescription }}</p>
-                </a>
-            @endif
-
-            <footer class="footer">
-                <div class="social" aria-label="Social">
-                    @foreach($socialLinks as $s)
-                        <a href="{{ $s['url'] ?? '#' }}" {{ !empty($s['external']) ? 'target=_blank rel=noopener' : '' }} aria-label="{{ $s['title'] ?? 'Social' }}">
-                            <span class="sr">{{ $s['title'] ?? 'Social' }}</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--txt)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M12 21a9 9 0 1 0-9-9"></path><path d="M12 7v5l3 3"></path>
-                            </svg>
-                        </a>
-                    @endforeach
+                <div class="absolute bottom-1 right-1 bg-blue-500 text-white p-1 rounded-full border-2 border-dark shadow-sm" title="Verified Community">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
                 </div>
-                <div class="copy">© {{ date('Y') }} Ruang Lari Indonesia</div>
-            </footer>
+            </div>
+            
+            <h1 class="text-2xl font-black tracking-tight text-white mb-1 flex items-center justify-center gap-2">
+                RUANG<span class="text-neon">LARI</span>
+            </h1>
+            <p class="text-slate-400 text-sm font-medium max-w-xs leading-relaxed">{{ $description }}</p>
+
+            <!-- Mini Stats/Badges (Static for now, can be dynamic later) -->
+            <div class="flex items-center gap-3 mt-4 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                <span class="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded border border-slate-700">
+                    <i class="fas fa-users text-neon"></i> 50K+ Runners
+                </span>
+                <span class="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded border border-slate-700">
+                    <i class="fas fa-calendar-check text-neon"></i> 100+ Events
+                </span>
+            </div>
         </div>
+
+        <!-- Featured Links (Big Cards) -->
+        <div class="w-full space-y-4 mb-6 animate-slide-up" style="animation-delay: 0.2s;">
+            @foreach($featuredLinks as $link)
+            @php
+                $bgClass = isset($link['color']) && str_contains($link['color'], 'from-') ? 'bg-gradient-to-br ' . $link['color'] : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700';
+                $textClass = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-900' : 'text-white';
+                $subTextClass = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-800/70' : 'text-slate-400';
+                $iconBg = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'bg-black/10' : 'bg-white/10';
+            @endphp
+            <a href="{{ $link['url'] }}" class="block w-full group relative transform transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <div class="absolute -inset-0.5 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500 {{ isset($link['color']) ? $link['color'] : 'bg-neon' }}"></div>
+                <div class="relative {{ $bgClass }} rounded-xl p-5 border border-white/10 shadow-xl flex items-center justify-between overflow-hidden">
+                    <div class="flex items-center gap-4 relative z-10">
+                        <div class="w-12 h-12 rounded-full {{ $iconBg }} backdrop-blur-sm flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fas fa-{{ $link['icon'] ?? 'star' }} {{ $textClass }}"></i>
+                        </div>
+                        <div class="text-left">
+                            @if(isset($link['badge']))
+                            <div class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest mb-1 {{ $textClass === 'text-slate-900' ? 'bg-black/10' : 'bg-white/10' }}">
+                                {{ $link['badge'] }}
+                            </div>
+                            @endif
+                            <div class="font-bold text-lg leading-tight {{ $textClass }}">{{ $link['title'] }}</div>
+                        </div>
+                    </div>
+                    <div class="relative z-10 w-8 h-8 rounded-full {{ $iconBg }} flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                        <i class="fas fa-arrow-right text-xs {{ $textClass }}"></i>
+                    </div>
+                    
+                    <!-- Decorative BG Pattern -->
+                    <div class="absolute right-0 bottom-0 opacity-10 transform translate-x-4 translate-y-4">
+                        <i class="fas fa-{{ $link['icon'] ?? 'star' }} text-9xl"></i>
+                    </div>
+                </div>
+            </a>
+            @endforeach
+        </div>
+
+        <!-- Grid Links (Small Cards) -->
+        <div class="grid grid-cols-2 gap-3 w-full mb-8 animate-slide-up" style="animation-delay: 0.3s;">
+            @foreach($links as $link)
+            <a href="{{ $link['url'] }}" {{ isset($link['external']) && $link['external'] ? 'target="_blank"' : '' }} class="glass rounded-2xl p-4 flex flex-col items-center justify-center text-center group h-32 transition-all relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="w-10 h-10 mb-3 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700 group-hover:border-neon/50 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                    <i class="fas fa-{{ $link['icon'] ?? 'link' }} text-slate-300 group-hover:text-neon text-lg transition-colors"></i>
+                </div>
+                <span class="text-xs font-bold text-slate-300 group-hover:text-white leading-tight px-1 relative z-10">
+                    {{ $link['title'] }}
+                </span>
+            </a>
+            @endforeach
+        </div>
+
+        <!-- Ads Slot -->
+        @if($adsUrl)
+        <div class="w-full mb-8 animate-slide-up" style="animation-delay: 0.4s;">
+            <a href="{{ $adsUrl }}" target="_blank" class="block relative group overflow-hidden rounded-2xl border border-dashed border-slate-700 hover:border-neon/50 bg-slate-900/30 transition-all">
+                <div class="absolute inset-0 bg-repeat opacity-5" style="background-image: radial-gradient(#ccff00 1px, transparent 1px); background-size: 10px 10px;"></div>
+                <div class="p-4 flex items-center gap-4 relative z-10">
+                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 group-hover:bg-neon group-hover:text-dark transition-colors">
+                        <i class="fas fa-ad text-slate-400 group-hover:text-dark"></i>
+                    </div>
+                    <div class="flex-grow text-left">
+                        <h3 class="text-sm font-bold text-slate-200 group-hover:text-white">{{ $adsTitle }}</h3>
+                        <p class="text-xs text-slate-500 group-hover:text-slate-400">{{ $adsDescription }}</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-xs text-slate-600 group-hover:text-neon"></i>
+                </div>
+            </a>
+        </div>
+        @endif
+
+        <!-- Social Footer -->
+        <footer class="mt-auto animate-slide-up" style="animation-delay: 0.5s;">
+            <div class="flex justify-center gap-4 mb-6">
+                @foreach($socialLinks as $social)
+                <a href="{{ $social['url'] }}" target="_blank" class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-700 hover:-translate-y-1 transition-all duration-300 shadow-lg" title="{{ $social['title'] }}">
+                    <i class="fab fa-{{ $social['icon'] ?? 'link' }} text-xl"></i>
+                </a>
+                @endforeach
+            </div>
+            
+            <div class="text-center space-y-2">
+                <p class="text-slate-600 text-[10px] font-mono uppercase tracking-widest">Powered by RuangLari Platform</p>
+                <div class="h-1 w-10 bg-slate-800 mx-auto rounded-full"></div>
+                <p class="text-slate-700 text-[10px]">&copy; {{ date('Y') }} Ruang Lari Indonesia</p>
+            </div>
+        </footer>
+
     </main>
+
+    <!-- Floating Action Button (Optional, maybe for Home) -->
+    <a href="{{ route('home') }}" class="fixed bottom-6 right-6 z-50 w-12 h-12 bg-neon rounded-full shadow-lg shadow-neon/20 flex items-center justify-center text-dark hover:scale-110 transition-transform md:hidden">
+        <i class="fas fa-home"></i>
+    </a>
+
 </body>
 </html>
-
