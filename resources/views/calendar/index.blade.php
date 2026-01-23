@@ -1,6 +1,6 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Ruanglari - Race Calendar & Analytics')
+@section('title', 'Ruanglari - Race Calendar & Ruang Lari Strava Premium')
 
 @section('content')
         <header class="pt-32 pb-6 px-4 text-center">
@@ -16,7 +16,7 @@
                     </button>
                     <button @click="switchTab('strava')" :class="activeTab === 'strava' ? 'bg-[#FC4C02] text-white shadow-lg' : 'text-slate-400 hover:text-white'" class="px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                        STRAVA ANALYTICS
+                        RUANG LARI STRAVA PREMIUM
                     </button>
                 </div>
             </div>
@@ -30,6 +30,11 @@
                     <span>{{ session('error') }}</span>
                 </div>
             @endif
+
+            <div v-if="showDisconnectNotification" class="bg-green-500/10 border border-green-500/50 text-green-400 px-4 py-3 rounded-xl mb-6 flex items-center gap-3 transition-all duration-300">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                <span>Strava account disconnected.</span>
+            </div>
 
             <div v-if="loading" class="flex flex-col justify-center items-center py-20 gap-4">
                 <div class="loader"></div>
@@ -1172,6 +1177,7 @@
             data() {
                 return {
                     activeTab: 'calendar',
+                    showDisconnectNotification: false,
                     loading: true,
                     isStravaConnected: false,
                     isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
@@ -1627,17 +1633,20 @@
                 },
 
                 disconnectStrava() {
-                    if(confirm('Disconnect Strava account from this browser?')) {
-                        localStorage.removeItem('strava_access_token');
-                        localStorage.removeItem('strava_refresh_token');
-                        localStorage.removeItem('strava_expires_at');
-                        localStorage.removeItem('strava_athlete');
-                        this.isStravaConnected = false;
-                        this.apiConfig.stravaToken = null;
-                        this.athlete = {};
-                        this.stats = {};
-                        this.stravaActivities = [];
-                    }
+                    localStorage.removeItem('strava_access_token');
+                    localStorage.removeItem('strava_refresh_token');
+                    localStorage.removeItem('strava_expires_at');
+                    localStorage.removeItem('strava_athlete');
+                    this.isStravaConnected = false;
+                    this.apiConfig.stravaToken = null;
+                    this.athlete = {};
+                    this.stats = {};
+                    this.stravaActivities = [];
+                    
+                    this.showDisconnectNotification = true;
+                    setTimeout(() => {
+                        this.showDisconnectNotification = false;
+                    }, 3000);
                 },
 
                 switchTab(tab) {
