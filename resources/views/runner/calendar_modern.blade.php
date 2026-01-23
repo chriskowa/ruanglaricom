@@ -653,7 +653,7 @@
                         @{{ stravaDetailsError }}
                     </div>
                     <div v-else-if="detail.strava_metrics" class="mb-4">
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                             <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
                                 <div class="text-[11px] text-slate-400">Heart Rate</div>
                                 <div class="text-white font-black text-sm">
@@ -675,6 +675,31 @@
                                 <div class="text-[11px] text-slate-400">Avg Pace</div>
                                 <div class="text-neon font-black text-sm">@{{ detail.strava_metrics.pace ? (detail.strava_metrics.pace + ' /km') : '-' }}</div>
                                 <div class="text-[10px] text-slate-500">&nbsp;</div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                                <div class="text-[11px] text-slate-400">Power</div>
+                                <div class="text-white font-black text-sm">
+                                    @{{ detail.strava_metrics.average_watts ? Math.round(detail.strava_metrics.average_watts) : '-' }}
+                                </div>
+                                <div class="text-[10px] text-slate-500">watts</div>
+                            </div>
+                        </div>
+
+                        <!-- Analysis & Suggestion Section -->
+                        <div v-if="detail.analysis" class="mt-4 p-4 bg-slate-800/40 border border-slate-700 rounded-xl space-y-3">
+                            <div>
+                                <h4 class="text-neon font-bold text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                    Analisis Singkat
+                                </h4>
+                                <p class="text-slate-300 text-sm leading-relaxed">@{{ detail.analysis }}</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-700/50">
+                                <h4 class="text-yellow-500 font-bold text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    Saran Next Workout
+                                </h4>
+                                <p class="text-white font-medium text-sm">@{{ detail.suggestion }}</p>
                             </div>
                         </div>
 
@@ -1987,6 +2012,7 @@ createApp({
                             type: 'linear',
                             display: true,
                             position: 'left',
+                            reverse: true,
                             ticks: {
                                 color: '#94A3B8',
                                 callback: function (v) { return formatPaceFromSec(v); }
@@ -2037,6 +2063,56 @@ createApp({
             }
         };
 
+        const generateStravaAnalysis = (metrics) => {
+            if (!metrics) return { analysis: 'Data tidak cukup untuk analisis.', suggestion: 'Lanjutkan latihan sesuai rencana.' };
+
+            const avgHr = metrics.average_heartrate;
+            const dist = metrics.distance_m ? metrics.distance_m / 1000 : 0;
+            const pace = metrics.pace; // string "5:30"
+            
+            let analysis = [];
+            let suggestion = "";
+
+            // Intensity Analysis based on HR (Simple heuristic)
+            let intensity = 'moderate';
+            if (avgHr) {
+                if (avgHr < 140) {
+                    analysis.push("Lari ini berada di zona aerobik ringan, bagus untuk membangun base endurance tanpa kelelahan berlebih.");
+                    intensity = 'easy';
+                } else if (avgHr >= 140 && avgHr < 160) {
+                    analysis.push("Usaha yang solid di zona aerobik/steady. Jantung bekerja efisien.");
+                    intensity = 'moderate';
+                } else {
+                    analysis.push("Intensitas tinggi terdeteksi. Latihan ini melatih ambang laktat dan VO2Max.");
+                    intensity = 'hard';
+                }
+            } else {
+                analysis.push("Data detak jantung tidak tersedia, namun berdasarkan pace, usaha terlihat konsisten.");
+            }
+
+            // Distance Context
+            if (dist > 15) {
+                analysis.push("Long run yang hebat! Ketahanan otot sedang diuji.");
+                intensity = 'hard'; // Long runs are hard on the body
+            } else if (dist < 5) {
+                analysis.push("Lari jarak pendek yang baik untuk recovery atau speed work.");
+            }
+
+            // Suggestion
+            if (intensity === 'hard') {
+                suggestion = "Tubuh Anda butuh pemulihan. Saran: Besok ambil Rest Day atau Recovery Run santai (30-45 menit Zone 1-2). Fokus pada hidrasi dan tidur.";
+            } else if (intensity === 'moderate') {
+                suggestion = "Kondisi masih oke. Next workout bisa berupa Easy Run atau Cross Training ringan.";
+            } else {
+                suggestion = "Anda masih segar. Next workout siap untuk sesi kualitas (Interval/Tempo) atau Long Run jika jadwal memungkinkan.";
+            }
+
+            return {
+                analysis: analysis.join(' '),
+                suggestion: suggestion
+            };
+        };
+
         const loadStravaDetails = async (activityId) => {
             const id = parseInt(activityId || 0, 10);
             if (!id) return;
@@ -2048,6 +2124,8 @@ createApp({
             detail.strava_laps = [];
             detail.actual_pace = null;
             detail.strava_streams = null;
+            detail.analysis = null;
+            detail.suggestion = null;
             stravaStreamsError.value = '';
             destroyStravaChart();
 
@@ -2062,6 +2140,12 @@ createApp({
                     detail.actual_pace = a.pace ? `${a.pace} /km` : null;
                     detail.strava_splits = Array.isArray(a.splits_metric) ? a.splits_metric : [];
                     detail.strava_laps = Array.isArray(a.laps) ? a.laps : [];
+                    
+                    // Generate Analysis
+                    const ana = generateStravaAnalysis(a);
+                    detail.analysis = ana.analysis;
+                    detail.suggestion = ana.suggestion;
+
                     loadStravaStreams(id);
                 } else {
                     stravaDetailsError.value = (data && data.message) ? data.message : 'Gagal mengambil detail Strava.';
