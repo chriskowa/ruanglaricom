@@ -65,12 +65,14 @@ class MenuController extends Controller
             'title' => 'required|string|max:255',
             'url' => 'required|string',
             'target' => 'required|in:_self,_blank',
+            'parent_id' => 'nullable|exists:menu_items,id',
         ]);
 
         $menu->items()->create([
             'title' => $request->title,
             'url' => $request->url,
             'target' => $request->target,
+            'parent_id' => $request->parent_id,
             'order' => $menu->items()->max('order') + 1,
         ]);
 

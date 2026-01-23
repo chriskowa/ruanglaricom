@@ -88,6 +88,21 @@
                             <input type="text" name="url" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-neon transition-colors" placeholder="https://..." required>
                         </div>
                         <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Parent Item</label>
+                            <select name="parent_id" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-neon transition-colors">
+                                <option value="">No Parent (Root)</option>
+                                @foreach($menu->items as $item)
+                                    <option value="{{ $item->id }}">{{ $item->title }}</option>
+                                    @foreach($item->children as $child)
+                                        <option value="{{ $child->id }}">&nbsp;&nbsp;&nbsp;&nbsp;- {{ $child->title }}</option>
+                                        @foreach($child->children as $subchild)
+                                            <option value="{{ $subchild->id }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- {{ $subchild->title }}</option>
+                                        @endforeach
+                                    @endforeach
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Target</label>
                             <select name="target" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-neon transition-colors">
                                 <option value="_self">Same Tab</option>

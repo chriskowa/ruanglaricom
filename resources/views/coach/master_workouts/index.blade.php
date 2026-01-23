@@ -1,4 +1,4 @@
-@extends('layouts.coach')
+@extends('layouts.pacerhub')
 @php
     $withSidebar = true;
 @endphp

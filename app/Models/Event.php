@@ -259,14 +259,30 @@ class Event extends Model
 
     public function getPublicUrlAttribute()
     {
-        // Jika ada external link, berarti ini event aggregator (ex running_events) -> /event-lari/
-        // Atau jika user_id == 1 (Admin) -> /event-lari/
-        // Jika event EO (internal registration) -> /events/
-        
-        if ($this->external_registration_link || $this->user_id === 1 || $this->user_id === null) {
+        // 1. External Registration Link -> Listing View (/event-lari/)
+        if ($this->external_registration_link) {
             return route('running-event.detail', $this->slug);
         }
 
-        return route('events.show', $this->slug);
+        // 2. Admin / Aggregator Event -> Listing View (/event-lari/)
+        // Prioritize Admin events to always use Listing View
+        if ($this->user_id === 1) {
+            return route('running-event.detail', $this->slug);
+        }
+
+        // 3. Internal Registration (Managed Event) -> Landing View (/events/)
+        // Event yang dimanage penuh pasti punya jadwal registrasi
+        if ($this->registration_open_at) {
+            return route('events.show', $this->slug);
+        }
+
+        // 4. Event oleh EO (Non-Admin) -> Landing View (/events/)
+        // Asumsi EO selalu membuat event managed, meskipun belum set tanggal registrasi
+        if ($this->user_id && $this->user_id !== 1) {
+            return route('events.show', $this->slug);
+        }
+
+        // 5. Fallback (Admin/Aggregator/Listing) -> Listing View (/event-lari/)
+        return route('running-event.detail', $this->slug);
     }
 }
