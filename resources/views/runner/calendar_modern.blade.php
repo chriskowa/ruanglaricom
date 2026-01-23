@@ -139,14 +139,14 @@
                 <p class="text-neon font-mono text-sm tracking-widest uppercase">Training</p>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Runner Calendar</h1>
             </div>
-            <div class="flex gap-2 md:gap-3 flex-wrap justify-end">
-                <button @click="showVdotModal = true" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm">Generate VDOT</button>
+            <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-20">
+                <button type="button" @click="showVdotModal = true" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
                 @if($isEnrolled40Days)
                 <a href="{{ route('challenge.create') }}" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-xs md:text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
                 @endif
                 <a href="{{ route('programs.index') }}" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-xs md:text-sm font-bold">Browse Programs</a>
-                <button @click="openFormForToday" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-xs md:text-sm">Add Custom Workout</button>
-                <button @click="openRaceForm" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-xs md:text-sm">Add Race</button>
+                <button type="button" @click="openFormForToday" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-xs md:text-sm">Add Custom Workout</button>
+                <button type="button" @click="openRaceForm" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-xs md:text-sm">Add Race</button>
             </div>
         </div>
 
@@ -1282,7 +1282,6 @@
 
 @push('scripts')
 @include('layouts.components.advanced-builder-utils')
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script src="{{ asset('vendor/chart-js/chart.bundle.min.js') }}"></script>
 <script>
 const { createApp, ref, reactive, onMounted, computed, watch } = Vue;

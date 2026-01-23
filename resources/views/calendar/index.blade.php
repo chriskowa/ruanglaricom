@@ -492,15 +492,18 @@
                                  'bg-white/5 border-white/10 rounded-none border-t border-b': posterStyle === 'elegant'
                              }">
                              
-                             <div class="grid grid-cols-4 gap-4 text-center divide-x divide-slate-700" 
-                                  :class="{
-                                      'divide-white/20': posterStyle === 'magazine',
-                                      'divide-neon/30': posterStyle === 'cyber',
-                                      'divide-white/10': posterStyle === 'elegant'
-                                  }">
+                             <div class="grid gap-4 text-center divide-x divide-slate-700" 
+                                  :class="[
+                                      posterData.power ? 'grid-cols-5' : 'grid-cols-4',
+                                      {
+                                          'divide-white/20': posterStyle === 'magazine',
+                                          'divide-neon/30': posterStyle === 'cyber',
+                                          'divide-white/10': posterStyle === 'elegant'
+                                      }
+                                  ]">
                                 <!-- Stats Items -->
                                 <div>
-                                    <p class="text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber', 'text-[8px]': posterOptions.statsSize==='small', 'text-[9px]': posterOptions.statsSize!=='small'}">Pace</p>
+                                    <p class="text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber', 'text-[8px]': posterOptions.statsSize==='small', 'text-[9px]': posterOptions.statsSize!=='small'}">@{{ posterData.isRecap ? 'Avg Pace' : 'Pace' }}</p>
                                     <p class="font-bold text-white font-mono" :class="{'text-sm': posterOptions.statsSize==='small','text-lg':posterOptions.statsSize==='medium','text-2xl':posterOptions.statsSize==='large'}">@{{ posterData.pace }}</p>
                                 </div>
                                 <div>
@@ -514,6 +517,10 @@
                                 <div>
                                     <p class="text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber', 'text-[8px]': posterOptions.statsSize==='small', 'text-[9px]': posterOptions.statsSize!=='small'}">HR</p>
                                     <p class="font-bold text-rose-500 font-mono" :class="{'text-sm': posterOptions.statsSize==='small','text-lg':posterOptions.statsSize==='medium','text-2xl':posterOptions.statsSize==='large'}">@{{ posterData.heart_rate }}</p>
+                                </div>
+                                <div v-if="posterData.power">
+                                    <p class="text-slate-400 uppercase" :class="{'text-neon': posterStyle === 'cyber', 'text-[8px]': posterOptions.statsSize==='small', 'text-[9px]': posterOptions.statsSize!=='small'}">Power</p>
+                                    <p class="font-bold text-emerald-500 font-mono" :class="{'text-sm': posterOptions.statsSize==='small','text-lg':posterOptions.statsSize==='medium','text-2xl':posterOptions.statsSize==='large'}">@{{ posterData.power }}w</p>
                                 </div>
                              </div>
 
@@ -1988,16 +1995,49 @@
                         });
                         
                         // 5. Calculate Stats
-                        const totalDist = selected.reduce((acc, curr) => acc + curr.distance, 0);
-                        const totalTime = selected.reduce((acc, curr) => acc + curr.moving_time, 0);
-                        const totalElev = selected.reduce((acc, curr) => acc + (curr.total_elevation_gain || 0), 0);
+                        let totalDist = 0;
+                        let totalTime = 0;
+                        let totalElev = 0;
+                        let weightedHRSum = 0;
+                        let totalHRTime = 0;
+                        let weightedPowerSum = 0;
+                        let totalPowerTime = 0;
+
+                        selected.forEach(curr => {
+                            totalDist += curr.distance;
+                            totalTime += curr.moving_time;
+                            totalElev += (curr.total_elevation_gain || 0);
+
+                            if (curr.average_heartrate) {
+                                weightedHRSum += curr.average_heartrate * curr.moving_time;
+                                totalHRTime += curr.moving_time;
+                            }
+                            
+                            if (curr.average_watts) {
+                                weightedPowerSum += curr.average_watts * curr.moving_time;
+                                totalPowerTime += curr.moving_time;
+                            }
+                        });
                         
-                        // Format Duration Helper if not exists, create simple one
+                        // Format Duration Helper
                         const formatDur = (s) => {
                              const h = Math.floor(s/3600);
                              const m = Math.floor((s%3600)/60);
                              return h > 0 ? `${h}h ${m}m` : `${m}m`;
                         };
+
+                        // Format Pace Helper
+                        const formatPaceFromSec = (secPerKm) => {
+                            const s = parseFloat(secPerKm || 0);
+                            if (!s || s <= 0) return '-';
+                            const mins = Math.floor(s / 60);
+                            const secs = Math.round(s - (mins * 60));
+                            return `${mins}:${String(secs).padStart(2,'0')}`;
+                        };
+
+                        const avgPaceSec = totalDist > 0 ? totalTime / (totalDist / 1000) : 0;
+                        const avgHR = totalHRTime > 0 ? Math.round(weightedHRSum / totalHRTime) : '-';
+                        const avgPower = totalPowerTime > 0 ? Math.round(weightedPowerSum / totalPowerTime) : null;
 
                         // 6. Set Poster Data
                         this.posterData = {
@@ -2009,7 +2049,7 @@
                             name: `${year} RECAP`,
                             distance: (totalDist / 1000).toFixed(0),
                             time: formatDur(totalTime),
-                            pace: selected.length + ' RUNS', // Abuse pace field for count
+                            pace: formatPaceFromSec(avgPaceSec) + ' /km',
                             elev: totalElev.toFixed(0),
                             date: `Top ${selected.length} Activities`,
                             bgImage: null,
@@ -2017,7 +2057,8 @@
                             splits: [],
                             elevationSeries: [],
                             hrSeries: [],
-                            heart_rate: '-',
+                            heart_rate: avgHR,
+                            power: avgPower,
                             training_effect: 'CONSISTENCY',
                             chartPath: ''
                         };
