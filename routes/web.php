@@ -166,6 +166,12 @@ Route::post('/calendar/ai-analysis', [App\Http\Controllers\CalendarController::c
 // Pacer listing and profile
 Route::get('/pacers', [App\Http\Controllers\PacerController::class, 'index'])->name('pacer.index');
 Route::get('/pacer/{slug}', [App\Http\Controllers\PacerController::class, 'show'])->name('pacer.show');
+Route::middleware(['auth', 'role:runner'])->post('/pacer/{slug}/book', [App\Http\Controllers\PacerBookingController::class, 'store'])->name('pacer.bookings.store');
+Route::middleware(['auth', 'role:runner'])->get('/pacer-bookings/{booking}/pay', [App\Http\Controllers\PacerBookingController::class, 'pay'])->name('pacer.bookings.pay');
+Route::middleware('auth')->post('/pacer-bookings/{booking}/confirm', [App\Http\Controllers\PacerBookingController::class, 'confirm'])->name('pacer.bookings.confirm');
+Route::middleware(['auth', 'role:runner'])->post('/pacer-bookings/{booking}/complete', [App\Http\Controllers\PacerBookingController::class, 'complete'])->name('pacer.bookings.complete');
+Route::middleware(['auth', 'role:runner'])->get('/pacer-bookings/my', [App\Http\Controllers\PacerBookingDashboardController::class, 'my'])->name('runner.pacer-bookings.my');
+Route::middleware('auth')->get('/pacer-bookings/inbox', [App\Http\Controllers\PacerBookingDashboardController::class, 'inbox'])->name('pacer.bookings.inbox');
 Route::get('/pacer-register', [App\Http\Controllers\PacerRegistrationController::class, 'create'])->name('pacer.register');
 Route::post('/pacer-register', [App\Http\Controllers\PacerRegistrationController::class, 'store'])->name('pacer.register.store');
 Route::get('/pacer-otp', function (Illuminate\Http\Request $request) {
@@ -184,6 +190,9 @@ Route::post('/pacer-otp', function (Illuminate\Http\Request $request) {
 
     return redirect()->route('dashboard')->with('success', 'Verifikasi berhasil!');
 })->name('pacer.otp.verify');
+
+// Midtrans webhook for pacer bookings (no auth)
+Route::post('/pacer-bookings/webhook', [App\Http\Controllers\PacerBookingWebhookController::class, 'handle'])->name('pacer.bookings.webhook');
 
 // Runner Profile (Public) - avoid conflicts with runner dashboard/calendar routes
 Route::get('/runner/{username}', [App\Http\Controllers\RunnerProfileController::class, 'show'])

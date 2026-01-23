@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Marketplace;
 
 use App\Http\Controllers\Controller;
 use App\Models\Marketplace\MarketplaceOrder;
+use App\Services\PlatformWalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,29 @@ class OrderController extends Controller
                 'reference_id' => $order->id,
                 'processed_at' => now(),
             ]);
+
+            $platformWalletService = app(PlatformWalletService::class);
+            $platformWallet = $platformWalletService->getPlatformWallet();
+            $platformWallet->refresh();
+
+            $fee = (float) $order->commission_amount;
+            if ($fee > 0) {
+                $platformBefore = (float) $platformWallet->balance;
+                $platformWallet->balance = $platformBefore + $fee;
+                $platformWallet->save();
+
+                $platformWallet->transactions()->create([
+                    'type' => 'platform_fee_income',
+                    'amount' => $fee,
+                    'balance_before' => $platformBefore,
+                    'balance_after' => (float) $platformWallet->balance,
+                    'status' => 'completed',
+                    'description' => 'Marketplace fee: '.$order->invoice_number,
+                    'reference_type' => 'App\Models\Marketplace\MarketplaceOrder',
+                    'reference_id' => $order->id,
+                    'processed_at' => now(),
+                ]);
+            }
         });
 
         return back()->with('success', 'Order completed. Funds released to seller.');

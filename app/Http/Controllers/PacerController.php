@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\City;
 use App\Models\Pacer;
+use App\Models\PacerBooking;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -75,8 +76,22 @@ class PacerController extends Controller
 
     public function show(string $slug)
     {
-        $pacer = Pacer::with('user')->where('seo_slug', $slug)->firstOrFail();
+        $pacer = Pacer::with(['user.city'])->where('seo_slug', $slug)->firstOrFail();
 
-        return view('pacer.profile', compact('pacer'));
+        $contactUnlocked = false;
+        if (auth()->check()) {
+            $user = auth()->user();
+
+            if ($user->isAdmin() || ($user->is_pacer && $pacer->user_id === $user->id)) {
+                $contactUnlocked = true;
+            } elseif ($user->isRunner()) {
+                $contactUnlocked = PacerBooking::where('runner_id', $user->id)
+                    ->where('pacer_id', $pacer->id)
+                    ->whereIn('status', ['paid', 'confirmed', 'completed'])
+                    ->exists();
+            }
+        }
+
+        return view('pacer.profile', compact('pacer', 'contactUnlocked'));
     }
 }

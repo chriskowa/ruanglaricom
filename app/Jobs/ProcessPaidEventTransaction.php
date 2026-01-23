@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Services\PlatformWalletService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -95,7 +96,7 @@ class ProcessPaidEventTransaction implements ShouldQueue
     }
 
     /**
-     * Deposit final_amount to EO wallet
+     * Deposit organizer amount to EO wallet and platform fee to platform wallet
      */
     protected function depositToEOWallet(): void
     {
@@ -116,14 +117,18 @@ class ProcessPaidEventTransaction implements ShouldQueue
             ['balance' => 0, 'locked_balance' => 0]
         );
 
-        $balanceBefore = $wallet->balance;
-        $wallet->increment('balance', $this->transaction->final_amount);
-        $balanceAfter = $wallet->balance;
+        $finalAmount = (float) $this->transaction->final_amount;
+        $adminFee = (float) $this->transaction->admin_fee;
+        $organizerAmount = max(0, $finalAmount - $adminFee);
+
+        $balanceBefore = (float) $wallet->balance;
+        $wallet->increment('balance', $organizerAmount);
+        $balanceAfter = (float) $wallet->balance;
 
         // Create wallet transaction record
         $wallet->transactions()->create([
             'type' => 'deposit',
-            'amount' => $this->transaction->final_amount,
+            'amount' => $organizerAmount,
             'balance_before' => $balanceBefore,
             'balance_after' => $balanceAfter,
             'status' => 'completed',
@@ -134,8 +139,37 @@ class ProcessPaidEventTransaction implements ShouldQueue
                 'event_id' => $this->transaction->event_id,
                 'event_name' => $this->transaction->event->name,
                 'midtrans_order_id' => $this->transaction->midtrans_order_id,
+                'final_amount' => $finalAmount,
+                'admin_fee' => $adminFee,
             ],
             'processed_at' => now(),
         ]);
+
+        if ($adminFee > 0) {
+            $platformWalletService = app(PlatformWalletService::class);
+            $platformWallet = $platformWalletService->getPlatformWallet();
+            $platformWallet->refresh();
+
+            $platformBefore = (float) $platformWallet->balance;
+            $platformWallet->balance = $platformBefore + $adminFee;
+            $platformWallet->save();
+
+            $platformWallet->transactions()->create([
+                'type' => 'platform_fee_income',
+                'amount' => $adminFee,
+                'balance_before' => $platformBefore,
+                'balance_after' => (float) $platformWallet->balance,
+                'status' => 'completed',
+                'description' => 'Platform fee event: '.$this->transaction->event->name,
+                'reference_id' => $this->transaction->id,
+                'reference_type' => Transaction::class,
+                'metadata' => [
+                    'event_id' => $this->transaction->event_id,
+                    'event_name' => $this->transaction->event->name,
+                    'midtrans_order_id' => $this->transaction->midtrans_order_id,
+                ],
+                'processed_at' => now(),
+            ]);
+        }
     }
 }
