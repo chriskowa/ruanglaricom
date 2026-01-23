@@ -654,7 +654,7 @@
                             </div>
                             <div class="h-64 overflow-hidden relative">
                                 @if(isset($topCoach))
-                                    <img src="{{ $topCoach->banner ? asset('storage/' . $topCoach->banner) : ($topCoach->avatar ? asset('storage/' . $topCoach->avatar) : asset('images/default-male.svg')) }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                    <img src="{{ $topCoach->avatar ? asset('storage/' . $topCoach->avatar) : asset('images/default-male.svg') }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
                                 @else
                                     <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
                                 @endif

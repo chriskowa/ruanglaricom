@@ -255,6 +255,38 @@
                         </div>
                     </div>
 
+                    <!-- Google Calendar Widget -->
+                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl p-6 shadow-2xl relative overflow-hidden ring-1 ring-white/5">
+                        <div class="absolute -top-10 -left-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl"></div>
+                        
+                        <h3 class="text-xl font-black text-white mb-4 relative z-10 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            SIMPAN TANGGAL
+                        </h3>
+                        <p class="text-slate-400 text-sm mb-6 relative z-10">
+                            Jangan sampai terlewat! Tambahkan event ini ke Google Calendar Anda.
+                        </p>
+                        
+                        @php
+                            $startDate = $event->event_date->format('Ymd');
+                            $startTime = $event->start_time ? $event->start_time->format('His') : '050000';
+                            $startDateTime = $startDate . 'T' . $startTime;
+                            $endDateTime = \Carbon\Carbon::parse($startDate . ' ' . ($event->start_time ? $event->start_time->format('H:i:s') : '05:00:00'))->addHours(5)->format('Ymd\THis');
+                            
+                            $gCalUrl = "https://www.google.com/calendar/render?action=TEMPLATE";
+                            $gCalUrl .= "&text=" . urlencode($event->name);
+                            $gCalUrl .= "&dates=" . $startDateTime . "/" . $endDateTime;
+                            $gCalUrl .= "&details=" . urlencode("Event Lari: " . $event->name . "\nLokasi: " . ($event->location_name ?? 'TBA') . "\n\nInfo selengkapnya: " . route('running-event.detail', $event->slug));
+                            $gCalUrl .= "&location=" . urlencode($event->location_name ?? ($event->city ? $event->city->name : ''));
+                            $gCalUrl .= "&sf=true&output=xml";
+                        @endphp
+
+                        <a href="{{ $gCalUrl }}" target="_blank" class="relative z-10 flex items-center justify-center w-full py-3 rounded-xl bg-slate-800 border border-slate-600 text-white font-bold hover:bg-blue-600 hover:border-blue-600 hover:text-white transition-all group">
+                            Add to Google Calendar
+                            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        </a>
+                    </div>
+
                     <!-- Share / Socials -->
                     <div class="flex items-center justify-between p-5 rounded-2xl bg-slate-900/50 border border-slate-700/50 backdrop-blur-sm">
                         <span class="text-sm font-bold text-slate-400">Bagikan Event</span>

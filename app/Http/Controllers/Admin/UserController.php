@@ -174,6 +174,9 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        if (request()->wantsJson()) {
+            return response()->json($user->load('wallet'));
+        }
         return view('admin.users.show', compact('user'));
     }
 

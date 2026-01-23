@@ -9,37 +9,13 @@
     createModal: false,
     isLoading: false,
     loadingTransactions: false,
+    loadingUser: false,
     searchQuery: '{{ request('q') }}',
     filterRole: '{{ request('role', 'all') }}',
     filterStatus: '{{ request('status', 'all') }}',
+    activeTab: 'profile', // profile, socials, financial, performance
     
-    selectedUser: {
-        id: null,
-        name: '',
-        email: '',
-        username: '',
-        phone: '',
-        role: 'runner',
-        is_active: true,
-        gender: '',
-        date_of_birth: '',
-        address: '',
-        pb_5k: '',
-        pb_10k: '',
-        pb_hm: '',
-        pb_fm: '',
-        strava_url: '',
-        instagram_url: '',
-        facebook_url: '',
-        tiktok_url: '',
-        bank_name: '',
-        bank_account_name: '',
-        bank_account_number: '',
-        avatar: '',
-        banner: '',
-        wallet: { balance: 0, transactions: [] },
-        bank_account: null,
-    },
+    selectedUser: null,
     
     // Create Form Data
     newUser: {
@@ -80,6 +56,7 @@
 
     initPagination() {
         const container = document.getElementById('users-table-container');
+        if (!container) return;
         const links = container.querySelectorAll('a.page-link, .pagination a');
         
         links.forEach(link => {
@@ -90,12 +67,82 @@
         });
     },
 
+    async openModal(userId) {
+        this.showModal = true;
+        this.loadingUser = true;
+        this.selectedUser = null; // Clear previous data
+        this.activeTab = 'profile';
+
+        try {
+            const res = await fetch(`/admin/users/${userId}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (!res.ok) throw new Error('Failed to fetch user');
+            
+            const user = await res.json();
+            
+            // Normalize Data
+            this.selectedUser = user;
+            
+            // Ensure null fields are strings for inputs
+            const textFields = [
+                'username', 'phone', 'gender', 'address', 
+                'pb_5k', 'pb_10k', 'pb_hm', 'pb_fm',
+                'strava_url', 'instagram_url', 'facebook_url', 'tiktok_url',
+                'bank_name', 'bank_account_name', 'bank_account_number' // if flat
+            ];
+            
+            textFields.forEach(f => {
+                if (this.selectedUser[f] === null || this.selectedUser[f] === undefined) {
+                    this.selectedUser[f] = '';
+                }
+            });
+
+            // Date fix
+            if (this.selectedUser.date_of_birth) {
+                this.selectedUser.date_of_birth = this.selectedUser.date_of_birth.split('T')[0];
+            }
+
+            // Bank Object Flattening (if coming from JSON cast on model)
+            // The controller might update specific fields but model has `bank_account` json column.
+            // If the user object has bank_account json, let's try to populate flat fields if empty
+            if (this.selectedUser.bank_account && typeof this.selectedUser.bank_account === 'object') {
+                this.selectedUser.bank_name = this.selectedUser.bank_name || this.selectedUser.bank_account.bank_name || '';
+                this.selectedUser.bank_account_name = this.selectedUser.bank_account_name || this.selectedUser.bank_account.account_name || '';
+                this.selectedUser.bank_account_number = this.selectedUser.bank_account_number || this.selectedUser.bank_account.account_number || '';
+            }
+
+            // Wallet Init
+            this.selectedUser.wallet = this.selectedUser.wallet || { balance: 0, transactions: [] };
+            
+            // Clean paths
+            if (this.selectedUser.avatar) this.selectedUser.avatar = this.selectedUser.avatar.replace(/^\/?storage\//, '');
+            if (this.selectedUser.banner) this.selectedUser.banner = this.selectedUser.banner.replace(/^\/?storage\//, '');
+
+            // Fetch transactions (already loaded via load('wallet') but transactions might need separate call if we want pagination/limit)
+            // Controller returns `user->load('wallet')`. Wallet transactions are usually separate relation `wallet->transactions`.
+            // Let's fetch latest transactions explicitly to be safe/fresh
+            this.fetchTransactions(userId);
+
+        } catch (error) {
+            console.error(error);
+            alert('Failed to load user data');
+            this.showModal = false;
+        } finally {
+            this.loadingUser = false;
+        }
+    },
+
     async fetchTransactions(userId) {
         this.loadingTransactions = true;
         try {
             const res = await fetch(`/admin/users/${userId}/transactions`);
             const data = await res.json();
-            if (this.selectedUser && this.selectedUser.id === userId) {
+            if (this.selectedUser && this.selectedUser.id === userId && this.selectedUser.wallet) {
                 this.selectedUser.wallet.transactions = data.transactions;
             }
         } catch (error) {
@@ -105,98 +152,11 @@
         }
     },
 
-    init() {
-        this.initPagination();
-    },
-
-    openModal(user) {
-        this.selectedUser = JSON.parse(JSON.stringify(user));
-
-        if (!this.selectedUser) {
-            return;
-        }
-
-        // Fetch transactions
-        this.selectedUser.wallet.transactions = []; // Reset
-        this.fetchTransactions(this.selectedUser.id);
-
-        const nullableFields = [
-            'username',
-            'email',
-            'phone',
-            'gender',
-            'date_of_birth',
-            'address',
-            'pb_5k',
-            'pb_10k',
-            'pb_hm',
-            'pb_fm',
-            'strava_url',
-            'instagram_url',
-            'facebook_url',
-            'tiktok_url',
-            'avatar',
-            'banner'
-        ];
-
-        nullableFields.forEach(field => {
-            if (this.selectedUser[field] === null || this.selectedUser[field] === undefined) {
-                this.selectedUser[field] = '';
-            }
-        });
-        
-        if (this.selectedUser.avatar) {
-            this.selectedUser.avatar = this.selectedUser.avatar.replace(/^\/?storage\//, '');
-        }
-        if (this.selectedUser.banner) {
-            this.selectedUser.banner = this.selectedUser.banner.replace(/^\/?storage\//, '');
-        }
-        
-        let bank = this.selectedUser.bank_account || {};
-        
-        this.selectedUser.bank_name = bank.bank_name || '';
-        this.selectedUser.bank_account_name = bank.account_name || '';
-        this.selectedUser.bank_account_number = bank.account_number || '';
-
-        this.selectedUser.wallet = this.selectedUser.wallet || { balance: 0, transactions: [] };
-        
-        if (this.selectedUser.date_of_birth) {
-            this.selectedUser.date_of_birth = this.selectedUser.date_of_birth.split('T')[0];
-        }
-        
-        this.selectedUser.is_active = !!this.selectedUser.is_active;
-
-        this.showModal = true;
-    },
     closeModal() {
         this.showModal = false;
-        this.selectedUser = {
-            id: null,
-            name: '',
-            email: '',
-            username: '',
-            phone: '',
-            role: 'runner',
-            is_active: true,
-            gender: '',
-            date_of_birth: '',
-            address: '',
-            pb_5k: '',
-            pb_10k: '',
-            pb_hm: '',
-            pb_fm: '',
-            strava_url: '',
-            instagram_url: '',
-            facebook_url: '',
-            tiktok_url: '',
-            bank_name: '',
-            bank_account_name: '',
-            bank_account_number: '',
-            avatar: '',
-            banner: '',
-            wallet: { balance: 0, transactions: [] },
-            bank_account: null,
-        };
+        setTimeout(() => {
+            this.selectedUser = null;
+        }, 300);
     },
     openCreateModal() {
         this.createModal = true;
@@ -395,7 +355,26 @@
                     </div>
                 </div>
 
-                <form x-bind:action="selectedUser ? '{{ url('admin/users') }}/' + selectedUser.id : '#'" method="POST" enctype="multipart/form-data">
+                <!-- Tabs -->
+                <div class="flex border-b border-slate-700 px-6 gap-6 overflow-x-auto">
+                    <button @click="activeTab = 'profile'" :class="{'text-blue-500 border-blue-500': activeTab === 'profile', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'profile'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Profile & Media</button>
+                    <button @click="activeTab = 'socials'" :class="{'text-blue-500 border-blue-500': activeTab === 'socials', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'socials'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Socials</button>
+                    <button @click="activeTab = 'performance'" :class="{'text-blue-500 border-blue-500': activeTab === 'performance', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'performance'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Performance (PB)</button>
+                    <button @click="activeTab = 'financial'" :class="{'text-blue-500 border-blue-500': activeTab === 'financial', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'financial'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Financial Info</button>
+                    <button @click="activeTab = 'wallet'" :class="{'text-blue-500 border-blue-500': activeTab === 'wallet', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'wallet'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Wallet Manager</button>
+                </div>
+
+                <!-- Loading State -->
+                <div x-show="loadingUser" class="p-12 flex flex-col items-center justify-center text-slate-500">
+                    <svg class="animate-spin h-10 w-10 mb-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p>Loading user data...</p>
+                </div>
+
+                <!-- Main Form -->
+                <form x-show="!loadingUser && activeTab !== 'wallet'" x-bind:action="selectedUser ? '{{ url('admin/users') }}/' + selectedUser.id : '#'" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     
@@ -403,75 +382,111 @@
                         <template x-if="selectedUser">
                             <div class="space-y-6">
                                 
-                                <!-- Basic Info -->
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Basic Information</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-                                            <input type="text" name="name" x-model="selectedUser.name" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                <!-- Tab: Profile -->
+                                <div x-show="activeTab === 'profile'" class="space-y-6">
+                                    <!-- Basic Info -->
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Basic Information</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
+                                                <input type="text" name="name" x-model="selectedUser.name" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Username</label>
+                                                <input type="text" name="username" x-model="selectedUser.username" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Email</label>
+                                                <input type="email" name="email" x-model="selectedUser.email" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+                                                <input type="password" name="password" placeholder="Leave blank to keep current" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Phone</label>
+                                                <input type="text" name="phone" x-model="selectedUser.phone" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Role</label>
+                                                <select name="role" x-model="selectedUser.role" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                    <option value="runner">Runner</option>
+                                                    <option value="coach">Coach</option>
+                                                    <option value="admin">Admin</option>
+                                                    <option value="eo">Event Organizer</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex items-center pt-6">
+                                                <label class="flex items-center gap-2 cursor-pointer">
+                                                    <input type="hidden" name="is_active" value="0">
+                                                    <input type="checkbox" name="is_active" value="1" x-model="selectedUser.is_active" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500 w-5 h-5">
+                                                    <span class="text-sm font-medium text-slate-300">Account Active</span>
+                                                </label>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Username</label>
-                                            <input type="text" name="username" x-model="selectedUser.username" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
+
+                                    <!-- Personal Details -->
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Personal Details</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Gender</label>
+                                                <select name="gender" x-model="selectedUser.gender" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                    <option value="">Select Gender</option>
+                                                    <option value="male">Male</option>
+                                                    <option value="female">Female</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Date of Birth</label>
+                                                <input type="date" name="date_of_birth" x-model="selectedUser.date_of_birth" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Address</label>
+                                                <textarea name="address" x-model="selectedUser.address" rows="2" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Email</label>
-                                            <input type="email" name="email" x-model="selectedUser.email" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
-                                            <input type="password" name="password" placeholder="Leave blank to keep current" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Phone</label>
-                                            <input type="text" name="phone" x-model="selectedUser.phone" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Role</label>
-                                            <select name="role" x-model="selectedUser.role" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
-                                                <option value="runner">Runner</option>
-                                                <option value="coach">Coach</option>
-                                                <option value="admin">Admin</option>
-                                                <option value="eo">Event Organizer</option>
-                                            </select>
-                                        </div>
-                                        <div class="flex items-center pt-6">
-                                            <label class="flex items-center gap-2 cursor-pointer">
-                                                <input type="hidden" name="is_active" value="0">
-                                                <input type="checkbox" name="is_active" value="1" x-model="selectedUser.is_active" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500 w-5 h-5">
-                                                <span class="text-sm font-medium text-slate-300">Account Active</span>
-                                            </label>
+                                    </div>
+
+                                    <!-- Media Files -->
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Media Assets</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Avatar</label>
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-16 h-16 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+                                                        <template x-if="selectedUser.avatar">
+                                                            <img :src="'/storage/' + selectedUser.avatar" class="w-full h-full object-cover">
+                                                        </template>
+                                                        <template x-if="!selectedUser.avatar">
+                                                            <div class="w-full h-full flex items-center justify-center text-slate-500">No Img</div>
+                                                        </template>
+                                                    </div>
+                                                    <input type="file" name="avatar" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Banner</label>
+                                                <div class="w-full h-24 bg-slate-700 rounded-xl overflow-hidden mb-2 relative">
+                                                     <template x-if="selectedUser.banner">
+                                                        <img :src="'/storage/' + selectedUser.banner" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!selectedUser.banner">
+                                                        <div class="w-full h-full flex items-center justify-center text-slate-500">No Banner</div>
+                                                    </template>
+                                                </div>
+                                                <input type="file" name="banner" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Personal Details -->
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Personal Details</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Gender</label>
-                                            <select name="gender" x-model="selectedUser.gender" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
-                                                <option value="">Select Gender</option>
-                                                <option value="male">Male</option>
-                                                <option value="female">Female</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Date of Birth</label>
-                                            <input type="date" name="date_of_birth" x-model="selectedUser.date_of_birth" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
-                                        </div>
-                                        <div class="md:col-span-2">
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Address</label>
-                                            <textarea name="address" x-model="selectedUser.address" rows="2" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Personal Bests -->
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Personal Bests (HH:MM:SS)</h4>
+                                <!-- Tab: Performance -->
+                                <div x-show="activeTab === 'performance'">
+                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Personal Bests (HH:MM:SS)</h4>
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <div>
                                             <label class="block text-xs font-bold text-slate-500 mb-1">5K</label>
@@ -492,9 +507,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Social Media -->
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Social Media</h4>
+                                <!-- Tab: Socials -->
+                                <div x-show="activeTab === 'socials'">
+                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Social Media Links</h4>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-sm font-medium text-slate-300 mb-1">Strava URL</label>
@@ -515,9 +530,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Bank Info -->
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Bank Information</h4>
+                                <!-- Tab: Financial Info (Bank) -->
+                                <div x-show="activeTab === 'financial'">
+                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Bank Information</h4>
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label class="block text-sm font-medium text-slate-300 mb-1">Bank Name</label>
@@ -530,39 +545,6 @@
                                         <div>
                                             <label class="block text-sm font-medium text-slate-300 mb-1">Account Number</label>
                                             <input type="text" name="bank_account_number" x-model="selectedUser.bank_account_number" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Media Files -->
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Media Assets</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-2">Avatar</label>
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-16 h-16 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
-                                                    <template x-if="selectedUser.avatar">
-                                                        <img :src="'/storage/' + selectedUser.avatar" class="w-full h-full object-cover">
-                                                    </template>
-                                                    <template x-if="!selectedUser.avatar">
-                                                        <div class="w-full h-full flex items-center justify-center text-slate-500">No Img</div>
-                                                    </template>
-                                                </div>
-                                                <input type="file" name="avatar" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-2">Banner</label>
-                                            <div class="w-full h-24 bg-slate-700 rounded-xl overflow-hidden mb-2 relative">
-                                                 <template x-if="selectedUser.banner">
-                                                    <img :src="'/storage/' + selectedUser.banner" class="w-full h-full object-cover">
-                                                </template>
-                                                <template x-if="!selectedUser.banner">
-                                                    <div class="w-full h-full flex items-center justify-center text-slate-500">No Banner</div>
-                                                </template>
-                                            </div>
-                                            <input type="file" name="banner" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
                                         </div>
                                     </div>
                                 </div>
@@ -580,8 +562,8 @@
                     </div>
                 </form>
 
-                <!-- Wallet Management Section (Separate Form) -->
-                <div class="bg-slate-800/30 border-t border-slate-700 px-4 py-5 sm:p-6">
+                <!-- Tab: Wallet Manager (Separate Form) -->
+                <div x-show="!loadingUser && activeTab === 'wallet'" class="bg-slate-800/30 border-t border-slate-700 px-4 py-5 sm:p-6">
                     <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Wallet Management</h4>
                     <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
                         <div class="flex items-center justify-between mb-4">

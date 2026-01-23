@@ -14,6 +14,13 @@
         <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto">
             Jadwal event lari terlengkap di Indonesia. Temukan race impianmu berikutnya, dari Fun Run hingga Ultra Marathon.
         </p>
+        
+        <div class="mt-8 flex justify-center" data-aos="fade-up" data-aos-delay="50">
+            <a href="{{ url('/calendar') }}" class="px-8 py-3 rounded-full bg-slate-800 border border-slate-700 text-white font-bold hover:bg-neon hover:text-dark hover:border-neon transition-all flex items-center gap-2 shadow-lg hover:shadow-neon/20">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                Kelola Kalender Lari Saya
+            </a>
+        </div>
     </div>
 
     <!-- Filter Section -->
