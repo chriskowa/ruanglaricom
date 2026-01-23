@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'events/transactions/webhook',
             'marketplace/webhook',
             'wallet/topup/callback',
+            'membership/webhook',
         ]);
 
         $middleware->web(append: [

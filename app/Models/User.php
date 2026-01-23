@@ -58,6 +58,9 @@ class User extends Authenticatable
         'audit_history',
         'weekly_volume',
         'weekly_km_target',
+        'current_package_id',
+        'membership_expires_at',
+        'membership_status',
     ];
 
     public function pacer()
@@ -95,7 +98,37 @@ class User extends Authenticatable
             'weekly_km_target' => 'decimal:2',
             'is_pacer' => 'boolean',
             'is_active' => 'boolean',
+            'membership_expires_at' => 'datetime',
         ];
+    }
+
+    public function currentPackage()
+    {
+        return $this->belongsTo(Package::class, 'current_package_id');
+    }
+
+    public function membershipTransactions()
+    {
+        return $this->hasMany(MembershipTransaction::class);
+    }
+
+    public function isMembershipActive(): bool
+    {
+        if ($this->role !== 'eo') {
+            return true; // Non-EO users don't need membership
+        }
+
+        if ($this->membership_status === 'active' && $this->membership_expires_at && $this->membership_expires_at->isFuture()) {
+            return true;
+        }
+
+        // Check if user is on free trial or special access (optional logic)
+        // For LITE package (price 0), it should be active indefinitely or renewable
+        if ($this->currentPackage && $this->currentPackage->price == 0) {
+            return true;
+        }
+
+        return false;
     }
 
     // Relationships

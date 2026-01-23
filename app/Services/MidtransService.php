@@ -6,6 +6,7 @@ use App\Models\Notification;
 use App\Models\Transaction as EventTransaction;
 use App\Models\User;
 use App\Models\WalletTopup;
+use App\Models\MembershipTransaction;
 use Illuminate\Http\Request;
 use Midtrans\Config as MidtransConfig;
 use Midtrans\Snap;
@@ -376,6 +377,63 @@ class MidtransService
         } else {
             // Late period
             return $category->price_late ?? $category->price_regular ?? 0;
+        }
+    }
+
+    /**
+     * Create Snap Token for Membership Transaction
+     */
+    public function createMembershipTransaction(MembershipTransaction $transaction): array
+    {
+        // Production/Sandbox mode: Use Midtrans
+        // Prepare transaction parameters
+        $params = [
+            'transaction_details' => [
+                'order_id' => 'MEMBERSHIP-'.$transaction->id,
+                'gross_amount' => (int) $transaction->total_amount,
+            ],
+            'customer_details' => [
+                'first_name' => $transaction->user->name,
+                'email' => $transaction->user->email,
+                'phone' => $transaction->user->phone,
+            ],
+            'item_details' => [
+                [
+                    'id' => 'PKG-'.$transaction->package->id,
+                    'price' => (int) $transaction->amount,
+                    'quantity' => 1,
+                    'name' => $transaction->package->name,
+                ],
+            ],
+        ];
+
+        // Add admin fee if exists
+        if ($transaction->admin_fee > 0) {
+            $params['item_details'][] = [
+                'id' => 'ADMIN-FEE',
+                'price' => (int) $transaction->admin_fee,
+                'quantity' => 1,
+                'name' => 'Biaya Admin',
+            ];
+        }
+
+        try {
+            // Get Snap Token from Midtrans
+            $snapToken = Snap::getSnapToken($params);
+
+            // Save token
+            $transaction->update(['snap_token' => $snapToken]);
+
+            return [
+                'success' => true,
+                'snap_token' => $snapToken,
+                'order_id' => $params['transaction_details']['order_id'],
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
         }
     }
 }

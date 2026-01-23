@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Models\Package;
+use App\Models\MembershipTransaction;
 use App\Models\OtpToken;
 use App\Helpers\WhatsApp;
 use Illuminate\Http\Request;
@@ -66,6 +68,23 @@ class AuthController extends Controller
                     ->with('success', 'Akun belum terverifikasi. Silakan masukkan kode OTP yang dikirim.');
             }
 
+            // Cek Status Membership EO
+            if ($user->role === 'eo' && !$user->isMembershipActive()) {
+                // Cari transaksi pending
+                $pendingTx = $user->membershipTransactions()
+                    ->where('status', 'pending')
+                    ->latest()
+                    ->first();
+                
+                if ($pendingTx) {
+                    return redirect()->route('eo.membership.payment', $pendingTx->id);
+                }
+
+                // Jika tidak ada transaksi pending tapi membership tidak aktif (expired atau belum beli)
+                return redirect()->route('eo.packages.index')
+                    ->with('warning', 'Masa aktif paket Anda telah habis atau belum aktif. Silakan pilih paket.');
+            }
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -122,7 +141,7 @@ class AuthController extends Controller
             'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:coach,runner,eo', // Admin tidak bisa didaftar via form
-            'package_tier' => 'nullable|required_if:role,eo|in:lite,pro,elite',
+            'package_tier' => 'nullable|required_if:role,eo|exists:packages,slug',
             'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
                 $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
                     'secret' => env('RECAPTCHA_SECRET_KEY'),
@@ -149,6 +168,18 @@ class AuthController extends Controller
                 ->withInput();
         }
 
+        $package = null;
+        $membershipStatus = 'inactive';
+        $membershipExpiresAt = null;
+
+        if ($validated['role'] === 'eo' && !empty($validated['package_tier'])) {
+            $package = Package::where('slug', $validated['package_tier'])->first();
+            if ($package && $package->price == 0) {
+                $membershipStatus = 'active';
+                $membershipExpiresAt = now()->addDays($package->duration_days);
+            }
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -158,7 +189,20 @@ class AuthController extends Controller
             'is_active' => !env('LOGIN_OTP_ENABLED', true),
             'referral_code' => $this->generateReferralCode(),
             'package_tier' => $validated['role'] === 'eo' ? $validated['package_tier'] : 'basic',
+            'current_package_id' => $package?->id,
+            'membership_status' => $membershipStatus,
+            'membership_expires_at' => $membershipExpiresAt,
         ]);
+
+        if ($package && $package->price > 0) {
+            MembershipTransaction::create([
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+                'amount' => $package->price,
+                'total_amount' => $package->price,
+                'status' => 'pending',
+            ]);
+        }
 
         $wallet = Wallet::create([
             'user_id' => $user->id,

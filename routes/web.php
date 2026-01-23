@@ -626,6 +626,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:eo')->prefix('eo')->name('eo.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\EO\DashboardController::class, 'index'])->name('dashboard');
 
+        // Membership routes
+        Route::get('/membership/packages', [App\Http\Controllers\EO\MembershipController::class, 'index'])->name('packages.index');
+        Route::post('/membership/select', [App\Http\Controllers\EO\MembershipController::class, 'selectPackage'])->name('membership.select');
+        Route::get('/membership/payment/{transaction}', [App\Http\Controllers\EO\MembershipController::class, 'payment'])->name('membership.payment');
+
         // Event management
         Route::post('events/upload-media', [App\Http\Controllers\EO\EventController::class, 'uploadMedia'])->name('events.upload-media');
         Route::resource('events', App\Http\Controllers\EO\EventController::class);
@@ -674,6 +679,7 @@ Route::get('/dashboard', function () {
 // Midtrans webhook (no auth required)
 Route::post('/wallet/topup/callback', [App\Http\Controllers\WalletController::class, 'topupCallback'])->name('wallet.topup.callback');
 Route::post('/events/transactions/webhook', [App\Http\Controllers\EventTransactionWebhookController::class, 'handle'])->name('events.transactions.webhook');
+Route::post('/membership/webhook', [App\Http\Controllers\MembershipWebhookController::class, 'handle'])->name('membership.webhook');
 Route::post('/marketplace/webhook', [App\Http\Controllers\Marketplace\WebhookController::class, 'handle'])->name('marketplace.webhook');
 
 Route::get('/run-queue-worker', function () {
