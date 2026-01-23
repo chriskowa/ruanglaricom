@@ -86,6 +86,32 @@ class BlogController extends Controller
         ));
     }
 
+    public function category(Request $request, $slug)
+    {
+        // Reuse index logic but force category
+        $request->merge(['category' => $slug]);
+        
+        // Validation to ensure category exists, otherwise 404
+        $category = BlogCategory::where('slug', $slug)->firstOrFail();
+
+        // SEO Override
+        $seo = [
+            'title' => $category->name . ' | Blog Ruang Lari',
+            'meta_title' => 'Arsip Artikel ' . $category->name . ' - Ruang Lari',
+            'meta_description' => 'Kumpulan artikel, berita, dan tips seputar ' . $category->name . ' di Ruang Lari. Panduan lengkap untuk pelari Indonesia.',
+            'meta_keywords' => 'blog ' . $category->name . ', artikel ' . $category->name . ', info ' . $category->name . ', ruang lari',
+        ];
+
+        // Call index logic
+        // We can't easily inject SEO into index() response without modifying index().
+        // So let's refactor index() slightly to accept optional SEO data or handle it there.
+        
+        // Better: let index() handle the view, but we pass the category object so index() can derive SEO.
+        // index() already fetches $activeCategory.
+        
+        return $this->index($request);
+    }
+
     public function show($slug)
     {
         $article = Article::where('slug', $slug)->published()->firstOrFail();

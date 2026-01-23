@@ -46,6 +46,30 @@ class SitemapController extends Controller
             }
         });
 
+        // 3.1 Blog Categories
+        \App\Models\BlogCategory::chunk(100, function ($categories) use (&$urls) {
+            foreach ($categories as $category) {
+                $urls[] = [
+                    'loc' => route('blog.category', $category->slug),
+                    'lastmod' => $category->updated_at->toIso8601String(),
+                    'priority' => '0.7',
+                    'changefreq' => 'weekly',
+                ];
+            }
+        });
+
+        // 3.2 City Event Archives
+        \App\Models\City::whereNotNull('seourl')->chunk(100, function ($cities) use (&$urls) {
+            foreach ($cities as $city) {
+                $urls[] = [
+                    'loc' => route('events.city', $city->seourl),
+                    'lastmod' => $city->updated_at->toIso8601String(),
+                    'priority' => '0.8',
+                    'changefreq' => 'daily',
+                ];
+            }
+        });
+
         // 4. Marketplace Products (Active)
         \App\Models\Marketplace\MarketplaceProduct::where('is_active', true)->chunk(100, function ($products) use (&$urls) {
             foreach ($products as $product) {

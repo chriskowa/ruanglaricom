@@ -1,9 +1,9 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Blog | Ruang Lari')
-@section('meta_title', 'Blog Ruang Lari')
-@section('meta_description', 'Portal berita dan insight lari: event, pacer, training, gear, dan komunitas.')
-@section('meta_keywords', 'blog lari, berita lari, komunitas lari, event lari, training plan, pacer')
+@section('title', $activeCategory ? $activeCategory->name . ' | Blog Ruang Lari' : 'Blog | Ruang Lari')
+@section('meta_title', $activeCategory ? 'Arsip Artikel ' . $activeCategory->name . ' - Ruang Lari' : 'Blog Ruang Lari')
+@section('meta_description', $activeCategory ? 'Kumpulan artikel, berita, dan tips seputar ' . $activeCategory->name . ' di Ruang Lari.' : 'Portal berita dan insight lari: event, pacer, training, gear, dan komunitas.')
+@section('meta_keywords', $activeCategory ? 'blog ' . $activeCategory->name . ', artikel ' . $activeCategory->name : 'blog lari, berita lari, komunitas lari, event lari, training plan, pacer')
 
 @section('content')
 @php
@@ -49,15 +49,15 @@
                 </div>
 
                 <div class="mt-8 flex flex-wrap gap-2">
-                    <button type="button" data-cat-kind="chip" data-category="" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug ? 'border-slate-700 text-slate-300 hover:text-white' : 'border-neon/40 bg-neon/10 text-neon' }}">
+                    <a href="{{ route('blog.index') }}" data-cat-kind="chip" data-category="" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug ? 'border-slate-700 text-slate-300 hover:text-white' : 'border-neon/40 bg-neon/10 text-neon' }}">
                         Semua
                         <span class="text-xs font-mono text-slate-400">{{ $categories->sum('published_articles_count') }}</span>
-                    </button>
+                    </a>
                     @foreach($categories as $cat)
-                        <button type="button" data-cat-kind="chip" data-category="{{ $cat->slug }}" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300 hover:text-white' }}">
+                        <a href="{{ route('blog.category', $cat->slug) }}" data-cat-kind="chip" data-category="{{ $cat->slug }}" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300 hover:text-white' }}">
                             {{ $cat->name }}
                             <span class="text-xs font-mono text-slate-500">{{ $cat->published_articles_count }}</span>
-                        </button>
+                        </a>
                     @endforeach
                 </div>
 

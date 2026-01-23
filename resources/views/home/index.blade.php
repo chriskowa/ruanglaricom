@@ -871,7 +871,8 @@
                 const day=String(d.getDate()).padStart(2,'0');
                 
                 const card=document.createElement('a');
-                card.href='/events/'+ev.slug;
+                const url = (ev.is_eo) ? '/events/'+ev.slug : '/event-lari/'+ev.slug;
+                card.href = base + url;
                 card.className='group relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-neon/50 transition duration-300 flex';
                 card.setAttribute('data-aos', 'fade-up');
                 card.setAttribute('data-aos-delay', i * 100);

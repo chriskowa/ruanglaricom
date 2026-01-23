@@ -96,4 +96,28 @@ class PublicRunningEventController extends Controller
             
         return view('events.running-event-detail', compact('event', 'relatedEvents', 'sameDateEvents'));
     }
+
+    public function cityArchive($citySlug)
+    {
+        $city = City::where('seourl', $citySlug)->firstOrFail();
+
+        // Upcoming events
+        $upcomingEvents = Event::published()
+            ->upcoming()
+            ->where('city_id', $city->id)
+            ->with(['raceType', 'raceDistances'])
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        // Past events
+        $pastEvents = Event::published()
+            ->where('start_at', '<', now())
+            ->where('city_id', $city->id)
+            ->with(['raceType', 'raceDistances'])
+            ->orderBy('start_at', 'desc')
+            ->limit(12)
+            ->get();
+
+        return view('events.city-archive', compact('city', 'upcomingEvents', 'pastEvents'));
+    }
 }

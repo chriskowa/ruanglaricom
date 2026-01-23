@@ -257,6 +257,7 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
 
 // Public event routes (Kalender Lari)
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
+Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventController::class, 'cityArchive'])->name('events.city');
 Route::get('/event-lari/{slug}', [App\Http\Controllers\PublicRunningEventController::class, 'show'])->name('running-event.detail');
 
 // Legacy public event routes (keep if needed or redirect)
@@ -280,6 +281,7 @@ Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->n
 
 // Public Blog
 Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/kategori/{slug}', [App\Http\Controllers\BlogController::class, 'category'])->name('blog.category');
 Route::get('/blog/{slug}', [App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
 // Public API: Upcoming events for home page
@@ -289,7 +291,7 @@ Route::get('/api/events/upcoming', function () {
             return response()->json([]);
         }
 
-        $events = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at')
+        $events = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id')
             ->orderByRaw('COALESCE(start_at, created_at) ASC')
             ->limit(4)
             ->get()
@@ -299,6 +301,7 @@ Route::get('/api/events/upcoming', function () {
                 return [
                     'name' => $e->name,
                     'slug' => $e->slug ?: Illuminate\Support\Str::slug($e->name),
+                    'is_eo' => $e->is_eo,
                     'date' => optional($dt)->format('Y-m-d'),
                     'time' => optional($dt)->format('H:i'),
                     'location' => $e->location_name,
