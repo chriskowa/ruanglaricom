@@ -153,6 +153,12 @@ Route::get('/v-card', [App\Http\Controllers\VCardController::class, 'index'])->n
 Route::get('/v-card.html', function () {
     return redirect()->route('vcard.index');
 });
+
+// Tools Landing Page
+Route::get('/tools', function () {
+    return view('tools.index');
+})->name('tools.index');
+
 Route::get('/tools/calculator', [App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
 Route::get('/tools/form-analyzer', [App\Http\Controllers\FormAnalyzerController::class, 'index'])->name('tools.form-analyzer');
 Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerController::class, 'analyze'])->name('tools.form-analyzer.analyze');
