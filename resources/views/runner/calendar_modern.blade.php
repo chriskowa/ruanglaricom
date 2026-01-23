@@ -8,8 +8,9 @@
 <style>
 .glass-panel{background:rgba(15,23,42,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
 .fc .fc-toolbar-title{font-size: medium;font-weight:800;color:#e2e8f0}
-#loader { pointer-events: none !important; }
+#loader[data-hidden="1"] { pointer-events: none !important; }
 #ph-sidebar-backdrop.hidden { display: none !important; }
+[v-cloak]{display:none !important;}
 .fc .fc-button{background:#1e293b;border-color:#334155;color:#cbd5e1}
 .fc .fc-button:hover{color:#ccff00;border-color:#ccff00}
 .fc-event{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:8px;padding:2px 6px}
@@ -141,8 +142,8 @@
                 <p class="text-neon font-mono text-sm tracking-widest uppercase">Training</p>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Runner Calendar</h1>
             </div>
-            <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-50">
-                <button type="button" @click="showVdotModal = true" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
+            <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-[60] pointer-events-auto">
+                <button type="button" @click="openVdotModal" class="cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
                 @if($isEnrolled40Days)
                 <a href="{{ route('challenge.create') }}" class="px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-xs md:text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
                 @endif
@@ -522,7 +523,7 @@
             </div>
         </div>
 
-        <div v-if="showDetailModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div v-if="showDetailModal" class="fixed inset-0 z-[300] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
             <!-- Dynamic Modal Width based on Type -->
             <div class="relative z-10 mx-auto my-10 glass-panel rounded-3xl p-0 border border-slate-700 overflow-hidden transition-all duration-300"
@@ -855,7 +856,7 @@
             </div>
         </div>
 
-        <div v-if="showPbModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div v-if="showPbModal" class="fixed inset-0 z-[250] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -894,7 +895,7 @@
             </div>
         </div>
 
-        <div v-if="showVdotModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div v-if="showVdotModal" class="fixed inset-0 z-[300] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-2xl mx-auto my-10 glass-panel rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -1011,7 +1012,7 @@
         </div>
 
         <!-- Weekly Target Modal -->
-        <div v-if="showWeeklyTargetModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div v-if="showWeeklyTargetModal" class="fixed inset-0 z-[250] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6 border-neon/30 shadow-2xl shadow-neon/10">
                 <div class="flex justify-between items-center mb-6">
@@ -1039,7 +1040,7 @@
             </div>
         </div>
 
-        <div v-if="showFormModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div v-if="showFormModal" class="fixed inset-0 z-[300] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-lg mx-auto my-10 glass-panel rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-3">
@@ -1141,7 +1142,7 @@
 
 
 
-        <div v-if="showRaceModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div v-if="showRaceModal" class="fixed inset-0 z-[300] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-lg mx-auto my-10 glass-panel rounded-2xl p-6 border-yellow-500/30 shadow-2xl shadow-yellow-500/10">
                 <div class="flex justify-between items-center mb-6">
@@ -1228,7 +1229,7 @@
         </div>
 
         <!-- Reschedule Modal -->
-        <div v-if="showRescheduleModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div v-if="showRescheduleModal" class="fixed inset-0 z-[250] overflow-y-auto">
             <div class="fixed inset-0 bg-black/80"></div>
             <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6 border-blue-500/30 shadow-2xl shadow-blue-500/10">
                 <div class="flex justify-between items-center mb-6">
@@ -1263,7 +1264,7 @@
 
 
         <!-- Strava Graph Modal -->
-        <div v-if="showStravaGraphModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div v-if="showStravaGraphModal" class="fixed inset-0 z-[350] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <div class="w-full max-w-5xl h-[80vh] bg-slate-900 border border-slate-700 rounded-2xl p-6 relative flex flex-col shadow-2xl shadow-neon/10">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-black text-[#FC4C02] italic uppercase flex items-center gap-2">
@@ -1286,7 +1287,7 @@
 @include('layouts.components.advanced-builder-utils')
 <script src="{{ asset('vendor/chart-js/chart.bundle.min.js') }}"></script>
 <script>
-const { createApp, ref, reactive, onMounted, computed, watch } = Vue;
+const { createApp, ref, reactive, onMounted, computed, watch, nextTick } = Vue;
 (function(){
     const root = document.getElementById('runner-calendar-app');
     if (!root) { console.error('Runner calendar root not found'); return; }
@@ -1516,6 +1517,23 @@ createApp({
             goal_race_date: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0,10), // ~4 months from now
             goal_time: ''
         });
+
+        const openVdotModal = async () => {
+            try {
+                console.log('[RunnerCalendar] openVdotModal');
+                showDetailModal.value = false;
+                showFormModal.value = false;
+                showRaceModal.value = false;
+                // force close first so Vue applies DOM updates before re-opening
+                showVdotModal.value = false;
+                await nextTick();
+                showVdotModal.value = true;
+            } catch (e) {
+                console.error('[RunnerCalendar] openVdotModal failed', e);
+                // fallback: try to show anyway
+                showVdotModal.value = true;
+            }
+        };
 
         let calendar = null;
 
@@ -2231,7 +2249,10 @@ createApp({
 
         const initCalendar = () => {
             const el = document.getElementById('calendar');
-            if (!el) return; // Guard against null element
+            if (!el) {
+                console.error('[RunnerCalendar] Calendar element not found');
+                return; // Guard against null element
+            }
             
             const isMobile = window.innerWidth < 768;
             const initialView = isMobile ? 'listMonth' : 'dayGridMonth';
@@ -2274,15 +2295,29 @@ createApp({
             form.duration = '';
             form.description = '';
             form.workout_structure = [];
+            showVdotModal.value = false;
+            showRaceModal.value = false;
             showFormModal.value = true;
         };
 
-        const openFormForToday = () => { 
-            const d = new Date();
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth()+1).padStart(2,'0');
-            const dd = String(d.getDate()).padStart(2,'0');
-            openForm(`${yyyy}-${mm}-${dd}`);
+        const openFormForToday = async () => { 
+            try {
+                console.log('[RunnerCalendar] openFormForToday');
+                // ensure other modals are closed first
+                showDetailModal.value = false;
+                showVdotModal.value = false;
+                showRaceModal.value = false;
+                showFormModal.value = false;
+                await nextTick();
+
+                const d = new Date();
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const dd = String(d.getDate()).padStart(2,'0');
+                openForm(`${yyyy}-${mm}-${dd}`);
+            } catch (e) {
+                console.error('[RunnerCalendar] openFormForToday failed', e);
+            }
         };
 
         const closeForm = () => { showFormModal.value = false; };
@@ -2293,14 +2328,29 @@ createApp({
             raceForm.distLabel = label;
         };
 
-        const openRaceForm = () => {
-            raceForm.name = '';
-            raceForm.date = new Date().toISOString().slice(0,10);
-            raceForm.distance = '10';
-            raceForm.distLabel = '10K';
-            raceForm.goal_time = '';
-            raceForm.notes = '';
-            showRaceModal.value = true;
+        const openRaceForm = async () => {
+            try {
+                console.log('[RunnerCalendar] openRaceForm');
+                raceForm.name = '';
+                raceForm.date = new Date().toISOString().slice(0,10);
+                raceForm.distance = '10';
+                raceForm.distLabel = '10K';
+                raceForm.goal_time = '';
+                raceForm.notes = '';
+
+                // ensure other modals are closed first
+                showDetailModal.value = false;
+                showVdotModal.value = false;
+                showFormModal.value = false;
+                showRaceModal.value = false;
+                await nextTick();
+
+                showRaceModal.value = true;
+            } catch (e) {
+                console.error('[RunnerCalendar] openRaceForm failed', e);
+                // fallback
+                showRaceModal.value = true;
+            }
         };
         const saveRace = async () => {
             try {
@@ -2414,6 +2464,9 @@ createApp({
         };
 
         const showEventDetail = (info) => {
+            showVdotModal.value = false;
+            showFormModal.value = false;
+            showRaceModal.value = false;
             const props = info.event.extendedProps || {};
             stravaDetailsLoading.value = false;
             stravaDetailsError.value = '';
@@ -2693,7 +2746,7 @@ createApp({
         return { filter, plans, plansLoading, enrollments, programBag, setFilter, dayName, statusText, statusClass, activityLabel, formatDate,
             showDetailModal, detail, detailTitle, closeDetail, deleteCustomWorkout,
             showFormModal, form, openFormForToday, closeForm, saveCustomWorkout, showPlanDetail, updateSessionStatus, deleteEnrollment,
-            resetPlan, applyProgram, showVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
+            resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
             trainingProfile, formatPace, showPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
             stravaLinkInput, notesInput, rpeInput, feelingInput, finishActivityWithLink, profileTab, chatCoach,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, weeklyVolume, maxVolume,

@@ -306,6 +306,109 @@
     </div>
 </div>
 
+<!-- Activity Detail Modal -->
+<div v-if="showDetailModal" class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm" @click.self="showDetailModal = false">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col shadow-2xl relative">
+        <!-- Header -->
+        <div class="p-6 border-b border-slate-800 flex justify-between items-start shrink-0">
+            <div>
+                <h2 class="text-2xl font-black text-white italic tracking-tighter">@{{ detail.name }}</h2>
+                <p class="text-slate-400 text-sm">@{{ formatDateFull(detail.date) }} • @{{ detail.type }}</p>
+            </div>
+            <button @click="showDetailModal = false" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+            
+            <!-- Loading State -->
+            <div v-if="stravaDetailsLoading" class="flex flex-col items-center justify-center py-12">
+                <div class="loader mb-4"></div>
+                <p class="text-slate-400">Loading activity details...</p>
+            </div>
+
+            <!-- Error State -->
+            <div v-else-if="stravaDetailsError" class="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl text-center">
+                @{{ stravaDetailsError }}
+            </div>
+
+            <div v-else>
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <p class="text-xs text-slate-400 uppercase">Distance</p>
+                        <p class="text-2xl font-mono font-bold text-white">@{{ detail.distance?.toFixed(2) }} <span class="text-sm">km</span></p>
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <p class="text-xs text-slate-400 uppercase">Pace</p>
+                        <p class="text-2xl font-mono font-bold text-neon">@{{ detail.pace }} <span class="text-sm text-slate-500">/km</span></p>
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <p class="text-xs text-slate-400 uppercase">Time</p>
+                        <p class="text-2xl font-mono font-bold text-white">@{{ detail.duration }}</p>
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <p class="text-xs text-slate-400 uppercase">Heart Rate</p>
+                        <p class="text-2xl font-mono font-bold text-rose-500">
+                            @{{ detail.strava_metrics?.average_heartrate ? Math.round(detail.strava_metrics.average_heartrate) : '-' }} <span class="text-sm">bpm</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Analysis (if available) -->
+                <div v-if="detail.analysis" class="bg-slate-800/30 border border-slate-700 rounded-xl p-4 mb-6">
+                    <h3 class="text-neon font-bold text-sm mb-2 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Analysis
+                    </h3>
+                    <p class="text-sm text-slate-300 mb-2">@{{ detail.analysis }}</p>
+                    <p class="text-xs text-slate-400 italic">Suggestion: @{{ detail.suggestion }}</p>
+                </div>
+
+                <!-- Chart -->
+                <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 mb-6 relative h-[300px]">
+                    <canvas id="stravaMetricsChart"></canvas>
+                </div>
+
+                <!-- Splits Table -->
+                <div v-if="detail.strava_splits && detail.strava_splits.length > 0">
+                    <h3 class="text-white font-bold mb-3">Splits</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-400 uppercase bg-slate-800/50">
+                                <tr>
+                                    <th class="px-4 py-3 rounded-l-lg">Km</th>
+                                    <th class="px-4 py-3">Pace</th>
+                                    <th class="px-4 py-3">Elev</th>
+                                    <th class="px-4 py-3 rounded-r-lg">HR</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+                                <tr v-for="(split, index) in detail.strava_splits" :key="index" class="hover:bg-slate-800/30 transition">
+                                    <td class="px-4 py-3 font-mono">@{{ split.split }}</td>
+                                    <td class="px-4 py-3 font-mono font-bold text-white">@{{ formatPaceFromSec(split.moving_time / (split.distance / 1000)) }}</td>
+                                    <td class="px-4 py-3 font-mono">@{{ split.elevation_difference?.toFixed(0) }}m</td>
+                                    <td class="px-4 py-3 font-mono text-rose-400">@{{ split.average_heartrate ? Math.round(split.average_heartrate) : '-' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="p-4 border-t border-slate-800 flex justify-end gap-3 shrink-0">
+            <a v-if="detail.strava_metrics?.id" :href="`https://www.strava.com/activities/${detail.strava_metrics.id}`" target="_blank" class="px-4 py-2 rounded-lg bg-[#FC4C02] text-white font-bold hover:bg-[#E34402] transition flex items-center gap-2">
+                View on Strava <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+            <button @click="showDetailModal = false" class="px-4 py-2 rounded-lg bg-slate-800 text-white font-bold hover:bg-slate-700 transition">Close</button>
+        </div>
+    </div>
+</div>
+
 <!-- Poster Modal -->
 <div v-if="showPosterModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm"
      :class="posterIsMobile && posterMobilePreviewFull ? 'p-0' : 'p-4'">
@@ -1062,7 +1165,7 @@
                     <div class="space-y-3 mb-6">                    
                     <div v-for="activity in paginatedActivities" :key="activity.id" 
                         class="bg-card border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row items-center gap-6 hover:bg-slate-800 transition hover:border-[#FC4C02]/50 cursor-pointer relative"
-                        @click="shareActivityPoster(activity)">
+                        @click="showActivityDetail(activity)">
                             <div class="flex items-center gap-4 w-full md:w-1/3">
                                 <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center border border-slate-700 text-slate-400">
                                     <svg v-if="activity.type === 'Run'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -1144,6 +1247,7 @@
 @endpush
 
 @push('scripts')
+    <script src="{{ asset('vendor/chart-js/chart.bundle.min.js') }}"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
         // Polyline Decoder Utility
@@ -1294,7 +1398,14 @@
                         ruangLariUrl: '{{ route("calendar.events.proxy") }}',
                         ruangLariKey: 'Thinkpadx390', // Not used by proxy but kept for ref
                         stravaToken: null,
-                    }
+                    },
+                    // Detail Activity Feature
+                    showDetailModal: false,
+                    detail: {},
+                    stravaDetailsLoading: false,
+                    stravaDetailsError: '',
+                    stravaChart: null,
+                    runnerUrl: '{{ url("/runner") }}',
                 }
             },
             computed: {
@@ -1567,6 +1678,250 @@
                 this.initData();
             },
                 methods: {
+                    showActivityDetail(activity) {
+                        this.detail = {
+                            id: activity.id,
+                            name: activity.name,
+                            date: activity.start_date,
+                            type: activity.type,
+                            distance: activity.distance / 1000,
+                            duration: this.formatDuration(activity.moving_time),
+                            pace: this.calculatePace(activity.moving_time, activity.distance),
+                            strava_metrics: null,
+                            strava_splits: [],
+                            strava_laps: [],
+                            strava_streams: null,
+                            analysis: null,
+                            suggestion: null
+                        };
+                        this.showDetailModal = true;
+                        if (activity.id) {
+                            this.loadStravaDetails(activity.id);
+                        }
+                    },
+
+                    generateStravaAnalysis(metrics) {
+                        if (!metrics) {
+                            return { analysis: 'Data tidak cukup untuk analisis.', suggestion: 'Lanjutkan latihan sesuai rencana.' };
+                        }
+
+                        const avgHr = metrics.average_heartrate;
+                        const distKm = metrics.distance ? (metrics.distance / 1000) : (metrics.distance_m ? (metrics.distance_m / 1000) : 0);
+                        const paceStr = metrics.pace;
+
+                        let analysisParts = [];
+                        let intensity = 'moderate';
+
+                        if (avgHr) {
+                            if (avgHr < 140) {
+                                analysisParts.push('Latihan ini cenderung ringan (aerobik), bagus untuk membangun base endurance dan recovery.');
+                                intensity = 'easy';
+                            } else if (avgHr < 160) {
+                                analysisParts.push('Latihan ini berada di intensitas sedang (steady). Bagus untuk meningkatkan efisiensi aerobik.');
+                                intensity = 'moderate';
+                            } else {
+                                analysisParts.push('Intensitas tinggi terdeteksi. Ini membantu melatih ambang laktat/VO2Max, tapi butuh recovery lebih.');
+                                intensity = 'hard';
+                            }
+                        } else if (paceStr) {
+                            analysisParts.push(`Data HR tidak tersedia, namun pace ${paceStr}/km menunjukkan usaha yang konsisten.`);
+                        } else {
+                            analysisParts.push('Data HR dan pace tidak lengkap, namun ringkasan aktivitas berhasil dimuat.');
+                        }
+
+                        if (distKm >= 16) {
+                            analysisParts.push('Ini termasuk long run yang bagus untuk daya tahan. Pastikan pemulihan cukup.');
+                            intensity = 'hard';
+                        } else if (distKm > 0 && distKm < 5) {
+                            analysisParts.push('Jarak pendek, cocok untuk recovery run atau maintenance.');
+                        }
+
+                        let suggestion = 'Besok lakukan Easy Run 30–45 menit (Zone 1–2) atau cross training ringan.';
+                        if (intensity === 'hard') {
+                            suggestion = 'Ambil Rest Day atau Recovery Run 20–40 menit (Zone 1–2). Fokus hidrasi, tidur, dan mobility.';
+                        } else if (intensity === 'moderate') {
+                            suggestion = 'Next workout: Easy Run 30–50 menit atau latihan kekuatan ringan (core + glute).';
+                        } else if (intensity === 'easy') {
+                            suggestion = 'Jika tubuh segar, next workout bisa Tempo pendek atau interval ringan sesuai program. Jika tidak, tetap easy.';
+                        }
+
+                        return { analysis: analysisParts.join(' '), suggestion };
+                    },
+
+                    formatPaceFromSec(seconds) {
+                        if (!seconds || !isFinite(seconds)) return '-';
+                        const m = Math.floor(seconds / 60);
+                        const s = Math.floor(seconds % 60);
+                        return `${m}:${s < 10 ? '0' : ''}${s}`;
+                    },
+
+                    destroyStravaChart() {
+                        if (this.stravaChart) {
+                            this.stravaChart.destroy();
+                            this.stravaChart = null;
+                        }
+                    },
+
+                    renderStravaChart(streams) {
+                        this.destroyStravaChart();
+                        const ctx = document.getElementById('stravaMetricsChart');
+                        if (!ctx) return;
+
+                        const normalizeStreams = (raw) => {
+                            if (!raw) return null;
+                            if (Array.isArray(raw)) {
+                                const out = {};
+                                raw.forEach((item) => {
+                                    const key = item?.type || item?.key;
+                                    if (key) out[key] = item;
+                                });
+                                return out;
+                            }
+                            return raw;
+                        };
+
+                        const s = normalizeStreams(streams);
+                        if (!s) return;
+
+                        const getStreamData = (stream) => {
+                            if (!stream) return null;
+                            if (Array.isArray(stream)) return stream;
+                            if (Array.isArray(stream.data)) return stream.data;
+                            return null;
+                        };
+
+                        const distanceData = getStreamData(s.distance);
+                        const labels = Array.isArray(distanceData)
+                            ? distanceData.map(d => (d / 1000).toFixed(1))
+                            : [];
+                        const datasets = [];
+                        
+                        // Pace
+                        const velocityData = getStreamData(s.velocity_smooth);
+                        if (Array.isArray(velocityData)) {
+                            const paceData = velocityData.map(v => {
+                                if (v <= 0) return null;
+                                return 1000 / v; // sec/km
+                            });
+                            datasets.push({
+                                label: 'Pace',
+                                data: paceData,
+                                borderColor: '#ccff00',
+                                borderWidth: 1,
+                                yAxisID: 'yPace',
+                                pointRadius: 0,
+                                tension: 0.2
+                            });
+                        }
+                        
+                        // HR
+                        const hrData = getStreamData(s.heartrate);
+                        if (Array.isArray(hrData)) {
+                            datasets.push({
+                                label: 'Heart Rate',
+                                data: hrData,
+                                borderColor: '#f43f5e',
+                                borderWidth: 1,
+                                yAxisID: 'yMetric',
+                                pointRadius: 0
+                            });
+                        }
+                        
+                        // Cadence
+                        const cadenceData = getStreamData(s.cadence);
+                        if (Array.isArray(cadenceData)) {
+                             datasets.push({
+                                label: 'Cadence',
+                                data: cadenceData.map(v => v * 2), // SPM assumption
+                                borderColor: '#3b82f6',
+                                borderWidth: 1,
+                                yAxisID: 'yMetric',
+                                pointRadius: 0,
+                                hidden: true 
+                            });
+                        }
+
+                        if (datasets.length === 0) return;
+
+                        const length = labels.length || Math.max(...datasets.map(d => Array.isArray(d.data) ? d.data.length : 0));
+                        const safeLabels = labels.length ? labels : Array.from({ length }, (_, i) => i + 1);
+
+                        this.stravaChart = new Chart(ctx, {
+                            type: 'line',
+                            data: { labels: safeLabels, datasets },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: { mode: 'index', intersect: false },
+                                plugins: {
+                                    legend: { labels: { color: '#fff' } },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: (ctx) => {
+                                                if (ctx.dataset.label === 'Pace') {
+                                                    return 'Pace: ' + this.formatPaceFromSec(ctx.raw);
+                                                }
+                                                return ctx.dataset.label + ': ' + ctx.raw;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: { ticks: { color: '#64748B', maxTicksLimit: 8 }, grid: { color: '#334155' } },
+                                    yPace: {
+                                        type: 'linear', position: 'left', reverse: true,
+                                        ticks: { color: '#ccff00', callback: (v) => this.formatPaceFromSec(v) },
+                                        grid: { color: '#334155' }
+                                    },
+                                    yMetric: {
+                                        type: 'linear', position: 'right',
+                                        ticks: { color: '#fff' },
+                                        grid: { display: false }
+                                    }
+                                }
+                            }
+                        });
+                    },
+
+                    async loadStravaStreams(id) {
+                        try {
+                            const res = await fetch(`${this.runnerUrl}/strava/activities/${id}/streams`, { headers: { 'Accept': 'application/json' } });
+                            const data = await res.json();
+                            if (res.ok && data.success) {
+                                this.detail.strava_streams = data.streams;
+                                setTimeout(() => this.renderStravaChart(data.streams), 100);
+                            }
+                        } catch (e) { console.error(e); }
+                    },
+
+                    async loadStravaDetails(id) {
+                        this.stravaDetailsLoading = true;
+                        this.stravaDetailsError = '';
+                        this.destroyStravaChart();
+                        
+                        try {
+                            const res = await fetch(`${this.runnerUrl}/strava/activities/${id}/details`, { headers: { 'Accept': 'application/json' } });
+                            const data = await res.json();
+                            if (res.ok && data.success) {
+                                const a = data.activity;
+                                this.detail.strava_metrics = a;
+                                this.detail.strava_splits = a.splits_metric || [];
+                                this.detail.strava_laps = a.laps || [];
+                                const ana = this.generateStravaAnalysis(a);
+                                this.detail.analysis = ana.analysis;
+                                this.detail.suggestion = ana.suggestion;
+                                
+                                this.loadStravaStreams(id);
+                            } else {
+                                this.stravaDetailsError = 'Gagal mengambil detail.';
+                            }
+                        } catch (e) {
+                            this.stravaDetailsError = 'Error network.';
+                        } finally {
+                            this.stravaDetailsLoading = false;
+                        }
+                    },
+
                     updatePosterIsMobile() {
                         this.posterIsMobile = window.innerWidth < 768;
                     },
