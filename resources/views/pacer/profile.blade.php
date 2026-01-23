@@ -373,7 +373,7 @@
     <div id="hire-modal" class="fixed inset-0 z-50 hidden">
         <div id="hire-modal-overlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
         <div class="relative z-10 mx-auto my-8 max-w-lg px-4">
-            <div class="bg-card border border-slate-700 rounded-3xl overflow-hidden shadow-2xl">
+            <div class="bg-card border border-slate-700 rounded-3xl overflow-y-auto shadow-2xl">
                 <div class="p-6 border-b border-slate-800 flex items-start justify-between gap-4">
                     <div>
                         <div class="text-xs text-slate-400 uppercase tracking-widest font-bold">Hire Pacer</div>
