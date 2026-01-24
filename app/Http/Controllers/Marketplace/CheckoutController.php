@@ -104,7 +104,7 @@ class CheckoutController extends Controller
 
     public function pay(MarketplaceOrder $order)
     {
-        if ($order->buyer_id !== Auth::id()) {
+        if ($order->buyer_id !== Auth::id() && (!Auth::user() || !Auth::user()->isAdmin())) {
             abort(403);
         }
         if ($order->status !== 'pending') {
