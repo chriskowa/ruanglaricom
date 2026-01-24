@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ProgramSeeder::class,
             EventSeeder::class,
             PacerSeeder::class,
+            MarketplaceDataSeeder::class,
         ]);
     }
 }

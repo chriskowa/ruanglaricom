@@ -5,6 +5,7 @@
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <style>
+        .leaflet-control{display: none;}
         #rl-route-map { height: calc(100vh - 190px); min-height: 520px; }
         @media (max-width: 1024px) { #rl-route-map { height: calc(100vh - 260px); min-height: 520px; } }
         @media (max-width: 640px) { #rl-route-map { height: calc(100vh - 250px); min-height: 420px; } }

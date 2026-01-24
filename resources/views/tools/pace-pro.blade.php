@@ -4,6 +4,9 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <style>
+        .leaflet-control{display: none;}
+    </style>
 @endpush
 
 @section('content')
@@ -67,22 +70,39 @@
                         </div>
 
                         <div id="pp-input-draw" class="space-y-4 hidden">
+                            <!-- Search Location -->
+                            <div class="flex gap-2">
+                                <input type="text" id="pp-draw-search-input" placeholder="Cari lokasi (Enter)..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs focus:border-neon outline-none">
+                                <button id="pp-draw-search-btn" type="button" class="bg-slate-800 text-white hover:bg-slate-700 px-3 rounded-lg text-xs font-bold border border-slate-700">🔍</button>
+                            </div>
+
                             <div class="p-4 bg-slate-900/50 border border-slate-700 rounded-xl space-y-3">
                                 <div class="flex items-center justify-between">
                                     <label class="text-xs font-bold text-slate-400 uppercase">Jarak Rute</label>
                                     <span id="pp-draw-dist" class="text-neon font-black text-lg">0.00 km</span>
                                 </div>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                     <button id="pp-draw-center" type="button" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-[10px] font-bold border border-slate-700">Center Last</button>
+                                     <button id="pp-draw-fit" type="button" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-[10px] font-bold border border-slate-700">Fit Route</button>
+                                </div>
+
                                 <div class="flex gap-2">
-                                    <button id="pp-draw-undo" type="button" class="flex-1 bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700">Undo</button>
+                                    <button id="pp-draw-undo" type="button" class="flex-1 bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700" title="Ctrl+Z">Undo</button>
+                                    <button id="pp-draw-redo" type="button" class="flex-1 bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700" title="Ctrl+Y">Redo</button>
                                     <button id="pp-draw-clear" type="button" class="flex-1 bg-slate-800 text-red-400 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700">Reset</button>
                                 </div>
+                                
                                 <label class="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer select-none">
                                     <input type="checkbox" id="pp-draw-road" class="accent-neon rounded" checked>
                                     <span>Ikuti Jalan (Snap to Road)</span>
                                 </label>
-                                <p class="text-[10px] text-slate-500 italic">
-                                    *Klik peta untuk menambah titik start, checkpoint, dan finish.
-                                </p>
+
+                                <div class="flex gap-3 text-[10px] text-slate-400 justify-center pt-2 border-t border-slate-800">
+                                     <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Start</span>
+                                     <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Point</span>
+                                     <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> Finish</span>
+                                </div>
                             </div>
                         </div>
 
@@ -223,6 +243,10 @@
             var drawMarkers = [];
             var drawPolyline = null;
             var drawSeq = 0;
+            
+            // History State
+            var drawHistory = [];
+            var drawHistoryIndex = -1;
 
             var els = {
                 tabButtons: document.querySelectorAll('[data-pp-tab]'),
@@ -231,8 +255,13 @@
                 boxDraw: document.getElementById('pp-input-draw'),
                 drawDist: document.getElementById('pp-draw-dist'),
                 drawUndo: document.getElementById('pp-draw-undo'),
+                drawRedo: document.getElementById('pp-draw-redo'),
                 drawClear: document.getElementById('pp-draw-clear'),
                 drawRoad: document.getElementById('pp-draw-road'),
+                drawSearchInput: document.getElementById('pp-draw-search-input'),
+                drawSearchBtn: document.getElementById('pp-draw-search-btn'),
+                drawCenter: document.getElementById('pp-draw-center'),
+                drawFit: document.getElementById('pp-draw-fit'),
                 distanceSelect: document.getElementById('pp-distance-select'),
                 customDistance: document.getElementById('pp-custom-distance'),
                 gpxFile: document.getElementById('pp-gpx-file'),
@@ -427,11 +456,15 @@
                 
                 drawPolyline = L.polyline(latlngs, { color: color, weight: 4 }).addTo(map);
 
-                // Add markers for start, end, and turns
+                // Add markers
                 drawPoints.forEach(function(p, idx) {
-                    var color = (idx === 0) ? '#22c55e' : ((idx === drawPoints.length - 1) ? '#ef4444' : '#3b82f6');
+                    var color = '#3b82f6'; // Default Blue
+                    var radius = 6;
+                    if (idx === 0) { color = '#22c55e'; radius = 7; } // Start Green
+                    else if (idx === drawPoints.length - 1) { color = '#ef4444'; radius = 7; } // End Red
+
                     var m = L.circleMarker([p.lat, p.lng||p.lon], {
-                        radius: 6,
+                        radius: radius,
                         color: '#fff',
                         weight: 2,
                         fillColor: color,
@@ -447,7 +480,7 @@
                 els.drawDist.textContent = dist.toFixed(2) + ' km';
             }
 
-            function updateDrawRoute() {
+            function updateDrawRoute(skipRoute) {
                 drawSeq++;
                 var seq = drawSeq;
                 
@@ -457,7 +490,9 @@
                     return;
                 }
 
-                if (els.drawRoad.checked) {
+                // Optimization: if simple mode or just restoring, maybe skip?
+                // But for "Ikuti Jalan", we must route.
+                if (els.drawRoad.checked && !skipRoute) {
                     els.drawDist.textContent = 'Routing...';
                     osrmRoute(drawPoints)
                         .then(function(pts) {
@@ -471,9 +506,76 @@
                             rebuildDrawLine();
                         });
                 } else {
-                    drawRoutePts = drawPoints.slice();
-                    rebuildDrawLine();
+                    // Direct line (Manual or Fallback)
+                    // Note: If we just Undid, we might want to re-route if needed.
+                    // But if 'skipRoute' is passed (e.g. strict manual), handle accordingly.
+                    // Actually for Undo/Redo we should always re-route if 'drawRoad' is checked.
+                    if (els.drawRoad.checked) {
+                         // Copy-paste logic to force route
+                        els.drawDist.textContent = 'Routing...';
+                        osrmRoute(drawPoints)
+                            .then(function(pts) {
+                                if (seq !== drawSeq) return;
+                                drawRoutePts = pts;
+                                rebuildDrawLine();
+                            })
+                            .catch(function() {
+                                if (seq !== drawSeq) return;
+                                drawRoutePts = drawPoints.slice(); 
+                                rebuildDrawLine();
+                            });
+                    } else {
+                        drawRoutePts = drawPoints.slice();
+                        rebuildDrawLine();
+                    }
                 }
+            }
+
+            // Undo/Redo & Search Functions
+            function commitDrawState() {
+                // Remove future history
+                if (drawHistoryIndex < drawHistory.length - 1) {
+                    drawHistory = drawHistory.slice(0, drawHistoryIndex + 1);
+                }
+                drawHistory.push(JSON.parse(JSON.stringify(drawPoints)));
+                drawHistoryIndex++;
+            }
+
+            function performUndo() {
+                if (drawHistoryIndex > 0) {
+                    drawHistoryIndex--;
+                    drawPoints = JSON.parse(JSON.stringify(drawHistory[drawHistoryIndex]));
+                    updateDrawRoute();
+                }
+            }
+
+            function performRedo() {
+                if (drawHistoryIndex < drawHistory.length - 1) {
+                    drawHistoryIndex++;
+                    drawPoints = JSON.parse(JSON.stringify(drawHistory[drawHistoryIndex]));
+                    updateDrawRoute();
+                }
+            }
+            
+            function searchLocation() {
+                var q = els.drawSearchInput.value;
+                if (!q) return;
+                els.drawSearchBtn.textContent = '...';
+                fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q))
+                    .then(function(r){ return r.json(); })
+                    .then(function(data){
+                        els.drawSearchBtn.textContent = '🔍';
+                        if (data && data.length > 0) {
+                            var lat = parseFloat(data[0].lat);
+                            var lon = parseFloat(data[0].lon);
+                            map.setView([lat, lon], 14);
+                        } else {
+                            alert('Lokasi tidak ditemukan');
+                        }
+                    })
+                    .catch(function(){
+                        els.drawSearchBtn.textContent = '🔍';
+                    });
             }
 
             function calculatePlan() {
@@ -708,25 +810,55 @@
                 });
 
                 // Drawing Listeners
+                
+                // Init history with empty state
+                commitDrawState();
+
                 map.on('click', function(e) {
                     if (inputMode !== 'draw') return;
                     drawPoints.push({ lat: e.latlng.lat, lng: e.latlng.lng });
+                    commitDrawState();
                     updateDrawRoute();
                 });
                 
-                if (els.drawUndo) els.drawUndo.addEventListener('click', function() {
-                    if (drawPoints.length > 0) {
-                        drawPoints.pop();
-                        updateDrawRoute();
-                    }
-                });
+                if (els.drawUndo) els.drawUndo.addEventListener('click', performUndo);
+                if (els.drawRedo) els.drawRedo.addEventListener('click', performRedo);
                 
                 if (els.drawClear) els.drawClear.addEventListener('click', function() {
                     drawPoints = [];
+                    commitDrawState();
                     updateDrawRoute();
                 });
 
-                if (els.drawRoad) els.drawRoad.addEventListener('change', updateDrawRoute);
+                if (els.drawRoad) els.drawRoad.addEventListener('change', function() { updateDrawRoute(); });
+
+                if (els.drawSearchBtn) els.drawSearchBtn.addEventListener('click', searchLocation);
+                if (els.drawSearchInput) els.drawSearchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') searchLocation();
+                });
+                
+                if (els.drawCenter) els.drawCenter.addEventListener('click', function() {
+                    if (drawPoints.length > 0) {
+                        var p = drawPoints[drawPoints.length-1];
+                        map.panTo([p.lat, p.lng||p.lon]);
+                    }
+                });
+                if (els.drawFit) els.drawFit.addEventListener('click', function() {
+                    if (drawPolyline) map.fitBounds(drawPolyline.getBounds());
+                });
+
+                // Keyboard Shortcuts
+                document.addEventListener('keydown', function(e) {
+                    if (inputMode !== 'draw') return;
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                        e.preventDefault();
+                        performUndo();
+                    }
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                        e.preventDefault();
+                        performRedo();
+                    }
+                });
 
                 els.gpxLoad.addEventListener('click', loadGpxFromLibrary);
                 els.generate.addEventListener('click', calculatePlan);
