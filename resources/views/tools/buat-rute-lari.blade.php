@@ -593,23 +593,46 @@
             }).setView([-6.200000, 106.816666], 12);
 
             var mapboxToken = window.RL_MAPBOX_TOKEN;
-            var tileUrl = mapboxToken 
-                ? 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken 
-                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
             
-            var tileOpts = {
-                maxZoom: 19,
-                attribution: mapboxToken 
-                    ? '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    : '&copy; OpenStreetMap',
+            var getMapboxUrl = function(style) {
+                return 'https://api.mapbox.com/styles/v1/mapbox/' + style + '/tiles/{z}/{x}/{y}?access_token=' + mapboxToken;
             };
 
+            var getMapboxOpts = function() {
+                return {
+                    maxZoom: 19,
+                    tileSize: 512,
+                    zoomOffset: -1,
+                    attribution: '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                };
+            };
+
+            var baseLayers = {};
+            
             if (mapboxToken) {
-                tileOpts.tileSize = 512;
-                tileOpts.zoomOffset = -1;
+                var outdoors = L.tileLayer(getMapboxUrl('outdoors-v12'), getMapboxOpts());
+                var satellite = L.tileLayer(getMapboxUrl('satellite-streets-v12'), getMapboxOpts());
+                var dark = L.tileLayer(getMapboxUrl('navigation-night-v1'), getMapboxOpts());
+
+                baseLayers = {
+                    "Peta Lari (Outdoors)": outdoors,
+                    "Satelit": satellite,
+                    "Mode Gelap": dark
+                };
+
+                outdoors.addTo(map);
+            } else {
+                var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap',
+                });
+                baseLayers = { "OpenStreetMap": osm };
+                osm.addTo(map);
             }
 
-            L.tileLayer(tileUrl, tileOpts).addTo(map);
+            if (Object.keys(baseLayers).length > 1) {
+                L.control.layers(baseLayers).addTo(map);
+            }
 
             var routeLine = L.polyline([], {
                 color: '#ccff00',
