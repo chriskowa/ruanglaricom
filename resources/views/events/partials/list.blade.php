@@ -4,7 +4,7 @@
         <!-- Date Badge -->
         <div class="flex-shrink-0 flex md:flex-col items-center justify-center bg-slate-800 rounded-xl p-3 md:w-20 md:h-20 border border-slate-700">
             <span class="text-xs font-bold text-slate-400 uppercase">{{ $event->event_date->format('M') }}</span>
-            <span class="text-2xl md:text-3xl font-black text-white leading-none">{{ $event->event_date->format('d') }}</span>
+            <span class="text-2xl md:text-3xl font-black text-neon leading-none">{{ $event->event_date->format('d') }}</span>
             <span class="text-xs text-slate-500">{{ $event->event_date->format('D') }}</span>
         </div>
 
@@ -23,7 +23,7 @@
             </div>
             
             <a href="{{ $event->public_url }}" class="block group-hover:text-neon transition-colors">
-                <h3 class="text-xl font-bold text-white mb-1">{{ $event->name }}</h3>
+                <h3 class="text-xl font-bold text-neon mb-1">{{ $event->name }}</h3>
             </a>
             
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400 mb-2">
@@ -70,8 +70,8 @@
                 $gCalUrl .= "&sf=true&output=xml";
             @endphp
             
-            <a href="{{ $gCalUrl }}" target="_blank" class="inline-flex items-center justify-center w-full md:w-auto px-6 py-2 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-400 text-sm font-bold hover:bg-slate-800 hover:text-white transition-all">
-                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <a href="{{ $gCalUrl }}" target="_blank" class="inline-flex items-center justify-center w-full md:w-auto px-6 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-sm font-bold hover:bg-gray-100 transition-all shadow-[0_0_10px_rgba(66,133,244,0.3)]">
+                <svg class="w-5 h-5 mr-2 text-[#4285F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 Add to Calendar
             </a>
         </div>

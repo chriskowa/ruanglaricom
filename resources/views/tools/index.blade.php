@@ -80,7 +80,7 @@
         </a>
 
         <!-- V-Card -->
-        <a href="{{ route('vcard.index') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
+        <!--<a href="{{ route('vcard.index') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
             <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div class="p-8 h-full flex flex-col">
                 <div class="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -96,7 +96,7 @@
                     Get V-Card <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </div>
             </div>
-        </a>
+        </a>-->
 
         <!-- Calendar -->
         <a href="{{ route('calendar.public') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/10 hover:-translate-y-1">
