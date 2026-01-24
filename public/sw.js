@@ -2,8 +2,7 @@ const CACHE_NAME = 'ruanglari-v1';
 const urlsToCache = [
     '/css/style.css',
     '/js/custom.min.js',
-    '/images/logo.png',
-    '/offline.html'
+    '/images/logo.png'
 ];
 
 // Install Service Worker
