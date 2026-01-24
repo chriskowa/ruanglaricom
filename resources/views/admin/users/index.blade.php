@@ -83,12 +83,19 @@
         program_id: ''
     },
 
+    init() {
+        this.initPaginationListener();
+    },
+
     async fetchUsers(url = null) {
+        // Guard: If url is event object or invalid, set to null
+        if (typeof url !== 'string') url = null;
+
         this.isLoading = true;
         const params = new URLSearchParams({
-            q: this.searchQuery,
-            role: this.filterRole,
-            status: this.filterStatus
+            q: this.searchQuery || '',
+            role: this.filterRole || 'all',
+            status: this.filterStatus || 'all'
         });
         
         try {
@@ -99,11 +106,14 @@
                     'Cache-Control': 'no-cache'
                 }
             });
-            const html = await res.text();
-            document.getElementById('users-table-container').innerHTML = html;
             
-            // Re-initialize pagination links to use AJAX
-            this.initPagination();
+            if (!res.ok) throw new Error('Network response was not ok');
+
+            const html = await res.text();
+            const container = document.getElementById('users-table-container');
+            if (container) {
+                container.innerHTML = html;
+            }
         } catch (error) {
             console.error('Error fetching users:', error);
         } finally {
@@ -111,16 +121,20 @@
         }
     },
 
-    initPagination() {
+    initPaginationListener() {
         const container = document.getElementById('users-table-container');
         if (!container) return;
-        const links = container.querySelectorAll('a.page-link, .pagination a');
         
-        links.forEach(link => {
-            link.addEventListener('click', (e) => {
+        // Event Delegation for Pagination Links
+        container.addEventListener('click', (e) => {
+            const link = e.target.closest('a.page-link, .pagination a');
+            if (link && container.contains(link)) {
                 e.preventDefault();
-                this.fetchUsers(link.href);
-            });
+                const href = link.getAttribute('href');
+                if (href && href !== '#') {
+                    this.fetchUsers(href);
+                }
+            }
         });
     },
 
