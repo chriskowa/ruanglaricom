@@ -29,8 +29,9 @@
                         </h2>
 
                         <div class="flex p-1 bg-slate-800 rounded-lg mb-6">
-                            <button type="button" data-pp-tab="manual" class="flex-1 py-2 text-sm font-black rounded-md bg-slate-600 text-white shadow-sm transition-all">Manual Distance</button>
+                            <button type="button" data-pp-tab="manual" class="flex-1 py-2 text-sm font-black rounded-md bg-slate-600 text-white shadow-sm transition-all">Manual</button>
                             <button type="button" data-pp-tab="gpx" class="flex-1 py-2 text-sm font-black rounded-md text-slate-400 hover:text-white transition-all">GPX Event</button>
+                            <button type="button" data-pp-tab="draw" class="flex-1 py-2 text-sm font-black rounded-md text-slate-400 hover:text-white transition-all">Gambar Rute</button>
                         </div>
 
                         <div id="pp-input-manual" class="space-y-4">
