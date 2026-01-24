@@ -2037,7 +2037,7 @@
                         
                         if(athleteRes.status === 401) {
                             // Token expired or invalid
-                            alert('Strava session expired. Please reconnect.');
+                            //alert('Strava session expired. Please reconnect.');
                             this.disconnectStrava();
                             return;
                         }
