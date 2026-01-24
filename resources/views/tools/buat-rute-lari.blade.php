@@ -72,12 +72,19 @@
 
                             <div>
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Pace</label>
-                                <div class="mt-1 flex items-center gap-2">
-                                    <input id="rl-pace-min" inputmode="numeric" type="number" min="0" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" value="6">
-                                    <span class="text-slate-500 font-bold">:</span>
-                                    <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" value="0">
-                                    <span class="text-xs text-slate-500 font-bold whitespace-nowrap">/km</span>
-                                </div>
+                            <div class="mt-1 flex items-center gap-2">
+            <input id="rl-pace-min" inputmode="numeric" type="number" min="0" 
+                class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" 
+                value="6" placeholder="00">
+            
+            <span class="text-slate-500 font-bold">:</span>
+            
+            <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" 
+                class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" 
+                value="0" placeholder="00">
+            
+            <span class="text-xs text-slate-500 font-bold whitespace-nowrap">/km</span>
+        </div>
                             </div>
 
                             <div>
