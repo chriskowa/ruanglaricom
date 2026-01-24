@@ -119,7 +119,7 @@
                             <input id="rlfa-photo-input-front" type="file" accept="image/*" capture="environment" class="hidden">
 
                             <div id="rlfa-state-instructions" class="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-b from-slate-800 to-slate-950 transition-opacity duration-500 z-30">
-                                <div class="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center opacity-40 mask-image-gradient" style="background-image: url('{{ asset('images/big/img6.jpg') }}')"></div>
+                                <div class="absolute top-0 left-0 w-full h-1/2 bg-cover bg-center opacity-40 mask-image-gradient" style="background-image: url('https://res.cloudinary.com/dslfarxct/image/upload/v1769242639/599829521_18496489774078626_8467367785730490975_n_osdvbh.jpg')"></div>
                                 <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-transparent to-slate-950"></div>
 
                                 <div class="relative z-10 mb-4">
