@@ -631,7 +631,7 @@
             }
 
             if (Object.keys(baseLayers).length > 1) {
-                L.control.layers(baseLayers).addTo(map);
+                L.control.layers(baseLayers, null, { position: 'bottomright' }).addTo(map);
             }
 
             var routeLine = L.polyline([], {

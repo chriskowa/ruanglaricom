@@ -65,6 +65,26 @@
                             </div>
                         </div>
 
+                        <div id="pp-input-draw" class="space-y-4 hidden">
+                            <div class="p-4 bg-slate-900/50 border border-slate-700 rounded-xl space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-slate-400 uppercase">Jarak Rute</label>
+                                    <span id="pp-draw-dist" class="text-neon font-black text-lg">0.00 km</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button id="pp-draw-undo" type="button" class="flex-1 bg-slate-800 text-slate-300 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700">Undo</button>
+                                    <button id="pp-draw-clear" type="button" class="flex-1 bg-slate-800 text-red-400 hover:bg-slate-700 py-2 rounded-lg text-xs font-bold border border-slate-700">Reset</button>
+                                </div>
+                                <label class="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer select-none">
+                                    <input type="checkbox" id="pp-draw-road" class="accent-neon rounded" checked>
+                                    <span>Ikuti Jalan (Snap to Road)</span>
+                                </label>
+                                <p class="text-[10px] text-slate-500 italic">
+                                    *Klik peta untuk menambah titik start, checkpoint, dan finish.
+                                </p>
+                            </div>
+                        </div>
+
                         <div class="mt-4 space-y-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Target Waktu (Jam:Menit:Detik)</label>
@@ -196,10 +216,22 @@
             var inputMode = 'manual';
             var gpxData = null;
 
+            // Drawing State
+            var drawPoints = [];     // Key points (markers)
+            var drawRoutePts = [];   // Full polyline points (including OSRM geometry)
+            var drawMarkers = [];
+            var drawPolyline = null;
+            var drawSeq = 0;
+
             var els = {
                 tabButtons: document.querySelectorAll('[data-pp-tab]'),
                 boxManual: document.getElementById('pp-input-manual'),
                 boxGpx: document.getElementById('pp-input-gpx'),
+                boxDraw: document.getElementById('pp-input-draw'),
+                drawDist: document.getElementById('pp-draw-dist'),
+                drawUndo: document.getElementById('pp-draw-undo'),
+                drawClear: document.getElementById('pp-draw-clear'),
+                drawRoad: document.getElementById('pp-draw-road'),
                 distanceSelect: document.getElementById('pp-distance-select'),
                 customDistance: document.getElementById('pp-custom-distance'),
                 gpxFile: document.getElementById('pp-gpx-file'),
@@ -233,13 +265,43 @@
                         ? 'flex-1 py-2 text-sm font-black rounded-md bg-slate-600 text-white shadow-sm transition-all'
                         : 'flex-1 py-2 text-sm font-black rounded-md text-slate-400 hover:text-white transition-all';
                 });
-                if (mode === 'manual') {
-                    els.boxManual.classList.remove('hidden');
-                    els.boxGpx.classList.add('hidden');
-                } else {
-                    els.boxGpx.classList.remove('hidden');
-                    els.boxManual.classList.add('hidden');
+                els.boxManual.classList.add('hidden');
+                els.boxGpx.classList.add('hidden');
+                els.boxDraw.classList.add('hidden');
+
+                if (mode === 'manual') els.boxManual.classList.remove('hidden');
+                else if (mode === 'gpx') els.boxGpx.classList.remove('hidden');
+                else if (mode === 'draw') els.boxDraw.classList.remove('hidden');
+                
+                // Clear map layers when switching modes to avoid confusion
+                if (map) {
+                    if (polyline) map.removeLayer(polyline);
+                    if (drawPolyline) map.removeLayer(drawPolyline);
+                    drawMarkers.forEach(function(m) { map.removeLayer(m); });
                 }
+                
+                // Restore logic
+                if (mode === 'gpx' && gpxData) showGpxOnMap(gpxData.points);
+                if (mode === 'draw') {
+                    if (drawPolyline) drawPolyline.addTo(map);
+                    drawMarkers.forEach(function(m) { m.addTo(map); });
+                }
+            }
+
+            function haversineKm(p1, p2) {
+                return getDistanceKm(p1.lat, p1.lng || p1.lon, p2.lat, p2.lng || p2.lon);
+            }
+
+            function osrmRoute(waypoints) {
+                var coords = waypoints.map(function (p) { return (p.lng||p.lon).toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
+                var url = 'https://router.project-osrm.org/route/v1/foot/' + coords + '?overview=full&geometries=geojson&steps=false';
+                return fetch(url, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (json) {
+                        if (!json.routes || !json.routes[0]) throw new Error('No route');
+                        var coords = json.routes[0].geometry.coordinates;
+                        return coords.map(function (c) { return { lat: c[1], lng: c[0] }; });
+                    });
             }
 
             function deg2rad(deg) { return deg * (Math.PI / 180); }
@@ -348,6 +410,71 @@
                     });
             }
 
+            function rebuildDrawLine() {
+                if (drawPolyline) map.removeLayer(drawPolyline);
+                drawMarkers.forEach(function(m) { map.removeLayer(m); });
+                drawMarkers = [];
+
+                if (drawRoutePts.length === 0) {
+                    els.drawDist.textContent = '0.00 km';
+                    return;
+                }
+
+                var latlngs = drawRoutePts.map(function(p) { return [p.lat, p.lng||p.lon]; });
+                var isLight = els.mapStyleSlider && parseInt(els.mapStyleSlider.value) === 1;
+                var color = isLight ? '#E60000' : '#CCFF00';
+                
+                drawPolyline = L.polyline(latlngs, { color: color, weight: 4 }).addTo(map);
+
+                // Add markers for start, end, and turns
+                drawPoints.forEach(function(p, idx) {
+                    var color = (idx === 0) ? '#22c55e' : ((idx === drawPoints.length - 1) ? '#ef4444' : '#3b82f6');
+                    var m = L.circleMarker([p.lat, p.lng||p.lon], {
+                        radius: 6,
+                        color: '#fff',
+                        weight: 2,
+                        fillColor: color,
+                        fillOpacity: 1
+                    }).addTo(map);
+                    drawMarkers.push(m);
+                });
+
+                var dist = 0;
+                for(var i=1; i<drawRoutePts.length; i++) {
+                    dist += haversineKm(drawRoutePts[i-1], drawRoutePts[i]);
+                }
+                els.drawDist.textContent = dist.toFixed(2) + ' km';
+            }
+
+            function updateDrawRoute() {
+                drawSeq++;
+                var seq = drawSeq;
+                
+                if (drawPoints.length < 2) {
+                    drawRoutePts = drawPoints.slice();
+                    rebuildDrawLine();
+                    return;
+                }
+
+                if (els.drawRoad.checked) {
+                    els.drawDist.textContent = 'Routing...';
+                    osrmRoute(drawPoints)
+                        .then(function(pts) {
+                            if (seq !== drawSeq) return;
+                            drawRoutePts = pts;
+                            rebuildDrawLine();
+                        })
+                        .catch(function() {
+                            if (seq !== drawSeq) return;
+                            drawRoutePts = drawPoints.slice(); // Fallback
+                            rebuildDrawLine();
+                        });
+                } else {
+                    drawRoutePts = drawPoints.slice();
+                    rebuildDrawLine();
+                }
+            }
+
             function calculatePlan() {
                 var h = parseInt(els.timeH.value || '0', 10) || 0;
                 var m = parseInt(els.timeM.value || '0', 10) || 0;
@@ -365,6 +492,14 @@
                     var selectVal = els.distanceSelect.value;
                     if (selectVal === 'custom') totalDistance = parseFloat(els.customDistance.value || '0');
                     else totalDistance = parseFloat(selectVal);
+                    for (var i = 0; i < Math.ceil(totalDistance); i++) elevationProfile.push(0);
+                } else if (inputMode === 'draw') {
+                    if (drawRoutePts.length < 2) { alert('Gambar rute dulu.'); return; }
+                    totalDistance = 0;
+                    for(var i=1; i<drawRoutePts.length; i++) {
+                        totalDistance += haversineKm(drawRoutePts[i-1], drawRoutePts[i]);
+                    }
+                    // Elevation for draw mode is flat for now
                     for (var i = 0; i < Math.ceil(totalDistance); i++) elevationProfile.push(0);
                 } else {
                     if (!gpxData) { alert('Pilih GPX dulu.'); return; }
@@ -398,8 +533,11 @@
                 var hillFactor = 1 + (hillVal / 20);
 
                 els.tableBody.innerHTML = '';
-                var cumulativeSeconds = 0;
                 var tableData = [];
+                
+                // Pass 1: Calculate Raw Splits
+                var rawSplits = [];
+                var rawTotalSec = 0;
 
                 for (var km = 1; km <= Math.ceil(totalDistance); km++) {
                     var dist = 1;
@@ -415,21 +553,47 @@
                     }
 
                     var splitTimeSec = targetPaceSec * dist;
-                    cumulativeSeconds += splitTimeSec;
-
+                    rawTotalSec += splitTimeSec;
+                    
                     var elevDisplay = (inputMode === 'gpx') ? ('+' + (elevationProfile[km - 1] || 0).toFixed(0) + 'm') : '-';
+                    rawSplits.push({ 
+                        km: km, 
+                        time: splitTimeSec, 
+                        dist: dist, 
+                        elev: elevDisplay 
+                    });
+                }
+                
+                // Pass 2: Normalize to Exact Target Time
+                var diff = totalTargetSeconds - rawTotalSec;
+                // Distribute difference proportionally to distance (longer splits absorb more adjustment)
+                var adjPerKm = diff / totalDistance; 
+                
+                var cumulativeSeconds = 0;
+                
+                rawSplits.forEach(function(s) {
+                    var adjustedTime = s.time + (adjPerKm * s.dist);
+                    // Ensure time is not negative
+                    if (adjustedTime < 1) adjustedTime = 1; 
+                    
+                    cumulativeSeconds += adjustedTime;
+                    
+                    // Display Pace = Adjusted Time / Distance
+                    var displayPace = adjustedTime / s.dist;
+
                     var tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-800 transition border-b border-slate-800';
                     tr.innerHTML =
-                        '<td class="px-6 py-4 font-bold text-white">' + km + '</td>' +
-                        '<td class="px-6 py-4 text-neon">' + formatTime(targetPaceSec) + '</td>' +
-                        '<td class="px-6 py-4">' + formatTime(splitTimeSec) + '</td>' +
+                        '<td class="px-6 py-4 font-bold text-white">' + s.km + '</td>' +
+                        '<td class="px-6 py-4 text-neon">' + formatTime(displayPace) + '</td>' +
+                        '<td class="px-6 py-4">' + formatTime(adjustedTime) + '</td>' +
                         '<td class="px-6 py-4 text-slate-400">' + formatTime(cumulativeSeconds) + '</td>' +
-                        '<td class="px-6 py-4 text-right text-slate-500">' + elevDisplay + '</td>';
+                        '<td class="px-6 py-4 text-right text-slate-500">' + s.elev + '</td>';
                     els.tableBody.appendChild(tr);
 
-                    tableData.push([km, formatTime(targetPaceSec), formatTime(splitTimeSec), formatTime(cumulativeSeconds), elevDisplay]);
-                }
+                    tableData.push([s.km, formatTime(displayPace), formatTime(adjustedTime), formatTime(cumulativeSeconds), s.elev]);
+                });
+                
                 window.lastTableData = tableData;
             }
 
@@ -541,6 +705,28 @@
                     var f = e.target.files && e.target.files[0] ? e.target.files[0] : null;
                     handleGpxUpload(f);
                 });
+
+                // Drawing Listeners
+                map.on('click', function(e) {
+                    if (inputMode !== 'draw') return;
+                    drawPoints.push({ lat: e.latlng.lat, lng: e.latlng.lng });
+                    updateDrawRoute();
+                });
+                
+                if (els.drawUndo) els.drawUndo.addEventListener('click', function() {
+                    if (drawPoints.length > 0) {
+                        drawPoints.pop();
+                        updateDrawRoute();
+                    }
+                });
+                
+                if (els.drawClear) els.drawClear.addEventListener('click', function() {
+                    drawPoints = [];
+                    updateDrawRoute();
+                });
+
+                if (els.drawRoad) els.drawRoad.addEventListener('change', updateDrawRoute);
+
                 els.gpxLoad.addEventListener('click', loadGpxFromLibrary);
                 els.generate.addEventListener('click', calculatePlan);
                 els.exportCsv.addEventListener('click', exportCSV);
