@@ -1,7 +1,9 @@
 @extends('layouts.pacerhub')
 @php($withSidebar = true)
 
-@section('title', $product->title . ' - Marketplace')
+@section('title')
+    {{ $product->title }} - Marketplace
+@endsection
 
 @section('content')
 <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
