@@ -101,7 +101,7 @@
                         </span>
                         @if($auctionRunning && $product->auction_end_at)
                             <span class="text-xs text-slate-400 font-mono">
-                                Ends {{ $product->auction_end_at->diffForHumans($now, ['parts' => 2]) }}
+                                Ends {{ $product->auction_end_at->diffForHumans($now, null, false, 2) }}
                             </span>
                         @elseif($auctionEnded)
                             <span class="text-xs text-slate-500 font-mono">Ended</span>
