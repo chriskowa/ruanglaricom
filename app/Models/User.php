@@ -178,6 +178,11 @@ class User extends Authenticatable
         return $this->role === 'eo';
     }
 
+    public function getIsSellerAttribute(): bool
+    {
+        return true;
+    }
+
     // Programs (as coach)
     public function programs()
     {
