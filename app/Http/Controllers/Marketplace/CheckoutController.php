@@ -8,6 +8,7 @@ use App\Models\Marketplace\MarketplaceOrder;
 use App\Models\Marketplace\MarketplaceProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\Snap;
@@ -40,6 +41,19 @@ class CheckoutController extends Controller
             return back()->with('error', 'You cannot buy your own product.');
         }
 
+        // Check for existing pending order for this product by this user to avoid duplicates
+        $existingOrder = MarketplaceOrder::where('buyer_id', Auth::id())
+            ->where('status', 'pending')
+            ->whereHas('items', function($q) use ($product) {
+                $q->where('product_id', $product->id);
+            })
+            ->latest()
+            ->first();
+
+        if ($existingOrder) {
+            return redirect()->route('marketplace.checkout.pay', $existingOrder->id);
+        }
+
         // Calculate fees
         $commissionRate = AppSettings::get('marketplace_commission_percentage', 1);
         $commissionAmount = $product->price * ($commissionRate / 100);
@@ -53,24 +67,33 @@ class CheckoutController extends Controller
         $totalFee = $commissionAmount + $consignmentFeeAmount;
         $sellerAmount = $product->price - $totalFee;
 
-        // Create Order
-        $order = MarketplaceOrder::create([
-            'invoice_number' => 'INV-RL-'.strtoupper(Str::random(10)),
-            'buyer_id' => Auth::id(),
-            'seller_id' => $product->user_id,
-            'total_amount' => $product->price,
-            'commission_amount' => $totalFee,
-            'seller_amount' => $sellerAmount,
-            'status' => 'pending',
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Create Order Item
-        $order->items()->create([
-            'product_id' => $product->id,
-            'product_title_snapshot' => $product->title,
-            'price_snapshot' => $product->price,
-            'quantity' => 1,
-        ]);
+            // Create Order
+            $order = MarketplaceOrder::create([
+                'invoice_number' => 'INV-RL-'.strtoupper(Str::random(10)),
+                'buyer_id' => Auth::id(),
+                'seller_id' => $product->user_id,
+                'total_amount' => $product->price,
+                'commission_amount' => $totalFee,
+                'seller_amount' => $sellerAmount,
+                'status' => 'pending',
+            ]);
+
+            // Create Order Item
+            $order->items()->create([
+                'product_id' => $product->id,
+                'product_title_snapshot' => $product->title,
+                'price_snapshot' => $product->price,
+                'quantity' => 1,
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal membuat order: ' . $e->getMessage());
+        }
 
         // Midtrans Payload
         $params = [
