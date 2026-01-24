@@ -117,7 +117,14 @@ class MarketplaceController extends Controller
     {
         $product = MarketplaceProduct::with(['category', 'images', 'seller.city', 'brand'])->where('slug', $slug)->firstOrFail();
         $recentBids = collect();
-        if ($product->sale_type === 'auction') {
+        
+        $isAuction = $product->sale_type === 'auction';
+        $currentBid = $isAuction ? ($product->current_price ?? $product->starting_price ?? $product->price) : null;
+        $auctionRunning = $product->auction_status === 'running';
+        $now = now();
+        $auctionEnded = $isAuction && ($product->auction_status === 'ended' || ($product->auction_end_at && $now->gte($product->auction_end_at)));
+
+        if ($isAuction) {
             $recentBids = $product->bids()->with('bidder')->latest()->take(10)->get();
         }
         $relatedProducts = MarketplaceProduct::where('category_id', $product->category_id)
@@ -126,6 +133,6 @@ class MarketplaceController extends Controller
             ->take(4)
             ->get();
 
-        return view('marketplace.show', compact('product', 'relatedProducts', 'recentBids'));
+        return view('marketplace.show', compact('product', 'relatedProducts', 'recentBids', 'isAuction', 'currentBid', 'auctionRunning', 'auctionEnded', 'now'));
     }
 }
