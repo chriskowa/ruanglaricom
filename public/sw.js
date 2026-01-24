@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ruanglari-v1';
+const CACHE_NAME = 'ruanglari-v2';
 const urlsToCache = [
     '/css/style.css',
     '/js/custom.min.js',

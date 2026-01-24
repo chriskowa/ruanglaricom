@@ -15,8 +15,64 @@
     filterStatus: '{{ request('status', 'all') }}',
     activeTab: 'profile', // profile, socials, financial, performance
     
-    selectedUser: null,
-    
+    selectedUser: {
+        id: null,
+        name: '',
+        username: '',
+        email: '',
+        phone: '',
+        gender: '',
+        address: '',
+        avatar: '',
+        banner: '',
+        pb_5k: '',
+        pb_10k: '',
+        pb_hm: '',
+        pb_fm: '',
+        strava_url: '',
+        instagram_url: '',
+        facebook_url: '',
+        tiktok_url: '',
+        bank_name: '',
+        bank_account_name: '',
+        bank_account_number: '',
+        role: 'runner',
+        is_active: 0,
+        date_of_birth: '',
+        program_id: null,
+        wallet: { balance: 0, transactions: [] }
+    },
+
+    getBlankUser() {
+        return {
+            id: null,
+            name: '',
+            username: '',
+            email: '',
+            phone: '',
+            gender: '',
+            address: '',
+            avatar: '',
+            banner: '',
+            pb_5k: '',
+            pb_10k: '',
+            pb_hm: '',
+            pb_fm: '',
+            strava_url: '',
+            instagram_url: '',
+            facebook_url: '',
+            tiktok_url: '',
+            bank_name: '',
+            bank_account_name: '',
+            bank_account_number: '',
+            role: 'runner',
+            is_active: 0,
+            date_of_birth: '',
+            program_id: null,
+            wallet: { balance: 0, transactions: [] }
+        };
+    },
+
     // Create Form Data
     newUser: {
         name: '',
@@ -71,7 +127,7 @@
     async openModal(userId) {
         this.showModal = true;
         this.loadingUser = true;
-        this.selectedUser = null; // Clear previous data
+        this.selectedUser = this.getBlankUser(); // Reset to safe blank object
         this.activeTab = 'profile';
 
         try {
@@ -89,6 +145,7 @@
             
             // Normalize Data
             this.selectedUser = {
+                ...this.getBlankUser(), // Start with blank to ensure structure
                 ...user,
                 // Ensure text fields are not null to prevent x-model crashes
                 name: user.name || '',
@@ -169,7 +226,7 @@
     closeModal() {
         this.showModal = false;
         setTimeout(() => {
-            this.selectedUser = null;
+            this.selectedUser = this.getBlankUser();
         }, 300);
     },
     openCreateModal() {
@@ -388,12 +445,12 @@
                 </div>
 
                 <!-- Main Form -->
-                <form x-show="!loadingUser && activeTab !== 'wallet'" x-bind:action="selectedUser ? '{{ url('admin/users') }}/' + selectedUser.id : '#'" method="POST" enctype="multipart/form-data">
+                <form x-show="!loadingUser && activeTab !== 'wallet'" x-bind:action="selectedUser.id ? '{{ url('admin/users') }}/' + selectedUser.id : '#'" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     
                     <div class="px-4 py-5 sm:p-6 max-h-[70vh] overflow-y-auto">
-                        <template x-if="selectedUser">
+                        <template x-if="selectedUser.id">
                             <div class="space-y-6">
                                 
                                 <!-- Tab: Profile -->
@@ -587,7 +644,7 @@
                             </div>
                         </div>
                         
-                        <form x-bind:action="selectedUser ? '{{ url('admin/users') }}/' + selectedUser.id + '/wallet' : '#'" method="POST" class="space-y-3">
+                        <form x-bind:action="selectedUser.id ? '{{ url('admin/users') }}/' + selectedUser.id + '/wallet' : '#'" method="POST" class="space-y-3">
                             @csrf
                             <p class="text-xs font-bold text-slate-500 uppercase">Manual Adjustment</p>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
