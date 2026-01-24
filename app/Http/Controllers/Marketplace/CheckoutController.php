@@ -105,7 +105,9 @@ class CheckoutController extends Controller
     public function pay(MarketplaceOrder $order)
     {
         if ($order->buyer_id !== Auth::id() && (!Auth::user() || !Auth::user()->isAdmin())) {
-            abort(403);
+            return redirect()
+                ->route('marketplace.orders.index')
+                ->with('error', 'Order ini bukan milik Anda. Silakan checkout dari halaman produk untuk membuat order Anda sendiri.');
         }
         if ($order->status !== 'pending') {
             return redirect()->route('marketplace.index')->with('info', 'Order already processed.');
