@@ -39,7 +39,8 @@
             const endpoint = url || '{{ route('admin.users.index') }}';
             const res = await fetch(`${endpoint}?${params.toString()}`, {
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
                 }
             });
             const html = await res.text();
@@ -77,7 +78,8 @@
             const res = await fetch(`/admin/users/${userId}`, {
                 headers: {
                     'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
                 }
             });
             
@@ -86,42 +88,48 @@
             const user = await res.json();
             
             // Normalize Data
-            this.selectedUser = user;
+            this.selectedUser = {
+                ...user,
+                // Ensure text fields are not null to prevent x-model crashes
+                name: user.name || '',
+                username: user.username || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                gender: user.gender || '',
+                address: user.address || '',
+                pb_5k: user.pb_5k || '',
+                pb_10k: user.pb_10k || '',
+                pb_hm: user.pb_hm || '',
+                pb_fm: user.pb_fm || '',
+                strava_url: user.strava_url || '',
+                instagram_url: user.instagram_url || '',
+                facebook_url: user.facebook_url || '',
+                tiktok_url: user.tiktok_url || '',
+                bank_name: user.bank_name || '',
+                bank_account_name: user.bank_account_name || '',
+                bank_account_number: user.bank_account_number || ''
+            };
             
-            // Ensure null fields are strings for inputs
-            const textFields = [
-                'username', 'phone', 'gender', 'address', 
-                'pb_5k', 'pb_10k', 'pb_hm', 'pb_fm',
-                'strava_url', 'instagram_url', 'facebook_url', 'tiktok_url',
-                'bank_name', 'bank_account_name', 'bank_account_number' // if flat
-            ];
-            
-            textFields.forEach(f => {
-                if (this.selectedUser[f] === null || this.selectedUser[f] === undefined) {
-                    this.selectedUser[f] = '';
-                }
-            });
-
-            // Date fix
-            if (this.selectedUser.date_of_birth) {
-                this.selectedUser.date_of_birth = this.selectedUser.date_of_birth.split('T')[0];
-            }
-
-            // Bank Object Flattening (if coming from JSON cast on model)
-            // The controller might update specific fields but model has `bank_account` json column.
-            // If the user object has bank_account json, let's try to populate flat fields if empty
+            // Additional null checks for bank account if nested
             if (this.selectedUser.bank_account && typeof this.selectedUser.bank_account === 'object') {
                 this.selectedUser.bank_name = this.selectedUser.bank_name || this.selectedUser.bank_account.bank_name || '';
                 this.selectedUser.bank_account_name = this.selectedUser.bank_account_name || this.selectedUser.bank_account.account_name || '';
                 this.selectedUser.bank_account_number = this.selectedUser.bank_account_number || this.selectedUser.bank_account.account_number || '';
             }
 
-            // Wallet Init
+            // Wallet safe init
             this.selectedUser.wallet = this.selectedUser.wallet || { balance: 0, transactions: [] };
-            
-            // Clean paths
+
+            // Storage path cleanup
             if (this.selectedUser.avatar) this.selectedUser.avatar = this.selectedUser.avatar.replace(/^\/?storage\//, '');
             if (this.selectedUser.banner) this.selectedUser.banner = this.selectedUser.banner.replace(/^\/?storage\//, '');
+
+            // Date fix
+            if (this.selectedUser.date_of_birth) {
+                this.selectedUser.date_of_birth = this.selectedUser.date_of_birth.split('T')[0];
+            }
+
+
 
             // Fetch transactions (already loaded via load('wallet') but transactions might need separate call if we want pagination/limit)
             // Controller returns `user->load('wallet')`. Wallet transactions are usually separate relation `wallet->transactions`.
@@ -140,7 +148,13 @@
     async fetchTransactions(userId) {
         this.loadingTransactions = true;
         try {
-            const res = await fetch(`/admin/users/${userId}/transactions`);
+            const res = await fetch(`/admin/users/${userId}/transactions`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
+                }
+            });
             const data = await res.json();
             if (this.selectedUser && this.selectedUser.id === userId && this.selectedUser.wallet) {
                 this.selectedUser.wallet.transactions = data.transactions;
