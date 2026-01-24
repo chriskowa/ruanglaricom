@@ -36,15 +36,30 @@
         </div>
 
         <div class="p-8">
+            @if ($errors->any())
+                <div class="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
+                    <div class="flex items-center gap-2 text-red-500 font-bold mb-2">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <span>Please fix the following errors:</span>
+                    </div>
+                    <ul class="list-disc list-inside text-sm text-red-400 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form action="{{ route('marketplace.seller.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 @csrf
 
                 <!-- Title -->
                 <div>
                     <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Product Title</label>
-                    <input type="text" name="title" required 
-                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                    <input type="text" name="title" required value="{{ old('title') }}"
+                        class="w-full bg-slate-800 border @error('title') border-red-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
                         placeholder="e.g. Nike Vaporfly Next% 2">
+                    @error('title') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -53,16 +68,17 @@
                         <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Category</label>
                         <div class="relative">
                             <select name="category_id" id="category-select" required 
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white appearance-none focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                                class="w-full bg-slate-800 border @error('category_id') border-red-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-white appearance-none focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
                                 <option value="" disabled selected>Select Category</option>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" data-slug="{{ $category->slug }}">{{ $category->name }}</option>
+                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }} data-slug="{{ $category->slug }}">{{ $category->name }}</option>
                                 @endforeach
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
                         </div>
+                        @error('category_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <!-- Brand -->
@@ -103,11 +119,11 @@
                         <div class="text-xs text-slate-500 uppercase tracking-widest mb-3">Mode Penjualan</div>
                         <div class="flex flex-col gap-3">
                             <label class="inline-flex items-center cursor-pointer group">
-                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="sale_type" value="fixed" checked onchange="toggleSaleType(this.value)">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="sale_type" value="fixed" {{ old('sale_type', 'fixed') == 'fixed' ? 'checked' : '' }} onchange="toggleSaleType(this.value)">
                                 <span class="ml-2 text-white group-hover:text-neon transition-colors">Jual Normal</span>
                             </label>
                             <label class="inline-flex items-center cursor-pointer group">
-                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="sale_type" value="auction" onchange="toggleSaleType(this.value)">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="sale_type" value="auction" {{ old('sale_type') == 'auction' ? 'checked' : '' }} onchange="toggleSaleType(this.value)">
                                 <span class="ml-2 text-white group-hover:text-neon transition-colors">Lelang (Bidding)</span>
                             </label>
                         </div>
@@ -117,11 +133,11 @@
                         <div class="text-xs text-slate-500 uppercase tracking-widest mb-3">Fulfillment</div>
                         <div class="flex flex-col gap-3">
                             <label class="inline-flex items-center cursor-pointer group">
-                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="fulfillment_mode" value="self_ship" checked onchange="toggleFulfillment(this.value)">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="fulfillment_mode" value="self_ship" {{ old('fulfillment_mode', 'self_ship') == 'self_ship' ? 'checked' : '' }} onchange="toggleFulfillment(this.value)">
                                 <span class="ml-2 text-white group-hover:text-neon transition-colors">Kirim Sendiri</span>
                             </label>
                             <label class="inline-flex items-center cursor-pointer group">
-                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="fulfillment_mode" value="consignment" onchange="toggleFulfillment(this.value)">
+                                <input type="radio" class="form-radio text-neon focus:ring-neon bg-slate-800 border-slate-600" name="fulfillment_mode" value="consignment" {{ old('fulfillment_mode') == 'consignment' ? 'checked' : '' }} onchange="toggleFulfillment(this.value)">
                                 <span class="ml-2 text-white group-hover:text-neon transition-colors">Titip Jual</span>
                             </label>
                         </div>
@@ -139,50 +155,81 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <span class="text-slate-400 font-bold">Rp</span>
                             </div>
-                            <input type="number" name="price" min="0"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                            <input type="number" name="price" min="0" value="{{ old('price') }}"
+                                class="w-full bg-slate-800 border @error('price') border-red-500 @else border-slate-700 @enderror rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
                                 placeholder="0">
                         </div>
+                        @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Stock</label>
-                        <input type="number" name="stock" min="1" value="1"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                        <input type="number" name="stock" min="1" value="{{ old('stock', 1) }}"
+                            class="w-full bg-slate-800 border @error('stock') border-red-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                        @error('stock') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
-                <div id="auction-fields" class="p-6 bg-slate-800/30 rounded-xl border border-slate-700 hidden space-y-4">
+                <!-- Auction Fields -->
+                <div id="auction-fields" class="hidden space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Starting Price (Rp)</label>
-                            <input type="number" name="starting_price" min="0"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
-                                placeholder="0">
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Starting Price</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span class="text-slate-400 font-bold">Rp</span>
+                                </div>
+                                <input type="number" name="starting_price" min="0" value="{{ old('starting_price') }}"
+                                    class="w-full bg-slate-800 border @error('starting_price') border-red-500 @else border-slate-700 @enderror rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                    placeholder="0">
+                            </div>
+                            @error('starting_price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Min Increment (Rp)</label>
-                            <input type="number" name="min_increment" min="0" value="10000"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Min Increment</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span class="text-slate-400 font-bold">Rp</span>
+                                </div>
+                                <input type="number" name="min_increment" min="0" value="{{ old('min_increment') }}"
+                                    class="w-full bg-slate-800 border @error('min_increment') border-red-500 @else border-slate-700 @enderror rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                    placeholder="e.g. 10000">
+                            </div>
+                            @error('min_increment') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
+
+                    <div>
+                        <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Auction Ends At</label>
+                        <input type="datetime-local" name="auction_end_at" value="{{ old('auction_end_at') }}"
+                            class="w-full bg-slate-800 border @error('auction_end_at') border-red-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                        @error('auction_end_at') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Auction Ends At</label>
-                            <input type="datetime-local" name="auction_end_at"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all">
+                            <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Reserve Price (Optional)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span class="text-slate-400 font-bold">Rp</span>
+                                </div>
+                                <input type="number" name="reserve_price" min="0" value="{{ old('reserve_price') }}"
+                                    class="w-full bg-slate-800 border @error('reserve_price') border-red-500 @else border-slate-700 @enderror rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                    placeholder="0">
+                            </div>
+                            @error('reserve_price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Buy Now Price (Optional)</label>
-                            <input type="number" name="buy_now_price" min="0"
-                                class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
-                                placeholder="0">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span class="text-slate-400 font-bold">Rp</span>
+                                </div>
+                                <input type="number" name="buy_now_price" min="0" value="{{ old('buy_now_price') }}"
+                                    class="w-full bg-slate-800 border @error('buy_now_price') border-red-500 @else border-slate-700 @enderror rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                                    placeholder="0">
+                            </div>
+                            @error('buy_now_price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Reserve Price (Optional)</label>
-                        <input type="number" name="reserve_price" min="0"
-                            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
-                            placeholder="0">
                     </div>
                 </div>
 
@@ -222,15 +269,16 @@
                 <div>
                     <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Description</label>
                     <textarea name="description" rows="5" required 
-                        class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
-                        placeholder="Describe your product in detail..."></textarea>
+                        class="w-full bg-slate-800 border @error('description') border-red-500 @else border-slate-700 @enderror rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                        placeholder="Describe your product in detail...">{{ old('description') }}</textarea>
+                    @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Image -->
                 <div>
                     <label class="block text-slate-300 text-sm font-bold mb-2 uppercase tracking-wide">Primary Image</label>
                     <div class="flex items-center justify-center w-full">
-                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-700 border-dashed rounded-xl cursor-pointer bg-slate-800/50 hover:bg-slate-800 hover:border-neon/50 transition-all group">
+                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-32 border-2 @error('image') border-red-500 @else border-slate-700 @enderror border-dashed rounded-xl cursor-pointer bg-slate-800/50 hover:bg-slate-800 hover:border-neon/50 transition-all group">
                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                 <svg class="w-8 h-8 mb-3 text-slate-400 group-hover:text-neon transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                                 <p class="mb-2 text-sm text-slate-400"><span class="font-bold text-white group-hover:text-neon transition-colors">Click to upload</span> or drag and drop</p>
@@ -239,6 +287,7 @@
                             <input id="dropzone-file" name="image" type="file" required accept="image/*" class="hidden" onchange="previewImage(this)" />
                         </label>
                     </div>
+                    @error('image') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     <div id="image-preview" class="mt-4 hidden">
                         <img src="" class="h-32 rounded-lg border border-slate-700">
                     </div>
@@ -315,8 +364,11 @@ function toggleFulfillment(val) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    toggleSaleType('fixed');
-    toggleFulfillment('self_ship');
+    const saleType = document.querySelector('input[name="sale_type"]:checked').value;
+    const fulfillmentMode = document.querySelector('input[name="fulfillment_mode"]:checked').value;
+    
+    toggleSaleType(saleType);
+    toggleFulfillment(fulfillmentMode);
 });
 
 function previewImage(input) {
