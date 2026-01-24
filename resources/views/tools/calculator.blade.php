@@ -82,31 +82,38 @@
             display: flex;
             gap: .5rem;
             overflow-x: auto;
-            padding: .75rem;
+            padding: .25rem;
+            padding-bottom: .75rem; /* Space for scrollbar/shadow */
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
         }
-        #rl-calculator .tab-navigation::-webkit-scrollbar { height: 0; }
+        #rl-calculator .tab-navigation::-webkit-scrollbar { display: none; }
         #rl-calculator .tab-btn {
             scroll-snap-align: start;
             flex: 0 0 auto;
-            padding: .55rem .75rem;
-            border: 1px solid rgba(148,163,184,.16);
-            border-radius: 999px;
-            background: rgba(15,23,42,.35);
-            color: rgba(226,232,240,.86);
-            font-weight: 800;
-            font-size: .78rem;
+            padding: .6rem 1rem;
+            border: 1px solid #334155; /* slate-700 */
+            border-radius: 0.75rem; /* rounded-xl */
+            background: #1e293b; /* slate-800 */
+            color: #94a3b8; /* slate-400 */
+            font-weight: 700;
+            font-size: .85rem;
             cursor: pointer;
-            transition: all .15s ease;
+            transition: all .2s ease;
             white-space: nowrap;
         }
-        #rl-calculator .tab-btn:hover { transform: translateY(-1px); border-color: rgba(204,255,0,.35); background: rgba(15,23,42,.55); }
+        #rl-calculator .tab-btn:hover {
+            background: #334155; /* slate-700 */
+            color: #f1f5f9; /* slate-100 */
+            border-color: #475569; /* slate-600 */
+        }
         #rl-calculator .tab-btn.active {
-            background: rgba(204,255,0,.14);
-            color: rgba(226,232,240,.95);
-            border-color: rgba(204,255,0,.55);
-            box-shadow: 0 8px 24px rgba(0,0,0,.25);
+            background: #ccff00; /* neon */
+            color: #0f172a; /* dark */
+            border-color: #ccff00;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(204, 255, 0, 0.25);
         }
 
         #rl-calculator .tab-content {
@@ -233,7 +240,7 @@
         <div class="rlc-wrap max-w-5xl mx-auto">
                 <div class="rlc-header">
                     <h1>Ruang Lari Tools Calculator</h1>
-                    <p>Calculator lari khusus untuk para pelari (mobile-friendly)</p>
+                    <p>Calculator lari khusus untuk para pelari</p>
                 </div>
 
                 <div class="global-controls">

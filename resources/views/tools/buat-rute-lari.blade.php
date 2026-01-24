@@ -61,32 +61,31 @@
 
                             <div>
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Lokasi</label>
-                                <div class="mt-1 flex gap-2">
-                                    <input id="rl-search-q" type="text" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" placeholder="Ketik kota / landmark...">
-                                    <button id="rl-search-btn" type="button" class="px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition">
-                                        Cari
+                                <div class="mt-1 relative group">
+                                    <input id="rl-search-q" type="text" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50 transition" placeholder="Ketik kota / landmark...">
+                                    <button id="rl-search-btn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-neon hover:bg-slate-800 transition">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                     </button>
                                 </div>
                                 <div id="rl-search-results" class="mt-2 hidden"></div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Pace</label>
-                                    <div class="mt-1 flex items-center gap-2">
-                                        <input id="rl-pace-min" inputmode="numeric" type="number" min="0" class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" value="6">
-                                        <span class="text-slate-500 font-bold">:</span>
-                                        <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" value="0">
-                                        <span class="text-xs text-slate-500 font-bold">/km</span>
-                                    </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Pace</label>
+                                <div class="mt-1 flex items-center gap-2">
+                                    <input id="rl-pace-min" inputmode="numeric" type="number" min="0" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" value="6">
+                                    <span class="text-slate-500 font-bold">:</span>
+                                    <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" value="0">
+                                    <span class="text-xs text-slate-500 font-bold whitespace-nowrap">/km</span>
                                 </div>
-                                <div>
-                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mode</label>
-                                    <select id="rl-mode" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50">
-                                        <option value="tap">Tap titik di peta</option>
-                                        <option value="freehand">Freehand (beta)</option>
-                                    </select>
-                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mode</label>
+                                <select id="rl-mode" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50">
+                                    <option value="tap">Tap titik di peta</option>
+                                    <option value="freehand">Freehand (beta)</option>
+                                </select>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -304,12 +303,12 @@
 
                 <div class="lg:col-span-8 space-y-4">
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
-                        <div class="absolute top-3 left-3 z-[500] flex items-center gap-2">
-                            <button id="rl-center" type="button" class="px-3 py-2 rounded-xl bg-slate-900/70 border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500 transition text-sm font-black">
-                                Center
+                        <div class="absolute top-3 right-3 z-[500] flex flex-col gap-2">
+                            <button id="rl-center" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Center Map">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                             </button>
-                            <button id="rl-fit" type="button" class="px-3 py-2 rounded-xl bg-slate-900/70 border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500 transition text-sm font-black">
-                                Fit Route
+                            <button id="rl-fit" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Fit Route">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
                             </button>
                         </div>
                         <div id="rl-route-map"></div>
