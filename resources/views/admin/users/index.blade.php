@@ -10,10 +10,17 @@
     isLoading: false,
     loadingTransactions: false,
     loadingUser: false,
+    savingCreate: false,
+    savingEdit: false,
+    createErrors: {},
+    editErrors: {},
     searchQuery: '{{ request('q') }}',
     filterRole: '{{ request('role', 'all') }}',
     filterStatus: '{{ request('status', 'all') }}',
-    activeTab: 'profile', // profile, socials, financial, performance
+    activeTab: 'profile',
+    listAbortController: null,
+    listRequestSeq: 0,
+    walletTransactionsUserId: null,
     
     selectedUser: {
         id: null,
@@ -73,7 +80,6 @@
         };
     },
 
-    // Create Form Data
     newUser: {
         name: '',
         email: '',
@@ -85,11 +91,19 @@
 
     init() {
         this.initPaginationListener();
+        this.$watch('activeTab', (tab) => {
+            if (tab === 'wallet') this.ensureWalletTransactionsLoaded();
+        });
     },
 
     async fetchUsers(url = null) {
-        // Guard: If url is event object or invalid, set to null
         if (typeof url !== 'string') url = null;
+
+        if (this.listAbortController) {
+            this.listAbortController.abort();
+        }
+        this.listAbortController = new AbortController();
+        const currentSeq = ++this.listRequestSeq;
 
         this.isLoading = true;
         const params = new URLSearchParams({
@@ -101,6 +115,7 @@
         try {
             const endpoint = url || '{{ route('admin.users.index') }}';
             const res = await fetch(`${endpoint}?${params.toString()}`, {
+                signal: this.listAbortController.signal,
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Cache-Control': 'no-cache'
@@ -110,13 +125,16 @@
             if (!res.ok) throw new Error('Network response was not ok');
 
             const html = await res.text();
+            if (currentSeq !== this.listRequestSeq) return;
             const container = document.getElementById('users-table-container');
             if (container) {
                 container.innerHTML = html;
             }
         } catch (error) {
+            if (error && error.name === 'AbortError') return;
             console.error('Error fetching users:', error);
         } finally {
+            if (currentSeq !== this.listRequestSeq) return;
             this.isLoading = false;
         }
     },
@@ -125,7 +143,6 @@
         const container = document.getElementById('users-table-container');
         if (!container) return;
         
-        // Event Delegation for Pagination Links
         container.addEventListener('click', (e) => {
             const link = e.target.closest('a.page-link, .pagination a');
             if (link && container.contains(link)) {
@@ -138,14 +155,65 @@
         });
     },
 
+    ensureWalletTransactionsLoaded() {
+        const userId = this.selectedUser && this.selectedUser.id ? this.selectedUser.id : null;
+        if (!userId) return;
+        if (this.walletTransactionsUserId === userId) return;
+        this.fetchTransactions(userId);
+    },
+
+    normalizeUser(user) {
+        const base = this.getBlankUser();
+        const normalized = {
+            ...base,
+            ...user,
+            name: (user && user.name) || '',
+            username: (user && user.username) || '',
+            email: (user && user.email) || '',
+            phone: (user && user.phone) || '',
+            gender: (user && user.gender) || '',
+            address: (user && user.address) || '',
+            pb_5k: (user && user.pb_5k) || '',
+            pb_10k: (user && user.pb_10k) || '',
+            pb_hm: (user && user.pb_hm) || '',
+            pb_fm: (user && user.pb_fm) || '',
+            strava_url: (user && user.strava_url) || '',
+            instagram_url: (user && user.instagram_url) || '',
+            facebook_url: (user && user.facebook_url) || '',
+            tiktok_url: (user && user.tiktok_url) || '',
+            bank_name: (user && user.bank_name) || '',
+            bank_account_name: (user && user.bank_account_name) || '',
+            bank_account_number: (user && user.bank_account_number) || ''
+        };
+
+        if (normalized.bank_account && typeof normalized.bank_account === 'object') {
+            normalized.bank_name = normalized.bank_name || normalized.bank_account.bank_name || '';
+            normalized.bank_account_name = normalized.bank_account_name || normalized.bank_account.account_name || '';
+            normalized.bank_account_number = normalized.bank_account_number || normalized.bank_account.account_number || '';
+        }
+
+        normalized.wallet = normalized.wallet || { balance: 0, transactions: [] };
+
+        if (normalized.avatar) normalized.avatar = String(normalized.avatar).replace(/^\/?storage\//, '');
+        if (normalized.banner) normalized.banner = String(normalized.banner).replace(/^\/?storage\//, '');
+
+        if (normalized.date_of_birth) {
+            normalized.date_of_birth = String(normalized.date_of_birth).split('T')[0];
+        }
+
+        return normalized;
+    },
+
     async openModal(userId) {
         this.showModal = true;
         this.loadingUser = true;
-        this.selectedUser = this.getBlankUser(); // Reset to safe blank object
+        this.selectedUser = this.getBlankUser();
         this.activeTab = 'profile';
+        this.walletTransactionsUserId = null;
+        this.editErrors = {};
 
         try {
-            const res = await fetch(`/admin/users/${userId}`, {
+            const res = await fetch(`{{ url('admin/users') }}/${userId}`, {
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -157,55 +225,7 @@
             
             const user = await res.json();
             
-            // Normalize Data
-            this.selectedUser = {
-                ...this.getBlankUser(), // Start with blank to ensure structure
-                ...user,
-                // Ensure text fields are not null to prevent x-model crashes
-                name: user.name || '',
-                username: user.username || '',
-                email: user.email || '',
-                phone: user.phone || '',
-                gender: user.gender || '',
-                address: user.address || '',
-                pb_5k: user.pb_5k || '',
-                pb_10k: user.pb_10k || '',
-                pb_hm: user.pb_hm || '',
-                pb_fm: user.pb_fm || '',
-                strava_url: user.strava_url || '',
-                instagram_url: user.instagram_url || '',
-                facebook_url: user.facebook_url || '',
-                tiktok_url: user.tiktok_url || '',
-                bank_name: user.bank_name || '',
-                bank_account_name: user.bank_account_name || '',
-                bank_account_number: user.bank_account_number || ''
-            };
-            
-            // Additional null checks for bank account if nested
-            if (this.selectedUser.bank_account && typeof this.selectedUser.bank_account === 'object') {
-                this.selectedUser.bank_name = this.selectedUser.bank_name || this.selectedUser.bank_account.bank_name || '';
-                this.selectedUser.bank_account_name = this.selectedUser.bank_account_name || this.selectedUser.bank_account.account_name || '';
-                this.selectedUser.bank_account_number = this.selectedUser.bank_account_number || this.selectedUser.bank_account.account_number || '';
-            }
-
-            // Wallet safe init
-            this.selectedUser.wallet = this.selectedUser.wallet || { balance: 0, transactions: [] };
-
-            // Storage path cleanup
-            if (this.selectedUser.avatar) this.selectedUser.avatar = this.selectedUser.avatar.replace(/^\/?storage\//, '');
-            if (this.selectedUser.banner) this.selectedUser.banner = this.selectedUser.banner.replace(/^\/?storage\//, '');
-
-            // Date fix
-            if (this.selectedUser.date_of_birth) {
-                this.selectedUser.date_of_birth = this.selectedUser.date_of_birth.split('T')[0];
-            }
-
-
-
-            // Fetch transactions (already loaded via load('wallet') but transactions might need separate call if we want pagination/limit)
-            // Controller returns `user->load('wallet')`. Wallet transactions are usually separate relation `wallet->transactions`.
-            // Let's fetch latest transactions explicitly to be safe/fresh
-            this.fetchTransactions(userId);
+            this.selectedUser = this.normalizeUser(user);
 
         } catch (error) {
             console.error(error);
@@ -216,20 +236,96 @@
         }
     },
 
+    async submitCreateUser() {
+        this.createErrors = {};
+        const form = this.$refs.createForm;
+        if (!form) return;
+
+        this.savingCreate = true;
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
+                },
+                body: new FormData(form)
+            });
+
+            if (res.status === 422) {
+                const data = await res.json();
+                this.createErrors = data.errors || {};
+                return;
+            }
+
+            if (!res.ok) throw new Error('Failed to create user');
+
+            this.closeCreateModal();
+            this.fetchUsers();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to create user');
+        } finally {
+            this.savingCreate = false;
+        }
+    },
+
+    async submitEditUser() {
+        this.editErrors = {};
+        const userId = this.selectedUser && this.selectedUser.id ? this.selectedUser.id : null;
+        const form = this.$refs.editForm;
+        if (!userId || !form) return;
+
+        this.savingEdit = true;
+        try {
+            const endpoint = `{{ url('admin/users') }}/${userId}`;
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
+                },
+                body: new FormData(form)
+            });
+
+            if (res.status === 422) {
+                const data = await res.json();
+                this.editErrors = data.errors || {};
+                return;
+            }
+
+            if (!res.ok) throw new Error('Failed to update user');
+
+            const data = await res.json();
+            this.selectedUser = this.normalizeUser(data.user);
+            this.fetchUsers();
+            this.closeModal();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to update user');
+        } finally {
+            this.savingEdit = false;
+        }
+    },
+
     async fetchTransactions(userId) {
         this.loadingTransactions = true;
         try {
-            const res = await fetch(`/admin/users/${userId}/transactions`, {
+            const res = await fetch(`{{ url('admin/users') }}/${userId}/transactions`, {
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'Cache-Control': 'no-cache'
                 }
             });
+            if (!res.ok) throw new Error('Failed to fetch transactions');
             const data = await res.json();
             if (this.selectedUser && this.selectedUser.id === userId && this.selectedUser.wallet) {
                 this.selectedUser.wallet.transactions = data.transactions;
             }
+            this.walletTransactionsUserId = userId;
         } catch (error) {
             console.error('Error fetching transactions:', error);
         } finally {
@@ -241,13 +337,18 @@
         this.showModal = false;
         setTimeout(() => {
             this.selectedUser = this.getBlankUser();
+            this.activeTab = 'profile';
+            this.walletTransactionsUserId = null;
+            this.editErrors = {};
         }, 300);
     },
     openCreateModal() {
         this.createModal = true;
+        this.createErrors = {};
     },
     closeCreateModal() {
         this.createModal = false;
+        this.createErrors = {};
         this.newUser = {
             name: '',
             email: '',
@@ -441,12 +542,12 @@
                 </div>
 
                 <!-- Tabs -->
-                <div class="flex border-b border-slate-700 px-6 gap-6 overflow-x-auto">
-                    <button @click="activeTab = 'profile'" :class="{'text-blue-500 border-blue-500': activeTab === 'profile', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'profile'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Profile & Media</button>
-                    <button @click="activeTab = 'socials'" :class="{'text-blue-500 border-blue-500': activeTab === 'socials', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'socials'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Socials</button>
-                    <button @click="activeTab = 'performance'" :class="{'text-blue-500 border-blue-500': activeTab === 'performance', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'performance'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Performance (PB)</button>
-                    <button @click="activeTab = 'financial'" :class="{'text-blue-500 border-blue-500': activeTab === 'financial', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'financial'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Financial Info</button>
-                    <button @click="activeTab = 'wallet'" :class="{'text-blue-500 border-blue-500': activeTab === 'wallet', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'wallet'}" class="py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap">Wallet Manager</button>
+                <div class="flex border-b border-slate-700 px-6 gap-8 overflow-x-auto">
+                    <button @click="activeTab = 'profile'" :class="{'text-blue-500 border-blue-500': activeTab === 'profile', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'profile'}" class="py-4 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap">Profile & Media</button>
+                    <button @click="activeTab = 'socials'" :class="{'text-blue-500 border-blue-500': activeTab === 'socials', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'socials'}" class="py-4 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap">Socials</button>
+                    <button @click="activeTab = 'performance'" :class="{'text-blue-500 border-blue-500': activeTab === 'performance', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'performance'}" class="py-4 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap">Performance (PB)</button>
+                    <button @click="activeTab = 'financial'" :class="{'text-blue-500 border-blue-500': activeTab === 'financial', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'financial'}" class="py-4 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap">Financial Info</button>
+                    <button @click="activeTab = 'wallet'" :class="{'text-blue-500 border-blue-500': activeTab === 'wallet', 'text-slate-400 border-transparent hover:text-white': activeTab !== 'wallet'}" class="py-4 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap">Wallet Manager</button>
                 </div>
 
                 <!-- Loading State -->
@@ -459,51 +560,60 @@
                 </div>
 
                 <!-- Main Form -->
-                <form x-show="!loadingUser && activeTab !== 'wallet'" x-bind:action="selectedUser.id ? '{{ url('admin/users') }}/' + selectedUser.id : '#'" method="POST" enctype="multipart/form-data">
+                <form x-show="!loadingUser && activeTab !== 'wallet'" x-ref="editForm" @submit.prevent="submitEditUser" x-bind:action="selectedUser.id ? '{{ url('admin/users') }}/' + selectedUser.id : '#'" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     
-                    <div class="px-4 py-5 sm:p-6 max-h-[70vh] overflow-y-auto">
+                    <div class="px-6 py-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                         <template x-if="selectedUser.id">
-                            <div class="space-y-6">
+                            <div class="space-y-8">
+                                <template x-if="Object.keys(editErrors).length">
+                                    <div class="bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl p-4">
+                                        <ul class="list-disc list-inside text-sm space-y-1">
+                                            <template x-for="(messages, field) in editErrors" :key="field">
+                                                <li x-text="messages && messages.length ? messages[0] : field"></li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </template>
                                 
                                 <!-- Tab: Profile -->
-                                <div x-show="activeTab === 'profile'" class="space-y-6">
+                                <div x-show="activeTab === 'profile'" class="space-y-8">
                                     <!-- Basic Info -->
                                     <div>
                                         <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Basic Information</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-                                                <input type="text" name="name" x-model="selectedUser.name" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                                                <input type="text" name="name" x-model="selectedUser.name" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Username</label>
-                                                <input type="text" name="username" x-model="selectedUser.username" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                                                <input type="text" name="username" x-model="selectedUser.username" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Email</label>
-                                                <input type="email" name="email" x-model="selectedUser.email" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                                                <input type="email" name="email" x-model="selectedUser.email" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
-                                                <input type="password" name="password" placeholder="Leave blank to keep current" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                                                <input type="password" name="password" placeholder="Leave blank to keep current" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Phone</label>
-                                                <input type="text" name="phone" x-model="selectedUser.phone" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Phone</label>
+                                                <input type="text" name="phone" x-model="selectedUser.phone" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Role</label>
-                                                <select name="role" x-model="selectedUser.role" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Role</label>
+                                                <select name="role" x-model="selectedUser.role" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                                     <option value="runner">Runner</option>
                                                     <option value="coach">Coach</option>
                                                     <option value="admin">Admin</option>
                                                     <option value="eo">Event Organizer</option>
                                                 </select>
                                             </div>
-                                            <div class="flex items-center pt-6">
-                                                <label class="flex items-center gap-2 cursor-pointer">
+                                            <div class="flex items-center pt-8">
+                                                <label class="flex items-center gap-3 cursor-pointer">
                                                     <input type="hidden" name="is_active" value="0">
                                                     <input type="checkbox" name="is_active" value="1" x-model="selectedUser.is_active" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500 w-5 h-5">
                                                     <span class="text-sm font-medium text-slate-300">Account Active</span>
@@ -514,33 +624,33 @@
 
                                     <!-- Personal Details -->
                                     <div>
-                                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Personal Details</h4>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-6">Personal Details</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Gender</label>
-                                                <select name="gender" x-model="selectedUser.gender" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Gender</label>
+                                                <select name="gender" x-model="selectedUser.gender" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                                     <option value="">Select Gender</option>
                                                     <option value="male">Male</option>
                                                     <option value="female">Female</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Date of Birth</label>
-                                                <input type="date" name="date_of_birth" x-model="selectedUser.date_of_birth" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Date of Birth</label>
+                                                <input type="date" name="date_of_birth" x-model="selectedUser.date_of_birth" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                             </div>
                                             <div class="md:col-span-2">
-                                                <label class="block text-sm font-medium text-slate-300 mb-1">Address</label>
-                                                <textarea name="address" x-model="selectedUser.address" rows="2" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500"></textarea>
+                                                <label class="block text-sm font-medium text-slate-300 mb-2">Address</label>
+                                                <textarea name="address" x-model="selectedUser.address" rows="3" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4"></textarea>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Media Files -->
                                     <div>
-                                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-4">Media Assets</h4>
+                                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-t border-slate-700 pt-6">Media Assets</h4>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-2">Avatar</label>
+                                                <label class="block text-sm font-medium text-slate-300 mb-3">Avatar</label>
                                                 <div class="flex items-center gap-4">
                                                     <div class="w-16 h-16 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
                                                         <template x-if="selectedUser.avatar">
@@ -550,12 +660,12 @@
                                                             <div class="w-full h-full flex items-center justify-center text-slate-500">No Img</div>
                                                         </template>
                                                     </div>
-                                                    <input type="file" name="avatar" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
+                                                    <input type="file" name="avatar" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
                                                 </div>
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-slate-300 mb-2">Banner</label>
-                                                <div class="w-full h-24 bg-slate-700 rounded-xl overflow-hidden mb-2 relative">
+                                                <label class="block text-sm font-medium text-slate-300 mb-3">Banner</label>
+                                                <div class="w-full h-24 bg-slate-700 rounded-xl overflow-hidden mb-3 relative">
                                                      <template x-if="selectedUser.banner">
                                                         <img :src="'/storage/' + selectedUser.banner" class="w-full h-full object-cover">
                                                     </template>
@@ -563,7 +673,7 @@
                                                         <div class="w-full h-full flex items-center justify-center text-slate-500">No Banner</div>
                                                     </template>
                                                 </div>
-                                                <input type="file" name="banner" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
+                                                <input type="file" name="banner" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
                                             </div>
                                         </div>
                                     </div>
@@ -571,65 +681,65 @@
 
                                 <!-- Tab: Performance -->
                                 <div x-show="activeTab === 'performance'">
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Personal Bests (HH:MM:SS)</h4>
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Personal Bests (HH:MM:SS)</h4>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-500 mb-1">5K</label>
-                                            <input type="text" name="pb_5k" x-model="selectedUser.pb_5k" placeholder="00:00:00" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-xs font-bold text-slate-500 mb-2">5K</label>
+                                            <input type="text" name="pb_5k" x-model="selectedUser.pb_5k" placeholder="00:00:00" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-500 mb-1">10K</label>
-                                            <input type="text" name="pb_10k" x-model="selectedUser.pb_10k" placeholder="00:00:00" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-xs font-bold text-slate-500 mb-2">10K</label>
+                                            <input type="text" name="pb_10k" x-model="selectedUser.pb_10k" placeholder="00:00:00" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-500 mb-1">Half Marathon</label>
-                                            <input type="text" name="pb_hm" x-model="selectedUser.pb_hm" placeholder="00:00:00" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-xs font-bold text-slate-500 mb-2">Half Marathon</label>
+                                            <input type="text" name="pb_hm" x-model="selectedUser.pb_hm" placeholder="00:00:00" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-500 mb-1">Full Marathon</label>
-                                            <input type="text" name="pb_fm" x-model="selectedUser.pb_fm" placeholder="00:00:00" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-xs font-bold text-slate-500 mb-2">Full Marathon</label>
+                                            <input type="text" name="pb_fm" x-model="selectedUser.pb_fm" placeholder="00:00:00" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Tab: Socials -->
                                 <div x-show="activeTab === 'socials'">
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Social Media Links</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Social Media Links</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Strava URL</label>
-                                            <input type="url" name="strava_url" x-model="selectedUser.strava_url" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-slate-300 mb-2">Strava URL</label>
+                                            <input type="url" name="strava_url" x-model="selectedUser.strava_url" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Instagram URL</label>
-                                            <input type="url" name="instagram_url" x-model="selectedUser.instagram_url" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-slate-300 mb-2">Instagram URL</label>
+                                            <input type="url" name="instagram_url" x-model="selectedUser.instagram_url" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Facebook URL</label>
-                                            <input type="url" name="facebook_url" x-model="selectedUser.facebook_url" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-slate-300 mb-2">Facebook URL</label>
+                                            <input type="url" name="facebook_url" x-model="selectedUser.facebook_url" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">TikTok URL</label>
-                                            <input type="url" name="tiktok_url" x-model="selectedUser.tiktok_url" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-slate-300 mb-2">TikTok URL</label>
+                                            <input type="url" name="tiktok_url" x-model="selectedUser.tiktok_url" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Tab: Financial Info (Bank) -->
                                 <div x-show="activeTab === 'financial'">
-                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Bank Information</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Bank Information</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                                         <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Bank Name</label>
-                                            <input type="text" name="bank_name" x-model="selectedUser.bank_name" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-slate-300 mb-2">Bank Name</label>
+                                            <input type="text" name="bank_name" x-model="selectedUser.bank_name" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Account Name</label>
-                                            <input type="text" name="bank_account_name" x-model="selectedUser.bank_account_name" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-slate-300 mb-2">Account Name</label>
+                                            <input type="text" name="bank_account_name" x-model="selectedUser.bank_account_name" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-slate-300 mb-1">Account Number</label>
-                                            <input type="text" name="bank_account_number" x-model="selectedUser.bank_account_number" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-slate-300 mb-2">Account Number</label>
+                                            <input type="text" name="bank_account_number" x-model="selectedUser.bank_account_number" class="w-full rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 py-3 px-4">
                                         </div>
                                     </div>
                                 </div>
@@ -638,7 +748,7 @@
                         </template>
                     </div>
                     <div class="bg-slate-800/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-700">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="submit" :disabled="savingEdit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed sm:ml-3 sm:w-auto sm:text-sm">
                             Save Changes
                         </button>
                         <button type="button" @click="closeModal" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-600 shadow-sm px-4 py-2 bg-transparent text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
@@ -658,18 +768,18 @@
                             </div>
                         </div>
                         
-                        <form x-bind:action="selectedUser.id ? '{{ url('admin/users') }}/' + selectedUser.id + '/wallet' : '#'" method="POST" class="space-y-3">
+                        <form x-bind:action="selectedUser.id ? '{{ url('admin/users') }}/' + selectedUser.id + '/wallet' : '#'" method="POST" class="space-y-4">
                             @csrf
                             <p class="text-xs font-bold text-slate-500 uppercase">Manual Adjustment</p>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <select name="type" class="rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <select name="type" class="rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 text-sm py-3 px-4">
                                     <option value="deposit">Deposit (Add)</option>
                                     <option value="withdraw">Withdraw (Deduct)</option>
                                 </select>
-                                <input type="number" name="amount" placeholder="Amount" required min="1" class="rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                <input type="text" name="description" placeholder="Description / Reason" required class="md:col-span-3 rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                <input type="number" name="amount" placeholder="Amount" required min="1" class="rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 text-sm py-3 px-4">
+                                <input type="text" name="description" placeholder="Description / Reason" required class="md:col-span-3 rounded-xl bg-slate-800 border-slate-700 text-white focus:border-blue-500 focus:ring-blue-500 text-sm py-3 px-4">
                                 <div class="md:col-span-3 flex justify-end">
-                                    <button type="submit" onclick="return confirm('Are you sure you want to adjust this wallet balance?')" class="inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                                    <button type="submit" onclick="return confirm('Are you sure you want to adjust this wallet balance?')" class="inline-flex justify-center items-center px-6 py-3 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
                                         Process Adjustment
                                     </button>
                                 </div>
@@ -770,11 +880,20 @@
                     </div>
                 </div>
 
-                <form action="{{ route('admin.users.store') }}" method="POST">
+                <form action="{{ route('admin.users.store') }}" method="POST" x-ref="createForm" @submit.prevent="submitCreateUser">
                     @csrf
                     
                     <div class="px-4 py-5 sm:p-6">
                         <div class="space-y-4">
+                            <template x-if="Object.keys(createErrors).length">
+                                <div class="bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl p-4">
+                                    <ul class="list-disc list-inside text-sm space-y-1">
+                                        <template x-for="(messages, field) in createErrors" :key="field">
+                                            <li x-text="messages && messages.length ? messages[0] : field"></li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </template>
                             
                             <div>
                                 <label class="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
@@ -822,7 +941,7 @@
                         </div>
                     </div>
                     <div class="bg-slate-800/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-700">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        <button type="submit" :disabled="savingCreate" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed sm:ml-3 sm:w-auto sm:text-sm">
                             Create User
                         </button>
                         <button type="button" @click="closeCreateModal" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-600 shadow-sm px-4 py-2 bg-transparent text-base font-medium text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
@@ -844,5 +963,18 @@
 @endpush
 
 @push('scripts')
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+<script>
+    // Global Error Handling for better debugging
+    window.addEventListener('unhandledrejection', function(event) {
+        console.warn('Unhandled promise rejection:', event.reason);
+        // Prevent silent failures in some browsers
+        event.preventDefault(); 
+    });
+
+    window.addEventListener('error', function(event) {
+        // Catch specific Alpine.js errors or other common JS errors
+        console.error('Global error caught:', event.message, event.filename, event.lineno);
+    });
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 @endpush

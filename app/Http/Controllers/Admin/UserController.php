@@ -47,20 +47,22 @@ class UserController extends Controller
             }
         }
 
-        // Stats for cards
+        $users = $query
+            ->select(['id', 'name', 'email', 'role', 'is_active', 'avatar', 'created_at'])
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+        
+        if ($request->ajax()) {
+            return view('admin.users.partials.table', compact('users'))->render();
+        }
+
         $stats = [
             'total' => User::count(),
             'runners' => User::where('role', 'runner')->count(),
             'coaches' => User::where('role', 'coach')->count(),
             'active' => User::where('is_active', true)->count(),
         ];
-
-        // Optimized query: remove wallet.transactions eager loading
-        $users = $query->with('wallet')->latest()->paginate(10)->withQueryString();
-        
-        if ($request->ajax()) {
-            return view('admin.users.partials.table', compact('users'))->render();
-        }
 
         $programs = Program::select('id', 'title')->where('is_active', true)->get();
 
@@ -119,6 +121,13 @@ class UserController extends Controller
                 'status' => 'active',
                 'payment_status' => 'paid', // Admin added, assumed paid or free
             ]);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'User created successfully.',
+                'user' => $user,
+            ], 201);
         }
 
         return back()->with('success', 'User created successfully.');
@@ -185,8 +194,6 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        \Log::info('User update request:', $request->all());
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -279,6 +286,13 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'User profile updated successfully.',
+                'user' => $user->fresh()->load('wallet'),
+            ]);
+        }
 
         return back()->with('success', 'User profile updated successfully.');
     }

@@ -357,6 +357,9 @@
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
+        window.RL_MAPBOX_TOKEN = "{{ env('MAPBOX_TOKEN') }}";
+    </script>
+    <script>
         (function () {
             var elMap = document.getElementById('rl-route-map');
             if (!elMap || !window.L) return;
@@ -589,10 +592,24 @@
                 attributionControl: true,
             }).setView([-6.200000, 106.816666], 12);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            var mapboxToken = window.RL_MAPBOX_TOKEN;
+            var tileUrl = mapboxToken 
+                ? 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken 
+                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            
+            var tileOpts = {
                 maxZoom: 19,
-                attribution: '&copy; OpenStreetMap',
-            }).addTo(map);
+                attribution: mapboxToken 
+                    ? '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    : '&copy; OpenStreetMap',
+            };
+
+            if (mapboxToken) {
+                tileOpts.tileSize = 512;
+                tileOpts.zoomOffset = -1;
+            }
+
+            L.tileLayer(tileUrl, tileOpts).addTo(map);
 
             var routeLine = L.polyline([], {
                 color: '#ccff00',

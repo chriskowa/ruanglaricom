@@ -181,6 +181,9 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.RL_MAPBOX_TOKEN = "{{ env('MAPBOX_TOKEN') }}";
+    </script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
@@ -469,17 +472,33 @@
 
                 map = L.map('pp-map').setView([-6.2088, 106.8456], 13);
 
+                var mapboxToken = window.RL_MAPBOX_TOKEN;
                 var getTileUrl = function(light) {
+                    if (mapboxToken) {
+                        return light 
+                            ? 'https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/{z}/{x}/{y}?access_token=' + mapboxToken
+                            : 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=' + mapboxToken;
+                    }
                     return light 
                         ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' 
                         : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
                 };
+
+                var getTileOpts = function(light) {
+                    var opts = {
+                        maxZoom: 19,
+                        attribution: mapboxToken ? '&copy; Mapbox &copy; OpenStreetMap' : '&copy; OpenStreetMap &copy; CARTO',
+                    };
+                    if (mapboxToken) {
+                        opts.tileSize = 512;
+                        opts.zoomOffset = -1;
+                    } else {
+                        opts.subdomains = 'abcd';
+                    }
+                    return opts;
+                };
                 
-                var tileLayer = L.tileLayer(getTileUrl(isLight), {
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                    subdomains: 'abcd',
-                    maxZoom: 19
-                }).addTo(map);
+                var tileLayer = L.tileLayer(getTileUrl(isLight), getTileOpts(isLight)).addTo(map);
 
                 if (els.mapStyleSlider) {
                     els.mapStyleSlider.addEventListener('input', function (e) {
@@ -488,11 +507,7 @@
                         localStorage.setItem('paceProMapStyle', isLight ? 'light' : 'dark');
 
                         if (tileLayer) map.removeLayer(tileLayer);
-                        tileLayer = L.tileLayer(getTileUrl(isLight), {
-                            attribution: '&copy; OpenStreetMap &copy; CARTO',
-                            subdomains: 'abcd',
-                            maxZoom: 19
-                        }).addTo(map);
+                        tileLayer = L.tileLayer(getTileUrl(isLight), getTileOpts(isLight)).addTo(map);
 
                         if (polyline) {
                             polyline.setStyle({ color: isLight ? '#E60000' : '#CCFF00' });
