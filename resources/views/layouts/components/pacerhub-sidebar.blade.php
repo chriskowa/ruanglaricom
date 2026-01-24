@@ -41,7 +41,11 @@
                     @endif
                     
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Commerce</li>
-                    <li><a href="{{ route('marketplace.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ request()->routeIs('marketplace.*') ? 'text-primary bg-slate-800' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Marketplace</a></li>
+                    <li><a href="{{ route('marketplace.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ request()->routeIs('marketplace.index') ? 'text-primary bg-slate-800' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Marketplace</a></li>
+                    <li><a href="{{ route('marketplace.orders.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ request()->routeIs('marketplace.orders.*') ? 'text-primary bg-slate-800' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">My Orders</a></li>
+                    @if(auth()->user()->is_seller)
+                        <li><a href="{{ route('marketplace.seller.products.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ request()->routeIs('marketplace.seller.*') ? 'text-primary bg-slate-800' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Seller Dashboard</a></li>
+                    @endif
                     
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Community</li>
                     <li><a href="{{ route('feed.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Community</a></li>

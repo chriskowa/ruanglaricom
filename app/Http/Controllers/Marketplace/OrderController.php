@@ -13,8 +13,15 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $purchases = MarketplaceOrder::where('buyer_id', Auth::id())->with('items.product.primaryImage')->latest()->get();
-        $sales = MarketplaceOrder::where('seller_id', Auth::id())->with('items.product.primaryImage')->latest()->get();
+        $purchases = MarketplaceOrder::where('buyer_id', Auth::id())
+            ->with(['items.product.primaryImage', 'seller'])
+            ->latest()
+            ->get();
+            
+        $sales = MarketplaceOrder::where('seller_id', Auth::id())
+            ->with(['items.product.primaryImage', 'buyer'])
+            ->latest()
+            ->get();
 
         return view('marketplace.orders.index', compact('purchases', 'sales'));
     }
@@ -24,6 +31,8 @@ class OrderController extends Controller
         if ($order->buyer_id !== Auth::id() && $order->seller_id !== Auth::id()) {
             abort(403);
         }
+
+        $order->load(['items.product.primaryImage', 'buyer', 'seller']);
 
         return view('marketplace.orders.show', compact('order'));
     }
