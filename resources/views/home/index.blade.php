@@ -827,7 +827,7 @@
             p.forEach((post, i)=>{
                 const l=post.url||'#';
                 const t=post.title||'Tanpa judul';
-                const img=post.image||"{{ asset('ruanglari.png') }}";
+                const img=post.image||"{{ asset('ruanglari.webp') }}";
                 const date=new Date(post.date).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
                 
                 const card=document.createElement('div');
