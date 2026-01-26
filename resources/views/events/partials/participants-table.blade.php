@@ -68,6 +68,7 @@
             };
         },
         template: `
+            @verbatim
             <div class="glass-dark p-6 md:p-8 rounded-2xl border border-white/10 mt-8 mb-8">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div>
@@ -98,7 +99,7 @@
                         @click="onCategoryChange(cat.id)"
                         class="px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300"
                         :class="selectedCategory === cat.id ? 'bg-sport-volt text-black shadow-[0_0_15px_rgba(204,255,0,0.3)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'">
-                        @{{ cat.name }}
+                        {{ cat.name }}
                     </button>
                 </div>
 
@@ -130,21 +131,21 @@
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
                                         <div class="w-8 h-8 rounded bg-gray-800 flex items-center justify-center text-sport-volt font-display text-xs border border-white/10 group-hover:border-sport-volt transition-colors">
-                                            @{{ getInitials(p.name) }}
+                                            {{ getInitials(p.name) }}
                                         </div>
                                         <div>
-                                            <div class="font-bold text-white text-sm group-hover:text-sport-volt transition-colors">@{{ p.name }}</div>
-                                            <div class="text-[10px] text-gray-500 md:hidden">@{{ p.category ? p.category.name : '-' }}</div>
+                                            <div class="font-bold text-white text-sm group-hover:text-sport-volt transition-colors">{{ p.name }}</div>
+                                            <div class="text-[10px] text-gray-500 md:hidden">{{ p.category ? p.category.name : '-' }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="p-4 text-sm text-gray-300">
                                     <span class="bg-white/5 px-2 py-1 rounded text-xs border border-white/10">
-                                        @{{ p.category ? p.category.name : '-' }}
+                                        {{ p.category ? p.category.name : '-' }}
                                     </span>
                                 </td>
                                 <td class="p-4 text-sm text-gray-300 font-mono hidden md:table-cell">
-                                    @{{ p.bib_number || '-' }}
+                                    {{ p.bib_number || '-' }}
                                 </td>
                                 <td class="p-4 text-right">
                                     <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-sport-volt bg-sport-volt/10 px-2 py-1 rounded border border-sport-volt/20">
@@ -167,7 +168,7 @@
                     </button>
                     
                     <span class="text-xs text-gray-400 font-mono">
-                        Page @{{ pagination.current_page }} of @{{ pagination.last_page }}
+                        Page {{ pagination.current_page }} of {{ pagination.last_page }}
                     </span>
                     
                     <button 
@@ -179,6 +180,7 @@
                     </button>
                 </div>
             </div>
+            @endverbatim
         `
     };
 </script>
