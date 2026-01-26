@@ -174,6 +174,10 @@ Route::get('/tools', function () {
     return view('tools.index');
 })->name('tools.index');
 
+Route::get('/tools/trackmaster', function () {
+    return view('tools.trackmaster');
+})->name('tools.trackmaster');
+
 Route::get('/tools/calculator', [App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
 Route::get('/tools/form-analyzer', [App\Http\Controllers\FormAnalyzerController::class, 'index'])->name('tools.form-analyzer');
 Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerController::class, 'analyze'])->name('tools.form-analyzer.analyze');

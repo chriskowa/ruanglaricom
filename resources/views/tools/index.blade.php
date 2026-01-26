@@ -79,6 +79,25 @@
             </div>
         </a>
 
+        <!-- TrackMaster Pro -->
+        <a href="{{ route('tools.trackmaster') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-[#ccff00]/50 transition-all duration-300 hover:shadow-2xl hover:shadow-[#ccff00]/10 hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-[#ccff00]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="p-8 h-full flex flex-col">
+                <div class="w-14 h-14 rounded-2xl bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-black text-white italic tracking-tighter mb-2 group-hover:text-[#ccff00] transition-colors">TRACKMASTER PRO</h3>
+                <p class="text-slate-400 mb-6 flex-grow">
+                    Kelola sesi interval multi-atlet, analisa pace real-time, dan dapatkan feedback otomatis dengan voice assistant.
+                </p>
+                <div class="flex items-center text-[#ccff00] font-bold text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform">
+                    Start Session <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+            </div>
+        </a>
+
         <!-- V-Card -->
         <!--<a href="{{ route('vcard.index') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
             <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
