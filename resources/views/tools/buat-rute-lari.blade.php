@@ -716,9 +716,36 @@
                     m.on('click', function () {
                         setStatus('Titik #' + (idx + 1));
                     });
+                    
+                    // Popup delete
+                    var container = document.createElement('div');
+                    container.className = 'text-center p-1';
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'px-3 py-1.5 bg-red-500 text-white rounded-lg font-bold text-[11px] hover:bg-red-600 transition shadow-lg shadow-red-500/20';
+                    btn.textContent = 'Hapus Titik';
+                    btn.onclick = function() {
+                        map.closePopup();
+                        removePoint(idx);
+                    };
+                    container.appendChild(btn);
+                    m.bindPopup(container, { minWidth: 100 });
+
                     m.addTo(map);
                     markers.push(m);
                 });
+            }
+
+            function removePoint(idx) {
+                if (idx < 0 || idx >= points.length) return;
+                points.splice(idx, 1);
+                routePoints = points.slice();
+                rebuildLine();
+                rebuildMarkers();
+                updateStats();
+                updateRouteFromWaypoints();
+                setStatus('Titik dihapus');
+                pushState();
             }
 
             function totalDistanceKm() {
@@ -1169,7 +1196,7 @@
                     var angle = bearingDeg(a, b);
                     var icon = L.divIcon({
                         className: '',
-                        html: '<div style="transform:rotate(' + angle.toFixed(1) + 'deg);color:' + style.route + ';font-weight:900;font-size:16px;line-height:16px;text-shadow:0 0 10px rgba(0,0,0,.55)">➤</div>',
+                        html: '<div style="transform:rotate(' + (angle - 90).toFixed(1) + 'deg);color:' + style.route + ';font-weight:900;font-size:16px;line-height:16px;text-shadow:0 0 10px rgba(0,0,0,.55)">➤</div>',
                         iconSize: [16, 16],
                         iconAnchor: [8, 8],
                     });
