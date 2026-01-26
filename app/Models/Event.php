@@ -36,6 +36,9 @@ class Event extends Model
         'registration_open_at',
         'registration_close_at',
         'promo_code',
+        'promo_buy_x',
+        'custom_email_message',
+        'is_instant_notification',
         'facilities',
         'addons',
         'jersey_sizes',
@@ -64,6 +67,7 @@ class Event extends Model
         'theme_colors' => 'array',
         'premium_amenities' => 'array',
         'sponsors' => 'array',
+        'is_instant_notification' => 'boolean',
     ];
 
     protected static function boot()

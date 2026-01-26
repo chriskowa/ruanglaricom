@@ -9,6 +9,7 @@ class RaceCategory extends Model
 {
     protected $fillable = [
         'event_id',
+        'master_gpx_id',
         'name',
         'distance_km',
         'code',
@@ -35,6 +36,11 @@ class RaceCategory extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function masterGpx(): BelongsTo
+    {
+        return $this->belongsTo(MasterGpx::class);
     }
 
     /**

@@ -17,6 +17,11 @@
     @php $midtransUrl = config('midtrans.base_url', 'https://app.sandbox.midtrans.com'); @endphp
     <link rel="stylesheet" href="{{ $midtransUrl }}/snap/snap.css" />
     <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
 
     <script>
         tailwind.config = {
@@ -506,6 +511,71 @@
         </div>
     </section>
 
+    <!-- Route Map Section (New) -->
+    <section id="routes" class="py-24 bg-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Race Course</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl mt-2">Peta Rute</h2>
+                <p class="text-slate-500 mt-4 max-w-2xl mx-auto">Jelajahi rute lari untuk setiap kategori. Klik tab kategori untuk melihat detail rute dan elevasi.</p>
+            </div>
+
+            @php
+                $categoriesWithGpx = $event->categories->filter(function($cat) {
+                    return $cat->master_gpx_id && $cat->masterGpx;
+                });
+            @endphp
+
+            @if($categoriesWithGpx->count() > 0)
+                <div x-data="{ activeTab: '{{ $categoriesWithGpx->first()->id }}' }">
+                    <!-- Tabs -->
+                    <div class="flex flex-wrap justify-center gap-4 mb-8">
+                        @foreach($categoriesWithGpx as $category)
+                            <button 
+                                @click="activeTab = '{{ $category->id }}'; setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100);" 
+                                :class="activeTab === '{{ $category->id }}' ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                class="px-6 py-3 rounded-full font-bold transition-all text-sm uppercase tracking-wide">
+                                {{ $category->name }}
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <!-- Maps -->
+                    <div class="relative bg-slate-50 rounded-3xl overflow-hidden border border-slate-200 shadow-inner h-[500px]">
+                        @foreach($categoriesWithGpx as $category)
+                            <div x-show="activeTab === '{{ $category->id }}'" 
+                                 class="absolute inset-0 w-full h-full"
+                                 x-transition:enter="transition ease-out duration-300"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100">
+                                <div id="map-{{ $category->id }}" class="w-full h-full z-10"></div>
+                                
+                                <!-- Stats Overlay -->
+                                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-slate-100 z-20 max-w-xs">
+                                    <h4 class="font-bold text-slate-900 mb-2">{{ $category->name }}</h4>
+                                    <div class="grid grid-cols-2 gap-4 text-xs">
+                                        <div>
+                                            <span class="block text-slate-400">Distance</span>
+                                            <span class="block font-bold text-slate-800 text-lg">{{ $category->masterGpx->distance_km }} KM</span>
+                                        </div>
+                                        <div>
+                                            <span class="block text-slate-400">Elev. Gain</span>
+                                            <span class="block font-bold text-slate-800 text-lg">{{ $category->masterGpx->elevation_gain_m }} m</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @else
+                <div class="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-300">
+                    <p class="text-slate-400">Peta rute belum tersedia untuk saat ini.</p>
+                </div>
+            @endif
+        </div>
+    </section>
+
     <!-- Medal Section (New) -->
     @if($event->medal_image)
     <section id="medal" class="py-24 bg-slate-900 relative overflow-hidden">
@@ -980,7 +1050,53 @@
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+    <!-- Leaflet GPX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
+
     <script>
+        // Initialize Maps
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoriesWithGpx = @json($categoriesWithGpx ?? []);
+            
+            // Initialize maps for each category
+            Object.values(categoriesWithGpx).forEach(category => {
+                if (category.master_gpx_id && category.master_gpx) {
+                    const mapId = 'map-' + category.id;
+                    const gpxUrl = "{{ asset('storage') }}/" + category.master_gpx.gpx_path;
+                    
+                    // Check if element exists (it might be in a hidden tab)
+                    const mapEl = document.getElementById(mapId);
+                    if (mapEl) {
+                        const map = L.map(mapId);
+                        
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(map);
+
+                        new L.GPX(gpxUrl, {
+                            async: true,
+                            marker_options: {
+                                startIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-start.png',
+                                endIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-end.png',
+                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-shadow.png'
+                            }
+                        }).on('loaded', function(e) {
+                            map.fitBounds(e.target.getBounds());
+                        }).addTo(map);
+
+                        // Fix map rendering issues when tab changes
+                        window.addEventListener('resize', function() {
+                            map.invalidateSize();
+                        });
+                    }
+                }
+            });
+        });
+
         // A. Utilities
         const formatCurrency = (num) => 'Rp ' + new Intl.NumberFormat('id-ID').format(num);
 

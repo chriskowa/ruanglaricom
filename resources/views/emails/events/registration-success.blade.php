@@ -26,7 +26,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Registration Confirmed</h1>
+            @if(isset($event) && $event->logo_image)
+                <img src="{{ asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" style="max-height: 80px; max-width: 200px; object-fit: contain;">
+            @else
+                <img src="{{ asset('images/logo-text-white.png') }}" alt="{{ config('app.name') }}" style="max-height: 50px; object-fit: contain;">
+            @endif
         </div>
         
         <div class="content">
@@ -36,6 +40,12 @@
                     {{ $event->start_at ? $event->start_at->format('d F Y, H:i') : 'Date TBA' }} | {{ $event->location_name }}
                 </div>
             </div>
+
+            @if($event->custom_email_message)
+            <div style="margin-bottom: 30px; color: #475569; border-left: 4px solid #ccff00; padding-left: 15px;">
+                {!! $event->custom_email_message !!}
+            </div>
+            @endif
 
             <p style="text-align: center; margin-bottom: 30px; color: #475569;">
                 Terima kasih <strong>{{ $notifiableName }}</strong>, registrasi Anda telah berhasil. Simpan tiket ini untuk pengambilan race pack (RPC) dan check-in saat acara.

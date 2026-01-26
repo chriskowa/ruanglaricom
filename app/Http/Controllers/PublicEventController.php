@@ -80,7 +80,7 @@ class PublicEventController extends Controller
             }
 
             // Load categories if not in cache
-            $categories = $event->categories()->where('is_active', true)->get();
+            $categories = $event->categories()->where('is_active', true)->with('masterGpx')->get();
             $seo = $this->buildSeo($event);
             if ($event->hardcoded === 'latbarkamis') {
                 $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
@@ -115,7 +115,7 @@ class PublicEventController extends Controller
         $this->cacheService->cacheEventDetail($event);
 
         // Get categories
-        $categories = $event->categories()->where('is_active', true)->get();
+        $categories = $event->categories()->where('is_active', true)->with('masterGpx')->get();
         $seo = $this->buildSeo($event);
 
         if ($event->hardcoded === 'latbarkamis') {

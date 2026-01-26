@@ -34,7 +34,8 @@ class EventController extends Controller
 
     public function create()
     {
-        return view('eo.events.create');
+        $gpxList = \App\Models\MasterGpx::where('is_published', true)->orderBy('title')->get();
+        return view('eo.events.create', compact('gpxList'));
     }
 
     /**
@@ -87,6 +88,9 @@ class EventController extends Controller
             'registration_open_at' => 'nullable|date',
             'registration_close_at' => 'nullable|date|after:registration_open_at',
             'promo_code' => 'nullable|string|max:50',
+            'promo_buy_x' => 'nullable|integer|min:1',
+            'custom_email_message' => 'nullable|string',
+            'is_instant_notification' => 'nullable|boolean',
             'facilities' => 'nullable|array',
             'facilities.*.name' => 'nullable|string|max:255',
             'facilities.*.description' => 'nullable|string',
@@ -133,6 +137,7 @@ class EventController extends Controller
         ]);
 
         $validated['user_id'] = auth()->id();
+        $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
 
         // Default premium_amenities to empty array if not present (for new events to not be treated as legacy)
         if (! isset($validated['premium_amenities'])) {
@@ -246,8 +251,9 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         $event->load(['categories']);
+        $gpxList = \App\Models\MasterGpx::where('is_published', true)->orderBy('title')->get();
 
-        return view('eo.events.edit', compact('event'));
+        return view('eo.events.edit', compact('event', 'gpxList'));
     }
 
     public function update(Request $request, Event $event)
@@ -282,6 +288,9 @@ class EventController extends Controller
             'registration_open_at' => 'nullable|date',
             'registration_close_at' => 'nullable|date|after:registration_open_at',
             'promo_code' => 'nullable|string|max:50',
+            'promo_buy_x' => 'nullable|integer|min:1',
+            'custom_email_message' => 'nullable|string',
+            'is_instant_notification' => 'nullable|boolean',
             'facilities' => 'nullable|array',
             'facilities.*.name' => 'nullable|string|max:255',
             'facilities.*.description' => 'nullable|string',
@@ -310,6 +319,7 @@ class EventController extends Controller
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'nullable|array|min:1',
             'categories.*.id' => 'nullable|exists:race_categories,id',
+            'categories.*.master_gpx_id' => 'nullable|exists:master_gpxes,id',
             'categories.*.name' => 'required_with:categories|string|max:255',
             'categories.*.distance_km' => 'nullable|numeric|min:0',
             'categories.*.code' => 'nullable|string|max:50',
@@ -328,6 +338,8 @@ class EventController extends Controller
             'categories.*.prizes.2' => 'nullable|string|max:255',
             'categories.*.prizes.3' => 'nullable|string|max:255',
         ]);
+
+        $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
 
         // Default premium_amenities to empty array if not present (to allow unchecking all)
         if (! isset($validated['premium_amenities'])) {
@@ -882,6 +894,93 @@ class EventController extends Controller
         $webpImage->save($fullPath);
 
         return $path;
+    }
+
+    /**
+     * Show blast email form
+     */
+    public function blast(Event $event)
+    {
+        $this->authorizeEvent($event);
+        $event->load('categories');
+
+        return view('eo.events.blast', compact('event'));
+    }
+
+    /**
+     * Send blast email
+     */
+    public function sendBlast(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $validated = $request->validate([
+            'subject' => 'required|string|max:255',
+            'content' => 'required|string',
+            'category_id' => 'nullable|exists:race_categories,id',
+        ]);
+
+        $filters = [];
+        if (!empty($validated['category_id'])) {
+            $filters['category_id'] = $validated['category_id'];
+        }
+
+        // Dispatch job
+        if ($event->is_instant_notification) {
+            \App\Jobs\SendEventBlastEmail::dispatchSync($event, $validated['subject'], $validated['content'], $filters);
+            $msg = 'Email blast berhasil dikirim (Instant)!';
+        } else {
+            \App\Jobs\SendEventBlastEmail::dispatch($event, $validated['subject'], $validated['content'], $filters);
+            $msg = 'Email blast sedang diproses dalam antrian.';
+        }
+
+        return redirect()->route('eo.events.blast', $event->id)
+            ->with('success', $msg);
+    }
+
+    /**
+     * Preview ticket email
+     */
+    public function previewEmail(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        // Update event with preview data (not saved to DB)
+        $event->custom_email_message = $request->input('custom_email_message');
+        if ($request->has('name')) $event->name = $request->input('name');
+        
+        // Mock Participant
+        $participant = new \App\Models\Participant([
+            'id' => 12345,
+            'user_id' => auth()->id(),
+            'event_id' => $event->id,
+            'name' => auth()->user()->name ?? 'John Doe',
+            'email' => auth()->user()->email ?? 'john@example.com',
+            'bib_number' => '1001',
+            'gender' => 'male',
+        ]);
+        
+        // Mock Category
+        $category = new \App\Models\RaceCategory([
+            'name' => '10K Open',
+            'distance_km' => 10,
+        ]);
+        $participant->setRelation('category', $category);
+        $participant->transaction_id = 99999;
+
+        // Mock Transaction
+        $transaction = new \App\Models\Transaction([
+            'id' => 99999,
+            'final_amount' => 150000,
+            'payment_status' => 'paid',
+        ]);
+
+        return view('emails.events.registration-success', [
+            'event' => $event,
+            'participants' => collect([$participant]),
+            'transaction' => $transaction,
+            'notifiableName' => $participant->name,
+        ]);
     }
 
     /**

@@ -1,5 +1,9 @@
 @extends('layouts.pacerhub')
 
+@php
+    $withSidebar = true;
+@endphp
+
 @section('title', 'Create Event')
 
 @push('styles')
@@ -341,6 +345,21 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Promo Code <span class="text-slate-500 text-xs">(Optional)</span></label>
+                        <input type="text" name="promo_code" value="{{ old('promo_code') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. EARLYBIRD">
+                        <p class="text-xs text-slate-500 mt-1">Code for discount.</p>
+                        @error('promo_code') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Promo Beli X Gratis 1 <span class="text-slate-500 text-xs">(Optional)</span></label>
+                        <input type="number" name="promo_buy_x" value="{{ old('promo_buy_x') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. 10">
+                        <p class="text-xs text-slate-500 mt-1">Isi jumlah beli untuk dapat 1 gratis (misal 10).</p>
+                        @error('promo_buy_x') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
                 <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 mb-6">
                     <label class="block text-sm font-medium text-slate-300 mb-2">Event Location <span class="text-red-400">*</span></label>
                     <div class="relative mb-4">
@@ -513,9 +532,18 @@
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
         </button>
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div class="md:col-span-4">
+            <div class="md:col-span-3">
                 <label class="block text-xs font-medium text-slate-400 mb-1">Category Name <span class="text-red-400">*</span></label>
                 <input type="text" class="cat-name w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="e.g. 10K Open" required>
+            </div>
+            <div class="md:col-span-3">
+                <label class="block text-xs font-medium text-slate-400 mb-1">Route Map (GPX)</label>
+                <select class="cat-gpx w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
+                    <option value="">-- Select Route --</option>
+                    @foreach($gpxList as $gpx)
+                        <option value="{{ $gpx->id }}">{{ $gpx->title }} ({{ $gpx->distance_km }}km)</option>
+                    @endforeach
+                </select>
             </div>
             <div class="md:col-span-2">
                 <label class="block text-xs font-medium text-slate-400 mb-1">Distance (KM)</label>
@@ -743,13 +771,15 @@
         
         // Set names with index
         const inputs = {
+            'cat-id': 'id',
             'cat-name': 'name',
             'cat-distance': 'distance_km',
             'cat-quota': 'quota',
             'cat-price-early': 'price_early',
             'cat-price': 'price_regular',
             'cat-price-late': 'price_late',
-            'cat-cot': 'cutoff_minutes'
+            'cat-cot': 'cutoff_minutes',
+            'cat-gpx': 'master_gpx_id'
         };
 
         for (const [cls, name] of Object.entries(inputs)) {

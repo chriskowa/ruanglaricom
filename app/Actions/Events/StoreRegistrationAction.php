@@ -263,7 +263,16 @@ class StoreRegistrationAction
 
                 // Calculate price based on registration period
                 $price = $this->getCategoryPrice($category, $now);
-                $totalOriginal += $price * $quantity;
+                
+                // Promo Buy X Get 1 Free
+                $paidQuantity = $quantity;
+                if ($event->promo_buy_x && $event->promo_buy_x > 0) {
+                    $bundleSize = $event->promo_buy_x + 1;
+                    $freeCount = floor($quantity / $bundleSize);
+                    $paidQuantity = $quantity - $freeCount;
+                }
+
+                $totalOriginal += $price * $paidQuantity;
             }
 
             // Apply coupon discount

@@ -1,5 +1,9 @@
 @extends('layouts.pacerhub')
 
+@php
+    $withSidebar = true;
+@endphp
+
 @section('title', 'Edit Event')
 
 @push('styles')
@@ -100,13 +104,27 @@
                 </li>
             </ol>
         </nav>
-        <div class="flex justify-between items-end">
-            <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">
-                EDIT <span class="text-yellow-400">EVENT</span>
-            </h1>
-            <a href="{{ route('eo.events.show', $event) }}" class="text-sm font-bold text-yellow-400 hover:text-white transition-colors flex items-center gap-1">
-                View Detail <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-            </a>
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">
+                    EDIT <span class="text-yellow-400">EVENT</span>
+                </h1>
+                <p class="text-slate-400 mt-2">Update event information, categories, and settings.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('eo.events.show', $event) }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center gap-2 text-sm font-bold">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    Preview
+                </a>
+                <a href="{{ route('eo.events.participants', $event) }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center gap-2 text-sm font-bold">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    Participants
+                </a>
+                <a href="{{ route('eo.events.blast', $event) }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center gap-2 text-sm font-bold">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    Blast Email
+                </a>
+            </div>
         </div>
     </div>
 
@@ -303,6 +321,33 @@
                         </div>
                         @error('terms_and_conditions') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    
+                    <div class="md:col-span-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-medium text-slate-300">Custom Email Message (Ticket)</label>
+                            <button type="button" onclick="previewEmail()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1 border border-slate-600">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                Preview Email
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-xl overflow-hidden text-slate-900">
+                            <div id="custom_email_message_editor"></div>
+                            <textarea name="custom_email_message" id="custom_email_message" class="hidden">{{ old('custom_email_message', $event->custom_email_message) }}</textarea>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Pesan ini akan muncul di email tiket peserta.</p>
+                        @error('custom_email_message') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-3 p-4 border border-slate-700 rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-colors cursor-pointer group">
+                            <input type="checkbox" name="is_instant_notification" value="1" class="w-5 h-5 rounded border-slate-600 bg-slate-700 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-0" {{ old('is_instant_notification', $event->is_instant_notification) ? 'checked' : '' }}>
+                            <div>
+                                <span class="block text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">Instant Email Notification</span>
+                                <span class="block text-xs text-slate-400 mt-0.5">Kirim email tiket secara langsung (tanpa antrian). Gunakan hanya untuk demo atau event kecil.</span>
+                            </div>
+                        </label>
+                    </div>
+
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Platform Fee (Per Participant)</label>
                         <div class="relative">
@@ -347,6 +392,21 @@
                         <input type="datetime-local" name="registration_close_at" value="{{ old('registration_close_at', $event->registration_close_at ? $event->registration_close_at->format('Y-m-d\TH:i') : '') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors [color-scheme:dark]">
                         <p class="text-xs text-slate-500 mt-1">Leave empty to close when event starts.</p>
                         @error('registration_close_at') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Promo Code <span class="text-slate-500 text-xs">(Optional)</span></label>
+                        <input type="text" name="promo_code" value="{{ old('promo_code', $event->promo_code) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. EARLYBIRD">
+                        <p class="text-xs text-slate-500 mt-1">Code for discount.</p>
+                        @error('promo_code') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Promo Beli X Gratis 1 <span class="text-slate-500 text-xs">(Optional)</span></label>
+                        <input type="number" name="promo_buy_x" value="{{ old('promo_buy_x', $event->promo_buy_x) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. 10">
+                        <p class="text-xs text-slate-500 mt-1">Isi jumlah beli untuk dapat 1 gratis (misal 10).</p>
+                        @error('promo_buy_x') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
@@ -503,9 +563,18 @@
         </button>
         <input type="hidden" class="cat-id">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div class="md:col-span-4">
+            <div class="md:col-span-3">
                 <label class="block text-xs font-medium text-slate-400 mb-1">Category Name <span class="text-red-400">*</span></label>
                 <input type="text" class="cat-name w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="e.g. 10K Open" required>
+            </div>
+            <div class="md:col-span-3">
+                <label class="block text-xs font-medium text-slate-400 mb-1">Route Map (GPX)</label>
+                <select class="cat-gpx w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
+                    <option value="">-- Select Route --</option>
+                    @foreach($gpxList as $gpx)
+                        <option value="{{ $gpx->id }}">{{ $gpx->title }} ({{ $gpx->distance_km }}km)</option>
+                    @endforeach
+                </select>
             </div>
             <div class="md:col-span-2">
                 <label class="block text-xs font-medium text-slate-400 mb-1">Distance (KM)</label>
@@ -755,6 +824,17 @@
         })
         .catch(error => console.error(error));
 
+    // Custom Email Message
+    ClassicEditor
+        .create(document.querySelector('#custom_email_message_editor'), commonConfig)
+        .then(editor => {
+            editor.setData(`{!! old('custom_email_message', $event->custom_email_message) !!}`);
+            editor.model.document.on('change:data', () => {
+                document.querySelector('#custom_email_message').value = editor.getData();
+            });
+        })
+        .catch(error => console.error(error));
+
     // Categories Logic
     let categoryIndex = 0;
     const container = document.getElementById('categories_container');
@@ -776,7 +856,8 @@
             'cat-price-early': 'price_early',
             'cat-price': 'price_regular',
             'cat-price-late': 'price_late',
-            'cat-cot': 'cutoff_minutes'
+            'cat-cot': 'cutoff_minutes',
+            'cat-gpx': 'master_gpx_id'
         };
 
         for (const [cls, name] of Object.entries(inputs)) {
@@ -925,5 +1006,38 @@
             }
         });
     });
+
+    function previewEmail() {
+        const content = document.querySelector('#custom_email_message').value;
+        const name = document.querySelector('input[name="name"]').value;
+        
+        // Create a temporary form to post
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ route('eo.events.preview-email', $event) }}";
+        form.target = '_blank';
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = document.querySelector('input[name="_token"]').value;
+        form.appendChild(csrfToken);
+        
+        const contentInput = document.createElement('input');
+        contentInput.type = 'hidden';
+        contentInput.name = 'custom_email_message';
+        contentInput.value = content;
+        form.appendChild(contentInput);
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'hidden';
+        nameInput.name = 'name';
+        nameInput.value = name;
+        form.appendChild(nameInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
 </script>
 @endpush
