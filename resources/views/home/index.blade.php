@@ -190,7 +190,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('coaches.index') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
+                                    <a href="{{ route('tools.trackmaster') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
                                         <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-blue-400 group-hover/link:bg-slate-700 transition">
                                             <i class="fas fa-stopwatch text-xs"></i>
                                         </div>
@@ -357,7 +357,7 @@
                         <span class="text-neon font-bold tracking-widest uppercase text-sm mb-2 block">Race Calendar</span>
                         <h2 class="text-4xl md:text-5xl font-black text-white">UPCOMING <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">EVENTS</span></h2>
                     </div>
-                    <a href="/events" class="group flex items-center gap-2 text-slate-400 hover:text-white transition font-bold border-b border-slate-700 hover:border-white pb-1" data-aos="fade-left">
+                    <a href="/jadwal-lari" class="group flex items-center gap-2 text-slate-400 hover:text-white transition font-bold border-b border-slate-700 hover:border-white pb-1" data-aos="fade-left">
                         Lihat Semua Event 
                         <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                     </a>
