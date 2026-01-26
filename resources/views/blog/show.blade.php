@@ -62,7 +62,8 @@
             @if($bgImage)
                 <img src="{{ $bgImage }}" alt="{{ $article->title }}" class="w-full h-full object-cover">
             @else
-                <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900"></div>
+                {{-- Replaced gradient div with fallback image as requested --}}
+                <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $article->title }}" class="w-full h-full object-cover">
             @endif
             
             <div class="absolute bottom-0 left-0 w-full z-20 pb-12 md:pb-16 pl-8 md:pl-12">
@@ -143,7 +144,7 @@
         <div class="container mx-auto px-4 md:px-8">
             <div class="flex items-center justify-between mb-10">
                 <h3 class="text-2xl font-bold text-white">More from {{ $article->category->name ?? 'Blog' }}</h3>
-                <a href="#" class="text-sm text-neon hover:underline">View All</a>
+                <a href="{{ $article->category ? route('blog.category', $article->category->slug) : route('blog.index') }}" class="text-sm text-neon hover:underline">View All</a>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -163,9 +164,7 @@
                         @if($relImage)
                             <img src="{{ $relImage }}" alt="{{ $related->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
-                            <div class="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600">
-                                <i class="far fa-image text-3xl"></i>
-                            </div>
+                            <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $related->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @endif
                         <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs font-mono text-white">
                             {{ $related->published_at ? $related->published_at->format('d M') : $related->created_at->format('d M') }}

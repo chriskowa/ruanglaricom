@@ -862,8 +862,10 @@
 
         for (const [cls, name] of Object.entries(inputs)) {
             const input = item.querySelector('.' + cls);
-            input.name = `categories[${categoryIndex}][${name}]`;
-            if (data && data[name] !== undefined && data[name] !== null) input.value = data[name];
+            if (input) {
+                input.name = `categories[${categoryIndex}][${name}]`;
+                if (data && data[name] !== undefined && data[name] !== null) input.value = data[name];
+            }
         }
 
         // Handle prizes separately for cleaner structure
@@ -875,9 +877,11 @@
 
         for (const [cls, pIdx] of Object.entries(prizeInputs)) {
             const input = item.querySelector('.' + cls);
-            input.name = `categories[${categoryIndex}][prizes][${pIdx}]`;
-            if (data && data.prizes && data.prizes[pIdx] !== undefined && data.prizes[pIdx] !== null) {
-                input.value = data.prizes[pIdx];
+            if (input) {
+                input.name = `categories[${categoryIndex}][prizes][${pIdx}]`;
+                if (data && data.prizes && data.prizes[pIdx] !== undefined && data.prizes[pIdx] !== null) {
+                    input.value = data.prizes[pIdx];
+                }
             }
         }
 
