@@ -45,12 +45,21 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch Strategy: Network First, fallback to Cache
+// Fetch Strategy: Network First, fallback to Cache, then Offline Page
 self.addEventListener('fetch', event => {
     event.respondWith(
         fetch(event.request)
             .catch(() => {
-                return caches.match(event.request);
+                return caches.match(event.request)
+                    .then(response => {
+                        if (response) {
+                            return response;
+                        }
+                        // If request is for a page (navigation) and not in cache, show offline.html
+                        if (event.request.mode === 'navigate') {
+                            return caches.match('/offline.html');
+                        }
+                    });
             })
     );
 });
