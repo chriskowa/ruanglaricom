@@ -1,27 +1,44 @@
 {
-    "name": "RuangLari",
-    "short_name": "RuangLari",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#1e293b",
-    "theme_color": "#1e293b",
-    "orientation": "portrait",
-    "description": "Platform komunitas lari Indonesia - Event, Pacer, Coach, dan Tools.",
-    "icons": [
-        {
-            "src": "/images/android-icon-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "/images/favicon-96x96.png",
-            "sizes": "96x96",
-            "type": "image/png"
-        },
-        {
-            "src": "/images/favicon-32x32.png",
-            "sizes": "32x32",
-            "type": "image/png"
-        }
-    ]
+  "name": "RuangLari - Platform komunitas lari Indonesia",
+  "short_name": "RuangLari",
+  "id": "ruanglari-pwa",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#1e293b",
+  "orientation": "portrait-primary",
+  "description": "Platform komunitas lari Indonesia - Event, Pacer, Coach, dan Tools.",
+  "lang": "id",
+  "categories": ["sports", "fitness", "lifestyle"],
+  "icons": [
+    {
+      "src": "/images/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/ruanglari-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/screenshot.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Platform Tentang Lari"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Kalender Event",
+      "url": "/jadwal-lari",
+      "icons": [{ "src": "/images/calendar.png", "sizes": "96x96", "type": "image/png" }]
+    }
+  ]
 }
