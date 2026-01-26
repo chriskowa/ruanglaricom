@@ -138,9 +138,13 @@
                         </div>
                     </div>
 
+
+                </div>
+
+                <div class="lg:col-span-8 space-y-4">
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5">
                         <div class="text-sm font-black tracking-wider text-slate-200 uppercase">Ringkasan</div>
-                        <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
                             <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
                                 <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Jarak</div>
                                 <div class="mt-1 text-2xl font-black text-white"><span id="rl-distance-km">0.00</span><span class="text-sm text-slate-400 font-bold ml-1">km</span></div>
@@ -159,7 +163,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-4 grid grid-cols-2 gap-2">
+                        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
                             <button id="rl-undo" type="button" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
                                 Undo
                             </button>
@@ -175,10 +179,10 @@
                             <button id="rl-share" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-500 transition">
                                 Share Link
                             </button>
-                            <button id="rl-export-gpx" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
+                            <button id="rl-export-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
                                 Export GPX
                             </button>
-                            <button id="rl-import-gpx" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
+                            <button id="rl-import-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
                                 Import GPX
                             </button>
                             <input id="rl-import-gpx-file" type="file" accept=".gpx" class="hidden">
@@ -307,9 +311,6 @@
                             Tips: titik bisa di-drag buat rapihin rute. Kalau mau cepat, zoom-in dulu baru tap.
                         </div>
                     </div>
-                </div>
-
-                <div class="lg:col-span-8 space-y-4">
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
                         <div class="absolute top-3 right-3 z-[500] flex flex-col gap-2">
                             <button id="rl-center" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Center Map">
