@@ -995,7 +995,8 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const query = this.value;
-                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
+                const proxyUrl = '/image-proxy?url=' + encodeURIComponent(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
+                fetch(proxyUrl)
                     .then(res => res.json())
                     .then(data => {
                         if (data && data.length > 0) {
