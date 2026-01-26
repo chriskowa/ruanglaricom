@@ -184,6 +184,8 @@ Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerCo
 Route::get('/tools/buat-rute-lari', function () {
     return view('tools.buat-rute-lari');
 })->name('tools.buat-rute-lari');
+Route::post('/tools/shortlink', [App\Http\Controllers\ShortLinkController::class, 'store'])->name('tools.shortlink.store');
+Route::get('/s/{code}', [App\Http\Controllers\ShortLinkController::class, 'redirect'])->name('shortlink.redirect');
 Route::middleware('auth')->post('/tools/buat-rute-lari/strava-upload', [App\Http\Controllers\CalendarController::class, 'uploadRouteToStrava'])->name('tools.buat-rute-lari.strava-upload');
 Route::middleware('auth')->post('/tools/buat-rute-lari/strava-authorize-and-post', [App\Http\Controllers\CalendarController::class, 'authorizeAndPostRouteToStrava'])->name('tools.buat-rute-lari.strava-authorize-and-post');
 Route::get('/tools/pace-pro', [App\Http\Controllers\PaceProController::class, 'index'])->name('tools.pace-pro');

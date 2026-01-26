@@ -647,12 +647,46 @@
             var markers = [];
             var freehandActive = false;
             var directionLayer = L.layerGroup().addTo(map);
+            var kmLayer = L.layerGroup().addTo(map);
             var routingSeq = 0;
             var elevSeq = 0;
+
+            // History State
+            var historyStack = [];
+            var historyIndex = -1;
+            var isUndoing = false;
+
+            function pushState() {
+                if (isUndoing) return;
+                var state = JSON.stringify(points);
+                // Jika historyIndex bukan di akhir, potong array
+                if (historyIndex < historyStack.length - 1) {
+                    historyStack = historyStack.slice(0, historyIndex + 1);
+                }
+                // Push state baru jika berbeda dari sebelumnya
+                if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== state) {
+                    historyStack.push(state);
+                    historyIndex = historyStack.length - 1;
+                }
+            }
+
+            function loadState(idx) {
+                if (idx < 0 || idx >= historyStack.length) return;
+                isUndoing = true;
+                try {
+                    var loaded = JSON.parse(historyStack[idx]);
+                    points = loaded;
+                    updateRouteFromWaypoints();
+                    historyIndex = idx;
+                    setStatus(idx === 0 ? 'Awal' : 'History ' + (idx + 1));
+                } catch(e) {}
+                isUndoing = false;
+            }
 
             function rebuildLine() {
                 routeLine.setLatLngs(toLatLngArray(routePoints));
                 updateDirections();
+                updateKmMarkers();
             }
 
             function rebuildMarkers() {
@@ -677,6 +711,7 @@
                     });
                     m.on('dragend', function () {
                         updateRouteFromWaypoints();
+                        pushState(); // Save state after drag
                     });
                     m.on('click', function () {
                         setStatus('Titik #' + (idx + 1));
@@ -715,17 +750,19 @@
                 updateStats();
                 updateRouteFromWaypoints();
                 setStatus('Titik ditambahkan (' + points.length + ')');
+                pushState(); // Save state
             }
 
             function undo() {
-                if (points.length === 0) return;
-                points.pop();
-                routePoints = points.slice();
-                rebuildLine();
-                rebuildMarkers();
-                updateStats();
-                updateRouteFromWaypoints();
-                setStatus('Undo');
+                if (historyIndex > 0) {
+                    loadState(historyIndex - 1);
+                }
+            }
+            
+            function redo() {
+                if (historyIndex < historyStack.length - 1) {
+                    loadState(historyIndex + 1);
+                }
             }
 
             function clearAll() {
@@ -736,7 +773,23 @@
                 updateStats();
                 updateElevation();
                 setStatus('Reset');
+                pushState(); // Save state
             }
+            
+            // Initial state
+            pushState();
+
+            // Keyboard Shortcuts
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                }
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) {
+                    e.preventDefault();
+                    redo();
+                }
+            });
 
             function fitRoute() {
                 if (routePoints.length < 2) return;
@@ -1185,9 +1238,40 @@
                 reader.readAsText(file);
             }
 
+            function updateKmMarkers() {
+                kmLayer.clearLayers();
+                if (routePoints.length < 2) return;
+                
+                var acc = 0;
+                var nextKm = 1;
+                var style = getStyle();
+                
+                for (var i = 1; i < routePoints.length; i++) {
+                    var dist = haversineKm(routePoints[i - 1], routePoints[i]);
+                    if (acc + dist >= nextKm) {
+                        // Interpolasi posisi KM
+                        var remain = nextKm - acc;
+                        var ratio = remain / dist;
+                        var lat = routePoints[i-1].lat + (routePoints[i].lat - routePoints[i-1].lat) * ratio;
+                        var lng = routePoints[i-1].lng + (routePoints[i].lng - routePoints[i-1].lng) * ratio;
+                        
+                        var icon = L.divIcon({
+                            className: '',
+                            html: '<div style="background:#fff;border:2px solid '+style.route+';color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;box-shadow:0 2px 4px rgba(0,0,0,0.3)">'+nextKm+'</div>',
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
+                        });
+                        L.marker([lat, lng], { icon: icon, interactive: false }).addTo(kmLayer);
+                        nextKm++;
+                    }
+                    acc += dist;
+                }
+            }
+
             function osrmRoute(waypoints) {
                 var coords = waypoints.map(function (p) { return p.lng.toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
-                var url = 'https://router.project-osrm.org/route/v1/foot/' + coords + '?overview=full&geometries=geojson&steps=false';
+                // Gunakan profile 'driving' agar mengikuti arah jalan (one-way, dll)
+                var url = 'https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson&steps=false';
                 return fetch(url, { headers: { 'Accept': 'application/json' } })
                     .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); })
                     .then(function (res) {
@@ -1471,12 +1555,39 @@
             els.fit.addEventListener('click', fitRoute);
             els.exportGpx.addEventListener('click', exportGpx);
             els.share.addEventListener('click', function () {
-                var url = buildShareUrl();
-                if (!url) {
+                var longUrl = buildShareUrl();
+                if (!longUrl) {
                     setStatus('Minimal 1 titik');
                     return;
                 }
-                showShareModal(url);
+                
+                setStatus('Membuat link pendek...');
+                
+                var csrf = document.querySelector('meta[name="csrf-token"]');
+                var token = csrf ? csrf.content : '';
+
+                fetch('/tools/shortlink', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: JSON.stringify({ url: longUrl })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.short_url) {
+                        showShareModal(data.short_url);
+                        setStatus('Link siap');
+                    } else {
+                        showShareModal(longUrl);
+                        setStatus('Gagal memendekkan link');
+                    }
+                })
+                .catch(function() {
+                    showShareModal(longUrl);
+                    setStatus('Gagal memendekkan link');
+                });
             });
 
             els.mode.addEventListener('change', function () {
