@@ -104,7 +104,7 @@
                     <div>
                         <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Target (detik)</label>
                         <input v-model.number="program.targetTime" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-white" placeholder="80">
-                        <div class="text-center text-[10px] text-neon-green mt-1 font-mono">{{ calculatePace(program.targetTime, program.distance) }} /km</div>
+                        <div class="text-center text-[10px] text-neon-green mt-1 font-mono">@{{ calculatePace(program.targetTime, program.distance) }} /km</div>
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Rest (detik)</label>
