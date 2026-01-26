@@ -710,12 +710,21 @@
                     <div class="bg-slate-800 border border-slate-700 shadow-lg rounded-3xl overflow-hidden h-full min-h-[300px] relative group">
                          @if($event->map_embed_url)
                             <iframe src="{{ $event->map_embed_url }}" class="w-full h-full min-h-[300px] border-0 opacity-80 group-hover:opacity-100 transition" allowfullscreen="" loading="lazy"></iframe>
+                         @elseif($event->location_lat && $event->location_lng)
+                            <iframe src="https://maps.google.com/maps?q={{ $event->location_lat }},{{ $event->location_lng }}&hl=id&z=14&output=embed" class="w-full h-full min-h-[300px] border-0 opacity-80 group-hover:opacity-100 transition" allowfullscreen="" loading="lazy"></iframe>
                          @else
                             <div class="absolute inset-0 bg-slate-800 flex items-center justify-center text-slate-500 font-bold">Map Loading...</div>
                          @endif
-                         <div class="absolute bottom-4 left-4 right-4 bg-slate-900/90 backdrop-blur-sm p-4 rounded-xl border border-white/10 shadow-sm">
-                             <strong class="block text-white">{{ $event->location_name }}</strong>
-                             <p class="text-xs text-slate-400 truncate">{{ $event->location_address }}</p>
+                         <div class="absolute bottom-4 left-4 right-4 bg-slate-900/90 backdrop-blur-sm p-4 rounded-xl border border-white/10 shadow-sm flex justify-between items-center gap-4">
+                             <div class="min-w-0">
+                                <strong class="block text-white truncate">{{ $event->location_name }}</strong>
+                                <p class="text-xs text-slate-400 truncate">{{ $event->location_address }}</p>
+                             </div>
+                             @if($event->location_lat && $event->location_lng)
+                             <a href="https://www.google.com/maps/dir/?api=1&destination={{ $event->location_lat }},{{ $event->location_lng }}" target="_blank" class="shrink-0 bg-brand-600 text-white p-2.5 rounded-lg hover:bg-brand-700 transition shadow-neon" title="Get Directions">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                             </a>
+                             @endif
                          </div>
                     </div>
                 </div>
@@ -755,6 +764,7 @@
     @include('events.partials.prizes-section', ['categories' => $categories])
 
     <!-- Participants Table Section -->
+    @if($event->participants()->exists())
     <section id="participants-list" class="py-24 bg-slate-900 relative">
         <div class="absolute inset-0 bg-brand-900/5"></div>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -769,6 +779,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     <section id="register" class="py-24 bg-slate-900 relative">
         <div class="absolute inset-0 bg-brand-900/10"></div>

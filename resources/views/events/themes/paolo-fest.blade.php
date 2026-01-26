@@ -525,6 +525,13 @@
     </section>
 
     <!-- Route Map Section (New) -->
+    @php
+        $categoriesWithGpx = $event->categories->filter(function($cat) {
+            return $cat->master_gpx_id && $cat->masterGpx;
+        });
+    @endphp
+
+    @if($categoriesWithGpx->count() > 0)
     <section id="routes" class="py-24 bg-white relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
@@ -533,61 +540,50 @@
                 <p class="text-slate-500 mt-4 max-w-2xl mx-auto">Jelajahi rute lari untuk setiap kategori. Klik tab kategori untuk melihat detail rute dan elevasi.</p>
             </div>
 
-            @php
-                $categoriesWithGpx = $event->categories->filter(function($cat) {
-                    return $cat->master_gpx_id && $cat->masterGpx;
-                });
-            @endphp
+            <div x-data="{ activeTab: '{{ $categoriesWithGpx->first()->id }}' }">
+                <!-- Tabs -->
+                <div class="flex flex-wrap justify-center gap-4 mb-8">
+                    @foreach($categoriesWithGpx as $category)
+                        <button 
+                            @click="activeTab = '{{ $category->id }}'; setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100);" 
+                            :class="activeTab === '{{ $category->id }}' ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                            class="px-6 py-3 rounded-full font-bold transition-all text-sm uppercase tracking-wide">
+                            {{ $category->name }}
+                        </button>
+                    @endforeach
+                </div>
 
-            @if($categoriesWithGpx->count() > 0)
-                <div x-data="{ activeTab: '{{ $categoriesWithGpx->first()->id }}' }">
-                    <!-- Tabs -->
-                    <div class="flex flex-wrap justify-center gap-4 mb-8">
-                        @foreach($categoriesWithGpx as $category)
-                            <button 
-                                @click="activeTab = '{{ $category->id }}'; setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100);" 
-                                :class="activeTab === '{{ $category->id }}' ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/30' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                class="px-6 py-3 rounded-full font-bold transition-all text-sm uppercase tracking-wide">
-                                {{ $category->name }}
-                            </button>
-                        @endforeach
-                    </div>
-
-                    <!-- Maps -->
-                    <div class="relative bg-slate-50 rounded-3xl overflow-hidden border border-slate-200 shadow-inner h-[500px]">
-                        @foreach($categoriesWithGpx as $category)
-                            <div x-show="activeTab === '{{ $category->id }}'" 
-                                 class="absolute inset-0 w-full h-full"
-                                 x-transition:enter="transition ease-out duration-300"
-                                 x-transition:enter-start="opacity-0 scale-95"
-                                 x-transition:enter-end="opacity-100 scale-100">
-                                <div id="map-{{ $category->id }}" class="w-full h-full z-10"></div>
-                                
-                                <!-- Stats Overlay -->
-                                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-slate-100 z-20 max-w-xs">
-                                    <h4 class="font-bold text-slate-900 mb-2">{{ $category->name }}</h4>
-                                    <div class="grid grid-cols-2 gap-4 text-xs">
-                                        <div>
-                                            <span class="block text-slate-400">Distance</span>
-                                            <span class="block font-bold text-slate-800 text-lg">{{ $category->masterGpx->distance_km }} KM</span>
-                                        </div>
-                                        <div>
-                                            <span class="block text-slate-400">Elev. Gain</span>
-                                            <span class="block font-bold text-slate-800 text-lg">{{ $category->masterGpx->elevation_gain_m }} m</span>
-                                        </div>
+                <!-- Maps -->
+                <div class="relative bg-slate-50 rounded-3xl overflow-hidden border border-slate-200 shadow-inner h-[500px]">
+                    @foreach($categoriesWithGpx as $category)
+                        <div x-show="activeTab === '{{ $category->id }}'" 
+                                class="absolute inset-0 w-full h-full"
+                                x-transition:enter="transition ease-out duration-300"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100">
+                            <div id="map-{{ $category->id }}" class="w-full h-full z-10"></div>
+                            
+                            <!-- Stats Overlay -->
+                            <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-slate-100 z-20 max-w-xs">
+                                <h4 class="font-bold text-slate-900 mb-2">{{ $category->name }}</h4>
+                                <div class="grid grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                        <span class="block text-slate-400">Distance</span>
+                                        <span class="block font-bold text-slate-800 text-lg">{{ $category->masterGpx->distance_km }} KM</span>
+                                    </div>
+                                    <div>
+                                        <span class="block text-slate-400">Elev. Gain</span>
+                                        <span class="block font-bold text-slate-800 text-lg">{{ $category->masterGpx->elevation_gain_m }} m</span>
                                     </div>
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
+                        </div>
+                    @endforeach
                 </div>
-            @else
-                <div class="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-300">
-                    <p class="text-slate-400">Peta rute belum tersedia untuk saat ini.</p>
-                </div>
-            @endif
+            </div>
         </div>
     </section>
+    @endif
 
     <!-- Medal Section (New) -->
     @if($event->medal_image)
@@ -745,12 +741,21 @@
                     <div class="bg-white border border-slate-200 shadow-lg rounded-3xl overflow-hidden h-full min-h-[300px] relative group">
                          @if($event->map_embed_url)
                             <iframe src="{{ $event->map_embed_url }}" class="w-full h-full min-h-[300px] border-0" allowfullscreen="" loading="lazy"></iframe>
+                         @elseif($event->location_lat && $event->location_lng)
+                            <iframe src="https://maps.google.com/maps?q={{ $event->location_lat }},{{ $event->location_lng }}&hl=id&z=14&output=embed" class="w-full h-full min-h-[300px] border-0" allowfullscreen="" loading="lazy"></iframe>
                          @else
                             <div class="absolute inset-0 bg-slate-100 flex items-center justify-center text-slate-400 font-bold">Map Loading...</div>
                          @endif
-                         <div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-white/50 shadow-sm">
-                             <strong class="block text-slate-900">{{ $event->location_name }}</strong>
-                             <p class="text-xs text-slate-500 truncate">{{ $event->location_address }}</p>
+                         <div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-white/50 shadow-sm flex justify-between items-center gap-4">
+                             <div class="min-w-0">
+                                <strong class="block text-slate-900 truncate">{{ $event->location_name }}</strong>
+                                <p class="text-xs text-slate-500 truncate">{{ $event->location_address }}</p>
+                             </div>
+                             @if($event->location_lat && $event->location_lng)
+                             <a href="https://www.google.com/maps/dir/?api=1&destination={{ $event->location_lat }},{{ $event->location_lng }}" target="_blank" class="shrink-0 bg-brand-600 text-white p-2.5 rounded-lg hover:bg-brand-700 transition shadow-lg shadow-brand-600/20" title="Get Directions">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                             </a>
+                             @endif
                          </div>
                     </div>
                 </div>
@@ -833,6 +838,7 @@
     @include('events.partials.prizes-section', ['categories' => $categories])
 
     <!-- Participants Table Section -->
+    @if($event->participants()->exists())
     <section id="participants-list" class="py-24 bg-slate-900">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
@@ -846,6 +852,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     <section id="register" class="py-24 bg-white">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
