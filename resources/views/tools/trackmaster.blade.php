@@ -11,6 +11,24 @@
     <meta name="author" content="Ruang Lari">
     <meta name="robots" content="index, follow">
 
+    <!-- Favicon default -->
+    <link rel="icon" href="{{ asset('images/green/favicon-32x32.png') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('images/green/favicon-32x32.png') }}" type="image/x-icon">
+
+    <!-- Versi PNG -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
+
+    <!-- Versi Apple Touch -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/green/apple-touch-icon.png') }}">
+
+    <!-- Versi Android/Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="192x192" href="/images/android-icon-192x192.png">
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">

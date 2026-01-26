@@ -184,9 +184,17 @@
                                 <li>
                                     <a href="{{ route('coaches.index') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
                                         <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-blue-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-user-stopwatch text-xs"></i>
+                                            <i class="fas fa-stopwatch text-xs"></i>
                                         </div>
-                                        <span class="text-sm font-medium">Coach Marketplace</span>
+                                        <span class="text-sm font-medium">Coach </span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('coaches.index') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
+                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-blue-400 group-hover/link:bg-slate-700 transition">
+                                            <i class="fas fa-stopwatch text-xs"></i>
+                                        </div>
+                                        <span class="text-sm font-medium">Coach TrackMaster Pro</span>
                                     </a>
                                 </li>
                             </ul>
@@ -819,7 +827,7 @@
             p.forEach((post, i)=>{
                 const l=post.url||'#';
                 const t=post.title||'Tanpa judul';
-                const img=post.image||'ruanglari.png';
+                const img=post.image||'/assets/images/ruanglari.png';
                 const date=new Date(post.date).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
                 
                 const card=document.createElement('div');
