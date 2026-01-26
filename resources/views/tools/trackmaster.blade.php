@@ -176,7 +176,7 @@
                     <button @click="togglePause" class="h-10 px-4 rounded-full font-bold text-xs uppercase flex items-center gap-2 border transition"
                         :class="isPaused ? 'bg-neon-green/10 border-neon-green text-neon-green' : 'bg-yellow-500/10 border-yellow-500 text-yellow-500'">
                         <i class="fa-solid" :class="isPaused ? 'fa-play' : 'fa-pause'"></i>
-                        <span class="hidden sm:inline">{{ isPaused ? 'RESUME' : 'PAUSE' }}</span>
+                        <span class="hidden sm:inline">@{{ isPaused ? 'RESUME' : 'PAUSE' }}</span>
                     </button>
                     
                     <button @click="finishSession" class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white transition flex items-center justify-center">
@@ -199,15 +199,15 @@
 
                     <div v-if="isPaused" class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center rounded-2xl"><i class="fa-solid fa-pause text-white/30 text-2xl"></i></div>
 
-                    <div class="text-xs font-bold uppercase truncate px-2 w-full text-center">{{ a.name }}</div>
+                    <div class="text-xs font-bold uppercase truncate px-2 w-full text-center">@{{ a.name }}</div>
                     
                     <div v-if="a.status === 'active'" class="text-center mt-1">
-                        <span class="text-2xl sm:text-3xl font-black font-mono">{{ a.currentRep + 1 }}</span>
-                        <span class="text-[10px] text-slate-500 font-bold block -mt-1">/{{ program.reps }}</span>
+                        <span class="text-2xl sm:text-3xl font-black font-mono">@{{ a.currentRep + 1 }}</span>
+                        <span class="text-[10px] text-slate-500 font-bold block -mt-1">/@{{ program.reps }}</span>
                     </div>
 
                     <div v-else-if="a.status === 'resting'" class="text-center mt-1">
-                        <span class="text-2xl sm:text-3xl font-black font-mono">{{ Math.ceil(a.restCountdown) }}</span>
+                        <span class="text-2xl sm:text-3xl font-black font-mono">@{{ Math.ceil(a.restCountdown) }}</span>
                         <span class="text-[9px] uppercase tracking-widest block -mt-1 opacity-70">REST</span>
                     </div>
 
@@ -275,33 +275,33 @@
 
     <section v-if="view === 'summary'" class="flex-grow flex flex-col p-6 animate-[fadeIn_0.5s] overflow-y-auto">
         <div id="summary-capture" class="glass p-8 rounded-3xl shadow-2xl max-w-2xl mx-auto text-center border border-slate-700 bg-slate-900/90">
-            <i class="fa-solid fa-trophy text-5xl text-yellow-400 mb-4 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
-            <h2 class="text-2xl font-bold text-white mb-1">Sesi Selesai!</h2>
-            <p class="text-slate-400 text-xs uppercase mb-8">{{ new Date().toLocaleString() }}</p>
+                <i class="fa-solid fa-trophy text-5xl text-yellow-400 mb-4 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
+                <h2 class="text-2xl font-bold text-white mb-1">Sesi Selesai!</h2>
+                <p class="text-slate-400 text-xs uppercase mb-8">@{{ new Date().toLocaleString() }}</p>
 
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-slate-800 p-4 rounded-xl">
-                    <div class="text-[10px] text-slate-400 uppercase">Total Lap</div>
-                    <div class="text-2xl font-mono font-bold text-white">{{ logs.length }}</div>
-                </div>
-                <div class="bg-slate-800 p-4 rounded-xl">
-                    <div class="text-[10px] text-slate-400 uppercase">Avg Time</div>
-                    <div class="text-2xl font-mono font-bold text-neon-green">{{ calculateAvg() }}s</div>
-                </div>
-            </div>
-
-            <div class="text-left space-y-6 mb-8">
-                <div v-for="a in athleteAnalysis" :key="a.name" class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                    <h3 class="font-bold text-lg text-white mb-1 flex justify-between">
-                        {{ a.name }}
-                        <span class="text-xs font-mono text-neon-green self-center">Avg: {{ a.avg }}s</span>
-                    </h3>
-                    <p class="text-xs text-slate-400 italic mb-3">"{{ a.feedback }}"</p>
-                    <div class="h-40 w-full relative">
-                        <canvas :id="'chart_' + a.safeName"></canvas>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-slate-800 p-4 rounded-xl">
+                        <div class="text-[10px] text-slate-400 uppercase">Total Lap</div>
+                        <div class="text-2xl font-mono font-bold text-white">@{{ logs.length }}</div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl">
+                        <div class="text-[10px] text-slate-400 uppercase">Avg Time</div>
+                        <div class="text-2xl font-mono font-bold text-neon-green">@{{ calculateAvg() }}s</div>
                     </div>
                 </div>
-            </div>
+
+                <div class="text-left space-y-6 mb-8">
+                    <div v-for="a in athleteAnalysis" :key="a.name" class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <h3 class="font-bold text-lg text-white mb-1 flex justify-between">
+                            @{{ a.name }}
+                            <span class="text-xs font-mono text-neon-green self-center">Avg: @{{ a.avg }}s</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 italic mb-3">"@{{ a.feedback }}"</p>
+                        <div class="h-40 w-full relative">
+                            <canvas :id="'chart_' + a.safeName"></canvas>
+                        </div>
+                    </div>
+                </div>
 
             <div class="flex gap-3 flex-wrap" data-html2canvas-ignore>
                 <button @click="exportImage" class="flex-1 bg-neon-blue hover:bg-cyan-600 text-white font-bold py-3 rounded-xl transition whitespace-nowrap">
@@ -321,8 +321,8 @@
         <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-[slideUp_0.3s]">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h3 class="font-bold text-white text-lg">{{ modalData.name }}</h3>
-                    <p class="text-xs text-slate-400 font-mono">Rep #{{ modalData.rep }} | {{ modalData.time.toFixed(2) }}s</p>
+                    <h3 class="font-bold text-white text-lg">@{{ modalData.name }}</h3>
+                    <p class="text-xs text-slate-400 font-mono">Rep #@{{ modalData.rep }} | @{{ modalData.time.toFixed(2) }}s</p>
                 </div>
                 <button @click="showModal = false" class="bg-slate-800 w-8 h-8 rounded-full text-slate-400"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -332,7 +332,7 @@
                 <div class="flex justify-between gap-1">
                     <button v-for="n in 10" :key="n" @click="modalData.rpe = n"
                         :class="modalData.rpe === n ? 'bg-gradient-to-t from-neon-green to-emerald-400 text-black scale-110' : 'bg-slate-800 text-slate-500'"
-                        class="w-8 h-10 rounded font-bold text-xs transition-all">{{ n }}</button>
+                        class="w-8 h-10 rounded font-bold text-xs transition-all">@{{ n }}</button>
                 </div>
             </div>
 
