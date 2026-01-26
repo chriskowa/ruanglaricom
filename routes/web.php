@@ -182,9 +182,7 @@ Route::get('/tools/calculator', [App\Http\Controllers\CalculatorController::clas
 Route::get('/tools/form-analyzer', [App\Http\Controllers\FormAnalyzerController::class, 'index'])->name('tools.form-analyzer');
 Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerController::class, 'analyze'])->name('tools.form-analyzer.analyze');
 Route::get('/tools/buat-rute-lari', function () {
-    return view('tools.buat-rute-lari', [
-        'withSidebar' => true,
-    ]);
+    return view('tools.buat-rute-lari');
 })->name('tools.buat-rute-lari');
 Route::middleware('auth')->post('/tools/buat-rute-lari/strava-upload', [App\Http\Controllers\CalendarController::class, 'uploadRouteToStrava'])->name('tools.buat-rute-lari.strava-upload');
 Route::middleware('auth')->post('/tools/buat-rute-lari/strava-authorize-and-post', [App\Http\Controllers\CalendarController::class, 'authorizeAndPostRouteToStrava'])->name('tools.buat-rute-lari.strava-authorize-and-post');

@@ -8,8 +8,6 @@ class CalculatorController extends Controller
 {
     public function index()
     {
-        return view('tools.calculator', [
-            'withSidebar' => true,
-        ]);
+        return view('tools.calculator');
     }
 }

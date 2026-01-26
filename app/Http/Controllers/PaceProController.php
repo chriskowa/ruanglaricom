@@ -33,7 +33,6 @@ class PaceProController extends Controller
             ->values();
 
         return view('tools.pace-pro', [
-            'withSidebar' => true,
             'gpxFiles' => $gpxFiles,
         ]);
     }
