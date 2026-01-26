@@ -102,7 +102,7 @@
                         <button @click="program.weather = 'rainy'" :class="program.weather === 'rainy' ? 'bg-blue-500 text-white' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2"><i class="fa-solid fa-cloud-showers-heavy text-lg"></i></button>
                     </div>
                     <div class="flex-1 bg-slate-800 p-1 rounded-xl flex text-[10px] font-bold">
-                        <button @click="program.workoutType = 'race'" :class="program.workoutType === 'race' ? 'bg-neon-red text-white' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2">RACE</button>
+                        <button @click="program.workoutType = 'race'" :class="program.workoutType === 'race' ? 'bg-neon-red text-white' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2">INTERVAL</button>
                         <button @click="program.workoutType = 'easy'" :class="program.workoutType === 'easy' ? 'bg-neon-green text-black' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2">EASY</button>
                     </div>
                 </div>
