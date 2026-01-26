@@ -151,18 +151,18 @@
                 <div class="flex items-center gap-3">
                     <div class="bg-black/50 px-3 py-2 rounded-lg border border-slate-700 w-32 sm:w-40 text-center">
                         <div class="text-3xl sm:text-4xl font-black font-mono tracking-tighter text-white" :class="{'text-yellow-400 animate-pulse': isPaused}">
-                            {{ formatTime(elapsedTime) }}
+                            @{{ formatTime(elapsedTime) }}
                         </div>
                     </div>
                     <div class="hidden sm:block leading-tight">
                         <div class="text-[10px] font-bold text-slate-500 uppercase">Elapsed Time</div>
-                        <div class="text-xs text-slate-300 font-mono">{{ program.reps }}x{{ program.distance }}m @ {{ program.targetTime }}s</div>
+                        <div class="text-xs text-slate-300 font-mono">@{{ program.reps }}x@{{ program.distance }}m @ @{{ program.targetTime }}s</div>
                         <div class="flex gap-2 mt-1">
                             <span v-if="program.weather === 'sunny'" class="text-yellow-500 text-[10px]"><i class="fa-solid fa-sun"></i> Panas</span>
                             <span v-if="program.weather === 'cloudy'" class="text-slate-400 text-[10px]"><i class="fa-solid fa-cloud"></i> Berawan</span>
                             <span v-if="program.weather === 'rainy'" class="text-blue-400 text-[10px]"><i class="fa-solid fa-cloud-showers-heavy"></i> Hujan</span>
                             <span class="text-slate-600 text-[10px]">|</span>
-                            <span class="text-[10px] font-bold uppercase" :class="program.workoutType === 'race' ? 'text-neon-red' : 'text-neon-green'">{{ program.workoutType }}</span>
+                            <span class="text-[10px] font-bold uppercase" :class="program.workoutType === 'race' ? 'text-neon-red' : 'text-neon-green'">@{{ program.workoutType }}</span>
                         </div>
                     </div>
                 </div>
@@ -238,16 +238,16 @@
                     </thead>
                     <tbody class="divide-y divide-slate-700/50">
                         <tr v-for="log in logs.slice().reverse()" :key="log.id" class="hover:bg-slate-800/50 transition-colors">
-                            <td class="p-3 font-mono text-slate-500 text-xs">{{ log.rep }}</td>
+                            <td class="p-3 font-mono text-slate-500 text-xs">@{{ log.rep }}</td>
                             <td class="p-3 font-bold text-white flex items-center gap-2">
-                                {{ log.name }}
+                                @{{ log.name }}
                                 <span v-if="log.rpe" class="w-2 h-2 rounded-full bg-neon-purple"></span>
                                 <i v-if="log.notes && log.notes.includes('WARNING')" class="fa-solid fa-triangle-exclamation text-red-500 animate-pulse text-xs"></i>
                             </td>
-                            <td class="p-3 text-right font-mono text-neon-green">{{ log.time.toFixed(2) }}</td>
-                            <td class="p-3 text-right font-mono text-slate-400 text-xs hidden sm:table-cell">{{ log.pace }}</td>
+                            <td class="p-3 text-right font-mono text-neon-green">@{{ log.time.toFixed(2) }}</td>
+                            <td class="p-3 text-right font-mono text-slate-400 text-xs hidden sm:table-cell">@{{ log.pace }}</td>
                             <td class="p-3 text-right font-mono font-bold text-xs" :class="getDeltaClass(log.diff)">
-                                {{ log.diff > 0 ? '+' : '' }}{{ log.diff.toFixed(2) }}
+                                @{{ log.diff > 0 ? '+' : '' }}@{{ log.diff.toFixed(2) }}
                             </td>
                             <td class="p-3 text-center relative">
                                 <div class="flex items-center justify-center gap-3">
@@ -356,7 +356,7 @@
             <div v-if="showTapper" class="mb-5 bg-slate-800/50 p-4 rounded-xl border border-dashed border-slate-600 text-center">
                 <p class="text-[10px] text-slate-400 mb-2">Tap tombol mengikuti langkah kaki</p>
                 <button @click="recordTap" class="w-full h-14 bg-slate-700 hover:bg-slate-600 active:bg-neon-green active:text-black rounded-lg font-bold text-slate-300 transition-colors">TAP HERE</button>
-                <p class="mt-2 font-mono text-neon-green text-lg">{{ tapperSpm }} <span class="text-xs text-slate-500">SPM</span></p>
+                <p class="mt-2 font-mono text-neon-green text-lg">@{{ tapperSpm }} <span class="text-xs text-slate-500">SPM</span></p>
             </div>
 
             <textarea v-model="modalData.notes" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-neon-green outline-none mb-4 h-20" placeholder="Catatan teknis..."></textarea>
