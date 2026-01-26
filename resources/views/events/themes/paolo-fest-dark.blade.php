@@ -2,6 +2,19 @@
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8" />
+    <script>
+        // Nominatim CORS Proxy Interceptor
+        (function() {
+            var originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                if (typeof url === 'string' && url.includes('nominatim.openstreetmap.org')) {
+                    var proxyUrl = '/image-proxy?url=' + encodeURIComponent(url);
+                    return originalFetch(proxyUrl, options);
+                }
+                return originalFetch(url, options);
+            };
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ $event->name }} - Official Event</title>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
@@ -741,6 +754,22 @@
 
     @include('events.partials.prizes-section', ['categories' => $categories])
 
+    <!-- Participants Table Section -->
+    <section id="participants-list" class="py-24 bg-slate-900 relative">
+        <div class="absolute inset-0 bg-brand-900/5"></div>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white">Daftar Peserta</h2>
+                <p class="mt-4 text-slate-400">Cek siapa saja yang sudah bergabung.</p>
+            </div>
+            
+            <!-- Vue App Container -->
+            <div id="vue-participants-app">
+                @include('events.partials.participants-table')
+            </div>
+        </div>
+    </section>
+
     <section id="register" class="py-24 bg-slate-900 relative">
         <div class="absolute inset-0 bg-brand-900/10"></div>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -1258,6 +1287,18 @@
                 closeLightbox();
             }
         });
+    </script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+        const vueApp = createApp({});
+        
+        // Component is defined in the partial included above
+        if (typeof ParticipantsTableComponent !== 'undefined') {
+            vueApp.component('participants-table', ParticipantsTableComponent);
+        }
+        
+        vueApp.mount('#vue-participants-app');
     </script>
 </body>
 </html>

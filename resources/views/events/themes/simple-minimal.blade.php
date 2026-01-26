@@ -2,6 +2,19 @@
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8" />
+    <script>
+        // Nominatim CORS Proxy Interceptor
+        (function() {
+            var originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                if (typeof url === 'string' && url.includes('nominatim.openstreetmap.org')) {
+                    var proxyUrl = '/image-proxy?url=' + encodeURIComponent(url);
+                    return originalFetch(proxyUrl, options);
+                }
+                return originalFetch(url, options);
+            };
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <title>{{ $seo['title'] ?? ($event->name.' | RuangLari') }}</title>
     <meta name="description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}" />

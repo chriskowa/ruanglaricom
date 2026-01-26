@@ -186,4 +186,30 @@ class PublicEventController extends Controller
             'image' => $image,
         ];
     }
+
+    public function getParticipants(Request $request, $slug)
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+        
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id)
+              ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+        });
+
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('race_category_id', $request->category_id);
+        }
+
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $participants = $query->orderBy('created_at', 'desc')
+            ->select('name', 'bib_number', 'race_category_id', 'created_at', 'gender')
+            ->with('category:id,name')
+            ->paginate(10);
+
+        return response()->json($participants);
+    }
 }

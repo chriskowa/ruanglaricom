@@ -2,6 +2,19 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // Nominatim CORS Proxy Interceptor
+        (function() {
+            var originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                if (typeof url === 'string' && url.includes('nominatim.openstreetmap.org')) {
+                    var proxyUrl = '/image-proxy?url=' + encodeURIComponent(url);
+                    return originalFetch(proxyUrl, options);
+                }
+                return originalFetch(url, options);
+            };
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $event->name }} - Registrasi Latbar</title>
@@ -408,6 +421,8 @@
                     </div>
                 </div>
             </div>
+            
+            @include('events.partials.participants-table')
         </main>
         @include('layouts.components.pacerhub-footer')
     </div>
@@ -415,7 +430,7 @@
     <script type="text/javascript" src="https://app.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
     <script>
     const { createApp, ref, computed, onMounted } = Vue;
-    createApp({
+    const app = createApp({
         setup() {
             const form = ref({ name: '', email: '', phone: '', ticket_quantity: 1, addons: [], gender: 'male', emergency_contact_name: '', emergency_contact_number: '' });
             const isLoading = ref(false);
@@ -574,7 +589,13 @@
             });
             return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon };
         }
-    }).mount('#app');
+    });
+    
+    if (typeof ParticipantsTableComponent !== 'undefined') {
+        app.component('participants-table', ParticipantsTableComponent);
+    }
+
+    app.mount('#app');
     </script>
     <script>
     (function(){

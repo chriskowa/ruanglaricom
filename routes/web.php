@@ -290,6 +290,7 @@ Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventCont
 Route::get('/event-lari/{slug}', [App\Http\Controllers\PublicRunningEventController::class, 'show'])->name('running-event.detail');
 
 // Legacy public event routes (keep if needed or redirect)
+Route::get('/events/{slug}/participants-list', [App\Http\Controllers\PublicEventController::class, 'getParticipants'])->name('events.participants-list');
 Route::get('/events/{slug}', [App\Http\Controllers\PublicEventController::class, 'show'])->name('events.show');
 Route::get('/legacy-events', [App\Http\Controllers\PublicEventController::class, 'index'])->name('legacy.events.index'); // Renamed old one if exists
 
