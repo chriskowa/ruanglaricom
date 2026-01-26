@@ -105,7 +105,7 @@
                 <!-- Role Selection -->
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">I am a...</label>
-                    <div class="grid grid-cols-3 gap-3">
+                    <div class="grid grid-cols-2 gap-3">
                         <label class="cursor-pointer">
                             <input type="radio" name="role" value="runner" class="role-radio hidden" {{ old('role', $role ?? 'runner') == 'runner' ? 'checked' : '' }}>
                             <div class="role-card border border-slate-700 rounded-xl p-3 text-center hover:bg-slate-800 transition-all h-full flex flex-col items-center justify-center gap-2">
@@ -124,7 +124,7 @@
                                 <span class="text-xs font-bold text-white">Coach</span>
                             </div>
                         </label>
-                        <label class="cursor-pointer">
+                        <!--<label class="cursor-pointer hidden">
                             <input type="radio" name="role" value="eo" class="role-radio hidden" {{ old('role', $role ?? '') == 'eo' ? 'checked' : '' }}>
                             <div class="role-card border border-slate-700 rounded-xl p-3 text-center hover:bg-slate-800 transition-all h-full flex flex-col items-center justify-center gap-2">
                                 <svg class="w-6 h-6 text-slate-400 role-icon transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -132,7 +132,7 @@
                                 </svg>
                                 <span class="text-xs font-bold text-white">Organizer</span>
                             </div>
-                        </label>
+                        </label>-->
                     </div>
                 </div>
 
