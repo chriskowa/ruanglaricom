@@ -47,8 +47,24 @@ self.addEventListener('activate', event => {
 
 // Fetch Strategy: Network First, fallback to Cache, then Offline Page
 self.addEventListener('fetch', event => {
+    let request = event.request;
+
+    // Intercept Nominatim requests and proxy them to avoid CORS errors
+    if (request.url.includes('nominatim.openstreetmap.org')) {
+        const proxyUrl = '/image-proxy?url=' + encodeURIComponent(request.url);
+        request = new Request(proxyUrl, {
+            method: request.method,
+            headers: request.headers,
+            mode: 'cors',
+            credentials: request.credentials,
+            redirect: request.redirect,
+            referrer: request.referrer,
+            body: request.body
+        });
+    }
+
     event.respondWith(
-        fetch(event.request)
+        fetch(request)
             .catch(() => {
                 return caches.match(event.request)
                     .then(response => {

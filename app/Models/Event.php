@@ -130,6 +130,11 @@ class Event extends Model
         return $this->hasMany(MasterGpx::class);
     }
 
+    public function participants(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Participant::class, Transaction::class);
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', 'published');

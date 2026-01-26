@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <script>
-        // Nominatim CORS Proxy Interceptor
+        // Nominatim CORS Proxy Interceptor (Fetch & XHR)
         (function() {
+            // 1. Fetch Interceptor
             var originalFetch = window.fetch;
             window.fetch = function(url, options) {
                 if (typeof url === 'string' && url.includes('nominatim.openstreetmap.org')) {
@@ -12,6 +13,15 @@
                     return originalFetch(proxyUrl, options);
                 }
                 return originalFetch(url, options);
+            };
+
+            // 2. XHR Interceptor
+            var originalOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+                if (typeof url === 'string' && url.includes('nominatim.openstreetmap.org')) {
+                    url = '/image-proxy?url=' + encodeURIComponent(url);
+                }
+                return originalOpen.apply(this, arguments);
             };
         })();
     </script>
