@@ -62,6 +62,7 @@
                         </div>
 
                         <!-- Social Proof -->
+                        <!-- 
                         <div class="mt-12 flex items-center justify-center md:justify-start gap-4">
                             <div class="flex -space-x-4">
                                 <img class="w-12 h-12 rounded-full border-4 border-dark object-cover" src="https://i.pravatar.cc/100?img=11" alt="User">
@@ -73,7 +74,16 @@
                                 <div class="flex text-yellow-400 text-xs mb-1">
                                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                                 </div>
-                                <p class="text-sm text-slate-400"><span class="text-white font-bold">{{ number_format(\App\Models\User::whereIn('role', ['runner','coach'])->count()) }}</span> Pelari Bergabung</p>
+                                <p class="text-sm text-slate-400"><span class="text-white font-bold">{{ number_format($totalUsers ?? 0) }}</span> Pelari Bergabung</p>
+                            </div>
+                        </div>
+                        -->
+                        <div class="mt-12 flex items-center justify-center md:justify-start gap-4">
+                            <div class="text-left">
+                                <div class="flex text-yellow-400 text-xs mb-1">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                                <p class="text-sm text-slate-400"><span class="text-white font-bold">{{ number_format($totalUsers ?? 0) }}</span> Pelari Bergabung</p>
                             </div>
                         </div>
                     </div>
@@ -112,6 +122,7 @@
         </header>
 
         <!-- BRANDS SECTION -->
+        <!-- 
         <section class="py-10 border-y border-slate-800/50 bg-slate-900/30">
             <div class="max-w-7xl mx-auto px-4 overflow-hidden">
                 <div class="flex flex-wrap justify-center md:justify-between items-center gap-8 md:gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
@@ -123,6 +134,7 @@
                 </div>
             </div>
         </section>
+        -->
 
         <!-- FEATURES SECTION -->
         <section class="py-24 relative overflow-hidden bg-dark">

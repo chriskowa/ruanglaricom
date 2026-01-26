@@ -45,13 +45,16 @@ Route::get('/', function (StravaClubService $stravaService) {
             ->orderByDesc('students_count')
             ->first();
 
-        $coach = $coachData ? \App\Models\User::find($coachData->coach_id) : null;
+        $coach = $coachData ? \App\Models\User::withCount('programs')->find($coachData->coach_id) : null;
+        
+        $totalUsers = \App\Models\User::whereIn('role', ['runner','coach'])->count();
 
         return [
             'runner' => $runner,
             'pacer' => $pacer,
             'coach' => $coach,
-            'coachData' => $coachData
+            'coachData' => $coachData,
+            'totalUsers' => $totalUsers
         ];
     });
 
@@ -61,7 +64,8 @@ Route::get('/', function (StravaClubService $stravaService) {
         'topRunner' => $topStats['runner'],
         'topPacer' => $topStats['pacer'],
         'topCoach' => $topStats['coach'],
-        'topCoachData' => $topStats['coachData']
+        'topCoachData' => $topStats['coachData'],
+        'totalUsers' => $topStats['totalUsers'] ?? 0
     ]);
 })->name('home');
 
