@@ -1452,6 +1452,15 @@
                     catSelect.setAttribute('data-index', idx);
                     catSelect.addEventListener('change', handleCategoryChange);
                     newItem.querySelector('.remove-participant').classList.remove('hidden');
+                    
+                    // Show/Hide Copy Prev Button
+                    const copyPrevBtn = newItem.querySelector('.copy-prev-btn');
+                    if (idx > 0) {
+                        copyPrevBtn.classList.remove('hidden');
+                    } else {
+                        copyPrevBtn.classList.add('hidden');
+                    }
+
                     participantsWrapper.appendChild(newItem);
                     updatePriceSummary();
                 });
@@ -1577,8 +1586,40 @@
             }
 
             // Form Submit
-            const form = document.getElementById('registrationForm');
-            if(form) {
+        const form = document.getElementById('registrationForm');
+
+        // Add Copy Helpers to Global Scope
+        window.copyFromPic = function(btn) {
+            const participantItem = btn.closest('.participant-item');
+            const picName = document.querySelector('input[name="pic_name"]').value;
+            const picEmail = document.querySelector('input[name="pic_email"]').value;
+            const picPhone = document.querySelector('input[name="pic_phone"]').value;
+
+            if (picName) participantItem.querySelector('input[name*="[name]"]').value = picName;
+            if (picEmail) participantItem.querySelector('input[name*="[email]"]').value = picEmail;
+            if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
+        };
+
+        window.copyFromPrev = function(btn) {
+            const currentItem = btn.closest('.participant-item');
+            const currentIndex = parseInt(currentItem.dataset.index);
+            
+            if (currentIndex > 0) {
+                const prevItem = document.querySelector(`.participant-item[data-index="${currentIndex - 1}"]`);
+                if (prevItem) {
+                    const fields = ['emergency_contact_name', 'emergency_contact_number']; 
+                    
+                    fields.forEach(field => {
+                        const prevValue = prevItem.querySelector(`input[name*="[${field}]"]`).value;
+                        if (prevValue) {
+                            currentItem.querySelector(`input[name*="[${field}]"]`).value = prevValue;
+                        }
+                    });
+                }
+            }
+        };
+
+        if(form) {
                 // Disable browser validation
                 form.setAttribute('novalidate', true);
 

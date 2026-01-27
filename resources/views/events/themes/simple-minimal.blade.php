@@ -203,10 +203,10 @@
                                 
                                 <div class="space-y-3">
                                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Penanggung Jawab</label>
-                                    <input type="text" name="pic_name" placeholder="Nama Lengkap" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                    <input type="text" name="pic_name" id="pic_name" placeholder="Nama Lengkap" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
                                     <div class="grid grid-cols-2 gap-3">
-                                        <input type="email" name="pic_email" placeholder="Email" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
-                                        <input type="text" name="pic_phone" placeholder="WhatsApp" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                        <input type="email" name="pic_email" id="pic_email" placeholder="Email" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                        <input type="text" name="pic_phone" id="pic_phone" placeholder="WhatsApp" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     </div>
                                 </div>
 
@@ -216,7 +216,15 @@
                                     <!-- Participant Item Template -->
                                     <div class="participant-item space-y-3" data-index="0">
                                         <div class="flex justify-between items-center pb-2 border-b border-gray-100">
-                                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider participant-title">Peserta #1</label>
+                                            <div class="flex items-center gap-2">
+                                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider participant-title">Peserta #1</label>
+                                                <button type="button" class="copy-pic-btn text-[10px] bg-gray-200 hover:bg-gray-300 text-gray-600 px-2 py-0.5 rounded transition" onclick="copyFromPic(this)">
+                                                    Isi Data PIC
+                                                </button>
+                                                <button type="button" class="copy-prev-btn text-[10px] bg-gray-200 hover:bg-gray-300 text-gray-600 px-2 py-0.5 rounded transition hidden" onclick="copyFromPrev(this)">
+                                                    Salin Peserta Sebelumnya
+                                                </button>
+                                            </div>
                                             <button type="button" class="text-xs text-red-500 hover:text-red-700 font-medium remove-participant hidden">Hapus</button>
                                         </div>
                                         
@@ -260,7 +268,7 @@
                                         <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
                                         
                                         <div class="grid grid-cols-2 gap-3">
-                                             <input type="text" name="participants[0][phone]" placeholder="No. HP" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                             <input type="text" name="participants[0][phone]" placeholder="No. HP" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                              <select name="participants[0][jersey_size]" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
                                                 <option value="">Jersey</option>
                                                 @foreach(['S','M','L','XL'] as $s) <option value="{{ $s }}">{{ $s }}</option> @endforeach
@@ -268,7 +276,7 @@
                                         </div>
                                         <input type="text" name="participants[0][id_card]" placeholder="No. KTP/SIM" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
                                         <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
-                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         <input type="text" name="participants[0][target_time]" placeholder="Target Waktu (Optional)" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition">
                                     </div>
                                 </div>
@@ -426,6 +434,14 @@
             
             newItem.setAttribute('data-index', idx);
             newItem.querySelector('.participant-title').textContent = `Peserta #${wrapper.children.length + 1}`;
+
+            // Show Copy Prev Button for Index > 0
+            const copyPrevBtn = newItem.querySelector('.copy-prev-btn');
+            if (idx > 0) {
+                copyPrevBtn.classList.remove('hidden');
+            } else {
+                copyPrevBtn.classList.add('hidden');
+            }
             
             // Update Inputs
             newItem.querySelectorAll('input, select').forEach(el => {
@@ -467,6 +483,37 @@
 
         // Form Submit
         const form = document.getElementById('registrationForm');
+
+        function copyFromPic(btn) {
+            const participantItem = btn.closest('.participant-item');
+            const picName = document.getElementById('pic_name').value;
+            const picEmail = document.getElementById('pic_email').value;
+            const picPhone = document.getElementById('pic_phone').value;
+
+            if (picName) participantItem.querySelector('input[name*="[name]"]').value = picName;
+            if (picEmail) participantItem.querySelector('input[name*="[email]"]').value = picEmail;
+            if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
+        }
+
+        function copyFromPrev(btn) {
+            const currentItem = btn.closest('.participant-item');
+            const currentIndex = parseInt(currentItem.dataset.index);
+            
+            if (currentIndex > 0) {
+                const prevItem = document.querySelector(`.participant-item[data-index="${currentIndex - 1}"]`);
+                if (prevItem) {
+                    const fields = ['emergency_contact_name', 'emergency_contact_number']; // Fields to copy
+                    
+                    fields.forEach(field => {
+                        const prevValue = prevItem.querySelector(`input[name*="[${field}]"]`).value;
+                        if (prevValue) {
+                            currentItem.querySelector(`input[name*="[${field}]"]`).value = prevValue;
+                        }
+                    });
+                }
+            }
+        }
+
         if(form) {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();

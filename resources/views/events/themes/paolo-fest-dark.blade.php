@@ -913,7 +913,7 @@
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
-                                            <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
+                                            <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
@@ -924,7 +924,7 @@
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
-                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
+                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     </div>
                                     </div>
                                 </div>
@@ -1097,6 +1097,37 @@
         (function() {
             const form = document.getElementById('registrationForm');
             if (!form) return;
+            
+            // Add Copy Helpers to Global Scope
+            window.copyFromPic = function(btn) {
+                const participantItem = btn.closest('.participant-item');
+                const picName = document.querySelector('input[name="pic_name"]').value;
+                const picEmail = document.querySelector('input[name="pic_email"]').value;
+                const picPhone = document.querySelector('input[name="pic_phone"]').value;
+
+                if (picName) participantItem.querySelector('input[name*="[name]"]').value = picName;
+                if (picEmail) participantItem.querySelector('input[name*="[email]"]').value = picEmail;
+                if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
+            };
+
+            window.copyFromPrev = function(btn) {
+                const currentItem = btn.closest('.participant-item');
+                const currentIndex = parseInt(currentItem.dataset.index);
+                
+                if (currentIndex > 0) {
+                    const prevItem = document.querySelector(`.participant-item[data-index="${currentIndex - 1}"]`);
+                    if (prevItem) {
+                        const fields = ['emergency_contact_name', 'emergency_contact_number']; 
+                        
+                        fields.forEach(field => {
+                            const prevValue = prevItem.querySelector(`input[name*="[${field}]"]`).value;
+                            if (prevValue) {
+                                currentItem.querySelector(`input[name*="[${field}]"]`).value = prevValue;
+                            }
+                        });
+                    }
+                }
+            };
 
             const participantsWrapper = document.getElementById('participantsWrapper');
             const addBtn = document.getElementById('addParticipant');
@@ -1140,6 +1171,14 @@
                 newItem.querySelector('.participant-title').textContent = `Peserta #${idx + 1}`;
                 newItem.setAttribute('data-index', idx);
                 newItem.querySelector('.remove-participant').classList.remove('hidden');
+
+                // Show/Hide Copy Prev Button
+                const copyPrevBtn = newItem.querySelector('.copy-prev-btn');
+                if (idx > 0) {
+                    copyPrevBtn.classList.remove('hidden');
+                } else {
+                    copyPrevBtn.classList.add('hidden');
+                }
 
                 // Update Input Names
                 newItem.querySelectorAll('input, select').forEach(input => {

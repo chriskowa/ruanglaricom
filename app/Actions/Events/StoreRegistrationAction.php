@@ -51,20 +51,30 @@ class StoreRegistrationAction
         // Validate input
         $validated = $request->validate([
             'pic_name' => 'required|string|max:255',
-            'pic_email' => 'required|email:rfc|max:255',
-            'pic_phone' => 'required|string|max:20',
+            'pic_email' => 'required|email|max:255',
+            'pic_phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
             'participants' => 'required|array|min:1',
             'participants.*.name' => 'required|string|max:255',
             'participants.*.gender' => 'required|in:male,female',
-            'participants.*.email' => 'required|email:rfc|max:255',
-            'participants.*.phone' => 'required|string|max:20',
+            'participants.*.email' => 'required|email|max:255',
+            'participants.*.phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
             'participants.*.id_card' => 'required|string|max:50',
-            'participants.*.category_id' => 'required|exists:race_categories,id',
+            'participants.*.category_id' => [
+                'required',
+                'exists:race_categories,id',
+                function ($attribute, $value, $fail) use ($event) {
+                    // Custom validation to ensure category belongs to event
+                    $category = \App\Models\RaceCategory::find($value);
+                    if (! $category || $category->event_id !== $event->id) {
+                        $fail('Kategori tidak valid untuk event ini.');
+                    }
+                },
+            ],
             'participants.*.emergency_contact_name' => 'required|string|max:255',
-            'participants.*.emergency_contact_number' => 'required|string|max:20',
-            'participants.*.target_time' => 'nullable|string|max:50',
+            'participants.*.emergency_contact_number' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
+            'participants.*.target_time' => 'nullable|string|max:20',
             'participants.*.jersey_size' => 'nullable|string|max:10',
-            'coupon_code' => 'nullable|string|max:50',
+            'coupon_code' => 'nullable|string|exists:coupons,code',
             'payment_method' => 'nullable|in:midtrans,cod,moota',
             'addons' => 'nullable|array',
             'addons.*.name' => 'required|string',

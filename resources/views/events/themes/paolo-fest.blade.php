@@ -937,7 +937,15 @@
                             <div id="participantsWrapper" class="space-y-6">
                                 <div class="participant-item bg-slate-50 border border-slate-200 p-6 rounded-2xl relative" data-index="0">
                                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
-                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider participant-title">Peserta #1</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider participant-title">Peserta #1</span>
+                                            <button type="button" class="copy-pic-btn text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded transition" onclick="copyFromPic(this)">
+                                                Isi Data PIC
+                                            </button>
+                                            <button type="button" class="copy-prev-btn text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded transition hidden" onclick="copyFromPrev(this)">
+                                                Salin Peserta Sebelumnya
+                                            </button>
+                                        </div>
                                         <button type="button" class="remove-participant hidden text-red-500 hover:text-red-600 text-xs font-bold uppercase">Hapus</button>
                                     </div>
 
@@ -985,7 +993,7 @@
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                            <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                            <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
@@ -996,7 +1004,7 @@
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     </div>
                                     </div>
                                 </div>
@@ -1259,6 +1267,14 @@
                 newItem.setAttribute('data-index', idx);
                 newItem.querySelector('.remove-participant').classList.remove('hidden');
 
+                // Show/Hide Copy Prev Button
+                const copyPrevBtn = newItem.querySelector('.copy-prev-btn');
+                if (idx > 0) {
+                    copyPrevBtn.classList.remove('hidden');
+                } else {
+                    copyPrevBtn.classList.add('hidden');
+                }
+
                 // Update Input Names
                 newItem.querySelectorAll('input, select').forEach(input => {
                     const name = input.getAttribute('name');
@@ -1298,6 +1314,39 @@
             attachListeners(participantsWrapper);
 
             // 5. Submit Handler (AJAX)
+            const form = document.getElementById('registrationForm');
+            
+            // Add Copy Helpers to Global Scope so buttons can access them
+            window.copyFromPic = function(btn) {
+                const participantItem = btn.closest('.participant-item');
+                const picName = document.querySelector('input[name="pic_name"]').value;
+                const picEmail = document.querySelector('input[name="pic_email"]').value;
+                const picPhone = document.querySelector('input[name="pic_phone"]').value;
+
+                if (picName) participantItem.querySelector('input[name*="[name]"]').value = picName;
+                if (picEmail) participantItem.querySelector('input[name*="[email]"]').value = picEmail;
+                if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
+            };
+
+            window.copyFromPrev = function(btn) {
+                const currentItem = btn.closest('.participant-item');
+                const currentIndex = parseInt(currentItem.dataset.index);
+                
+                if (currentIndex > 0) {
+                    const prevItem = document.querySelector(`.participant-item[data-index="${currentIndex - 1}"]`);
+                    if (prevItem) {
+                        const fields = ['emergency_contact_name', 'emergency_contact_number']; 
+                        
+                        fields.forEach(field => {
+                            const prevValue = prevItem.querySelector(`input[name*="[${field}]"]`).value;
+                            if (prevValue) {
+                                currentItem.querySelector(`input[name*="[${field}]"]`).value = prevValue;
+                            }
+                        });
+                    }
+                }
+            };
+
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 

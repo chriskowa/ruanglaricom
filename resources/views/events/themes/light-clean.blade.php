@@ -427,7 +427,15 @@
                                     <div id="participantsWrapper" class="space-y-6">
                                         <div class="participant-item bg-white border border-slate-200 shadow-sm rounded-2xl p-6 relative hover:shadow-md transition duration-300" data-index="0">
                                             <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                                                <span class="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded">PESERTA #1</span>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded">PESERTA #1</span>
+                                                    <button type="button" class="copy-pic-btn text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition font-bold" onclick="copyFromPic(this)">
+                                                        Isi Data PIC
+                                                    </button>
+                                                    <button type="button" class="copy-prev-btn text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition font-bold hidden" onclick="copyFromPrev(this)">
+                                                        Salin Peserta Sebelumnya
+                                                    </button>
+                                                </div>
                                                 <button type="button" class="remove-participant hidden text-red-500 hover:text-red-700 text-xs font-bold">HAPUS</button>
                                             </div>
                                             
@@ -460,7 +468,7 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">No. HP</label>
-                                                    <input type="text" name="participants[0][phone]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">
+                                                    <input type="text" name="participants[0][phone]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900" minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                                 </div>
                                                 <div>
                                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">ID Card (KTP/SIM)</label>
@@ -472,7 +480,7 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">No. Kontak Darurat</label>
-                                                    <input type="text" name="participants[0][emergency_contact_number]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">
+                                                    <input type="text" name="participants[0][emergency_contact_number]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900" minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                                 </div>
                                                 <div>
                                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gender</label>
@@ -647,9 +655,39 @@
                 nav.classList.add('h-14'); // Shrink slightly
             } else {
                 nav.classList.remove('bg-white/95', 'shadow-lg', 'h-14');
-                nav.classList.add('h-16');
             }
         });
+
+        // Add Copy Helpers to Global Scope
+        window.copyFromPic = function(btn) {
+            const participantItem = btn.closest('.participant-item');
+            const picName = document.querySelector('input[name="pic_name"]').value;
+            const picEmail = document.querySelector('input[name="pic_email"]').value;
+            const picPhone = document.querySelector('input[name="pic_phone"]').value;
+
+            if (picName) participantItem.querySelector('input[name*="[name]"]').value = picName;
+            if (picEmail) participantItem.querySelector('input[name*="[email]"]').value = picEmail;
+            if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
+        };
+
+        window.copyFromPrev = function(btn) {
+            const currentItem = btn.closest('.participant-item');
+            const currentIndex = parseInt(currentItem.dataset.index);
+            
+            if (currentIndex > 0) {
+                const prevItem = document.querySelector(`.participant-item[data-index="${currentIndex - 1}"]`);
+                if (prevItem) {
+                    const fields = ['emergency_contact_name', 'emergency_contact_number']; 
+                    
+                    fields.forEach(field => {
+                        const prevValue = prevItem.querySelector(`input[name*="[${field}]"]`).value;
+                        if (prevValue) {
+                            currentItem.querySelector(`input[name*="[${field}]"]`).value = prevValue;
+                        }
+                    });
+                }
+            }
+        };
 
         document.getElementById('navToggle').addEventListener('click', () => {
             document.getElementById('mobileMenu').classList.toggle('hidden');
@@ -687,6 +725,16 @@
                 const clone = template.cloneNode(true);
                 clone.setAttribute('data-index', pIndex);
                 clone.querySelector('span').innerText = `PESERTA #${pIndex + 1}`;
+
+                // Show/Hide Copy Prev Button
+                const copyPrevBtn = clone.querySelector('.copy-prev-btn');
+                if (copyPrevBtn) {
+                    if (pIndex > 0) {
+                        copyPrevBtn.classList.remove('hidden');
+                    } else {
+                        copyPrevBtn.classList.add('hidden');
+                    }
+                }
                 
                 // Reset inputs
                 clone.querySelectorAll('input').forEach(i => i.value = '');
