@@ -252,13 +252,15 @@ Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
     }
 
     try {
-        $response = Illuminate\Support\Facades\Http::withoutVerifying()->get($url);
+        $response = Illuminate\Support\Facades\Http::withHeaders([
+            'User-Agent' => 'RuangLari/1.0 (contact@ruanglari.com)'
+        ])->withoutVerifying()->get($url);
 
         return response($response->body())
             ->header('Content-Type', $response->header('Content-Type'))
             ->header('Access-Control-Allow-Origin', '*');
     } catch (\Exception $e) {
-        abort(500);
+        return response()->json(['error' => $e->getMessage()], 500);
     }
 })->name('image.proxy');
 
