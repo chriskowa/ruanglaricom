@@ -69,7 +69,7 @@
         },
         template: `
             @verbatim
-            <div class="glass-dark p-6 md:p-8 rounded-2xl border border-white/10 mt-8 mb-8">
+            <div class="bg-slate-800 p-6 md:p-8 rounded-2xl border border-white/10 mt-8 mb-8 shadow-2xl">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div>
                         <h3 class="text-2xl font-display uppercase text-white tracking-wide">Daftar Peserta</h3>
@@ -110,19 +110,17 @@
                             <tr class="bg-white/5 text-gray-400 text-xs uppercase tracking-wider font-mono">
                                 <th class="p-4 font-normal">Nama Peserta</th>
                                 <th class="p-4 font-normal">Kategori</th>
-                                <th class="p-4 font-normal hidden md:table-cell">BIB</th>
-                                <th class="p-4 font-normal text-right">Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5">
                             <tr v-if="isLoading">
-                                <td colspan="4" class="p-8 text-center text-gray-500">
+                                <td colspan="2" class="p-8 text-center text-gray-500">
                                     <i class="fas fa-circle-notch fa-spin text-2xl mb-2 text-sport-volt"></i>
                                     <p>Memuat data...</p>
                                 </td>
                             </tr>
                             <tr v-else-if="participants.length === 0">
-                                <td colspan="4" class="p-8 text-center text-gray-500">
+                                <td colspan="2" class="p-8 text-center text-gray-500">
                                     <i class="fas fa-users-slash text-2xl mb-2"></i>
                                     <p>Tidak ada peserta ditemukan</p>
                                 </td>
@@ -142,14 +140,6 @@
                                 <td class="p-4 text-sm text-gray-300">
                                     <span class="bg-white/5 px-2 py-1 rounded text-xs border border-white/10">
                                         {{ p.category ? p.category.name : '-' }}
-                                    </span>
-                                </td>
-                                <td class="p-4 text-sm text-gray-300 font-mono hidden md:table-cell">
-                                    {{ p.bib_number || '-' }}
-                                </td>
-                                <td class="p-4 text-right">
-                                    <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-sport-volt bg-sport-volt/10 px-2 py-1 rounded border border-sport-volt/20">
-                                        <i class="fas fa-check-circle"></i> Ready
                                     </span>
                                 </td>
                             </tr>
