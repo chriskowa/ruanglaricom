@@ -43,6 +43,11 @@ class RaceCategory extends Model
         return $this->belongsTo(MasterGpx::class);
     }
 
+    public function participants()
+    {
+        return $this->hasMany(Participant::class, 'race_category_id');
+    }
+
     /**
      * Get remaining quota
      */

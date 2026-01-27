@@ -24,7 +24,7 @@
 @endpush
 
 @section('content')
-<div id="eo-events-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
+<div id="eo-events-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans" x-data="{ showModal: false, activeEvent: null }" x-cloak>
     
     <!-- Header Section -->
     <div class="mb-8 relative z-10" data-aos="fade-up">
@@ -117,9 +117,29 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <a href="{{ route('eo.events.show', $event) }}" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Detail">
+                                <button type="button" 
+                                    @click="activeEvent = {{ json_encode([
+                                        'name' => $event->name,
+                                        'date' => $event->start_at->format('d M Y'),
+                                        'time' => $event->start_at->format('H:i') . ' WIB',
+                                        'location_name' => $event->location_name,
+                                        'location_address' => $event->location_address ?? $event->location_name,
+                                        'description' => Str::limit($event->short_description ?? strip_tags($event->full_description) ?? '', 200),
+                                        'total_registered' => $event->categories->sum('total_participants'),
+                                        'total_paid' => $event->categories->sum('paid_participants'),
+                                        'categories' => $event->categories->map(function($cat) {
+                                            return [
+                                                'name' => $cat->name,
+                                                'price_regular' => number_format($cat->price_regular, 0, ',', '.'),
+                                                'quota' => $cat->quota ?? 0,
+                                                'total_participants' => $cat->total_participants ?? 0,
+                                                'paid_participants' => $cat->paid_participants ?? 0,
+                                            ];
+                                        })
+                                    ]) }}; showModal = true"
+                                    class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Detail">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </a>
+                                </button>
                                 <a href="{{ route('eo.events.participants', $event) }}" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Participants">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                 </a>
@@ -162,6 +182,125 @@
             {{ $events->links() }}
         </div>
         @endif
+    </div>
+
+    <!-- Modal Detail Event -->
+    <div x-show="showModal" 
+        style="display: none;"
+        class="fixed inset-0 z-50 overflow-y-auto" 
+        aria-labelledby="modal-title" 
+        role="dialog" 
+        aria-modal="true">
+        
+        <!-- Backdrop -->
+        <div x-show="showModal" 
+            x-transition:enter="ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
+            @click="showModal = false"></div>
+
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div x-show="showModal" 
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative transform overflow-hidden rounded-2xl bg-slate-900 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-3xl">
+                
+                <!-- Modal Header -->
+                <div class="bg-slate-800/50 px-4 py-3 sm:px-6 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="text-lg font-black italic text-white" id="modal-title">
+                        EVENT <span class="text-yellow-400">DETAIL</span>
+                    </h3>
+                    <button @click="showModal = false" class="text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="px-4 py-5 sm:p-6" x-if="activeEvent">
+                    <!-- Event Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <h4 class="text-xl font-bold text-white mb-2" x-text="activeEvent.name"></h4>
+                            <div class="space-y-2 text-sm text-slate-300">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    <span x-text="activeEvent.date + ', ' + activeEvent.time"></span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-yellow-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                    <div>
+                                        <div x-text="activeEvent.location_name"></div>
+                                        <div class="text-xs text-slate-500" x-text="activeEvent.location_address"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-slate-400" x-text="activeEvent.description"></div>
+                        </div>
+
+                        <!-- Summary Stats -->
+                        <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                            <h5 class="text-xs font-bold text-slate-400 uppercase mb-4 tracking-wider">Registration Summary</h5>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700">
+                                    <div class="text-xs text-slate-500">Total Registered</div>
+                                    <div class="text-2xl font-black text-white" x-text="activeEvent.total_registered"></div>
+                                </div>
+                                <div class="bg-slate-900 rounded-lg p-3 border border-slate-700">
+                                    <div class="text-xs text-slate-500">Total Paid (Confirmed)</div>
+                                    <div class="text-2xl font-black text-neon-green text-green-400" x-text="activeEvent.total_paid"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categories Table -->
+                    <h5 class="text-sm font-bold text-white uppercase mb-3 border-l-4 border-yellow-500 pl-3">Participant Details</h5>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full text-left text-sm text-slate-400">
+                            <thead class="bg-slate-800 text-xs uppercase font-bold text-slate-300">
+                                <tr>
+                                    <th class="px-4 py-3">Category</th>
+                                    <th class="px-4 py-3 text-right">Price</th>
+                                    <th class="px-4 py-3 text-center">Quota</th>
+                                    <th class="px-4 py-3 text-center">Registered</th>
+                                    <th class="px-4 py-3 text-center">Paid</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800 bg-slate-900">
+                                <template x-for="cat in activeEvent.categories" :key="cat.name">
+                                    <tr class="hover:bg-slate-800/50">
+                                        <td class="px-4 py-3 font-medium text-white" x-text="cat.name"></td>
+                                        <td class="px-4 py-3 text-right font-mono" x-text="'Rp ' + cat.price_regular"></td>
+                                        <td class="px-4 py-3 text-center">
+                                            <span x-text="cat.quota > 0 ? cat.quota : '∞'"></span>
+                                        </td>
+                                        <td class="px-4 py-3 text-center text-white" x-text="cat.total_participants"></td>
+                                        <td class="px-4 py-3 text-center text-green-400 font-bold" x-text="cat.paid_participants"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="bg-slate-800/50 px-4 py-3 sm:px-6 border-t border-slate-700 sm:flex sm:flex-row-reverse">
+                    <button type="button" 
+                        class="mt-3 inline-flex w-full justify-center rounded-lg bg-slate-700 px-3 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-600 sm:mt-0 sm:w-auto transition-colors"
+                        @click="showModal = false">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

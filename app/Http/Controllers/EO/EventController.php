@@ -26,6 +26,13 @@ class EventController extends Controller
     public function index()
     {
         $events = Event::where('user_id', auth()->id())
+            ->with(['categories' => function($query) {
+                $query->withCount(['participants as total_participants', 'participants as paid_participants' => function($q) {
+                    $q->whereHas('transaction', function($t) {
+                        $t->where('payment_status', 'paid');
+                    });
+                }]);
+            }])
             ->latest()
             ->paginate(10);
 
