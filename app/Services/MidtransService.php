@@ -360,24 +360,19 @@ class MidtransService
      */
     protected function getCategoryPrice($category, $now): int
     {
-        // If no registration period, use regular or early price
-        if (! $category->reg_start_at || ! $category->reg_end_at) {
-            return $category->price_regular ?? $category->price_early ?? 0;
+        $early = (int) ($category->price_early ?? 0);
+        $late = (int) ($category->price_late ?? 0);
+        $regular = (int) ($category->price_regular ?? 0);
+
+        if ($early > 0) {
+            return $early;
         }
 
-        $regStart = $category->reg_start_at;
-        $regEnd = $category->reg_end_at;
-
-        if ($now < $regStart) {
-            // Registration not open yet
-            return $category->price_regular ?? $category->price_early ?? 0;
-        } elseif ($now >= $regStart && $now < $regEnd) {
-            // Early bird period
-            return $category->price_early ?? $category->price_regular ?? 0;
-        } else {
-            // Late period
-            return $category->price_late ?? $category->price_regular ?? 0;
+        if ($late > 0) {
+            return $late;
         }
+
+        return $regular;
     }
 
     /**
