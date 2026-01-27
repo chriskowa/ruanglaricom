@@ -301,6 +301,16 @@ class MidtransService
             ];
         }
 
+        // Add admin fee if exists
+        if ($transaction->admin_fee > 0) {
+            $itemDetails[] = [
+                'id' => 'ADMIN-FEE',
+                'price' => (float) $transaction->admin_fee,
+                'quantity' => 1,
+                'name' => 'Biaya Admin',
+            ];
+        }
+
         // Prepare transaction parameters
         $params = [
             'transaction_details' => [

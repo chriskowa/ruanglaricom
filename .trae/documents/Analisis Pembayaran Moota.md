@@ -1,22 +1,8 @@
-Saya telah melakukan pengecekan menyeluruh pada alur pembayaran Moota. Berikut adalah hasil analisisnya:
+Terima kasih atas koreksinya. Anda benar, saya menemukan bahwa **Platform Fee (Biaya Admin)** belum dimasukkan ke dalam rincian item (`item_details`) yang dikirim ke Midtrans, meskipun sudah dihitung di total akhir (`gross_amount`). Hal ini akan menyebabkan error di Midtrans karena jumlah rincian tidak sama dengan total pembayaran.
 
-1.  **Logika Perhitungan Harga**:
-    *   Moota menggunakan total akhir (`final_amount`) yang disimpan di database saat registrasi awal.
-    *   Perhitungan ini dilakukan di file `StoreRegistrationAction.php`.
-    *   Saya telah memverifikasi bahwa file `StoreRegistrationAction.php` **sudah diperbarui** dengan logika prioritas harga baru (Early > Late > Regular) pada langkah sebelumnya.
+Untuk Moota, karena sistemnya hanya menerima "Total Akhir" dan tidak membutuhkan rincian item per baris seperti Midtrans, maka perhitungan di Moota sudah aman (sudah termasuk fee yang dihitung di backend).
 
-2.  **Perbedaan dengan Midtrans**:
-    *   **Midtrans**: Memerlukan perbaikan khusus karena layanan ini melakukan perhitungan ulang rincian item (*re-calculation*) saat mengirim data invoice ke sistem Midtrans (Snap).
-    *   **Moota**: Tidak melakukan perhitungan ulang. Moota hanya menerima total nominal transfer (termasuk kode unik) yang sudah dihitung di awal.
+Rencana perbaikan:
+1.  **Update `MidtransService.php`**: Menambahkan logika untuk memasukkan `admin_fee` ke dalam `item_details` pada method `createEventTransaction`. Ini akan memastikan total rincian sama dengan total pembayaran.
 
-3.  **Kesimpulan**:
-    *   Karena logika perhitungan utama di `StoreRegistrationAction.php` sudah diperbaiki, maka **total pembayaran untuk Moota sudah otomatis benar**.
-    *   Tidak diperlukan perubahan kode tambahan untuk bagian Moota.
-
-**Status Saat Ini:**
-*   ✅ **Frontend (Tema):** Sudah diperbaiki (Early > Late > Regular).
-*   ✅ **Backend (Database):** Sudah diperbaiki di `StoreRegistrationAction`.
-*   ✅ **Midtrans (QRIS):** Sudah diperbaiki di `MidtransService`.
-*   ✅ **Moota (Transfer Bank):** Sudah otomatis mengikuti perbaikan Backend.
-
-Sistem siap digunakan. Apakah ada bagian lain yang ingin Anda cek?
+Apakah Anda setuju dengan langkah ini?
