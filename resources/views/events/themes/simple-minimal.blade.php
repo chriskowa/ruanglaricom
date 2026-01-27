@@ -235,11 +235,18 @@
                                                 $priceRegular = (int) ($cat->price_regular ?? 0);
                                                 $priceEarly = (int) ($cat->price_early ?? 0);
                                                 $priceLate = (int) ($cat->price_late ?? 0);
+                                                
+                                                $now = now();
                                                 $displayPrice = $priceRegular;
-                                                if ($priceEarly > 0) {
+
+                                                if ($cat->reg_start_at && $cat->reg_end_at) {
+                                                    if ($now >= $cat->reg_start_at && $now < $cat->reg_end_at) {
+                                                        $displayPrice = ($priceEarly > 0) ? $priceEarly : $displayPrice;
+                                                    } elseif ($now >= $cat->reg_end_at) {
+                                                        $displayPrice = ($priceLate > 0) ? $priceLate : $displayPrice;
+                                                    }
+                                                } elseif ($displayPrice == 0 && $priceEarly > 0) {
                                                     $displayPrice = $priceEarly;
-                                                } elseif ($priceLate > 0) {
-                                                    $displayPrice = $priceLate;
                                                 }
                                             @endphp
                                             <label class="cursor-pointer relative">
