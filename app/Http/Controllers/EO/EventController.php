@@ -222,6 +222,14 @@ class EventController extends Controller
             $validated['jersey_sizes'] = null;
         }
 
+        // Process payment_config (Handle 'all' option)
+        if (isset($validated['payment_config']['allowed_methods'])) {
+            $methods = $validated['payment_config']['allowed_methods'];
+            if (in_array('all', $methods)) {
+                $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota'];
+            }
+        }
+
         // Single images are now paths from Dropzone
         if (isset($validated['hero_image'])) {
             $validated['hero_image_url'] = null;
@@ -478,6 +486,14 @@ class EventController extends Controller
         foreach (['hero_image', 'logo_image', 'floating_image', 'medal_image', 'jersey_image'] as $imgField) {
             if ($request->has($imgField)) {
                 $validated[$imgField] = $request->input($imgField);
+            }
+        }
+
+        // Process payment_config (Handle 'all' option)
+        if (isset($validated['payment_config']['allowed_methods'])) {
+            $methods = $validated['payment_config']['allowed_methods'];
+            if (in_array('all', $methods)) {
+                $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota'];
             }
         }
 

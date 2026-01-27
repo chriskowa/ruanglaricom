@@ -314,7 +314,7 @@ class StoreRegistrationAction
             'final_amount' => $finalAmount,
             'payment_status' => 'pending',
             'payment_gateway' => $paymentMethod === 'moota' ? 'moota' : 'midtrans',
-            'unique_code' => $uniqueCode > 0 ? $uniqueCode : null,
+            'unique_code' => $uniqueCode > 0 ? $uniqueCode : 0,
         ]);
 
             // Create participants
