@@ -53,21 +53,52 @@
 
             @foreach($participants as $participant)
             <div class="ticket">
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <span style="background-color: #ccff00; color: #0f172a; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <span style="background-color: #ccff00; color: #0f172a; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; text-transform: uppercase;">
                         {{ $participant->category->name ?? 'Participant' }}
                     </span>
                 </div>
                 
-                <div class="ticket-header">
-                    <div>
-                        <div class="ticket-label">Nama Peserta</div>
-                        <div class="ticket-value">{{ $participant->name }}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div class="ticket-label">BIB Number</div>
-                        <div class="ticket-value" style="font-family: monospace; font-size: 18px;">{{ $participant->bib_number ?? 'PENDING' }}</div>
-                    </div>
+                <table width="100%" cellpadding="5" cellspacing="0" border="0" style="margin-bottom: 15px;">
+                    <tr>
+                        <td class="ticket-label" width="40%" style="padding-bottom: 8px;">Nama</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">Email</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->email }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">Nomor HP</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->phone }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">Kategori Lari</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->category->name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">Status Pembayaran</td>
+                        <td class="ticket-value" style="padding-bottom: 8px; color: {{ $transaction->payment_status == 'paid' ? '#10b981' : '#f59e0b' }}">
+                            {{ strtoupper($transaction->payment_status) }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">Nomor Tiket</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->bib_number ?? 'TICKET-'.$participant->id }}</td>
+                    </tr>
+                </table>
+
+                <div style="border-top: 1px dashed #cbd5e1; padding-top: 15px; margin-top: 10px;">
+                    <table width="100%" cellpadding="5" cellspacing="0" border="0">
+                        <tr>
+                            <td class="ticket-label" width="40%" style="padding-bottom: 8px;">Lokasi</td>
+                            <td class="ticket-value" style="padding-bottom: 8px;">{{ $event->location_name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ticket-label" style="padding-bottom: 8px;">Tanggal</td>
+                            <td class="ticket-value" style="padding-bottom: 8px;">{{ $event->start_at ? $event->start_at->format('d F Y, H:i') : 'TBA' }}</td>
+                        </tr>
+                    </table>
                 </div>
 
                 <div class="qr-code">
