@@ -264,6 +264,9 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
+        // Debug Log
+        \Illuminate\Support\Facades\Log::info('Update Event Payload:', $request->all());
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:events,slug,'.$event->id,
@@ -321,7 +324,7 @@ class EventController extends Controller
             'premium_amenities' => 'nullable|array',
             'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,professional-city-run,paolo-fest,paolo-fest-dark',
             'platform_fee' => 'nullable|numeric|min:0',
-            'categories' => 'nullable|array|min:1',
+            'categories' => 'sometimes|array',
             'categories.*.id' => 'nullable|exists:race_categories,id',
             'categories.*.master_gpx_id' => 'nullable|exists:master_gpxes,id',
             'categories.*.name' => 'required_with:categories|string|max:255',
@@ -468,6 +471,14 @@ class EventController extends Controller
         // Single images - already paths
         if ($request->filled('hero_image')) {
             $validated['hero_image_url'] = null;
+        }
+
+        // Explicitly handle image updates if present in request but not in validated (though validate should catch them)
+        // This ensures that if the frontend sends a new path, it overrides whatever was there
+        foreach (['hero_image', 'logo_image', 'floating_image', 'medal_image', 'jersey_image'] as $imgField) {
+            if ($request->has($imgField)) {
+                $validated[$imgField] = $request->input($imgField);
+            }
         }
 
         $affectedCategoryIds = [];
