@@ -896,6 +896,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         initDropzone('hero-dropzone', 'hero_image', 1, @json($event->hero_image ? [$event->hero_image] : []));
         initDropzone('logo-dropzone', 'logo_image', 1, @json($event->logo_image ? [$event->logo_image] : []));
+        initDropzone('jersey-dropzone', 'jersey_image', 1, @json($event->jersey_image ? [$event->jersey_image] : []));
         initDropzone('gallery-dropzone', 'gallery[]', 10, @json($event->gallery ?? []));
         initDropzone('sponsors-dropzone', 'sponsors[]', 30, @json($event->sponsors ?? []));
     });
