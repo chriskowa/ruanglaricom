@@ -332,8 +332,17 @@
                 $isRegOpen = !($event->registration_open_at && $now < $event->registration_open_at) && !($event->registration_close_at && $now > $event->registration_close_at);
 
                 $paymentConfig = $event->payment_config ?? [];
-                $showMidtrans = $paymentConfig['midtrans'] ?? true;
-                $showMoota = $paymentConfig['moota'] ?? false;
+                
+                // Support both new (allowed_methods) and legacy (direct keys) structures
+                if (isset($paymentConfig['allowed_methods']) && is_array($paymentConfig['allowed_methods'])) {
+                    $allowed = $paymentConfig['allowed_methods'];
+                    $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
+                    $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
+                } else {
+                    $showMidtrans = $paymentConfig['midtrans'] ?? true;
+                    $showMoota = $paymentConfig['moota'] ?? false;
+                }
+
                 if (!$showMidtrans && !$showMoota) {
                     $showMidtrans = true;
                 }

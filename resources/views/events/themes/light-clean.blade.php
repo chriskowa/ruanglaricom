@@ -530,7 +530,25 @@
                                         </div>
                                         @endif
 
-                                        <div class="mb-6 space-y-3">
+                @php
+                    $paymentConfig = $event->payment_config ?? [];
+                    
+                    // Support both new (allowed_methods) and legacy (direct keys) structures
+                    if (isset($paymentConfig['allowed_methods']) && is_array($paymentConfig['allowed_methods'])) {
+                        $allowed = $paymentConfig['allowed_methods'];
+                        $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
+                        $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
+                    } else {
+                        $showMidtrans = $paymentConfig['midtrans'] ?? true;
+                        $showMoota = $paymentConfig['moota'] ?? false;
+                    }
+
+                    if (!$showMidtrans && !$showMoota) {
+                        $showMidtrans = true;
+                    }
+                @endphp
+
+                <div class="mb-6 space-y-3">
                                             <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Metode Pembayaran</label>
                                             
                                             @if($showMidtrans)

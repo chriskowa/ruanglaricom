@@ -830,9 +830,22 @@
                                         <h4 class="text-sm font-bold text-slate-300 mb-3">METODE PEMBAYARAN</h4>
                                         <div class="space-y-3">
                                             @php
-                                                $paymentMethods = $event->payment_config['allowed_methods'] ?? ['midtrans'];
-                                                $showMidtrans = in_array('midtrans', $paymentMethods);
-                                                $showMoota = in_array('moota', $paymentMethods);
+                                                $paymentConfig = $event->payment_config ?? [];
+                                                
+                                                // Support both new (allowed_methods) and legacy (direct keys) structures
+                                                if (isset($paymentConfig['allowed_methods']) && is_array($paymentConfig['allowed_methods'])) {
+                                                    $allowed = $paymentConfig['allowed_methods'];
+                                                    $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
+                                                    $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
+                                                } else {
+                                                    $showMidtrans = $paymentConfig['midtrans'] ?? true;
+                                                    $showMoota = $paymentConfig['moota'] ?? false;
+                                                }
+
+                                                if (!$showMidtrans && !$showMoota) {
+                                                    $showMidtrans = true;
+                                                }
+
                                                 // Default selection logic
                                                 $defaultMidtrans = $showMidtrans ? 'checked' : '';
                                                 $defaultMoota = (!$showMidtrans && $showMoota) ? 'checked' : '';
