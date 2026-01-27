@@ -65,7 +65,7 @@ class StoreRegistrationAction
                 function ($attribute, $value, $fail) use ($event) {
                     // Custom validation to ensure category belongs to event
                     $category = \App\Models\RaceCategory::find($value);
-                    if (! $category || $category->event_id !== $event->id) {
+                    if (! $category || (int) $category->event_id !== (int) $event->id) {
                         $fail('Kategori tidak valid untuk event ini.');
                     }
                 },
