@@ -10,6 +10,7 @@ use App\Models\RaceCategory;
 use App\Models\Transaction;
 use App\Services\EventCacheService;
 use App\Services\MidtransService;
+use App\Services\MootaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -22,11 +23,13 @@ class StoreRegistrationAction
     protected $cacheService;
 
     protected $midtransService;
+    protected $mootaService;
 
-    public function __construct(EventCacheService $cacheService, MidtransService $midtransService)
+    public function __construct(EventCacheService $cacheService, MidtransService $midtransService, MootaService $mootaService)
     {
         $this->cacheService = $cacheService;
         $this->midtransService = $midtransService;
+        $this->mootaService = $mootaService;
     }
 
     public function execute(Request $request, Event $event): Transaction
@@ -62,7 +65,7 @@ class StoreRegistrationAction
             'participants.*.target_time' => 'nullable|string|max:50',
             'participants.*.jersey_size' => 'nullable|string|max:10',
             'coupon_code' => 'nullable|string|max:50',
-            'payment_method' => 'nullable|in:midtrans,cod',
+            'payment_method' => 'nullable|in:midtrans,cod,moota',
             'addons' => 'nullable|array',
             'addons.*.name' => 'required|string',
             'addons.*.price' => 'required|numeric',
@@ -287,6 +290,12 @@ class StoreRegistrationAction
 
             $finalAmount = ($totalOriginal - $discountAmount) + $totalAdminFee;
 
+            $uniqueCode = 0;
+            if ($paymentMethod === 'moota') {
+                $uniqueCode = $this->mootaService->generateUniqueCode($finalAmount);
+                $finalAmount += $uniqueCode;
+            }
+
         // Create transaction
         $transaction = Transaction::create([
             'event_id' => $event->id,
@@ -304,6 +313,8 @@ class StoreRegistrationAction
             'admin_fee' => $totalAdminFee,
             'final_amount' => $finalAmount,
             'payment_status' => 'pending',
+            'payment_gateway' => $paymentMethod === 'moota' ? 'moota' : 'midtrans',
+            'unique_code' => $uniqueCode > 0 ? $uniqueCode : null,
         ]);
 
             // Create participants
@@ -347,6 +358,10 @@ class StoreRegistrationAction
                 $transaction->update(['payment_status' => 'cod']);
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
                 \App\Jobs\SendEventRegistrationNotification::dispatch($transaction);
+                return $transaction;
+            } elseif ($paymentMethod === 'moota') {
+                Cache::put($idKey, $transaction->id, now()->addMinutes(10));
+                // Notification/Email can be sent here if needed
                 return $transaction;
             } else {
                 $snapResult = $this->midtransService->createEventTransaction($transaction);

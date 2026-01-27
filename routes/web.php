@@ -6,6 +6,8 @@ use App\Services\StravaClubService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+Route::post('/api/moota/webhook', [App\Http\Controllers\MootaWebhookController::class, 'handle'])->name('moota.webhook');
+
 Route::get('/', function (StravaClubService $stravaService) {
     $homepageContent = \Illuminate\Support\Facades\Cache::remember('home.content', 3600, function () {
         return \App\Models\HomepageContent::first();
@@ -297,6 +299,7 @@ Route::get('/legacy-events', [App\Http\Controllers\PublicEventController::class,
 
 
 Route::get('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
+Route::get('/events/{slug}/payment/{transaction}', [App\Http\Controllers\EventRegistrationController::class, 'payment'])->name('events.payment');
 Route::post('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:5,1')->name('events.register.store');
 Route::post('/events/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
 Route::post('/events/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
@@ -715,6 +718,7 @@ Route::post('/wallet/topup/callback', [App\Http\Controllers\WalletController::cl
 Route::post('/events/transactions/webhook', [App\Http\Controllers\EventTransactionWebhookController::class, 'handle'])->name('events.transactions.webhook');
 Route::post('/membership/webhook', [App\Http\Controllers\MembershipWebhookController::class, 'handle'])->name('membership.webhook');
 Route::post('/marketplace/webhook', [App\Http\Controllers\Marketplace\WebhookController::class, 'handle'])->name('marketplace.webhook');
+Route::post('/webhook/moota', [App\Http\Controllers\Api\MootaWebhookController::class, 'handle'])->name('webhook.moota');
 
 Route::get('/run-queue-worker', function () {
     // Security: Only allow admin or secure usage (optional, for now open for debug)

@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'marketplace/webhook',
             'wallet/topup/callback',
             'membership/webhook',
+            'webhook/moota',
+            'api/moota/webhook',
         ]);
 
         $middleware->web(append: [

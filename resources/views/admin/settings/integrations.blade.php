@@ -139,13 +139,64 @@
                         <div class="space-y-2">
                             <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Platform Fee (%)</label>
                             <div class="relative">
-                                <input type="number" step="0.01" min="0" max="100" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
+                                <input type="number" step="0.01" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
                                     name="platform_fee_percent" value="{{ $settings['platform_fee_percent'] }}">
-                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
                                     <span class="text-slate-500 font-bold">%</span>
                                 </div>
                             </div>
                             <p class="text-xs text-slate-500">Persentase potongan admin untuk setiap transaksi marketplace/event.</p>
+                        </div>
+                    </div>
+
+                    <!-- Moota Integration -->
+                    <div class="pt-8 mt-8 border-t border-slate-800">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="p-2 bg-slate-800 rounded-lg text-green-400">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Moota Payment Integration</h3>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-4">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="hidden" name="moota_is_active" value="0">
+                                    <input type="checkbox" name="moota_is_active" value="1" class="sr-only peer" {{ $settings['moota_is_active'] ? 'checked' : '' }}>
+                                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                    <span class="ml-3 text-sm font-medium text-slate-300">Enable Moota Payment</span>
+                                </label>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">API Token</label>
+                                    <input type="password" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
+                                        name="moota_api_token" value="{{ $settings['moota_api_token'] }}" placeholder="Enter Moota API Token">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Webhook Secret</label>
+                                    <input type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
+                                        name="moota_webhook_secret" value="{{ $settings['moota_webhook_secret'] }}" placeholder="Random Secret String">
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Bank ID (Optional)</label>
+                                <input type="text" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
+                                    name="moota_bank_id" value="{{ $settings['moota_bank_id'] }}" placeholder="Specific Bank ID from Moota">
+                                <p class="text-xs text-slate-500">Leave empty to accept all banks connected to Moota.</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Payment Instructions</label>
+                                <textarea rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
+                                    name="moota_instructions" placeholder="Silakan transfer ke rekening BCA 1234567890 a.n PT Ruang Lari...">{{ $settings['moota_instructions'] }}</textarea>
+                            </div>
+                            
+                            <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                                <p class="text-sm text-slate-400">Webhook URL: <code class="text-primary">{{ url('/api/moota/webhook') }}</code></p>
+                            </div>
                         </div>
                     </div>
                 </div>

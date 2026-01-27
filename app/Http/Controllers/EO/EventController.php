@@ -134,6 +134,10 @@ class EventController extends Controller
             'categories.*.prizes.1' => 'nullable|string|max:255',
             'categories.*.prizes.2' => 'nullable|string|max:255',
             'categories.*.prizes.3' => 'nullable|string|max:255',
+            'payment_config' => 'nullable|array',
+            'whatsapp_config' => 'nullable|array',
+            'whatsapp_config.enabled' => 'nullable|boolean',
+            'whatsapp_config.template' => 'nullable|string',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -337,6 +341,10 @@ class EventController extends Controller
             'categories.*.prizes.1' => 'nullable|string|max:255',
             'categories.*.prizes.2' => 'nullable|string|max:255',
             'categories.*.prizes.3' => 'nullable|string|max:255',
+            'payment_config' => 'nullable|array',
+            'whatsapp_config' => 'nullable|array',
+            'whatsapp_config.enabled' => 'nullable|boolean',
+            'whatsapp_config.template' => 'nullable|string',
         ]);
 
         $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;

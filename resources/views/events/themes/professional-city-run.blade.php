@@ -330,6 +330,15 @@
             @php
                 $now = now();
                 $isRegOpen = !($event->registration_open_at && $now < $event->registration_open_at) && !($event->registration_close_at && $now > $event->registration_close_at);
+
+                $paymentConfig = $event->payment_config ?? [];
+                $showMidtrans = $paymentConfig['midtrans'] ?? true;
+                $showMoota = $paymentConfig['moota'] ?? false;
+                if (!$showMidtrans && !$showMoota) {
+                    $showMidtrans = true;
+                }
+
+                $pa = $event->premium_amenities ?? null;
             @endphp
 
             @if(!$isRegOpen)
@@ -477,6 +486,31 @@
                                     </label>
                                 </div>
                                 @endif
+
+                                <div class="mb-6">
+                                    <label class="text-sm font-bold text-slate-700 mb-2 block">Metode Pembayaran</label>
+                                    <div class="space-y-2">
+                                        @if($showMidtrans)
+                                        <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:border-brand-600 transition bg-slate-50">
+                                            <input type="radio" name="payment_method" value="midtrans" class="w-4 h-4 text-brand-600 focus:ring-brand-600" {{ $showMidtrans && !$showMoota ? 'checked' : '' }} required>
+                                            <div>
+                                                <span class="block text-sm font-bold text-slate-900">Otomatis (Midtrans)</span>
+                                                <span class="text-xs text-slate-500">QRIS, VA, E-Wallet</span>
+                                            </div>
+                                        </label>
+                                        @endif
+
+                                        @if($showMoota)
+                                        <label class="flex items-center gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:border-brand-600 transition bg-slate-50">
+                                            <input type="radio" name="payment_method" value="moota" class="w-4 h-4 text-brand-600 focus:ring-brand-600" {{ !$showMidtrans && $showMoota ? 'checked' : '' }} required>
+                                            <div>
+                                                <span class="block text-sm font-bold text-slate-900">Transfer Bank (Moota)</span>
+                                                <span class="text-xs text-slate-500">Verifikasi Otomatis</span>
+                                            </div>
+                                        </label>
+                                        @endif
+                                    </div>
+                                </div>
 
                                 @if(env('RECAPTCHA_SITE_KEY'))
                                     <div class="mb-6 flex justify-center">

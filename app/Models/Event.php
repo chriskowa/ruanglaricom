@@ -53,6 +53,8 @@ class Event extends Model
         'organizer_name',
         'organizer_contact',
         'contributor_contact',
+        'payment_config',
+        'whatsapp_config',
     ];
 
     protected $casts = [
@@ -68,6 +70,8 @@ class Event extends Model
         'premium_amenities' => 'array',
         'sponsors' => 'array',
         'is_instant_notification' => 'boolean',
+        'payment_config' => 'array',
+        'whatsapp_config' => 'array',
     ];
 
     protected static function boot()

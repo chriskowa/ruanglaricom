@@ -111,6 +111,31 @@ class EventRegistrationController extends Controller
     }
 
     /**
+     * Show payment instruction page
+     */
+    public function payment($slug, \App\Models\Transaction $transaction)
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+        
+        // Security check: ensure transaction belongs to this event
+        if ($transaction->event_id !== $event->id) {
+            abort(404);
+        }
+        
+        // Ensure transaction is moota and pending
+        if ($transaction->payment_gateway !== 'moota' || $transaction->payment_status !== 'pending') {
+             return redirect()->route('events.show', $slug)->with('info', 'Transaksi tidak valid atau sudah dibayar.');
+        }
+
+        return view('events.payment', [
+            'event' => $event,
+            'transaction' => $transaction,
+            'bankAccounts' => config('moota.bank_accounts'),
+            'instructions' => AppSettings::get('moota_instructions'),
+        ]);
+    }
+
+    /**
      * Store registration
      */
     public function store(Request $request, $slug)
@@ -119,6 +144,19 @@ class EventRegistrationController extends Controller
 
         try {
             $transaction = $this->storeAction->execute($request, $event);
+
+            // Handle Moota Redirect
+            if ($transaction->payment_gateway === 'moota' && $transaction->payment_status === 'pending') {
+                 if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Registrasi berhasil! Silakan lakukan pembayaran.',
+                        'redirect_url' => route('events.payment', ['slug' => $slug, 'transaction' => $transaction->id]),
+                    ]);
+                }
+                
+                return redirect()->route('events.payment', ['slug' => $slug, 'transaction' => $transaction->id]);
+            }
 
             // If AJAX request, return JSON
             if ($request->ajax() || $request->wantsJson()) {

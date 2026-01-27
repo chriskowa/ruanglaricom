@@ -31,6 +31,13 @@ class IntegrationSettingsController extends Controller
 
             // Financial
             'platform_fee_percent' => AppSettings::get('platform_fee_percent', 5),
+
+            // Moota Payment
+            'moota_api_token' => AppSettings::get('moota_api_token'),
+            'moota_webhook_secret' => AppSettings::get('moota_webhook_secret'),
+            'moota_bank_id' => AppSettings::get('moota_bank_id'),
+            'moota_is_active' => AppSettings::get('moota_is_active', false),
+            'moota_instructions' => AppSettings::get('moota_instructions'),
         ];
 
         return view('admin.settings.integrations', compact('settings'));
@@ -59,6 +66,13 @@ class IntegrationSettingsController extends Controller
 
             // Financial
             'platform_fee_percent' => 'nullable|numeric|min:0|max:100',
+
+            // Moota Payment
+            'moota_api_token' => 'nullable|string',
+            'moota_webhook_secret' => 'nullable|string',
+            'moota_bank_id' => 'nullable|string',
+            'moota_is_active' => 'nullable|boolean',
+            'moota_instructions' => 'nullable|string',
         ]);
 
         foreach ($data as $key => $value) {

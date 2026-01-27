@@ -826,6 +826,44 @@
                                         </div>
                                     </div>
 
+                                    <div class="mb-6">
+                                        <h4 class="text-sm font-bold text-slate-300 mb-3">METODE PEMBAYARAN</h4>
+                                        <div class="space-y-3">
+                                            @php
+                                                $paymentMethods = $event->payment_config['allowed_methods'] ?? ['midtrans'];
+                                                $showMidtrans = in_array('midtrans', $paymentMethods);
+                                                $showMoota = in_array('moota', $paymentMethods);
+                                                // Default selection logic
+                                                $defaultMidtrans = $showMidtrans ? 'checked' : '';
+                                                $defaultMoota = (!$showMidtrans && $showMoota) ? 'checked' : '';
+                                            @endphp
+
+                                            @if($showMidtrans)
+                                            <label class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:border-slate-500 transition-colors group">
+                                                <div class="flex items-center gap-3">
+                                                    <input type="radio" name="payment_method" value="midtrans" {{ $defaultMidtrans }} class="w-4 h-4 text-neon focus:ring-neon bg-slate-700 border-slate-600">
+                                                    <div class="flex flex-col">
+                                                        <span class="text-white text-sm font-bold">QRIS / E-Wallet / Virtual Account</span>
+                                                        <span class="text-xs text-slate-400">Verifikasi Otomatis (Midtrans)</span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                            @endif
+                                            
+                                            @if($showMoota)
+                                            <label class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:border-slate-500 transition-colors group">
+                                                <div class="flex items-center gap-3">
+                                                    <input type="radio" name="payment_method" value="moota" {{ $defaultMoota }} class="w-4 h-4 text-neon focus:ring-neon bg-slate-700 border-slate-600">
+                                                    <div class="flex flex-col">
+                                                        <span class="text-white text-sm font-bold">Transfer Bank (Moota)</span>
+                                                        <span class="text-xs text-slate-400">Verifikasi Otomatis</span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                            @endif
+                                        </div>
+                                    </div>
+
                                     @if($event->terms_and_conditions)
                                     <div class="mb-6">
                                         <label class="flex items-start gap-3 cursor-pointer group">

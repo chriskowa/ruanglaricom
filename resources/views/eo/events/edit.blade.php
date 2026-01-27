@@ -357,6 +357,107 @@
                         <p class="text-slate-500 text-xs mt-1">Biaya tambahan yang dikenakan per peserta (masuk ke Platform).</p>
                         @error('platform_fee') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+
+                    <!-- WhatsApp Configuration -->
+                    <div class="md:col-span-2 mt-4 pt-6 border-t border-slate-700">
+                        <label class="block text-sm font-medium text-slate-300 mb-4">WhatsApp Notification (After Payment)</label>
+                        
+                        @php
+                            $whatsappEnabled = $event->whatsapp_config['enabled'] ?? false;
+                            $whatsappTemplate = $event->whatsapp_config['template'] ?? '';
+                        @endphp
+
+                        <div class="flex items-center gap-6 mb-4">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="whatsapp_config[enabled]" value="1" class="peer sr-only" {{ $whatsappEnabled ? 'checked' : '' }} onchange="toggleWhatsappTemplate(this.value)">
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 group-hover:text-white transition-colors">Enable</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="whatsapp_config[enabled]" value="0" class="peer sr-only" {{ !$whatsappEnabled ? 'checked' : '' }} onchange="toggleWhatsappTemplate(this.value)">
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-red-500 peer-checked:bg-red-500 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 group-hover:text-white transition-colors">Disable</span>
+                            </label>
+                        </div>
+
+                        <div id="whatsapp_template_container" class="{{ $whatsappEnabled ? '' : 'opacity-50 pointer-events-none' }} transition-all duration-200">
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Message Template</label>
+                            <textarea name="whatsapp_config[template]" id="whatsapp_template" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-colors font-mono text-sm" placeholder="Halo @{{name}}, terima kasih telah mendaftar di @{{event_name}}. ID Transaksi Anda: @{{transaction_id}}.">{{ old('whatsapp_config.template', $whatsappTemplate) }}</textarea>
+                            <p class="text-xs text-slate-500 mt-2">
+                                Available variables: <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{name}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{event_name}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{transaction_id}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{amount}}</code>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Configuration -->
+                <div class="mt-6 border-t border-slate-700 pt-6">
+                    <label class="block text-sm font-medium text-slate-300 mb-4">Payment Methods</label>
+                    @php
+                        $paymentMethods = $event->payment_config['allowed_methods'] ?? ['midtrans'];
+                        $isMidtrans = in_array('midtrans', $paymentMethods) && !in_array('moota', $paymentMethods);
+                        $isMoota = in_array('moota', $paymentMethods) && !in_array('midtrans', $paymentMethods);
+                        $isAll = in_array('midtrans', $paymentMethods) && in_array('moota', $paymentMethods);
+                    @endphp
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="payment_config[allowed_methods][]" value="midtrans" class="peer sr-only" {{ $isMidtrans ? 'checked' : '' }}>
+                            <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                </div>
+                                <h4 class="font-bold text-white mb-1">Otomatis (Midtrans)</h4>
+                                <p class="text-xs text-slate-400">QRIS, E-Wallet, VA (Verifikasi Otomatis)</p>
+                            </div>
+                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <div class="bg-yellow-400 rounded-full p-1">
+                                    <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="payment_config[allowed_methods][]" value="moota" class="peer sr-only" {{ $isMoota ? 'checked' : '' }}>
+                            <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                                </div>
+                                <h4 class="font-bold text-white mb-1">Transfer Bank (Moota)</h4>
+                                <p class="text-xs text-slate-400">Transfer Manual + Kode Unik</p>
+                            </div>
+                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <div class="bg-yellow-400 rounded-full p-1">
+                                    <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="payment_config[allowed_methods][]" value="all" class="peer sr-only" {{ $isAll ? 'checked' : '' }}>
+                            <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                                </div>
+                                <h4 class="font-bold text-white mb-1">Semua Metode</h4>
+                                <p class="text-xs text-slate-400">Aktifkan Midtrans & Moota</p>
+                            </div>
+                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <div class="bg-yellow-400 rounded-full p-1">
+                                    <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -649,6 +750,19 @@
 <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
+    function toggleWhatsappTemplate(value) {
+        const container = document.getElementById('whatsapp_template_container');
+        const textarea = document.getElementById('whatsapp_template');
+        
+        if (value == '1') {
+            container.classList.remove('opacity-50', 'pointer-events-none');
+            textarea.required = true;
+        } else {
+            container.classList.add('opacity-50', 'pointer-events-none');
+            textarea.required = false;
+        }
+    }
+
     Dropzone.autoDiscover = false;
 
     function initDropzone(id, inputName, maxFiles = 1, existingFiles = []) {
