@@ -629,6 +629,16 @@ class EventController extends Controller
 
         $participants = $query->orderBy('created_at', 'desc')->paginate(20);
 
+        $financials = [
+            'gross_revenue' => \App\Models\Transaction::where('event_id', $event->id)
+                ->where('payment_status', 'paid')
+                ->sum('final_amount'),
+            'platform_fee' => \App\Models\Transaction::where('event_id', $event->id)
+                ->where('payment_status', 'paid')
+                ->sum('admin_fee'),
+        ];
+        $financials['net_revenue'] = $financials['gross_revenue'] - $financials['platform_fee'];
+
         if (request()->ajax() || request()->wantsJson()) {
             $items = $participants->getCollection()->map(function ($p) use ($event) {
                 return [
@@ -666,6 +676,7 @@ class EventController extends Controller
                 'success' => true,
                 'data' => $items,
                 'stats' => $stats,
+                'financials' => $financials,
                 'meta' => [
                     'current_page' => $participants->currentPage(),
                     'last_page' => $participants->lastPage(),
@@ -677,7 +688,7 @@ class EventController extends Controller
             ]);
         }
 
-        return view('eo.events.participants', compact('event', 'participants'));
+        return view('eo.events.participants', compact('event', 'participants', 'financials'));
     }
 
     /**

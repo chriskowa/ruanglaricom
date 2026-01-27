@@ -80,6 +80,25 @@
         </div>
     </div>
 
+    <!-- Financial Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 relative z-10">
+        <div class="bg-emerald-900/20 backdrop-blur border border-emerald-500/30 rounded-xl p-4">
+            <p class="text-emerald-400 text-xs font-bold uppercase mb-1">Gross Revenue</p>
+            <h3 class="text-2xl font-black text-white">IDR {{ number_format($financials['gross_revenue'], 0, ',', '.') }}</h3>
+            <p class="text-xs text-slate-400 mt-1">Total Paid Transactions</p>
+        </div>
+        <div class="bg-red-900/20 backdrop-blur border border-red-500/30 rounded-xl p-4">
+            <p class="text-red-400 text-xs font-bold uppercase mb-1">Platform Fee</p>
+            <h3 class="text-2xl font-black text-white">IDR {{ number_format($financials['platform_fee'], 0, ',', '.') }}</h3>
+            <p class="text-xs text-slate-400 mt-1">Total Admin Fees</p>
+        </div>
+        <div class="bg-indigo-900/20 backdrop-blur border border-indigo-500/30 rounded-xl p-4">
+            <p class="text-indigo-400 text-xs font-bold uppercase mb-1">Net Revenue</p>
+            <h3 class="text-2xl font-black text-white">IDR {{ number_format($financials['net_revenue'], 0, ',', '.') }}</h3>
+            <p class="text-xs text-slate-400 mt-1">Total Earnings</p>
+        </div>
+    </div>
+
     <!-- Filter & Table -->
     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative z-10">
         
