@@ -1314,7 +1314,6 @@
             attachListeners(participantsWrapper);
 
             // 5. Submit Handler (AJAX)
-            const form = document.getElementById('registrationForm');
             
             // Add Copy Helpers to Global Scope so buttons can access them
             window.copyFromPic = function(btn) {
