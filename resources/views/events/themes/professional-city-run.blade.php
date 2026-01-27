@@ -198,18 +198,12 @@
                     $priceRegular = (int) ($cat->price_regular ?? 0);
                     $priceEarly = (int) ($cat->price_early ?? 0);
                     $priceLate = (int) ($cat->price_late ?? 0);
-                    
-                    $now = now();
                     $displayPrice = $priceRegular;
 
-                    if ($cat->reg_start_at && $cat->reg_end_at) {
-                        if ($now >= $cat->reg_start_at && $now < $cat->reg_end_at) {
-                            $displayPrice = ($priceEarly > 0) ? $priceEarly : $displayPrice;
-                        } elseif ($now >= $cat->reg_end_at) {
-                            $displayPrice = ($priceLate > 0) ? $priceLate : $displayPrice;
-                        }
-                    } elseif ($displayPrice == 0 && $priceEarly > 0) {
+                    if ($priceEarly > 0) {
                         $displayPrice = $priceEarly;
+                    } elseif ($priceLate > 0) {
+                        $displayPrice = $priceLate;
                     }
                 @endphp
                 <div class="group bg-white rounded-3xl border border-gray-100 shadow-card hover:shadow-xl hover:border-brand-200 transition-all duration-300 relative overflow-hidden flex flex-col">

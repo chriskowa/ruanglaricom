@@ -409,27 +409,27 @@ class StoreRegistrationAction
     }
 
     /**
-     * Get category price based on registration period
+     * Get category price based on priority (Early > Late > Regular)
+     * User Request: "ketika terisi early, maka harga pake early, kalau late terisi pakai late, kalau ketiganya terisi pakai early"
+     * Logic:
+     * 1. If Early Price exists -> Use Early
+     * 2. Else if Late Price exists -> Use Late
+     * 3. Else -> Use Regular
      */
     private function getCategoryPrice(RaceCategory $category, $now): int
     {
-        // If no registration period, use regular or early price
-        if (! $category->reg_start_at || ! $category->reg_end_at) {
-            return $category->price_regular ?? $category->price_early ?? 0;
+        $early = (int) ($category->price_early ?? 0);
+        $late = (int) ($category->price_late ?? 0);
+        $regular = (int) ($category->price_regular ?? 0);
+
+        if ($early > 0) {
+            return $early;
         }
 
-        $regStart = $category->reg_start_at;
-        $regEnd = $category->reg_end_at;
-
-        if ($now < $regStart) {
-            // Registration not open yet
-            return $category->price_regular ?? $category->price_early ?? 0;
-        } elseif ($now >= $regStart && $now < $regEnd) {
-            // Early bird period
-            return $category->price_early ?? $category->price_regular ?? 0;
-        } else {
-            // Late period
-            return $category->price_late ?? $category->price_regular ?? 0;
+        if ($late > 0) {
+            return $late;
         }
+
+        return $regular;
     }
 }
