@@ -31,10 +31,11 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        dark: '#0f172a',
+                        dark: '{{ $bgColor }}',
+                        'main-text': '{{ $textColor }}',
                         card: '#1e293b',
-                        neon: '#ccff00',
-                        primary: '#ccff00',
+                        neon: '{{ $accentColor }}',
+                        primary: '{{ $accentColor }}',
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
@@ -60,7 +61,7 @@
         }
     </script>
     <style>
-        body { background-color: #0f172a; color: white; -webkit-tap-highlight-color: transparent; }
+        body { background-color: {{ $bgColor }}; color: {{ $textColor }}; -webkit-tap-highlight-color: transparent; }
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
@@ -108,13 +109,13 @@
                 </div>
             </div>
             
-            <h1 class="text-2xl font-black tracking-tight text-white mb-1 flex items-center justify-center gap-2">
+            <h1 class="text-2xl font-black tracking-tight text-main-text mb-1 flex items-center justify-center gap-2">
                 RUANG<span class="text-neon">LARI</span>
             </h1>
-            <p class="text-slate-400 text-sm font-medium max-w-xs leading-relaxed">{{ $description }}</p>
+            <p class="text-main-text/60 text-sm font-medium max-w-xs leading-relaxed">{{ $description }}</p>
 
             <!-- Mini Stats/Badges (Static for now, can be dynamic later) -->
-            <div class="flex items-center gap-3 mt-4 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
+            <div class="flex items-center gap-3 mt-4 text-[10px] font-mono font-bold uppercase tracking-wider text-main-text/50">
                 <span class="flex items-center gap-1 bg-slate-800/50 px-2 py-1 rounded border border-slate-700">
                     <i class="fas fa-users text-neon"></i> 50K+ Runners
                 </span>
@@ -129,8 +130,8 @@
             @foreach($featuredLinks as $link)
             @php
                 $bgClass = isset($link['color']) && str_contains($link['color'], 'from-') ? 'bg-gradient-to-br ' . $link['color'] : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700';
-                $textClass = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-900' : 'text-white';
-                $subTextClass = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-800/70' : 'text-slate-400';
+                $textClass = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-900' : 'text-main-text';
+                $subTextClass = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-800/70' : 'text-main-text/60';
                 $iconBg = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'bg-black/10' : 'bg-white/10';
             @endphp
             <a href="{{ $link['url'] }}" class="block w-full group relative transform transition-all hover:scale-[1.02] active:scale-[0.98]">
@@ -168,9 +169,9 @@
             <a href="{{ $link['url'] }}" {{ isset($link['external']) && $link['external'] ? 'target="_blank"' : '' }} class="glass rounded-2xl p-4 flex flex-col items-center justify-center text-center group h-32 transition-all relative overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div class="w-10 h-10 mb-3 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700 group-hover:border-neon/50 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                    <i class="fas fa-{{ $link['icon'] ?? 'link' }} text-slate-300 group-hover:text-neon text-lg transition-colors"></i>
+                    <i class="fas fa-{{ $link['icon'] ?? 'link' }} text-main-text/80 group-hover:text-neon text-lg transition-colors"></i>
                 </div>
-                <span class="text-xs font-bold text-slate-300 group-hover:text-white leading-tight px-1 relative z-10">
+                <span class="text-xs font-bold text-main-text/80 group-hover:text-main-text leading-tight px-1 relative z-10">
                     {{ $link['title'] }}
                 </span>
             </a>
@@ -184,13 +185,13 @@
                 <div class="absolute inset-0 bg-repeat opacity-5" style="background-image: radial-gradient(#ccff00 1px, transparent 1px); background-size: 10px 10px;"></div>
                 <div class="p-4 flex items-center gap-4 relative z-10">
                     <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 group-hover:bg-neon group-hover:text-dark transition-colors">
-                        <i class="fas fa-ad text-slate-400 group-hover:text-dark"></i>
+                        <i class="fas fa-ad text-main-text/60 group-hover:text-dark"></i>
                     </div>
                     <div class="flex-grow text-left">
-                        <h3 class="text-sm font-bold text-slate-200 group-hover:text-white">{{ $adsTitle }}</h3>
-                        <p class="text-xs text-slate-500 group-hover:text-slate-400">{{ $adsDescription }}</p>
+                        <h3 class="text-sm font-bold text-main-text/90 group-hover:text-main-text">{{ $adsTitle }}</h3>
+                        <p class="text-xs text-main-text/50 group-hover:text-main-text/60">{{ $adsDescription }}</p>
                     </div>
-                    <i class="fas fa-chevron-right text-xs text-slate-600 group-hover:text-neon"></i>
+                    <i class="fas fa-chevron-right text-xs text-main-text/40 group-hover:text-neon"></i>
                 </div>
             </a>
         </div>
@@ -200,23 +201,23 @@
         <footer class="mt-auto animate-slide-up" style="animation-delay: 0.5s;">
             <div class="flex justify-center gap-4 mb-6">
                 @foreach($socialLinks as $social)
-                <a href="{{ $social['url'] }}" target="_blank" class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-700 hover:-translate-y-1 transition-all duration-300 shadow-lg" title="{{ $social['title'] }}">
+                <a href="{{ $social['url'] }}" target="_blank" class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-main-text/60 hover:text-main-text hover:border-slate-500 hover:bg-slate-700 hover:-translate-y-1 transition-all duration-300 shadow-lg" title="{{ $social['title'] }}">
                     <i class="fab fa-{{ $social['icon'] ?? 'link' }} text-xl"></i>
                 </a>
                 @endforeach
             </div>
             
             <div class="text-center space-y-2">
-                <p class="text-slate-600 text-[10px] font-mono uppercase tracking-widest">Powered by RuangLari Platform</p>
+                <p class="text-main-text/40 text-[10px] font-mono uppercase tracking-widest">Powered by RuangLari Platform</p>
                 <div class="h-1 w-10 bg-slate-800 mx-auto rounded-full"></div>
-                <p class="text-slate-700 text-[10px]">&copy; {{ date('Y') }} Ruang Lari Indonesia</p>
+                <p class="text-main-text/30 text-[10px]">&copy; {{ date('Y') }} Ruang Lari Indonesia</p>
             </div>
         </footer>
 
     </main>
 
     <!-- Floating Action Button (Optional, maybe for Home) -->
-    <a href="{{ route('home') }}" class="fixed bottom-6 right-6 z-50 w-12 h-12 bg-neon rounded-full shadow-lg shadow-neon/20 flex items-center justify-center text-dark hover:scale-110 transition-transform md:hidden">
+    <a href="{{ route('home') }}" class="fixed bottom-6 right-6 z-50 w-12 h-12 bg-neon rounded-full shadow-lg shadow-neon/20 flex items-center justify-center text-slate-900 hover:scale-110 transition-transform md:hidden">
         <i class="fas fa-home"></i>
     </a>
 

@@ -22,6 +22,9 @@ class VCardSettingsController extends Controller
             'vcard_featured_links' => AppSettings::get('vcard_featured_links', ''),
             'vcard_links' => AppSettings::get('vcard_links', ''),
             'vcard_social_links' => AppSettings::get('vcard_social_links', ''),
+            'vcard_bg_color' => AppSettings::get('vcard_bg_color', '#0f172a'),
+            'vcard_accent_color' => AppSettings::get('vcard_accent_color', '#a855f7'),
+            'vcard_text_color' => AppSettings::get('vcard_text_color', '#ffffff'),
         ];
 
         return view('admin.settings.vcard', compact('settings'));
@@ -41,6 +44,9 @@ class VCardSettingsController extends Controller
             'vcard_featured_links' => ['nullable', 'string'],
             'vcard_links' => ['nullable', 'string'],
             'vcard_social_links' => ['nullable', 'string'],
+            'vcard_bg_color' => ['nullable', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'vcard_accent_color' => ['nullable', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'vcard_text_color' => ['nullable', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
         ]);
 
         foreach (['vcard_featured_links', 'vcard_links', 'vcard_social_links'] as $jsonKey) {

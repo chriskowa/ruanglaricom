@@ -59,6 +59,10 @@ class VCardController extends Controller
         $adsTitle = AppSettings::get('vcard_ads_title', 'Space Iklan Tersedia');
         $adsDescription = AppSettings::get('vcard_ads_description', 'Klik untuk pasang iklan brand kamu disini');
 
+        $bgColor = AppSettings::get('vcard_bg_color', '#0f172a');
+        $accentColor = AppSettings::get('vcard_accent_color', '#ccff00');
+        $textColor = AppSettings::get('vcard_text_color', '#ffffff');
+
         return view('vcard.index', compact(
             'title',
             'description',
@@ -70,7 +74,10 @@ class VCardController extends Controller
             'socialLinks',
             'adsUrl',
             'adsTitle',
-            'adsDescription'
+            'adsDescription',
+            'bgColor',
+            'accentColor',
+            'textColor'
         ));
     }
 }
