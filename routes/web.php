@@ -290,8 +290,8 @@ Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'st
 
 // Public race results API (must be before /events/{slug} to avoid route conflict)
 // Route lama diarahkan ke route baru
-Route::get('/api/events/{slug}/results', function ($slug) {
-    return redirect()->route('api.events.results', ['slug' => $slug], 301);
+Route::get('/events/{slug}', function ($slug) {
+    return redirect("/event/{$slug}", 301);
 });
 
 Route::get('/api/event/{slug}/results', [App\Http\Controllers\RaceResultController::class, 'index'])
