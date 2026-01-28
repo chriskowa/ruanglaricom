@@ -49,7 +49,7 @@ class StoreRegistrationAction
         }
 
         // Validate input
-        $validated = $request->validate([
+        $rules = [
             'pic_name' => 'required|string|max:255',
             'pic_email' => 'required|email|max:255',
             'pic_phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
@@ -101,7 +101,13 @@ class StoreRegistrationAction
                     $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
                 }
             }],
-        ]);
+        ];
+
+        if ($event->hardcoded === 'latbarkamis') {
+            $rules['participants.*.date_of_birth'] = 'nullable|date|before:today';
+        }
+
+        $validated = $request->validate($rules);
 
         $paymentMethod = strtolower($validated['payment_method'] ?? 'midtrans');
 

@@ -23,6 +23,19 @@ class CouponRegistrationTest extends TestCase
         Schema::dropIfExists('coupons');
         Schema::dropIfExists('race_categories');
         Schema::dropIfExists('events');
+        Schema::dropIfExists('users');
+
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('phone')->nullable();
+            $table->string('password');
+            $table->string('role')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->string('remember_token')->nullable();
+            $table->timestamps();
+        });
 
         Schema::create('events', function (Blueprint $table) {
             $table->id();
@@ -196,5 +209,64 @@ class CouponRegistrationTest extends TestCase
         $participant = Participant::firstOrFail();
         $this->assertSame('2000-01-01', $participant->date_of_birth?->format('Y-m-d'));
         $this->assertSame('regular', $participant->price_type);
+    }
+
+    public function test_latbarkamis_registration_does_not_require_date_of_birth(): void
+    {
+        config(['cache.default' => 'file']);
+        Queue::fake();
+        Http::fake([
+            'https://www.google.com/recaptcha/api/siteverify' => Http::response(['success' => true], 200),
+        ]);
+        $this->resetSchema();
+        $this->app->instance(MootaService::class, new class extends MootaService {
+            public function __construct()
+            {
+            }
+
+            public function generateUniqueCode($amount)
+            {
+                return 0;
+            }
+        });
+
+        $event = Event::create([
+            'name' => 'Latbar Kamis',
+            'slug' => 'latbar-kamis',
+            'hardcoded' => 'latbarkamis',
+            'start_at' => now(),
+            'location_name' => 'Jakarta',
+            'platform_fee' => 0,
+        ]);
+
+        $category = RaceCategory::create([
+            'event_id' => $event->id,
+            'name' => 'Latbar',
+            'price_regular' => 15000,
+            'is_active' => true,
+        ]);
+
+        $payload = [
+            'pic_name' => 'PIC',
+            'pic_email' => 'pic-latbar@example.com',
+            'pic_phone' => '081234567890',
+            'payment_method' => 'cod',
+            'g-recaptcha-response' => 'test',
+            'participants' => [
+                [
+                    'name' => 'Runner 1',
+                    'gender' => 'male',
+                    'email' => 'runner1-latbar@example.com',
+                    'phone' => '081234567891',
+                    'id_card' => '081234567891',
+                    'category_id' => $category->id,
+                    'emergency_contact_name' => 'EC',
+                    'emergency_contact_number' => '081234567892',
+                ],
+            ],
+        ];
+
+        $response = $this->postJson(route('events.register.store', $event->slug), $payload);
+        $response->assertOk()->assertJsonPath('success', true);
     }
 }
