@@ -182,7 +182,7 @@
                     <div x-data="{
                         items: {{ $settings['vcard_featured_links'] ?: '[]' }},
                         addItem() {
-                            this.items.push({ title: '', url: '', badge: '', icon: 'star', color: '' });
+                            this.items.push({ title: '', url: '', badge: '', icon: 'star', color: '', bg_color: '#1e293b', text_color: '#ffffff' });
                         },
                         removeItem(index) {
                             this.items.splice(index, 1);

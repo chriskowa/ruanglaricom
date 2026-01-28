@@ -865,7 +865,110 @@
         </div>
     </section>
 
-    @include('events.partials.prizes-section', ['categories' => $categories])
+    <section id="prizes" class="py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 reveal">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Hadiah Pemenang</h2>
+                <p class="mt-4 text-slate-600">Total hadiah puluhan juta rupiah menanti para juara.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 reveal delay-100">
+                <!-- Category 1 -->
+                <div class="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 class="text-xl font-bold text-slate-900 mb-6 text-center border-b border-slate-200 pb-4">
+                        KATEGORI 5K UMUM <br>
+                        <span class="text-brand-600 text-base font-medium">(PRIA & WANITA)</span>
+                    </h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left">
+                                    <th class="pb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider">Peringkat</th>
+                                    <th class="pb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider text-right">Hadiah</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-bold text-slate-900">Juara 1</td>
+                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 2.000.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-bold text-slate-900">Juara 2</td>
+                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.500.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-bold text-slate-900">Juara 3</td>
+                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.000.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-medium text-slate-700">Peringkat 4</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 750.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-medium text-slate-700">Peringkat 5</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-medium text-slate-700">Peringkat 6</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-medium text-slate-700">Peringkat 7</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 font-medium text-slate-700">Peringkat 8</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Category 2 -->
+                <div class="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 class="text-xl font-bold text-slate-900 mb-6 text-center border-b border-slate-200 pb-4">
+                        KATEGORI 5K MASTER >45 TH <br>
+                        <span class="text-brand-600 text-base font-medium">(PRIA & WANITA)</span>
+                    </h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left">
+                                    <th class="pb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider">Peringkat</th>
+                                    <th class="pb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider text-right">Hadiah</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-bold text-slate-900">Juara 1</td>
+                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.250.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-bold text-slate-900">Juara 2</td>
+                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.000.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-bold text-slate-900">Juara 3</td>
+                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 750.000</td>
+                                </tr>
+                                <tr class="border-b border-slate-200/60">
+                                    <td class="py-3 font-medium text-slate-700">Peringkat 4</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 font-medium text-slate-700">Peringkat 5</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Participants Table Section -->
     @if($hasPaidParticipants ?? false)

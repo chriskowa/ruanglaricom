@@ -129,29 +129,43 @@
         <div class="w-full space-y-4 mb-6 animate-slide-up" style="animation-delay: 0.2s;">
             @foreach($featuredLinks as $link)
             @php
-                $bgClass = isset($link['color']) && str_contains($link['color'], 'from-') ? 'bg-gradient-to-br ' . $link['color'] : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700';
-                $textClass = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-900' : 'text-main-text';
-                $subTextClass = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-800/70' : 'text-main-text/60';
+                $hasCustomBg = !empty($link['bg_color']);
+                $hasCustomText = !empty($link['text_color']);
+
+                // Background Logic
+                $bgStyle = $hasCustomBg ? "background-color: {$link['bg_color']}; border-color: rgba(255,255,255,0.1);" : '';
+                $bgClass = $hasCustomBg ? 'shadow-xl' : (isset($link['color']) && str_contains($link['color'], 'from-') ? 'bg-gradient-to-br ' . $link['color'] : 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700');
+
+                // Glow Logic
+                $glowStyle = $hasCustomBg ? "background-color: {$link['bg_color']};" : '';
+                $glowClass = $hasCustomBg ? '' : (isset($link['color']) ? $link['color'] : 'bg-neon');
+
+                // Text Logic
+                $textStyle = $hasCustomText ? "color: {$link['text_color']} !important;" : '';
+                $textClass = $hasCustomText ? '' : (isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'text-slate-900' : 'text-main-text');
+                
+                // Secondary Elements Logic
                 $iconBg = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'bg-black/10' : 'bg-white/10';
+                $badgeBg = isset($link['color']) && str_contains($link['color'], 'text-slate-900') ? 'bg-black/10' : 'bg-white/10';
             @endphp
             <a href="{{ $link['url'] }}" class="block w-full group relative transform transition-all hover:scale-[1.02] active:scale-[0.98]">
-                <div class="absolute -inset-0.5 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500 {{ isset($link['color']) ? $link['color'] : 'bg-neon' }}"></div>
-                <div class="relative {{ $bgClass }} rounded-xl p-5 border border-white/10 shadow-xl flex items-center justify-between overflow-hidden">
+                <div class="absolute -inset-0.5 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500 {{ $glowClass }}" style="{{ $glowStyle }}"></div>
+                <div class="relative {{ $bgClass }} rounded-xl p-5 border border-white/10 shadow-xl flex items-center justify-between overflow-hidden" style="{{ $bgStyle }}">
                     <div class="flex items-center gap-4 relative z-10">
                         <div class="w-12 h-12 rounded-full {{ $iconBg }} backdrop-blur-sm flex items-center justify-center text-2xl shadow-inner">
-                            <i class="fas fa-{{ $link['icon'] ?? 'star' }} {{ $textClass }}"></i>
+                            <i class="fas fa-{{ $link['icon'] ?? 'star' }} {{ $textClass }}" style="{{ $textStyle }}"></i>
                         </div>
                         <div class="text-left">
                             @if(isset($link['badge']))
-                            <div class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest mb-1 {{ $textClass === 'text-slate-900' ? 'bg-black/10' : 'bg-white/10' }}">
+                            <div class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest mb-1 {{ $badgeBg }}">
                                 {{ $link['badge'] }}
                             </div>
                             @endif
-                            <div class="font-bold text-lg leading-tight {{ $textClass }}">{{ $link['title'] }}</div>
+                            <div class="font-bold text-lg leading-tight {{ $textClass }}" style="{{ $textStyle }}">{{ $link['title'] }}</div>
                         </div>
                     </div>
                     <div class="relative z-10 w-8 h-8 rounded-full {{ $iconBg }} flex items-center justify-center group-hover:translate-x-1 transition-transform">
-                        <i class="fas fa-arrow-right text-xs {{ $textClass }}"></i>
+                        <i class="fas fa-arrow-right text-xs {{ $textClass }}" style="{{ $textStyle }}"></i>
                     </div>
                     
                     <!-- Decorative BG Pattern -->
