@@ -27,11 +27,37 @@ class EventController extends Controller
             });
         }
 
-        $events = $query->latest('start_at')->paginate(10)->appends($request->only('search'));
+        $sort = $request->input('sort', 'created_at_desc');
+        switch ($sort) {
+            case 'created_at_asc':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'start_at_desc':
+                $query->orderBy('start_at', 'desc');
+                break;
+            case 'start_at_asc':
+                $query->orderBy('start_at', 'asc');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+        }
+
+        $events = $query->paginate(10)->appends($request->only('search', 'sort'));
+
+        if ($request->ajax()) {
+            return view('admin.events.partials.table', compact('events'))->render();
+        }
 
         return view('admin.events.index', [
             'events' => $events,
             'search' => $request->input('search'),
+            'sort' => $sort,
         ]);
     }
 
