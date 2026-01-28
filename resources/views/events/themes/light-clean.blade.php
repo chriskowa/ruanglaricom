@@ -16,20 +16,70 @@
         })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ $seo['title'] ?? ($event->name.' | RuangLari') }}</title>
-    <meta name="description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}" />
-    <meta name="keywords" content="{{ $seo['keywords'] ?? '' }}">
-    <link rel="canonical" href="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
+    @php
+        $seoTitle = isset($seo['title']) && $seo['title'] ? $seo['title'] : $event->name . ' - ' . ($event->location_name ?? 'Official Event');
+        $seoDesc = isset($seo['description']) && $seo['description'] ? $seo['description'] : Str::limit(strip_tags($event->short_description ?? $event->description), 155);
+        $seoKeywords = isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
+        $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
+        $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
+    @endphp
+
+    <title>{{ $seoTitle }}</title>
+    <meta name="description" content="{{ $seoDesc }}" />
+    <meta name="keywords" content="{{ $seoKeywords }}">
+    <link rel="canonical" href="{{ $seoUrl }}">
     <meta name="theme-color" content="#ffffff">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
-    <meta property="og:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
-    <meta property="og:url" content="{{ $seo['url'] ?? route('events.show', $event->slug) }}">
-    <meta property="og:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seo['title'] ?? ($event->name.' | RuangLari') }}">
-    <meta name="twitter:description" content="{{ $seo['description'] ?? strip_tags($event->short_description ?? $event->name) }}">
-    <meta name="twitter:image" content="{{ $seo['image'] ?? ($event->getHeroImageUrl() ?? asset('images/ruanglari_green.png')) }}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="event" />
+    <meta property="og:title" content="{{ $seoTitle }}" />
+    <meta property="og:description" content="{{ $seoDesc }}" />
+    <meta property="og:url" content="{{ $seoUrl }}" />
+    <meta property="og:image" content="{{ $seoImage }}" />
+    <meta property="og:site_name" content="RuangLari" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ $seoTitle }}" />
+    <meta name="twitter:description" content="{{ $seoDesc }}" />
+    <meta name="twitter:image" content="{{ $seoImage }}" />
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "Event",
+      "name": "{{ $event->name }}",
+      "description": "{{ $seoDesc }}",
+      "image": "{{ $seoImage }}",
+      "startDate": "{{ $event->start_at ? $event->start_at->toIso8601String() : '' }}",
+      "endDate": "{{ $event->end_at ? $event->end_at->toIso8601String() : ($event->start_at ? $event->start_at->addHours(4)->toIso8601String() : '') }}",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@@type": "Place",
+        "name": "{{ $event->location_name ?? 'TBA' }}",
+        "address": {
+          "@@type": "PostalAddress",
+          "addressLocality": "{{ $event->city ?? '' }}",
+          "addressCountry": "ID"
+        }
+      },
+      "organizer": {
+        "@@type": "Organization",
+        "name": "RuangLari",
+        "url": "{{ url('/') }}"
+      },
+      "offers": {
+        "@@type": "Offer",
+        "url": "{{ $seoUrl }}",
+        "price": "0",
+        "priceCurrency": "IDR",
+        "availability": "{{ (isset($isRegOpen) && $isRegOpen) ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut' }}",
+        "validFrom": "{{ $event->registration_open_at ? $event->registration_open_at->toIso8601String() : '' }}"
+      }
+    }
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/green/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/green/favicon-16x16.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/green/apple-touch-icon.png') }}">

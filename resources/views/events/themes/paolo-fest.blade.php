@@ -26,7 +26,70 @@
         })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ $event->name }} - Official Event</title>
+    @php
+        $seoTitle = isset($seo['title']) && $seo['title'] ? $seo['title'] : $event->name . ' - ' . ($event->location_name ?? 'Official Event');
+        $seoDesc = isset($seo['description']) && $seo['description'] ? $seo['description'] : Str::limit(strip_tags($event->short_description ?? $event->description), 155);
+        $seoKeywords = isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
+        $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
+        $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
+    @endphp
+
+    <title>{{ $seoTitle }}</title>
+    <meta name="description" content="{{ $seoDesc }}" />
+    <meta name="keywords" content="{{ $seoKeywords }}">
+    <link rel="canonical" href="{{ $seoUrl }}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="event" />
+    <meta property="og:title" content="{{ $seoTitle }}" />
+    <meta property="og:description" content="{{ $seoDesc }}" />
+    <meta property="og:url" content="{{ $seoUrl }}" />
+    <meta property="og:image" content="{{ $seoImage }}" />
+    <meta property="og:site_name" content="RuangLari" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ $seoTitle }}" />
+    <meta name="twitter:description" content="{{ $seoDesc }}" />
+    <meta name="twitter:image" content="{{ $seoImage }}" />
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "Event",
+      "name": "{{ $event->name }}",
+      "description": "{{ $seoDesc }}",
+      "image": "{{ $seoImage }}",
+      "startDate": "{{ $event->start_at ? $event->start_at->toIso8601String() : '' }}",
+      "endDate": "{{ $event->end_at ? $event->end_at->toIso8601String() : ($event->start_at ? $event->start_at->addHours(4)->toIso8601String() : '') }}",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@@type": "Place",
+        "name": "{{ $event->location_name ?? 'TBA' }}",
+        "address": {
+          "@@type": "PostalAddress",
+          "addressLocality": "{{ $event->city ?? '' }}",
+          "addressCountry": "ID"
+        }
+      },
+      "organizer": {
+        "@@type": "Organization",
+        "name": "RuangLari",
+        "url": "{{ url('/') }}"
+      },
+      "offers": {
+        "@@type": "Offer",
+        "url": "{{ $seoUrl }}",
+        "price": "0",
+        "priceCurrency": "IDR",
+        "availability": "{{ (isset($isRegOpen) && $isRegOpen) ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut' }}",
+        "validFrom": "{{ $event->registration_open_at ? $event->registration_open_at->toIso8601String() : '' }}"
+      }
+    }
+    </script>
+
     <!-- Favicon Plan: Replace href with actual favicon path if available -->
     <link rel="shortcut icon" href="{{ asset('images/favicon.png') }}" type="image/x-icon">
     
@@ -35,7 +98,6 @@
     @if(env('RECAPTCHA_SITE_KEY'))
         <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     @endif
-    <meta name="description" content="{{ strip_tags($event->short_description ?? $event->name) }}" />
 
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -83,6 +145,8 @@
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
                         'blob': 'blob 7s infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     },
                     keyframes: {
                         float: {
@@ -94,6 +158,10 @@
                             '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
                             '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
                             '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
                         }
                     }
                 }
@@ -190,35 +258,38 @@
 
     @if(!$isRegOpen)
     <!-- Maintenance / Coming Soon Overlay -->
-    <div class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center overflow-hidden">
+    <div class="fixed inset-0 z-[100] bg-slate-900 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <!-- Background -->
-        <div class="absolute inset-0 z-0">
+        <div class="fixed inset-0 z-0 pointer-events-none">
              @if($event->hero_image)
-                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover opacity-30 blur-sm scale-105 animate-pulse-slow">
+                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover opacity-20 blur-sm scale-105 animate-pulse-slow">
             @else
                 <div class="w-full h-full bg-slate-900"></div>
                 <div class="absolute top-0 -left-4 w-96 h-96 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
                 <div class="absolute bottom-0 -right-4 w-96 h-96 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
             @endif
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/90 to-slate-900/80"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-900/90 to-slate-900"></div>
         </div>
 
         <!-- Content -->
-        <div class="relative z-10 max-w-4xl mx-auto px-6 text-center">
+        <div class="relative z-10 min-h-screen flex flex-col items-center justify-center py-12 px-4 md:px-6 text-center">
+            
             <!-- Logo/Name -->
-            @if($event->logo_image)
-                <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-24 md:h-32 w-auto mx-auto mb-8 drop-shadow-2xl animate-fade-in-up">
-            @else
-                <h1 class="text-5xl md:text-7xl font-black tracking-tighter mb-6 text-white animate-fade-in-up">{{ $event->name }}</h1>
-            @endif
+            <div class="animate-fade-in-up">
+                @if($event->logo_image)
+                    <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-20 md:h-32 w-auto mx-auto mb-6 drop-shadow-2xl hover:scale-105 transition-transform duration-500">
+                @else
+                    <h1 class="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-white">{{ $event->name }}</h1>
+                @endif
+            </div>
 
             <!-- Status Badge -->
-            <div class="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 animate-fade-in-up delay-100 shadow-xl">
-                <span class="relative flex h-3 w-3">
+            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 animate-fade-in-up delay-100 shadow-lg hover:bg-white/10 transition">
+                <span class="relative flex h-2.5 w-2.5">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-accent-500"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-500"></span>
                 </span>
-                <span class="text-accent-500 font-bold uppercase tracking-widest text-sm">
+                <span class="text-accent-400 font-bold uppercase tracking-widest text-xs md:text-sm">
                     @if($event->registration_open_at && $now < $event->registration_open_at)
                         COMING SOON
                     @else
@@ -227,40 +298,83 @@
                 </span>
             </div>
 
-            <!-- Event Details -->
-            <h2 class="text-3xl md:text-5xl font-black text-white mb-6 animate-fade-in-up delay-200 drop-shadow-lg">
-                {{ $event->start_at->format('d F Y') }}
-            </h2>
-            <p class="text-xl md:text-2xl text-slate-300 mb-12 flex items-center justify-center gap-3 animate-fade-in-up delay-300 font-light">
-                <i class="fas fa-map-marker-alt text-accent-500"></i> {{ $event->location_name }}
-            </p>
+            <!-- Date & Location -->
+             <div class="space-y-2 mb-10 animate-fade-in-up delay-200">
+                <h2 class="text-2xl md:text-4xl font-black text-white drop-shadow-lg">
+                    {{ $event->start_at->format('d F Y') }}
+                </h2>
+                <p class="text-lg md:text-xl text-slate-400 flex items-center justify-center gap-2 font-light">
+                    <i class="fas fa-map-marker-alt text-accent-500"></i> {{ $event->location_name }}
+                </p>
+             </div>
 
             <!-- Countdown -->
             @if($event->registration_open_at && $now < $event->registration_open_at)
-                <div class="mb-12 animate-fade-in-up delay-400">
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-8">Pendaftaran Dibuka Dalam</p>
-                    <div class="flex flex-wrap justify-center gap-4 md:gap-8">
+                <div class="mb-12 animate-fade-in-up delay-300 w-full max-w-3xl">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-6">Pendaftaran Dibuka Dalam</p>
+                    <div class="grid grid-cols-4 gap-3 md:gap-6">
                         @foreach(['Hari' => 'days', 'Jam' => 'hours', 'Menit' => 'minutes', 'Detik' => 'seconds'] as $label => $id)
-                        <div class="flex flex-col items-center group">
-                            <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-slate-800/50 border border-white/10 backdrop-blur-md flex items-center justify-center mb-3 shadow-2xl group-hover:border-accent-500/50 transition-colors duration-500">
-                                <span class="text-3xl md:text-5xl font-black text-white font-mono" id="m-{{ $id }}">00</span>
+                        <div class="flex flex-col items-center">
+                            <div class="w-full aspect-square max-w-[5rem] md:max-w-[6rem] rounded-2xl bg-slate-800/50 border border-white/10 backdrop-blur-md flex items-center justify-center mb-2 shadow-xl">
+                                <span class="text-2xl md:text-4xl font-black text-white font-mono" id="m-{{ $id }}">00</span>
                             </div>
-                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest group-hover:text-accent-500 transition-colors">{{ $label }}</span>
+                            <span class="text-[10px] md:text-xs text-slate-500 uppercase font-bold tracking-widest">{{ $label }}</span>
                         </div>
                         @endforeach
                     </div>
                 </div>
             @endif
 
+            <!-- NEW: Featured / Categories Section -->
+            <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 animate-fade-in-up delay-400 text-left">
+                
+                <!-- Categories -->
+                <div class="bg-slate-800/30 border border-white/5 rounded-3xl p-6 backdrop-blur-sm">
+                    <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                        <i class="fas fa-running text-brand-500"></i> Kategori Lomba
+                    </h3>
+                    <div class="space-y-3">
+                        @foreach($categories as $cat)
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition border border-white/5">
+                            <span class="font-bold text-slate-200">{{ $cat->name }}</span>
+                            <span class="text-xs font-mono text-accent-400 border border-accent-500/30 px-2 py-1 rounded">
+                                {{ $cat->distance_km ?? 0 }}K
+                            </span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Featured / Highlights -->
+                <div class="bg-slate-800/30 border border-white/5 rounded-3xl p-6 backdrop-blur-sm">
+                    <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                        <i class="fas fa-star text-yellow-500"></i> Featured
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                         <div class="aspect-video rounded-xl bg-gradient-to-br from-brand-900 to-slate-900 border border-white/5 flex flex-col items-center justify-center p-4 text-center group">
+                            <i class="fas fa-tshirt text-3xl text-white/20 mb-2 group-hover:text-white/50 transition"></i>
+                            <span class="text-xs font-bold text-slate-300">Exclusive Jersey</span>
+                         </div>
+                         <div class="aspect-video rounded-xl bg-gradient-to-br from-accent-900 to-slate-900 border border-white/5 flex flex-col items-center justify-center p-4 text-center group">
+                            <i class="fas fa-medal text-3xl text-white/20 mb-2 group-hover:text-white/50 transition"></i>
+                            <span class="text-xs font-bold text-slate-300">Finisher Medal</span>
+                         </div>
+                         <div class="col-span-2 p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-slate-400 leading-relaxed">
+                            Dapatkan pengalaman lari terbaik dengan rute menantang dan pemandangan spektakuler.
+                         </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Footer / Contact -->
-             <div class="animate-fade-in-up delay-500">
-                <p class="text-slate-500 text-sm mb-4">Stay tuned for updates</p>
+             <div class="animate-fade-in-up delay-500 pb-8">
+                <p class="text-slate-500 text-sm mb-4 font-medium">Ikuti kami untuk update terbaru</p>
                 <div class="flex justify-center gap-4">
-                    <a href="https://www.instagram.com/paolorunfest/" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-accent-600 hover:border-accent-600 transition-all duration-300">
-                        <i class="fab fa-instagram"></i>
+                    <a href="https://www.instagram.com/paolorunfest/" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-purple-500/20">
+                        <i class="fab fa-instagram text-xl"></i>
                     </a>
-                    <a href="http://wa.me/6287866950667" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-accent-600 hover:border-accent-600 transition-all duration-300">
-                        <i class="fab fa-whatsapp"></i>
+                    <a href="http://wa.me/6287866950667" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-green-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-green-500/20">
+                        <i class="fab fa-whatsapp text-xl"></i>
                     </a>
                 </div>
             </div>
@@ -270,7 +384,8 @@
     @if($event->registration_open_at && $now < $event->registration_open_at)
     <script>
         (function() {
-            const target = new Date("{{ $event->registration_open_at->format('Y-m-d H:i:s') }}").getTime();
+            // Use server-side timestamp to avoid client-side timezone parsing issues
+            const target = {{ $event->registration_open_at->timestamp * 1000 }};
             
             function updateCountdown() {
                 const now = new Date().getTime();
@@ -1181,7 +1296,7 @@
                                                     }
                                                 @endphp
                                                 <label class="cursor-pointer relative">
-                                                    <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $displayPrice }}" required>
+                                                    <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $displayPrice }}" required {{ $loop->first ? 'checked' : '' }}>
                                                     <div class="p-3 bg-white border border-slate-300 rounded-xl peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:ring-1 peer-checked:ring-brand-600 transition hover:border-brand-400">
                                                         <div class="flex justify-between items-center">
                                                             <span class="font-bold text-slate-900 text-sm">{{ $cat->name }}</span>
@@ -1210,20 +1325,23 @@
                                             <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
                                             <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+                                            <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>                                            
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">                                            
+                                            <em class="md:col-span-1">Tanggal lahir</em>
+                                            <input type="date" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="w-full md:col-span-3 bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                        </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                            <input type="date" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                            <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                            <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
                                                 <option value="">Ukuran Jersey</option>
                                                 @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}">{{ $size }}</option> @endforeach
                                             </select>
-                                        </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                        <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                                    </div>
+                                        </div>                                        
                                     </div>
                                 </div>
                             </div>
@@ -1585,6 +1703,8 @@
 
             // Initial attach
             attachListeners(participantsWrapper);
+            calculateTotal();
+            calculateTotal();
 
             const couponBtn = document.getElementById('applyCoupon');
             if (couponBtn) {
@@ -1659,20 +1779,56 @@
 
             window.copyFromPrev = function(btn) {
                 const currentItem = btn.closest('.participant-item');
-                const currentIndex = parseInt(currentItem.dataset.index);
+                const prevItem = currentItem.previousElementSibling;
                 
-                if (currentIndex > 0) {
-                    const prevItem = document.querySelector(`.participant-item[data-index="${currentIndex - 1}"]`);
-                    if (prevItem) {
-                        const fields = ['emergency_contact_name', 'emergency_contact_number']; 
-                        
-                        fields.forEach(field => {
-                            const prevValue = prevItem.querySelector(`input[name*="[${field}]"]`).value;
-                            if (prevValue) {
-                                currentItem.querySelector(`input[name*="[${field}]"]`).value = prevValue;
-                            }
-                        });
+                if (prevItem && prevItem.classList.contains('participant-item')) {
+                    // 1. Copy Text, Email, Date, Number Inputs
+                    const textFields = [
+                        'name', 'email', 'phone', 'id_card', 'date_of_birth', 
+                        'emergency_contact_name', 'emergency_contact_number'
+                    ];
+                    
+                    textFields.forEach(field => {
+                        const sourceInput = prevItem.querySelector(`input[name*="[${field}]"]`);
+                        const targetInput = currentItem.querySelector(`input[name*="[${field}]"]`);
+                        if (sourceInput && targetInput) {
+                            targetInput.value = sourceInput.value;
+                        }
+                    });
+
+                    // 2. Copy Select Dropdowns
+                    const selectFields = ['gender', 'jersey_size'];
+                    selectFields.forEach(field => {
+                        const sourceSelect = prevItem.querySelector(`select[name*="[${field}]"]`);
+                        const targetSelect = currentItem.querySelector(`select[name*="[${field}]"]`);
+                        if (sourceSelect && targetSelect) {
+                            targetSelect.value = sourceSelect.value;
+                        }
+                    });
+
+                    // 3. Copy Category (Radio)
+                    const sourceCategory = prevItem.querySelector(`input[name*="[category_id]"]:checked`);
+                    if (sourceCategory) {
+                        const val = sourceCategory.value;
+                        const targetCategory = currentItem.querySelector(`input[name*="[category_id]"][value="${val}"]`);
+                        if (targetCategory) {
+                            targetCategory.checked = true;
+                            targetCategory.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
                     }
+
+                    // 4. Trigger Events for Auto-Save and UI updates
+                    currentItem.querySelectorAll('input, select').forEach(el => {
+                        if(el.type !== 'radio') { // Radios handled above
+                            el.dispatchEvent(new Event('input', { bubbles: true }));
+                            el.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+
+                    //alert('Data berhasil disalin dari peserta sebelumnya.');
+
+                } else {
+                    alert('Tidak ada peserta sebelumnya untuk disalin.');
                 }
             };
 
@@ -1705,6 +1861,9 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
+                        // Clear draft on successful submission
+                        if(window.clearAutoSave) window.clearAutoSave();
+                        
                         if (data.snap_token) {
                             snap.pay(data.snap_token, {
                                 onSuccess: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
@@ -1768,6 +1927,153 @@
 
             setInterval(updateCountdown, 1000);
             updateCountdown();
+        })();
+
+        // H. Auto Save & Restore System (LocalStorage)
+        (function() {
+            const STORAGE_KEY = 'ruanglari_draft_{{ $event->id }}';
+            const EXPIRY_HOURS = 24;
+            const form = document.getElementById('registrationForm');
+            if (!form) return;
+
+            // Create Visual Indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'fixed bottom-6 left-6 z-50 bg-white/90 backdrop-blur border border-slate-200 shadow-xl rounded-full px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-2 transform transition-all duration-500 translate-y-20 opacity-0';
+            indicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> <span>Draf Disimpan</span>';
+            document.body.appendChild(indicator);
+
+            const showIndicator = (msg, type = 'success') => {
+                const color = type === 'success' ? 'bg-emerald-500' : (type === 'process' ? 'bg-blue-500' : 'bg-red-500');
+                indicator.innerHTML = `<span class="w-2 h-2 rounded-full ${color} ${type === 'process' ? 'animate-bounce' : ''}"></span> <span>${msg}</span>`;
+                indicator.classList.remove('translate-y-20', 'opacity-0');
+                
+                if (type !== 'process') {
+                    setTimeout(() => {
+                        indicator.classList.add('translate-y-20', 'opacity-0');
+                    }, 3000);
+                }
+            };
+
+            // Save Function
+            const saveData = () => {
+                try {
+                    const formData = new FormData(form);
+                    const data = {};
+                    
+                    // Handle standard inputs
+                    for (let [key, val] of formData.entries()) {
+                        data[key] = val;
+                    }
+
+                    // Special handling: store ALL radio states to ensure correct restoration
+                    // (FormData only stores checked ones, which is actually fine, but we need to know what to check)
+                    
+                    const payload = {
+                        timestamp: new Date().getTime(),
+                        participantCount: document.querySelectorAll('.participant-item').length,
+                        data: data
+                    };
+
+                    // Simple Obfuscation (Base64)
+                    const encrypted = btoa(encodeURIComponent(JSON.stringify(payload)));
+                    localStorage.setItem(STORAGE_KEY, encrypted);
+                    
+                    showIndicator('Progres tersimpan');
+                } catch (e) {
+                    console.error('Auto-save error:', e);
+                }
+            };
+
+            // Debounce
+            let timeout;
+            const debouncedSave = () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(saveData, 1000);
+            };
+
+            // Restore Function
+            const restoreData = () => {
+                const encrypted = localStorage.getItem(STORAGE_KEY);
+                if (!encrypted) return;
+
+                try {
+                    const json = decodeURIComponent(atob(encrypted));
+                    const payload = JSON.parse(json);
+
+                    // Check Expiry
+                    const now = new Date().getTime();
+                    const hoursDiff = (now - payload.timestamp) / (1000 * 60 * 60);
+                    if (hoursDiff > EXPIRY_HOURS) {
+                        localStorage.removeItem(STORAGE_KEY);
+                        return;
+                    }
+
+                    showIndicator('Memulihkan data...', 'process');
+
+                    // 1. Restore Participant Count
+                    const currentCount = document.querySelectorAll('.participant-item').length;
+                    const targetCount = payload.participantCount || 1;
+                    const addBtn = document.getElementById('addParticipant');
+
+                    // Add needed participants
+                    if (targetCount > currentCount) {
+                        for (let i = 0; i < (targetCount - currentCount); i++) {
+                            addBtn.click();
+                        }
+                    }
+
+                    // 2. Fill Data
+                    // Use setTimeout to allow DOM updates if any (though click() is sync mostly)
+                    setTimeout(() => {
+                        const data = payload.data;
+                        
+                        // Fill inputs
+                        Array.from(form.elements).forEach(el => {
+                            if (!el.name) return;
+                            
+                            // Check if this field exists in saved data
+                            // Note: FormData keys for arrays are like "participants[0][name]"
+                            if (data.hasOwnProperty(el.name)) {
+                                const savedValue = data[el.name];
+                                
+                                if (el.type === 'radio') {
+                                    if (el.value == savedValue) {
+                                        el.checked = true;
+                                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                } else if (el.type === 'checkbox') {
+                                    el.checked = true; // Presence in FormData usually means checked
+                                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                                } else {
+                                    el.value = savedValue;
+                                    // Trigger input for any listeners
+                                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            }
+                        });
+                        
+                        showIndicator('Data berhasil dipulihkan');
+                    }, 100);
+
+                } catch (e) {
+                    console.error('Restore error:', e);
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            };
+
+            // Attach Listeners
+            form.addEventListener('input', debouncedSave);
+            form.addEventListener('change', debouncedSave);
+            
+            // Expose clear function
+            window.clearAutoSave = () => {
+                localStorage.removeItem(STORAGE_KEY);
+                showIndicator('Data formulir dibersihkan');
+            };
+
+            // Initialize Restore
+            // Wait a bit for other scripts
+            setTimeout(restoreData, 500);
         })();
 
         // G. Lightbox Logic
