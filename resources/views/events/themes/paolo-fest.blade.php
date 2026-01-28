@@ -188,6 +188,112 @@
         }
     @endphp
 
+    @if(!$isRegOpen)
+    <!-- Maintenance / Coming Soon Overlay -->
+    <div class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center overflow-hidden">
+        <!-- Background -->
+        <div class="absolute inset-0 z-0">
+             @if($event->hero_image)
+                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover opacity-30 blur-sm scale-105 animate-pulse-slow">
+            @else
+                <div class="w-full h-full bg-slate-900"></div>
+                <div class="absolute top-0 -left-4 w-96 h-96 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+                <div class="absolute bottom-0 -right-4 w-96 h-96 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+            @endif
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/90 to-slate-900/80"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10 max-w-4xl mx-auto px-6 text-center">
+            <!-- Logo/Name -->
+            @if($event->logo_image)
+                <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-24 md:h-32 w-auto mx-auto mb-8 drop-shadow-2xl animate-fade-in-up">
+            @else
+                <h1 class="text-5xl md:text-7xl font-black tracking-tighter mb-6 text-white animate-fade-in-up">{{ $event->name }}</h1>
+            @endif
+
+            <!-- Status Badge -->
+            <div class="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 animate-fade-in-up delay-100 shadow-xl">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-accent-500"></span>
+                </span>
+                <span class="text-accent-500 font-bold uppercase tracking-widest text-sm">
+                    @if($event->registration_open_at && $now < $event->registration_open_at)
+                        COMING SOON
+                    @else
+                        REGISTRATION CLOSED
+                    @endif
+                </span>
+            </div>
+
+            <!-- Event Details -->
+            <h2 class="text-3xl md:text-5xl font-black text-white mb-6 animate-fade-in-up delay-200 drop-shadow-lg">
+                {{ $event->start_at->format('d F Y') }}
+            </h2>
+            <p class="text-xl md:text-2xl text-slate-300 mb-12 flex items-center justify-center gap-3 animate-fade-in-up delay-300 font-light">
+                <i class="fas fa-map-marker-alt text-accent-500"></i> {{ $event->location_name }}
+            </p>
+
+            <!-- Countdown -->
+            @if($event->registration_open_at && $now < $event->registration_open_at)
+                <div class="mb-12 animate-fade-in-up delay-400">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-8">Pendaftaran Dibuka Dalam</p>
+                    <div class="flex flex-wrap justify-center gap-4 md:gap-8">
+                        @foreach(['Hari' => 'days', 'Jam' => 'hours', 'Menit' => 'minutes', 'Detik' => 'seconds'] as $label => $id)
+                        <div class="flex flex-col items-center group">
+                            <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-slate-800/50 border border-white/10 backdrop-blur-md flex items-center justify-center mb-3 shadow-2xl group-hover:border-accent-500/50 transition-colors duration-500">
+                                <span class="text-3xl md:text-5xl font-black text-white font-mono" id="m-{{ $id }}">00</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 uppercase font-bold tracking-widest group-hover:text-accent-500 transition-colors">{{ $label }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Footer / Contact -->
+             <div class="animate-fade-in-up delay-500">
+                <p class="text-slate-500 text-sm mb-4">Stay tuned for updates</p>
+                <div class="flex justify-center gap-4">
+                    <a href="https://www.instagram.com/paolorunfest/" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-accent-600 hover:border-accent-600 transition-all duration-300">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="http://wa.me/6287866950667" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-accent-600 hover:border-accent-600 transition-all duration-300">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if($event->registration_open_at && $now < $event->registration_open_at)
+    <script>
+        (function() {
+            const target = new Date("{{ $event->registration_open_at->format('Y-m-d H:i:s') }}").getTime();
+            
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = target - now;
+                
+                if (distance < 0) {
+                    location.reload(); 
+                    return;
+                }
+                
+                document.getElementById('m-days').innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+                document.getElementById('m-hours').innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+                document.getElementById('m-minutes').innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                document.getElementById('m-seconds').innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            }
+            
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+        })();
+    </script>
+    @endif
+    @endif
+
     <nav class="fixed w-full z-50 transition-all duration-300 bg-white/0 border-b border-transparent" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
@@ -873,7 +979,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 reveal delay-100">
-                <!-- Category 1 -->
+                <!-- Category 1 --> 
                 <div class="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                     <h3 class="text-xl font-bold text-slate-900 mb-6 text-center border-b border-slate-200 pb-4">
                         KATEGORI 5K UMUM <br>
