@@ -289,15 +289,10 @@ Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\Mark
 Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'store'])->name('newsletter.subscribe');
 
 // Public race results API (must be before /events/{slug} to avoid route conflict)
-// Route lama diarahkan ke route baru
-Route::get('/events/{slug}', function ($slug) {
-    return redirect("/event/{$slug}", 301);
-});
-
-Route::get('/api/event/{slug}/results', [App\Http\Controllers\RaceResultController::class, 'index'])
+Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultController::class, 'index'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('api.events.results');
-    
+
 // Public event routes (Kalender Lari)
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
 Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventController::class, 'cityArchive'])->name('events.city');
