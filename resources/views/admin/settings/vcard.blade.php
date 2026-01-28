@@ -212,7 +212,7 @@
                                             <label class="text-[10px] text-slate-500 uppercase font-bold">URL</label>
                                             <input x-model="item.url" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon focus:outline-none" placeholder="https://...">
                                         </div>
-                                        <div class="grid grid-cols-3 gap-3 md:col-span-2">
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:col-span-2">
                                             <div>
                                                 <label class="text-[10px] text-slate-500 uppercase font-bold">Icon (fa-)</label>
                                                 <div class="flex items-center gap-2">
@@ -224,13 +224,29 @@
                                             </div>
                                             <div>
                                                 <label class="text-[10px] text-slate-500 uppercase font-bold">Badge</label>
-                                                <input x-model="item.badge" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon focus:outline-none" placeholder="New, Promo...">
+                                                <input x-model="item.badge" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon focus:outline-none" placeholder="New...">
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-slate-500 uppercase font-bold">Color Classes</label>
-                                                <input x-model="item.color" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 focus:border-neon focus:outline-none" placeholder="from-pink-500 to-rose-500">
+                                                <label class="text-[10px] text-slate-500 uppercase font-bold">Card Bg</label>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="relative w-10 h-10 rounded-lg overflow-hidden shadow-lg border border-slate-600 flex-shrink-0">
+                                                        <input type="color" x-model="item.bg_color" class="absolute -top-2 -left-2 w-14 h-14 p-0 cursor-pointer border-0">
+                                                    </div>
+                                                    <input x-model="item.bg_color" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-xs text-white font-mono uppercase focus:border-neon focus:outline-none" placeholder="#000000">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-500 uppercase font-bold">Text Color</label>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="relative w-10 h-10 rounded-lg overflow-hidden shadow-lg border border-slate-600 flex-shrink-0">
+                                                        <input type="color" x-model="item.text_color" class="absolute -top-2 -left-2 w-14 h-14 p-0 cursor-pointer border-0">
+                                                    </div>
+                                                    <input x-model="item.text_color" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-xs text-white font-mono uppercase focus:border-neon focus:outline-none" placeholder="#FFFFFF">
+                                                </div>
                                             </div>
                                         </div>
+                                        <!-- Hidden legacy color field to preserve data structure -->
+                                        <input type="hidden" x-model="item.color">
                                     </div>
                                 </div>
                             </template>
