@@ -85,6 +85,11 @@ Route::get('/vcard', function () {
     return redirect()->route('vcard.index', [], 301);
 });
 
+Route::get('/halaman-lama', function () {
+    return redirect('/halaman-baru');
+});
+
+
 // Challenge assessment persistence (auth required)
 Route::middleware('auth')->post('/challenge/40-days-challenge/assessment', function (Illuminate\Http\Request $request) {
     $data = $request->validate([
@@ -284,10 +289,15 @@ Route::get('/marketplace/product/{slug}', [App\Http\Controllers\Marketplace\Mark
 Route::post('/subscribe', [App\Http\Controllers\NewsletterController::class, 'store'])->name('newsletter.subscribe');
 
 // Public race results API (must be before /events/{slug} to avoid route conflict)
-Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultController::class, 'index'])
+// Route lama diarahkan ke route baru
+Route::get('/api/events/{slug}/results', function ($slug) {
+    return redirect()->route('api.events.results', ['slug' => $slug], 301);
+});
+
+Route::get('/api/event/{slug}/results', [App\Http\Controllers\RaceResultController::class, 'index'])
     ->where('slug', '[a-z0-9\-]+')
     ->name('api.events.results');
-
+    
 // Public event routes (Kalender Lari)
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
 Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventController::class, 'cityArchive'])->name('events.city');
