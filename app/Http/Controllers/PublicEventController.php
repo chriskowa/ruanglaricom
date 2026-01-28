@@ -88,7 +88,7 @@ class PublicEventController extends Controller
             })->exists();
             if ($event->hardcoded === 'latbarkamis') {
                 $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
-                        $q->where('event_id', $event->id)->whereIn('payment_status', ['pending', 'paid']);
+                        $q->where('event_id', $event->id)->where('payment_status', 'paid');
                     })
                     ->when($event->registration_open_at, function($q) use ($event) {
                         $q->where('created_at', '>=', $event->registration_open_at);
@@ -138,7 +138,7 @@ class PublicEventController extends Controller
 
         if ($event->hardcoded === 'latbarkamis') {
             $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
-                $q->where('event_id', $event->id)->whereIn('payment_status', ['pending', 'paid']);
+                $q->where('event_id', $event->id)->where('payment_status', 'paid');
             })
             ->when($event->registration_open_at, function($q) use ($event) {
                 $q->where('created_at', '>=', $event->registration_open_at);
