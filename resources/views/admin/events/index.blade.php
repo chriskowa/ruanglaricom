@@ -15,7 +15,11 @@
             <p class="text-slate-400 mt-1">Manage running events calendar.</p>
         </div>
         
-        <div class="flex gap-3">
+        <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-end w-full md:w-auto">
+            <form action="{{ route('admin.events.index') }}" method="GET" class="flex items-center gap-2">
+                <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari event atau lokasi..." class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 w-64 focus:outline-none focus:border-neon">
+                <button type="submit" class="px-3 py-2 rounded-xl bg-slate-700 text-white hover:bg-slate-600 transition-all text-sm">Search</button>
+            </form>
             <form action="{{ route('admin.events.sync') }}" method="POST" class="inline">
                 @csrf
                 <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 transition-all font-bold text-sm flex items-center gap-2">

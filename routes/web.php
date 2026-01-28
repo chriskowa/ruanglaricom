@@ -298,18 +298,31 @@ Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::c
 Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventController::class, 'cityArchive'])->name('events.city');
 Route::get('/event-lari/{slug}', [App\Http\Controllers\PublicRunningEventController::class, 'show'])->name('running-event.detail');
 
-// Legacy public event routes (keep if needed or redirect)
-Route::get('/events/{slug}/participants-list', [App\Http\Controllers\PublicEventController::class, 'getParticipants'])->name('events.participants-list');
-Route::get('/events/{slug}', [App\Http\Controllers\PublicEventController::class, 'show'])->name('events.show');
-Route::get('/legacy-events', [App\Http\Controllers\PublicEventController::class, 'index'])->name('legacy.events.index'); // Renamed old one if exists
+// Legacy public event routes redirects
+Route::get('/events/{slug}/participants-list', function ($slug) {
+    return redirect()->route('events.participants-list', $slug, 301);
+});
+Route::get('/events/{slug}', function ($slug) {
+    return redirect()->route('events.show', $slug, 301);
+});
+Route::get('/events/{slug}/register', function ($slug) {
+    return redirect()->route('events.register', $slug, 301);
+});
+Route::get('/events/{slug}/payment/{transaction}', function ($slug, $transaction) {
+    return redirect()->route('events.payment', ['slug' => $slug, 'transaction' => $transaction], 301);
+});
 
+Route::get('/legacy-events', [App\Http\Controllers\PublicEventController::class, 'index'])->name('legacy.events.index');
 
+// New event routes (event/{slug})
+Route::get('/event/{slug}/participants-list', [App\Http\Controllers\PublicEventController::class, 'getParticipants'])->name('events.participants-list');
+Route::get('/event/{slug}', [App\Http\Controllers\PublicEventController::class, 'show'])->name('events.show');
 
-Route::get('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
-Route::get('/events/{slug}/payment/{transaction}', [App\Http\Controllers\EventRegistrationController::class, 'payment'])->name('events.payment');
-Route::post('/events/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:5,1')->name('events.register.store');
-Route::post('/events/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
-Route::post('/events/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
+Route::get('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
+Route::get('/event/{slug}/payment/{transaction}', [App\Http\Controllers\EventRegistrationController::class, 'payment'])->name('events.payment');
+Route::post('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:5,1')->name('events.register.store');
+Route::post('/event/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
+Route::post('/event/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
 
 // EO Landing Page
 Route::get('/event-organizer', function () {

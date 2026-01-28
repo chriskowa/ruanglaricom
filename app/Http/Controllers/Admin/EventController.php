@@ -15,12 +15,24 @@ use Carbon\Carbon;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $events = Event::with(['city', 'raceType', 'raceDistances'])
-            ->latest('start_at')
-            ->paginate(10);
-        return view('admin.events.index', compact('events'));
+        $query = Event::with(['city', 'raceType', 'raceDistances']);
+        
+        if ($request->filled('search')) {
+            $s = $request->input('search');
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('location_name', 'like', "%{$s}%");
+            });
+        }
+
+        $events = $query->latest('start_at')->paginate(10)->appends($request->only('search'));
+
+        return view('admin.events.index', [
+            'events' => $events,
+            'search' => $request->input('search'),
+        ]);
     }
 
     public function create()
@@ -248,16 +260,11 @@ class EventController extends Controller
 
                 $name = html_entity_decode($item['title']);
                 
-                $existing = Event::withTrashed()
-                    ->where('name', $name)
+                $existing = Event::where('name', $name)
                     ->whereDate('start_at', $date->toDateString())
                     ->first();
 
                 if ($existing) {
-                    if ($existing->trashed()) {
-                        $existing->restore();
-                    }
-                    
                     if (empty($existing->registration_link) && !empty($item['link'])) {
                         $existing->update(['registration_link' => $item['link']]);
                         $updated++;
@@ -301,7 +308,7 @@ class EventController extends Controller
         $baseSlug = Str::slug($name);
         $slug = $baseSlug;
         $counter = 1;
-        while (Event::withTrashed()->where('slug', $slug)->exists()) {
+        while (Event::where('slug', $slug)->exists()) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
