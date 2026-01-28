@@ -445,7 +445,7 @@
                                                     <select name="participants[0][category_id]" class="category-select input-premium w-full rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none cursor-pointer" data-index="0" required>
                                                         <option value="">-- Pilih Kategori --</option>
                                                         @foreach($categories as $cat)
-                                                            <option value="{{ $cat->id }}" data-price-regular="{{ $cat->price_regular }}">{{ $cat->name }} ({{ $cat->distance_km }}K)</option>
+                                                            <option value="{{ $cat->id }}" data-price="{{ $cat->price_regular }}" data-price-regular="{{ $cat->price_regular }}">{{ $cat->name }} ({{ $cat->distance_km }}K)</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -510,11 +510,27 @@
                                         </h3>
 
                                         <div class="space-y-4 mb-8 text-sm">
+                                            <!-- Coupon Section -->
+                                            <div class="mb-4">
+                                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Kode Promo</label>
+                                                <div class="flex gap-2">
+                                                    <input type="text" id="coupon_code" placeholder="KODE..." class="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:bg-white/20 outline-none transition uppercase font-bold placeholder-slate-500">
+                                                    <button type="button" id="applyCouponBtn" class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-600 transition shadow-glow">Pakai</button>
+                                                </div>
+                                                <div id="couponMessage" class="mt-2 text-xs font-medium"></div>
+                                                <input type="hidden" name="coupon_code" id="coupon_code_hidden">
+                                            </div>
+
                                             <div class="flex justify-between text-slate-400">
                                                 <span>Subtotal</span>
                                                 <span id="subtotal" class="text-white font-mono">Rp 0</span>
                                             </div>
                                             
+                                            <div id="discountRow" class="flex justify-between text-green-400 hidden">
+                                                <span>Diskon</span>
+                                                <span id="discountAmount" class="font-mono">-Rp 0</span>
+                                            </div>
+
                                             <div id="feeRow" class="flex justify-between text-slate-400 {{ $event->platform_fee > 0 ? '' : 'hidden' }}">
                                                 <span>Biaya Layanan</span>
                                                 <span id="feeAmount" class="text-white font-mono">Rp 0</span>
@@ -710,6 +726,13 @@
         // Form Logic (Simplified from previous)
         const formatCurrency = (num) => new Intl.NumberFormat('id-ID').format(Math.round(num));
         const platformFee = {{ $event->platform_fee ?? 0 }};
+        const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
+        const eventId = {{ $event->id }};
+        const eventSlug = "{{ $event->slug }}";
+        
+        // --- Coupon Variables ---
+        let appliedCoupon = null;
+        let discountAmount = 0;
         
         // Add Participant & Calc logic here (Clone from previous snippet, but ensure classes match new UI)
         // ... [Insert JS Logic for Form Clone and Calc here same as before] ...
@@ -717,11 +740,23 @@
         // Quick Fix for Add Participant to use styling
         const wrapper = document.getElementById('participantsWrapper');
         const btnAdd = document.getElementById('addParticipant');
+        
+        function resetCoupon() {
+            if (appliedCoupon || discountAmount > 0) {
+                appliedCoupon = null;
+                discountAmount = 0;
+                document.getElementById('coupon_code').value = '';
+                document.getElementById('coupon_code_hidden').value = '';
+                document.getElementById('couponMessage').innerHTML = '';
+            }
+        }
+
         if(wrapper && btnAdd) {
             const template = wrapper.querySelector('.participant-item').cloneNode(true);
             let pIndex = 1;
 
             btnAdd.addEventListener('click', () => {
+                resetCoupon();
                 const clone = template.cloneNode(true);
                 clone.setAttribute('data-index', pIndex);
                 clone.querySelector('span').innerText = `PESERTA #${pIndex + 1}`;
@@ -763,30 +798,129 @@
             });
 
             // Initial Listener
-            document.querySelectorAll('.category-select').forEach(el => el.addEventListener('change', updateCalc));
+            document.querySelectorAll('.category-select').forEach(el => el.addEventListener('change', () => {
+                resetCoupon();
+                updateCalc();
+            }));
         }
 
         function updateCalc() {
-            let total = 0;
+            const categoryCounts = new Map();
+            const categoryPrices = new Map();
             let count = 0;
+
             document.querySelectorAll('.category-select').forEach(el => {
                 const opt = el.options[el.selectedIndex];
-                if(opt.value) {
-                    total += parseFloat(opt.dataset.priceRegular || 0);
-                    count++;
+                if (!opt.value) return;
+                count++;
+                const categoryId = String(opt.value);
+                const price = parseFloat(opt.dataset.price || 0);
+                categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
+                categoryPrices.set(categoryId, price);
+            });
+
+            let subtotal = 0;
+            categoryCounts.forEach((qty, categoryId) => {
+                const price = categoryPrices.get(categoryId) || 0;
+                let paidQty = qty;
+                if (promoBuyX > 0) {
+                    const bundleSize = promoBuyX + 1;
+                    const freeCount = Math.floor(qty / bundleSize);
+                    paidQty = qty - freeCount;
                 }
+                subtotal += price * paidQty;
             });
 
             const totalFee = count * platformFee;
-            const finalTotal = total + totalFee;
+            let finalTotal = subtotal + totalFee - discountAmount;
+            if(finalTotal < 0) finalTotal = 0;
 
-            document.getElementById('subtotal').innerText = 'Rp ' + formatCurrency(total);
+            document.getElementById('subtotal').innerText = 'Rp ' + formatCurrency(subtotal);
+            
+            if(discountAmount > 0) {
+                document.getElementById('discountRow').classList.remove('hidden');
+                document.getElementById('discountAmount').innerText = '- Rp ' + formatCurrency(discountAmount);
+            } else {
+                document.getElementById('discountRow').classList.add('hidden');
+            }
             
             if (platformFee > 0) {
                 document.getElementById('feeAmount').innerText = 'Rp ' + formatCurrency(totalFee);
             }
             
             document.getElementById('totalAmount').innerText = 'Rp ' + formatCurrency(finalTotal);
+        }
+
+        // Coupon Logic
+        const couponBtn = document.getElementById('applyCouponBtn');
+        if(couponBtn) {
+            couponBtn.addEventListener('click', () => {
+                const code = document.getElementById('coupon_code').value;
+                if(!code) { alert('Masukkan kode kupon'); return; }
+
+                let subtotal = 0;
+                const categoryCounts = new Map();
+                const categoryPrices = new Map();
+                document.querySelectorAll('.category-select').forEach(el => {
+                    const opt = el.options[el.selectedIndex];
+                    if (!opt.value) return;
+                    const categoryId = String(opt.value);
+                    const price = parseFloat(opt.dataset.price || 0);
+                    categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
+                    categoryPrices.set(categoryId, price);
+                });
+                categoryCounts.forEach((qty, categoryId) => {
+                    const price = categoryPrices.get(categoryId) || 0;
+                    let paidQty = qty;
+                    if (promoBuyX > 0) {
+                        const bundleSize = promoBuyX + 1;
+                        const freeCount = Math.floor(qty / bundleSize);
+                        paidQty = qty - freeCount;
+                    }
+                    subtotal += price * paidQty;
+                });
+
+                if(subtotal === 0) {
+                    alert("Pilih kategori peserta terlebih dahulu"); return;
+                }
+
+                const originalText = couponBtn.innerHTML;
+                couponBtn.innerHTML = '...';
+                couponBtn.disabled = true;
+
+                fetch(`{{ route('events.register.coupon', $event->slug) }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ event_id: eventId, coupon_code: code, total_amount: subtotal })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if(data.success) {
+                        appliedCoupon = data.coupon;
+                        discountAmount = data.discount_amount;
+                        document.getElementById('coupon_code_hidden').value = data.coupon.code;
+                        document.getElementById('coupon_code').value = data.coupon.code;
+                        document.getElementById('couponMessage').innerHTML = '<span class="text-green-400">Kupon berhasil digunakan!</span>';
+                        updateCalc();
+                    } else {
+                        document.getElementById('couponMessage').innerHTML = `<span class="text-red-400">${data.message}</span>`;
+                        discountAmount = 0;
+                        document.getElementById('coupon_code_hidden').value = '';
+                        updateCalc();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Gagal memproses kupon');
+                })
+                .finally(() => {
+                    couponBtn.innerHTML = originalText;
+                    couponBtn.disabled = false;
+                });
+            });
         }
 
         // Intersection Observer for Reveal

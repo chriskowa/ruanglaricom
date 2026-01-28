@@ -72,6 +72,7 @@ class StoreRegistrationAction
             ],
             'participants.*.emergency_contact_name' => 'required|string|max:255',
             'participants.*.emergency_contact_number' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
+            'participants.*.date_of_birth' => 'required|date|before:today',
             'participants.*.target_time' => 'nullable|string|max:20',
             'participants.*.jersey_size' => 'nullable|string|max:10',
             'coupon_code' => 'nullable|string|exists:coupons,code',
@@ -186,12 +187,17 @@ class StoreRegistrationAction
         // Validate coupon if provided
         $coupon = null;
         $discountAmount = 0;
+        $couponLock = null;
+
         if (! empty($validated['coupon_code'])) {
             $coupon = Coupon::where('code', $validated['coupon_code'])
-                ->where('event_id', $event->id)
+                ->where(function ($query) use ($event) {
+                    $query->where('event_id', $event->id)
+                          ->orWhereNull('event_id');
+                })
                 ->first();
 
-            if (! $coupon || ! $coupon->canBeUsed()) {
+            if (! $coupon || ! $coupon->canBeUsed($event->id, null, auth()->id())) {
                 throw new \Exception('Kupon tidak valid atau sudah tidak dapat digunakan');
             }
         }
@@ -238,6 +244,7 @@ class StoreRegistrationAction
         try {
             $categoryLocks = [];
             $categories = [];
+            $categoryPriceInfo = [];
 
             // Acquire locks for all categories
             foreach (array_keys($categoryQuantities) as $categoryId) {
@@ -275,21 +282,53 @@ class StoreRegistrationAction
                 }
 
                 // Calculate price based on registration period
-                $price = $this->getCategoryPrice($category, $now);
+                $priceInfo = $this->getCategoryPrice($category, $now);
+                $categoryPriceInfo[$categoryId] = $priceInfo;
+                $price = (int) ($priceInfo['price'] ?? 0);
                 
                 // Promo Buy X Get 1 Free
                 $paidQuantity = $quantity;
+                $isBuyXGet1Active = false;
                 if ($event->promo_buy_x && $event->promo_buy_x > 0) {
                     $bundleSize = $event->promo_buy_x + 1;
                     $freeCount = floor($quantity / $bundleSize);
+                    if ($freeCount > 0) $isBuyXGet1Active = true;
                     $paidQuantity = $quantity - $freeCount;
                 }
 
                 $totalOriginal += $price * $paidQuantity;
             }
 
-            // Apply coupon discount
+            // Apply coupon discount with concurrency check
             if ($coupon) {
+                if ($isBuyXGet1Active && ! $coupon->is_stackable) {
+                    throw new \Exception('Kupon ini tidak dapat digabungkan dengan promo Buy X Get Y.');
+                }
+
+                if ($coupon->max_uses) {
+                    $couponLock = Cache::lock('coupon_usage:'.$coupon->id, 5); // 5s timeout
+                    if (! $couponLock->get()) {
+                        throw new \Exception('Sedang memverifikasi kupon, silakan coba lagi.');
+                    }
+
+                    // Check used_count + pending transactions (from last 1 hour)
+                    $pendingCount = $coupon->transactions()
+                        ->where('payment_status', 'pending')
+                        ->where('created_at', '>', now()->subMinutes(60))
+                        ->count();
+                    
+                    if (($coupon->used_count + $pendingCount) >= $coupon->max_uses) {
+                        $couponLock->release();
+                        throw new \Exception('Kuota kupon sudah habis (termasuk yang sedang menunggu pembayaran).');
+                    }
+                }
+
+                // Strict validation with actual amount and user
+                if (! $coupon->canBeUsed($event->id, $totalOriginal, auth()->id())) {
+                    if (isset($couponLock)) $couponLock->release();
+                    throw new \Exception('Kupon tidak valid untuk transaksi ini (cek minimum pembelian atau batas penggunaan).');
+                }
+
                 $discountAmount = $coupon->applyDiscount($totalOriginal);
             }
             
@@ -330,6 +369,7 @@ class StoreRegistrationAction
             // Create participants
             foreach ($validated['participants'] as $participantData) {
                 $categoryId = $participantData['category_id'];
+                $priceType = $categoryPriceInfo[$categoryId]['type'] ?? 'regular';
 
                 // Create participant
                 Participant::create([
@@ -342,16 +382,21 @@ class StoreRegistrationAction
                     'id_card' => $participantData['id_card'],
                     'emergency_contact_name' => $participantData['emergency_contact_name'],
                     'emergency_contact_number' => $participantData['emergency_contact_number'],
+                    'date_of_birth' => $participantData['date_of_birth'] ?? null,
                     'target_time' => $participantData['target_time'] ?? null,
                     'jersey_size' => $participantData['jersey_size'] ?? null,
                     'addons' => $selectedAddons,
                     'status' => 'pending',
+                    'price_type' => $priceType,
                 ]);
             }
 
             // Release all locks
             foreach ($categoryLocks as $lock) {
                 $lock->release();
+            }
+            if (isset($couponLock) && $couponLock) {
+                $couponLock->release();
             }
 
             DB::commit();
@@ -397,6 +442,9 @@ class StoreRegistrationAction
                     $lock->release();
                 }
             }
+            if (isset($couponLock) && $couponLock) {
+                $couponLock->release();
+            }
 
             Log::error('StoreRegistrationAction failed', [
                 'event_id' => $event->id,
@@ -409,27 +457,50 @@ class StoreRegistrationAction
     }
 
     /**
-     * Get category price based on priority (Early > Late > Regular)
-     * User Request: "ketika terisi early, maka harga pake early, kalau late terisi pakai late, kalau ketiganya terisi pakai early"
+     * Get category price based on priority (Early > Regular)
      * Logic:
-     * 1. If Early Price exists -> Use Early
-     * 2. Else if Late Price exists -> Use Late
-     * 3. Else -> Use Regular
+     * 1. If Early Price > 0 AND Valid (Date & Quota), use Early.
+     * 2. Else, use Regular.
      */
-    private function getCategoryPrice(RaceCategory $category, $now): int
+    private function getCategoryPrice(RaceCategory $category, $now): array
     {
         $early = (int) ($category->price_early ?? 0);
-        $late = (int) ($category->price_late ?? 0);
         $regular = (int) ($category->price_regular ?? 0);
+        $late = (int) ($category->price_late ?? 0); // Fallback if needed, but Regular is standard
 
+        // 1. Check Early Bird
         if ($early > 0) {
-            return $early;
+            $isEarlyValid = true;
+
+            // Check Date
+            if ($category->early_bird_end_at && $now->greaterThan($category->early_bird_end_at)) {
+                $isEarlyValid = false;
+            }
+
+            // Check Quota
+            if ($isEarlyValid && $category->early_bird_quota) {
+                $earlySold = Participant::where('race_category_id', $category->id)
+                    ->where('price_type', 'early')
+                    ->whereHas('transaction', function ($q) {
+                        $q->whereIn('payment_status', ['pending', 'paid', 'cod']);
+                    })
+                    ->count();
+
+                if ($earlySold >= $category->early_bird_quota) {
+                    $isEarlyValid = false;
+                }
+            }
+
+            if ($isEarlyValid) {
+                return ['price' => $early, 'type' => 'early'];
+            }
         }
 
-        if ($late > 0) {
-            return $late;
+        // 2. Fallback to Late if Regular is 0 (optional logic from previous code) or just Regular
+        if ($late > 0 && $regular === 0) {
+             return ['price' => $late, 'type' => 'late'];
         }
 
-        return $regular;
+        return ['price' => $regular, 'type' => 'regular'];
     }
 }

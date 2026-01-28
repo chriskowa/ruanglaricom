@@ -444,7 +444,10 @@
                                             </select>
                                         </div>
                                         
-                                        <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                            <input type="date" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
+                                        </div>
                                         
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <input type="text" name="participants[0][phone]" placeholder="No. HP / WA" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
@@ -479,14 +482,31 @@
                             <div class="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200 border border-slate-100">
                                 <h4 class="font-bold text-lg text-slate-900 mb-4">Ringkasan Biaya</h4>
                                 
+                                <!-- Coupon Section -->
+                                <div class="mb-6">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Kode Promo</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="coupon_code" placeholder="KODE..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:bg-white focus:border-brand-500 outline-none transition uppercase font-bold text-brand-900">
+                                        <button type="button" id="applyCouponBtn" class="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-600/20">Pakai</button>
+                                    </div>
+                                    <div id="couponMessage" class="mt-2 text-xs font-medium"></div>
+                                    <input type="hidden" name="coupon_code" id="coupon_code_hidden">
+                                </div>
+
                                 <div class="space-y-3 mb-6">
                                     <div class="flex justify-between text-sm text-slate-600">
                                         <span>Subtotal</span>
                                         <span id="subtotalDisplay" class="font-semibold text-slate-900">Rp 0</span>
                                     </div>
+                                    
+                                    <div class="flex justify-between text-sm text-green-600 hidden" id="discountRow">
+                                        <span>Diskon</span>
+                                        <span class="font-bold" id="discountDisplay">-Rp 0</span>
+                                    </div>
+
                                     <div class="flex justify-between text-sm text-slate-600">
                                         <span>Biaya Admin</span>
-                                        <span class="font-semibold text-slate-900">Rp 0</span>
+                                        <span class="font-semibold text-slate-900" id="feeDisplay">Rp 0</span>
                                     </div>
                                     <div class="border-t border-dashed border-slate-200 pt-3 flex justify-between items-center">
                                         <span class="font-bold text-slate-900">Total</span>
@@ -578,12 +598,21 @@
     <script>
         // Formatter Currency
         const formatRupiah = (num) => 'Rp ' + new Intl.NumberFormat('id-ID').format(num);
+        const eventId = {{ $event->id }};
+        const eventSlug = "{{ $event->slug }}";
+        const platformFee = {{ $event->platform_fee ?? 0 }};
+        const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
+
+        // --- Coupon Variables ---
+        let appliedCoupon = null;
+        let discountAmount = 0;
 
         // Update Price Logic
         const wrapper = document.getElementById('participantsWrapper');
         const addBtn = document.getElementById('addParticipantBtn');
         const subDisplay = document.getElementById('subtotalDisplay');
         const totalDisplay = document.getElementById('totalDisplay');
+        const feeDisplay = document.getElementById('feeDisplay');
         
         // Template initialization
         let template;
@@ -595,21 +624,72 @@
         
         let participantIndex = 1;
 
-        function updatePrice() {
-            let total = 0;
+        function computePayableSubtotalAndCount() {
+            const categoryCounts = new Map();
+            const categoryPrices = new Map();
+            let selectedCount = 0;
+
             document.querySelectorAll('.participant-item').forEach(item => {
                 const checkedRadio = item.querySelector('.cat-radio:checked');
-                if (checkedRadio) {
-                    total += parseFloat(checkedRadio.getAttribute('data-price') || 0);
-                }
+                if (!checkedRadio) return;
+                selectedCount++;
+
+                const categoryId = checkedRadio.value;
+                const price = parseFloat(checkedRadio.getAttribute('data-price') || 0);
+
+                categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
+                categoryPrices.set(categoryId, price);
             });
-            if(subDisplay) subDisplay.textContent = formatRupiah(total);
+
+            let subtotal = 0;
+            categoryCounts.forEach((qty, categoryId) => {
+                const price = categoryPrices.get(categoryId) || 0;
+                let paidQty = qty;
+                if (promoBuyX > 0) {
+                    const bundleSize = promoBuyX + 1;
+                    const freeCount = Math.floor(qty / bundleSize);
+                    paidQty = qty - freeCount;
+                }
+                subtotal += price * paidQty;
+            });
+
+            return { subtotal, selectedCount };
+        }
+
+        function updatePrice() {
+            const { subtotal, selectedCount } = computePayableSubtotalAndCount();
+            
+            const fee = selectedCount * platformFee;
+            let total = subtotal + fee - discountAmount;
+            if(total < 0) total = 0;
+
+            if(subDisplay) subDisplay.textContent = formatRupiah(subtotal);
+            if(feeDisplay) feeDisplay.textContent = formatRupiah(fee);
+            
+            if(discountAmount > 0) {
+                document.getElementById('discountRow').classList.remove('hidden');
+                document.getElementById('discountDisplay').textContent = '- ' + formatRupiah(discountAmount);
+            } else {
+                document.getElementById('discountRow').classList.add('hidden');
+            }
+
             if(totalDisplay) totalDisplay.textContent = formatRupiah(total);
+        }
+        
+        function resetCoupon() {
+            if (appliedCoupon || discountAmount > 0) {
+                appliedCoupon = null;
+                discountAmount = 0;
+                document.getElementById('coupon_code').value = '';
+                document.getElementById('coupon_code_hidden').value = '';
+                document.getElementById('couponMessage').innerHTML = '';
+            }
         }
 
         // Add Participant
         if(addBtn) {
             addBtn.addEventListener('click', () => {
+                resetCoupon();
                 if(!template) return;
                 
                 const newItem = template.cloneNode(true);
@@ -667,7 +747,63 @@
             });
         }
 
-        document.querySelectorAll('.cat-radio').forEach(r => r.addEventListener('change', updatePrice));
+        document.querySelectorAll('.cat-radio').forEach(r => r.addEventListener('change', () => {
+            resetCoupon();
+            updatePrice();
+        }));
+
+        // Coupon Logic
+        const couponBtn = document.getElementById('applyCouponBtn');
+        if(couponBtn) {
+            couponBtn.addEventListener('click', () => {
+                const code = document.getElementById('coupon_code').value;
+                if(!code) { alert('Masukkan kode kupon'); return; }
+
+                let subtotal = 0;
+                subtotal = computePayableSubtotalAndCount().subtotal;
+
+                if(subtotal === 0) {
+                    alert("Pilih kategori peserta terlebih dahulu"); return;
+                }
+
+                const originalText = couponBtn.innerHTML;
+                couponBtn.innerHTML = '...';
+                couponBtn.disabled = true;
+
+                fetch(`{{ route('events.register.coupon', $event->slug) }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ event_id: eventId, coupon_code: code, total_amount: subtotal })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if(data.success) {
+                        appliedCoupon = data.coupon;
+                        discountAmount = data.discount_amount;
+                        document.getElementById('coupon_code_hidden').value = data.coupon.code;
+                        document.getElementById('coupon_code').value = data.coupon.code;
+                        document.getElementById('couponMessage').innerHTML = '<span class="text-green-600">Kupon berhasil digunakan!</span>';
+                        updatePrice();
+                    } else {
+                        document.getElementById('couponMessage').innerHTML = `<span class="text-red-500">${data.message}</span>`;
+                        discountAmount = 0;
+                        document.getElementById('coupon_code_hidden').value = '';
+                        updatePrice();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Gagal memproses kupon');
+                })
+                .finally(() => {
+                    couponBtn.innerHTML = originalText;
+                    couponBtn.disabled = false;
+                });
+            });
+        }
 
         // Form Submit
         const form = document.getElementById('registrationForm');

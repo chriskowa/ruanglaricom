@@ -41,7 +41,10 @@ class EventRegistrationController extends Controller
         ]);
 
         $coupon = Coupon::where('code', $validated['coupon_code'])
-            ->where('event_id', $validated['event_id'])
+            ->where(function ($query) use ($validated) {
+                $query->where('event_id', $validated['event_id'])
+                      ->orWhereNull('event_id');
+            })
             ->first();
 
         if (! $coupon) {
@@ -51,7 +54,7 @@ class EventRegistrationController extends Controller
             ], 404);
         }
 
-        if (! $coupon->canBeUsed()) {
+        if (! $coupon->canBeUsed($validated['event_id'], $validated['total_amount'], auth()->id())) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kupon tidak valid atau sudah tidak dapat digunakan',
@@ -63,14 +66,16 @@ class EventRegistrationController extends Controller
 
         return response()->json([
             'success' => true,
+            'original_price' => $validated['total_amount'],
+            'discount_amount' => $discountAmount,
+            'final_price' => $finalAmount,
+            'final_amount' => $finalAmount, // Keep backward compatibility
             'coupon' => [
                 'id' => $coupon->id,
                 'code' => $coupon->code,
                 'type' => $coupon->type,
                 'value' => $coupon->value,
             ],
-            'discount_amount' => $discountAmount,
-            'final_amount' => $finalAmount,
         ]);
     }
 

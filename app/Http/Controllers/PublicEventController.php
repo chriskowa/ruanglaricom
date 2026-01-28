@@ -82,6 +82,10 @@ class PublicEventController extends Controller
             // Load categories if not in cache
             $categories = $event->categories()->where('is_active', true)->with('masterGpx')->get();
             $seo = $this->buildSeo($event);
+            $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id)
+                  ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+            })->exists();
             if ($event->hardcoded === 'latbarkamis') {
                 $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                         $q->where('event_id', $event->id)->whereIn('payment_status', ['pending', 'paid']);
@@ -96,6 +100,7 @@ class PublicEventController extends Controller
                     'event' => $event,
                     'categories' => $categories,
                     'participants' => $participants,
+                    'hasPaidParticipants' => $hasPaidParticipants,
                 ]);
             }
 
@@ -103,6 +108,7 @@ class PublicEventController extends Controller
                 'event' => $event,
                 'categories' => $categories,
                 'seo' => $seo,
+                'hasPaidParticipants' => $hasPaidParticipants,
             ]);
         }
 
@@ -115,8 +121,20 @@ class PublicEventController extends Controller
         $this->cacheService->cacheEventDetail($event);
 
         // Get categories
-        $categories = $event->categories()->where('is_active', true)->with('masterGpx')->get();
+        $categories = $event->categories()->where('is_active', true)
+            ->with('masterGpx')
+            ->withCount(['participants as early_bird_sold_count' => function($q) {
+                $q->where('price_type', 'early')
+                  ->whereHas('transaction', function($t) {
+                      $t->whereIn('payment_status', ['pending', 'paid', 'cod']);
+                  });
+            }])
+            ->get();
         $seo = $this->buildSeo($event);
+        $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id)
+              ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+        })->exists();
 
         if ($event->hardcoded === 'latbarkamis') {
             $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
@@ -132,6 +150,7 @@ class PublicEventController extends Controller
                 'event' => $event,
                 'categories' => $categories,
                 'participants' => $participants,
+                'hasPaidParticipants' => $hasPaidParticipants,
             ]);
         }
 
@@ -139,6 +158,7 @@ class PublicEventController extends Controller
             'event' => $event,
             'categories' => $categories,
             'seo' => $seo,
+            'hasPaidParticipants' => $hasPaidParticipants,
         ]);
     }
 

@@ -18,6 +18,7 @@ class Participant extends Model
         'id_card',
         'emergency_contact_name',
         'emergency_contact_number',
+        'date_of_birth',
         'target_time',
         'bib_number',
         'jersey_size',
@@ -26,12 +27,14 @@ class Participant extends Model
         'is_picked_up',
         'picked_up_at',
         'picked_up_by',
+        'price_type',
     ];
 
     protected $casts = [
         'is_picked_up' => 'boolean',
         'picked_up_at' => 'datetime',
         'addons' => 'array',
+        'date_of_birth' => 'date',
     ];
 
     public function transaction(): BelongsTo

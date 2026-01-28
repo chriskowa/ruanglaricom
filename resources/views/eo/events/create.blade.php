@@ -654,6 +654,17 @@
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Early Price (IDR)</label>
                 <input type="number" class="cat-price-early w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="150000">
+                
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div>
+                        <label class="block text-[10px] font-medium text-slate-500 mb-1">Quota (Opt)</label>
+                        <input type="number" class="cat-eb-quota w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white text-xs" placeholder="Limit">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-medium text-slate-500 mb-1">End Date (Opt)</label>
+                        <input type="datetime-local" class="cat-eb-end w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white text-xs [color-scheme:dark]">
+                    </div>
+                </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Regular Price (IDR)</label>
@@ -665,19 +676,13 @@
             </div>
         </div>
 
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 1</label>
-                <input type="text" class="cat-prize-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 5.000.000 / Trofi / dll">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 2</label>
-                <input type="text" class="cat-prize-2 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 3.000.000 / Trofi / dll">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 3</label>
-                <input type="text" class="cat-prize-3 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 1.500.000 / Trofi / dll">
-            </div>
+        <div class="mt-4">
+            <label class="block text-xs font-medium text-slate-400 mb-2">Prizes (Hadiah Juara)</label>
+            <div class="cat-prizes-container space-y-2"></div>
+            <button type="button" class="add-prize-btn mt-2 text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                Add Prize Row
+            </button>
         </div>
     </div>
 </template>
@@ -685,6 +690,9 @@
 @endsection
 
 @push('scripts')
+<script>
+    window.laravelErrors = @json($errors->getMessages());
+</script>
 <script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
@@ -861,7 +869,7 @@
         initDropzone('sponsors-dropzone', 'sponsors[]', 30);
     });
 
-    // Categories LogicCategories Logic
+    // Categories Logic
     let categoryIndex = 0;
     const container = document.getElementById('categories_container');
     const emptyMsg = document.getElementById('empty_categories_msg');
@@ -869,6 +877,7 @@
 
     function addCategory(data = null) {
         emptyMsg.classList.add('hidden');
+        const currentCategoryIndex = categoryIndex;
         
         const clone = template.content.cloneNode(true);
         const item = clone.querySelector('.category-item');
@@ -883,34 +892,82 @@
             'cat-price': 'price_regular',
             'cat-price-late': 'price_late',
             'cat-cot': 'cutoff_minutes',
-            'cat-gpx': 'master_gpx_id'
+            'cat-gpx': 'master_gpx_id',
+            'cat-eb-quota': 'early_bird_quota',
+            'cat-eb-end': 'early_bird_end_at'
         };
 
         for (const [cls, name] of Object.entries(inputs)) {
             const input = item.querySelector('.' + cls);
             // Prevent crash if template changes and selector is missing
             if (input) {
-                input.name = `categories[${categoryIndex}][${name}]`;
+                input.name = `categories[${currentCategoryIndex}][${name}]`;
                 if (data && data[name] !== undefined && data[name] !== null) input.value = data[name];
             }
         }
 
-        // Handle prizes separately
-        const prizeInputs = {
-            'cat-prize-1': 1,
-            'cat-prize-2': 2,
-            'cat-prize-3': 3
+        // Dynamic Prizes Logic
+        const prizesContainer = item.querySelector('.cat-prizes-container');
+        const addPrizeBtn = item.querySelector('.add-prize-btn');
+        let prizeIndex = 1;
+
+        const addPrizeRow = (rank, value = '') => {
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 items-start prize-row'; // Changed items-center to items-start for error message alignment
+            
+            const errorKey = `categories.${currentCategoryIndex}.prizes.${rank}`;
+            const errorMessage = window.laravelErrors && window.laravelErrors[errorKey] ? window.laravelErrors[errorKey][0] : null;
+            const borderClass = errorMessage ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-slate-700 focus:border-yellow-400 focus:ring-yellow-400';
+
+            row.innerHTML = `
+                <span class="text-xs font-mono text-slate-500 w-8 mt-2">#${rank}</span>
+                <div class="flex-1">
+                    <input type="text" name="categories[${currentCategoryIndex}][prizes][${rank}]" value="${value}" 
+                           class="w-full bg-slate-900 border ${borderClass} rounded-lg px-3 py-2 text-white text-sm focus:ring-1 transition-colors" 
+                           placeholder="Prize description...">
+                    ${errorMessage ? `<p class="text-red-400 text-xs mt-1">${errorMessage}</p>` : ''}
+                </div>
+                <button type="button" class="text-slate-500 hover:text-red-400 remove-prize-btn mt-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            `;
+            
+            row.querySelector('.remove-prize-btn').onclick = () => {
+                row.remove();
+                reindexPrizes(prizesContainer);
+            };
+
+            prizesContainer.appendChild(row);
+            prizeIndex++;
         };
 
-        for (const [cls, pIdx] of Object.entries(prizeInputs)) {
-            const input = item.querySelector('.' + cls);
-            if (input) {
-                input.name = `categories[${categoryIndex}][prizes][${pIdx}]`;
-                if (data && data.prizes && data.prizes[pIdx] !== undefined && data.prizes[pIdx] !== null) {
-                    input.value = data.prizes[pIdx];
-                }
-            }
+        addPrizeBtn.onclick = () => addPrizeRow(prizesContainer.children.length + 1);
+
+        // Load existing prizes
+        if (data && data.prizes) {
+            // Check if prizes is array or object
+            const entries = Object.entries(data.prizes);
+            // Sort by rank key if possible
+            entries.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+            
+            entries.forEach(([rank, val]) => {
+                addPrizeRow(rank, val);
+            });
+        } else {
+            // Default 3 rows if empty
+            addPrizeRow(1);
+            addPrizeRow(2);
+            addPrizeRow(3);
         }
+
+        // Helper to re-index
+        const reindexPrizes = (container) => {
+            Array.from(container.children).forEach((row, idx) => {
+                const newRank = idx + 1;
+                row.querySelector('span').innerText = `#${newRank}`;
+                row.querySelector('input').name = `categories[${currentCategoryIndex}][prizes][${newRank}]`;
+            });
+        };
 
         // Remove button
         item.querySelector('.remove-category').onclick = function() {

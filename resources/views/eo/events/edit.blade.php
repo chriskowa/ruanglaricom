@@ -695,6 +695,17 @@
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Early Price (IDR)</label>
                 <input type="number" class="cat-price-early w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="150000">
+                
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div>
+                        <label class="block text-[10px] font-medium text-slate-500 mb-1">Quota (Opt)</label>
+                        <input type="number" class="cat-eb-quota w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white text-xs" placeholder="Limit">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-medium text-slate-500 mb-1">End Date (Opt)</label>
+                        <input type="datetime-local" class="cat-eb-end w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white text-xs [color-scheme:dark]">
+                    </div>
+                </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Regular Price (IDR)</label>
@@ -706,19 +717,13 @@
             </div>
         </div>
 
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 1</label>
-                <input type="text" class="cat-prize-1 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 5.000.000 / Trofi / dll">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 2</label>
-                <input type="text" class="cat-prize-2 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 3.000.000 / Trofi / dll">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Hadiah Juara 3</label>
-                <input type="text" class="cat-prize-3 w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Rp 1.500.000 / Trofi / dll">
-            </div>
+        <div class="mt-4">
+            <label class="block text-xs font-medium text-slate-400 mb-2">Prizes (Hadiah Juara)</label>
+            <div class="cat-prizes-container space-y-2"></div>
+            <button type="button" class="add-prize-btn mt-2 text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                Add Prize Row
+            </button>
         </div>
     </div>
 </template>
@@ -750,6 +755,7 @@
 <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
+    window.laravelErrors = @json($errors->getMessages());
     function toggleWhatsappTemplate(value) {
         const container = document.getElementById('whatsapp_template_container');
         const textarea = document.getElementById('whatsapp_template');
@@ -958,6 +964,7 @@
 
     function addCategory(data = null) {
         emptyMsg.classList.add('hidden');
+        const currentCategoryIndex = categoryIndex;
         
         const clone = template.content.cloneNode(true);
         const item = clone.querySelector('.category-item');
@@ -972,33 +979,104 @@
             'cat-price': 'price_regular',
             'cat-price-late': 'price_late',
             'cat-cot': 'cutoff_minutes',
-            'cat-gpx': 'master_gpx_id'
+            'cat-gpx': 'master_gpx_id',
+            'cat-eb-quota': 'early_bird_quota',
+            'cat-eb-end': 'early_bird_end_at'
         };
 
         for (const [cls, name] of Object.entries(inputs)) {
             const input = item.querySelector('.' + cls);
             if (input) {
-                input.name = `categories[${categoryIndex}][${name}]`;
-                if (data && data[name] !== undefined && data[name] !== null) input.value = data[name];
-            }
-        }
-
-        // Handle prizes separately for cleaner structure
-        const prizeInputs = {
-            'cat-prize-1': 1,
-            'cat-prize-2': 2,
-            'cat-prize-3': 3
-        };
-
-        for (const [cls, pIdx] of Object.entries(prizeInputs)) {
-            const input = item.querySelector('.' + cls);
-            if (input) {
-                input.name = `categories[${categoryIndex}][prizes][${pIdx}]`;
-                if (data && data.prizes && data.prizes[pIdx] !== undefined && data.prizes[pIdx] !== null) {
-                    input.value = data.prizes[pIdx];
+                input.name = `categories[${currentCategoryIndex}][${name}]`;
+                if (data && data[name] !== undefined && data[name] !== null) {
+                    // Handle datetime-local format
+                    if (name === 'early_bird_end_at' && data[name]) {
+                        // If it's a full ISO string, slice it. If it's already Y-m-d H:i, format it.
+                        // Assuming standard Laravel serialization to ISO 8601
+                        let dateVal = data[name];
+                        if (dateVal.length > 16) dateVal = dateVal.substring(0, 16);
+                        input.value = dateVal;
+                    } else {
+                        input.value = data[name];
+                    }
                 }
             }
         }
+
+        // Dynamic Prizes Logic
+        const prizesContainer = item.querySelector('.cat-prizes-container');
+        const addPrizeBtn = item.querySelector('.add-prize-btn');
+        let prizeIndex = 1;
+
+        const addPrizeRow = (rank, value = '') => {
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 items-center prize-row';
+            
+            // Error handling
+            const errorKey = `categories.${currentCategoryIndex}.prizes.${rank}`;
+            const hasError = window.laravelErrors && window.laravelErrors[errorKey];
+            const borderColor = hasError ? 'border-red-500' : 'border-slate-700';
+            const errorMessage = hasError ? `<p class="text-red-500 text-xs mt-1 w-full">${window.laravelErrors[errorKey][0]}</p>` : '';
+
+            row.innerHTML = `
+                <div class="w-full">
+                    <div class="flex gap-2 items-center">
+                        <span class="text-xs font-mono text-slate-500 w-8">#${rank}</span>
+                        <input type="text" name="categories[${currentCategoryIndex}][prizes][${rank}]" value="${value}" 
+                               class="flex-1 bg-slate-900 border ${borderColor} rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" 
+                               placeholder="Prize description...">
+                        <button type="button" class="text-slate-500 hover:text-red-400 remove-prize-btn">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    ${errorMessage}
+                </div>
+            `;
+            
+            row.querySelector('.remove-prize-btn').onclick = () => {
+                row.remove();
+                // Optional: re-index ranks? Usually ranks are fixed 1,2,3... 
+                // If user deletes #2, should #3 become #2?
+                // Let's implement re-indexing for consistency.
+                reindexPrizes(prizesContainer);
+            };
+
+            prizesContainer.appendChild(row);
+            prizeIndex++;
+        };
+
+        addPrizeBtn.onclick = () => addPrizeRow(prizesContainer.children.length + 1);
+
+        // Load existing prizes
+        if (data && data.prizes) {
+            // Check if prizes is array or object
+            const entries = Object.entries(data.prizes);
+            // Sort by rank key if possible
+            entries.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+            
+            entries.forEach(([rank, val]) => {
+                addPrizeRow(rank, val);
+            });
+            // Update prizeIndex to next available
+            if (entries.length > 0) {
+                 prizeIndex = parseInt(entries[entries.length - 1][0]) + 1;
+            }
+        } else {
+            // Default 3 rows if empty
+            addPrizeRow(1);
+            addPrizeRow(2);
+            addPrizeRow(3);
+        }
+
+        // Helper to re-index
+        const reindexPrizes = (container) => {
+            Array.from(container.children).forEach((row, idx) => {
+                const newRank = idx + 1;
+                row.querySelector('span').innerText = `#${newRank}`;
+                row.querySelector('input').name = `categories[${currentCategoryIndex}][prizes][${newRank}]`;
+            });
+            prizeIndex = container.children.length + 1;
+        };
 
         // Remove button
         item.querySelector('.remove-category').onclick = function() {
@@ -1013,7 +1091,11 @@
     }
 
     // Load existing categories
-    const existingCategories = @json($event->categories);
+    let existingCategories = @json(old('categories', $event->categories));
+    if (existingCategories && !Array.isArray(existingCategories)) {
+        existingCategories = Object.values(existingCategories);
+    }
+
     if (existingCategories && existingCategories.length > 0) {
         existingCategories.forEach(cat => addCategory(cat));
     } else {

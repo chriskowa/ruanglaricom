@@ -761,8 +761,15 @@
                                                     <select name="participants[0][category_id]" class="category-select w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none" data-index="0" required>
                                                         <option value="">-- Pilih Kategori --</option>
                                                         @foreach($categories as $cat)
+                                                            @php
+                                                                $now = now();
+                                                                $earlyValid = $cat->price_early > 0 && 
+                                                                              (!$cat->early_bird_end_at || $now->lte($cat->early_bird_end_at)) &&
+                                                                              (!$cat->early_bird_quota || ($cat->early_bird_sold_count ?? 0) < $cat->early_bird_quota);
+                                                                $earlyPrice = $earlyValid ? $cat->price_early : 0;
+                                                            @endphp
                                                             <option value="{{ $cat->id }}" 
-                                                                data-price-early="{{ $cat->price_early }}"
+                                                                data-price-early="{{ $earlyPrice }}"
                                                                 data-price-regular="{{ $cat->price_regular }}"
                                                                 data-price-late="{{ $cat->price_late }}"
                                                                 data-reg-start="{{ $cat->reg_start_at }}"
@@ -798,11 +805,11 @@
                                     <div class="bg-card border border-slate-800 rounded-3xl p-6">
                                         <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Kode Promo</label>
                                         <div class="flex gap-2">
-                                            <input type="text" id="coupon_code" value="{{ old('coupon_code', $event->promo_code) }}" placeholder="KODE..." class="flex-1 bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white uppercase focus:border-neon outline-none">
+                                            <input type="text" id="coupon_code" value="{{ old('coupon_code') }}" placeholder="KODE..." class="flex-1 bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white uppercase focus:border-neon outline-none">
                                             <button type="button" id="applyCoupon" class="bg-slate-700 text-white px-4 rounded-lg text-xs font-bold hover:bg-white hover:text-dark transition">APPLY</button>
                                         </div>
                                         <div id="couponMessage" class="mt-2 text-xs"></div>
-                                        <input type="hidden" id="applied_coupon_id" name="applied_coupon_id">
+                                        <input type="hidden" id="coupon_code_hidden" name="coupon_code">
                                     </div>
 
                                     <div class="bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
@@ -1429,12 +1436,28 @@
             const eventId = {{ $event->id }};
             const eventSlug = '{{ $event->slug }}';
             const platformFee = {{ $event->platform_fee ?? 0 }};
+            const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
             let appliedCoupon = null;
+            let discountAmount = 0;
             const formatCurrency = (num) => new Intl.NumberFormat('id-ID').format(Math.round(num));
+
+            function resetCoupon() {
+                if (appliedCoupon || discountAmount > 0) {
+                    appliedCoupon = null;
+                    discountAmount = 0;
+                    const codeInput = document.getElementById('coupon_code');
+                    const codeHidden = document.getElementById('coupon_code_hidden');
+                    const couponMsg = document.getElementById('couponMessage');
+                    if (codeInput) codeInput.value = '';
+                    if (codeHidden) codeHidden.value = '';
+                    if (couponMsg) couponMsg.innerHTML = '';
+                }
+            }
 
             // Add Participant
             if(addParticipantBtn && template) {
                 addParticipantBtn.addEventListener('click', () => {
+                    resetCoupon();
                     const newItem = template.cloneNode(true);
                     const idx = participantIndex++;
                     newItem.setAttribute('data-index', idx);
@@ -1472,6 +1495,7 @@
                     if(e.target.classList.contains('remove-participant')) {
                         if(participantsWrapper.querySelectorAll('.participant-item').length > 1) {
                             e.target.closest('.participant-item').remove();
+                            resetCoupon();
                             updatePriceSummary();
                         }
                     }
@@ -1480,6 +1504,7 @@
 
             // Category Change
             function handleCategoryChange(e) {
+                resetCoupon();
                 const select = e.target;
                 const idx = select.getAttribute('data-index');
                 const option = select.options[select.selectedIndex];
@@ -1519,11 +1544,28 @@
 
             // Update Total
             function updatePriceSummary() {
-                let subtotal = 0;
+                const categoryCounts = new Map();
+                const categoryPrices = new Map();
                 let count = 0;
                 document.querySelectorAll('.category-select').forEach(el => {
-                    subtotal += parseFloat(el.getAttribute('data-active-price') || 0);
-                    if (el.value) count++;
+                    if (!el.value) return;
+                    count++;
+                    const categoryId = String(el.value);
+                    const price = parseFloat(el.getAttribute('data-active-price') || 0);
+                    categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
+                    categoryPrices.set(categoryId, price);
+                });
+
+                let subtotal = 0;
+                categoryCounts.forEach((qty, categoryId) => {
+                    const price = categoryPrices.get(categoryId) || 0;
+                    let paidQty = qty;
+                    if (promoBuyX > 0) {
+                        const bundleSize = promoBuyX + 1;
+                        const freeCount = Math.floor(qty / bundleSize);
+                        paidQty = qty - freeCount;
+                    }
+                    subtotal += price * paidQty;
                 });
                 
                 const totalFee = count * platformFee;
@@ -1533,19 +1575,20 @@
                     document.getElementById('feeAmount').textContent = `Rp ${formatCurrency(totalFee)}`;
                 }
 
-                let total = subtotal + totalFee;
-                
-                if(appliedCoupon && subtotal > 0) {
-                     // Re-trigger coupon check logically
-                     const discount = Math.min(subtotal, 50000); // Dummy logic, real logic needs server re-fetch
-                     document.getElementById('discountRow').classList.remove('hidden');
-                     // Note: Real implementation should re-fetch backend to get accurate discount
-                } else {
-                    document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(total)}`;
+                let total = subtotal + totalFee - discountAmount;
+                if (total < 0) total = 0;
+
+                const discountRow = document.getElementById('discountRow');
+                if (discountRow) {
+                    if (discountAmount > 0) discountRow.classList.remove('hidden');
+                    else discountRow.classList.add('hidden');
                 }
-                
-                // For simple frontend update without re-fetching coupon repeatedly:
-                if(!appliedCoupon) document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(total)}`;
+                const discountAmountEl = document.getElementById('discountAmount');
+                if (discountAmountEl) {
+                    discountAmountEl.textContent = discountAmount > 0 ? `-Rp ${formatCurrency(discountAmount)}` : '-Rp 0';
+                }
+
+                document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(total)}`;
             }
 
             // Coupon Logic (Frontend Trigger)
@@ -1554,7 +1597,25 @@
                 couponBtn.addEventListener('click', () => {
                     const code = document.getElementById('coupon_code').value;
                     let subtotal = 0;
-                    document.querySelectorAll('.category-select').forEach(el => subtotal += parseFloat(el.getAttribute('data-active-price')||0));
+                    const categoryCounts = new Map();
+                    const categoryPrices = new Map();
+                    document.querySelectorAll('.category-select').forEach(el => {
+                        if (!el.value) return;
+                        const categoryId = String(el.value);
+                        const price = parseFloat(el.getAttribute('data-active-price') || 0);
+                        categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
+                        categoryPrices.set(categoryId, price);
+                    });
+                    categoryCounts.forEach((qty, categoryId) => {
+                        const price = categoryPrices.get(categoryId) || 0;
+                        let paidQty = qty;
+                        if (promoBuyX > 0) {
+                            const bundleSize = promoBuyX + 1;
+                            const freeCount = Math.floor(qty / bundleSize);
+                            paidQty = qty - freeCount;
+                        }
+                        subtotal += price * paidQty;
+                    });
                     
                     if(subtotal === 0) {
                          alert("Pilih kategori peserta terlebih dahulu"); return;
@@ -1573,13 +1634,19 @@
                     .then(data => {
                         if(data.success) {
                             appliedCoupon = data.coupon;
-                            document.getElementById('applied_coupon_id').value = data.coupon.id;
+                            discountAmount = data.discount_amount;
+                            document.getElementById('coupon_code_hidden').value = data.coupon.code;
+                            document.getElementById('coupon_code').value = data.coupon.code;
                             document.getElementById('discountRow').classList.remove('hidden');
                             document.getElementById('discountAmount').textContent = `-Rp ${formatCurrency(data.discount_amount)}`;
-                            document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(data.final_amount)}`;
                             document.getElementById('couponMessage').innerHTML = '<span class="text-neon">Kupon berhasil digunakan!</span>';
+                            updatePriceSummary();
                         } else {
+                            appliedCoupon = null;
+                            discountAmount = 0;
+                            document.getElementById('coupon_code_hidden').value = '';
                             document.getElementById('couponMessage').innerHTML = `<span class="text-red-400">${data.message}</span>`;
+                            updatePriceSummary();
                         }
                     });
                 });

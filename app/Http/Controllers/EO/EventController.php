@@ -124,6 +124,7 @@ class EventController extends Controller
             'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,paolo-fest,paolo-fest-dark,professional-city-run',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'required|array|min:1',
+            'categories.*.master_gpx_id' => 'nullable|exists:master_gpxes,id',
             'categories.*.name' => 'required|string|max:255',
             'categories.*.distance_km' => 'nullable|numeric|min:0',
             'categories.*.code' => 'nullable|string|max:50',
@@ -134,13 +135,13 @@ class EventController extends Controller
             'categories.*.price_early' => 'nullable|integer|min:0',
             'categories.*.price_regular' => 'nullable|integer|min:0',
             'categories.*.price_late' => 'nullable|integer|min:0',
+            'categories.*.early_bird_quota' => 'nullable|integer|min:0',
+            'categories.*.early_bird_end_at' => 'nullable|date',
             'categories.*.reg_start_at' => 'nullable|date',
             'categories.*.reg_end_at' => 'nullable|date|after:categories.*.reg_start_at',
             'categories.*.is_active' => 'nullable|boolean',
             'categories.*.prizes' => 'nullable|array',
-            'categories.*.prizes.1' => 'nullable|string|max:255',
-            'categories.*.prizes.2' => 'nullable|string|max:255',
-            'categories.*.prizes.3' => 'nullable|string|max:255',
+            'categories.*.prizes.*' => 'nullable|string|max:255',
             'payment_config' => 'nullable|array',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
@@ -148,7 +149,11 @@ class EventController extends Controller
         ]);
 
         $validated['user_id'] = auth()->id();
-        $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
+        if (Schema::hasColumn('events', 'is_instant_notification')) {
+            $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
+        } else {
+            unset($validated['is_instant_notification']);
+        }
 
         // Default premium_amenities to empty array if not present (for new events to not be treated as legacy)
         if (! isset($validated['premium_amenities'])) {
@@ -246,9 +251,26 @@ class EventController extends Controller
         $event = Event::create($validated);
 
         // Create categories
+        \Illuminate\Support\Facades\Log::info('Creating categories', ['categories' => $categories]);
+        $hasPrizesColumn = Schema::hasColumn('race_categories', 'prizes');
         foreach ($categories as $categoryData) {
             $categoryData['event_id'] = $event->id;
             $categoryData['is_active'] = isset($categoryData['is_active']) ? (bool) $categoryData['is_active'] : true;
+            if ($hasPrizesColumn) {
+                $prizes = is_array($categoryData['prizes'] ?? null) ? $categoryData['prizes'] : [];
+                $cleanedPrizes = [];
+                $rank = 1;
+                foreach ($prizes as $value) {
+                    $value = is_string($value) ? trim($value) : $value;
+                    if ($value === null || $value === '') {
+                        continue;
+                    }
+                    $cleanedPrizes[$rank++] = $value;
+                }
+                $categoryData['prizes'] = $cleanedPrizes;
+            } else {
+                unset($categoryData['prizes']);
+            }
             \App\Models\RaceCategory::create($categoryData);
         }
 
@@ -356,16 +378,18 @@ class EventController extends Controller
             'categories.*.reg_end_at' => 'nullable|date|after:categories.*.reg_start_at',
             'categories.*.is_active' => 'nullable|boolean',
             'categories.*.prizes' => 'nullable|array',
-            'categories.*.prizes.1' => 'nullable|string|max:255',
-            'categories.*.prizes.2' => 'nullable|string|max:255',
-            'categories.*.prizes.3' => 'nullable|string|max:255',
+            'categories.*.prizes.*' => 'nullable|string|max:255',
             'payment_config' => 'nullable|array',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
         ]);
 
-        $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
+        if (Schema::hasColumn('events', 'is_instant_notification')) {
+            $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
+        } else {
+            unset($validated['is_instant_notification']);
+        }
 
         // Default premium_amenities to empty array if not present (to allow unchecking all)
         if (! isset($validated['premium_amenities'])) {
@@ -516,6 +540,7 @@ class EventController extends Controller
                 $submittedCategoryIds = array_values(array_filter(array_column($categories, 'id')));
                 $raceCategoryColumns = Schema::getColumnListing('race_categories');
                 $raceCategoryColumnMap = array_flip($raceCategoryColumns);
+                $hasPrizesColumn = array_key_exists('prizes', $raceCategoryColumnMap);
 
                 // Delete removed categories
                 if (! empty($submittedCategoryIds)) {
@@ -527,15 +552,26 @@ class EventController extends Controller
                 }
 
                 // Update or create categories
+                \Illuminate\Support\Facades\Log::info('Processing categories update', ['categories' => $categories]);
                 foreach ($categories as $categoryData) {
                     $categoryId = $categoryData['id'] ?? null;
                     unset($categoryData['id']);
 
-                    if (isset($categoryData['prizes']) && ! isset($raceCategoryColumnMap['prizes'])) {
+                    if ($hasPrizesColumn) {
+                        $prizes = is_array($categoryData['prizes'] ?? null) ? $categoryData['prizes'] : [];
+                        $cleanedPrizes = [];
+                        $rank = 1;
+                        foreach ($prizes as $value) {
+                            $value = is_string($value) ? trim($value) : $value;
+                            if ($value === null || $value === '') {
+                                continue;
+                            }
+                            $cleanedPrizes[$rank++] = $value;
+                        }
+                        $categoryData['prizes'] = $cleanedPrizes;
+                    } else {
                         unset($categoryData['prizes']);
                     }
-
-                    $categoryData = array_intersect_key($categoryData, $raceCategoryColumnMap);
 
                     if ($categoryId && in_array($categoryId, $existingCategoryIds)) {
                         // Update existing category

@@ -790,7 +790,7 @@
     @include('events.partials.prizes-section', ['categories' => $categories])
 
     <!-- Participants Table Section -->
-    @if($event->participants()->exists())
+    @if($hasPaidParticipants ?? false)
     <section id="participants-list" class="py-24 bg-slate-900 relative">
         <div class="absolute inset-0 bg-brand-900/5"></div>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -942,6 +942,7 @@
                                     <button type="button" id="applyCoupon" class="bg-brand-600 text-white px-4 rounded-lg text-sm font-bold hover:bg-brand-700 transition shadow-neon">Pakai</button>
                                 </div>
                                 <div id="couponMessage" class="mt-2 text-xs font-medium"></div>
+                                <input type="hidden" name="coupon_code" id="coupon_code_hidden">
                             </div>
 
                             <div class="bg-brand-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden border border-brand-700">
@@ -1004,7 +1005,7 @@
                                     <label class="flex items-start gap-3 cursor-pointer">
                                         <input type="checkbox" name="terms_agreed" required class="mt-1 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-500 bg-slate-800">
                                         <span class="text-xs text-slate-400">
-                                            Saya setuju dengan <a href="#" class="text-white underline font-bold">Syarat & Ketentuan</a>.
+                                            Saya setuju dengan <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="text-white underline font-bold">Syarat & Ketentuan</button>.
                                         </span>
                                     </label>
                                 </div>
@@ -1135,35 +1136,87 @@
             const totalDisplay = document.getElementById('totalDisplay');
             const platformFeeDisplay = document.getElementById('platformFeeDisplay');
             const platformFee = {{ $event->platform_fee ?? 0 }};
+            const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
             let participantCount = 1;
+            let appliedCoupon = null;
+            let discountAmount = 0;
 
             // Template for cloning (Take the first item)
             const template = participantsWrapper.querySelector('.participant-item').cloneNode(true);
 
-            // 1. Calculate Price Function
-            function calculateTotal() {
-                let total = 0;
-                let count = 0;
+            function resetCoupon() {
+                if (appliedCoupon || discountAmount > 0) {
+                    appliedCoupon = null;
+                    discountAmount = 0;
+                    const codeInput = document.getElementById('coupon_code');
+                    const codeHidden = document.getElementById('coupon_code_hidden');
+                    const couponMsg = document.getElementById('couponMessage');
+                    if (codeInput) codeInput.value = '';
+                    if (codeHidden) codeHidden.value = '';
+                    if (couponMsg) couponMsg.innerHTML = '';
+                }
+            }
+
+            function computePayableSubtotalAndCount() {
+                const categoryCounts = new Map();
+                const categoryPrices = new Map();
+                let selectedCount = 0;
+
                 document.querySelectorAll('.participant-item').forEach(item => {
                     const checkedRadio = item.querySelector('input[type="radio"]:checked');
-                    if (checkedRadio) {
-                        total += parseFloat(checkedRadio.getAttribute('data-price') || 0);
-                        count++;
-                    }
+                    if (!checkedRadio) return;
+                    selectedCount++;
+                    const categoryId = checkedRadio.value;
+                    const price = parseFloat(checkedRadio.getAttribute('data-price') || 0);
+                    categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
+                    categoryPrices.set(categoryId, price);
                 });
+
+                let subtotal = 0;
+                categoryCounts.forEach((qty, categoryId) => {
+                    const price = categoryPrices.get(categoryId) || 0;
+                    let paidQty = qty;
+                    if (promoBuyX > 0) {
+                        const bundleSize = promoBuyX + 1;
+                        const freeCount = Math.floor(qty / bundleSize);
+                        paidQty = qty - freeCount;
+                    }
+                    subtotal += price * paidQty;
+                });
+
+                return { subtotal, selectedCount };
+            }
+
+            // 1. Calculate Price Function
+            function calculateTotal() {
+                const { subtotal, selectedCount } = computePayableSubtotalAndCount();
                 
                 // Update Displays
-                subtotalDisplay.textContent = formatCurrency(total);
+                subtotalDisplay.textContent = formatCurrency(subtotal);
                 
-                const totalFee = count * platformFee;
+                const totalFee = selectedCount * platformFee;
                 if(platformFeeDisplay) platformFeeDisplay.textContent = formatCurrency(totalFee);
                 
-                const grandTotal = total + totalFee;
+                let grandTotal = subtotal + totalFee - discountAmount;
+                if (grandTotal < 0) grandTotal = 0;
                 totalDisplay.textContent = formatCurrency(grandTotal);
+
+                const discountRow = document.getElementById('discountRow');
+                const discountDisplay = document.getElementById('discountDisplay');
+                if (discountRow && discountDisplay) {
+                    if (discountAmount > 0) {
+                        discountRow.classList.remove('hidden');
+                        discountDisplay.textContent = '- ' + formatCurrency(discountAmount);
+                    } else {
+                        discountRow.classList.add('hidden');
+                        discountDisplay.textContent = '-Rp 0';
+                    }
+                }
             }
 
             // 2. Add Participant
             addBtn.addEventListener('click', () => {
+                resetCoupon();
                 const newItem = template.cloneNode(true);
                 const idx = participantCount++;
                 
@@ -1204,6 +1257,7 @@
             participantsWrapper.addEventListener('click', (e) => {
                 if (e.target.classList.contains('remove-participant')) {
                     e.target.closest('.participant-item').remove();
+                    resetCoupon();
                     calculateTotal();
                 }
             });
@@ -1212,11 +1266,69 @@
             function attachListeners(context) {
                 context.querySelectorAll('input[type="radio"]').forEach(radio => {
                     radio.addEventListener('change', calculateTotal);
+                    radio.addEventListener('change', resetCoupon);
                 });
             }
 
             // Initial attach
             attachListeners(participantsWrapper);
+
+            const couponBtn = document.getElementById('applyCoupon');
+            if (couponBtn) {
+                couponBtn.addEventListener('click', () => {
+                    const code = document.getElementById('coupon_code')?.value;
+                    if (!code) {
+                        alert('Masukkan kode kupon');
+                        return;
+                    }
+
+                    let subtotal = computePayableSubtotalAndCount().subtotal;
+                    if (subtotal === 0) {
+                        alert('Pilih kategori peserta terlebih dahulu');
+                        return;
+                    }
+
+                    const originalText = couponBtn.innerHTML;
+                    couponBtn.innerHTML = '...';
+                    couponBtn.disabled = true;
+
+                    fetch(`{{ route('events.register.coupon', $event->slug) }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ event_id: {{ $event->id }}, coupon_code: code, total_amount: subtotal })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            appliedCoupon = data.coupon;
+                            discountAmount = data.discount_amount;
+                            const hidden = document.getElementById('coupon_code_hidden');
+                            if (hidden) hidden.value = data.coupon.code;
+                            document.getElementById('coupon_code').value = data.coupon.code;
+                            document.getElementById('couponMessage').innerHTML = '<span class="text-green-400">Kupon berhasil digunakan!</span>';
+                            calculateTotal();
+                        } else {
+                            appliedCoupon = null;
+                            discountAmount = 0;
+                            const hidden = document.getElementById('coupon_code_hidden');
+                            if (hidden) hidden.value = '';
+                            document.getElementById('couponMessage').innerHTML = `<span class="text-red-400">${data.message}</span>`;
+                            calculateTotal();
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Gagal memproses kupon');
+                    })
+                    .finally(() => {
+                        couponBtn.innerHTML = originalText;
+                        couponBtn.disabled = false;
+                    });
+                });
+            }
 
             // 5. Submit Handler (AJAX)
             form.addEventListener('submit', (e) => {
@@ -1388,6 +1500,25 @@
             }
         });
     </script>
+    @if($event->terms_and_conditions)
+    <div id="termsModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
+        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+                    <h3 class="text-lg font-bold text-white">Syarat & Ketentuan</h3>
+                    <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 transition flex items-center justify-center">✕</button>
+                </div>
+                <div class="p-6 max-h-[70vh] overflow-y-auto prose prose-invert prose-sm max-w-none text-slate-200">
+                    {!! $event->terms_and_conditions !!}
+                </div>
+                <div class="p-6 border-t border-slate-700">
+                    <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition">Saya Mengerti</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
         const { createApp } = Vue;
@@ -1398,7 +1529,8 @@
             vueApp.component('participants-table', ParticipantsTableComponent);
         }
         
-        vueApp.mount('#vue-participants-app');
+        const mountEl = document.getElementById('vue-participants-app');
+        if (mountEl) vueApp.mount(mountEl);
     </script>
 </body>
 </html>

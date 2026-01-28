@@ -24,12 +24,15 @@ class RaceCategory extends Model
         'reg_end_at',
         'is_active',
         'prizes',
+        'early_bird_quota',
+        'early_bird_end_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'reg_start_at' => 'datetime',
         'reg_end_at' => 'datetime',
+        'early_bird_end_at' => 'datetime',
         'prizes' => 'array',
     ];
 

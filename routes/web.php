@@ -667,6 +667,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/membership/select', [App\Http\Controllers\EO\MembershipController::class, 'selectPackage'])->name('membership.select');
         Route::get('/membership/payment/{transaction}', [App\Http\Controllers\EO\MembershipController::class, 'payment'])->name('membership.payment');
 
+        // Coupon Management (Master)
+        Route::get('coupons/generate-code', [App\Http\Controllers\EO\MasterCouponController::class, 'generateCode'])->name('coupons.generate');
+        Route::resource('coupons', App\Http\Controllers\EO\MasterCouponController::class)->names('coupons');
+
         // Event management
         Route::post('events/upload-media', [App\Http\Controllers\EO\EventController::class, 'uploadMedia'])->name('events.upload-media');
         Route::resource('events', App\Http\Controllers\EO\EventController::class);

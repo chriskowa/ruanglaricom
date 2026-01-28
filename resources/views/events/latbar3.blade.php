@@ -422,7 +422,9 @@
                 </div>
             </div>
             
-            @include('events.partials.participants-table')
+            @if($hasPaidParticipants ?? false)
+                @include('events.partials.participants-table')
+            @endif
         </main>
         @include('layouts.components.pacerhub-footer')
     </div>
