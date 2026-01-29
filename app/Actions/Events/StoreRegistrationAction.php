@@ -77,9 +77,9 @@ class StoreRegistrationAction
             'participants.*.jersey_size' => 'nullable|string|max:10',
             'coupon_code' => 'nullable|string|exists:coupons,code',
             'payment_method' => 'nullable|in:midtrans,cod,moota',
-            'addons' => 'nullable|array',
-            'addons.*.name' => 'required|string',
-            'addons.*.price' => 'required|numeric',
+            'participants.*.addons' => 'nullable|array',
+            'participants.*.addons.*.name' => 'nullable|string',
+            'participants.*.addons.*.selected' => 'nullable',
             'g-recaptcha-response' => [env('RECAPTCHA_SECRET_KEY') ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($request) {
                 $secret = env('RECAPTCHA_SECRET_KEY');
                 if (! $secret) {
@@ -111,23 +111,37 @@ class StoreRegistrationAction
 
         $paymentMethod = strtolower($validated['payment_method'] ?? 'midtrans');
 
-        // Calculate Addons Price
-        $addonsPricePerParticipant = 0;
-        $selectedAddons = [];
-        if (!empty($validated['addons']) && !empty($event->addons)) {
-            foreach ($validated['addons'] as $addonInput) {
-                foreach ($event->addons as $eventAddon) {
-                    if ($eventAddon['name'] === $addonInput['name']) {
-                        $price = isset($eventAddon['price']) ? (int)$eventAddon['price'] : 0;
-                        $addonsPricePerParticipant += $price;
-                        $selectedAddons[] = [
-                            'name' => $eventAddon['name'],
-                            'price' => $price
-                        ];
-                        break;
+        // Calculate Addons Price (Per Participant)
+        $totalAddonsPrice = 0;
+        $participantsWithAddons = []; // Map participant index -> addons data
+        $allSelectedAddonsForPic = []; // Aggregate for PIC data
+
+        foreach ($validated['participants'] as $pIndex => $pData) {
+            $pAddons = [];
+            if (!empty($pData['addons']) && is_array($pData['addons']) && !empty($event->addons)) {
+                foreach ($pData['addons'] as $addonInput) {
+                    // Check if selected (checkbox)
+                    if (isset($addonInput['selected']) && $addonInput['selected']) {
+                        // Find matching event addon to get trusted price
+                        foreach ($event->addons as $eventAddon) {
+                            if ($eventAddon['name'] === $addonInput['name']) {
+                                $price = isset($eventAddon['price']) ? (int)$eventAddon['price'] : 0;
+                                $totalAddonsPrice += $price;
+                                
+                                $addonData = [
+                                    'name' => $eventAddon['name'],
+                                    'price' => $price
+                                ];
+                                
+                                $pAddons[] = $addonData;
+                                $allSelectedAddonsForPic[] = $addonData;
+                                break;
+                            }
+                        }
                     }
                 }
             }
+            $participantsWithAddons[$pIndex] = $pAddons;
         }
 
         // Special flow for latbarkamis: auto-create runner accounts
@@ -305,6 +319,9 @@ class StoreRegistrationAction
                 $totalOriginal += $price * $paidQuantity;
             }
 
+            // Add Addons Total
+            $totalOriginal += $totalAddonsPrice;
+
             // Apply coupon discount with concurrency check
             if ($coupon) {
                 if ($isBuyXGet1Active && ! $coupon->is_stackable) {
@@ -360,7 +377,7 @@ class StoreRegistrationAction
                 'email' => $validated['pic_email'],
                 'phone' => $validated['pic_phone'],
                 'created_users' => array_keys($createdUsers),
-                'addons' => $selectedAddons,
+                'addons' => $allSelectedAddonsForPic,
             ],
             'total_original' => $totalOriginal,
             'coupon_id' => $coupon?->id,
@@ -373,7 +390,7 @@ class StoreRegistrationAction
         ]);
 
             // Create participants
-            foreach ($validated['participants'] as $participantData) {
+            foreach ($validated['participants'] as $pIndex => $participantData) {
                 $categoryId = $participantData['category_id'];
                 $priceType = $categoryPriceInfo[$categoryId]['type'] ?? 'regular';
 
@@ -391,7 +408,7 @@ class StoreRegistrationAction
                     'date_of_birth' => $participantData['date_of_birth'] ?? null,
                     'target_time' => $participantData['target_time'] ?? null,
                     'jersey_size' => $participantData['jersey_size'] ?? null,
-                    'addons' => $selectedAddons,
+                    'addons' => $participantsWithAddons[$pIndex] ?? [],
                     'status' => 'pending',
                     'price_type' => $priceType,
                 ]);

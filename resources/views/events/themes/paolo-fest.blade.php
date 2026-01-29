@@ -289,7 +289,7 @@
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-500"></span>
                 </span>
-                <span class="text-accent-400 font-bold uppercase tracking-widest text-xs md:text-sm">
+                <span class="text-white font-bold uppercase tracking-widest text-xs md:text-sm">
                     @if($event->registration_open_at && $now < $event->registration_open_at)
                         COMING SOON
                     @else
@@ -1341,7 +1341,39 @@
                                                 <option value="">Ukuran Jersey</option>
                                                 @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}">{{ $size }}</option> @endforeach
                                             </select>
-                                        </div>                                        
+                                        </div>
+
+                                        @if(!empty($event->addons) && is_array($event->addons))
+                                        <div class="mt-4 border-t border-slate-100 pt-4">
+                                            <label class="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                                                <i class="fas fa-plus-circle text-accent-500"></i> Add-Ons (Opsional)
+                                            </label>
+                                            <div class="grid grid-cols-1 gap-3">
+                                                @foreach($event->addons as $idx => $addon)
+                                                    <label class="flex items-center justify-between p-3 bg-white border border-slate-300 rounded-xl hover:border-brand-400 transition cursor-pointer group">
+                                                        <div class="flex items-center gap-3">
+                                                             <div class="relative flex items-center">
+                                                                <input type="checkbox" 
+                                                                    name="participants[0][addons][{{ $idx }}][selected]" 
+                                                                    value="1" 
+                                                                    class="addon-checkbox w-5 h-5 rounded text-brand-600 focus:ring-brand-500 border-slate-400 bg-slate-50 group-hover:bg-white transition"
+                                                                    data-price="{{ $addon['price'] ?? 0 }}">
+                                                             </div>
+                                                             <input type="hidden" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}">
+                                                             <input type="hidden" name="participants[0][addons][{{ $idx }}][price]" value="{{ $addon['price'] ?? 0 }}">
+                                                             
+                                                             <div>
+                                                                <span class="block text-sm font-bold text-slate-900 group-hover:text-brand-700 transition">{{ $addon['name'] }}</span>
+                                                             </div>
+                                                        </div>
+                                                        <span class="text-sm font-bold text-accent-600">
+                                                            +Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}
+                                                        </span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        @endif                                        
                                     </div>
                                 </div>
                             </div>
@@ -1620,8 +1652,18 @@
 
             // 1. Calculate Price Function
             function calculateTotal() {
-                const { subtotal, selectedCount } = computePayableSubtotalAndCount();
+                const { subtotal: categorySubtotal, selectedCount } = computePayableSubtotalAndCount();
                 
+                // Calculate Addons Total
+                let addonTotal = 0;
+                document.querySelectorAll('.participant-item').forEach(item => {
+                    item.querySelectorAll('.addon-checkbox:checked').forEach(cb => {
+                        addonTotal += parseFloat(cb.getAttribute('data-price') || 0);
+                    });
+                });
+
+                const subtotal = categorySubtotal + addonTotal;
+
                 // Update Displays
                 subtotalDisplay.textContent = formatCurrency(subtotal);
                 
@@ -1693,11 +1735,11 @@
                 }
             });
 
-            // 4. Attach Listeners to Radios
+            // 4. Attach Listeners to Radios and Checkboxes
             function attachListeners(context) {
-                context.querySelectorAll('input[type="radio"]').forEach(radio => {
-                    radio.addEventListener('change', calculateTotal);
-                    radio.addEventListener('change', resetCoupon);
+                context.querySelectorAll('input[type="radio"], input.addon-checkbox').forEach(input => {
+                    input.addEventListener('change', calculateTotal);
+                    input.addEventListener('change', resetCoupon);
                 });
             }
 
@@ -1817,7 +1859,26 @@
                         }
                     }
 
-                    // 4. Trigger Events for Auto-Save and UI updates
+                    // 4. Copy Addons (Checkboxes)
+                    const sourceAddons = prevItem.querySelectorAll('input.addon-checkbox:checked');
+                    // Uncheck all first
+                    currentItem.querySelectorAll('input.addon-checkbox').forEach(cb => cb.checked = false);
+                    
+                    sourceAddons.forEach(sourceCb => {
+                        // Find matching checkbox by partial name structure or index
+                        // Since structure is identical, we can match by the addon index part of the name
+                        // name="participants[X][addons][Y][selected]"
+                        const nameParts = sourceCb.name.match(/\[addons\]\[(\d+)\]/);
+                        if (nameParts && nameParts[1]) {
+                            const addonIdx = nameParts[1];
+                            const targetCb = currentItem.querySelector(`input[name*="[addons][${addonIdx}][selected]"]`);
+                            if (targetCb) {
+                                targetCb.checked = true;
+                            }
+                        }
+                    });
+
+                    // 5. Trigger Events for Auto-Save and UI updates
                     currentItem.querySelectorAll('input, select').forEach(el => {
                         if(el.type !== 'radio') { // Radios handled above
                             el.dispatchEvent(new Event('input', { bubbles: true }));
