@@ -337,7 +337,7 @@
                         @foreach($categories as $cat)
                         <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition border border-white/5">
                             <span class="font-bold text-slate-200">{{ $cat->name }}</span>
-                            <span class="text-xs font-mono text-accent-400 border border-accent-500/30 px-2 py-1 rounded">
+                            <span class="text-xs font-mono text-white border border-white/20 px-2 py-1 rounded">
                                 {{ $cat->distance_km ?? 0 }}K
                             </span>
                         </div>
