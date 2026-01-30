@@ -94,9 +94,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
-    @php $midtransUrl = config('midtrans.base_url', 'https://app.sandbox.midtrans.com'); @endphp
+    @php
+        $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+        $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+    @endphp
     <link rel="stylesheet" href="{{ $midtransUrl }}/snap/snap.css" />
-    <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+    <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
@@ -723,6 +727,24 @@
                             <div class="bg-green-500/10 border border-green-500/50 text-green-400 p-4 rounded-xl flex items-center gap-3">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 <div><strong>Berhasil!</strong> Data tersimpan. Lanjutkan pembayaran.</div>
+                            </div>
+                        @endif
+                        @if(request('payment') === 'pending')
+                            <div class="bg-yellow-500/10 border border-yellow-500/40 text-yellow-200 p-4 rounded-xl flex items-start gap-3">
+                                <svg class="w-6 h-6 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <div>
+                                    <div class="font-bold text-white">Pembayaran masih pending</div>
+                                    <div class="text-xs text-slate-300 mt-1">Jika popup Midtrans tertutup/refresh, Anda bisa melanjutkan tanpa registrasi ulang.</div>
+                                    <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-block mt-2 text-xs font-bold bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-2 rounded-lg">Lanjutkan Pembayaran</a>
+                                </div>
+                            </div>
+                        @elseif(request('payment') === 'success')
+                            <div class="bg-green-500/10 border border-green-500/40 text-green-200 p-4 rounded-xl flex items-start gap-3">
+                                <svg class="w-6 h-6 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <div>
+                                    <div class="font-bold text-white">Pembayaran berhasil</div>
+                                    <div class="text-xs text-slate-300 mt-1">Jika belum menerima konfirmasi, refresh halaman ini beberapa saat lagi.</div>
+                                </div>
                             </div>
                         @endif
                         @if($errors->any())

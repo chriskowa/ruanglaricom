@@ -13,6 +13,8 @@ return [
     'merchant_id' => env('MIDTRANS_MERCHANT_ID', ''),
     'client_key' => env('MIDTRANS_CLIENT_KEY', ''),
     'server_key' => env('MIDTRANS_SERVER_KEY', ''),
+    'client_key_sandbox' => env('MIDTRANS_CLIENT_KEY_SANDBOX', ''),
+    'server_key_sandbox' => env('MIDTRANS_SERVER_KEY_SANDBOX', ''),
     'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
 
     /*
@@ -39,4 +41,6 @@ return [
     'base_url' => env('MIDTRANS_IS_PRODUCTION', false)
         ? 'https://app.midtrans.com'
         : 'https://app.sandbox.midtrans.com',
+
+    'base_url_sandbox' => 'https://app.sandbox.midtrans.com',
 ];

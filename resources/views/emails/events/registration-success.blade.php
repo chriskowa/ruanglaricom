@@ -101,11 +101,13 @@
                     </table>
                 </div>
 
-                <div class="qr-code">
-                    <!-- QR Code contains Ticket ID / Participant ID -->
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TICKET-{{ $participant->id }}-{{ $participant->transaction_id }}" width="150" height="150" alt="Ticket QR">
-                    <p style="font-size: 10px; color: #94a3b8; margin-top: 5px;">ID: #{{ $participant->id }}</p>
-                </div>
+                @php($useQr = $event->ticket_email_use_qr ?? true)
+                @if($useQr)
+                    <div class="qr-code">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TICKET-{{ $participant->id }}-{{ $participant->transaction_id }}" width="150" height="150" alt="Ticket QR">
+                        <p style="font-size: 10px; color: #94a3b8; margin-top: 5px;">ID: #{{ $participant->id }}</p>
+                    </div>
+                @endif
             </div>
             @endforeach
 

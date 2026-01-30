@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gacha Run 4x400 Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-comic { font-family: 'Bangers', system-ui; letter-spacing: 1px; }
+        
+        /* Gacha Animation Keyframes */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .animate-shake { animation: shake 0.5s infinite; }
+
+        @keyframes bounce-in {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .pop-in { animation: bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* Glow Effect */
+        .neon-text { text-shadow: 0 0 10px rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1533561377815-5e8d97669226?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-blend-overlay bg-black/60">
+
+<div id="app" class="w-full max-w-md p-4">
+
+    <div v-if="step === 'form'" class="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 shadow-2xl pop-in">
+        <div class="text-center mb-6">
+            <h1 class="text-5xl text-yellow-400 font-comic drop-shadow-md">GACHA RUN</h1>
+            <p class="text-blue-200 text-sm mt-1">4x400 Relay • Mix Team • Random Fate</p>
+        </div>
+
+        <form @submit.prevent="submitForm" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase text-blue-300 mb-1">Nama Runner</label>
+                <input v-model="form.name" type="text" required placeholder="Siapa nama bekenmu?" class="w-full bg-gray-800/50 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase text-blue-300 mb-1">Gender</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" @click="form.gender = 'male'" :class="form.gender === 'male' ? 'bg-cyan-600 border-cyan-400 text-white' : 'bg-gray-800/50 border-gray-600 text-gray-400'" class="border py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                        <i class="ph ph-gender-male text-lg"></i> Pria
+                    </button>
+                    <button type="button" @click="form.gender = 'female'" :class="form.gender === 'female' ? 'bg-pink-600 border-pink-400 text-white' : 'bg-gray-800/50 border-gray-600 text-gray-400'" class="border py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                        <i class="ph ph-gender-female text-lg"></i> Wanita
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase text-blue-300 mb-1">Waktu Terbaik 5K (PB)</label>
+                <p class="text-[10px] text-gray-400 mb-2">*Jujur ya! Ini menentukan Pot undianmu.</p>
+                <select v-model="form.paceCategory" required class="w-full bg-gray-800/50 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                    <option value="" disabled selected>Pilih kisaran waktumu...</option>
+                    <option value="elite">Sub 20 Menit (Ngebut Parah)</option>
+                    <option value="fast">20 - 29 Menit (Lumayan Kencang)</option>
+                    <option value="kalcer">30 - 45 Menit (Hobi Lari/Kalcer)</option>
+                    <option value="keong">45+ Menit / Fun Run (Santai)</option>
+                </select>
+            </div>
+
+            <button type="submit" :disabled="!isFormValid" class="w-full mt-6 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-gray-900 font-black text-xl py-4 rounded-2xl shadow-lg shadow-orange-500/30 transform active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                INSERT COIN & GACHA! 🪙
+            </button>
+        </form>
+    </div>
+
+    <div v-if="step === 'gacha'" class="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4">
+        <div class="relative w-64 h-80 mb-8">
+            <div class="w-full h-full bg-indigo-600 rounded-t-full rounded-b-3xl border-4 border-white relative overflow-hidden" :class="isSpinning ? 'animate-shake' : ''">
+                <div class="absolute top-4 left-4 right-4 h-40 bg-blue-400/30 rounded-full border border-white/20 overflow-hidden flex items-center justify-center flex-wrap gap-2 p-4">
+                    <div v-for="n in 6" :key="n" class="w-8 h-8 rounded-full border-2 border-white/50 shadow-inner animate-bounce" 
+                         :class="['bg-red-500', 'bg-yellow-400', 'bg-blue-500', 'bg-green-500'][n%4]"
+                         :style="{ animationDuration: (0.5 + Math.random()) + 's' }">
+                    </div>
+                </div>
+                <div class="absolute bottom-0 w-full h-32 bg-indigo-800 flex flex-col items-center justify-center">
+                    <div class="text-white font-comic text-2xl tracking-widest mb-2">SPINNING...</div>
+                    <div class="w-16 h-16 bg-gray-900 rounded-full border-4 border-gray-600 flex items-center justify-center">
+                        <div class="w-12 h-4 bg-gray-700 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="text-white text-lg font-bold animate-pulse">Sedang mengkategorikan data...</p>
+    </div>
+
+    <div v-if="step === 'result'" class="text-center pop-in">
+        <div class="absolute inset-0 pointer-events-none overflow-hidden flex justify-center">
+            <div class="absolute top-10 w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_10px_yellow]"></div>
+        </div>
+
+        <div class="bg-white text-gray-900 rounded-3xl p-1 shadow-[0_0_50px_rgba(255,255,255,0.5)] transform rotate-1 mb-6 max-w-sm mx-auto">
+            <div class="bg-gradient-to-br p-8 rounded-[20px] border-4 border-white border-dashed flex flex-col items-center" :class="resultData.bgClass">
+                
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-5xl mb-4 shadow-lg border-4" :class="resultData.borderClass">
+                    {{ resultData.icon }}
+                </div>
+                
+                <h2 class="text-3xl font-comic uppercase mb-1">{{ resultData.label }}</h2>
+                <div class="px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/30 text-gray-900 mb-6">
+                    Pot Kategori: {{ resultData.pot }}
+                </div>
+
+                <div class="w-full bg-white/50 rounded-xl p-4 text-left">
+                    <div class="flex justify-between items-center border-b border-gray-900/10 pb-2 mb-2">
+                        <span class="text-xs uppercase opacity-60">Runner Name</span>
+                        <span class="font-bold">{{ form.name }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs uppercase opacity-60">Tiket ID</span>
+                        <span class="font-mono font-bold">#{{ Math.floor(Math.random() * 9000) + 1000 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <h3 class="text-white text-xl font-bold">Pendaftaran Berhasil!</h3>
+            <p class="text-gray-300 text-sm max-w-xs mx-auto">Datamu sudah masuk ke dalam <strong>{{ resultData.pot }}</strong>. Tim akan diundi secara acak pada hari H!</p>
+            
+            <button @click="resetForm" class="mt-4 px-6 py-2 bg-transparent border border-white/30 rounded-full text-sm hover:bg-white/10 transition">
+                Daftarkan Teman Lain
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const { createApp, ref, computed } = Vue;
+
+    createApp({
+        setup() {
+            const step = ref('form'); // form, gacha, result
+            const isSpinning = ref(false);
+            
+            const form = ref({
+                name: '',
+                gender: '',
+                paceCategory: ''
+            });
+
+            const isFormValid = computed(() => {
+                return form.value.name && form.value.gender && form.value.paceCategory;
+            });
+
+            // Logic untuk menentukan tampilan Kartu berdasarkan input user
+            const resultData = computed(() => {
+                const map = {
+                    'elite': {
+                        label: 'THE ELITE',
+                        pot: 'POT A (Unggulan)',
+                        icon: '⚡',
+                        bgClass: 'from-yellow-300 to-amber-500',
+                        borderClass: 'border-yellow-500 text-yellow-600'
+                    },
+                    'fast': {
+                        label: 'SI KENCANG',
+                        pot: 'POT B (Challenger)',
+                        icon: '🔥',
+                        bgClass: 'from-orange-300 to-red-400',
+                        borderClass: 'border-red-500 text-red-600'
+                    },
+                    'kalcer': {
+                        label: 'ANAK KALCER',
+                        pot: 'POT C (Stylish)',
+                        icon: '😎',
+                        bgClass: 'from-purple-300 to-indigo-400',
+                        borderClass: 'border-indigo-500 text-indigo-600'
+                    },
+                    'keong': {
+                        label: 'TIM KEONG',
+                        pot: 'POT D (Fun Run)',
+                        icon: '🐌',
+                        bgClass: 'from-green-300 to-emerald-500',
+                        borderClass: 'border-green-500 text-green-600'
+                    }
+                };
+                return map[form.value.paceCategory] || map['keong'];
+            });
+
+            const submitForm = () => {
+                // 1. Pindah ke layar Gacha
+                step.value = 'gacha';
+                isSpinning.value = true;
+
+                // 2. Simulasi Proses (3 Detik)
+                setTimeout(() => {
+                    isSpinning.value = false;
+                    step.value = 'result';
+                }, 3000);
+            };
+
+            const resetForm = () => {
+                form.value.name = '';
+                form.value.gender = '';
+                form.value.paceCategory = '';
+                step.value = 'form';
+            };
+
+            return {
+                step, form, isFormValid, submitForm, isSpinning, resultData, resetForm
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>

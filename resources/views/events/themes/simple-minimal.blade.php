@@ -93,9 +93,13 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     
-    @php $midtransUrl = config('midtrans.base_url', 'https://app.sandbox.midtrans.com'); @endphp
+    @php
+        $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+        $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+    @endphp
     <link rel="stylesheet" href="{{ $midtransUrl }}/snap/snap.css" />
-    <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+    <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
 
     <script>
         tailwind.config = {
@@ -250,6 +254,19 @@
 
                             <form action="{{ route('events.register.store', $event->slug) }}" method="POST" id="registrationForm" class="p-6 space-y-5">
                                 @csrf
+
+                                @if(request('payment') === 'pending')
+                                    <div class="p-4 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900">
+                                        <div class="font-bold">Pembayaran masih pending</div>
+                                        <div class="text-xs text-gray-700 mt-1">Jika popup Midtrans tertutup/refresh, Anda bisa melanjutkan tanpa registrasi ulang.</div>
+                                        <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-block mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-lg">Lanjutkan Pembayaran</a>
+                                    </div>
+                                @elseif(request('payment') === 'success')
+                                    <div class="p-4 rounded-xl bg-green-50 border border-green-200 text-green-900">
+                                        <div class="font-bold">Pembayaran berhasil</div>
+                                        <div class="text-xs text-gray-700 mt-1">Jika belum menerima konfirmasi, coba refresh beberapa saat lagi.</div>
+                                    </div>
+                                @endif
                                 
                                 <div class="space-y-3">
                                     <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Penanggung Jawab</label>

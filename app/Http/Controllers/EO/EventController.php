@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\EO;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EventRegistrationSuccess;
 use App\Models\Event;
 use App\Services\EventCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -97,6 +99,7 @@ class EventController extends Controller
             'promo_code' => 'nullable|string|max:50',
             'promo_buy_x' => 'nullable|integer|min:1',
             'custom_email_message' => 'nullable|string',
+            'ticket_email_use_qr' => 'nullable|boolean',
             'is_instant_notification' => 'nullable|boolean',
             'facilities' => 'nullable|array',
             'facilities.*.name' => 'nullable|string|max:255',
@@ -143,12 +146,22 @@ class EventController extends Controller
             'categories.*.prizes' => 'nullable|array',
             'categories.*.prizes.*' => 'nullable|string|max:255',
             'payment_config' => 'nullable|array',
+            'payment_config.midtrans_demo_mode' => 'nullable|boolean',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
         ]);
 
         $validated['user_id'] = auth()->id();
+
+        if (Schema::hasColumn('events', 'ticket_email_use_qr')) {
+            $validated['ticket_email_use_qr'] = array_key_exists('ticket_email_use_qr', $validated)
+                ? (bool) $validated['ticket_email_use_qr']
+                : true;
+        } else {
+            unset($validated['ticket_email_use_qr']);
+        }
+
         if (Schema::hasColumn('events', 'is_instant_notification')) {
             $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
         } else {
@@ -240,6 +253,9 @@ class EventController extends Controller
             if (in_array('all', $methods)) {
                 $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota'];
             }
+        }
+        if (isset($validated['payment_config']['midtrans_demo_mode'])) {
+            $validated['payment_config']['midtrans_demo_mode'] = (bool) $validated['payment_config']['midtrans_demo_mode'];
         }
 
         // Single images are now paths from Dropzone
@@ -334,6 +350,7 @@ class EventController extends Controller
             'promo_code' => 'nullable|string|max:50',
             'promo_buy_x' => 'nullable|integer|min:1',
             'custom_email_message' => 'nullable|string',
+            'ticket_email_use_qr' => 'nullable|boolean',
             'is_instant_notification' => 'nullable|boolean',
             'facilities' => 'nullable|array',
             'facilities.*.name' => 'nullable|string|max:255',
@@ -380,6 +397,7 @@ class EventController extends Controller
             'categories.*.prizes' => 'nullable|array',
             'categories.*.prizes.*' => 'nullable|string|max:255',
             'payment_config' => 'nullable|array',
+            'payment_config.midtrans_demo_mode' => 'nullable|boolean',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -389,6 +407,14 @@ class EventController extends Controller
             $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
         } else {
             unset($validated['is_instant_notification']);
+        }
+
+        if (Schema::hasColumn('events', 'ticket_email_use_qr')) {
+            $validated['ticket_email_use_qr'] = array_key_exists('ticket_email_use_qr', $validated)
+                ? (bool) $validated['ticket_email_use_qr']
+                : (bool) ($event->ticket_email_use_qr ?? true);
+        } else {
+            unset($validated['ticket_email_use_qr']);
         }
 
         // Default premium_amenities to empty array if not present (to allow unchecking all)
@@ -526,6 +552,9 @@ class EventController extends Controller
             if (in_array('all', $methods)) {
                 $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota'];
             }
+        }
+        if (isset($validated['payment_config']['midtrans_demo_mode'])) {
+            $validated['payment_config']['midtrans_demo_mode'] = (bool) $validated['payment_config']['midtrans_demo_mode'];
         }
 
         $affectedCategoryIds = [];
@@ -1036,6 +1065,9 @@ class EventController extends Controller
 
         // Update event with preview data (not saved to DB)
         $event->custom_email_message = $request->input('custom_email_message');
+        if ($request->has('ticket_email_use_qr')) {
+            $event->ticket_email_use_qr = (bool) $request->boolean('ticket_email_use_qr');
+        }
         if ($request->has('name')) $event->name = $request->input('name');
         
         // Mock Participant
@@ -1069,6 +1101,82 @@ class EventController extends Controller
             'participants' => collect([$participant]),
             'transaction' => $transaction,
             'notifiableName' => $participant->name,
+        ]);
+    }
+
+    public function sendTestEmail(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $validated = $request->validate([
+            'test_email' => 'required|email|max:255',
+            'custom_email_message' => 'nullable|string',
+            'ticket_email_use_qr' => 'nullable|boolean',
+            'name' => 'nullable|string|max:255',
+        ]);
+
+        $rateKey = 'eo:test-email:'.$event->id;
+        $count = (int) $request->session()->get($rateKey, 0);
+        if ($count >= 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Batas kirim test email tercapai untuk sesi ini (maksimal 3 kali).',
+                'remaining' => 0,
+            ], 429);
+        }
+
+        $request->session()->put($rateKey, $count + 1);
+        $remaining = max(0, 3 - ($count + 1));
+
+        $event->custom_email_message = $validated['custom_email_message'] ?? null;
+        if ($request->has('ticket_email_use_qr')) {
+            $event->ticket_email_use_qr = (bool) $request->boolean('ticket_email_use_qr');
+        }
+        if (! empty($validated['name'])) {
+            $event->name = $validated['name'];
+        }
+
+        $authUser = $request->user();
+        $participant = new \App\Models\Participant([
+            'id' => 12345,
+            'user_id' => $authUser?->id,
+            'event_id' => $event->id,
+            'name' => $authUser?->name ?? 'John Doe',
+            'email' => $authUser?->email ?? 'john@example.com',
+            'phone' => $authUser?->phone ?? '08123456789',
+            'bib_number' => '1001',
+            'gender' => 'male',
+        ]);
+
+        $category = new \App\Models\RaceCategory([
+            'name' => '10K Open',
+            'distance_km' => 10,
+        ]);
+        $participant->setRelation('category', $category);
+        $participant->transaction_id = 99999;
+
+        $transaction = new \App\Models\Transaction([
+            'id' => 99999,
+            'final_amount' => 150000,
+            'payment_status' => 'paid',
+        ]);
+
+        try {
+            Mail::to($validated['test_email'])->send(
+                new EventRegistrationSuccess($event, $transaction, collect([$participant]), $participant->name)
+            );
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim email. '.$e->getMessage(),
+                'remaining' => $remaining,
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Test email berhasil dikirim.',
+            'remaining' => $remaining,
         ]);
     }
 

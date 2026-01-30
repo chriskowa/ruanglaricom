@@ -9,6 +9,17 @@ use Tests\TestCase;
 
 class FormAnalyzerTest extends TestCase
 {
+    private function makeJsonStringOfLength(int $targetLength): string
+    {
+        $prefix = '{"x":"';
+        $suffix = '"}';
+        $fill = $targetLength - strlen($prefix) - strlen($suffix);
+        if ($fill < 0) {
+            $fill = 0;
+        }
+        return $prefix . str_repeat('a', $fill) . $suffix;
+    }
+
     public function test_analyze_accepts_video_and_returns_json(): void
     {
         $this->withoutMiddleware(VerifyCsrfToken::class);
@@ -35,6 +46,7 @@ class FormAnalyzerTest extends TestCase
                 'suggestions',
                 'positives',
                 'form_issues',
+                'form_report',
                 'strength_plan',
                 'recovery_plan',
                 'coach_message',
@@ -63,14 +75,48 @@ class FormAnalyzerTest extends TestCase
             'client_height' => 720,
         ])->assertOk()
             ->assertJsonPath('ok', true)
+            ->assertJsonPath('form_report.0.code', 'landing')
             ->assertJsonStructure([
                 'ok',
                 'score',
                 'form_issues',
+                'form_report',
                 'strength_plan',
                 'recovery_plan',
                 'coach_message',
             ]);
+    }
+
+    public function test_analyze_accepts_metrics_at_20000_chars(): void
+    {
+        $this->withoutMiddleware(VerifyCsrfToken::class);
+
+        $metrics = $this->makeJsonStringOfLength(20000);
+        $this->assertSame(20000, strlen($metrics));
+
+        $this->postJson(route('tools.form-analyzer.analyze'), [
+            'metrics' => $metrics,
+            'client_duration' => 9,
+            'client_width' => 1280,
+            'client_height' => 720,
+        ])->assertOk()
+            ->assertJsonPath('ok', true);
+    }
+
+    public function test_analyze_rejects_metrics_over_20000_chars(): void
+    {
+        $this->withoutMiddleware(VerifyCsrfToken::class);
+
+        $metrics = $this->makeJsonStringOfLength(20001);
+        $this->assertSame(20001, strlen($metrics));
+
+        $this->postJson(route('tools.form-analyzer.analyze'), [
+            'metrics' => $metrics,
+            'client_duration' => 9,
+            'client_width' => 1280,
+            'client_height' => 720,
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors(['metrics']);
     }
 
     public function test_analyze_queues_when_slots_full(): void
@@ -85,8 +131,12 @@ class FormAnalyzerTest extends TestCase
         }
 
         try {
+            $file = UploadedFile::fake()->create('run.mp4', 1024, 'video/mp4');
             $this->postJson(route('tools.form-analyzer.analyze'), [
-                'metrics' => json_encode(['confidence' => 0.6, 'samples' => 10]),
+                'video' => $file,
+                'client_duration' => 8.5,
+                'client_width' => 1280,
+                'client_height' => 720,
             ])->assertStatus(429)
                 ->assertJsonPath('queued', true)
                 ->assertJsonPath('ok', false);

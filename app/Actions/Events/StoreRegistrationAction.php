@@ -447,6 +447,7 @@ class StoreRegistrationAction
                     $transaction->update([
                         'snap_token' => $snapResult['snap_token'],
                         'midtrans_order_id' => $snapResult['order_id'],
+                        'midtrans_mode' => $snapResult['midtrans_mode'] ?? 'production',
                     ]);
                     Cache::put($idKey, $transaction->id, now()->addMinutes(10));
                 } else {

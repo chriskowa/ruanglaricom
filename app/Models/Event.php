@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,6 +12,8 @@ use App\Models\RaceDistance;
 
 class Event extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'name',
@@ -38,6 +41,7 @@ class Event extends Model
         'promo_code',
         'promo_buy_x',
         'custom_email_message',
+        'ticket_email_use_qr',
         'is_instant_notification',
         'facilities',
         'addons',
@@ -53,6 +57,10 @@ class Event extends Model
         'organizer_name',
         'organizer_contact',
         'contributor_contact',
+        'is_featured',
+        'status',
+        'is_active',
+        'lock_version',
         'payment_config',
         'whatsapp_config',
     ];
@@ -70,6 +78,10 @@ class Event extends Model
         'premium_amenities' => 'array',
         'sponsors' => 'array',
         'is_instant_notification' => 'boolean',
+        'ticket_email_use_qr' => 'boolean',
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean',
+        'lock_version' => 'integer',
         'payment_config' => 'array',
         'whatsapp_config' => 'array',
     ];
@@ -132,6 +144,11 @@ class Event extends Model
     public function masterGpxes(): HasMany
     {
         return $this->hasMany(MasterGpx::class);
+    }
+
+    public function audits(): HasMany
+    {
+        return $this->hasMany(EventAudit::class);
     }
 
     public function participants(): \Illuminate\Database\Eloquent\Relations\HasManyThrough

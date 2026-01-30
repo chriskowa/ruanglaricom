@@ -335,7 +335,50 @@
                             <textarea name="custom_email_message" id="custom_email_message" class="hidden">{{ old('custom_email_message', $event->custom_email_message) }}</textarea>
                         </div>
                         <p class="text-xs text-slate-500 mt-1">Pesan ini akan muncul di email tiket peserta.</p>
+                        <div class="mt-4 space-y-3">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Send Test Email</label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="md:col-span-2">
+                                    <input type="email" id="test_email_to" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="email tujuan test (contoh: test@domain.com)">
+                                </div>
+                                <div>
+                                    <button type="button" id="sendTestEmailBtn" onclick="sendTestEmail()" class="w-full px-4 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed">Send Test Email</button>
+                                </div>
+                            </div>
+                            <div id="testEmailStatus" class="text-sm"></div>
+                            <div id="testEmailRemaining" class="text-xs text-slate-500"></div>
+                        </div>
                         @error('custom_email_message') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-4">Template Tiket Email</label>
+                        <div class="flex flex-wrap items-center gap-6">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="ticket_email_use_qr" value="1" class="peer sr-only" {{ old('ticket_email_use_qr', ($event->ticket_email_use_qr ?? true) ? '1' : '0') === '1' ? 'checked' : '' }} required>
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 group-hover:text-white transition-colors">Gunakan QR Code</span>
+                            </label>
+
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="ticket_email_use_qr" value="0" class="peer sr-only" {{ old('ticket_email_use_qr', ($event->ticket_email_use_qr ?? true) ? '1' : '0') === '0' ? 'checked' : '' }}>
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 group-hover:text-white transition-colors">Tanpa QR Code</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Jika dimatikan, email tiket tetap menampilkan nomor tiket tanpa QR.</p>
+                        <p id="ticketEmailQrError" class="text-red-400 text-xs mt-1 hidden"></p>
+                        @error('ticket_email_use_qr') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="md:col-span-2">
@@ -370,7 +413,7 @@
                         <div class="flex items-center gap-6 mb-4">
                             <label class="flex items-center gap-2 cursor-pointer group">
                                 <div class="relative flex items-center">
-                                    <input type="radio" name="whatsapp_config[enabled]" value="1" class="peer sr-only" {{ $whatsappEnabled ? 'checked' : '' }} onchange="toggleWhatsappTemplate(this.value)">
+                                    <input type="radio" name="whatsapp_config[enabled]" value="1" class="peer sr-only" {{ ($whatsappEnabled ?? false) ? 'checked' : '' }} onchange="toggleWhatsappTemplate(this.value)">
                                     <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 transition-colors"></div>
                                     <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
                                         <div class="w-2 h-2 bg-black rounded-full"></div>
@@ -380,7 +423,7 @@
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer group">
                                 <div class="relative flex items-center">
-                                    <input type="radio" name="whatsapp_config[enabled]" value="0" class="peer sr-only" {{ !$whatsappEnabled ? 'checked' : '' }} onchange="toggleWhatsappTemplate(this.value)">
+                                    <input type="radio" name="whatsapp_config[enabled]" value="0" class="peer sr-only" {{ !($whatsappEnabled ?? false) ? 'checked' : '' }} onchange="toggleWhatsappTemplate(this.value)">
                                     <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-red-500 peer-checked:bg-red-500 transition-colors"></div>
                                     <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
                                         <div class="w-2 h-2 bg-black rounded-full"></div>
@@ -390,9 +433,9 @@
                             </label>
                         </div>
 
-                        <div id="whatsapp_template_container" class="{{ $whatsappEnabled ? '' : 'opacity-50 pointer-events-none' }} transition-all duration-200">
+                        <div id="whatsapp_template_container" class="{{ ($whatsappEnabled ?? false) ? '' : 'opacity-50 pointer-events-none' }} transition-all duration-200">
                             <label class="block text-sm font-medium text-slate-400 mb-2">Message Template</label>
-                            <textarea name="whatsapp_config[template]" id="whatsapp_template" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-colors font-mono text-sm" placeholder="Halo @{{name}}, terima kasih telah mendaftar di @{{event_name}}. ID Transaksi Anda: @{{transaction_id}}.">{{ old('whatsapp_config.template', $whatsappTemplate) }}</textarea>
+                            <textarea name="whatsapp_config[template]" id="whatsapp_template" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-colors font-mono text-sm" placeholder="Halo @{{name}}, terima kasih telah mendaftar di @{{event_name}}. ID Transaksi Anda: @{{transaction_id}}.">{{ old('whatsapp_config.template', $whatsappTemplate ?? '') }}</textarea>
                             <p class="text-xs text-slate-500 mt-2">
                                 Available variables: <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{name}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{event_name}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{transaction_id}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{amount}}</code>
                             </p>
@@ -402,6 +445,35 @@
 
                 <!-- Payment Configuration -->
                 <div class="mt-6 border-t border-slate-700 pt-6">
+                    <label class="block text-sm font-medium text-slate-300 mb-4">Midtrans Demo Mode (Event Only)</label>
+                    @php
+                        $midtransDemoMode = old('payment_config.midtrans_demo_mode', (string) (int) ($event->payment_config['midtrans_demo_mode'] ?? 0));
+                    @endphp
+                    <div class="flex flex-wrap items-center gap-6 mb-4">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center">
+                                <input type="radio" name="payment_config[midtrans_demo_mode]" value="1" class="peer sr-only" {{ (string) $midtransDemoMode === '1' ? 'checked' : '' }}>
+                                <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                    <div class="w-2 h-2 bg-black rounded-full"></div>
+                                </div>
+                            </div>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">ON (Sandbox)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center">
+                                <input type="radio" name="payment_config[midtrans_demo_mode]" value="0" class="peer sr-only" {{ (string) $midtransDemoMode !== '1' ? 'checked' : '' }}>
+                                <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                    <div class="w-2 h-2 bg-black rounded-full"></div>
+                                </div>
+                            </div>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">OFF (Production)</span>
+                        </label>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-6">Hanya mempengaruhi pembayaran event (Snap token + Snap JS). Tidak mempengaruhi wallet topup.</p>
+                    @error('payment_config.midtrans_demo_mode') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+
                     <label class="block text-sm font-medium text-slate-300 mb-4">Payment Methods</label>
                     @php
                         $paymentMethods = $event->payment_config['allowed_methods'] ?? ['midtrans'];
@@ -1212,6 +1284,7 @@
     function previewEmail() {
         const content = document.querySelector('#custom_email_message').value;
         const name = document.querySelector('input[name="name"]').value;
+        const ticketEmailUseQr = document.querySelector('input[name="ticket_email_use_qr"]:checked')?.value;
         
         // Create a temporary form to post
         const form = document.createElement('form');
@@ -1236,10 +1309,125 @@
         nameInput.name = 'name';
         nameInput.value = name;
         form.appendChild(nameInput);
+
+        if (ticketEmailUseQr !== undefined) {
+            const qrInput = document.createElement('input');
+            qrInput.type = 'hidden';
+            qrInput.name = 'ticket_email_use_qr';
+            qrInput.value = ticketEmailUseQr;
+            form.appendChild(qrInput);
+        }
         
         document.body.appendChild(form);
         form.submit();
         document.body.removeChild(form);
     }
+
+    async function sendTestEmail() {
+        const email = (document.getElementById('test_email_to')?.value || '').trim();
+        const statusEl = document.getElementById('testEmailStatus');
+        const remainingEl = document.getElementById('testEmailRemaining');
+        const btn = document.getElementById('sendTestEmailBtn');
+
+        if (statusEl) statusEl.textContent = '';
+        if (remainingEl) remainingEl.textContent = '';
+
+        if (!email) {
+            if (statusEl) {
+                statusEl.className = 'text-sm text-red-400';
+                statusEl.textContent = 'Email tujuan wajib diisi.';
+            }
+            return;
+        }
+
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        if (!emailOk) {
+            if (statusEl) {
+                statusEl.className = 'text-sm text-red-400';
+                statusEl.textContent = 'Format email tidak valid.';
+            }
+            return;
+        }
+
+        const content = document.querySelector('#custom_email_message')?.value || '';
+        const name = document.querySelector('input[name=\"name\"]')?.value || '';
+        const ticketEmailUseQr = document.querySelector('input[name=\"ticket_email_use_qr\"]:checked')?.value;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+        }
+        if (statusEl) {
+            statusEl.className = 'text-sm text-slate-300';
+            statusEl.textContent = 'Mengirim test email...';
+        }
+
+        try {
+            const res = await fetch("{{ route('eo.events.send-test-email', $event) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name=\"_token\"]').value
+                },
+                body: JSON.stringify({
+                    test_email: email,
+                    custom_email_message: content,
+                    name: name,
+                    ticket_email_use_qr: ticketEmailUseQr
+                })
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                const msg = data.message || (res.status === 429 ? 'Batas kirim test email tercapai.' : 'Gagal mengirim test email.');
+                if (statusEl) {
+                    statusEl.className = 'text-sm text-red-400';
+                    statusEl.textContent = msg;
+                }
+                if (remainingEl && typeof data.remaining !== 'undefined') {
+                    remainingEl.textContent = `Sisa kuota sesi ini: ${data.remaining}/3`;
+                }
+                return;
+            }
+
+            if (statusEl) {
+                statusEl.className = 'text-sm text-green-400';
+                statusEl.textContent = data.message || 'Test email berhasil dikirim.';
+            }
+            if (remainingEl && typeof data.remaining !== 'undefined') {
+                remainingEl.textContent = `Sisa kuota sesi ini: ${data.remaining}/3`;
+            }
+        } catch (e) {
+            if (statusEl) {
+                statusEl.className = 'text-sm text-red-400';
+                statusEl.textContent = 'Terjadi kesalahan saat mengirim email.';
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Send Test Email';
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('eventForm');
+        const errorEl = document.getElementById('ticketEmailQrError');
+        if (form && errorEl) {
+            form.addEventListener('submit', function (e) {
+                const selected = form.querySelector('input[name="ticket_email_use_qr"]:checked');
+                if (!selected) {
+                    e.preventDefault();
+                    errorEl.textContent = 'Silakan pilih salah satu opsi template tiket email.';
+                    errorEl.classList.remove('hidden');
+                } else {
+                    errorEl.classList.add('hidden');
+                    errorEl.textContent = '';
+                }
+            });
+        }
+    });
 </script>
 @endpush

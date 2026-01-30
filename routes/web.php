@@ -13,6 +13,26 @@ Route::get('/', function (StravaClubService $stravaService) {
         return \App\Models\HomepageContent::first();
     });
 
+    $featuredEvent = \Illuminate\Support\Facades\Cache::remember('home.featured_event', 300, function () {
+        $event = \App\Models\Event::query()
+            ->where('is_featured', true)
+            ->where('status', 'published')
+            ->where('start_at', '>=', now())
+            ->orderBy('start_at', 'asc')
+            ->with('user')
+            ->first();
+
+        if ($event) {
+            return $event;
+        }
+
+        return \App\Models\Event::query()
+            ->where('is_featured', true)
+            ->orderBy('start_at', 'desc')
+            ->with('user')
+            ->first();
+    });
+
     $leaderboard = \Illuminate\Support\Facades\Cache::remember('home.leaderboard.data', 3600, function () use ($stravaService) {
         try {
             $data = $stravaService->getLeaderboard();
@@ -62,6 +82,7 @@ Route::get('/', function (StravaClubService $stravaService) {
 
     return view('home.index', [
         'homepageContent' => $homepageContent,
+        'featuredEvent' => $featuredEvent,
         'leaderboard' => $leaderboard,
         'topRunner' => $topStats['runner'],
         'topPacer' => $topStats['pacer'],
@@ -70,6 +91,8 @@ Route::get('/', function (StravaClubService $stravaService) {
         'totalUsers' => $topStats['totalUsers'] ?? 0
     ]);
 })->name('home');
+
+Route::get('/join-now', App\Http\Controllers\JoinNowController::class)->name('home.join-now');
 
 // Challenge: 40 Days Challenge - reuse realistic program design view with challenge mode
 Route::get('/challenge/40-days-challenge', function () {
@@ -320,9 +343,14 @@ Route::get('/event/{slug}', [App\Http\Controllers\PublicEventController::class, 
 
 Route::get('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
 Route::get('/event/{slug}/payment/{transaction}', [App\Http\Controllers\EventRegistrationController::class, 'payment'])->name('events.payment');
+Route::get('/event/{slug}/lanjutkan-pembayaran', [App\Http\Controllers\EventPaymentRecoveryController::class, 'show'])->name('events.payments.continue');
 Route::post('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:5,1')->name('events.register.store');
 Route::post('/event/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
 Route::post('/event/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
+
+Route::post('/api/events/{slug}/payments/pending', [App\Http\Controllers\EventPaymentRecoveryController::class, 'pending'])->middleware('throttle:20,1')->name('api.events.payments.pending');
+Route::get('/api/events/{slug}/payments/{transaction}/status', [App\Http\Controllers\EventPaymentRecoveryController::class, 'status'])->middleware('throttle:30,1')->name('api.events.payments.status');
+Route::post('/api/events/{slug}/payments/{transaction}/resume', [App\Http\Controllers\EventPaymentRecoveryController::class, 'resume'])->middleware('throttle:20,1')->name('api.events.payments.resume');
 
 // EO Landing Page
 Route::get('/event-organizer', function () {
@@ -493,6 +521,9 @@ Route::middleware('auth')->group(function () {
         Route::post('events/import', [App\Http\Controllers\Admin\EventController::class, 'storeImport'])->name('events.import.store');
         Route::post('events/sync', [App\Http\Controllers\Admin\EventController::class, 'sync'])->name('events.sync');
         Route::resource('events', App\Http\Controllers\Admin\EventController::class);
+        Route::post('events/{event}/toggle-featured', [App\Http\Controllers\Admin\EventController::class, 'toggleFeatured'])->name('events.toggle-featured');
+        Route::post('events/{event}/toggle-active', [App\Http\Controllers\Admin\EventController::class, 'toggleActive'])->name('events.toggle-active');
+        Route::post('events/{event}/set-status', [App\Http\Controllers\Admin\EventController::class, 'setStatus'])->name('events.set-status');
         Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class)->except(['show']);
 
         // User Management
@@ -694,6 +725,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('events', App\Http\Controllers\EO\EventController::class);
         Route::get('events/{event}/preview', [App\Http\Controllers\EO\EventController::class, 'preview'])->name('events.preview');
         Route::post('events/{event}/preview-email', [App\Http\Controllers\EO\EventController::class, 'previewEmail'])->name('events.preview-email');
+        Route::post('events/{event}/send-test-email', [App\Http\Controllers\EO\EventController::class, 'sendTestEmail'])->name('events.send-test-email');
         Route::get('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participants'])->name('events.participants');
         Route::get('events/{event}/blast', [App\Http\Controllers\EO\EventController::class, 'blast'])->name('events.blast');
         Route::post('events/{event}/blast', [App\Http\Controllers\EO\EventController::class, 'sendBlast'])->name('events.blast.send');

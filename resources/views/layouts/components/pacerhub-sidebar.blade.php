@@ -9,7 +9,12 @@
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Main</li>
                     @if(auth()->user()->isAdmin())
                         <li><a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
-                        <li><a href="{{ route('admin.events.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Running Events</a></li>
+                        <li>
+                            <a href="{{ route('admin.events.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">
+                                <span class="w-5 text-slate-400"><i class="fas fa-calendar-check"></i></span>
+                                <span>Event Management</span>
+                            </a>
+                        </li>
                         <li><a href="{{ route('admin.master-gpx.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Master GPX</a></li>
                         <li><a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Manage Users</a></li>
                         <li><a href="{{ route('admin.challenge.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Approval Setoran</a></li>

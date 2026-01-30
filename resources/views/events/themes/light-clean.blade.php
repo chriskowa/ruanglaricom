@@ -93,7 +93,12 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script type="text/javascript" src="{{ config('midtrans.base_url', 'https://app.sandbox.midtrans.com') }}/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+    @php
+        $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+        $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+    @endphp
+    <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -427,6 +432,19 @@
                 @else
                     <form action="{{ route('events.register.store', $event->slug) }}" method="POST" id="registrationForm" class="reveal-up">
                         @csrf
+
+                        @if(request('payment') === 'pending')
+                            <div class="mb-8 p-5 rounded-2xl bg-yellow-50 border border-yellow-200 text-yellow-900">
+                                <div class="font-bold">Pembayaran masih pending</div>
+                                <div class="text-sm text-slate-700 mt-1">Jika popup Midtrans tertutup/refresh, Anda bisa melanjutkan tanpa registrasi ulang.</div>
+                                <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-block mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-xl">Lanjutkan Pembayaran</a>
+                            </div>
+                        @elseif(request('payment') === 'success')
+                            <div class="mb-8 p-5 rounded-2xl bg-green-50 border border-green-200 text-green-900">
+                                <div class="font-bold">Pembayaran berhasil</div>
+                                <div class="text-sm text-slate-700 mt-1">Jika belum menerima konfirmasi, coba refresh beberapa saat lagi.</div>
+                            </div>
+                        @endif
 
                         @if($errors->any())
                             <div class="mb-8 p-5 rounded-2xl bg-red-50 border border-red-200 text-red-700">

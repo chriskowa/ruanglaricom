@@ -169,6 +169,8 @@ class EventRegistrationController extends Controller
                     'success' => true,
                     'message' => 'Registrasi berhasil!',
                     'snap_token' => $transaction->snap_token,
+                    'transaction_id' => $transaction->id,
+                    'registration_id' => $transaction->public_ref,
                     'testing_mode' => config('midtrans.testing_mode', false),
                 ]);
             }

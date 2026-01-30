@@ -23,6 +23,36 @@ class MidtransService
         MidtransConfig::$is3ds = true;
     }
 
+    private function configureForMode(string $mode): void
+    {
+        if ($mode === 'sandbox') {
+            $serverKey = (string) config('midtrans.server_key_sandbox');
+            if ($serverKey === '') {
+                throw new \RuntimeException('MIDTRANS_SERVER_KEY_SANDBOX belum diatur.');
+            }
+            MidtransConfig::$serverKey = $serverKey;
+            MidtransConfig::$isProduction = false;
+            return;
+        }
+
+        $serverKey = (string) config('midtrans.server_key');
+        if ($serverKey === '') {
+            throw new \RuntimeException('MIDTRANS_SERVER_KEY belum diatur.');
+        }
+        MidtransConfig::$serverKey = $serverKey;
+        MidtransConfig::$isProduction = true;
+    }
+
+    private function resolveEventMode(EventTransaction $transaction): string
+    {
+        $event = $transaction->event;
+        $value = is_object($event) ? ($event->payment_config['midtrans_demo_mode'] ?? null) : null;
+
+        $demo = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+
+        return $demo ? 'sandbox' : 'production';
+    }
+
     /**
      * Create top-up transaction
      */
@@ -311,10 +341,13 @@ class MidtransService
             ];
         }
 
+        $mode = $this->resolveEventMode($transaction);
+        $orderPrefix = $mode === 'sandbox' ? 'EVENT-SBX-' : 'EVENT-PRD-';
+
         // Prepare transaction parameters
         $params = [
             'transaction_details' => [
-                'order_id' => 'EVENT-'.$transaction->id.'-'.time(),
+                'order_id' => $orderPrefix.$transaction->id.'-'.time(),
                 'gross_amount' => (float) $transaction->final_amount,
             ],
             'customer_details' => [
@@ -324,8 +357,12 @@ class MidtransService
             ],
             'item_details' => $itemDetails,
         ];
+        $prevServerKey = MidtransConfig::$serverKey;
+        $prevIsProduction = MidtransConfig::$isProduction;
 
         try {
+            $this->configureForMode($mode);
+
             // Get Snap Token from Midtrans
             $snapToken = Snap::getSnapToken($params);
 
@@ -333,21 +370,32 @@ class MidtransService
                 'success' => true,
                 'snap_token' => $snapToken,
                 'order_id' => $params['transaction_details']['order_id'],
+                'midtrans_mode' => $mode,
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
+        } finally {
+            MidtransConfig::$serverKey = $prevServerKey;
+            MidtransConfig::$isProduction = $prevIsProduction;
         }
     }
 
     /**
      * Check transaction status
      */
-    public function checkTransactionStatus(string $orderId): array
+    public function checkTransactionStatus(string $orderId, ?string $mode = null): array
     {
+        $prevServerKey = MidtransConfig::$serverKey;
+        $prevIsProduction = MidtransConfig::$isProduction;
+
         try {
+            if ($mode !== null) {
+                $this->configureForMode($mode);
+            }
+
             $status = Transaction::status($orderId);
 
             return [
@@ -359,6 +407,9 @@ class MidtransService
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
+        } finally {
+            MidtransConfig::$serverKey = $prevServerKey;
+            MidtransConfig::$isProduction = $prevIsProduction;
         }
     }
 

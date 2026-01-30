@@ -52,7 +52,7 @@
                         </p>
                         
                         <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                            <a href="/register" class="px-8 py-4 bg-neon text-dark font-black rounded-xl hover:bg-white hover:scale-105 transition transform shadow-[0_0_30px_rgba(204,255,0,0.3)] text-center">
+                            <a href="{{ route('home.join-now') }}" class="px-8 py-4 bg-neon text-dark font-black rounded-xl hover:bg-white hover:scale-105 transition transform shadow-[0_0_30px_rgba(204,255,0,0.3)] text-center">
                                 MULAI SEKARANG
                             </a>
                             <a href="#events" class="px-8 py-4 border border-slate-700 text-white font-bold rounded-xl hover:bg-slate-800 hover:border-slate-500 transition flex items-center justify-center gap-2 group">
@@ -92,23 +92,42 @@
                     <div class="relative order-1 md:order-2" data-aos="fade-left" data-aos-delay="200">
                         <div class="relative z-10 rounded-[2.5rem] overflow-hidden border-8 border-slate-800/50 shadow-2xl rotate-3 hover:rotate-0 transition duration-700 group">
                             <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent z-10"></div>
-                            <img src="{{ $homepageContent && $homepageContent->floating_image ? asset($homepageContent->floating_image) : 'https://res.cloudinary.com/dslfarxct/images/v1766050868/542301374_18517775974013478_1186867397282832240_n/542301374_18517775974013478_1186867397282832240_n.jpg' }}" alt="Runner" class="w-full h-[500px] object-cover object-top transform group-hover:scale-110 transition duration-1000">
+                            <img src="{{ $featuredEvent ? $featuredEvent->getHeroImageUrl() : ($homepageContent && $homepageContent->floating_image ? asset($homepageContent->floating_image) : 'https://res.cloudinary.com/dslfarxct/images/v1766050868/542301374_18517775974013478_1186867397282832240_n/542301374_18517775974013478_1186867397282832240_n.jpg') }}" alt="{{ $featuredEvent ? $featuredEvent->name : 'Runner' }}" class="w-full h-[500px] object-cover object-center transform group-hover:scale-110 transition duration-1000">
                             
-                            <!-- Floating Card Inside Image -->
-                            <div class="absolute bottom-8 left-8 z-20 bg-dark/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex items-center gap-4 pr-8">
-                                <div class="w-12 h-12 rounded-full bg-neon/20 flex items-center justify-center text-neon">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">Avg Pace</p>
-                                    <p class="text-xl font-black text-white">4:35 <span class="text-xs text-slate-500 font-normal">/km</span></p>
-                                </div>
-                            </div>
+                            @if($featuredEvent)
+                                <a href="{{ route('running-event.detail', $featuredEvent->slug) }}" class="absolute bottom-6 left-6 right-6 md:right-auto md:max-w-sm z-20 bg-dark/80 hover:bg-dark/90 backdrop-blur-md p-4 rounded-2xl border border-white/10 transition">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-11 h-11 rounded-xl bg-neon/20 flex items-center justify-center text-neon flex-shrink-0">
+                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-black">Featured Event</p>
+                                            <p class="text-lg font-black text-white leading-tight truncate">{{ $featuredEvent->name }}</p>
+                                            <div class="mt-1 text-xs text-slate-300 space-y-0.5">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-slate-500">Tanggal</span>
+                                                    <span class="font-bold">{{ optional($featuredEvent->start_at)->translatedFormat('d M Y') }}</span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-slate-500">Lokasi</span>
+                                                    <span class="font-bold truncate">{{ $featuredEvent->location_name }}</span>
+                                                </div>
+                                                @if($featuredEvent->user)
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-slate-500">EO</span>
+                                                        <span class="font-bold truncate">{{ $featuredEvent->user->name }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endif
                         </div>
 
                         <!-- Floating Join Button -->
                         <div class="absolute top-1/2 -translate-y-1/2 -right-6 md:-right-12 z-30">
-                            <a href="/register" class="flex flex-col items-center justify-center w-24 h-24 md:w-32 md:h-32 bg-neon rounded-full text-dark font-black text-xs md:text-sm text-center p-2 rotate-12 hover:rotate-0 hover:scale-110 transition duration-300 shadow-[0_0_40px_rgba(204,255,0,0.6)] animate-float border-4 border-dark">
+                            <a href="{{ route('home.join-now') }}" class="flex flex-col items-center justify-center w-24 h-24 md:w-32 md:h-32 bg-neon rounded-full text-dark font-black text-xs md:text-sm text-center p-2 rotate-12 hover:rotate-0 hover:scale-110 transition duration-300 shadow-[0_0_40px_rgba(204,255,0,0.6)] animate-float border-4 border-dark">
                                 <span>JOIN</span>
                                 <span class="text-lg md:text-2xl leading-none">NOW</span>
                             </a>

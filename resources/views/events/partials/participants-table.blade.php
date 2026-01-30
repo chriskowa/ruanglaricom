@@ -20,16 +20,29 @@
                     if (selectedCategory.value !== 'all') params.append('category_id', selectedCategory.value);
                     
                     const response = await fetch(`/events/${props.eventSlug}/participants-list?${params.toString()}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
                     const data = await response.json();
                     
-                    participants.value = data.data;
+                    // Validate response structure
+                    if (!data || !data.data) {
+                        participants.value = [];
+                        pagination.value = { current_page: 1, last_page: 1, total: 0 };
+                        return;
+                    }
+                    
+                    participants.value = Array.isArray(data.data) ? data.data : [];
                     pagination.value = {
-                        current_page: data.current_page,
-                        last_page: data.last_page,
-                        total: data.total
+                        current_page: data.current_page || 1,
+                        last_page: data.last_page || 1,
+                        total: data.total || 0
                     };
                 } catch (error) {
                     console.error('Error fetching participants:', error);
+                    participants.value = []; // Fallback to empty array to prevent UI errors
                 } finally {
                     isLoading.value = false;
                 }
@@ -122,7 +135,7 @@
                             <tr v-else-if="participants.length === 0">
                                 <td colspan="2" class="p-8 text-center text-gray-500">
                                     <i class="fas fa-users-slash text-2xl mb-2"></i>
-                                    <p>Tidak ada peserta ditemukan</p>
+                                    <p>Belum ada peserta</p>
                                 </td>
                             </tr>
                             <tr v-for="(p, index) in participants" :key="index" class="hover:bg-white/5 transition-colors group">

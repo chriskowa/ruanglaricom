@@ -262,6 +262,36 @@
                     </div>
 
                     <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-4">Template Tiket Email</label>
+                        <div class="flex flex-wrap items-center gap-6">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="ticket_email_use_qr" value="1" class="peer sr-only" {{ (string) old('ticket_email_use_qr', '1') === '1' ? 'checked' : '' }} required>
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 group-hover:text-white transition-colors">Gunakan QR Code</span>
+                            </label>
+
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="ticket_email_use_qr" value="0" class="peer sr-only" {{ (string) old('ticket_email_use_qr') === '0' ? 'checked' : '' }}>
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 group-hover:text-white transition-colors">Tanpa QR Code</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Mengatur apakah email tiket menampilkan QR code untuk verifikasi peserta.</p>
+                        <p id="ticketEmailQrError" class="text-red-400 text-xs mt-1 hidden"></p>
+                        @error('ticket_email_use_qr') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Slug (SEO URL)</label>
                         <div class="flex">
                             <span class="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-slate-700 bg-slate-800 text-slate-400 text-sm">
@@ -347,6 +377,35 @@
 
                 <!-- Payment Configuration -->
                 <div class="mt-6 border-t border-slate-700 pt-6">
+                    <label class="block text-sm font-medium text-slate-300 mb-4">Midtrans Demo Mode (Event Only)</label>
+                    @php
+                        $midtransDemoMode = old('payment_config.midtrans_demo_mode', '0');
+                    @endphp
+                    <div class="flex flex-wrap items-center gap-6 mb-4">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center">
+                                <input type="radio" name="payment_config[midtrans_demo_mode]" value="1" class="peer sr-only" {{ (string) $midtransDemoMode === '1' ? 'checked' : '' }}>
+                                <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                    <div class="w-2 h-2 bg-black rounded-full"></div>
+                                </div>
+                            </div>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">ON (Sandbox)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center">
+                                <input type="radio" name="payment_config[midtrans_demo_mode]" value="0" class="peer sr-only" {{ (string) $midtransDemoMode !== '1' ? 'checked' : '' }}>
+                                <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                    <div class="w-2 h-2 bg-black rounded-full"></div>
+                                </div>
+                            </div>
+                            <span class="text-slate-300 group-hover:text-white transition-colors">OFF (Production)</span>
+                        </label>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-6">Hanya mempengaruhi pembayaran event (Snap token + Snap JS). Tidak mempengaruhi wallet topup.</p>
+                    @error('payment_config.midtrans_demo_mode') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+
                     <label class="block text-sm font-medium text-slate-300 mb-4">Payment Methods</label>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <label class="relative cursor-pointer group">
@@ -867,6 +926,22 @@
         initDropzone('logo-dropzone', 'logo_image', 1);
         initDropzone('gallery-dropzone', 'gallery[]', 10);
         initDropzone('sponsors-dropzone', 'sponsors[]', 30);
+
+        const form = document.getElementById('eventForm');
+        const errorEl = document.getElementById('ticketEmailQrError');
+        if (form && errorEl) {
+            form.addEventListener('submit', function (e) {
+                const selected = form.querySelector('input[name="ticket_email_use_qr"]:checked');
+                if (!selected) {
+                    e.preventDefault();
+                    errorEl.textContent = 'Silakan pilih salah satu opsi template tiket email.';
+                    errorEl.classList.remove('hidden');
+                } else {
+                    errorEl.classList.add('hidden');
+                    errorEl.textContent = '';
+                }
+            });
+        }
     });
 
     // Categories Logic

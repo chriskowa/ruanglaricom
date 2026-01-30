@@ -100,9 +100,13 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    @php $midtransUrl = config('midtrans.base_url', 'https://app.sandbox.midtrans.com'); @endphp
+    @php
+        $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+        $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+    @endphp
     <link rel="stylesheet" href="{{ $midtransUrl }}/snap/snap.css" />
-    <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+    <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
 
     <!-- Custom Neon Theme CSS -->
     <link rel="stylesheet" href="{{ asset('css/themes/paolo-fest-neon.css') }}">
@@ -876,6 +880,19 @@
             @else
                 <form action="{{ route('events.register.store', $event->slug) }}" method="POST" id="registrationForm" class="flex flex-col lg:flex-row gap-8 reveal">
                     @csrf
+
+                    @if(request('payment') === 'pending')
+                        <div class="w-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 p-5 rounded-2xl">
+                            <div class="font-bold text-white">Pembayaran masih pending</div>
+                            <div class="text-sm text-slate-300 mt-1">Jika popup Midtrans tertutup/refresh, Anda bisa melanjutkan tanpa registrasi ulang.</div>
+                            <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-block mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-xl">Lanjutkan Pembayaran</a>
+                        </div>
+                    @elseif(request('payment') === 'success')
+                        <div class="w-full bg-green-500/10 border border-green-500/30 text-green-200 p-5 rounded-2xl">
+                            <div class="font-bold text-white">Pembayaran berhasil</div>
+                            <div class="text-sm text-slate-300 mt-1">Jika belum menerima konfirmasi, coba refresh beberapa saat lagi.</div>
+                        </div>
+                    @endif
                     
                     <div class="flex-1 space-y-8">
                         

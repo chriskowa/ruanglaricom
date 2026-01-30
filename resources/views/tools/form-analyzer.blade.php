@@ -305,6 +305,11 @@
                                         <div id="rlfa-formissues" class="space-y-2"></div>
                                     </div>
 
+                                    <div id="rlfa-formreport-wrap" class="space-y-3 hidden">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Laporan Form</h4>
+                                        <div id="rlfa-formreport" class="space-y-3"></div>
+                                    </div>
+
                                     <div id="rlfa-strength-wrap" class="space-y-3 hidden">
                                         <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Solusi Penguatan</h4>
                                         <div id="rlfa-strength" class="space-y-2"></div>
@@ -555,13 +560,25 @@
         const width = video.videoWidth;
         const height = video.videoHeight;
 
-        const targetSamples = clamp(Math.floor(duration * 2), 12, 28);
+        const CATEGORY_REQUIREMENTS = {
+            landing: { min: 3 },
+            lever: { min: 3 },
+            push: { min: 3 },
+            pull: { min: 3 },
+            arm_swing: { min: 4 },
+            posture: { min: 4 },
+        };
+
+        const maxSamples = clamp(Math.floor(duration * 6), 30, 90);
         const start = clamp(0.4, 0, Math.max(0, duration - 0.4));
         const end = clamp(duration - 0.4, 0, duration);
-        const step = targetSamples > 1 ? (end - start) / (targetSamples - 1) : 0;
+        const step = maxSamples > 1 ? (end - start) / (maxSamples - 1) : 0;
 
         const frames = [];
-        const keyVisibility = [];
+        const counts = Object.keys(CATEGORY_REQUIREMENTS).reduce((acc, k) => { acc[k] = 0; return acc; }, {});
+        const best = Object.keys(CATEGORY_REQUIREMENTS).reduce((acc, k) => { acc[k] = { score: -1, t: null, landmarks: null }; return acc; }, {});
+
+        let runningMaxFootY = 0;
         const L = {
             leftShoulder: 11,
             rightShoulder: 12,
@@ -587,7 +604,33 @@
 
         const getPt = (lm, idx) => lm?.[idx] ? { x: lm[idx].x, y: lm[idx].y, v: lm[idx].visibility ?? 0 } : null;
 
-        for (let i = 0; i < targetSamples; i++) {
+        const inFrame = (pt) => {
+            if (!pt) return false;
+            return pt.x > 0.05 && pt.x < 0.95 && pt.y > 0.05 && pt.y < 0.95;
+        };
+
+        const qualityGate = (keyPts, requiredKeys = []) => {
+            const pts = Object.values(keyPts).filter(Boolean);
+            const vis = pts.length ? (pts.reduce((a, p) => a + (p.v ?? 0), 0) / pts.length) : 0;
+            if (vis < 0.55) return { ok: false, score: vis };
+
+            for (const k of requiredKeys) {
+                if (!keyPts[k] || !inFrame(keyPts[k]) || (keyPts[k].v ?? 0) < 0.5) {
+                    return { ok: false, score: vis };
+                }
+            }
+
+            const inFrameRatio = pts.length ? (pts.filter(inFrame).length / pts.length) : 0;
+            if (inFrameRatio < 0.75) return { ok: false, score: vis * inFrameRatio };
+
+            return { ok: true, score: (vis * 0.75) + (inFrameRatio * 0.25) };
+        };
+
+        const stopReady = () => {
+            return Object.keys(CATEGORY_REQUIREMENTS).every((k) => counts[k] >= CATEGORY_REQUIREMENTS[k].min && !!best[k].landmarks);
+        };
+
+        for (let i = 0; i < maxSamples; i++) {
             const t = start + step * i;
             video.currentTime = t;
             await new Promise((resolve) => {
@@ -598,7 +641,7 @@
             const r = landmarker.detectForVideo(video, Math.round(t * 1000));
             const lm = r?.landmarks?.[0];
             if (!lm || !Array.isArray(lm)) {
-                if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: targetSamples });
+                if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: maxSamples, coverage: { ...counts } });
                 continue;
             }
 
@@ -615,7 +658,27 @@
             const rWrist = getPt(lm, L.rightWrist);
 
             if (!hip || !knee || !ankle || !heel || !footIndex || !lShoulder || !rShoulder) {
-                if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: targetSamples });
+                if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: maxSamples, coverage: { ...counts } });
+                continue;
+            }
+
+            const midX = (lShoulder.x + rShoulder.x) / 2;
+
+            const keyPts = {
+                hip,
+                knee,
+                ankle,
+                heel,
+                footIndex,
+                lShoulder,
+                rShoulder,
+                lWrist,
+                rWrist,
+            };
+
+            const qBase = qualityGate(keyPts, ['hip', 'knee', 'ankle', 'lShoulder', 'rShoulder', 'footIndex', 'heel']);
+            if (!qBase.ok) {
+                if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: maxSamples, coverage: { ...counts } });
                 continue;
             }
 
@@ -626,17 +689,30 @@
             const shinDy = Math.abs(knee.y - ankle.y);
             const shinAng = (shinDy > 0) ? toDeg(Math.atan2(shinDx, shinDy)) : null;
 
-            const midX = (lShoulder.x + rShoulder.x) / 2;
-            const trunkDx = (lShoulder.x + rShoulder.x) / 2 - hip.x;
+            const trunkDx = midX - hip.x;
             const trunkDy = ((lShoulder.y + rShoulder.y) / 2 - hip.y);
             const trunkAng = trunkDy !== 0 ? Math.abs(toDeg(Math.atan2(trunkDx, -trunkDy))) : null;
 
             const cross = ((lWrist && lWrist.x > midX + 0.03) || (rWrist && rWrist.x < midX - 0.03)) ? 1 : 0;
-            const visAvg = (hip.v + knee.v + ankle.v + heel.v + footIndex.v + lShoulder.v + rShoulder.v) / 7;
-            keyVisibility.push(visAvg);
 
             const footY = Math.max(ankle.y, heel.y, footIndex.y);
+            runningMaxFootY = Math.max(runningMaxFootY, footY);
             const ankleHipDx = Math.abs(ankle.x - hip.x);
+            const dir = (footIndex.x - heel.x) >= 0 ? 1 : -1;
+            const ankleRel = (ankle.x - hip.x) * dir;
+
+            const footContact = footY > (runningMaxFootY - 0.035);
+            const wristOk = (lWrist && (lWrist.v ?? 0) >= 0.5 && inFrame(lWrist)) || (rWrist && (rWrist.v ?? 0) >= 0.5 && inFrame(rWrist));
+
+            const categories = [];
+            if (footContact && ankleHipDx > 0.06) categories.push('landing');
+            if (footContact && ankleHipDx >= 0.03 && ankleHipDx <= 0.09 && kneeFlex !== null && kneeFlex >= 22 && kneeFlex <= 60) categories.push('lever');
+            if (footContact && ankleRel < -0.02) categories.push('push');
+            if (!footContact && kneeFlex !== null && kneeFlex >= 35 && ankleHipDx > 0.03) categories.push('pull');
+            if (wristOk) categories.push('arm_swing');
+            if (trunkAng !== null && Number.isFinite(trunkAng)) categories.push('posture');
+
+            const qScore = qBase.score;
             frames.push({
                 t,
                 footY,
@@ -647,10 +723,26 @@
                 trunkAng,
                 cross,
                 hipY: hip.y,
-                landmarks: lm
+                dir,
+                ankleRel,
+                categories,
+                qScore,
+                landmarks: lm,
             });
 
-            if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: targetSamples });
+            for (const cat of categories) {
+                if (!CATEGORY_REQUIREMENTS[cat]) continue;
+                counts[cat] += 1;
+                if (qScore > best[cat].score) {
+                    best[cat] = { score: qScore, t, landmarks: lm };
+                }
+            }
+
+            if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: maxSamples, coverage: { ...counts } });
+
+            if (i >= 10 && stopReady()) {
+                break;
+            }
         }
 
         if (!frames.length) {
@@ -682,7 +774,7 @@
             return Math.sqrt(s);
         };
 
-        const confidence = avg(keyVisibility) ?? 0;
+        const confidence = avg(frames.map((f) => f.qScore)) ?? 0;
         const kneeFlex = avg(contact.map((f) => f.kneeFlex));
         const shinAng = avg(contact.map((f) => f.shinAng));
         const trunkAng = avg(frames.map((f) => f.trunkAng));
@@ -691,26 +783,42 @@
 
         let visualization = null;
         try {
-            let bestFrame = null;
-            if (contact.length > 0) {
-                 bestFrame = contact.sort((a, b) => b.kneeFlex - a.kneeFlex)[0];
-            } else if (frames.length > 0) {
-                 bestFrame = frames[Math.floor(frames.length / 2)];
-            }
-
-            if (bestFrame && bestFrame.landmarks) {
-                video.currentTime = bestFrame.t;
+            const pickBest = () => {
+                const landing = best.landing?.landmarks ? best.landing : null;
+                const posture = best.posture?.landmarks ? best.posture : null;
+                const lever = best.lever?.landmarks ? best.lever : null;
+                if (landing) return landing;
+                if (posture) return posture;
+                if (lever) return lever;
+                return null;
+            };
+            const bf = pickBest();
+            if (bf && bf.landmarks) {
+                video.currentTime = bf.t;
                 await new Promise((resolve) => {
                     const handler = () => { video.removeEventListener('seeked', handler); resolve(); };
                     video.addEventListener('seeked', handler);
                 });
-                visualization = drawBiomechanics(video, bestFrame.landmarks, width, height);
+                visualization = drawBiomechanics(video, bf.landmarks, width, height);
             }
         } catch (e) {
             console.error(e);
         }
 
         URL.revokeObjectURL(url);
+
+        const coverage = Object.keys(CATEGORY_REQUIREMENTS).reduce((acc, k) => {
+            const min = CATEGORY_REQUIREMENTS[k].min;
+            const count = counts[k] || 0;
+            acc[k] = {
+                count,
+                min,
+                ok: count >= min && !!best[k].landmarks,
+                rep_t: best[k].t,
+            };
+            return acc;
+        }, {});
+        const coverageMissing = Object.keys(coverage).filter((k) => !coverage[k].ok);
 
         return {
             confidence: Number.isFinite(confidence) ? Number(confidence.toFixed(3)) : 0,
@@ -722,6 +830,8 @@
             trunk_lean_deg: Number.isFinite(trunkAng) ? Number(trunkAng.toFixed(1)) : null,
             arm_cross_pct: Number.isFinite(armCrossPct) ? Number(armCrossPct.toFixed(1)) : null,
             vertical_oscillation: Number.isFinite(verticalOsc) ? Number(verticalOsc.toFixed(4)) : null,
+            coverage: coverage,
+            coverage_missing: coverageMissing,
             visualization: visualization
         };
     };
@@ -952,6 +1062,8 @@
         const positivesEl = document.getElementById('rlfa-positives');
         const formIssuesWrap = document.getElementById('rlfa-formissues-wrap');
         const formIssuesEl = document.getElementById('rlfa-formissues');
+        const formReportWrap = document.getElementById('rlfa-formreport-wrap');
+        const formReportEl = document.getElementById('rlfa-formreport');
         const strengthWrap = document.getElementById('rlfa-strength-wrap');
         const strengthEl = document.getElementById('rlfa-strength');
         const recoveryWrap = document.getElementById('rlfa-recovery-wrap');
@@ -1109,6 +1221,49 @@
             return wrap;
         };
 
+        const createReportCard = (section) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'bg-slate-900/60 border border-slate-800 rounded-xl p-4';
+
+            const status = (section?.status || 'ok').toLowerCase();
+            const badge = document.createElement('span');
+            badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded border';
+            if (status === 'issue') badge.className += ' bg-red-500/15 text-red-300 border-red-500/30';
+            else if (status === 'warn') badge.className += ' bg-yellow-500/15 text-yellow-300 border-yellow-500/30';
+            else if (status === 'missing') badge.className += ' bg-slate-500/15 text-slate-300 border-slate-500/30';
+            else badge.className += ' bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+            badge.textContent = status.toUpperCase();
+
+            const head = document.createElement('div');
+            head.className = 'flex items-start justify-between gap-3';
+            head.innerHTML = `<div><div class="text-white font-black text-sm">${section?.title || 'Bagian Gerak'}</div>${section?.summary ? `<div class="text-xs text-slate-300 mt-1">${section.summary}</div>` : ''}</div>`;
+            head.appendChild(badge);
+            wrap.appendChild(head);
+
+            const addList = (label, arr) => {
+                const xs = Array.isArray(arr) ? arr.filter((x) => typeof x === 'string' && x.trim() !== '') : [];
+                if (!xs.length) return;
+                const box = document.createElement('div');
+                box.className = 'mt-3';
+                box.innerHTML = `<div class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">${label}</div>`;
+                const ul = document.createElement('ul');
+                ul.className = 'text-xs text-slate-300 leading-relaxed space-y-1 list-disc pl-4';
+                xs.forEach((x) => {
+                    const li = document.createElement('li');
+                    li.textContent = x;
+                    ul.appendChild(li);
+                });
+                box.appendChild(ul);
+                wrap.appendChild(box);
+            };
+
+            addList('Temuan', section?.findings);
+            addList('Aksi Cepat', section?.actions);
+            addList('Penguatan', section?.strength);
+
+            return wrap;
+        };
+
         const typewriter = (el, text) => {
             el.innerHTML = '';
             let i = 0;
@@ -1211,12 +1366,14 @@
             suggestionsEl.innerHTML = '';
             positivesEl.innerHTML = '';
             formIssuesEl.innerHTML = '';
+            if (formReportEl) formReportEl.innerHTML = '';
             strengthEl.innerHTML = '';
             recoveryEl.innerHTML = '';
             issuesWrap.classList.add('hidden');
             suggestionsWrap.classList.add('hidden');
             positivesWrap.classList.add('hidden');
             formIssuesWrap.classList.add('hidden');
+            if (formReportWrap) formReportWrap.classList.add('hidden');
             strengthWrap.classList.add('hidden');
             recoveryWrap.classList.add('hidden');
 
@@ -1244,6 +1401,12 @@
                 formIssuesWrap.classList.remove('hidden');
             }
 
+            const formReport = Array.isArray(result.form_report) ? result.form_report : [];
+            if (formReportEl && formReportWrap && formReport.length) {
+                formReport.forEach((s) => formReportEl.appendChild(createReportCard(s)));
+                formReportWrap.classList.remove('hidden');
+            }
+
             const strength = Array.isArray(result.strength_plan) ? result.strength_plan : [];
             if (strength.length) {
                 strength.forEach((x) => strengthEl.appendChild(createChip(x)));
@@ -1259,6 +1422,35 @@
 
         const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+        const METRICS_MAX_CHARS = 20000;
+
+        const stripLargeMetricFields = (value) => {
+            if (!value || typeof value !== 'object') return value;
+            if (Array.isArray(value)) return value.map(stripLargeMetricFields);
+            const out = {};
+            Object.keys(value).forEach((k) => {
+                if (k === 'visualization') return;
+                out[k] = stripLargeMetricFields(value[k]);
+            });
+            return out;
+        };
+
+        const buildMetricsPayload = (metrics) => {
+            if (!metrics || typeof metrics !== 'object') return null;
+            const stripped = stripLargeMetricFields(metrics);
+            let json = '';
+            try {
+                json = JSON.stringify(stripped);
+            } catch (e) {
+                return null;
+            }
+            const len = json.length;
+            if (len > METRICS_MAX_CHARS) {
+                return { ok: false, length: len };
+            }
+            return { ok: true, json, length: len };
+        };
+
         const analyze = async (file, clientMeta, metrics, options = {}) => {
             showScanning();
             scanText.textContent = 'MENYIAPKAN...';
@@ -1272,6 +1464,11 @@
 
             if (uploadVideo && !file) {
                 throw { error: 'Video wajib diupload.' };
+            }
+
+            const metricsPayload = buildMetricsPayload(metrics);
+            if (metrics && metricsPayload && metricsPayload.ok === false) {
+                throw { error: `Data analisis (metrics) terlalu besar untuk dikirim (maksimal ${METRICS_MAX_CHARS} karakter). Coba ulang tanpa visualisasi atau gunakan resolusi lebih kecil.` };
             }
 
             let attempt = 0;
@@ -1308,7 +1505,7 @@
                     const fd = new FormData();
                     fd.append('upload_video', uploadVideo ? '1' : '0');
                     if (uploadVideo) fd.append('video', file);
-                    if (metrics) fd.append('metrics', JSON.stringify(metrics));
+                    if (metricsPayload && metricsPayload.ok && metricsPayload.json) fd.append('metrics', metricsPayload.json);
                     fd.append('client_duration', String(clientMeta?.duration || ''));
                     fd.append('client_width', String(clientMeta?.width || ''));
                     fd.append('client_height', String(clientMeta?.height || ''));
@@ -1359,9 +1556,30 @@
                 let metrics = null;
                 if (window.RLFormAnalyzerPose?.analyzeVideoFile) {
                     try {
-                        metrics = await window.RLFormAnalyzerPose.analyzeVideoFile(file, ({ done, total }) => {
+                        const formatCoverage = (cov) => {
+                            if (!cov || typeof cov !== 'object') return '';
+                            const order = [
+                                ['landing', 'Landing'],
+                                ['lever', 'Lever'],
+                                ['push', 'Push'],
+                                ['pull', 'Pull'],
+                                ['arm_swing', 'Ayunan'],
+                                ['posture', 'Postur'],
+                            ];
+                            return order.map(([k, label]) => {
+                                const x = cov[k];
+                                if (!x) return null;
+                                const ok = x.count >= x.min;
+                                return `${label} ${x.count}/${x.min}${ok ? '✓' : ''}`;
+                            }).filter(Boolean).join(' • ');
+                        };
+                        metrics = await window.RLFormAnalyzerPose.analyzeVideoFile(file, ({ done, total, coverage }) => {
                             const pct = total ? Math.round((done / total) * 100) : 0;
                             scanMetric1.textContent = pct + '%';
+                            if (coverage) {
+                                const msg = formatCoverage(coverage);
+                                if (msg) scanSubtext.textContent = msg;
+                            }
                         });
                     } catch (e) {
                         metrics = null;

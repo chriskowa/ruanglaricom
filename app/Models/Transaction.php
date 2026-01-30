@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Transaction extends Model
 {
     protected $table = 'transactions';
 
     protected $fillable = [
+        'public_ref',
         'event_id',
         'user_id',
         'pic_data',
@@ -21,6 +23,7 @@ class Transaction extends Model
         'final_amount',
         'payment_status',
         'payment_gateway',
+        'midtrans_mode',
         'unique_code',
         'payment_channel',
         'snap_token',
@@ -56,6 +59,21 @@ class Transaction extends Model
     public function participants(): HasMany
     {
         return $this->hasMany(Participant::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $transaction) {
+            if (! empty($transaction->public_ref)) {
+                return;
+            }
+
+            do {
+                $ref = 'RL'.Str::upper(Str::random(10));
+            } while (self::query()->where('public_ref', $ref)->exists());
+
+            $transaction->public_ref = $ref;
+        });
     }
 
     /**
