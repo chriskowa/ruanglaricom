@@ -73,7 +73,7 @@ class StoreRegistrationAction
             'participants.*.emergency_contact_name' => 'required|string|max:255',
             'participants.*.emergency_contact_number' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
             'participants.*.date_of_birth' => 'required|date|before:today',
-            'participants.*.target_time' => 'nullable|string|max:20',
+            'participants.*.target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/', 'not_in:00:00:00'],
             'participants.*.jersey_size' => 'nullable|string|max:10',
             'coupon_code' => 'nullable|string|exists:coupons,code',
             'payment_method' => 'nullable|in:midtrans,cod,moota',

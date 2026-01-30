@@ -90,9 +90,17 @@
     }
     </script>
 
-    <!-- Favicon Plan: Replace href with actual favicon path if available -->
-    <link rel="shortcut icon" href="{{ asset('images/favicon.png') }}" type="image/x-icon">
-    
+    <!-- Favicon default -->
+    <link rel="icon" href="{{ asset('images/green/favicon-32x32.png') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('images/paolo/favicon-32x32.png') }}" type="image/x-icon">
+
+    <!-- Versi PNG -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/paolo/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/paolo/favicon-16x16.png') }}">
+
+    <!-- Versi Apple Touch -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/paolo/apple-touch-icon.png') }}">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     @if(env('RECAPTCHA_SITE_KEY'))
@@ -1357,6 +1365,27 @@
                                                 <option value="">Ukuran Jersey</option>
                                                 @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}">{{ $size }}</option> @endforeach
                                             </select>
+                                            
+                                            <div class="space-y-1 relative">
+                                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Target Waktu (Jam:Mnt:Dtk)</label>
+                                                <div class="flex gap-2">
+                                                    <div class="relative flex-1">
+                                                        <input type="number" min="0" max="23" placeholder="00" class="target-time-part target-time-h w-full bg-white border border-slate-300 rounded-xl px-3 py-3 text-center focus:ring-2 focus:ring-brand-600 outline-none font-mono font-bold" oninput="if(this.value.length>2) this.value=this.value.slice(0,2)">
+                                                        <span class="absolute right-2 top-3.5 text-[10px] text-slate-400 font-bold pointer-events-none">JAM</span>
+                                                    </div>
+                                                    <div class="relative flex-1">
+                                                        <input type="number" min="0" max="59" placeholder="00" class="target-time-part target-time-m w-full bg-white border border-slate-300 rounded-xl px-3 py-3 text-center focus:ring-2 focus:ring-brand-600 outline-none font-mono font-bold" oninput="if(this.value.length>2) this.value=this.value.slice(0,2)">
+                                                        <span class="absolute right-2 top-3.5 text-[10px] text-slate-400 font-bold pointer-events-none">MNT</span>
+                                                    </div>
+                                                    <div class="relative flex-1">
+                                                        <input type="number" min="0" max="59" placeholder="00" class="target-time-part target-time-s w-full bg-white border border-slate-300 rounded-xl px-3 py-3 text-center focus:ring-2 focus:ring-brand-600 outline-none font-mono font-bold" oninput="if(this.value.length>2) this.value=this.value.slice(0,2)">
+                                                        <span class="absolute right-2 top-3.5 text-[10px] text-slate-400 font-bold pointer-events-none">DTK</span>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="participants[0][target_time]" class="target-time-input" value="{{ old('participants.0.target_time') }}">
+                                                <p class="text-[10px] text-slate-400 ml-1">Est. waktu finish (Duration)</p>
+                                                @error('participants.0.target_time') <span class="text-red-500 text-xs ml-1">{{ $message }}</span> @enderror
+                                            </div>
                                         </div>
 
                                         @if(!empty($event->addons) && is_array($event->addons))
@@ -1757,6 +1786,44 @@
                     input.addEventListener('change', calculateTotal);
                     input.addEventListener('change', resetCoupon);
                 });
+
+                // Target Time Logic
+                context.querySelectorAll('.target-time-part').forEach(input => {
+                    input.addEventListener('input', function() {
+                        updateTargetTime(this);
+                    });
+                    input.addEventListener('blur', function() {
+                         if(this.value.length === 1) this.value = this.value.padStart(2, '0');
+                         updateTargetTime(this);
+                    });
+                });
+
+                // Initialize split fields from hidden input if exists (e.g. from old())
+                context.querySelectorAll('.target-time-input').forEach(hidden => {
+                    if (hidden.value && /^\d{2}:\d{2}:\d{2}$/.test(hidden.value)) {
+                        const parts = hidden.value.split(':');
+                        const container = hidden.closest('.space-y-1');
+                        if (container) {
+                            container.querySelector('.target-time-h').value = parts[0];
+                            container.querySelector('.target-time-m').value = parts[1];
+                            container.querySelector('.target-time-s').value = parts[2];
+                        }
+                    }
+                });
+            }
+
+            function updateTargetTime(el) {
+                const container = el.closest('.space-y-1');
+                if (!container) return;
+                
+                const h = container.querySelector('.target-time-h').value.padStart(2, '0');
+                const m = container.querySelector('.target-time-m').value.padStart(2, '0');
+                const s = container.querySelector('.target-time-s').value.padStart(2, '0');
+                const hidden = container.querySelector('.target-time-input');
+                
+                if (hidden) {
+                    hidden.value = `${h}:${m}:${s}`;
+                }
             }
 
             // Initial attach
