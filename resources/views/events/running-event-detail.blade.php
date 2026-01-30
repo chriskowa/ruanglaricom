@@ -287,6 +287,30 @@
                         </a>
                     </div>
 
+                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-3xl p-6 shadow-2xl relative overflow-hidden ring-1 ring-white/5">
+                        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl"></div>
+
+                        <h3 class="text-xl font-black text-white mb-2 relative z-10 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.89a1 1 0 00-.364 1.118l1.518 4.674c.3.921-.755 1.688-1.538 1.118l-3.976-2.89a1 1 0 00-1.176 0l-3.976 2.89c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.976-2.89c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                            RATING EVENT
+                        </h3>
+                        <p class="text-slate-400 text-sm mb-4 relative z-10">
+                            Rata-rata <span id="ph-event-rating-avg" class="text-slate-200 font-bold">{{ number_format($ratingAverage, 2) }}</span>/5 •
+                            <span id="ph-event-rating-count" class="text-slate-200 font-bold">{{ $ratingCount }}</span> rating
+                        </p>
+
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-1" role="radiogroup" aria-label="Beri rating untuk event ini">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <button type="button" class="ph-rating-star p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-600 hover:text-amber-400 hover:border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all" data-rating="{{ $i }}" aria-label="Beri {{ $i }} bintang">
+                                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.193-5.934 5.787 1.402 8.168L12 18.897l-7.336 3.869 1.402-8.168L.132 9.211l8.2-1.193z"/></svg>
+                                    </button>
+                                @endfor
+                            </div>
+                            <div id="ph-event-rating-msg" class="mt-3 text-sm hidden"></div>
+                        </div>
+                    </div>
+
                     <!-- Share / Socials -->
                     <div class="flex items-center justify-between p-5 rounded-2xl bg-slate-900/50 border border-slate-700/50 backdrop-blur-sm">
                         <span class="text-sm font-bold text-slate-400">Bagikan Event</span>
@@ -307,3 +331,122 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        const apiUrl = @json(route('api.running-events.rating.store', $event->slug));
+        const csrfToken = @json(csrf_token());
+        const avgEl = document.getElementById('ph-event-rating-avg');
+        const countEl = document.getElementById('ph-event-rating-count');
+        const msgEl = document.getElementById('ph-event-rating-msg');
+        const stars = Array.from(document.querySelectorAll('.ph-rating-star'));
+        if (!avgEl || !countEl || !msgEl || stars.length === 0) return;
+
+        let isSubmitting = false;
+
+        function showMessage(text, variant) {
+            msgEl.textContent = text;
+            msgEl.classList.remove('hidden', 'text-red-400', 'text-green-400', 'text-slate-400');
+            msgEl.classList.add(variant === 'success' ? 'text-green-400' : variant === 'error' ? 'text-red-400' : 'text-slate-400');
+        }
+
+        function clearMessage() {
+            msgEl.textContent = '';
+            msgEl.classList.add('hidden');
+        }
+
+        function setStars(value) {
+            stars.forEach((btn) => {
+                const v = Number(btn.dataset.rating || 0);
+                btn.classList.toggle('text-amber-400', v <= value);
+                btn.classList.toggle('border-amber-500/40', v <= value);
+                btn.classList.toggle('text-slate-600', v > value);
+                btn.classList.toggle('border-slate-700', v > value);
+            });
+        }
+
+        function disableStars(disabled) {
+            stars.forEach((btn) => {
+                btn.disabled = disabled;
+                btn.classList.toggle('opacity-60', disabled);
+                btn.classList.toggle('cursor-not-allowed', disabled);
+            });
+        }
+
+        function buildFingerprint() {
+            const tz = (() => {
+                try {
+                    return Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+                } catch (e) {
+                    return '';
+                }
+            })();
+
+            return [
+                navigator.userAgent || '',
+                navigator.language || '',
+                navigator.platform || '',
+                String((screen && screen.width) ? screen.width : ''),
+                String((screen && screen.height) ? screen.height : ''),
+                String((screen && screen.colorDepth) ? screen.colorDepth : ''),
+                tz,
+                String(new Date().getTimezoneOffset()),
+                String(navigator.hardwareConcurrency || ''),
+            ].join('|');
+        }
+
+        async function submitRating(rating) {
+            if (isSubmitting) return;
+            isSubmitting = true;
+            disableStars(true);
+            clearMessage();
+            showMessage('Mengirim rating...', 'info');
+
+            try {
+                const fingerprint = buildFingerprint();
+                const res = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ rating, fingerprint }),
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.status === 409) {
+                    showMessage(data.message || 'Anda sudah pernah memberikan rating untuk event ini.', 'error');
+                    return;
+                }
+
+                if (!res.ok) {
+                    const msg = (data && data.message) ? data.message : 'Gagal mengirim rating. Coba lagi.';
+                    showMessage(msg, 'error');
+                    return;
+                }
+
+                if (typeof data.average_rating !== 'undefined') avgEl.textContent = String(data.average_rating);
+                if (typeof data.rating_count !== 'undefined') countEl.textContent = String(data.rating_count);
+                showMessage(data.message || 'Rating berhasil dikirim.', 'success');
+            } catch (e) {
+                showMessage('Gagal mengirim rating. Periksa koneksi internet Anda.', 'error');
+            } finally {
+                disableStars(false);
+                isSubmitting = false;
+            }
+        }
+
+        stars.forEach((btn) => {
+            btn.addEventListener('mouseenter', () => setStars(Number(btn.dataset.rating || 0)));
+            btn.addEventListener('focus', () => setStars(Number(btn.dataset.rating || 0)));
+            btn.addEventListener('mouseleave', () => setStars(0));
+            btn.addEventListener('blur', () => setStars(0));
+            btn.addEventListener('click', () => submitRating(Number(btn.dataset.rating || 0)));
+        });
+    })();
+</script>
+@endpush

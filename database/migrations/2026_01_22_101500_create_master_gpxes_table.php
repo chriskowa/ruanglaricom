@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('master_gpxes')) {
+            return;
+        }
+
         Schema::create('master_gpxes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('running_event_id')->nullable()->constrained('running_events')->nullOnDelete();
@@ -30,4 +34,3 @@ return new class extends Migration
         Schema::dropIfExists('master_gpxes');
     }
 };
-

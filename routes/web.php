@@ -320,6 +320,15 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
 Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventController::class, 'cityArchive'])->name('events.city');
 Route::get('/event-lari/{slug}', [App\Http\Controllers\PublicRunningEventController::class, 'show'])->name('running-event.detail');
+Route::post('/api/running-events/{slug}/rating', [App\Http\Controllers\EventRatingController::class, 'store'])->name('api.running-events.rating.store');
+Route::get('/paolorunfest', function (Request $request) {
+    $to = route('events.show', 'paolorunfest-2026');
+    $qs = $request->getQueryString();
+    if ($qs) {
+        $to .= '?' . $qs;
+    }
+    return redirect()->to($to, 301);
+});
 
 // Legacy public event routes redirects
 Route::get('/events/{slug}/participants-list', function ($slug) {

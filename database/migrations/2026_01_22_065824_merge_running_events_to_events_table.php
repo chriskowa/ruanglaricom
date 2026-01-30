@@ -12,6 +12,24 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('master_gpxes')) {
+            Schema::create('master_gpxes', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('running_event_id')->nullable()->constrained('running_events')->nullOnDelete();
+                $table->string('title');
+                $table->string('gpx_path');
+                $table->decimal('distance_km', 8, 3)->nullable();
+                $table->integer('elevation_gain_m')->nullable();
+                $table->integer('elevation_loss_m')->nullable();
+                $table->boolean('is_published')->default(true);
+                $table->text('notes')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+
+                $table->index(['running_event_id', 'is_published']);
+            });
+        }
+
         // 1. Add columns to events table
         Schema::table('events', function (Blueprint $table) {
             $table->foreignId('city_id')->nullable()->constrained('cities');
@@ -26,17 +44,23 @@ return new class extends Migration
         });
 
         // 2. Drop Foreign Keys on child tables to allow ID updates
-        Schema::table('master_gpxes', function (Blueprint $table) {
-            // Check if foreign key exists before dropping (using array syntax usually works if convention is followed)
-            // Or try catch block? Migration logic usually assumes standard state.
-            // Convention: master_gpxes_running_event_id_foreign
-            $table->dropForeign(['running_event_id']);
-        });
+        if (Schema::hasTable('master_gpxes') && Schema::hasColumn('master_gpxes', 'running_event_id')) {
+            try {
+                Schema::table('master_gpxes', function (Blueprint $table) {
+                    $table->dropForeign(['running_event_id']);
+                });
+            } catch (\Throwable $e) {
+            }
+        }
 
-        Schema::table('running_event_distances', function (Blueprint $table) {
-            // Convention: running_event_distances_running_event_id_foreign
-            $table->dropForeign(['running_event_id']);
-        });
+        if (Schema::hasTable('running_event_distances') && Schema::hasColumn('running_event_distances', 'running_event_id')) {
+            try {
+                Schema::table('running_event_distances', function (Blueprint $table) {
+                    $table->dropForeign(['running_event_id']);
+                });
+            } catch (\Throwable $e) {
+            }
+        }
 
         // 3. Migrate data
         $runningEvents = DB::table('running_events')->get();
@@ -91,23 +115,37 @@ return new class extends Migration
         // 4. Rename columns and tables, and add new constraints
         
         // master_gpxes
-        Schema::table('master_gpxes', function (Blueprint $table) {
-            $table->renameColumn('running_event_id', 'event_id');
-        });
-        Schema::table('master_gpxes', function (Blueprint $table) {
-             $table->foreign('event_id')->references('id')->on('events')->nullOnDelete();
-        });
+        if (Schema::hasTable('master_gpxes') && Schema::hasColumn('master_gpxes', 'running_event_id')) {
+            Schema::table('master_gpxes', function (Blueprint $table) {
+                $table->renameColumn('running_event_id', 'event_id');
+            });
+        }
+        if (Schema::hasTable('master_gpxes') && Schema::hasColumn('master_gpxes', 'event_id')) {
+            try {
+                Schema::table('master_gpxes', function (Blueprint $table) {
+                    $table->foreign('event_id')->references('id')->on('events')->nullOnDelete();
+                });
+            } catch (\Throwable $e) {
+            }
+        }
 
         // running_event_distances -> event_distances
-        Schema::table('running_event_distances', function (Blueprint $table) {
-             $table->renameColumn('running_event_id', 'event_id');
-        });
+        if (Schema::hasTable('running_event_distances') && Schema::hasColumn('running_event_distances', 'running_event_id')) {
+            Schema::table('running_event_distances', function (Blueprint $table) {
+                $table->renameColumn('running_event_id', 'event_id');
+            });
+        }
 
         Schema::rename('running_event_distances', 'event_distances');
 
-        Schema::table('event_distances', function (Blueprint $table) {
-             $table->foreign('event_id')->references('id')->on('events')->cascadeOnDelete();
-        });
+        if (Schema::hasTable('event_distances') && Schema::hasColumn('event_distances', 'event_id')) {
+            try {
+                Schema::table('event_distances', function (Blueprint $table) {
+                    $table->foreign('event_id')->references('id')->on('events')->cascadeOnDelete();
+                });
+            } catch (\Throwable $e) {
+            }
+        }
 
         // 5. Rename running_events to running_events_backup
         Schema::rename('running_events', 'running_events_backup');

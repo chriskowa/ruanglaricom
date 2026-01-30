@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\City;
 use App\Models\Event;
+use App\Models\EventRating;
 use App\Models\RaceDistance;
 use App\Models\RaceType;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class PublicRunningEventController extends Controller
 {
@@ -93,8 +96,40 @@ class PublicRunningEventController extends Controller
             ->with(['city', 'raceType'])
             ->limit(3)
             ->get();
-            
-        return view('events.running-event-detail', compact('event', 'relatedEvents', 'sameDateEvents'));
+
+        $ratingAverage = 0.0;
+        $ratingCount = 0;
+        if (Schema::hasTable('event_ratings')) {
+            try {
+                $stats = EventRating::where('event_id', $event->id)
+                    ->selectRaw('AVG(rating) as avg_rating, COUNT(*) as rating_count')
+                    ->first();
+
+                $ratingAverage = round((float) ($stats->avg_rating ?? 0), 2);
+                $ratingCount = (int) ($stats->rating_count ?? 0);
+            } catch (\Throwable $e) {
+                $ratingAverage = 0.0;
+                $ratingCount = 0;
+            }
+        }
+
+        $cookieName = 'rl_rating_id';
+        $cookieValue = request()->cookie($cookieName) ?: (string) Str::uuid();
+        $cookie = cookie(
+            $cookieName,
+            $cookieValue,
+            60 * 24 * 365,
+            '/',
+            null,
+            app()->environment('production'),
+            true,
+            false,
+            'Lax'
+        );
+
+        return response()
+            ->view('events.running-event-detail', compact('event', 'relatedEvents', 'sameDateEvents', 'ratingAverage', 'ratingCount'))
+            ->withCookie($cookie);
     }
 
     public function cityArchive($citySlug)
