@@ -673,6 +673,49 @@ class EventController extends Controller
             ->with('preview', true);
     }
 
+    public function duplicate(Event $event)
+    {
+        if ($event->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $event->load(['categories']);
+
+        $newEvent = DB::transaction(function () use ($event) {
+            $newEvent = $event->replicate();
+            $newEvent->name = $this->duplicateName($event->name);
+            $newEvent->slug = $this->uniqueEventSlug($event->slug);
+            $newEvent->created_at = now();
+            $newEvent->updated_at = now();
+            $newEvent->save();
+
+            foreach ($event->categories as $category) {
+                $newCategory = $category->replicate();
+                $newCategory->event_id = $newEvent->id;
+                $newCategory->created_at = now();
+                $newCategory->updated_at = now();
+                $newCategory->save();
+            }
+
+            $packages = \App\Models\EventPackage::query()->where('event_id', $event->id)->get();
+            foreach ($packages as $package) {
+                $newPackage = $package->replicate();
+                $newPackage->event_id = $newEvent->id;
+                $newPackage->sold_count = 0;
+                $newPackage->is_sold_out = false;
+                $newPackage->created_at = now();
+                $newPackage->updated_at = now();
+                $newPackage->save();
+            }
+
+            return $newEvent;
+        });
+
+        return redirect()
+            ->route('eo.events.edit', $newEvent)
+            ->with('success', 'Event berhasil diduplikasi!');
+    }
+
     public function destroy(Event $event)
     {
         $this->authorizeEvent($event);
@@ -1029,6 +1072,32 @@ class EventController extends Controller
         if ($event->user_id !== auth()->id()) {
             abort(403, 'Unauthorized');
         }
+    }
+
+    private function duplicateName(string $name): string
+    {
+        $suffix = ' (Copy)';
+        $max = 255;
+        if (mb_strlen($name.$suffix) <= $max) {
+            return $name.$suffix;
+        }
+        return mb_substr($name, 0, $max - mb_strlen($suffix)).$suffix;
+    }
+
+    private function uniqueEventSlug(string $sourceSlug): string
+    {
+        $base = $sourceSlug.'-copy';
+        $base = Str::limit($base, 240, '');
+
+        $slug = $base;
+        $i = 1;
+        while (Event::query()->where('slug', $slug)->exists()) {
+            $suffix = '-'.$i;
+            $slug = Str::limit($base, 240 - mb_strlen($suffix), '').$suffix;
+            $i++;
+        }
+
+        return $slug;
     }
 
     /**

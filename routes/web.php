@@ -738,6 +738,7 @@ Route::middleware('auth')->group(function () {
 
         // Event management
         Route::post('events/upload-media', [App\Http\Controllers\EO\EventController::class, 'uploadMedia'])->name('events.upload-media');
+        Route::post('events/{event}/duplicate', [App\Http\Controllers\EO\EventController::class, 'duplicate'])->name('events.duplicate');
         Route::resource('events', App\Http\Controllers\EO\EventController::class);
         Route::get('events/{event}/preview', [App\Http\Controllers\EO\EventController::class, 'preview'])->name('events.preview');
         Route::post('events/{event}/preview-email', [App\Http\Controllers\EO\EventController::class, 'previewEmail'])->name('events.preview-email');
