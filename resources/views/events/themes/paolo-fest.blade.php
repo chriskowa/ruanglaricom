@@ -678,7 +678,7 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
-                @foreach(array_slice($event->gallery, 0, 8) as $index => $img)
+                @foreach(array_slice($event->gallery, 1, 8) as $index => $img)
                 <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-zoom-in" onclick="openLightbox({{ $index }})">
                     <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300"></div>
@@ -794,7 +794,7 @@
     @endphp
 
     @if($categoriesWithGpx->count() > 0)
-    <section id="routes" class="py-24 bg-white relative">
+    <section id="routes" class="py-24 bg-slate-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
                 <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Race Course</span>
@@ -846,7 +846,7 @@
                                             <div class="mt-2 grid grid-cols-2 gap-2">
                                                 <label class="cursor-pointer">
                                                     <input type="radio" name="predictWeather" value="panas" class="peer sr-only" checked>
-                                                    <div class="px-4 py-3 rounded-xl border border-slate-200 bg-white peer-checked:border-yellow-400 peer-checked:bg-yellow-500/10 font-bold text-slate-900">Panas</div>
+                                                    <div class="px-4 py-3 rounded-xl border border-slate-200 bg-white peer-checked:border-yellow-400 peer-checked:bg-yellow-500/10 font-bold text-slate-900">Cerah</div>
                                                 </label>
                                                 <label class="cursor-pointer">
                                                     <input type="radio" name="predictWeather" value="dingin" class="peer sr-only">
@@ -1038,7 +1038,7 @@
                         <p class="text-slate-600 mb-8">Jersey lari eksklusif dengan bahan Dry-Fit premium yang ringan dan menyerap keringat.</p>
                         <div class="rounded-3xl overflow-hidden bg-slate-100 border border-slate-200">
                              @if($event->jersey_image)
-                                <img src="{{ asset('storage/' . $event->jersey_image) }}" class="w-full h-auto object-cover hover:scale-105 transition duration-700">
+                                <img src="{{ asset('storage/' . $event->jersey_image) }}" onclick="openLightbox('{{ asset('storage/' . $event->jersey_image) }}')" class="w-full h-auto object-cover hover:scale-105 transition duration-700 cursor-pointer">
                              @else
                                 <div class="aspect-video flex items-center justify-center text-slate-400 font-bold">Preview Jersey</div>
                              @endif
@@ -1497,7 +1497,7 @@
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div class="space-y-1 relative">
-                                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Target Waktu (Jam:Mnt:Dtk)</label>
+                                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Ukuran Jersey</label>
                                                 
                                             <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
                                                 <option value="">Ukuran Jersey</option>
@@ -2489,10 +2489,15 @@
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
 
-        function openLightbox(index) {
-            if (galleryImages.length === 0) return;
-            currentImageIndex = index;
-            lightboxImg.src = galleryImages[currentImageIndex];
+        function openLightbox(source) {
+            if (typeof source === 'number') {
+                if (galleryImages.length === 0) return;
+                currentImageIndex = source;
+                lightboxImg.src = galleryImages[currentImageIndex];
+            } else {
+                lightboxImg.src = source;
+            }
+            
             lightbox.classList.remove('hidden');
             // Small delay to allow display:block to apply before opacity transition
             setTimeout(() => lightbox.classList.remove('opacity-0'), 10);
@@ -2509,11 +2514,13 @@
         }
 
         function nextImage() {
+            if (galleryImages.length === 0) return;
             currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
             lightboxImg.src = galleryImages[currentImageIndex];
         }
 
         function prevImage() {
+            if (galleryImages.length === 0) return;
             currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
             lightboxImg.src = galleryImages[currentImageIndex];
         }
