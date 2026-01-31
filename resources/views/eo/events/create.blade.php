@@ -822,7 +822,11 @@
                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
             },
             params: {
-                folder: id.includes('hero') ? 'events/hero' : (id.includes('logo') ? 'events/logo' : (id.includes('gallery') ? 'events/gallery' : 'events/sponsors'))
+                folder: id.includes('hero') ? 'events/hero' : 
+                       (id.includes('logo') ? 'events/logo' : 
+                       (id.includes('gallery') ? 'events/gallery' : 
+                       (id.includes('jersey') ? 'events/jersey' : 
+                       (id.includes('medal') ? 'events/medal' : 'events/sponsors'))))
             },
             success: function(file, response) {
                 if (response.success) {
@@ -951,6 +955,8 @@
     document.addEventListener("DOMContentLoaded", function() {
         initDropzone('hero-dropzone', 'hero_image', 1);
         initDropzone('logo-dropzone', 'logo_image', 1);
+        initDropzone('jersey-dropzone', 'jersey_image', 1);
+        initDropzone('medal-dropzone', 'medal_image', 1);
         initDropzone('gallery-dropzone', 'gallery[]', 10);
         initDropzone('sponsors-dropzone', 'sponsors[]', 30);
 
