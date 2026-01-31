@@ -72,6 +72,18 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center justify-between text-red-300 relative z-10" role="alert">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 5.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13z"/></svg>
+                <span class="font-medium">{{ session('error') }}</span>
+            </div>
+            <button type="button" class="hover:text-white transition-colors" onclick="this.parentElement.remove()">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+    @endif
+
     <!-- Events List -->
     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative z-10">
         <div class="overflow-x-auto">

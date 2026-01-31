@@ -68,4 +68,3 @@ class EoEventDuplicateTest extends TestCase
             ->assertForbidden();
     }
 }
-

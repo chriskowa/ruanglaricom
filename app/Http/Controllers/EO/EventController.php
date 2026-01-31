@@ -676,7 +676,14 @@ class EventController extends Controller
     public function duplicate(Event $event)
     {
         if ($event->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized');
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Kamu tidak punya akses untuk menduplikasi event ini.',
+                ], 403);
+            }
+
+            abort(403, 'Kamu tidak punya akses untuk menduplikasi event ini.');
         }
 
         $event->load(['categories']);
@@ -1066,12 +1073,19 @@ class EventController extends Controller
     protected function authorizeEvent(Event $event)
     {
         $user = auth()->user();
-        if ($user && ($user->role === 'admin' || $user->role === 'eo')) {
-            return;
-        }
-        if ($event->user_id !== auth()->id()) {
+        if (! $user) {
             abort(403, 'Unauthorized');
         }
+
+        if ($user->role === 'admin') {
+            return;
+        }
+
+        if ($user->role === 'eo' && $event->user_id === $user->id) {
+            return;
+        }
+
+        abort(403, 'Unauthorized');
     }
 
     private function duplicateName(string $name): string
