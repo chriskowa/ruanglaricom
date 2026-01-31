@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
             'events/transactions/webhook',
+            'midtrans/webhook',
             'marketplace/webhook',
             'wallet/topup/callback',
             'membership/webhook',

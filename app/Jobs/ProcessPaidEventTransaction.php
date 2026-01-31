@@ -155,7 +155,7 @@ class ProcessPaidEventTransaction implements ShouldQueue
             $platformWallet->save();
 
             $platformWallet->transactions()->create([
-                'type' => 'platform_fee_income',
+                'type' => 'fee',
                 'amount' => $adminFee,
                 'balance_before' => $platformBefore,
                 'balance_after' => (float) $platformWallet->balance,

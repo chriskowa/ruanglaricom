@@ -796,6 +796,27 @@ Route::post('/wallet/topup/callback', [App\Http\Controllers\WalletController::cl
 Route::post('/events/transactions/webhook', [App\Http\Controllers\EventTransactionWebhookController::class, 'handle'])->name('events.transactions.webhook');
 Route::post('/membership/webhook', [App\Http\Controllers\MembershipWebhookController::class, 'handle'])->name('membership.webhook');
 Route::post('/marketplace/webhook', [App\Http\Controllers\Marketplace\WebhookController::class, 'handle'])->name('marketplace.webhook');
+Route::post('/midtrans/webhook', function (\Illuminate\Http\Request $request) {
+    $orderId = (string) $request->input('order_id', '');
+
+    if ($orderId === '') {
+        return response()->json(['message' => 'Missing order_id'], 400);
+    }
+
+    if (str_starts_with($orderId, 'EVENT-')) {
+        return app(\App\Http\Controllers\EventTransactionWebhookController::class)->handle($request);
+    }
+
+    if (str_starts_with($orderId, 'TOPUP-')) {
+        return app(\App\Http\Controllers\WalletController::class)->topupCallback($request);
+    }
+
+    if (str_starts_with($orderId, 'MEMBERSHIP-')) {
+        return app(\App\Http\Controllers\MembershipWebhookController::class)->handle($request);
+    }
+
+    return app(\App\Http\Controllers\Marketplace\WebhookController::class)->handle($request);
+})->name('midtrans.webhook');
 Route::post('/webhook/moota', [App\Http\Controllers\Api\MootaWebhookController::class, 'handle'])->name('webhook.moota');
 
 Route::get('/run-queue-worker', function () {
