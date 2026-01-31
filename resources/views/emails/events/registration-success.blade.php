@@ -27,9 +27,9 @@
     <div class="container" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div class="header" style="background-color: #0f172a; padding: 30px; text-align: center;">
             @if(isset($event) && $event->logo_image)
-                <img src="{{ asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" style="max-height: 80px; max-width: 200px; object-fit: contain;">
+                <img src="{{ $message->embed(storage_path('app/public/' . $event->logo_image)) }}" alt="{{ $event->name }}" style="max-height: 80px; max-width: 200px; object-fit: contain;">
             @else
-                <img src="{{ asset('images/logo-text-white.png') }}" alt="{{ config('app.name') }}" style="max-height: 50px; object-fit: contain;">
+                <img src="{{ $message->embed(public_path('images/logo-text-white.png')) }}" alt="{{ config('app.name') }}" style="max-height: 50px; object-fit: contain;">
             @endif
         </div>
         
