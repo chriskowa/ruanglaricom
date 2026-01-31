@@ -13,54 +13,87 @@ class EmailReportController extends Controller
 {
     public function index(Request $request)
     {
-        $eo = $request->user();
+        try {
+            $eo = $request->user();
 
-        $events = Event::query()
-            ->where('user_id', $eo->id)
-            ->orderByDesc('id')
-            ->get(['id', 'name']);
+            $events = Event::query()
+                ->where('user_id', $eo->id)
+                ->orderByDesc('id')
+                ->get(['id', 'name']);
 
-        $query = $this->baseQuery($eo->id, $request);
+            $query = $this->baseQuery($eo->id, $request);
 
-        $deliveries = $query->paginate(20)->withQueryString();
+            $deliveries = $query->paginate(20)->withQueryString();
 
-        return view('eo.email-reports.index', [
-            'events' => $events,
-            'deliveries' => $deliveries,
-            'filters' => $this->filtersFromRequest($request),
-        ]);
+            return view('eo.email-reports.index', [
+                'events' => $events,
+                'deliveries' => $deliveries,
+                'filters' => $this->filtersFromRequest($request),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('EmailReportController::index error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Terjadi kesalahan saat memuat laporan email.');
+        }
     }
 
     public function data(Request $request)
     {
-        $eo = $request->user();
+        try {
+            $eo = $request->user();
 
-        $deliveries = $this->baseQuery($eo->id, $request)
-            ->limit(50)
-            ->get()
-            ->map(function (EoReportEmailDelivery $d) {
-                return [
-                    'id' => $d->id,
-                    'event_id' => $d->event_id,
-                    'event_name' => $d->event?->name,
-                    'to_email' => $d->to_email,
-                    'subject' => $d->subject,
-                    'status' => $d->status,
-                    'attempts' => (int) $d->attempts,
-                    'created_at' => $d->created_at?->toISOString(),
-                    'first_attempt_at' => $d->first_attempt_at?->toISOString(),
-                    'last_attempt_at' => $d->last_attempt_at?->toISOString(),
-                    'sent_at' => $d->sent_at?->toISOString(),
-                    'failure_code' => $d->failure_code,
-                    'failure_message' => $d->failure_message,
-                ];
-            });
+            $query = $this->baseQuery($eo->id, $request);
+            
+            $count = $query->count();
+            
+            // Debug logging
+            Log::info('EmailReportController::data', [
+                'eo_user_id' => $eo->id,
+                'filters' => $this->filtersFromRequest($request),
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings(),
+                'count_before_limit' => $count,
+            ]);
 
-        return response()->json([
-            'ok' => true,
-            'filters' => $this->filtersFromRequest($request),
-            'deliveries' => $deliveries,
-        ]);
+            $deliveries = $query
+                ->limit(50)
+                ->get()
+                ->map(function (EoReportEmailDelivery $d) {
+                    return [
+                        'id' => $d->id,
+                        'event_id' => $d->event_id,
+                        'event_name' => $d->event ? $d->event->name : 'Event Deleted',
+                        'to_email' => $d->to_email,
+                        'subject' => $d->subject,
+                        'status' => $d->status,
+                        'attempts' => (int) $d->attempts,
+                        'created_at' => $d->created_at?->toISOString(),
+                        'first_attempt_at' => $d->first_attempt_at?->toISOString(),
+                        'last_attempt_at' => $d->last_attempt_at?->toISOString(),
+                        'sent_at' => $d->sent_at?->toISOString(),
+                        'failure_code' => $d->failure_code,
+                        'failure_message' => mb_convert_encoding($d->failure_message ?? '', 'UTF-8', 'UTF-8'),
+                    ];
+                });
+
+            return response()->json([
+                'ok' => true,
+                'filters' => $this->filtersFromRequest($request),
+                'deliveries' => $deliveries,
+            ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
+        } catch (\Exception $e) {
+            Log::error('EmailReportController::data error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'ok' => false,
+                'message' => 'Terjadi kesalahan saat memuat data laporan.',
+            ], 500);
+        }
     }
 
     public function send(Request $request)

@@ -5,31 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Success</title>
     <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f5; color: #333; margin: 0; padding: 0; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f5; color: #333; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
         .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .header { background-color: #0f172a; padding: 30px; text-align: center; }
         .header h1 { color: #ccff00; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
         .content { padding: 30px; }
         .event-info { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        .event-name { font-size: 20px; font-weight: bold; color: #0f172a; margin-bottom: 5px; }
+        .event-name { font-size: 20px; font-weight: bold; color: #0f172a; margin-bottom: 5px; line-height: 1.3; }
         .event-meta { color: #64748b; font-size: 14px; }
         .ticket { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; margin-bottom: 20px; background-color: #f8fafc; }
         .ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .ticket-label { font-size: 12px; font-weight: bold; color: #94a3b8; text-transform: uppercase; }
-        .ticket-value { font-size: 16px; font-weight: bold; color: #0f172a; }
+        .ticket-label { font-size: 12px; font-weight: bold; color: #94a3b8; text-transform: uppercase; width: 40%; vertical-align: top; }
+        .ticket-value { font-size: 16px; font-weight: bold; color: #0f172a; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; }
         .qr-code { text-align: center; margin-top: 20px; }
-        .qr-code img { border: 4px solid #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .qr-code img { border: 4px solid #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 100%; height: auto; }
         .footer { background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
         .btn { display: inline-block; background-color: #0f172a; color: #ccff00; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; }
+        
+        @media only screen and (max-width: 600px) {
+            .container { width: 100% !important; margin: 0 !important; border-radius: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; }
+            .header { padding: 20px !important; }
+            .content { padding: 20px !important; }
+            .ticket { padding: 15px !important; }
+            .ticket-label { font-size: 11px !important; width: 35% !important; }
+            .ticket-value { font-size: 14px !important; }
+            .btn { display: block !important; width: 100% !important; box-sizing: border-box !important; text-align: center !important; }
+            .event-name { font-size: 18px !important; }
+            table { width: 100% !important; }
+        }
     </style>
 </head>
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f5; color: #333; margin: 0; padding: 0;">
     <div class="container" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div class="header" style="background-color: #0f172a; padding: 30px; text-align: center;">
             @if(isset($event) && $event->logo_image)
-                <img src="{{ $message->embed(storage_path('app/public/' . $event->logo_image)) }}" alt="{{ $event->name }}" style="max-height: 80px; max-width: 200px; object-fit: contain;">
+                <img src="{{ isset($message) ? $message->embed(storage_path('app/public/' . $event->logo_image)) : asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" style="max-height: 80px; max-width: 200px; object-fit: contain;">
             @else
-                <img src="{{ $message->embed(public_path('images/logo-text-white.png')) }}" alt="{{ config('app.name') }}" style="max-height: 50px; object-fit: contain;">
+                <img src="{{ isset($message) ? $message->embed(public_path('images/logo-text-white.png')) : asset('images/logo-text-white.png') }}" alt="{{ config('app.name') }}" style="max-height: 50px; object-fit: contain;">
             @endif
         </div>
         
@@ -81,6 +93,14 @@
                         <td class="ticket-value" style="padding-bottom: 8px; color: {{ $transaction->payment_status == 'paid' ? '#10b981' : '#f59e0b' }}">
                             {{ strtoupper($transaction->payment_status) }}
                         </td>
+                    </tr>
+                    <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">PIC Name</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $transaction->pic_data['name'] ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">PIC Phone</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $transaction->pic_data['phone'] ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td class="ticket-label" style="padding-bottom: 8px;">Nomor Tiket</td>

@@ -222,11 +222,14 @@ class PublicEventController extends Controller
 
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where('name', 'like', "%{$search}%");
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('id_card', 'like', "%{$search}%");
+            });
         }
 
         $participants = $query->orderBy('created_at', 'desc')
-            ->select('name', 'bib_number', 'race_category_id', 'created_at', 'gender')
+            ->select('name', 'bib_number', 'race_category_id', 'created_at', 'gender', 'id_card')
             ->with('category:id,name')
             ->paginate(10);
 

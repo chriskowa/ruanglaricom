@@ -229,7 +229,11 @@
             try {
                 const res = await fetch(dataUrl, { headers: { 'Accept': 'application/json' } });
                 const data = await res.json().catch(() => ({}));
-                if (!res.ok || !data.ok) return;
+                
+                if (!res.ok || !data.ok) {
+                    console.error('Email report fetch failed', data);
+                    return;
+                }
 
                 const body = document.getElementById('deliveriesBody');
                 if (!body) return;
@@ -242,7 +246,7 @@
                     html += `
                         <tr class="border-b border-slate-800/60">
                             <td class="py-3 pr-4 whitespace-nowrap">${escapeHtml(fmt(d.created_at))}</td>
-                            <td class="py-3 pr-4">${escapeHtml(d.event_name || '')}</td>
+                            <td class="py-3 pr-4">${escapeHtml(d.event_name || '-')}</td>
                             <td class="py-3 pr-4">${escapeHtml(d.to_email || '')}</td>
                             <td class="py-3 pr-4">${escapeHtml(d.subject || '')}</td>
                             <td class="py-3 pr-4">${statusBadge(d.status)}</td>
@@ -266,6 +270,7 @@
                 const lastUpdatedText = document.getElementById('lastUpdatedText');
                 if (lastUpdatedText) lastUpdatedText.textContent = 'Update terakhir: ' + fmt(new Date().toISOString());
             } catch (e) {
+                console.error('Error refreshing data:', e);
             }
         }
 

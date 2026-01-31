@@ -4,106 +4,109 @@ namespace App\Jobs;
 
 use App\Mail\EoReportEmail;
 use App\Models\EoReportEmailDelivery;
-use Illuminate\Contracts\Mail\Mailer;
+use App\Models\Participant;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SendEoReportEmail implements ShouldQueue
 {
-    use Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected int $deliveryId;
+    public $deliveryId;
 
-    public function __construct(int $deliveryId)
+    public function __construct($deliveryId)
     {
         $this->deliveryId = $deliveryId;
     }
 
-    public function handle(Mailer $mailer): void
+    public function handle()
     {
-        $delivery = EoReportEmailDelivery::query()->with(['event', 'eoUser'])->find($this->deliveryId);
+        $delivery = EoReportEmailDelivery::find($this->deliveryId);
+
         if (! $delivery) {
-            Log::warning('SendEoReportEmail: delivery not found', ['delivery_id' => $this->deliveryId]);
+            Log::error("EoReportEmailDelivery not found: {$this->deliveryId}");
             return;
         }
 
-        $now = now();
-
-        $delivery->attempts = (int) $delivery->attempts + 1;
-        $delivery->first_attempt_at = $delivery->first_attempt_at ?: $now;
-        $delivery->last_attempt_at = $now;
-        $delivery->status = 'processing';
-        $delivery->save();
-
-        $toEmail = (string) $delivery->to_email;
-        if (! filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
-            $delivery->status = 'failed';
-            $delivery->failure_code = 'invalid_email';
-            $delivery->failure_message = 'Invalid email address.';
-            $delivery->save();
-
-            Log::warning('EO report email invalid recipient', [
-                'delivery_id' => $delivery->id,
-                'event_id' => $delivery->event_id,
-                'to_email' => $toEmail,
-            ]);
-
+        if ($delivery->status === 'sent') {
             return;
         }
 
         try {
-            $mailer->to($toEmail)->send(new EoReportEmail($delivery));
-
-            $delivery->status = 'sent';
-            $delivery->sent_at = $now;
-            $delivery->failure_code = null;
-            $delivery->failure_message = null;
-            $delivery->save();
-
-            Log::info('EO report email sent', [
-                'delivery_id' => $delivery->id,
-                'event_id' => $delivery->event_id,
-                'to_email' => $toEmail,
-                'attempts' => (int) $delivery->attempts,
+            $delivery->update([
+                'status' => 'processing',
+                'attempts' => $delivery->attempts + 1,
+                'last_attempt_at' => now(),
+                'first_attempt_at' => $delivery->first_attempt_at ?? now(),
             ]);
-        } catch (\Throwable $e) {
-            $delivery->status = 'failed';
-            $delivery->failure_code = $this->classifyFailure($e);
-            $delivery->failure_message = mb_substr((string) $e->getMessage(), 0, 2000);
-            $delivery->save();
 
-            Log::error('EO report email failed', [
-                'delivery_id' => $delivery->id,
-                'event_id' => $delivery->event_id,
-                'to_email' => $toEmail,
-                'attempts' => (int) $delivery->attempts,
-                'failure_code' => $delivery->failure_code,
-                'error' => $e->getMessage(),
+            // Fetch Data
+            $filters = $delivery->filters ?? [];
+            $query = Participant::query()
+                ->with(['category', 'transaction'])
+                ->whereHas('transaction', function($q) use ($delivery) {
+                    $q->where('event_id', $delivery->event_id);
+                });
+            
+            // Note: Participant table usually doesn't have event_id directly if it belongs to transaction
+            // But checking Participant model in previous turn, it didn't show event_id fillable, 
+            // but usually it's related via Transaction.
+            // Let's check if Participant has event_id column.
+            // In the previous `Read` of Participant.php, fillable didn't have event_id.
+            // But Relation is belongsTo Transaction. 
+            // So query should be via transaction.
+            
+            if (!empty($filters['status'])) {
+                $status = $filters['status'];
+                $query->whereHas('transaction', function($q) use ($status) {
+                    $q->where('payment_status', $status);
+                });
+            }
+
+            if (!empty($filters['date_from'])) {
+                $query->whereDate('created_at', '>=', $filters['date_from']);
+            }
+
+            if (!empty($filters['date_to'])) {
+                $query->whereDate('created_at', '<=', $filters['date_to']);
+            }
+
+            $participants = $query->orderByDesc('created_at')->limit(500)->get(); 
+            // Limit to 500 to avoid memory issues for email body. 
+            // If more needed, should use attachment (CSV).
+
+            $data = [
+                'event' => $delivery->event,
+                'participants' => $participants,
+                'filters' => $filters,
+                'delivery' => $delivery,
+            ];
+
+            Mail::to($delivery->to_email)->send(new EoReportEmail($data, $delivery->subject));
+
+            $delivery->update([
+                'status' => 'sent',
+                'sent_at' => now(),
             ]);
+
+        } catch (\Exception $e) {
+            Log::error("Failed to send EO Report Email: {$e->getMessage()}", [
+                'delivery_id' => $this->deliveryId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $delivery->update([
+                'status' => 'failed',
+                'failure_code' => $e->getCode(),
+                'failure_message' => substr($e->getMessage(), 0, 255), // Truncate to fit column
+            ]);
+            
+            // Do not rethrow to prevent infinite loop
         }
-    }
-
-    private function classifyFailure(\Throwable $e): string
-    {
-        $message = strtolower((string) $e->getMessage());
-
-        if (str_contains($message, 'address') && str_contains($message, 'invalid')) {
-            return 'invalid_email';
-        }
-
-        if (str_contains($message, 'connection') || str_contains($message, 'timeout') || str_contains($message, 'could not connect')) {
-            return 'transport_error';
-        }
-
-        if (str_contains($message, '5') && (str_contains($message, 'smtp') || str_contains($message, 'server'))) {
-            return 'server_error';
-        }
-
-        if (str_contains($message, 'bounce') || str_contains($message, 'bounced')) {
-            return 'bounce';
-        }
-
-        return 'unknown';
     }
 }

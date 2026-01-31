@@ -250,7 +250,7 @@
                 </div>
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Search</label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama, email, HP, BIB, Category" class="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama, email, HP, BIB, Category, ID Card" class="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                 </div>
                 <div>
                     <button type="submit" class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition-colors text-sm">
@@ -266,9 +266,11 @@
                 <thead class="bg-slate-900/50 text-xs uppercase font-bold text-slate-300">
                     <tr>
                         <th class="px-6 py-4">Participant</th>
+                        <th class="px-6 py-4">ID Card</th>
+                        <th class="px-6 py-4">PIC Info</th>
                         <th class="px-6 py-4">Jersey Size</th>
                         <th class="px-6 py-4">Category & BIB</th>
-                        <th class="px-6 py-4">Age Group</th>
+                        <th class="px-6 py-4">Age Group</th>                        
                         <th class="px-6 py-4">Payment</th>
                         <th class="px-6 py-4">Pickup Status</th>
                         <th class="px-6 py-4 text-right">Actions</th>
@@ -276,7 +278,28 @@
                 </thead>
                 <tbody id="participantsTableBody" class="divide-y divide-slate-800">
                     @forelse($participants as $participant)
-                    <tr class="hover:bg-slate-800/50 transition-colors">
+                    <tr class="hover:bg-slate-800/50 transition-colors cursor-pointer"
+                        onclick="if(!event.target.closest('button') && !event.target.closest('a')) openDetailModalFromRow(this)"
+                        data-json="{{ json_encode([
+                            'name' => $participant->name,
+                            'gender' => $participant->gender,
+                            'email' => $participant->email,
+                            'phone' => $participant->phone,
+                            'id_card' => $participant->id_card,
+                            'category' => $participant->category->name ?? '-',
+                            'bib_number' => $participant->bib_number,
+                            'age_group' => $participant->getAgeGroup($event->start_at),
+                            'jersey_size' => $participant->jersey_size,
+                            'pic_name' => $participant->transaction->pic_data['name'] ?? '-',
+                            'pic_phone' => $participant->transaction->pic_data['phone'] ?? '-',
+                            'pic_email' => $participant->transaction->pic_data['email'] ?? '-',
+                            'transaction_date' => $participant->transaction->created_at ? $participant->transaction->created_at->format('d M Y H:i') : '-',
+                            'payment_method' => $participant->transaction->payment_gateway ?? '-',
+                            'payment_status' => $participant->transaction->payment_status ?? 'pending',
+                            'is_picked_up' => $participant->is_picked_up,
+                            'picked_up_by' => $participant->picked_up_by,
+                            'addons' => $participant->addons,
+                        ]) }}">
                         <td class="px-6 py-4">
                             <div class="font-medium text-white">{{ $participant->name }}</div>
                             <div class="text-xs text-slate-500 mb-1">
@@ -284,6 +307,14 @@
                             </div>
                             <div class="text-xs text-slate-400">{{ $participant->email }}</div>
                             <div class="text-xs text-slate-400">{{ $participant->phone }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-white font-mono text-xs">
+                            {{ $participant->id_card ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4">
+                            @php $pic = $participant->transaction->pic_data ?? []; @endphp
+                            <div class="text-sm text-white">{{ $pic['name'] ?? '-' }}</div>
+                            <div class="text-xs text-slate-400">{{ $pic['phone'] ?? '-' }}</div>
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
@@ -419,6 +450,73 @@
     </div>
 </div>
 
+<!-- Detail Modal -->
+<div id="detailModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all w-full max-w-2xl">
+                <div class="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-white">Participant Details</h3>
+                    <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Personal Info -->
+                        <div>
+                            <h4 class="text-sm font-bold text-yellow-500 uppercase tracking-wider mb-3">Personal Info</h4>
+                            <div class="space-y-3">
+                                <div><div class="text-xs text-slate-500">Full Name</div><div class="text-white font-medium" id="dm_name"></div></div>
+                                <div><div class="text-xs text-slate-500">ID Card</div><div class="text-white" id="dm_id_card"></div></div>
+                                <div><div class="text-xs text-slate-500">Gender</div><div class="text-white capitalize" id="dm_gender"></div></div>
+                                <div><div class="text-xs text-slate-500">Email</div><div class="text-white" id="dm_email"></div></div>
+                                <div><div class="text-xs text-slate-500">Phone</div><div class="text-white" id="dm_phone"></div></div>
+                                <div><div class="text-xs text-slate-500">Age Group</div><div class="text-white" id="dm_age_group"></div></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Race Info -->
+                        <div>
+                            <h4 class="text-sm font-bold text-neon-cyan uppercase tracking-wider mb-3">Race Info</h4>
+                            <div class="space-y-3">
+                                <div><div class="text-xs text-slate-500">Category</div><div class="text-white font-bold" id="dm_category"></div></div>
+                                <div><div class="text-xs text-slate-500">BIB Number</div><div class="text-white font-mono text-lg text-yellow-400" id="dm_bib"></div></div>
+                                <div><div class="text-xs text-slate-500">Jersey Size</div><div class="text-white inline-flex items-center justify-center w-8 h-8 rounded bg-slate-700 border border-slate-600 font-bold" id="dm_jersey"></div></div>
+                            </div>
+
+                            <h4 class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3 mt-6">PIC Info</h4>
+                            <div class="space-y-3">
+                                <div><div class="text-xs text-slate-500">PIC Name</div><div class="text-white" id="dm_pic_name"></div></div>
+                                <div><div class="text-xs text-slate-500">PIC Phone</div><div class="text-white" id="dm_pic_phone"></div></div>
+                                <div><div class="text-xs text-slate-500">PIC Email</div><div class="text-white" id="dm_pic_email"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t border-slate-700">
+                        <h4 class="text-sm font-bold text-green-400 uppercase tracking-wider mb-3">Transaction Info</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                <div><div class="text-xs text-slate-500">Transaction Date</div><div class="text-white" id="dm_trx_date"></div></div>
+                                <div><div class="text-xs text-slate-500">Payment Method</div><div class="text-white uppercase" id="dm_payment_method"></div></div>
+                            </div>
+                            <div class="space-y-3">
+                                <div><div class="text-xs text-slate-500">Status</div><div id="dm_payment_status"></div></div>
+                                <div><div class="text-xs text-slate-500">Addons</div><div id="dm_addons" class="space-y-1"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-900/50 px-6 py-4 flex justify-end">
+                    <button type="button" onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold transition-colors">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     (function(){
         var form = document.getElementById('filtersForm');
@@ -482,8 +580,31 @@
                 '</div>';
                 var genderLabel = p.gender ? (p.gender.charAt(0).toUpperCase() + p.gender.slice(1)) : '-';
                 var regDate = p.created_at ? p.created_at.split(' ').slice(0, 2).join(' ') : '-';
-                html += '<tr class="hover:bg-slate-800/50 transition-colors">'+
+                
+                var dataJson = JSON.stringify({
+                    name: p.name,
+                    gender: genderLabel,
+                    email: p.email,
+                    phone: p.phone,
+                    id_card: p.id_card,
+                    category: p.category,
+                    bib_number: p.bib_number,
+                    age_group: p.age_group,
+                    jersey_size: p.jersey_size,
+                    pic_name: p.pic_name,
+                    pic_phone: p.pic_phone,
+                    pic_email: p.pic_email,
+                    transaction_date: p.transaction_date,
+                    payment_method: p.payment_method,
+                    payment_status: p.payment_status,
+                    is_picked_up: p.is_picked_up,
+                    picked_up_by: p.picked_up_by,
+                    addons: p.addons
+                }).replace(/'/g, "&#39;");
+
+                html += '<tr class="hover:bg-slate-800/50 transition-colors cursor-pointer" onclick="if(!event.target.closest(\'button\') && !event.target.closest(\'a\') && !event.target.closest(\'.no-click\')) openDetailModalFromRow(this)" data-json=\''+ dataJson +'\'>'+
                     '<td class="px-6 py-4"><div class="font-medium text-white">'+ p.name +'</div><div class="text-xs text-slate-500 mb-1">'+ genderLabel +' • Reg: '+ regDate +'</div><div class="text-xs text-slate-400">'+ (p.email || '') +'</div><div class="text-xs text-slate-400">'+ (p.phone || '') +'</div></td>'+
+                    '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
                     '<td class="px-6 py-4"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
                     '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div></td>'+
@@ -749,6 +870,61 @@
 
     function closePickupModal() {
         document.getElementById('pickupModal').classList.add('hidden');
+    }
+
+    function openDetailModalFromRow(tr) {
+        var data = JSON.parse(tr.dataset.json);
+        
+        // Populate Personal Info
+        document.getElementById('dm_name').textContent = data.name;
+        document.getElementById('dm_id_card').textContent = data.id_card || '-';
+        document.getElementById('dm_gender').textContent = data.gender;
+        document.getElementById('dm_email').textContent = data.email;
+        document.getElementById('dm_phone').textContent = data.phone;
+        document.getElementById('dm_age_group').textContent = data.age_group || '-';
+
+        // Populate Race Info
+        document.getElementById('dm_category').textContent = data.category;
+        document.getElementById('dm_bib').textContent = data.bib_number || '-';
+        document.getElementById('dm_jersey').textContent = data.jersey_size || '-';
+        
+        // Populate PIC Info
+        document.getElementById('dm_pic_name').textContent = data.pic_name;
+        document.getElementById('dm_pic_phone').textContent = data.pic_phone;
+        document.getElementById('dm_pic_email').textContent = data.pic_email;
+
+        // Populate Transaction Info
+        document.getElementById('dm_trx_date').textContent = data.transaction_date;
+        document.getElementById('dm_payment_method').textContent = data.payment_method;
+        
+        // Payment Status Badge
+        var status = data.payment_status;
+        var badge = document.getElementById('dm_payment_status');
+        badge.className = 'px-2 py-1 rounded-full text-xs font-bold border';
+        if(status == 'paid') {
+            badge.classList.add('bg-green-900/30', 'text-green-400', 'border-green-500/30');
+        } else if(status == 'pending') {
+            badge.classList.add('bg-yellow-900/30', 'text-yellow-400', 'border-yellow-500/30');
+        } else {
+            badge.classList.add('bg-red-900/30', 'text-red-400', 'border-red-500/30');
+        }
+        badge.textContent = status.toUpperCase();
+
+        // Populate Addons
+        var addonsContainer = document.getElementById('dm_addons');
+        if (data.addons && data.addons.length > 0) {
+            addonsContainer.innerHTML = data.addons.map(function(a){
+                return '<div class="flex justify-between text-sm"><span class="text-slate-400">'+a.name+'</span><span class="text-white">'+(a.value||'-')+'</span></div>';
+            }).join('');
+        } else {
+            addonsContainer.innerHTML = '<div class="text-slate-500 text-sm italic">No additional data</div>';
+        }
+
+        document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').classList.add('hidden');
     }
 
     function togglePickedByField() {

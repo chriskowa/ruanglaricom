@@ -1262,23 +1262,23 @@
                                 </tr>
                                 <tr class="border-b border-slate-200/60">
                                     <td class="py-3 font-bold text-slate-900">Juara 2</td>
-                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.500.000</td>
+                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.750.000</td>
                                 </tr>
                                 <tr class="border-b border-slate-200/60">
                                     <td class="py-3 font-bold text-slate-900">Juara 3</td>
-                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.000.000</td>
+                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.500.000</td>
                                 </tr>
                                 <tr class="border-b border-slate-200/60">
                                     <td class="py-3 font-medium text-slate-700">Peringkat 4</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 750.000</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 1.250.000</td>
                                 </tr>
                                 <tr class="border-b border-slate-200/60">
                                     <td class="py-3 font-medium text-slate-700">Peringkat 5</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 1.000.000</td>
                                 </tr>
                                 <tr class="border-b border-slate-200/60">
                                     <td class="py-3 font-medium text-slate-700">Peringkat 6</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 750.000</td>
                                 </tr>
                                 <tr class="border-b border-slate-200/60">
                                     <td class="py-3 font-medium text-slate-700">Peringkat 7</td>

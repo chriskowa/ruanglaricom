@@ -801,6 +801,7 @@ class EventController extends Controller
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('bib_number', 'like', "%{$search}%")
+                    ->orWhere('id_card', 'like', "%{$search}%")
                     ->orWhereHas('category', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%");
                     });
@@ -841,16 +842,23 @@ class EventController extends Controller
                     'gender' => $p->gender,
                     'email' => $p->email,
                     'phone' => $p->phone,
+                    'id_card' => $p->id_card,
                     'category' => $p->category ? $p->category->name : '-',
                     'bib_number' => $p->bib_number,
                     'age_group' => $p->getAgeGroup($event->start_at),
                     'jersey_size' => $p->jersey_size,
                     'created_at' => $p->created_at ? $p->created_at->format('d M Y') : '',
-                    'is_picked_up' => (bool) $p->is_picked_up,
+                    'payment_status' => $p->transaction->payment_status ?? 'pending',
+                    'transaction_id' => $p->transaction->id,
+                    'is_picked_up' => $p->is_picked_up,
                     'picked_up_by' => $p->picked_up_by,
-                    'transaction_id' => optional($p->transaction)->id,
-                    'payment_status' => optional($p->transaction)->payment_status ?? 'pending',
-                    'payment_update_url' => route('eo.events.transactions.payment-status', [$event, optional($p->transaction)->id]),
+                    'payment_update_url' => route('eo.events.transactions.payment-status', [$event, $p->transaction->id]),
+                    'pic_name' => $p->transaction->pic_data['name'] ?? '-',
+                    'pic_phone' => $p->transaction->pic_data['phone'] ?? '-',
+                    'pic_email' => $p->transaction->pic_data['email'] ?? '-',
+                    'transaction_date' => $p->transaction->created_at ? $p->transaction->created_at->format('d M Y H:i') : '-',
+                    'payment_method' => $p->transaction->payment_gateway ?? '-',
+                    'addons' => $p->addons,
                 ];
             });
 
@@ -1252,6 +1260,11 @@ class EventController extends Controller
             'id' => 99999,
             'final_amount' => 150000,
             'payment_status' => 'paid',
+            'pic_data' => [
+                'name' => 'Budi Santoso (PIC)',
+                'email' => 'pic@example.com',
+                'phone' => '081234567890',
+            ],
         ]);
 
         return view('emails.events.registration-success', [
@@ -1317,6 +1330,11 @@ class EventController extends Controller
             'id' => 99999,
             'final_amount' => 150000,
             'payment_status' => 'paid',
+            'pic_data' => [
+                'name' => $authUser?->name ?? 'John Doe',
+                'email' => $authUser?->email ?? 'john@example.com',
+                'phone' => $authUser?->phone ?? '08123456789',
+            ],
         ]);
 
         try {

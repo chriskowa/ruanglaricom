@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Models\EoReportEmailDelivery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -13,34 +12,27 @@ class EoReportEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public EoReportEmailDelivery $delivery;
+    public $data;
+    public $subjectLine;
 
-    public function __construct(EoReportEmailDelivery $delivery)
+    public function __construct($data, $subject)
     {
-        $this->delivery = $delivery;
+        $this->data = $data;
+        $this->subjectLine = $subject;
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: (string) $this->delivery->subject,
+            subject: $this->subjectLine,
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.eo.report',
-            with: [
-                'delivery' => $this->delivery,
-                'event' => $this->delivery->event,
-            ],
+            view: 'emails.eo.report',
+            with: $this->data,
         );
     }
-
-    public function attachments(): array
-    {
-        return [];
-    }
 }
-
