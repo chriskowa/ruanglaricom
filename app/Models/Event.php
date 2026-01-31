@@ -68,6 +68,7 @@ class Event extends Model
     ];
 
     protected $casts = [
+        'user_id' => 'integer',
         'start_at' => 'datetime',
         'end_at' => 'datetime',
         'registration_open_at' => 'datetime',
