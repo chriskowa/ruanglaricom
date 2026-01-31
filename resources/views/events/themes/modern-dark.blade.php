@@ -755,8 +755,8 @@
                             </div>
                         @endif
 
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div class="lg:col-span-2 space-y-8">
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                            <div class="xl:col-span-2 space-y-8">
                                 <div class="bg-card border border-slate-800 rounded-3xl p-6 md:p-8">
                                     <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-3">
                                         <span class="w-8 h-8 rounded-full bg-slate-700 text-neon flex items-center justify-center font-mono text-sm">01</span>
@@ -872,7 +872,7 @@
                                 </div>
                             </div>
 
-                            <div class="lg:col-span-1">
+                            <div class="xl:col-span-1">
                                 <div class="sticky top-24 space-y-6">
                                     <div class="bg-card border border-slate-800 rounded-3xl p-6">
                                         <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Kode Promo</label>

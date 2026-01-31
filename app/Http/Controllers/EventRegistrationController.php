@@ -96,7 +96,7 @@ class EventRegistrationController extends Controller
                 // Count registered participants
                 $registeredCount = \App\Models\Participant::where('race_category_id', $categoryId)
                     ->whereHas('transaction', function ($query) {
-                        $query->whereIn('payment_status', ['pending', 'paid']);
+                        $query->whereIn('payment_status', ['paid', 'cod']);
                     })
                     ->count();
 

@@ -234,7 +234,7 @@ class StoreRegistrationAction
             $activeParticipantExists = Participant::where('race_category_id', $participant['category_id'])
                 ->where('id_card', $participant['id_card'])
                 ->whereHas('transaction', function ($query) use ($event) {
-                    $query->whereIn('payment_status', ['pending', 'paid']);
+                    $query->whereIn('payment_status', ['paid', 'cod']);
                     if ($event->hardcoded === 'latbarkamis') {
                         if ($event->registration_open_at) {
                             $query->where('created_at', '>=', $event->registration_open_at);
@@ -287,7 +287,7 @@ class StoreRegistrationAction
                 // Calculate remaining quota (optimized with index)
                 $registeredCount = Participant::where('race_category_id', $categoryId)
                     ->whereHas('transaction', function ($query) {
-                        $query->whereIn('payment_status', ['pending', 'paid']);
+                        $query->whereIn('payment_status', ['paid', 'cod']);
                     })
                     ->count();
 
@@ -451,6 +451,7 @@ class StoreRegistrationAction
                     ]);
                     Cache::put($idKey, $transaction->id, now()->addMinutes(10));
                 } else {
+                    $transaction->update(['payment_status' => 'failed']);
                     throw new \Exception('Gagal membuat token pembayaran: '.($snapResult['message'] ?? 'Unknown error'));
                 }
             }

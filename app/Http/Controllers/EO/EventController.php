@@ -588,6 +588,10 @@ class EventController extends Controller
             $validated['payment_config']['midtrans_demo_mode'] = (bool) $validated['payment_config']['midtrans_demo_mode'];
         }
 
+        if (array_key_exists('custom_email_message', $validated)) {
+            $validated['custom_email_message'] = $this->normalizeCustomEmailMessage($validated['custom_email_message'] ?? null, $event);
+        }
+
         $affectedCategoryIds = [];
         $deletedCategoryIds = [];
 
@@ -1194,8 +1198,7 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
-        // Update event with preview data (not saved to DB)
-        $event->custom_email_message = $request->input('custom_email_message');
+        $event->custom_email_message = $this->normalizeCustomEmailMessage($request->input('custom_email_message'), $event);
         if ($request->has('ticket_email_use_qr')) {
             $event->ticket_email_use_qr = (bool) $request->boolean('ticket_email_use_qr');
         }
@@ -1259,7 +1262,7 @@ class EventController extends Controller
         $request->session()->put($rateKey, $count + 1);
         $remaining = max(0, 3 - ($count + 1));
 
-        $event->custom_email_message = $validated['custom_email_message'] ?? null;
+        $event->custom_email_message = $this->normalizeCustomEmailMessage($validated['custom_email_message'] ?? null, $event);
         if ($request->has('ticket_email_use_qr')) {
             $event->ticket_email_use_qr = (bool) $request->boolean('ticket_email_use_qr');
         }
@@ -1319,5 +1322,68 @@ class EventController extends Controller
         if ($path && Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
         }
+    }
+
+    private function normalizeCustomEmailMessage(?string $html, Event $event): ?string
+    {
+        if (! is_string($html)) {
+            return null;
+        }
+
+        $html = trim($html);
+        if ($html === '') {
+            return null;
+        }
+
+        if (! str_contains($html, 'data:image/')) {
+            return $html;
+        }
+
+        $prev = libxml_use_internal_errors(true);
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $dom->loadHTML('<?xml encoding="utf-8" ?>'.$html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+
+        $images = $dom->getElementsByTagName('img');
+        $imageNodes = [];
+        foreach ($images as $img) {
+            $imageNodes[] = $img;
+        }
+
+        foreach ($imageNodes as $img) {
+            $src = (string) $img->getAttribute('src');
+            if (! str_starts_with($src, 'data:image/')) {
+                continue;
+            }
+
+            if (! preg_match('/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/', $src, $m)) {
+                continue;
+            }
+
+            $ext = strtolower($m[1]);
+            if ($ext === 'jpeg') {
+                $ext = 'jpg';
+            }
+            if (! in_array($ext, ['jpg', 'png', 'gif', 'webp'], true)) {
+                $ext = 'png';
+            }
+
+            $binary = base64_decode($m[2], true);
+            if ($binary === false) {
+                continue;
+            }
+
+            $path = 'email-custom/'.$event->id.'/'.Str::random(40).'.'.$ext;
+            Storage::disk('public')->put($path, $binary);
+
+            $img->setAttribute('src', asset('storage/'.$path));
+
+            $style = trim((string) $img->getAttribute('style'));
+            $extraStyle = 'max-width:100%;height:auto;';
+            $img->setAttribute('style', ($style !== '' ? rtrim($style, ';').';' : '').$extraStyle);
+        }
+
+        return $dom->saveHTML();
     }
 }

@@ -149,7 +149,7 @@ class EventPaymentRecoveryController extends Controller
         ]);
     }
 
-    public function resume(Request $request, string $slug, Transaction $transaction)
+    public function resume(Request $request, string $slug, Transaction $transaction, MidtransService $midtransService)
     {
         $event = Event::query()->where('slug', $slug)->firstOrFail();
         if ($transaction->event_id !== $event->id) {
@@ -185,10 +185,29 @@ class EventPaymentRecoveryController extends Controller
         }
 
         if (! $transaction->snap_token) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Token pembayaran tidak tersedia. Silakan cek status atau lakukan registrasi ulang jika transaksi sudah expire.',
-            ], 409);
+            try {
+                $transaction->load(['participants.category']);
+                $snapResult = $midtransService->createEventTransaction($transaction);
+                
+                if ($snapResult['success']) {
+                    $transaction->update([
+                        'snap_token' => $snapResult['snap_token'],
+                        'midtrans_order_id' => $snapResult['order_id'],
+                        'midtrans_mode' => $snapResult['midtrans_mode'] ?? 'production',
+                    ]);
+                    $transaction->refresh();
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal membuat token pembayaran: ' . ($snapResult['message'] ?? 'Unknown error'),
+                    ], 500);
+                }
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat membuat token: ' . $e->getMessage(),
+                ], 500);
+            }
         }
 
         return response()->json([

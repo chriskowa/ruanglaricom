@@ -23,9 +23,9 @@
         .btn { display: inline-block; background-color: #0f172a; color: #ccff00; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f5; color: #333; margin: 0; padding: 0;">
+    <div class="container" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div class="header" style="background-color: #0f172a; padding: 30px; text-align: center;">
             @if(isset($event) && $event->logo_image)
                 <img src="{{ asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" style="max-height: 80px; max-width: 200px; object-fit: contain;">
             @else
@@ -33,7 +33,7 @@
             @endif
         </div>
         
-        <div class="content">
+        <div class="content" style="padding: 30px;">
             <div class="event-info">
                 <div class="event-name">{{ $event->name }}</div>
                 <div class="event-meta">
@@ -115,11 +115,11 @@
                 <p style="font-size: 14px; color: #64748b;">Total Pembayaran: <strong>Rp {{ number_format($transaction->final_amount, 0, ',', '.') }}</strong></p>
                 <p style="font-size: 14px; color: #64748b;">Status: <strong style="color: {{ $transaction->payment_status == 'paid' ? '#10b981' : '#f59e0b' }}">{{ strtoupper($transaction->payment_status) }}</strong></p>
                 
-                <a href="{{ route('events.show', $event->slug) }}" class="btn">Lihat Detail Event</a>
+                <a href="{{ route('events.show', $event->slug) }}" class="btn" style="display: inline-block; background-color: #0f172a; color: #ccff00; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px;">Lihat Detail Event</a>
             </div>
         </div>
 
-        <div class="footer">
+        <div class="footer" style="background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b;">
             &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.<br>
             Email ini dibuat secara otomatis. Mohon tidak membalas email ini.
         </div>

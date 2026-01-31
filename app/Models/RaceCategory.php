@@ -63,7 +63,7 @@ class RaceCategory extends Model
         // Count registered participants
         $registeredCount = \App\Models\Participant::where('race_category_id', $this->id)
             ->whereHas('transaction', function ($query) {
-                $query->whereIn('payment_status', ['pending', 'paid']);
+                $query->whereIn('payment_status', ['paid', 'cod']);
             })
             ->count();
 
