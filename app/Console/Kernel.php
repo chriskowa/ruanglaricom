@@ -11,6 +11,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('leaderboard:sync')->dailyAt('02:00');
         $schedule->command('marketplace:auctions:finalize')->everyMinute();
+        $schedule->command('eo-report-emails:monitor')->everyMinute();
     }
 
     protected function commands(): void

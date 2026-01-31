@@ -3,13 +3,13 @@
 namespace App\Jobs;
 
 use App\Helpers\WhatsApp;
+use App\Models\EventEmailDeliveryLog;
 use App\Models\Transaction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;
 
 class SendEventRegistrationNotification implements ShouldQueue
 {
@@ -92,11 +92,28 @@ class SendEventRegistrationNotification implements ShouldQueue
                 $notifiableName
             ));
 
+            EventEmailDeliveryLog::create([
+                'event_id' => $event->id,
+                'transaction_id' => $this->transaction->id,
+                'channel' => 'email',
+                'to' => $email,
+                'status' => 'sent',
+            ]);
         } catch (\Exception $e) {
             Log::error('Failed to send email notification', [
                 'email' => $email,
                 'transaction_id' => $this->transaction->id,
                 'error' => $e->getMessage(),
+            ]);
+
+            EventEmailDeliveryLog::create([
+                'event_id' => $event->id,
+                'transaction_id' => $this->transaction->id,
+                'channel' => 'email',
+                'to' => $email,
+                'status' => 'failed',
+                'error_code' => 'send_failed',
+                'error_message' => mb_substr((string) $e->getMessage(), 0, 2000),
             ]);
         }
     }
@@ -126,12 +143,29 @@ class SendEventRegistrationNotification implements ShouldQueue
             ]);
 
             WhatsApp::send($phone, $message);
+            EventEmailDeliveryLog::create([
+                'event_id' => $event->id,
+                'transaction_id' => $this->transaction->id,
+                'channel' => 'whatsapp',
+                'to' => $phone,
+                'status' => 'sent',
+            ]);
 
         } catch (\Exception $e) {
             Log::error('Failed to send WhatsApp notification', [
                 'phone' => $phone,
                 'transaction_id' => $this->transaction->id,
                 'error' => $e->getMessage(),
+            ]);
+
+            EventEmailDeliveryLog::create([
+                'event_id' => $event->id,
+                'transaction_id' => $this->transaction->id,
+                'channel' => 'whatsapp',
+                'to' => $phone,
+                'status' => 'failed',
+                'error_code' => 'send_failed',
+                'error_message' => mb_substr((string) $e->getMessage(), 0, 2000),
             ]);
         }
     }

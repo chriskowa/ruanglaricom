@@ -2,13 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Mail\EventBlastEmail;
 use App\Models\Event;
 use App\Models\Participant;
+use App\Jobs\SendSingleEventBlastEmail;
+use App\Services\EventInstantEmailLimiter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class SendEventBlastEmail implements ShouldQueue
 {
@@ -33,9 +33,14 @@ class SendEventBlastEmail implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(EventInstantEmailLimiter $limiter): void
     {
         Log::info('Starting blast email for event: ' . $this->event->name);
+
+        $this->event = $this->event->fresh();
+        if (! $this->event) {
+            return;
+        }
 
         $query = Participant::whereHas('transaction', function ($q) {
             $q->where('event_id', $this->event->id)
@@ -48,21 +53,75 @@ class SendEventBlastEmail implements ShouldQueue
         }
         
         // Chunk results to handle large datasets
-        $query->chunk(100, function ($participants) {
-            foreach ($participants as $participant) {
-                try {
-                    Mail::to($participant->email)->send(new EventBlastEmail(
-                        $this->event,
-                        $this->subject,
-                        $this->content,
-                        $participant->name
-                    ));
-                } catch (\Exception $e) {
-                    Log::error('Failed to send blast email to ' . $participant->email . ': ' . $e->getMessage());
-                }
-            }
+        $query->chunk(100, function ($participants) use ($limiter) {
+            $this->dispatchBlastChunk($participants, $limiter);
         });
 
         Log::info('Blast email completed for event: ' . $this->event->name);
+    }
+
+    private function dispatchBlastChunk($participants, EventInstantEmailLimiter $limiter): void
+    {
+        $event = $this->event;
+        if (! $event) {
+            return;
+        }
+
+        $maxPerMinute = (int) ($event->blast_email_rate_limit_per_minute ?? 0);
+        $maxPerMinute = $maxPerMinute > 0 ? $maxPerMinute : null;
+
+        $batchSize = $maxPerMinute ? min($maxPerMinute, 100) : 100;
+        $stepSeconds = $maxPerMinute ? intdiv(60, max(1, $maxPerMinute)) : 0;
+
+        $buffer = [];
+        foreach ($participants as $participant) {
+            $email = (string) ($participant->email ?? '');
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                continue;
+            }
+
+            $buffer[] = [
+                'email' => $email,
+                'name' => (string) ($participant->name ?? 'Peserta'),
+            ];
+
+            if (count($buffer) >= $batchSize) {
+                $this->flushBlastBuffer($buffer, $limiter, $maxPerMinute, $stepSeconds);
+                $buffer = [];
+            }
+        }
+
+        if ($buffer) {
+            $this->flushBlastBuffer($buffer, $limiter, $maxPerMinute, $stepSeconds);
+        }
+    }
+
+    private function flushBlastBuffer(array $buffer, EventInstantEmailLimiter $limiter, ?int $maxPerMinute, int $stepSeconds): void
+    {
+        $event = $this->event;
+        if (! $event) {
+            return;
+        }
+
+        $delaySeconds = 0;
+        if ($maxPerMinute) {
+            $delaySeconds = $limiter->reserve((int) $event->id, count($buffer), $maxPerMinute);
+        }
+
+        foreach ($buffer as $idx => $row) {
+            $job = SendSingleEventBlastEmail::dispatch(
+                (int) $event->id,
+                $row['email'],
+                $row['name'],
+                $this->subject,
+                $this->content
+            )->onQueue('emails-blast');
+
+            $extra = $stepSeconds > 0 ? ($idx * $stepSeconds) : 0;
+            $totalDelay = $delaySeconds + $extra;
+            if ($totalDelay > 0) {
+                $job->delay(now()->addSeconds($totalDelay));
+            }
+        }
     }
 }

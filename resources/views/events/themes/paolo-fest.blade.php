@@ -1361,11 +1361,14 @@
                                             <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="space-y-1 relative">
+                                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Target Waktu (Jam:Mnt:Dtk)</label>
+                                                
                                             <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
                                                 <option value="">Ukuran Jersey</option>
                                                 @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}">{{ $size }}</option> @endforeach
                                             </select>
-                                            
+                                            </div>
                                             <div class="space-y-1 relative">
                                                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Target Waktu (Jam:Mnt:Dtk)</label>
                                                 <div class="flex gap-2">
@@ -2017,8 +2020,7 @@
                             });
                         } else {
                             // Free Event / Success direct
-                            alert('Pendaftaran Berhasil!');
-                            window.location.reload();
+                            window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`;
                         }
                     } else {
                         alert(data.message || 'Terjadi kesalahan. Periksa input Anda.');
@@ -2294,6 +2296,33 @@
         </div>
     </div>
     @endif
+    <div id="registrationSuccessModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" id="registrationSuccessModalBackdrop"></div>
+        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                    <h3 class="text-lg font-black text-slate-900">Registrasi Berhasil</h3>
+                    <button type="button" id="registrationSuccessCloseBtn" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center">✕</button>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-yellow-100 flex items-center justify-center">
+                            <div class="w-6 h-6 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-slate-900 font-bold">Terima kasih sudah mendaftar.</p>
+                            <p class="text-slate-600 text-sm mt-1">Tiket akan dikirim via email. Silakan cek inbox dan folder spam.</p>
+                            <p class="text-slate-500 text-xs mt-3">Modal akan tertutup otomatis dalam <span class="font-black text-slate-900" id="registrationSuccessCountdown">5</span> detik.</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                        <button type="button" id="checkEmailBtn" class="flex-1 py-3 rounded-xl bg-slate-900 text-white font-black hover:bg-slate-800 transition">Cek Email Saya</button>
+                        <button type="button" id="closeNowBtn" class="flex-1 py-3 rounded-xl border border-slate-300 text-slate-800 font-black hover:bg-slate-50 transition">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
         const { createApp } = Vue;
@@ -2306,6 +2335,62 @@
         
         const mountEl = document.getElementById('vue-participants-app');
         if (mountEl) vueApp.mount(mountEl);
+    </script>
+    <script>
+        (function () {
+            const modal = document.getElementById('registrationSuccessModal');
+            if (!modal) return;
+
+            const backdrop = document.getElementById('registrationSuccessModalBackdrop');
+            const closeBtn = document.getElementById('registrationSuccessCloseBtn');
+            const closeNowBtn = document.getElementById('closeNowBtn');
+            const checkEmailBtn = document.getElementById('checkEmailBtn');
+            const countdownEl = document.getElementById('registrationSuccessCountdown');
+
+            let timer = null;
+            let remaining = 5;
+
+            function cleanupUrl() {
+                try {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('payment');
+                    window.history.replaceState({}, '', url.toString());
+                } catch (e) {}
+            }
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                if (timer) {
+                    clearInterval(timer);
+                    timer = null;
+                }
+                cleanupUrl();
+            }
+
+            function openModal() {
+                remaining = 5;
+                if (countdownEl) countdownEl.textContent = String(remaining);
+                modal.classList.remove('hidden');
+                if (timer) clearInterval(timer);
+                timer = setInterval(() => {
+                    remaining -= 1;
+                    if (countdownEl) countdownEl.textContent = String(Math.max(0, remaining));
+                    if (remaining <= 0) closeModal();
+                }, 1000);
+            }
+
+            backdrop?.addEventListener('click', closeModal);
+            closeBtn?.addEventListener('click', closeModal);
+            closeNowBtn?.addEventListener('click', closeModal);
+            checkEmailBtn?.addEventListener('click', () => {
+                window.location.href = 'mailto:';
+            });
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('payment') === 'success') {
+                openModal();
+            }
+        })();
     </script>
 </body>
 </html>

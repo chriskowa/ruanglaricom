@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Event;
+use App\Models\RunningEvent;
 use App\Models\MasterGpx;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -208,4 +208,3 @@ class MasterGpxController extends Controller
         return $R * $c;
     }
 }
-

@@ -10,7 +10,7 @@
             <div class="flex items-start justify-between gap-4 flex-wrap mb-6">
                 <div>
                     <h1 class="text-3xl font-black text-white">Tambah Master GPX</h1>
-                    <p class="text-slate-400 mt-1">Upload GPX dan kaitkan ke Running Event.</p>
+                    <p class="text-slate-400 mt-1">Upload GPX dan kaitkan ke Event.</p>
                 </div>
                 <a href="{{ route('admin.master-gpx.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-bold hover:bg-slate-700 transition">
                     Kembali
@@ -37,10 +37,10 @@
 
                 <div>
                     <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Event (opsional)</label>
-                    <select name="event_id" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50">
+                    <select name="running_event_id" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50">
                         <option value="">-</option>
                         @foreach($events as $ev)
-                            <option value="{{ $ev->id }}" @selected(old('event_id') == $ev->id)>{{ $ev->name }} ({{ optional($ev->start_at)->format('Y-m-d') }})</option>
+                            <option value="{{ $ev->id }}" @selected(old('running_event_id') == $ev->id)>{{ $ev->name }} ({{ optional($ev->event_date)->format('Y-m-d') }})</option>
                         @endforeach
                     </select>
                 </div>
@@ -69,4 +69,3 @@
         </div>
     </div>
 @endsection
-

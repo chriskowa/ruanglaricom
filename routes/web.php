@@ -352,6 +352,8 @@ Route::get('/event/{slug}', [App\Http\Controllers\PublicEventController::class, 
 
 Route::get('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
 Route::get('/event/{slug}/payment/{transaction}', [App\Http\Controllers\EventRegistrationController::class, 'payment'])->name('events.payment');
+Route::get('/event/{slug}/prediction', [App\Http\Controllers\EventPredictionController::class, 'show'])->name('events.prediction');
+Route::post('/event/{slug}/prediction/predict', [App\Http\Controllers\EventPredictionController::class, 'predict'])->middleware('throttle:30,1')->name('events.prediction.predict');
 Route::get('/event/{slug}/lanjutkan-pembayaran', [App\Http\Controllers\EventPaymentRecoveryController::class, 'show'])->name('events.payments.continue');
 Route::post('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:5,1')->name('events.register.store');
 Route::post('/event/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
@@ -598,6 +600,11 @@ Route::middleware('auth')->group(function () {
         // SEO Settings
         Route::get('/seo-settings', [App\Http\Controllers\Admin\SeoSettingsController::class, 'index'])->name('seo.settings');
         Route::post('/seo-settings', [App\Http\Controllers\Admin\SeoSettingsController::class, 'update'])->name('seo.settings.update');
+
+        Route::get('email-reports', [App\Http\Controllers\Admin\EmailReportController::class, 'index'])->name('email-reports.index');
+        Route::get('email-reports/export', [App\Http\Controllers\Admin\EmailReportController::class, 'export'])->name('email-reports.export');
+        Route::get('email-reports/print', [App\Http\Controllers\Admin\EmailReportController::class, 'print'])->name('email-reports.print');
+        Route::get('email-monitoring', [App\Http\Controllers\Admin\EmailMonitoringController::class, 'index'])->name('email-monitoring.index');
     });
 
     // Runner routes
@@ -736,6 +743,11 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/preview-email', [App\Http\Controllers\EO\EventController::class, 'previewEmail'])->name('events.preview-email');
         Route::post('events/{event}/send-test-email', [App\Http\Controllers\EO\EventController::class, 'sendTestEmail'])->name('events.send-test-email');
         Route::get('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participants'])->name('events.participants');
+        Route::get('email-reports', [App\Http\Controllers\EO\EmailReportController::class, 'index'])->name('email-reports.index');
+        Route::get('email-reports/data', [App\Http\Controllers\EO\EmailReportController::class, 'data'])->name('email-reports.data');
+        Route::post('email-reports/send', [App\Http\Controllers\EO\EmailReportController::class, 'send'])->name('email-reports.send');
+        Route::post('email-reports/{delivery}/resend', [App\Http\Controllers\EO\EmailReportController::class, 'resend'])->name('email-reports.resend');
+        Route::get('email-monitoring', [App\Http\Controllers\EO\EmailMonitoringController::class, 'index'])->name('email-monitoring.index');
         Route::get('events/{event}/blast', [App\Http\Controllers\EO\EventController::class, 'blast'])->name('events.blast');
         Route::post('events/{event}/blast', [App\Http\Controllers\EO\EventController::class, 'sendBlast'])->name('events.blast.send');
         Route::delete('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'destroyParticipant'])->name('events.participants.destroy');

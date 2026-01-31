@@ -49,12 +49,7 @@ class ProcessPaidEventTransaction implements ShouldQueue
             $this->transaction->participants()->update(['status' => 'confirmed']);
 
             // 5. Send notifications (email/wa)
-            if ($this->transaction->event->is_instant_notification) {
-                \App\Jobs\SendEventRegistrationNotification::dispatchSync($this->transaction);
-                Log::info('Instant notification sent for transaction', ['id' => $this->transaction->id]);
-            } else {
-                \App\Jobs\SendEventRegistrationNotification::dispatch($this->transaction);
-            }
+            app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($this->transaction);
 
             Log::info('ProcessPaidEventTransaction completed', [
                 'transaction_id' => $this->transaction->id,

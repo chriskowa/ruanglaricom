@@ -386,9 +386,26 @@
                             <input type="checkbox" name="is_instant_notification" value="1" class="w-5 h-5 rounded border-slate-600 bg-slate-700 text-yellow-400 focus:ring-yellow-400 focus:ring-offset-0" {{ old('is_instant_notification', $event->is_instant_notification) ? 'checked' : '' }}>
                             <div>
                                 <span class="block text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">Instant Email Notification</span>
-                                <span class="block text-xs text-slate-400 mt-0.5">Kirim email tiket secara langsung (tanpa antrian). Gunakan hanya untuk demo atau event kecil.</span>
+                                <span class="block text-xs text-slate-400 mt-0.5">Kirim email tiket secara cepat dengan batas maksimal 5 email/menit per event. Gunakan hanya untuk demo atau event kecil.</span>
                             </div>
                         </label>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Rate Limit Email (Non-Instant)</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Ticket Email (per menit)</label>
+                                <input type="number" min="1" max="10000" name="ticket_email_rate_limit_per_minute" value="{{ old('ticket_email_rate_limit_per_minute', $event->ticket_email_rate_limit_per_minute) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="Kosong = unlimited">
+                                @error('ticket_email_rate_limit_per_minute') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Blast Email (per menit)</label>
+                                <input type="number" min="1" max="10000" name="blast_email_rate_limit_per_minute" value="{{ old('blast_email_rate_limit_per_minute', $event->blast_email_rate_limit_per_minute) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="Kosong = unlimited">
+                                @error('blast_email_rate_limit_per_minute') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+                        <p class="text-slate-500 text-xs mt-2">Ticket rate dipakai saat Instant dimatikan. Instant tetap mengikuti batas 5 email/menit. Blast akan mengikuti setting ini jika diisi.</p>
                     </div>
 
                     <div class="md:col-span-2">

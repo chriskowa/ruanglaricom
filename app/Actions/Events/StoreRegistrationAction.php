@@ -435,7 +435,7 @@ class StoreRegistrationAction
             if ($paymentMethod === 'cod') {
                 $transaction->update(['payment_status' => 'cod']);
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
-                \App\Jobs\SendEventRegistrationNotification::dispatch($transaction);
+                app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
                 return $transaction;
             } elseif ($paymentMethod === 'moota') {
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));

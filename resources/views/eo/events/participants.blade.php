@@ -23,7 +23,7 @@
 <div id="eo-participants-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
     
     <!-- Header -->
-    <div class="mb-8 relative z-10" data-aos="fade-up">
+    <div class="mb-8 relative z-10 print:hidden" data-aos="fade-up">
         <nav class="flex mb-2" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                 <li class="inline-flex items-center">
@@ -61,7 +61,7 @@
     </div>
 
     <!-- Stats Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 relative z-10">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 relative z-10 print:hidden">
         <div class="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4">
             <p class="text-slate-400 text-xs font-bold uppercase mb-1">Total Registered</p>
             <h3 id="statTotalRegistered" class="text-2xl font-black text-white">{{ $participants->total() }}</h3>
@@ -81,7 +81,7 @@
     </div>
 
     <!-- Financial Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 relative z-10">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 relative z-10 print:hidden">
         <div class="bg-emerald-900/20 backdrop-blur border border-emerald-500/30 rounded-xl p-4">
             <p class="text-emerald-400 text-xs font-bold uppercase mb-1">Gross Revenue</p>
             <h3 class="text-2xl font-black text-white">IDR {{ number_format($financials['gross_revenue'], 0, ',', '.') }}</h3>
@@ -99,8 +99,105 @@
         </div>
     </div>
 
+    <!-- Sales Report Card -->
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8 relative z-10 print:border-0 print:p-0 print:mb-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 print:hidden">
+            <div>
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-neon-cyan" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" /></svg>
+                    Sales Performance Report
+                </h3>
+                <p class="text-slate-400 text-sm">Real-time slot usage and category breakdown</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                 <input type="date" id="reportStartDate" class="bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-2 focus:ring-neon-cyan focus:border-neon-cyan" placeholder="Start Date">
+                 <input type="date" id="reportEndDate" class="bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-2 focus:ring-neon-cyan focus:border-neon-cyan" placeholder="End Date">
+                 <select id="reportTicketType" class="bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-2 focus:ring-neon-cyan focus:border-neon-cyan">
+                     <option value="">All Types</option>
+                     <option value="early_bird">Early Bird</option>
+                     <option value="regular">Regular</option>
+                     <option value="late">Late</option>
+                 </select>
+                 <button onclick="refreshReport()" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
+                 <button onclick="exportReportCSV()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> Excel
+                 </button>
+                 <button onclick="window.print()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg> PDF
+                 </button>
+            </div>
+        </div>
+
+        <!-- Print Header -->
+        <div class="hidden print:block mb-6">
+            <h1 class="text-2xl font-bold text-black">Event Report: {{ $event->name }}</h1>
+            <p class="text-sm text-gray-600">Generated at: {{ now()->format('d M Y H:i') }}</p>
+        </div>
+
+        <div id="reportContent" class="grid grid-cols-1 md:grid-cols-2 gap-8 print:grid-cols-2 print:gap-4">
+            <!-- Metrics -->
+            <div class="space-y-4">
+                 <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
+                     <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Slot Utilization</h4>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Total Slots</span>
+                         <span class="text-white font-bold print:text-black" id="repTotalSlots">{{ $eventReport['total_slots'] }}</span>
+                     </div>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Sold Slots</span>
+                         <span class="text-neon-green font-bold print:text-black" id="repSoldSlots">{{ $eventReport['sold_slots'] }}</span>
+                     </div>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Pending Slots</span>
+                         <span class="text-yellow-400 font-bold print:text-black" id="repPendingSlots">{{ $eventReport['pending_slots'] ?? 0 }}</span>
+                     </div>
+                     
+                     @php 
+                        $used = ($eventReport['sold_slots'] + ($eventReport['pending_slots'] ?? 0));
+                        $percent = $eventReport['is_unlimited'] ? 0 : ($eventReport['total_slots'] > 0 ? ($used / $eventReport['total_slots'] * 100) : 0);
+                     @endphp
+                     <div class="w-full bg-slate-700 rounded-full h-2.5 mb-1 print:bg-gray-200">
+                        <div id="repProgressBar" class="bg-neon-green h-2.5 rounded-full print:bg-black" style="width: {{ $percent }}%"></div>
+                     </div>
+                     <div class="flex justify-between text-xs">
+                         <span class="text-slate-500 print:text-gray-500">Usage</span>
+                         <span class="text-white print:text-black" id="repProgressText">{{ round($percent, 1) }}%</span>
+                     </div>
+                     
+                     <!-- Warning -->
+                     <div id="repWarning" class="{{ $eventReport['show_warning'] ? '' : 'hidden' }} mt-3 bg-red-900/30 border border-red-500/50 p-2 rounded text-red-400 text-xs flex items-center gap-2 print:text-red-600 print:border-red-600">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Warning: Less than 10% slots remaining!
+                     </div>
+                 </div>
+            </div>
+
+            <!-- Breakdown -->
+            <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
+                <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Category Breakdown</h4>
+                <div id="repBreakdown" class="space-y-3">
+                    @foreach($eventReport['breakdown'] as $type => $count)
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 capitalize print:text-gray-600">{{ str_replace('_', ' ', $type) }}</span>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 bg-slate-700 rounded-full h-1.5 print:hidden">
+                                <div class="bg-neon-cyan h-1.5 rounded-full" style="width: {{ $eventReport['percentages'][$type] ?? 0 }}%"></div>
+                            </div>
+                            <span class="text-white font-mono text-sm print:text-black">{{ $count }} ({{ $eventReport['percentages'][$type] ?? 0 }}%)</span>
+                        </div>
+                    </div>
+                    @endforeach
+                     <div class="flex items-center justify-between mt-4 pt-2 border-t border-slate-700 border-dashed print:border-gray-300">
+                        <span class="text-slate-400 capitalize print:text-gray-600">Coupon Used</span>
+                        <span class="text-yellow-400 font-mono text-sm print:text-black">{{ $eventReport['coupon_usage'] }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Filter & Table -->
-    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative z-10">
+    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative z-10 print:hidden">
         
         <!-- Filters -->
         <div class="p-4 border-b border-slate-700 bg-slate-900/30">
@@ -347,11 +444,15 @@
                 var status = p.payment_status || 'pending';
                 var pickedBadge = '';
                 if (status === 'paid') {
+                    var badgeContent = '';
                     if (p.is_picked_up) {
-                        pickedBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span><div class="text-xs text-slate-500 mt-1">By: ' + (p.picked_up_by ? p.picked_up_by.substring(0, 15) : '') + '</div>';
+                        badgeContent = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span><div class="text-xs text-slate-500 mt-1">By: ' + (p.picked_up_by ? p.picked_up_by.substring(0, 15) : '') + '</div>';
                     } else {
-                        pickedBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
+                        badgeContent = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
                     }
+                    var safeName = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    var safePickedBy = (p.picked_up_by || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    pickedBadge = '<button onclick="openPickupModal('+ p.id +', \''+ safeName +'\', '+ (p.is_picked_up ? 'true' : 'false') +', \''+ safePickedBy +'\')" class="hover:opacity-80 transition-opacity text-left">' + badgeContent + '</button>';
                 } else {
                     pickedBadge = '<span class="text-xs text-slate-500 italic">Payment required</span>';
                 }
@@ -446,6 +547,119 @@
                 });
             });
         }
+
+        // Report Functions
+        window.refreshReport = function() {
+            var start = document.getElementById('reportStartDate').value;
+            var end = document.getElementById('reportEndDate').value;
+            var type = document.getElementById('reportTicketType').value;
+            
+            var btn = document.querySelector('button[onclick="refreshReport()"]');
+            var originalContent = btn.innerHTML;
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6.366 2.634l-.707.707M20 12h-1m-2.634 6.366l-.707-.707M12 20v-1m-6.366-2.634l.707-.707M4 12H3m2.634-6.366l.707-.707" /></svg>';
+            btn.disabled = true;
+
+            var params = new URLSearchParams({
+                action: 'get_report',
+                report_start_date: start,
+                report_end_date: end,
+                report_ticket_type: type
+            });
+
+            fetch(window.location.pathname + '?' + params.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                if (data.success && data.report) {
+                    updateReportUI(data.report);
+                }
+            })
+            .catch(err => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                console.error(err);
+            });
+        };
+
+        function updateReportUI(report) {
+            document.getElementById('repTotalSlots').innerText = report.total_slots;
+            document.getElementById('repSoldSlots').innerText = report.sold_slots;
+            if(document.getElementById('repPendingSlots')) {
+                document.getElementById('repPendingSlots').innerText = report.pending_slots || 0;
+            }
+            
+            var used = report.sold_slots + (report.pending_slots || 0);
+            var percent = report.is_unlimited ? 0 : (report.total_slots > 0 ? (used / report.total_slots * 100) : 0);
+            document.getElementById('repProgressBar').style.width = percent + '%';
+            document.getElementById('repProgressText').innerText = percent.toFixed(1) + '%';
+            
+            var warningEl = document.getElementById('repWarning');
+            if (report.show_warning) warningEl.classList.remove('hidden');
+            else warningEl.classList.add('hidden');
+
+            var breakdownHtml = '';
+            for (var type in report.breakdown) {
+                 var count = report.breakdown[type];
+                 var p = report.percentages[type] || 0;
+                 var label = type.replace('_', ' ');
+                 breakdownHtml += `
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 capitalize print:text-gray-600">${label}</span>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 bg-slate-700 rounded-full h-1.5 print:hidden">
+                                <div class="bg-neon-cyan h-1.5 rounded-full" style="width: ${p}%"></div>
+                            </div>
+                            <span class="text-white font-mono text-sm print:text-black">${count} (${p}%)</span>
+                        </div>
+                    </div>`;
+            }
+            breakdownHtml += `
+                 <div class="flex items-center justify-between mt-4 pt-2 border-t border-slate-700 border-dashed print:border-gray-300">
+                    <span class="text-slate-400 capitalize print:text-gray-600">Coupon Used</span>
+                    <span class="text-yellow-400 font-mono text-sm print:text-black">${report.coupon_usage}</span>
+                </div>`;
+            
+            document.getElementById('repBreakdown').innerHTML = breakdownHtml;
+        }
+
+        window.exportReportCSV = function() {
+            var rows = [
+                ['Event Report', '{{ $event->name }}'],
+                ['Generated At', new Date().toLocaleString()],
+                ['', ''],
+                ['Total Slots', document.getElementById('repTotalSlots').innerText],
+                ['Sold Slots', document.getElementById('repSoldSlots').innerText],
+                ['Pending Slots', document.getElementById('repPendingSlots') ? document.getElementById('repPendingSlots').innerText : '0'],
+                ['Usage %', document.getElementById('repProgressText').innerText],
+                ['', ''],
+                ['Category Breakdown', '', '']
+            ];
+            
+            var breakdownContainer = document.getElementById('repBreakdown');
+            var items = breakdownContainer.querySelectorAll('.flex.items-center.justify-between');
+            items.forEach(item => {
+                var label = item.querySelector('span:first-child').innerText;
+                var valText = item.querySelector('span:last-child').innerText;
+                rows.push([label, valText]);
+            });
+            
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + rows.map(e => e.join(",")).join("\n");
+                
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "event_report_{{ $event->slug }}.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
     })();
     function setStatusButtonStyle(btn, status) {
         var map = {

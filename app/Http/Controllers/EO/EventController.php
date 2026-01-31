@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\EventRegistrationSuccess;
 use App\Models\Event;
 use App\Services\EventCacheService;
+use App\Services\EventReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -19,10 +20,12 @@ use Intervention\Image\ImageManager;
 class EventController extends Controller
 {
     protected $cacheService;
+    protected $reportService;
 
-    public function __construct(EventCacheService $cacheService)
+    public function __construct(EventCacheService $cacheService, EventReportService $reportService)
     {
         $this->cacheService = $cacheService;
+        $this->reportService = $reportService;
     }
 
     public function index()
@@ -101,6 +104,8 @@ class EventController extends Controller
             'custom_email_message' => 'nullable|string',
             'ticket_email_use_qr' => 'nullable|boolean',
             'is_instant_notification' => 'nullable|boolean',
+            'ticket_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
+            'blast_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
             'facilities' => 'nullable|array',
             'facilities.*.name' => 'nullable|string|max:255',
             'facilities.*.description' => 'nullable|string',
@@ -166,6 +171,18 @@ class EventController extends Controller
             $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
         } else {
             unset($validated['is_instant_notification']);
+        }
+
+        if (Schema::hasColumn('events', 'ticket_email_rate_limit_per_minute')) {
+            $validated['ticket_email_rate_limit_per_minute'] = $validated['ticket_email_rate_limit_per_minute'] ?? null;
+        } else {
+            unset($validated['ticket_email_rate_limit_per_minute']);
+        }
+
+        if (Schema::hasColumn('events', 'blast_email_rate_limit_per_minute')) {
+            $validated['blast_email_rate_limit_per_minute'] = $validated['blast_email_rate_limit_per_minute'] ?? null;
+        } else {
+            unset($validated['blast_email_rate_limit_per_minute']);
         }
 
         // Default premium_amenities to empty array if not present (for new events to not be treated as legacy)
@@ -352,6 +369,8 @@ class EventController extends Controller
             'custom_email_message' => 'nullable|string',
             'ticket_email_use_qr' => 'nullable|boolean',
             'is_instant_notification' => 'nullable|boolean',
+            'ticket_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
+            'blast_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
             'facilities' => 'nullable|array',
             'facilities.*.name' => 'nullable|string|max:255',
             'facilities.*.description' => 'nullable|string',
@@ -407,6 +426,18 @@ class EventController extends Controller
             $validated['is_instant_notification'] = isset($validated['is_instant_notification']) ? (bool) $validated['is_instant_notification'] : false;
         } else {
             unset($validated['is_instant_notification']);
+        }
+
+        if (Schema::hasColumn('events', 'ticket_email_rate_limit_per_minute')) {
+            $validated['ticket_email_rate_limit_per_minute'] = $validated['ticket_email_rate_limit_per_minute'] ?? null;
+        } else {
+            unset($validated['ticket_email_rate_limit_per_minute']);
+        }
+
+        if (Schema::hasColumn('events', 'blast_email_rate_limit_per_minute')) {
+            $validated['blast_email_rate_limit_per_minute'] = $validated['blast_email_rate_limit_per_minute'] ?? null;
+        } else {
+            unset($validated['blast_email_rate_limit_per_minute']);
         }
 
         if (Schema::hasColumn('events', 'ticket_email_use_qr')) {
@@ -712,6 +743,20 @@ class EventController extends Controller
         $financials['net_revenue'] = $financials['gross_revenue'] - $financials['platform_fee'];
 
         if (request()->ajax() || request()->wantsJson()) {
+            // Handle Report AJAX
+            if (request('action') === 'get_report') {
+                $reportFilters = [
+                    'start_date' => request('report_start_date'),
+                    'end_date' => request('report_end_date'),
+                    'ticket_type' => request('report_ticket_type'),
+                ];
+                $eventReport = $this->reportService->getEventReport($event, $reportFilters);
+                return response()->json([
+                    'success' => true,
+                    'report' => $eventReport
+                ]);
+            }
+
             $items = $participants->getCollection()->map(function ($p) use ($event) {
                 return [
                     'id' => $p->id,
@@ -760,7 +805,14 @@ class EventController extends Controller
             ]);
         }
 
-        return view('eo.events.participants', compact('event', 'participants', 'financials'));
+        // Initial Report Data
+        $eventReport = $this->reportService->getEventReport($event, [
+            'start_date' => request('report_start_date'),
+            'end_date' => request('report_end_date'),
+            'ticket_type' => request('report_ticket_type'),
+        ]);
+
+        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport'));
     }
 
     /**
@@ -1044,13 +1096,9 @@ class EventController extends Controller
         }
 
         // Dispatch job
-        if ($event->is_instant_notification) {
-            \App\Jobs\SendEventBlastEmail::dispatchSync($event, $validated['subject'], $validated['content'], $filters);
-            $msg = 'Email blast berhasil dikirim (Instant)!';
-        } else {
-            \App\Jobs\SendEventBlastEmail::dispatch($event, $validated['subject'], $validated['content'], $filters);
-            $msg = 'Email blast sedang diproses dalam antrian.';
-        }
+        \App\Jobs\SendEventBlastEmail::dispatch($event, $validated['subject'], $validated['content'], $filters)
+            ->onQueue('emails-blast');
+        $msg = 'Email blast sedang diproses dalam antrian.';
 
         return redirect()->route('eo.events.blast', $event->id)
             ->with('success', $msg);
