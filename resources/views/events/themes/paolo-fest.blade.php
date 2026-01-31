@@ -1054,7 +1054,7 @@
                         </div>
                         <div>
                             <h4 class="text-xl font-bold text-slate-900 mb-2">Timing System</h4>
-                            <p class="text-slate-500">Pencatatan waktu akurat menggunakan chip timing system berstandar nasional.</p>
+                            <p class="text-slate-500">Pencatatan waktu Podium menggunakan Juri Profesional.</p>
                         </div>
                     </div>
                     <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-200">
