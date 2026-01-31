@@ -51,4 +51,29 @@ class Participant extends Model
     {
         return $this->belongsTo(RaceCategory::class, 'race_category_id');
     }
+
+    /**
+     * Calculate age group based on event start date
+     */
+    public function getAgeGroup($eventDate)
+    {
+        if (! $this->date_of_birth || ! $eventDate) {
+            return '-';
+        }
+
+        $eventDate = \Carbon\Carbon::parse($eventDate);
+        $age = $this->date_of_birth->diffInYears($eventDate);
+
+        if ($age >= 50) {
+            return '50+';
+        }
+        if ($age >= 45) {
+            return 'Master 45+';
+        }
+        if ($age >= 40) {
+            return 'Master';
+        }
+
+        return 'Umum';
+    }
 }

@@ -774,13 +774,36 @@ class EventController extends Controller
             $query->where('race_category_id', request()->category_id);
         }
 
+        // Filter by Age Group
+        if (request()->has('age_group') && request()->age_group) {
+            $group = request()->age_group;
+            $eventDate = $event->start_at;
+            if ($eventDate) {
+                if ($group === '50+') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master 45+') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+                } elseif ($group === 'Umum') {
+                    $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+                }
+            }
+        }
+
         // Search filter
         if (request()->has('search') && trim(request()->search) !== '') {
             $search = trim(request()->search);
             $query->where(function ($qq) use ($search) {
                 $qq->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('bib_number', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -820,6 +843,7 @@ class EventController extends Controller
                     'phone' => $p->phone,
                     'category' => $p->category ? $p->category->name : '-',
                     'bib_number' => $p->bib_number,
+                    'age_group' => $p->getAgeGroup($event->start_at),
                     'jersey_size' => $p->jersey_size,
                     'created_at' => $p->created_at ? $p->created_at->format('d M Y') : '',
                     'is_picked_up' => (bool) $p->is_picked_up,

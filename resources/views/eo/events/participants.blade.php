@@ -238,9 +238,19 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Age Group</label>
+                    <select name="age_group" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                        <option value="">All Groups</option>
+                        <option value="Umum" {{ request('age_group') == 'Umum' ? 'selected' : '' }}>Umum (< 40)</option>
+                        <option value="Master" {{ request('age_group') == 'Master' ? 'selected' : '' }}>Master (40-44)</option>
+                        <option value="Master 45+" {{ request('age_group') == 'Master 45+' ? 'selected' : '' }}>Master 45+ (45-49)</option>
+                        <option value="50+" {{ request('age_group') == '50+' ? 'selected' : '' }}>50+ (>= 50)</option>
+                    </select>
+                </div>
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Search</label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama, email, atau nomor WA" class="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama, email, HP, BIB, Category" class="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                 </div>
                 <div>
                     <button type="submit" class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition-colors text-sm">
@@ -258,6 +268,7 @@
                         <th class="px-6 py-4">Participant</th>
                         <th class="px-6 py-4">Jersey Size</th>
                         <th class="px-6 py-4">Category & BIB</th>
+                        <th class="px-6 py-4">Age Group</th>
                         <th class="px-6 py-4">Payment</th>
                         <th class="px-6 py-4">Pickup Status</th>
                         <th class="px-6 py-4 text-right">Actions</th>
@@ -288,6 +299,11 @@
                                     BIB: {{ $participant->bib_number ?? 'N/A' }}
                                 </span>
                             </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">
+                                {{ $participant->getAgeGroup($event->start_at) }}
+                            </span>
                         </td>
                         <td class="px-6 py-4">
                             @php $status = $participant->transaction->payment_status ?? 'pending'; @endphp
