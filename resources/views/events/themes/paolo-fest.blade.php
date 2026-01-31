@@ -800,6 +800,141 @@
                 <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Race Course</span>
                 <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl mt-2">Peta Rute</h2>
                 <p class="text-slate-500 mt-4 max-w-2xl mx-auto">Jelajahi rute lari untuk setiap kategori. Klik tab kategori untuk melihat detail rute dan elevasi.</p>
+                <div class="mt-6 flex justify-center">
+                    <button type="button" id="openPredictorBtn" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-900 text-white font-bold shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition">
+                        Prediksi Waktu
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="predictorModal" class="fixed inset-0 z-[70] hidden">
+                <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+                <div class="relative h-full w-full flex items-center justify-center p-4">
+                    <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
+                        <div class="flex items-start justify-between gap-4 p-6 border-b border-slate-100">
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Prediksi Waktu</div>
+                                <div class="text-2xl font-black text-slate-900">{{ $event->name }}</div>
+                                <a href="{{ route('events.prediction', $event->slug) }}" class="inline-block mt-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
+                                    Buka Halaman Penuh →
+                                </a>
+                            </div>
+                            <button type="button" id="closePredictorBtn" class="p-2 rounded-xl hover:bg-slate-100 text-slate-700">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-1">
+                                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+                                        <div class="text-lg font-black text-slate-900">Input</div>
+
+                                        <div class="mt-4">
+                                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Kategori</label>
+                                            <select id="predictCategory" class="mt-2 w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-semibold">
+                                                <option value="" disabled selected>Pilih kategori</option>
+                                                @foreach($categoriesWithGpx as $cat)
+                                                    <option value="{{ $cat->id }}">{{ $cat->name }} ({{ (float) ($cat->distance_km ?? 0) }} KM)</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div class="mt-5">
+                                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Cuaca</label>
+                                            <div class="mt-2 grid grid-cols-2 gap-2">
+                                                <label class="cursor-pointer">
+                                                    <input type="radio" name="predictWeather" value="panas" class="peer sr-only" checked>
+                                                    <div class="px-4 py-3 rounded-xl border border-slate-200 bg-white peer-checked:border-yellow-400 peer-checked:bg-yellow-500/10 font-bold text-slate-900">Panas</div>
+                                                </label>
+                                                <label class="cursor-pointer">
+                                                    <input type="radio" name="predictWeather" value="dingin" class="peer sr-only">
+                                                    <div class="px-4 py-3 rounded-xl border border-slate-200 bg-white peer-checked:border-cyan-400 peer-checked:bg-cyan-500/10 font-bold text-slate-900">Dingin</div>
+                                                </label>
+                                                <label class="cursor-pointer">
+                                                    <input type="radio" name="predictWeather" value="hujan" class="peer sr-only">
+                                                    <div class="px-4 py-3 rounded-xl border border-slate-200 bg-white peer-checked:border-blue-400 peer-checked:bg-blue-500/10 font-bold text-slate-900">Hujan</div>
+                                                </label>
+                                                <label class="cursor-pointer">
+                                                    <input type="radio" name="predictWeather" value="gerimis" class="peer sr-only">
+                                                    <div class="px-4 py-3 rounded-xl border border-slate-200 bg-white peer-checked:border-sky-400 peer-checked:bg-sky-500/10 font-bold text-slate-900">Gerimis</div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-5">
+                                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">PB (Jam / Menit / Detik)</label>
+                                            <div class="mt-2 grid grid-cols-3 gap-2">
+                                                <input id="predictPbH" type="number" min="0" max="23" value="0" class="bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 font-semibold" placeholder="Jam">
+                                                <input id="predictPbM" type="number" min="0" max="59" value="0" class="bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 font-semibold" placeholder="Menit">
+                                                <input id="predictPbS" type="number" min="0" max="59" value="0" class="bg-white border border-slate-200 rounded-xl px-3 py-3 text-slate-900 font-semibold" placeholder="Detik">
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-5">
+                                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal PB (3 bulan terakhir)</label>
+                                            <input id="predictPbDate" type="date" class="mt-2 w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-semibold">
+                                        </div>
+
+                                        <p id="predictModalError" class="mt-4 text-red-600 text-sm hidden"></p>
+
+                                        <button id="predictModalBtn" type="button" class="mt-5 w-full px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-black transition">
+                                            Prediksi Waktu
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="lg:col-span-2 space-y-6">
+                                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+                                        <div class="text-lg font-black text-slate-900">Hasil Prediksi</div>
+
+                                        <div id="predictResultWrap" class="mt-4 hidden">
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                                    <div class="text-slate-500 text-xs font-bold uppercase">Optimis</div>
+                                                    <div class="text-slate-900 font-black mt-1 text-2xl" id="predictOptimistic">-</div>
+                                                </div>
+                                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                                    <div class="text-slate-500 text-xs font-bold uppercase">Realistis</div>
+                                                    <div class="text-slate-900 font-black mt-1 text-2xl" id="predictRealistic">-</div>
+                                                </div>
+                                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                                    <div class="text-slate-500 text-xs font-bold uppercase">Pesimis</div>
+                                                    <div class="text-slate-900 font-black mt-1 text-2xl" id="predictPessimistic">-</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                                    <div class="text-slate-500 text-xs font-bold uppercase">Confidence</div>
+                                                    <div class="text-slate-900 font-black mt-1" id="predictConfidence">-</div>
+                                                </div>
+                                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                                    <div class="text-slate-500 text-xs font-bold uppercase">Jarak Rute</div>
+                                                    <div class="text-slate-900 font-black mt-1" id="predictRouteDistance">-</div>
+                                                </div>
+                                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                                    <div class="text-slate-500 text-xs font-bold uppercase">Elev Gain</div>
+                                                    <div class="text-slate-900 font-black mt-1" id="predictRouteGain">-</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-4 bg-white border border-slate-200 rounded-xl p-4">
+                                                <div class="text-slate-500 text-xs font-bold uppercase">Strategi</div>
+                                                <div class="text-slate-800 font-semibold mt-2 leading-relaxed" id="predictStrategy">-</div>
+                                            </div>
+                                        </div>
+
+                                        <div id="predictEmptyHint" class="mt-4 text-slate-500 font-semibold">
+                                            Pilih kategori dan isi PB untuk melihat hasil prediksi.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div x-data="{ activeTab: '{{ $categoriesWithGpx->first()->id }}' }">
@@ -1619,6 +1754,132 @@
             });
         }, { threshold: 0.1 });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        (function () {
+            const modal = document.getElementById('predictorModal');
+            const openBtn = document.getElementById('openPredictorBtn');
+            const closeBtn = document.getElementById('closePredictorBtn');
+            const overlay = modal ? modal.querySelector('.absolute.inset-0') : null;
+            const categoryEl = document.getElementById('predictCategory');
+            const pbH = document.getElementById('predictPbH');
+            const pbM = document.getElementById('predictPbM');
+            const pbS = document.getElementById('predictPbS');
+            const pbDate = document.getElementById('predictPbDate');
+            const errEl = document.getElementById('predictModalError');
+            const btn = document.getElementById('predictModalBtn');
+            const resultWrap = document.getElementById('predictResultWrap');
+            const emptyHint = document.getElementById('predictEmptyHint');
+
+            const optimisticEl = document.getElementById('predictOptimistic');
+            const realisticEl = document.getElementById('predictRealistic');
+            const pessimisticEl = document.getElementById('predictPessimistic');
+            const confidenceEl = document.getElementById('predictConfidence');
+            const routeDistanceEl = document.getElementById('predictRouteDistance');
+            const routeGainEl = document.getElementById('predictRouteGain');
+            const strategyEl = document.getElementById('predictStrategy');
+
+            if (!modal || !openBtn || !closeBtn) return;
+
+            const csrfToken = '{{ csrf_token() }}';
+            const predictUrl = '{{ route('events.prediction.predict', $event->slug) }}';
+
+            function showError(message) {
+                if (!errEl) return;
+                errEl.textContent = message || 'Terjadi error.';
+                errEl.classList.remove('hidden');
+            }
+
+            function clearError() {
+                if (!errEl) return;
+                errEl.textContent = '';
+                errEl.classList.add('hidden');
+            }
+
+            function openModal() {
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                clearError();
+                if (resultWrap) resultWrap.classList.add('hidden');
+                if (emptyHint) emptyHint.classList.remove('hidden');
+                if (pbDate && !pbDate.value) {
+                    const d = new Date();
+                    pbDate.value = d.toISOString().slice(0, 10);
+                }
+            }
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            openBtn.addEventListener('click', openModal);
+            closeBtn.addEventListener('click', closeModal);
+            if (overlay) overlay.addEventListener('click', closeModal);
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+            });
+
+            btn.addEventListener('click', async () => {
+                clearError();
+
+                const categoryId = categoryEl ? categoryEl.value : '';
+                const weatherEl = document.querySelector('input[name="predictWeather"]:checked');
+                const weather = weatherEl ? weatherEl.value : '';
+
+                if (!categoryId) {
+                    showError('Pilih kategori terlebih dahulu.');
+                    return;
+                }
+
+                const payload = {
+                    category_id: parseInt(categoryId, 10),
+                    weather,
+                    pb_h: parseInt(pbH?.value || '0', 10),
+                    pb_m: parseInt(pbM?.value || '0', 10),
+                    pb_s: parseInt(pbS?.value || '0', 10),
+                    pb_date: pbDate?.value || '',
+                };
+
+                btn.disabled = true;
+                btn.textContent = 'Menghitung...';
+
+                try {
+                    const res = await fetch(predictUrl, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await res.json().catch(() => null);
+                    if (!res.ok || !data || !data.ok) {
+                        showError((data && data.message) ? data.message : 'Prediksi gagal.');
+                        return;
+                    }
+
+                    const result = data.result || {};
+                    if (optimisticEl) optimisticEl.textContent = result?.prediction?.optimistic || '-';
+                    if (realisticEl) realisticEl.textContent = result?.prediction?.realistic || '-';
+                    if (pessimisticEl) pessimisticEl.textContent = result?.prediction?.pessimistic || '-';
+                    if (confidenceEl) confidenceEl.textContent = (result?.confidence !== undefined && result?.confidence !== null) ? `${Math.round(result.confidence * 100)}%` : '-';
+                    if (routeDistanceEl) routeDistanceEl.textContent = (result?.route?.distance_km !== null && result?.route?.distance_km !== undefined) ? `${result.route.distance_km} km` : '-';
+                    if (routeGainEl) routeGainEl.textContent = (result?.route?.elevation_gain_m !== null && result?.route?.elevation_gain_m !== undefined) ? `${result.route.elevation_gain_m} m` : '-';
+                    if (strategyEl) strategyEl.textContent = result?.strategy || '-';
+
+                    if (emptyHint) emptyHint.classList.add('hidden');
+                    if (resultWrap) resultWrap.classList.remove('hidden');
+                } catch (e) {
+                    showError('Terjadi error saat menghitung prediksi.');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Prediksi Waktu';
+                }
+            });
+        })();
 
         // C. Navbar Scroll Effect
         window.addEventListener('scroll', () => {

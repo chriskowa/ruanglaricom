@@ -170,6 +170,16 @@ class Event extends Model
         return $query->where('start_at', '>=', now())->orderBy('start_at', 'asc');
     }
 
+    public function scopeDirectory($query)
+    {
+        return $query->where('event_kind', 'directory');
+    }
+
+    public function scopeManaged($query)
+    {
+        return $query->where('event_kind', 'managed');
+    }
+
     /**
      * Get hero image URL (prioritize uploaded image over URL)
      */

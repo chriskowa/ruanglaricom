@@ -3,17 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\RunningEvent;
+use App\Models\Event;
 use App\Models\MasterGpx;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class MasterGpxController extends Controller
 {
     public function index()
     {
         $items = MasterGpx::query()
-            ->with(['runningEvent'])
+            ->with(['event'])
             ->orderByDesc('created_at')
             ->paginate(25);
 
@@ -25,8 +26,8 @@ class MasterGpxController extends Controller
 
     public function create()
     {
-        $events = RunningEvent::query()
-            ->orderByDesc('event_date')
+        $events = Event::directory()
+            ->orderByDesc('start_at')
             ->limit(1000)
             ->get();
 
@@ -39,7 +40,7 @@ class MasterGpxController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'running_event_id' => 'nullable|exists:running_events,id',
+            'event_id' => ['nullable', Rule::exists('events', 'id')->where('event_kind', 'directory')],
             'title' => 'required|string|max:255',
             'gpx_file' => 'required|file|mimes:gpx,xml,application/gpx+xml,text/xml|max:10240',
             'is_published' => 'nullable|boolean',
@@ -51,7 +52,7 @@ class MasterGpxController extends Controller
         $stats = $this->extractGpxStats(Storage::disk('public')->path($path));
 
         $item = MasterGpx::create([
-            'running_event_id' => $data['running_event_id'] ?? null,
+            'event_id' => $data['event_id'] ?? null,
             'title' => $data['title'],
             'gpx_path' => $path,
             'distance_km' => $stats['distance_km'],
@@ -66,14 +67,14 @@ class MasterGpxController extends Controller
 
     public function edit(MasterGpx $masterGpx)
     {
-        $events = RunningEvent::query()
-            ->orderByDesc('event_date')
+        $events = Event::directory()
+            ->orderByDesc('start_at')
             ->limit(1000)
             ->get();
 
         return view('admin.master-gpx.edit', [
             'withSidebar' => true,
-            'item' => $masterGpx->load('runningEvent'),
+            'item' => $masterGpx->load('event'),
             'events' => $events,
         ]);
     }
@@ -81,7 +82,7 @@ class MasterGpxController extends Controller
     public function update(Request $request, MasterGpx $masterGpx)
     {
         $data = $request->validate([
-            'running_event_id' => 'nullable|exists:running_events,id',
+            'event_id' => ['nullable', Rule::exists('events', 'id')->where('event_kind', 'directory')],
             'title' => 'required|string|max:255',
             'gpx_file' => 'nullable|file|mimes:gpx,xml,application/gpx+xml,text/xml|max:10240',
             'is_published' => 'nullable|boolean',
@@ -89,7 +90,7 @@ class MasterGpxController extends Controller
         ]);
 
         $update = [
-            'running_event_id' => $data['running_event_id'] ?? null,
+            'event_id' => $data['event_id'] ?? null,
             'title' => $data['title'],
             'is_published' => $request->boolean('is_published'),
             'notes' => $data['notes'] ?? null,

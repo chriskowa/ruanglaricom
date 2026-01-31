@@ -10,7 +10,7 @@ class MasterGpx extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'running_event_id',
+        'event_id',
         'title',
         'gpx_path',
         'distance_km',
@@ -28,9 +28,8 @@ class MasterGpx extends Model
         ];
     }
 
-    public function runningEvent()
+    public function event()
     {
-        return $this->belongsTo(RunningEvent::class);
+        return $this->belongsTo(Event::class);
     }
 }
-

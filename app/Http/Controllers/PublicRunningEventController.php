@@ -16,7 +16,8 @@ class PublicRunningEventController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Event::published()
+        $query = Event::directory()
+            ->published()
             ->upcoming()
             ->with(['city', 'raceType', 'raceDistances', 'categories']);
 
@@ -61,9 +62,9 @@ class PublicRunningEventController extends Controller
             ]);
         }
 
-        $cities = City::has('events')->orderBy('name')->get();
-        $raceTypes = RaceType::has('events')->get();
-        $raceDistances = RaceDistance::has('events')->get();
+        $cities = City::whereHas('events', fn ($q) => $q->directory())->orderBy('name')->get();
+        $raceTypes = RaceType::whereHas('events', fn ($q) => $q->directory())->get();
+        $raceDistances = RaceDistance::whereHas('events', fn ($q) => $q->directory())->get();
         
         $events = $query->paginate(10);
 
@@ -72,7 +73,8 @@ class PublicRunningEventController extends Controller
 
     public function show($slug)
     {
-        $event = Event::where('slug', $slug)
+        $event = Event::directory()
+            ->where('slug', $slug)
             ->whereIn('status', ['published', 'archived'])
             ->with(['city', 'raceType', 'raceDistances', 'categories'])
             ->firstOrFail();
@@ -82,6 +84,7 @@ class PublicRunningEventController extends Controller
         if ($event->race_type_id) {
             $relatedEvents = Event::where('race_type_id', $event->race_type_id)
                 ->where('id', '!=', $event->id)
+                ->directory()
                 ->published()
                 ->upcoming()
                 ->with(['city', 'raceType'])
@@ -92,6 +95,7 @@ class PublicRunningEventController extends Controller
         // Events on the same date
         $sameDateEvents = Event::whereDate('start_at', $event->start_at)
             ->where('id', '!=', $event->id)
+            ->directory()
             ->published()
             ->with(['city', 'raceType'])
             ->limit(3)
