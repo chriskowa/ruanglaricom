@@ -14,7 +14,7 @@ class PackageSeeder extends Seeder
                 'name' => 'LITE',
                 'slug' => 'lite',
                 'price' => 0, 
-                'description' => 'Budget-friendly, Fun Run, Quick Reg. Cocok untuk komunitas kecil.',
+                'description' => 'Budget-friendly, Fun Runs, Quick Reg. Cocok untuk komunitas kecil.',
                 'features' => [
                     'Registrasi cepat online',
                     'Pembayaran praktis (VA, QR, e-wallet)',
