@@ -59,7 +59,8 @@ class StoreManualParticipantAction
                     ]);
                 }
 
-                $amount = (int) ($category->price_regular ?? 0);
+                $priceInfo = $this->getCategoryPrice($category);
+                $amount = (int) $priceInfo['price'];
 
                 $transaction = Transaction::create([
                     'event_id' => $event->id,
@@ -95,6 +96,7 @@ class StoreManualParticipantAction
                     'date_of_birth' => $validated['date_of_birth'] ?? null,
                     'target_time' => $validated['target_time'] ?? null,
                     'jersey_size' => $validated['jersey_size'] ?? null,
+                    'price_type' => $priceInfo['type'],
                     'addons' => [],
                     'status' => 'pending',
                     'is_picked_up' => false,
@@ -105,5 +107,54 @@ class StoreManualParticipantAction
         } finally {
             $lock->release();
         }
+    }
+
+    /**
+     * Get category price based on priority (Early > Regular)
+     * Logic:
+     * 1. If Early Price > 0 AND Valid (Date & Quota), use Early.
+     * 2. Else, use Regular.
+     */
+    private function getCategoryPrice(RaceCategory $category): array
+    {
+        $now = now();
+        $early = (int) ($category->price_early ?? 0);
+        $regular = (int) ($category->price_regular ?? 0);
+        $late = (int) ($category->price_late ?? 0);
+
+        // 1. Check Early Bird
+        if ($early > 0) {
+            $isEarlyValid = true;
+
+            // Check Date
+            if ($category->early_bird_end_at && $now->greaterThan($category->early_bird_end_at)) {
+                $isEarlyValid = false;
+            }
+
+            // Check Quota
+            if ($isEarlyValid && $category->early_bird_quota) {
+                $earlySold = Participant::where('race_category_id', $category->id)
+                    ->where('price_type', 'early')
+                    ->whereHas('transaction', function ($q) {
+                        $q->whereIn('payment_status', ['pending', 'paid', 'cod']);
+                    })
+                    ->count();
+
+                if ($earlySold >= $category->early_bird_quota) {
+                    $isEarlyValid = false;
+                }
+            }
+
+            if ($isEarlyValid) {
+                return ['price' => $early, 'type' => 'early'];
+            }
+        }
+
+        // 2. Fallback to Late if Regular is 0
+        if ($late > 0 && $regular === 0) {
+             return ['price' => $late, 'type' => 'late'];
+        }
+
+        return ['price' => $regular, 'type' => 'regular'];
     }
 }
