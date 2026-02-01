@@ -362,8 +362,14 @@ class StoreRegistrationAction
 
             $finalAmount = ($totalOriginal - $discountAmount) + $totalAdminFee;
 
+            // Handle Zero Amount (100% Discount)
+            $isZeroAmount = $finalAmount <= 0;
+            if ($isZeroAmount) {
+                $finalAmount = 0;
+            }
+
             $uniqueCode = 0;
-            if ($paymentMethod === 'moota') {
+            if ($paymentMethod === 'moota' && ! $isZeroAmount) {
                 $uniqueCode = $this->mootaService->generateUniqueCode($finalAmount);
                 $finalAmount += $uniqueCode;
             }
@@ -384,7 +390,8 @@ class StoreRegistrationAction
             'discount_amount' => $discountAmount,
             'admin_fee' => $totalAdminFee,
             'final_amount' => $finalAmount,
-            'payment_status' => 'pending',
+            'payment_status' => $isZeroAmount ? 'paid' : 'pending',
+            'paid_at' => $isZeroAmount ? now() : null,
             'payment_gateway' => $paymentMethod === 'moota' ? 'moota' : 'midtrans',
             'unique_code' => $uniqueCode > 0 ? $uniqueCode : 0,
         ]);
@@ -431,6 +438,18 @@ class StoreRegistrationAction
 
             // Load participants with category for Midtrans
             $transaction->load(['participants.category']);
+
+            if ($isZeroAmount) {
+                Cache::put($idKey, $transaction->id, now()->addMinutes(10));
+                
+                // Dispatch emails
+                app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
+                
+                // Process Paid Event Transaction (Wallet, Stats, etc)
+                \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
+                
+                return $transaction;
+            }
 
             if ($paymentMethod === 'cod') {
                 $transaction->update(['payment_status' => 'cod']);
