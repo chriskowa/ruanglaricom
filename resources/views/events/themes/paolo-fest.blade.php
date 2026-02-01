@@ -1620,7 +1620,7 @@
                                                 <option value="">Ukuran Jersey</option>
                                                 @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}">{{ $size }}</option> @endforeach
                                             </select>
-                                            <button type="button" onclick="openLightbox('https://res.cloudinary.com/dslfarxct/image/upload/v1769977130/size_chart_kz4dkv.webp', true)" class="text-xs font-bold text-brand-600 hover:text-brand-700 mt-1.5 flex items-center gap-1 ml-1 transition-colors">
+                                            <button type="button" onclick="openLightbox('https://res.cloudinary.com/dslfarxct/image/upload/v1769987967/size_jersey_ktpwwy.webp', true)" class="text-xs font-bold text-brand-600 hover:text-brand-700 mt-1.5 flex items-center gap-1 ml-1 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 Panduan Ukuran
                                             </button>
