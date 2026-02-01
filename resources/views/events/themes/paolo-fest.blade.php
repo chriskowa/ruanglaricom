@@ -1153,11 +1153,11 @@
                             <p class="text-slate-500">Setiap 2.5 KM tersedia pos hidrasi lengkap dengan air minum segar dan tim medis siaga, sehingga peserta tetap terjaga stamina dan keselamatannya sepanjang lomba.</p>
                         </div>
                     </div>
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-300">
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-300 hidden">
                         <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shrink-0">
                             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </div>
-                        <div class="hidden">
+                        <div>
                             <h4 class="text-xl font-bold text-slate-900 mb-2">Race Photography</h4>
                             <p class="text-slate-500">Momen terbaik Anda akan diabadikan oleh tim dokumentasi profesional dari fotoyu, menghadirkan foto berkualitas tinggi di berbagai titik sepanjang rute lomba.</p>
                         </div>
