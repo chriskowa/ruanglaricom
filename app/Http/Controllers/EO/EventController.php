@@ -956,6 +956,53 @@ class EventController extends Controller
     }
 
     /**
+     * Resend event registration email to a specific participant
+     */
+    public function resendEmail(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $request->validate([
+            'participant_id' => 'required|exists:participants,id'
+        ]);
+
+        $participant = \App\Models\Participant::with('transaction')->find($request->participant_id);
+
+        if (!$participant || $participant->transaction->event_id !== $event->id) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Participant not found or does not belong to this event.'
+            ], 404);
+        }
+
+        try {
+            // Construct data for the email
+            // We pass a collection containing only this participant so the email is specific to them
+            $participants = collect([$participant]);
+            
+            Mail::to($participant->email)->send(
+                new EventRegistrationSuccess(
+                    $event, 
+                    $participant->transaction, 
+                    $participants, 
+                    $participant->name
+                )
+            );
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Email sent successfully to ' . $participant->email
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Resend Email Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false, 
+                'message' => 'Failed to send email: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Export participants as CSV
      */
     public function exportParticipants(Event $event)

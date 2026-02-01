@@ -1448,7 +1448,7 @@
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Registrasi Peserta</h2>
                 <p class="mt-4 text-slate-600">Pastikan data yang Anda masukkan sesuai dengan identitas (KTP/SIM). </p>
                 <div class="flex justify-center">
-              <button type="button" onclick="openLightbox('https://res.cloudinary.com/dslfarxct/image/upload/v1769977130/size_chart_kz4dkv.webp', true)" 
+              <button type="button" onclick="openLightbox('https://res.cloudinary.com/dslfarxct/image/upload/v1769987180/Panduan_trajpm.webp', true)" 
                     class="text-xs font-bold text-brand-600 hover:text-brand-700 mt-1.5 flex items-center gap-1 ml-1 transition-colors">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
