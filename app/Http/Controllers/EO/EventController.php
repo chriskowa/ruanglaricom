@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\EO;
 
 use App\Http\Controllers\Controller;
+use App\Actions\EO\StoreManualParticipantAction;
 use App\Mail\EventRegistrationSuccess;
 use App\Models\Event;
+use App\Models\RaceCategory;
 use App\Services\EventCacheService;
 use App\Services\EventReportService;
 use Illuminate\Http\Request;
@@ -899,6 +901,58 @@ class EventController extends Controller
         ]);
 
         return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport'));
+    }
+
+    public function storeParticipant(Request $request, Event $event, StoreManualParticipantAction $action)
+    {
+        $this->authorizeEvent($event);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'gender' => 'nullable|in:male,female',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
+            'id_card' => 'required|string|max:50',
+            'category_id' => [
+                'required',
+                'exists:race_categories,id',
+                function ($attribute, $value, $fail) use ($event) {
+                    $category = RaceCategory::find($value);
+                    if (! $category || (int) $category->event_id !== (int) $event->id) {
+                        $fail('Kategori tidak valid untuk event ini.');
+                    }
+                },
+            ],
+            'date_of_birth' => 'nullable|date|before:today',
+            'target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/', 'not_in:00:00:00'],
+            'jersey_size' => 'nullable|string|max:10',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_number' => 'nullable|string|min:10|max:15|regex:/^[0-9]+$/',
+            'send_whatsapp' => 'nullable|boolean',
+            'use_queue' => 'nullable|boolean',
+        ]);
+
+        $transaction = $action->execute($event, $validated, $request->user());
+        
+        if ($request->boolean('use_queue')) {
+            \App\Jobs\SendEventRegistrationNotification::dispatch($transaction);
+        } else {
+            \App\Jobs\SendEventRegistrationNotification::dispatchSync($transaction);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            $participant = $transaction->participants->first();
+
+            return response()->json([
+                'success' => true,
+                'transaction_id' => $transaction->id,
+                'participant_id' => $participant?->id,
+            ], 201);
+        }
+
+        return redirect()
+            ->route('eo.events.participants', $event)
+            ->with('success', 'Peserta berhasil ditambahkan dan email konfirmasi dikirim.');
     }
 
     /**

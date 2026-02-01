@@ -120,6 +120,35 @@ class ZeroAmountRegistrationTest extends TestCase
         $this->assertEquals(1, $coupon->fresh()->used_count);
     }
 
+    public function test_registration_waives_platform_fee_with_100_percent_coupon()
+    {
+        // Set platform fee on event
+        $this->event->update(['platform_fee' => 5000]);
+
+        Coupon::create([
+            'code' => 'FREEWITHFEE',
+            'type' => 'percent',
+            'value' => 100,
+            'event_id' => $this->event->id,
+            'start_at' => now()->subDay(),
+            'expires_at' => now()->addDay(),
+            'max_uses' => 10,
+            'used_count' => 0,
+            'is_active' => true,
+        ]);
+
+        $response = $this->postJson(route('events.register.store', $this->event->slug), $this->getRegistrationData('FREEWITHFEE'));
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $transaction = Transaction::latest()->first();
+        
+        $this->assertEquals(0, $transaction->admin_fee, 'Admin fee should be 0 for fully discounted transaction');
+        $this->assertEquals(0, $transaction->final_amount, 'Final amount should be 0');
+        $this->assertEquals('paid', $transaction->payment_status);
+    }
+
     public function test_registration_fails_with_expired_coupon()
     {
         Coupon::create([

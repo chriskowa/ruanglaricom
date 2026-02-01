@@ -53,10 +53,16 @@
                 </h1>
                 <p class="text-slate-400 text-lg mt-1">{{ $event->name }}</p>
             </div>
-            <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                Export CSV
-            </a>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="openAddParticipantModal()" class="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-bold flex items-center gap-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    Tambah Peserta
+                </button>
+                <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Export CSV
+                </a>
+            </div>
         </div>
     </div>
 
@@ -407,6 +413,119 @@
             {{ $participants->links() }}
         </div>
         @endif
+    </div>
+</div>
+
+<!-- Add Participant Modal -->
+<div id="addParticipantModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeAddParticipantModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                <form method="POST" action="{{ route('eo.events.participants.store', $event) }}">
+                    @csrf
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white">Tambah Peserta Manual</h3>
+                            <button type="button" onclick="closeAddParticipantModal()" class="text-slate-400 hover:text-white">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        @if ($errors->any())
+                            <div class="mb-4 rounded-lg border border-red-500/40 bg-red-900/20 p-3 text-sm text-red-200">
+                                <div class="font-bold mb-1">Periksa kembali input:</div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Nama Lengkap</label>
+                                <input name="name" value="{{ old('name') }}" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="Nama peserta">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Gender</label>
+                                <select name="gender" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                    <option value="">-</option>
+                                    <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>Male</option>
+                                    <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>Female</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Email</label>
+                                <input name="email" type="email" value="{{ old('email') }}" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="email@domain.com">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Nomor Telepon</label>
+                                <input name="phone" value="{{ old('phone') }}" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="08xxxxxxxxxx">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">ID Card</label>
+                                <input name="id_card" value="{{ old('id_card') }}" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="Nomor identitas">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Kategori</label>
+                                <select name="category_id" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                    <option value="">Pilih kategori</option>
+                                    @foreach($event->categories as $cat)
+                                        <option value="{{ $cat->id }}" {{ (string) old('category_id') === (string) $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Tanggal Lahir</label>
+                                <input name="date_of_birth" type="date" value="{{ old('date_of_birth') }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Target Time (HH:MM:SS)</label>
+                                <input name="target_time" value="{{ old('target_time') }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="01:30:00">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Jersey Size</label>
+                                <input name="jersey_size" value="{{ old('jersey_size') }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="S / M / L / XL">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Emergency Contact Name</label>
+                                <input name="emergency_contact_name" value="{{ old('emergency_contact_name') }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Emergency Contact Number</label>
+                                <input name="emergency_contact_number" value="{{ old('emergency_contact_number') }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="08xxxxxxxxxx">
+                            </div>
+                            <div class="md:col-span-2 space-y-3 border-t border-slate-700 pt-3 mt-2">
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="use_queue" name="use_queue" type="checkbox" value="1" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-yellow-500 focus:ring-yellow-500 focus:ring-offset-slate-800">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="use_queue" class="font-medium text-white">Kirim Notifikasi via Queue (Background Process)</label>
+                                        <p class="text-slate-400 text-xs">Centang jika ingin proses simpan lebih cepat. Email akan dikirim di latar belakang (pastikan worker aktif).</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="send_whatsapp" name="send_whatsapp" type="checkbox" value="1" checked class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-yellow-500 focus:ring-yellow-500 focus:ring-offset-slate-800">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="send_whatsapp" class="font-medium text-white">Kirim Notifikasi WhatsApp</label>
+                                        <p class="text-slate-400 text-xs">Uncheck jika tidak ingin mengirim notifikasi WhatsApp ke peserta.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/50 px-6 py-4 flex justify-end gap-3">
+                        <button type="button" onclick="closeAddParticipantModal()" class="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-bold">Batal</button>
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black text-sm font-bold">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -970,6 +1089,20 @@
             }
         })
         .catch(function(){ alert('Terjadi kesalahan saat menghapus'); });
+    }
+
+    window.openAddParticipantModal = function () {
+        var modal = document.getElementById('addParticipantModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    window.closeAddParticipantModal = function () {
+        var modal = document.getElementById('addParticipantModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    if ({{ $errors->any() ? 'true' : 'false' }}) {
+        window.openAddParticipantModal();
     }
 </script>
 @endsection

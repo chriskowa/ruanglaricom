@@ -358,7 +358,13 @@ class StoreRegistrationAction
             // Calculate Platform Fee
             $totalParticipants = count($validated['participants']);
             $platformFeePerParticipant = $event->platform_fee ?? 0;
-            $totalAdminFee = $platformFeePerParticipant * $totalParticipants;
+
+            // If ticket is fully discounted (<= 0), waive the platform fee
+            if (($totalOriginal - $discountAmount) <= 0) {
+                $totalAdminFee = 0;
+            } else {
+                $totalAdminFee = $platformFeePerParticipant * $totalParticipants;
+            }
 
             $finalAmount = ($totalOriginal - $discountAmount) + $totalAdminFee;
 

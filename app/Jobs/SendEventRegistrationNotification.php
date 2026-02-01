@@ -44,8 +44,8 @@ class SendEventRegistrationNotification implements ShouldQueue
                 $this->sendEmailNotification($picData['email'], $event, $participants);
             }
 
-            // Send WhatsApp notification to PIC (if phone number available)
-            if (! empty($picData['phone'])) {
+            // Send WhatsApp notification to PIC (if phone number available and enabled)
+            if (! empty($picData['phone']) && ($picData['send_whatsapp'] ?? true)) {
                 $this->sendWhatsAppNotification($picData['phone'], $event, $participants);
             }
 
