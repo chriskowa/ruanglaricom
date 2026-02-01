@@ -313,7 +313,16 @@ class Event extends Model
             return route('running-event.detail', $this->slug);
         }
 
-        // 2. Admin / Aggregator Event -> Listing View (/event-lari/)
+        // 2. Check event_kind explicitly
+        if ($this->event_kind === 'directory') {
+            return route('running-event.detail', $this->slug);
+        }
+        
+        if ($this->event_kind === 'managed') {
+             return route('events.show', $this->slug);
+        }
+
+        // 3. Admin / Aggregator Event -> Listing View (/event-lari/)
         // Prioritize Admin events to always use Listing View
         if ($this->user_id === 1) {
             return route('running-event.detail', $this->slug);

@@ -201,6 +201,136 @@ class ManualParticipantStoreTest extends TestCase
         $response->assertJsonValidationErrors(['email']);
     }
 
+    public function test_early_bird_price_is_applied_when_valid(): void
+    {
+        $eo = User::factory()->create(['role' => 'eo']);
+        $event = Event::factory()->create(['user_id' => $eo->id]);
+        $category = RaceCategory::create([
+            'event_id' => $event->id,
+            'name' => '10K',
+            'distance_km' => 10,
+            'code' => '10K',
+            'quota' => 100,
+            'price_regular' => 150000,
+            'price_early' => 100000,
+            'early_bird_end_at' => now()->addDay(),
+            'early_bird_quota' => 10,
+            'reg_start_at' => now()->subDay(),
+            'reg_end_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), [
+            'name' => 'Early Bird Runner',
+            'email' => 'early@example.com',
+            'phone' => '081234567890',
+            'id_card' => '1234567890',
+            'category_id' => $category->id,
+        ]);
+
+        $response->assertStatus(201);
+        
+        $participant = Participant::where('email', 'early@example.com')->first();
+        $this->assertEquals('early', $participant->price_type);
+        $this->assertEquals(100000, $participant->transaction->final_amount);
+    }
+
+    public function test_regular_price_is_applied_when_early_bird_date_expired(): void
+    {
+        $eo = User::factory()->create(['role' => 'eo']);
+        $event = Event::factory()->create(['user_id' => $eo->id]);
+        $category = RaceCategory::create([
+            'event_id' => $event->id,
+            'name' => '10K',
+            'distance_km' => 10,
+            'code' => '10K',
+            'quota' => 100,
+            'price_regular' => 150000,
+            'price_early' => 100000,
+            'early_bird_end_at' => now()->subDay(), // Expired
+            'early_bird_quota' => 10,
+            'reg_start_at' => now()->subDay(),
+            'reg_end_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), [
+            'name' => 'Regular Runner',
+            'email' => 'regular@example.com',
+            'phone' => '081234567890',
+            'id_card' => '1234567890',
+            'category_id' => $category->id,
+        ]);
+
+        $response->assertStatus(201);
+        
+        $participant = Participant::where('email', 'regular@example.com')->first();
+        $this->assertEquals('regular', $participant->price_type);
+        $this->assertEquals(150000, $participant->transaction->final_amount);
+    }
+
+    public function test_regular_price_is_applied_when_early_bird_quota_full(): void
+    {
+        $eo = User::factory()->create(['role' => 'eo']);
+        $event = Event::factory()->create(['user_id' => $eo->id]);
+        $category = RaceCategory::create([
+            'event_id' => $event->id,
+            'name' => '10K',
+            'distance_km' => 10,
+            'code' => '10K',
+            'quota' => 100,
+            'price_regular' => 150000,
+            'price_early' => 100000,
+            'early_bird_end_at' => now()->addDay(),
+            'early_bird_quota' => 1, // Only 1 slot
+            'reg_start_at' => now()->subDay(),
+            'reg_end_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        // Create 1 early bird participant manually
+        $transaction = Transaction::create([
+            'event_id' => $event->id,
+            'user_id' => $eo->id,
+            'pic_data' => [
+                'name' => 'First Early Bird',
+                'email' => 'first@example.com',
+                'phone' => '08111111111',
+            ],
+            'total_original' => 100000,
+            'final_amount' => 100000,
+            'payment_status' => 'paid',
+            'payment_gateway' => 'manual',
+            'unique_code' => 0,
+        ]);
+
+        Participant::create([
+            'transaction_id' => $transaction->id,
+            'race_category_id' => $category->id,
+            'name' => 'First Early Bird',
+            'email' => 'first@example.com',
+            'phone' => '08111111111',
+            'id_card' => '111',
+            'price_type' => 'early',
+            'status' => 'success',
+        ]);
+
+        // Second participant should get regular price
+        $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), [
+            'name' => 'Late Runner',
+            'email' => 'late@example.com',
+            'phone' => '081234567890',
+            'id_card' => '1234567890',
+            'category_id' => $category->id,
+        ]);
+
+        $response->assertStatus(201);
+        
+        $participant = Participant::where('email', 'late@example.com')->first();
+        $this->assertEquals('regular', $participant->price_type);
+        $this->assertEquals(150000, $participant->transaction->final_amount);
+    }
+
     public function test_eo_can_add_participant_with_queue_option(): void
     {
         \Illuminate\Support\Facades\Queue::fake();

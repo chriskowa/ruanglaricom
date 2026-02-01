@@ -276,7 +276,7 @@
                             $gCalUrl = "https://www.google.com/calendar/render?action=TEMPLATE";
                             $gCalUrl .= "&text=" . urlencode($event->name);
                             $gCalUrl .= "&dates=" . $startDateTime . "/" . $endDateTime;
-                            $gCalUrl .= "&details=" . urlencode("Event Lari: " . $event->name . "\nLokasi: " . ($event->location_name ?? 'TBA') . "\n\nInfo selengkapnya: " . route('running-event.detail', $event->slug));
+                            $gCalUrl .= "&details=" . urlencode("Event Lari: " . $event->name . "\nLokasi: " . ($event->location_name ?? 'TBA') . "\n\nInfo selengkapnya: " . $event->public_url);
                             $gCalUrl .= "&location=" . urlencode($event->location_name ?? ($event->city ? $event->city->name : ''));
                             $gCalUrl .= "&sf=true&output=xml";
                         @endphp
