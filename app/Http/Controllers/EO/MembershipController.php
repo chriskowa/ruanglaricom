@@ -26,7 +26,7 @@ class MembershipController extends Controller
 
     public function payment(MembershipTransaction $transaction)
     {
-        if ($transaction->user_id !== Auth::id()) {
+        if ($transaction->user_id != Auth::id()) {
             abort(403);
         }
 
