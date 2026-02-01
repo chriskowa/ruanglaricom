@@ -191,7 +191,7 @@ class EventRegistrationController extends Controller
                 ], 400);
             }
 
-            return redirect()->route('events.show', $slug)
+            return redirect()->route('events.show', ['slug' => $slug, 'payment' => 'failed', 'error_message' => $e->getMessage()])
                 ->withErrors(['error' => $e->getMessage()])
                 ->withInput();
         }

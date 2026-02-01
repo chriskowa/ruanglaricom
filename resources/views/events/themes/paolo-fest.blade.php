@@ -1278,7 +1278,7 @@
                                 </tr>
                                 <tr class="border-b border-slate-200/60">
                                     <td class="py-3 font-medium text-slate-700">Peringkat 6</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 750.000</td>
+                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
                                 </tr>
                                 <tr class="border-b border-slate-200/60">
                                     <td class="py-3 font-medium text-slate-700">Peringkat 7</td>
@@ -2284,14 +2284,22 @@
                             window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`;
                         }
                     } else {
-                        alert(data.message || 'Terjadi kesalahan. Periksa input Anda.');
+                        if (window.openFailModal) {
+                            window.openFailModal(data.message || 'Terjadi kesalahan. Periksa input Anda.');
+                        } else {
+                            alert(data.message || 'Terjadi kesalahan. Periksa input Anda.');
+                        }
                         btn.disabled = false;
                         btn.innerHTML = originalText;
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert('Gagal menghubungi server.');
+                    if (window.openFailModal) {
+                        window.openFailModal('Gagal menghubungi server.');
+                    } else {
+                        alert('Gagal menghubungi server.');
+                    }
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 });

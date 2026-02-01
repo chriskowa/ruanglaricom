@@ -1891,13 +1891,35 @@
                                 }, 2000);
                             }
                         } else {
-                            alert(data.message || 'Terjadi kesalahan');
+                            const failureDiv = document.createElement('div');
+                            failureDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
+                            failureDiv.innerHTML = `
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <div>
+                                    <h4 class="font-bold">Registrasi Gagal!</h4>
+                                    <p class="text-xs">${data.message || 'Terjadi kesalahan'}</p>
+                                </div>
+                            `;
+                            document.body.appendChild(failureDiv);
+                            setTimeout(() => failureDiv.remove(), 5000);
+                            
                             btn.disabled=false; btn.innerHTML=originalText;
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        alert('Gagal menghubungi server');
+                        const failureDiv = document.createElement('div');
+                        failureDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
+                        failureDiv.innerHTML = `
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div>
+                                <h4 class="font-bold">Gagal Menghubungi Server</h4>
+                                <p class="text-xs">Silakan coba lagi nanti.</p>
+                            </div>
+                        `;
+                        document.body.appendChild(failureDiv);
+                        setTimeout(() => failureDiv.remove(), 5000);
+                        
                         btn.disabled=false; btn.innerHTML=originalText;
                     });
                 });
@@ -2173,6 +2195,23 @@
                     </div>
                 `;
                 document.body.appendChild(successDiv);
+                
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            // Check for payment failure from URL
+            if (urlParams.get('payment') === 'failed' || urlParams.get('error') === 'true') {
+                const failureDiv = document.createElement('div');
+                failureDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
+                failureDiv.innerHTML = `
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div>
+                        <h4 class="font-bold">Registrasi Gagal!</h4>
+                        <p class="text-xs">${urlParams.get('error_message') || 'Terjadi kesalahan saat melakukan registrasi.'}</p>
+                    </div>
+                `;
+                document.body.appendChild(failureDiv);
                 
                 // Clean URL
                 window.history.replaceState({}, document.title, window.location.pathname);
