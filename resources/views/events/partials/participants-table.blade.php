@@ -19,7 +19,8 @@
                     if (search.value) params.append('search', search.value);
                     if (selectedCategory.value !== 'all') params.append('category_id', selectedCategory.value);
                     
-                    const response = await fetch(`/event/${props.eventSlug}/participants-list?${params.toString()}`);
+                    const url = (window.rlUrl ? window.rlUrl(`event/${props.eventSlug}/participants-list?${params.toString()}`) : `/event/${props.eventSlug}/participants-list?${params.toString()}`);
+                    const response = await fetch(url);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);

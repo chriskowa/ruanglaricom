@@ -48,6 +48,7 @@
     <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
     <script>
         (function () {
+            const appUrl = "{{ rtrim(config('app.url'), '/') }}";
             const eventSlug = @json($event->slug);
             const msg = document.getElementById('msg');
             const results = document.getElementById('results');
@@ -106,14 +107,14 @@
                         const id = btn.getAttribute('data-id');
                         btn.disabled = true;
                         try {
-                            const r = await fetch(`/api/events/${eventSlug}/payments/${id}/status?phone=${encodeURIComponent(phone)}`, {
+                            const r = await fetch(`${appUrl}/api/events/${eventSlug}/payments/${id}/status?phone=${encodeURIComponent(phone)}`, {
                                 headers: { 'Accept': 'application/json' }
                             });
                             const data = await r.json();
                             if (!data.success) throw new Error(data.message || 'Gagal mengecek status');
                             setMsg('Status diperbarui.', 'ok');
                             if (data.transaction) {
-                                const r2 = await fetch(`/api/events/${eventSlug}/payments/pending`, {
+                                const r2 = await fetch(`${appUrl}/api/events/${eventSlug}/payments/pending`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -138,7 +139,7 @@
                         const id = btn.getAttribute('data-id');
                         btn.disabled = true;
                         try {
-                            const r = await fetch(`/api/events/${eventSlug}/payments/${id}/resume`, {
+                            const r = await fetch(`${appUrl}/api/events/${eventSlug}/payments/${id}/resume`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -153,10 +154,27 @@
                             if (typeof snap === 'undefined') throw new Error('Snap.js tidak termuat');
 
                             snap.pay(data.snap_token, {
-                                onSuccess: function () { window.location.href = `{{ route('events.show', $event->slug) }}?payment=success`; },
-                                onPending: function () { window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending`; },
-                                onError: function () { setMsg('Pembayaran gagal. Silakan coba lagi.', 'error'); },
-                                onClose: function () { setMsg('Popup pembayaran ditutup.', 'info'); }
+                                onSuccess: async function (result) {
+                                    setMsg('Pembayaran berhasil! Memverifikasi status...', 'ok');
+                                    try {
+                                        // Force update status on server
+                                        await fetch(`${appUrl}/api/events/${eventSlug}/payments/${id}/status?phone=${encodeURIComponent(phone)}`, {
+                                            headers: { 'Accept': 'application/json' }
+                                        });
+                                    } catch (e) {
+                                        console.error('Auto-update status failed', e);
+                                    }
+                                    window.location.href = `{{ route('events.show', $event->slug) }}?payment=success`;
+                                },
+                                onPending: function (result) {
+                                    window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending`;
+                                },
+                                onError: function (result) {
+                                    setMsg('Pembayaran gagal. Silakan coba lagi.', 'error');
+                                },
+                                onClose: function () {
+                                    setMsg('Popup pembayaran ditutup.', 'info');
+                                }
                             });
                         } catch (e) {
                             setMsg(e.message || 'Terjadi kesalahan', 'error');
@@ -181,7 +199,7 @@
                 results.innerHTML = '';
 
                 try {
-                    const r = await fetch(`/api/events/${eventSlug}/payments/pending`, {
+                    const r = await fetch(`${appUrl}/api/events/${eventSlug}/payments/pending`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

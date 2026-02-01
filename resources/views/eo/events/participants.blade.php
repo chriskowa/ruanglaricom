@@ -399,7 +399,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center">
+                        <td colspan="9" class="px-6 py-12 text-center">
                             <p class="text-slate-500">No participants found matching your criteria.</p>
                         </td>
                     </tr>
@@ -672,6 +672,9 @@
         }
 
         function renderRows(items) {
+            if (!items || items.length === 0) {
+                return '<tr><td colspan="9" class="px-6 py-12 text-center"><p class="text-slate-500">No participants found matching your criteria.</p></td></tr>';
+            }
             var html = '';
             items.forEach(function(p){
                 var status = p.payment_status || 'pending';
@@ -723,9 +726,11 @@
 
                 html += '<tr class="hover:bg-slate-800/50 transition-colors cursor-pointer" onclick="if(!event.target.closest(\'button\') && !event.target.closest(\'a\') && !event.target.closest(\'.no-click\')) openDetailModalFromRow(this)" data-json=\''+ dataJson +'\'>'+
                     '<td class="px-6 py-4"><div class="font-medium text-white">'+ p.name +'</div><div class="text-xs text-slate-500 mb-1">'+ genderLabel +' • Reg: '+ regDate +'</div><div class="text-xs text-slate-400">'+ (p.email || '') +'</div><div class="text-xs text-slate-400">'+ (p.phone || '') +'</div></td>'+
+                    '<td class="px-6 py-4 text-white font-mono text-xs">'+ (p.id_card || '-') +'</td>'+
                     '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
                     '<td class="px-6 py-4"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
+                    '<td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
                     '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div></td>'+
                     '<td class="px-6 py-4">'+ pickedBadge +'</td>'+
                     '<td class="px-6 py-4 text-right"><div class="flex items-center justify-end gap-2">'+

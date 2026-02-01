@@ -124,15 +124,15 @@
                                 </a>
                             @endif
                         </div>
-
+@if($featuredEvent)
                         <!-- Floating Join Button -->
                         <div class="absolute top-1/2 -translate-y-1/2 -right-6 md:-right-12 z-30">
-                            <a href="{{ route('home.join-now') }}" class="flex flex-col items-center justify-center w-24 h-24 md:w-32 md:h-32 bg-neon rounded-full text-dark font-black text-xs md:text-sm text-center p-2 rotate-12 hover:rotate-0 hover:scale-110 transition duration-300 shadow-[0_0_40px_rgba(204,255,0,0.6)] animate-float border-4 border-dark">
+                            <a href="{{ $featuredEvent->public_url }}" class="flex flex-col items-center justify-center w-24 h-24 md:w-32 md:h-32 bg-neon rounded-full text-dark font-black text-xs md:text-sm text-center p-2 rotate-12 hover:rotate-0 hover:scale-110 transition duration-300 shadow-[0_0_40px_rgba(204,255,0,0.6)] animate-float border-4 border-dark">
                                 <span>JOIN</span>
                                 <span class="text-lg md:text-2xl leading-none">NOW</span>
                             </a>
                         </div>
-
+@endif
                         <!-- Decor Elements -->
                         <div class="absolute -top-10 -right-10 text-[200px] leading-none font-black text-slate-800/30 select-none pointer-events-none z-0">01</div>
                     </div>
