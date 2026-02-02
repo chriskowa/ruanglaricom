@@ -77,4 +77,12 @@ class RaceCategory extends Model
     {
         return "category:quota:{$this->id}";
     }
+
+    /**
+     * Get COT in hours
+     */
+    public function getCotHoursAttribute()
+    {
+        return $this->cutoff_minutes ? round($this->cutoff_minutes / 60, 1) : null;
+    }
 }
