@@ -1728,7 +1728,7 @@
                                                     <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $displayPrice }}" required {{ $loop->first ? 'checked' : '' }}>
                                                     <div class="p-3 bg-white border border-slate-300 rounded-xl peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:ring-1 peer-checked:ring-brand-600 transition hover:border-brand-400">
                                                         <div class="flex justify-between items-center">
-                                                            <span class="font-bold text-slate-900 text-sm">{{ $cat->name }}</span>
+                                                            <span class="font-bold text-slate-900 text-sm">{{ $cat->name }} Umum/Master</span>
                                                             <span class="text-xs font-bold text-brand-600">
                                                                 @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                     <span class="text-slate-400 line-through mr-1">Rp {{ number_format($priceRegular/1000,0) }}k</span>
