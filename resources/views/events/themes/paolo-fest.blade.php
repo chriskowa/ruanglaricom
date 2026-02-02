@@ -824,7 +824,7 @@
                         <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ $cat->name }} Umum/Master</h3>
                         <p class="text-slate-500 text-sm mb-8 flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Cut Off Time: <strong class="text-slate-900">{{ $cat->cot_hours ?? '-' }} Jam</strong>
+                            Cut Off Time: <strong class="text-slate-900">{{ $cat->cutoff_minutes ? round($cat->cutoff_minutes/60, 1) : '-' }} Jam</strong>
                         </p>
 
                         <ul class="space-y-4 mb-8">
@@ -1127,7 +1127,7 @@
                         <p class="text-slate-600 mb-8">Jersey lari eksklusif dengan bahan Dry-Fit premium yang ringan dan menyerap keringat.</p>
                         <div class="rounded-3xl overflow-hidden bg-slate-100 border border-slate-200">
                              @if($event->jersey_image)
-                                <img src="{{ asset('storage/' . $event->jersey_image) }}" onclick="openLightbox('{{ asset('storage/' . $event->jersey_image) }}')" class="w-full h-auto object-cover hover:scale-105 transition duration-700 cursor-pointer">
+                                <img src="{{ asset('storage/' . $event->jersey_image) }}" onclick="openLightbox('{{ asset('storage/' . $event->jersey_image) }}')" class="w-full h-auto object-cover hover:scale-105 transition duration-700 cursor-pointer" loading="lazy">
                              @else
                                 <div class="aspect-video flex items-center justify-center text-slate-400 font-bold">Preview Jersey</div>
                              @endif

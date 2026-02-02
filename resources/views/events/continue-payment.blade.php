@@ -48,8 +48,11 @@
     <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
     <script>
         (function () {
-            const appUrl = "{{ rtrim(config('app.url'), '/') }}";
-            const eventSlug = @json($event->slug);
+            const routes = {
+                pending: "{{ route('api.events.payments.pending', $event->slug) }}",
+                status: "{{ route('api.events.payments.status', ['slug' => $event->slug, 'transaction' => ':id']) }}",
+                resume: "{{ route('api.events.payments.resume', ['slug' => $event->slug, 'transaction' => ':id']) }}"
+            };
             const msg = document.getElementById('msg');
             const results = document.getElementById('results');
             const phoneEl = document.getElementById('phone');
@@ -107,14 +110,14 @@
                         const id = btn.getAttribute('data-id');
                         btn.disabled = true;
                         try {
-                            const r = await fetch(`${appUrl}/api/events/${eventSlug}/payments/${id}/status?phone=${encodeURIComponent(phone)}`, {
+                            const r = await fetch(routes.status.replace(':id', id) + `?phone=${encodeURIComponent(phone)}`, {
                                 headers: { 'Accept': 'application/json' }
                             });
                             const data = await r.json();
                             if (!data.success) throw new Error(data.message || 'Gagal mengecek status');
                             setMsg('Status diperbarui.', 'ok');
                             if (data.transaction) {
-                                const r2 = await fetch(`${appUrl}/api/events/${eventSlug}/payments/pending`, {
+                                const r2 = await fetch(routes.pending, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -139,7 +142,7 @@
                         const id = btn.getAttribute('data-id');
                         btn.disabled = true;
                         try {
-                            const r = await fetch(`${appUrl}/api/events/${eventSlug}/payments/${id}/resume`, {
+                            const r = await fetch(routes.resume.replace(':id', id), {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -158,7 +161,7 @@
                                     setMsg('Pembayaran berhasil! Memverifikasi status...', 'ok');
                                     try {
                                         // Force update status on server
-                                        await fetch(`${appUrl}/api/events/${eventSlug}/payments/${id}/status?phone=${encodeURIComponent(phone)}`, {
+                                        await fetch(routes.status.replace(':id', id) + `?phone=${encodeURIComponent(phone)}`, {
                                             headers: { 'Accept': 'application/json' }
                                         });
                                     } catch (e) {
@@ -199,7 +202,7 @@
                 results.innerHTML = '';
 
                 try {
-                    const r = await fetch(`${appUrl}/api/events/${eventSlug}/payments/pending`, {
+                    const r = await fetch(routes.pending, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
