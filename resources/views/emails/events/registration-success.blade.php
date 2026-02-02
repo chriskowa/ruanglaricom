@@ -86,11 +86,9 @@
                     </tr>
                     <tr>
                         <td class="ticket-label" style="padding-bottom: 8px;">Kategori Lari</td>
-                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->category->name ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="ticket-label" style="padding-bottom: 8px;">Age Group</td>
-                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->getAgeGroup($event->start_at) }}</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">
+                            {{ $participant->category->name ?? '-' }} - {{ $participant->getAgeGroup($event->start_at) }}
+                        </td>
                     </tr>
                     <tr>
                         <td class="ticket-label" style="padding-bottom: 8px;">Status Pembayaran</td>
