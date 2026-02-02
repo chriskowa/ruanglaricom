@@ -86,11 +86,17 @@ class EventPaymentRecoveryController extends Controller
         ]);
     }
 
-    public function status(Request $request, string $slug, Transaction $transaction, MidtransService $midtransService)
+    public function status(Request $request, string $slug, string $transaction, MidtransService $midtransService)
     {
         $event = Event::query()->where('slug', $slug)->firstOrFail();
-        if ($transaction->event_id !== $event->id) {
-            abort(404);
+        
+        $tx = Transaction::find($transaction);
+        if (! $tx) {
+            return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
+        }
+
+        if ($tx->event_id !== $event->id) {
+            return response()->json(['success' => false, 'message' => 'Transaksi tidak valid untuk event ini.'], 404);
         }
 
         $validated = $request->validate([
@@ -98,29 +104,29 @@ class EventPaymentRecoveryController extends Controller
         ]);
 
         $normalizedPhone = $this->normalizePhone($validated['phone']);
-        if (! $this->phoneMatchesTransaction($normalizedPhone, $transaction)) {
+        if (! $this->phoneMatchesTransaction($normalizedPhone, $tx)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Data tidak cocok.',
             ], 403);
         }
 
-        if (($transaction->payment_gateway ?? null) !== 'midtrans') {
+        if (($tx->payment_gateway ?? null) !== 'midtrans') {
             return response()->json([
                 'success' => false,
                 'message' => 'Gateway tidak valid.',
             ], 409);
         }
 
-        if (! $transaction->midtrans_order_id) {
+        if (! $tx->midtrans_order_id) {
             return response()->json([
                 'success' => true,
-                'transaction' => $this->serializeTransaction($transaction),
+                'transaction' => $this->serializeTransaction($tx),
             ]);
         }
 
-        $mode = $transaction->midtrans_mode ? (string) $transaction->midtrans_mode : null;
-        $result = $midtransService->checkTransactionStatus($transaction->midtrans_order_id, $mode);
+        $mode = $tx->midtrans_mode ? (string) $tx->midtrans_mode : null;
+        $result = $midtransService->checkTransactionStatus($tx->midtrans_order_id, $mode);
         if (! ($result['success'] ?? false)) {
             return response()->json([
                 'success' => false,
@@ -132,28 +138,34 @@ class EventPaymentRecoveryController extends Controller
         $internal = $this->mapMidtransStatusToInternal($midtransStatus);
 
         if ($internal !== null) {
-            $transaction->update([
+            $tx->update([
                 'payment_status' => $internal,
                 'midtrans_transaction_status' => $midtransStatus,
-                'paid_at' => $internal === 'paid' ? now() : $transaction->paid_at,
+                'paid_at' => $internal === 'paid' ? now() : $tx->paid_at,
             ]);
         } else {
-            $transaction->update([
+            $tx->update([
                 'midtrans_transaction_status' => $midtransStatus,
             ]);
         }
 
         return response()->json([
             'success' => true,
-            'transaction' => $this->serializeTransaction($transaction->fresh()),
+            'transaction' => $this->serializeTransaction($tx->fresh()),
         ]);
     }
 
-    public function resume(Request $request, string $slug, Transaction $transaction, MidtransService $midtransService)
+    public function resume(Request $request, string $slug, string $transaction, MidtransService $midtransService)
     {
         $event = Event::query()->where('slug', $slug)->firstOrFail();
-        if ($transaction->event_id !== $event->id) {
-            abort(404);
+        
+        $tx = Transaction::find($transaction);
+        if (! $tx) {
+            return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
+        }
+
+        if ($tx->event_id !== $event->id) {
+            return response()->json(['success' => false, 'message' => 'Transaksi tidak valid untuk event ini.'], 404);
         }
 
         $validated = $request->validate([
@@ -161,41 +173,41 @@ class EventPaymentRecoveryController extends Controller
         ]);
 
         $normalizedPhone = $this->normalizePhone($validated['phone']);
-        if (! $this->phoneMatchesTransaction($normalizedPhone, $transaction)) {
+        if (! $this->phoneMatchesTransaction($normalizedPhone, $tx)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Data tidak cocok.',
             ], 403);
         }
 
-        if (($transaction->payment_gateway ?? null) !== 'midtrans') {
+        if (($tx->payment_gateway ?? null) !== 'midtrans') {
             return response()->json([
                 'success' => false,
                 'message' => 'Gateway tidak valid.',
             ], 409);
         }
 
-        if (($transaction->payment_status ?? null) !== 'pending') {
+        if (($tx->payment_status ?? null) !== 'pending') {
             return response()->json([
                 'success' => true,
-                'transaction' => $this->serializeTransaction($transaction),
+                'transaction' => $this->serializeTransaction($tx),
                 'snap_token' => null,
                 'message' => 'Transaksi tidak dalam status pending.',
             ]);
         }
 
-        if (! $transaction->snap_token) {
+        if (! $tx->snap_token) {
             try {
-                $transaction->load(['participants.category']);
-                $snapResult = $midtransService->createEventTransaction($transaction);
+                $tx->load(['participants.category']);
+                $snapResult = $midtransService->createEventTransaction($tx);
                 
                 if ($snapResult['success']) {
-                    $transaction->update([
+                    $tx->update([
                         'snap_token' => $snapResult['snap_token'],
                         'midtrans_order_id' => $snapResult['order_id'],
                         'midtrans_mode' => $snapResult['midtrans_mode'] ?? 'production',
                     ]);
-                    $transaction->refresh();
+                    $tx->refresh();
                 } else {
                     return response()->json([
                         'success' => false,
@@ -212,8 +224,8 @@ class EventPaymentRecoveryController extends Controller
 
         return response()->json([
             'success' => true,
-            'transaction' => $this->serializeTransaction($transaction),
-            'snap_token' => $transaction->snap_token,
+            'transaction' => $this->serializeTransaction($tx),
+            'snap_token' => $tx->snap_token,
         ]);
     }
 
