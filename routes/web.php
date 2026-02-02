@@ -363,6 +363,15 @@ Route::post('/api/events/{slug}/payments/pending', [App\Http\Controllers\EventPa
 Route::get('/api/events/{slug}/payments/{transaction}/status', [App\Http\Controllers\EventPaymentRecoveryController::class, 'status'])->middleware('throttle:30,1')->name('api.events.payments.status');
 Route::post('/api/events/{slug}/payments/{transaction}/resume', [App\Http\Controllers\EventPaymentRecoveryController::class, 'resume'])->middleware('throttle:20,1')->name('api.events.payments.resume');
 
+Route::get('/report/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])
+    ->whereNumber('event')
+    ->middleware(\Illuminate\Routing\Middleware\ValidateSignature::class)
+    ->name('report.show');
+Route::post('/report/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])
+    ->whereNumber('event')
+    ->middleware(\Illuminate\Routing\Middleware\ValidateSignature::class)
+    ->name('report.show.data');
+
 // EO Landing Page
 Route::get('/event-organizer', function () {
     return view('eo.landing');

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
@@ -900,7 +901,9 @@ class EventController extends Controller
             'ticket_type' => request('report_ticket_type'),
         ]);
 
-        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport'));
+        $reportLink = URL::signedRoute('report.show', ['event' => $event->id]);
+
+        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink'));
     }
 
     public function storeParticipant(Request $request, Event $event, StoreManualParticipantAction $action)

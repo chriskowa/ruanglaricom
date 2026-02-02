@@ -58,6 +58,10 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     Tambah Peserta
                 </button>
+                <button type="button" onclick="copyReportLink()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    Copy Report Link
+                </button>
                 <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     Export CSV
@@ -65,6 +69,7 @@
             </div>
         </div>
     </div>
+    <input id="eoReportLink" type="hidden" value="{{ $reportLink }}">
 
     <!-- Stats Summary -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 relative z-10 print:hidden">
@@ -1116,6 +1121,39 @@
     window.closeAddParticipantModal = function () {
         var modal = document.getElementById('addParticipantModal');
         if (modal) modal.classList.add('hidden');
+    }
+
+    window.copyReportLink = function () {
+        var input = document.getElementById('eoReportLink');
+        var link = input ? input.value : '';
+        if (!link) {
+            alert('Report link tidak tersedia');
+            return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(link)
+                .then(function () { alert('Report link berhasil dicopy'); })
+                .catch(function () { fallbackCopy(link); });
+            return;
+        }
+
+        fallbackCopy(link);
+    }
+
+    function fallbackCopy(text) {
+        var temp = document.createElement('input');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        temp.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            alert('Report link berhasil dicopy');
+        } catch (e) {
+            alert('Gagal copy. Link: ' + text);
+        }
+        document.body.removeChild(temp);
     }
 
     if ({{ $errors->any() ? 'true' : 'false' }}) {
