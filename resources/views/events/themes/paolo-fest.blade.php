@@ -1153,6 +1153,36 @@
                             <p class="text-slate-500">Setiap 2.5 KM tersedia pos hidrasi lengkap dengan air minum segar dan tim medis siaga, sehingga peserta tetap terjaga stamina dan keselamatannya sepanjang lomba.</p>
                         </div>
                     </div>
+                    
+                    <!-- Documents -->
+                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-300">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
+                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-slate-900 mb-4">Persuratan</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <a href="https://res.cloudinary.com/dslfarxct/raw/upload/v1769990790/Surat-Izin-Orang-Tua_k4iavi.docx" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-100 hover:border-emerald-100 transition-all">
+                                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 group-hover:text-emerald-600 shadow-sm shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-slate-700 group-hover:text-emerald-700 leading-tight">Surat Izin Orang Tua</div>
+                                        <div class="text-[10px] text-slate-500 group-hover:text-emerald-600 mt-0.5">Download .docx</div>
+                                    </div>
+                                </a>
+                                <a href="https://res.cloudinary.com/dslfarxct/raw/upload/v1769990790/Surat-Kuasa-Paolorunfest_thhu6w.docx" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-100 hover:border-emerald-100 transition-all">
+                                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 group-hover:text-emerald-600 shadow-sm shrink-0">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-slate-700 group-hover:text-emerald-700 leading-tight">Surat Kuasa RCP</div>
+                                        <div class="text-[10px] text-slate-500 group-hover:text-emerald-600 mt-0.5">Download .docx</div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex items-start gap-6 hover:shadow-md transition reveal delay-300 hidden">
                         <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shrink-0">
                             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -1161,7 +1191,7 @@
                             <h4 class="text-xl font-bold text-slate-900 mb-2">Race Photography</h4>
                             <p class="text-slate-500">Momen terbaik Anda akan diabadikan oleh tim dokumentasi profesional dari fotoyu, menghadirkan foto berkualitas tinggi di berbagai titik sepanjang rute lomba.</p>
                         </div>
-                    </div>
+                    </div>                    
                 </div>
             </div>
         </div>
@@ -1244,8 +1274,129 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Race Rules Trigger -->
+            <div class="mt-20 text-center reveal delay-300">
+                <button onclick="document.getElementById('rulesModal').classList.remove('hidden')" class="inline-flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-full hover:bg-slate-800 transition font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    Baca Peraturan Lomba Lengkap
+                </button>
+            </div>
         </div>
     </section>
+
+    <!-- Race Rules Modal -->
+    <div id="rulesModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm transition-opacity" onclick="document.getElementById('rulesModal').classList.add('hidden')"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-3xl">
+                    <div class="bg-slate-900 px-4 py-6 sm:px-6 flex justify-between items-center">
+                        <h3 class="text-xl font-bold leading-6 text-white flex items-center gap-2" id="modal-title">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            Peraturan Lomba
+                        </h3>
+                        <button type="button" class="text-slate-400 hover:text-white transition" onclick="document.getElementById('rulesModal').classList.add('hidden')">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div class="px-4 py-6 sm:p-8 max-h-[70vh] overflow-y-auto bg-slate-50">
+                        <div class="space-y-8">
+                            <!-- Waktu Penyelesaian -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                <h4 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm">01</span>
+                                    Waktu Penyelesaian (Cut-off Time)
+                                </h4>
+                                <p class="text-slate-600 pl-10">Peserta wajib menyelesaikan rute 5K dalam waktu maksimal <strong>1,5 jam</strong>. Peserta yang melewati batas waktu tidak berhak atas medali penamat.</p>
+                            </div>
+
+                            <!-- DNS -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                <h4 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-sm">02</span>
+                                    DNS (Did Not Start)
+                                </h4>
+                                <p class="text-slate-600 pl-10">Peserta yang tidak memulai perlombaan (DNS) tidak berhak menerima medali penamat.</p>
+                            </div>
+
+                            <!-- BIB -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                <h4 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">03</span>
+                                    Nomor Peserta (BIB)
+                                </h4>
+                                <div class="text-slate-600 pl-10 space-y-2">
+                                    <p>BIB adalah identitas resmi peserta lomba.</p>
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        <li>Dilarang memindahkan atau menjual BIB kepada orang lain; pelanggaran akan berakibat diskualifikasi.</li>
+                                        <li>BIB harus selalu terlihat jelas oleh panitia dan marshal. Panitia berhak meminta peserta memperbaiki posisi BIB saat berlari.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Sportivitas -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                <h4 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-sm">04</span>
+                                    Sportivitas & Kecurangan
+                                </h4>
+                                <div class="text-slate-600 pl-10 space-y-2">
+                                    <p>Peserta yang mengganggu, menghadang, atau mendorong peserta lain akan langsung didiskualifikasi.</p>
+                                    <p>Peserta yang memperpendek jarak, menggunakan kendaraan, atau melakukan pelanggaran lain terhadap ketentuan lomba akan didiskualifikasi.</p>
+                                </div>
+                            </div>
+
+                            <!-- Water Station & Kendaraan -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                    <h4 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                        <span class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center text-sm">05</span>
+                                        Water Station
+                                    </h4>
+                                    <p class="text-slate-600 pl-10">Pos minum tersedia di titik-titik yang telah ditentukan sepanjang rute.</p>
+                                </div>
+                                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                    <h4 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                        <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center text-sm">06</span>
+                                        Larangan Kendaraan
+                                    </h4>
+                                    <p class="text-slate-600 pl-10">Penggunaan kendaraan bermotor maupun sepeda di jalur lomba sangat dilarang, kecuali untuk kepentingan penyelenggaraan.</p>
+                                </div>
+                            </div>
+
+                            <!-- Medali & Pemenang -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                <h4 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center text-sm">07</span>
+                                    Medali & Pemenang
+                                </h4>
+                                <div class="text-slate-600 pl-10 space-y-2">
+                                    <p><strong>Medali:</strong> Peserta yang melewati garis finis sebelum cut-off time berhak menerima medali penamat.</p>
+                                    <p><strong>Pemenang:</strong> Ditentukan oleh peserta yang pertama menyentuh garis finis. Hadiah diserahkan setelah verifikasi syarat dan aturan.</p>
+                                </div>
+                            </div>
+
+                            <!-- Keamanan -->
+                            <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                <h4 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-sm">08</span>
+                                    Keamanan & Kesehatan
+                                </h4>
+                                <div class="text-slate-600 pl-10 space-y-2">
+                                    <p>Keamanan jalan raya berada di bawah pengendalian pihak Kepolisian dan Dinas Perhubungan setempat.</p>
+                                    <p>Layanan kesehatan disediakan panitia. Petugas kesehatan berhak menghentikan peserta dari lomba apabila kondisi kesehatan tidak memungkinkan.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-4 py-4 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-200">
+                        <button type="button" class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition" onclick="document.getElementById('rulesModal').classList.add('hidden')">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- What to Bring & FAQ -->
     <section id="faq" class="py-24 bg-slate-50">
@@ -1757,7 +1908,7 @@
                                     <label class="flex items-start gap-3 cursor-pointer">
                                         <input type="checkbox" name="terms_agreed" required class="mt-1 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-500 bg-brand-800">
                                         <span class="text-xs text-slate-400">
-                                            Saya setuju dengan <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="text-white underline font-bold animate-heartbeat hover:text-brand-400 transition-colors">Syarat & Ketentuan</button>.
+                                            Saya setuju dengan <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="text-white underline font-bold animate-heartbeat hover:text-brand-400 transition-colors">Peraturan, Syarat & Ketentuan</button>.
                                         </span>
                                     </label>
                                 </div>
