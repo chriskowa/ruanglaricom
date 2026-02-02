@@ -1162,7 +1162,7 @@
                             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         </div>
                         <div class="flex-1">
-                            <h4 class="text-xl font-bold text-slate-900 mb-4">Persuratan</h4>
+                            <h4 class="text-xl font-bold text-slate-900 mb-4">Dokumen & Administrasi Peserta</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <a href="https://res.cloudinary.com/dslfarxct/raw/upload/v1769990790/Surat-Izin-Orang-Tua_k4iavi.docx" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-100 hover:border-emerald-100 transition-all">
                                     <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 group-hover:text-emerald-600 shadow-sm shrink-0">
