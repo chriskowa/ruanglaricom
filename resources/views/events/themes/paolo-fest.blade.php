@@ -2306,7 +2306,7 @@
                 }
 
                 // Update Input Names
-                newItem.querySelectorAll('input, select').forEach(input => {
+                newItem.querySelectorAll('input, select, textarea').forEach(input => {
                     const name = input.getAttribute('name');
                     if (name) {
                         // Replace index in name: participants[0][name] -> participants[1][name]
@@ -2379,6 +2379,44 @@
                     hidden.value = `${h}:${m}:${s}`;
                 }
             }
+
+            // 5. Form Submission Validation (Duplicate NIK Check)
+            form.addEventListener('submit', function(e) {
+                const idCards = [];
+                const inputs = form.querySelectorAll('input[name$="[id_card]"]');
+                let hasDuplicate = false;
+
+                inputs.forEach(input => {
+                    const val = input.value.trim();
+                    if (val) {
+                        if (idCards.includes(val)) {
+                            hasDuplicate = true;
+                            input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                            // Add error message if not exists
+                            let err = input.nextElementSibling;
+                            if (!err || !err.classList.contains('text-red-500')) {
+                                err = document.createElement('p');
+                                err.className = 'text-red-500 text-xs mt-1 duplicate-error';
+                                err.innerText = 'NIK/ID ini sudah digunakan peserta lain dalam form ini.';
+                                input.parentNode.insertBefore(err, input.nextSibling);
+                            }
+                        } else {
+                            idCards.push(val);
+                            input.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                            const err = input.parentNode.querySelector('.duplicate-error');
+                            if (err) err.remove();
+                        }
+                    }
+                });
+
+                if (hasDuplicate) {
+                    e.preventDefault();
+                    alert('Terdapat NIK/ID yang sama antar peserta. Mohon periksa kembali.');
+                    // Scroll to first error
+                    const firstError = form.querySelector('.border-red-500');
+                    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
 
             // Initial attach
             attachListeners(participantsWrapper);

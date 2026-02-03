@@ -363,15 +363,6 @@ Route::post('/api/events/{slug}/payments/pending', [App\Http\Controllers\EventPa
 Route::get('/api/events/{slug}/payments/{transaction}/status', [App\Http\Controllers\EventPaymentRecoveryController::class, 'status'])->middleware('throttle:30,1')->name('api.events.payments.status');
 Route::post('/api/events/{slug}/payments/{transaction}/resume', [App\Http\Controllers\EventPaymentRecoveryController::class, 'resume'])->middleware('throttle:20,1')->name('api.events.payments.resume');
 
-Route::get('/report/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])
-    ->whereNumber('event')
-    ->middleware(\Illuminate\Routing\Middleware\ValidateSignature::class)
-    ->name('report.show');
-Route::post('/report/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])
-    ->whereNumber('event')
-    ->middleware(\Illuminate\Routing\Middleware\ValidateSignature::class)
-    ->name('report.show.data');
-
 // EO Landing Page
 Route::get('/event-organizer', function () {
     return view('eo.landing');
@@ -732,8 +723,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/athletes/{enrollment}/update-weekly-target', [App\Http\Controllers\Coach\AthleteController::class, 'updateWeeklyTarget'])->name('athletes.update-weekly-target');
     });
 
-    Route::middleware('role:eo')->get('/api/eo/events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participantsApi'])->name('api.eo.events.participants');
-
     // EO routes
     Route::middleware('role:eo')->prefix('eo')->name('eo.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\EO\DashboardController::class, 'index'])->name('dashboard');
@@ -756,7 +745,6 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/send-test-email', [App\Http\Controllers\EO\EventController::class, 'sendTestEmail'])->name('events.send-test-email');
         Route::get('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participants'])->name('events.participants');
         Route::post('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'storeParticipant'])->name('events.participants.store');
-        Route::put('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'updateParticipant'])->name('events.participants.update');
         Route::get('email-reports', [App\Http\Controllers\EO\EmailReportController::class, 'index'])->name('email-reports.index');
         Route::get('email-reports/data', [App\Http\Controllers\EO\EmailReportController::class, 'data'])->name('email-reports.data');
         Route::post('email-reports/send', [App\Http\Controllers\EO\EmailReportController::class, 'send'])->name('email-reports.send');
@@ -766,9 +754,7 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/blast', [App\Http\Controllers\EO\EventController::class, 'sendBlast'])->name('events.blast.send');
         Route::delete('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'destroyParticipant'])->name('events.participants.destroy');
         Route::get('events/{event}/participants/export', [App\Http\Controllers\EO\EventController::class, 'exportParticipants'])->name('events.participants.export');
-        Route::get('events/{event}/participants/export.xlsx', [App\Http\Controllers\EO\EventController::class, 'exportParticipantsXlsx'])->name('events.participants.export-xlsx');
         Route::post('events/{event}/participants/{participant}/status', [App\Http\Controllers\EO\EventController::class, 'updateParticipantStatus'])->name('events.participants.status');
-        Route::post('events/{event}/participants/resend-email', [App\Http\Controllers\EO\EventController::class, 'resendEmail'])->name('events.participants.resend-email');
         Route::post('events/{event}/transactions/{transaction_id}/payment-status', [App\Http\Controllers\EO\EventController::class, 'updatePaymentStatus'])->name('events.transactions.payment-status');
         Route::post('events/{event}/packages', [App\Http\Controllers\EO\EventPackageController::class, 'store'])->name('events.packages.store');
         Route::put('events/packages/{package}', [App\Http\Controllers\EO\EventPackageController::class, 'update'])->name('events.packages.update');

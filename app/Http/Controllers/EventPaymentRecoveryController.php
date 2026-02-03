@@ -88,14 +88,22 @@ class EventPaymentRecoveryController extends Controller
 
     public function status(Request $request, string $slug, string $transaction, MidtransService $midtransService)
     {
-        $event = Event::query()->where('slug', $slug)->firstOrFail();
+        \Log::info("Payment Status Check: Slug={$slug}, TransactionID={$transaction}, Phone={$request->input('phone')}");
+
+        $event = Event::query()->where('slug', $slug)->first();
+        if (! $event) {
+            \Log::warning("Payment Status Check: Event not found for slug {$slug}");
+            return response()->json(['success' => false, 'message' => 'Event tidak ditemukan.'], 404);
+        }
         
         $tx = Transaction::find($transaction);
         if (! $tx) {
+            \Log::warning("Payment Status Check: Transaction {$transaction} not found");
             return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
         }
 
         if ($tx->event_id !== $event->id) {
+            \Log::warning("Payment Status Check: Transaction {$transaction} belongs to event {$tx->event_id}, not {$event->id}");
             return response()->json(['success' => false, 'message' => 'Transaksi tidak valid untuk event ini.'], 404);
         }
 

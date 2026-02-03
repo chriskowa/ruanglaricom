@@ -58,7 +58,7 @@ class StoreRegistrationAction
             'participants.*.gender' => 'required|in:male,female',
             'participants.*.email' => 'required|email|max:255',
             'participants.*.phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
-            'participants.*.id_card' => 'required|string|max:50',
+            'participants.*.id_card' => 'required|string|max:50|distinct',
             'participants.*.address' => 'required|string|max:500',
             'participants.*.category_id' => [
                 'required',
