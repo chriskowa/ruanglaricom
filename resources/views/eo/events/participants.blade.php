@@ -292,19 +292,28 @@
                     <tr class="hover:bg-slate-800/50 transition-colors cursor-pointer"
                         onclick="if(!event.target.closest('button') && !event.target.closest('a')) openDetailModalFromRow(this)"
                         data-json="{{ json_encode([
+                            'id' => $participant->id,
                             'name' => $participant->name,
                             'gender' => $participant->gender,
+                            'gender_label' => ucfirst($participant->gender),
+                            'date_of_birth' => $participant->date_of_birth,
                             'email' => $participant->email,
                             'phone' => $participant->phone,
                             'id_card' => $participant->id_card,
+                            'address' => $participant->address,
+                            'city' => $participant->city,
+                            'province' => $participant->province,
+                            'postal_code' => $participant->postal_code,
                             'category' => $participant->category->name ?? '-',
+                            'race_category_id' => $participant->race_category_id,
                             'bib_number' => $participant->bib_number,
                             'age_group' => $participant->getAgeGroup($event->start_at),
                             'jersey_size' => $participant->jersey_size,
                             'pic_name' => $participant->transaction->pic_data['name'] ?? '-',
                             'pic_phone' => $participant->transaction->pic_data['phone'] ?? '-',
                             'pic_email' => $participant->transaction->pic_data['email'] ?? '-',
-                            'transaction_date' => $participant->transaction->created_at ? $participant->transaction->created_at->format('d M Y H:i') : '-',
+                            'transaction_id' => $participant->transaction->id,
+                            'transaction_date' => $participant->transaction->created_at ? $participant->transaction->created_at->format('Y-m-d H:i:s') : '-',
                             'payment_method' => $participant->transaction->payment_gateway ?? '-',
                             'payment_status' => $participant->transaction->payment_status ?? 'pending',
                             'is_picked_up' => $participant->is_picked_up,
@@ -584,65 +593,178 @@
     <div class="fixed inset-0 z-10 overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4 text-center">
             <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all w-full max-w-2xl">
+                <!-- Header -->
                 <div class="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
                     <h3 class="text-lg font-bold text-white">Participant Details</h3>
-                    <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-white">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btn_edit_participant" onclick="toggleEditMode(true)" class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            Edit
+                        </button>
+                        <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-white ml-2">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
                 </div>
+                
+                <!-- Notification Area -->
+                <div id="edit_notification" class="hidden px-6 pt-4"></div>
+
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Personal Info -->
-                        <div>
-                            <h4 class="text-sm font-bold text-yellow-500 uppercase tracking-wider mb-3">Personal Info</h4>
-                            <div class="space-y-3">
-                                <div><div class="text-xs text-slate-500">Full Name</div><div class="text-white font-medium" id="dm_name"></div></div>
-                                <div><div class="text-xs text-slate-500">ID Card</div><div class="text-white" id="dm_id_card"></div></div>
-                                <div><div class="text-xs text-slate-500">Gender</div><div class="text-white capitalize" id="dm_gender"></div></div>
-                                <div><div class="text-xs text-slate-500">Email</div><div class="text-white" id="dm_email"></div></div>
-                                <div><div class="text-xs text-slate-500">Phone</div><div class="text-white" id="dm_phone"></div></div>
-                                <div><div class="text-xs text-slate-500">Age Group</div><div class="text-white" id="dm_age_group"></div></div>
-                            </div>
-                        </div>
+                    <form id="editParticipantForm">
+                        <input type="hidden" id="edit_id" name="id">
                         
-                        <!-- Race Info -->
-                        <div>
-                            <h4 class="text-sm font-bold text-neon-cyan uppercase tracking-wider mb-3">Race Info</h4>
-                            <div class="space-y-3">
-                                <div><div class="text-xs text-slate-500">Category</div><div class="text-white font-bold" id="dm_category"></div></div>
-                                <div><div class="text-xs text-slate-500">BIB Number</div><div class="text-white font-mono text-lg text-yellow-400" id="dm_bib"></div></div>
-                                <div><div class="text-xs text-slate-500">Jersey Size</div><div class="text-white inline-flex items-center justify-center w-8 h-8 rounded bg-slate-700 border border-slate-600 font-bold" id="dm_jersey"></div></div>
-                            </div>
-
-                            <h4 class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3 mt-6">PIC Info</h4>
-                            <div class="space-y-3">
-                                <div><div class="text-xs text-slate-500">PIC Name</div><div class="text-white" id="dm_pic_name"></div></div>
-                                <div><div class="text-xs text-slate-500">PIC Phone</div><div class="text-white" id="dm_pic_phone"></div></div>
-                                <div><div class="text-xs text-slate-500">PIC Email</div><div class="text-white" id="dm_pic_email"></div></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 pt-6 border-t border-slate-700">
-                        <h4 class="text-sm font-bold text-green-400 uppercase tracking-wider mb-3">Transaction Info</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-3">
-                                <div><div class="text-xs text-slate-500">Transaction Date</div><div class="text-white" id="dm_trx_date"></div></div>
-                                <div><div class="text-xs text-slate-500">Payment Method</div><div class="text-white uppercase" id="dm_payment_method"></div></div>
+                            <!-- Personal Info -->
+                            <div>
+                                <h4 class="text-sm font-bold text-yellow-500 uppercase tracking-wider mb-3">Personal Info</h4>
+                                <div class="space-y-3">
+                                    <!-- Name -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Full Name</div>
+                                        <div class="view-mode text-white font-medium" id="dm_name"></div>
+                                        <input type="text" name="name" id="edit_name" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                    </div>
+                                    
+                                    <!-- ID Card (Read Only) -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">ID Card</div>
+                                        <div class="text-white" id="dm_id_card"></div>
+                                    </div>
+
+                                    <!-- Gender -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Gender</div>
+                                        <div class="view-mode text-white capitalize" id="dm_gender"></div>
+                                        <select name="gender" id="edit_gender" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- DOB -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Date of Birth</div>
+                                        <div class="view-mode text-white" id="dm_dob"></div>
+                                        <input type="date" name="date_of_birth" id="edit_date_of_birth" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                    </div>
+
+                                    <!-- Email -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Email</div>
+                                        <div class="view-mode text-white" id="dm_email"></div>
+                                        <input type="email" name="email" id="edit_email" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                    </div>
+
+                                    <!-- Phone -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Phone</div>
+                                        <div class="view-mode text-white" id="dm_phone"></div>
+                                        <input type="text" name="phone" id="edit_phone" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                    </div>
+
+                                    <!-- Address Info -->
+                                    <div class="pt-2 border-t border-slate-700/50 mt-2">
+                                        <div class="text-xs text-slate-500 mb-1">Full Address</div>
+                                        
+                                        <!-- Address -->
+                                        <div class="view-mode text-white text-sm mb-1" id="dm_address"></div>
+                                        <textarea name="address" id="edit_address" rows="2" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none mb-2 placeholder-slate-500" placeholder="Address"></textarea>
+                                        
+                                        <!-- City & Province -->
+                                        <div class="view-mode text-xs text-slate-400">
+                                            <span id="dm_city"></span>, <span id="dm_province"></span> <span id="dm_postal_code"></span>
+                                        </div>
+                                        <div class="edit-mode hidden grid grid-cols-2 gap-2">
+                                            <input type="text" name="city" id="edit_city" placeholder="City" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                            <input type="text" name="province" id="edit_province" placeholder="Province" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                            <input type="text" name="postal_code" id="edit_postal_code" placeholder="Postal Code" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none col-span-2 placeholder-slate-500">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Attendance Status -->
+                                    <div class="pt-2 border-t border-slate-700/50 mt-2">
+                                        <div class="text-xs text-slate-500">Attendance (Race Pack)</div>
+                                        <div class="view-mode" id="dm_attendance_badge"></div>
+                                        <select name="is_picked_up" id="edit_is_picked_up" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                            <option value="0">Not Picked Up</option>
+                                            <option value="1">Picked Up</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="space-y-3">
-                                <div><div class="text-xs text-slate-500">Status</div><div id="dm_payment_status"></div></div>
-                                <div><div class="text-xs text-slate-500">Addons</div><div id="dm_addons" class="space-y-1"></div></div>
+                            
+                            <!-- Race Info (Read Only) -->
+                            <div>
+                                <h4 class="text-sm font-bold text-neon-cyan uppercase tracking-wider mb-3">Race Info</h4>
+                                <div class="space-y-3">
+                                    <!-- Category -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Category</div>
+                                        <div class="view-mode text-white font-bold" id="dm_category"></div>
+                                        <select name="race_category_id" id="edit_race_category_id" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                            @foreach($event->categories as $cat)
+                                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <!-- BIB -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">BIB Number</div>
+                                        <div class="view-mode text-white font-mono text-lg text-yellow-400" id="dm_bib"></div>
+                                        <input type="text" name="bib_number" id="edit_bib_number" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none font-mono">
+                                    </div>
+                                    <!-- Jersey -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Jersey Size</div>
+                                        <div class="view-mode text-white inline-flex items-center justify-center w-8 h-8 rounded bg-slate-700 border border-slate-600 font-bold" id="dm_jersey"></div>
+                                        <input type="text" name="jersey_size" id="edit_jersey_size" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                    </div>
+                                    <!-- Age Group -->
+                                    <div><div class="text-xs text-slate-500">Age Group</div><div class="text-white" id="dm_age_group"></div></div>
+                                </div>
+
+                                <h4 class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3 mt-6">PIC Info</h4>
+                                <div class="space-y-3">
+                                    <div><div class="text-xs text-slate-500">PIC Name</div><div class="text-white" id="dm_pic_name"></div></div>
+                                    <div><div class="text-xs text-slate-500">PIC Phone</div><div class="text-white" id="dm_pic_phone"></div></div>
+                                    <div><div class="text-xs text-slate-500">PIC Email</div><div class="text-white" id="dm_pic_email"></div></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <h4 class="text-sm font-bold text-green-400 uppercase tracking-wider mb-3">Transaction Info</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-3">
+                                    <div><div class="text-xs text-slate-500">Transaction Date</div><div class="text-white" id="dm_trx_date"></div></div>
+                                    <div><div class="text-xs text-slate-500">Payment Method</div><div class="text-white uppercase" id="dm_payment_method"></div></div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div><div class="text-xs text-slate-500">Status</div><div id="dm_payment_status"></div></div>
+                                    <div><div class="text-xs text-slate-500">Addons</div><div id="dm_addons" class="space-y-1"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
+                
+                <!-- Footer -->
                 <div class="bg-slate-900/50 px-6 py-4 flex justify-end gap-2">
-                    <button type="button" id="btn_resend_email" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors">
-                        <svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                        Resend Email
-                    </button>
-                    <button type="button" onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold transition-colors">Close</button>
+                    <div class="view-mode flex gap-2">
+                        <button type="button" id="btn_resend_email" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors">
+                            <svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            Resend Email
+                        </button>
+                        <button type="button" onclick="closeDetailModal()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold transition-colors">Close</button>
+                    </div>
+                    <div class="edit-mode hidden flex gap-2">
+                         <button type="button" onclick="cancelEdit()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold transition-colors">Cancel</button>
+                         <button type="button" onclick="saveParticipant()" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-bold transition-colors flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            Save Changes
+                         </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -717,12 +839,20 @@
                 var regDate = p.created_at ? p.created_at.split(' ').slice(0, 2).join(' ') : '-';
                 
                 var dataJson = JSON.stringify({
+                    id: p.id,
                     name: p.name,
-                    gender: genderLabel,
+                    gender: p.gender, // Raw value for edit
+                    gender_label: genderLabel, // Label for display
+                    date_of_birth: p.date_of_birth,
                     email: p.email,
                     phone: p.phone,
                     id_card: p.id_card,
+                    address: p.address,
+                    city: p.city,
+                    province: p.province,
+                    postal_code: p.postal_code,
                     category: p.category,
+                    race_category_id: p.race_category_id,
                     bib_number: p.bib_number,
                     age_group: p.age_group,
                     jersey_size: p.jersey_size,
@@ -935,6 +1065,10 @@
             document.body.removeChild(link);
         };
     })();
+    
+    // Global variable to store current participant data for edit/cancel
+    var currentParticipantData = null;
+
     function setStatusButtonStyle(btn, status) {
         var map = {
             paid: {bg:'bg-green-900/30', text:'text-green-400', border:'border-green-500/30'},
@@ -1009,21 +1143,269 @@
         document.getElementById('pickupModal').classList.add('hidden');
     }
 
+        function populateEditForm() {
+            
+        if (!currentParticipantData) return;
+        
+        var d = currentParticipantData;
+        console.log('Populating edit form with:', d);
+        
+        setValue('edit_name', d.name);
+        setValue('edit_email', d.email);
+        setValue('edit_phone', d.phone);
+        setValue('edit_gender', d.gender || 'male');
+        
+        // Handle Date Format for Input (YYYY-MM-DD)
+        var dob = d.date_of_birth;
+        if (dob && dob.length > 10) dob = dob.substring(0, 10);
+        setValue('edit_date_of_birth', dob);
+        
+        setValue('edit_address', d.address);
+        setValue('edit_city', d.city);
+        setValue('edit_province', d.province);
+        setValue('edit_postal_code', d.postal_code);
+        setValue('edit_is_picked_up', d.is_picked_up ? '1' : '0');
+        
+        // Explicitly set race category and log it
+        var catId = d.race_category_id;
+        
+        console.log('Setting race category to:', catId);
+        setValue('edit_race_category_id', catId);
+        
+        setValue('edit_bib_number', d.bib_number);
+        setValue('edit_jersey_size', d.jersey_size);
+        
+        // Handle attendance badge update if needed or specific logic
+        togglePickedByField();
+    }
+
+    function setValue(id, val) {
+        var el = document.getElementById(id);
+        if(el) el.value = (val === null || val === undefined) ? '' : val;
+    }
+
+    function cancelEdit() {
+        toggleEditMode(false);
+        if (currentParticipantData) {
+            populateEditForm();
+        }
+    }
+
+    function toggleEditMode(show) {
+        var viewModes = document.querySelectorAll('.view-mode');
+        var editModes = document.querySelectorAll('.edit-mode');
+        
+        if (show) {
+            populateEditForm(); // Ensure data is loaded
+            viewModes.forEach(el => el.classList.add('hidden'));
+            editModes.forEach(el => el.classList.remove('hidden'));
+            document.getElementById('btn_edit_participant').classList.add('hidden');
+        } else {
+            viewModes.forEach(el => el.classList.remove('hidden'));
+            editModes.forEach(el => el.classList.add('hidden'));
+            document.getElementById('btn_edit_participant').classList.remove('hidden');
+            document.getElementById('edit_notification').innerHTML = '';
+            document.getElementById('edit_notification').classList.add('hidden');
+        }
+    }
+
+    function saveParticipant() {
+        var id = document.getElementById('edit_id').value;
+        if (!id) return;
+
+        var notification = document.getElementById('edit_notification');
+        notification.classList.add('hidden');
+        notification.innerHTML = '';
+
+        // Collect Form Data
+        var formData = {
+            name: document.getElementById('edit_name').value.trim(),
+            email: document.getElementById('edit_email').value.trim(),
+            phone: document.getElementById('edit_phone').value.trim(),
+            gender: document.getElementById('edit_gender').value,
+            date_of_birth: document.getElementById('edit_date_of_birth').value,
+            address: document.getElementById('edit_address').value.trim(),
+            city: document.getElementById('edit_city').value.trim(),
+            province: document.getElementById('edit_province').value.trim(),
+            postal_code: document.getElementById('edit_postal_code').value.trim(),
+            is_picked_up: document.getElementById('edit_is_picked_up').value,
+            race_category_id: document.getElementById('edit_race_category_id').value,
+            bib_number: document.getElementById('edit_bib_number').value.trim(),
+            jersey_size: document.getElementById('edit_jersey_size').value.trim()
+        };
+
+        // Client-side Validation
+        var errors = [];
+        if (!formData.name) errors.push('Nama wajib diisi');
+        if (!formData.email) errors.push('Email wajib diisi');
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.push('Format email tidak valid');
+        
+        if (!formData.phone) errors.push('Nomor telepon wajib diisi');
+        else if (formData.phone.length < 8) errors.push('Nomor telepon minimal 8 digit');
+        
+        if (!formData.gender) errors.push('Jenis kelamin wajib dipilih');
+        if (!formData.race_category_id) errors.push('Kategori lomba wajib dipilih');
+
+        if (errors.length > 0) {
+            notification.className = 'px-6 pt-4 text-sm text-red-400 font-bold';
+            notification.innerHTML = '<div class="bg-red-900/30 border border-red-500/30 p-3 rounded-lg"><ul class="list-disc list-inside">' + 
+                errors.map(e => '<li>' + e + '</li>').join('') + 
+                '</ul></div>';
+            notification.classList.remove('hidden');
+            return;
+        }
+
+        var btn = document.querySelector('button[onclick="saveParticipant()"]');
+        var originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="w-4 h-4 animate-spin mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6.366 2.634l-.707.707M20 12h-1m-2.634 6.366l-.707-.707M12 20v-1m-6.366-2.634l.707-.707M4 12H3m2.634-6.366l.707-.707" /></svg> Saving...';
+
+        var tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
+        var url = '{{ url("eo/events/" . $event->id . "/participants") }}/' + id;
+
+        fetch(url, {
+            method: 'PUT',
+            headers: { 
+                'X-CSRF-TOKEN': csrf, 
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+            if (res.success) {
+                // Update Current Data for Cancel/Restore
+                if (currentParticipantData) {
+                    Object.assign(currentParticipantData, {
+                        name: res.data.name,
+                        email: res.data.email,
+                        phone: res.data.phone,
+                        gender: res.data.gender,
+                        date_of_birth: res.data.date_of_birth,
+                        address: res.data.address,
+                        city: res.data.city,
+                        province: res.data.province,
+                        postal_code: res.data.postal_code,
+                        race_category_id: res.data.race_category_id,
+                        category: res.data.category_name,
+                        bib_number: res.data.bib_number,
+                        jersey_size: res.data.jersey_size,
+                        age_group: res.data.age_group,
+                        is_picked_up: res.data.is_picked_up,
+                        picked_up_by: res.data.picked_up_by
+                    });
+                }
+
+                // Update View Mode Data
+                document.getElementById('dm_name').textContent = res.data.name;
+                document.getElementById('dm_email').textContent = res.data.email;
+                document.getElementById('dm_phone').textContent = res.data.phone;
+                document.getElementById('dm_gender').textContent = res.data.gender ? (res.data.gender.charAt(0).toUpperCase() + res.data.gender.slice(1)) : '-';
+                document.getElementById('dm_dob').textContent = res.data.date_of_birth || '-';
+                document.getElementById('dm_address').textContent = res.data.address || '-';
+                document.getElementById('dm_city').textContent = res.data.city || '-';
+                document.getElementById('dm_province').textContent = res.data.province || '-';
+                document.getElementById('dm_postal_code').textContent = res.data.postal_code || '';
+                
+                // Race Info Updates
+                document.getElementById('dm_category').textContent = res.data.category_name;
+                document.getElementById('dm_bib').textContent = res.data.bib_number || '-';
+                document.getElementById('dm_jersey').textContent = res.data.jersey_size || '-';
+                document.getElementById('dm_age_group').textContent = res.data.age_group || '-';
+                
+                // Update Attendance Badge
+                var attendanceBadge = document.getElementById('dm_attendance_badge');
+                if (res.data.is_picked_up) {
+                     attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span>';
+                } else {
+                     attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
+                }
+
+                // Show Success Message
+                notification.className = 'px-6 pt-4 text-sm text-green-400 font-bold';
+                notification.innerHTML = '<div class="bg-green-900/30 border border-green-500/30 p-3 rounded-lg flex items-center gap-2"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> ' + res.message + '</div>';
+                notification.classList.remove('hidden');
+
+                // Switch back to view mode after delay
+                setTimeout(function(){
+                    toggleEditMode(false);
+                    // Reload table data
+                    fetchParticipants();
+                }, 1500);
+
+            } else {
+                // Show Error Message
+                notification.className = 'px-6 pt-4 text-sm text-red-400 font-bold';
+                notification.innerHTML = '<div class="bg-red-900/30 border border-red-500/30 p-3 rounded-lg">' + (res.message || 'Gagal menyimpan perubahan') + '</div>';
+                notification.classList.remove('hidden');
+            }
+        })
+        .catch(function(err){ 
+            console.error(err);
+            notification.className = 'px-6 pt-4 text-sm text-red-400 font-bold';
+            notification.innerHTML = '<div class="bg-red-900/30 border border-red-500/30 p-3 rounded-lg">Terjadi kesalahan sistem</div>';
+            notification.classList.remove('hidden');
+        })
+        .finally(function(){
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    }
+
     function openDetailModalFromRow(tr) {
         var data = JSON.parse(tr.dataset.json);
+        currentParticipantData = data; // Store for cancel restore
         
+        // Reset Edit Mode
+        toggleEditMode(false);
+        document.getElementById('edit_notification').classList.add('hidden');
+        document.getElementById('edit_id').value = data.id;
+
         // Populate Personal Info
         document.getElementById('dm_name').textContent = data.name;
+        
         document.getElementById('dm_id_card').textContent = data.id_card || '-';
-        document.getElementById('dm_gender').textContent = data.gender;
+        
+        document.getElementById('dm_gender').textContent = data.gender_label || (data.gender ? (data.gender.charAt(0).toUpperCase() + data.gender.slice(1)) : '-');
+        
+        document.getElementById('dm_dob').textContent = data.date_of_birth || '-';
+        
         document.getElementById('dm_email').textContent = data.email;
+        
         document.getElementById('dm_phone').textContent = data.phone;
+        
         document.getElementById('dm_age_group').textContent = data.age_group || '-';
+
+        // Populate Address Info
+        document.getElementById('dm_address').textContent = data.address || '-';
+        
+        document.getElementById('dm_city').textContent = data.city || '-';
+        
+        document.getElementById('dm_province').textContent = data.province || '-';
+        
+        document.getElementById('dm_postal_code').textContent = data.postal_code || '';
+
+        // Attendance / Picked Up Status
+        var isPickedUp = data.is_picked_up ? '1' : '0';
+        
+        var attendanceBadge = document.getElementById('dm_attendance_badge');
+        if (data.is_picked_up) {
+             attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span>';
+        } else {
+             attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
+        }
 
         // Populate Race Info
         document.getElementById('dm_category').textContent = data.category;
+        
         document.getElementById('dm_bib').textContent = data.bib_number || '-';
+        
         document.getElementById('dm_jersey').textContent = data.jersey_size || '-';
+        
+        // Populate Inputs (Initial)
+        populateEditForm();
         
         // Populate PIC Info
         document.getElementById('dm_pic_name').textContent = data.pic_name;

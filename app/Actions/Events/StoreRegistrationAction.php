@@ -228,7 +228,7 @@ class StoreRegistrationAction
         $totalOriginal = 0;
         $now = now();
 
-        foreach ($validated['participants'] as $participant) {
+        foreach ($validated['participants'] as $index => $participant) {
             // Check for existing active registration (pending or paid)
             // We removed the database unique constraint to allow retries on failed/expired transactions,
             // so we must enforce the "one active registration per category" rule here.
@@ -249,7 +249,7 @@ class StoreRegistrationAction
 
             if ($activeParticipantExists) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'participants' => ["Peserta dengan ID Card {$participant['id_card']} sudah terdaftar (status Pending atau Paid) di kategori ini."],
+                    "participants.{$index}.id_card" => ["Peserta dengan ID Card {$participant['id_card']} sudah terdaftar (status Pending atau Paid) di kategori ini."],
                 ]);
             }
 

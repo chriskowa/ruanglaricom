@@ -17,6 +17,9 @@ class Participant extends Model
         'email',
         'id_card',
         'address',
+        'city',
+        'province',
+        'postal_code',
         'emergency_contact_name',
         'emergency_contact_number',
         'date_of_birth',
@@ -76,5 +79,20 @@ class Participant extends Model
         }*/
 
         return 'Umum';
+    }
+
+    public function getPicNameAttribute()
+    {
+        return $this->transaction->pic_data['name'] ?? $this->transaction->user->name ?? '-';
+    }
+
+    public function getPicEmailAttribute()
+    {
+        return $this->transaction->pic_data['email'] ?? $this->transaction->user->email ?? '-';
+    }
+
+    public function getPicPhoneAttribute()
+    {
+        return $this->transaction->pic_data['phone'] ?? $this->transaction->user->phone ?? '-';
     }
 }

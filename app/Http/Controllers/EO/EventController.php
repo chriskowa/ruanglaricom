@@ -848,8 +848,13 @@ class EventController extends Controller
                     'email' => $p->email,
                     'phone' => $p->phone,
                     'id_card' => $p->id_card,
+                    'date_of_birth' => $p->date_of_birth,
                     'address' => $p->address,
+                    'city' => $p->city,
+                    'province' => $p->province,
+                    'postal_code' => $p->postal_code,
                     'category' => $p->category ? $p->category->name : '-',
+                    'race_category_id' => $p->race_category_id,
                     'bib_number' => $p->bib_number,
                     'age_group' => $p->getAgeGroup($event->start_at),
                     'jersey_size' => $p->jersey_size,
@@ -989,16 +994,27 @@ class EventController extends Controller
                 'phone' => $p->phone,
                 'id_card' => $p->id_card,
                 'address' => $p->address,
+                'city' => $p->city,
+                'province' => $p->province,
+                'postal_code' => $p->postal_code,
+                'race_category_id' => $p->race_category_id,
                 'category' => $p->category ? $p->category->name : '-',
                 'bib_number' => $p->bib_number,
+                'date_of_birth' => $p->date_of_birth,
                 'age_group' => $p->getAgeGroup($event->start_at),
                 'jersey_size' => $p->jersey_size,
                 'created_at' => $p->created_at ? $p->created_at->format('Y-m-d H:i:s') : null,
                 'payment_status' => $p->transaction->payment_status ?? 'pending',
+                'payment_method' => $p->transaction->payment_channel ?? $p->transaction->payment_gateway ?? '-',
                 'transaction_id' => $p->transaction->id,
+                'transaction_date' => $p->transaction->created_at ? $p->transaction->created_at->format('Y-m-d H:i:s') : '-',
                 'is_picked_up' => $p->is_picked_up,
                 'picked_up_at' => $p->picked_up_at ? $p->picked_up_at->format('Y-m-d H:i:s') : null,
                 'picked_up_by' => $p->picked_up_by,
+                'pic_name' => $p->pic_name,
+                'pic_phone' => $p->pic_phone,
+                'pic_email' => $p->pic_email,
+                'addons' => $p->addons,
             ];
         });
 
@@ -1064,6 +1080,84 @@ class EventController extends Controller
         return redirect()
             ->route('eo.events.participants', $event)
             ->with('success', 'Peserta berhasil ditambahkan dan email konfirmasi dikirim.');
+    }
+
+    /**
+     * Update participant details
+     */
+    public function updateParticipant(Request $request, Event $event, \App\Models\Participant $participant)
+    {
+        $this->authorizeEvent($event);
+
+        // Ensure participant belongs to event (via Transaction or Category)
+        $belongsToEvent = false;
+        if ($participant->transaction && $participant->transaction->event_id == $event->id) {
+            $belongsToEvent = true;
+        } elseif ($participant->category && $participant->category->event_id == $event->id) {
+            $belongsToEvent = true;
+        }
+
+        if (!$belongsToEvent) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|min:8|max:20',
+            'gender' => 'required|in:male,female',
+            'date_of_birth' => 'nullable|date',
+            'address' => 'nullable|string|max:500',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'race_category_id' => 'required|exists:race_categories,id',
+            'bib_number' => 'nullable|string|max:20',
+            'jersey_size' => 'nullable|string|max:10',
+            'is_picked_up' => 'nullable|boolean',
+        ]);
+
+        // If is_picked_up is toggled, handle timestamp
+        if (isset($validated['is_picked_up'])) {
+            $validated['is_picked_up'] = (bool) $validated['is_picked_up'];
+            if ($validated['is_picked_up'] && !$participant->is_picked_up) {
+                $validated['picked_up_at'] = now();
+                $validated['picked_up_by'] = auth()->user()->name ?? 'Admin';
+            } elseif (!$validated['is_picked_up'] && $participant->is_picked_up) {
+                $validated['picked_up_at'] = null;
+                $validated['picked_up_by'] = null;
+            }
+        }
+
+        $participant->update($validated);
+
+        // Refresh to get relationship data if needed (e.g. category name)
+        $participant->load('category');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data peserta berhasil diperbarui.',
+            'data' => [
+                'id' => $participant->id,
+                'name' => $participant->name,
+                'email' => $participant->email,
+                'phone' => $participant->phone,
+                'gender' => $participant->gender,
+                'date_of_birth' => $participant->date_of_birth,
+                'address' => $participant->address,
+                'city' => $participant->city,
+                'province' => $participant->province,
+                'postal_code' => $participant->postal_code,
+                'race_category_id' => $participant->race_category_id,
+                'category_name' => $participant->category->name ?? '-',
+                'bib_number' => $participant->bib_number,
+                'jersey_size' => $participant->jersey_size,
+                'age_group' => $participant->getAgeGroup($event->start_at),
+                'is_picked_up' => $participant->is_picked_up,
+                'picked_up_at' => $participant->picked_up_at,
+                'picked_up_by' => $participant->picked_up_by,
+            ]
+        ]);
     }
 
     /**

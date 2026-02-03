@@ -2608,13 +2608,28 @@
                     
                     // 4. Check Logical Success (200 OK but maybe success: false logic handled later, or non-200 HTTP status)
                     if (!response.ok) {
+                        // Reset reCAPTCHA on any error response
+                        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+
                         // Handle Validation Errors (422)
                         if (response.status === 422 && data.errors && window.formValidator) {
                             let firstErrorField = null;
                             Object.entries(data.errors).forEach(([key, messages]) => {
-                                // Convert dot notation (participants.0.name) to form name (participants[0][name])
-                                const fieldName = key.replace(/\.(\d+)\./, '[$1][');
-                                const input = form.querySelector(`[name="${fieldName}"]`) || form.querySelector(`[name="${fieldName}]"]`); // Try both formats just in case
+                                // Convert dot notation (participants.0.name) to bracket notation (participants[0][name])
+                                const parts = key.split('.');
+                                let fieldName = parts[0];
+                                for (let i = 1; i < parts.length; i++) {
+                                    fieldName += `[${parts[i]}]`;
+                                }
+
+                                // Try exact match first (e.g. participants[0][id_card])
+                                let input = form.querySelector(`[name="${fieldName}"]`);
+                                
+                                // Fallback: Try matching regex logic if exact match fails (legacy behavior preserved just in case)
+                                if (!input) {
+                                     const legacyName = key.replace(/\.(\d+)\./, '[$1][');
+                                     input = form.querySelector(`[name="${legacyName}"]`) || form.querySelector(`[name="${legacyName}]"]`);
+                                }
                                 
                                 if (input) {
                                     window.formValidator.showError(input, messages[0]);
@@ -2665,7 +2680,8 @@
                     }
                 })
                 .catch(err => {
-                    console.error('[Registration] Error:', err);
+                    // Reset reCAPTCHA on catch error
+                    if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
 
                     // If validation error was handled inline, just return
                     if (err.message === 'VALIDATION_ERROR_HANDLED') {
@@ -2673,6 +2689,8 @@
                         btn.innerHTML = originalText;
                         return;
                     }
+
+                    console.error('[Registration] Error:', err);
                     
                     if (err.message === 'SESSION_EXPIRED') {
                         let alreadyRetried = false;
