@@ -1757,6 +1757,9 @@
                                         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
                                             <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>                                            
                                         </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+                                            <textarea name="participants[0][address]" placeholder="Alamat Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required maxlength="500" rows="3"></textarea>
+                                        </div>
                                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">                                            
                                             <em class="md:col-span-1">Tanggal lahir</em>
                                             <input type="date" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="w-full md:col-span-3 bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>

@@ -473,6 +473,10 @@
                                 <label class="block text-xs font-medium text-slate-400 mb-1">ID Card</label>
                                 <input name="id_card" value="{{ old('id_card') }}" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="Nomor identitas">
                             </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Alamat</label>
+                                <textarea name="address" required maxlength="500" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="Alamat peserta">{{ old('address') }}</textarea>
+                            </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">Kategori</label>
                                 <select name="category_id" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">

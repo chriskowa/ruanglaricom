@@ -42,6 +42,7 @@ class EventTransactionWebhookSignatureTest extends TestCase
 
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
+            $table->string('public_ref', 20)->nullable()->unique();
             $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->json('pic_data')->nullable();

@@ -79,9 +79,12 @@ class RegistrationEmergencyContactTest extends TestCase
                     'email' => 'jane@example.com',
                     'phone' => '089876543210',
                     'id_card' => '1234567890123456',
+                    'address' => 'Jl. Emergency Test No. 1, Jakarta',
                     'category_id' => $category->id,
                     'emergency_contact_name' => 'Emergency Contact',
                     'emergency_contact_number' => '081111111111',
+                    'date_of_birth' => '1990-01-01',
+                    'jersey_size' => 'M',
                 ],
             ],
             'payment_method' => 'midtrans',
@@ -142,8 +145,11 @@ class RegistrationEmergencyContactTest extends TestCase
                     'email' => 'jane@example.com',
                     'phone' => '089876543210',
                     'id_card' => '1234567890123456',
+                    'address' => 'Jl. Emergency Test No. 2, Jakarta',
                     'category_id' => $category->id,
                     // Missing emergency fields
+                    'date_of_birth' => '1990-01-01',
+                    'jersey_size' => 'M',
                 ],
             ],
             'payment_method' => 'midtrans',
@@ -158,5 +164,58 @@ class RegistrationEmergencyContactTest extends TestCase
             'participants.0.emergency_contact_name',
             'participants.0.emergency_contact_number',
         ]);
+    }
+
+    public function test_registration_fails_without_address(): void
+    {
+        $user = User::factory()->create();
+
+        $event = Event::create([
+            'name' => 'Test Event Address',
+            'slug' => 'test-event-address',
+            'location' => 'Jakarta',
+            'start_at' => now()->addDays(10),
+            'registration_open_at' => now()->subDays(1),
+            'registration_close_at' => now()->addDays(5),
+            'description' => 'Test Description',
+            'is_published' => true,
+            'status' => 'published',
+            'user_id' => $user->id,
+            'location_name' => 'GBK',
+        ]);
+
+        $category = RaceCategory::create([
+            'event_id' => $event->id,
+            'name' => '10K',
+            'price_regular' => 200000,
+            'quota' => 100,
+            'start_time' => '06:00',
+        ]);
+
+        $data = [
+            'pic_name' => 'John Doe',
+            'pic_email' => 'john-address@example.com',
+            'pic_phone' => '081234567890',
+            'participants' => [
+                [
+                    'name' => 'Jane Doe',
+                    'gender' => 'female',
+                    'email' => 'jane-address@example.com',
+                    'phone' => '089876543210',
+                    'id_card' => '1234567890123456',
+                    'category_id' => $category->id,
+                    'emergency_contact_name' => 'Emergency Contact',
+                    'emergency_contact_number' => '081111111111',
+                    'date_of_birth' => '1990-01-01',
+                    'jersey_size' => 'M',
+                ],
+            ],
+            'payment_method' => 'midtrans',
+            'g-recaptcha-response' => 'dummy-token',
+        ];
+
+        $response = $this->postJson(route('events.register.store', $event->slug), $data);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['participants.0.address']);
     }
 }

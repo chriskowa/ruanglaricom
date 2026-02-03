@@ -75,6 +75,7 @@ class ZeroAmountRegistrationTest extends TestCase
                     'email' => $userData->email,
                     'phone' => '081234567890',
                     'id_card' => '1234567890123456',
+                    'address' => 'Jl. Zero Amount Test No. 1, Jakarta',
                     'category_id' => $this->category->id,
                     'emergency_contact_name' => 'Jane Doe',
                     'emergency_contact_number' => '081234567891',

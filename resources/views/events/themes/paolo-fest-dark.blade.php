@@ -990,6 +990,9 @@
                                             @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}" class="bg-slate-800">{{ $size }}</option> @endforeach
                                         </select>
                                     </div>
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <textarea name="participants[0][address]" placeholder="Alamat Peserta" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required maxlength="500" rows="3"></textarea>
+                                    </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
                                         <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">

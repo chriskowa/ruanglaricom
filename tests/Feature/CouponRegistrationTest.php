@@ -88,6 +88,7 @@ class CouponRegistrationTest extends TestCase
 
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
+            $table->string('public_ref')->nullable()->unique();
             $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->text('pic_data')->nullable();
@@ -98,6 +99,7 @@ class CouponRegistrationTest extends TestCase
             $table->decimal('final_amount', 12, 2)->default(0);
             $table->string('payment_status')->default('pending');
             $table->string('payment_gateway')->nullable();
+            $table->string('midtrans_mode')->nullable();
             $table->integer('unique_code')->default(0);
             $table->string('payment_channel')->nullable();
             $table->string('snap_token')->nullable();
@@ -116,6 +118,7 @@ class CouponRegistrationTest extends TestCase
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('id_card')->nullable();
+            $table->string('address', 500)->nullable();
             $table->string('emergency_contact_name')->nullable();
             $table->string('emergency_contact_number')->nullable();
             $table->date('date_of_birth')->nullable();
@@ -188,6 +191,7 @@ class CouponRegistrationTest extends TestCase
                     'email' => 'runner1@example.com',
                     'phone' => '081234567891',
                     'id_card' => '1234567890',
+                    'address' => 'Jl. Coupon Test No. 1, Jakarta',
                     'category_id' => $category->id,
                     'emergency_contact_name' => 'EC',
                     'emergency_contact_number' => '081234567892',
@@ -259,6 +263,7 @@ class CouponRegistrationTest extends TestCase
                     'email' => 'runner1-latbar@example.com',
                     'phone' => '081234567891',
                     'id_card' => '081234567891',
+                    'address' => 'Jl. Coupon Test No. 2, Jakarta',
                     'category_id' => $category->id,
                     'emergency_contact_name' => 'EC',
                     'emergency_contact_number' => '081234567892',

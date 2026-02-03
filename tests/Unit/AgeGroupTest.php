@@ -36,15 +36,15 @@ class AgeGroupTest extends TestCase
 
         // Exactly 40 years old
         $participant->date_of_birth = $eventDate->copy()->subYears(40);
-        $this->assertEquals('Master', $participant->getAgeGroup($eventDate));
+        $this->assertEquals('Umum', $participant->getAgeGroup($eventDate));
 
         // 44 years old
         $participant->date_of_birth = $eventDate->copy()->subYears(44);
-        $this->assertEquals('Master', $participant->getAgeGroup($eventDate));
+        $this->assertEquals('Umum', $participant->getAgeGroup($eventDate));
 
         // Almost 45 (45 years - 1 day)
         $participant->date_of_birth = $eventDate->copy()->subYears(45)->addDay();
-        $this->assertEquals('Master', $participant->getAgeGroup($eventDate));
+        $this->assertEquals('Umum', $participant->getAgeGroup($eventDate));
     }
 
     /**
@@ -78,11 +78,11 @@ class AgeGroupTest extends TestCase
 
         // Exactly 50 years old
         $participant->date_of_birth = $eventDate->copy()->subYears(50);
-        $this->assertEquals('50+', $participant->getAgeGroup($eventDate));
+        $this->assertEquals('Master 45+', $participant->getAgeGroup($eventDate));
 
         // 60 years old
         $participant->date_of_birth = $eventDate->copy()->subYears(60);
-        $this->assertEquals('50+', $participant->getAgeGroup($eventDate));
+        $this->assertEquals('Master 45+', $participant->getAgeGroup($eventDate));
     }
 
     /**

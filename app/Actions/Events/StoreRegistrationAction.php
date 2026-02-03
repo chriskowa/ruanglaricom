@@ -59,6 +59,7 @@ class StoreRegistrationAction
             'participants.*.email' => 'required|email|max:255',
             'participants.*.phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
             'participants.*.id_card' => 'required|string|max:50',
+            'participants.*.address' => 'required|string|max:500',
             'participants.*.category_id' => [
                 'required',
                 'exists:race_categories,id',
@@ -416,6 +417,7 @@ class StoreRegistrationAction
                     'phone' => $participantData['phone'],
                     'email' => $participantData['email'],
                     'id_card' => $participantData['id_card'],
+                    'address' => $participantData['address'],
                     'emergency_contact_name' => $participantData['emergency_contact_name'],
                     'emergency_contact_number' => $participantData['emergency_contact_number'],
                     'date_of_birth' => $participantData['date_of_birth'] ?? null,

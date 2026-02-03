@@ -846,6 +846,7 @@ class EventController extends Controller
                     'email' => $p->email,
                     'phone' => $p->phone,
                     'id_card' => $p->id_card,
+                    'address' => $p->address,
                     'category' => $p->category ? $p->category->name : '-',
                     'bib_number' => $p->bib_number,
                     'age_group' => $p->getAgeGroup($event->start_at),
@@ -906,6 +907,110 @@ class EventController extends Controller
         return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink'));
     }
 
+    public function participantsApi(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $perPage = (int) $request->query('per_page', 200);
+        if ($perPage < 1) {
+            $perPage = 1;
+        }
+        if ($perPage > 500) {
+            $perPage = 500;
+        }
+
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id);
+        })
+            ->with(['transaction', 'category']);
+
+        if ($request->filled('payment_status')) {
+            $status = $request->query('payment_status');
+            $query->whereHas('transaction', function ($q) use ($status) {
+                $q->where('payment_status', $status);
+            });
+        }
+
+        if ($request->has('is_picked_up') && $request->query('is_picked_up') !== '') {
+            $query->where('is_picked_up', (string) $request->query('is_picked_up') === '1');
+        }
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->query('gender'));
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('race_category_id', $request->query('category_id'));
+        }
+
+        if ($request->filled('age_group')) {
+            $group = $request->query('age_group');
+            $eventDate = $event->start_at;
+            if ($eventDate) {
+                if ($group === '50+') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master 45+') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+                } elseif ($group === 'Umum') {
+                    $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+                }
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = trim((string) $request->query('search'));
+            $query->where(function ($qq) use ($search) {
+                $qq->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('bib_number', 'like', "%{$search}%")
+                    ->orWhere('id_card', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $participants = $query->orderBy('id')->cursorPaginate($perPage)->withQueryString();
+
+        $items = collect($participants->items())->map(function ($p) use ($event) {
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'gender' => $p->gender,
+                'email' => $p->email,
+                'phone' => $p->phone,
+                'id_card' => $p->id_card,
+                'address' => $p->address,
+                'category' => $p->category ? $p->category->name : '-',
+                'bib_number' => $p->bib_number,
+                'age_group' => $p->getAgeGroup($event->start_at),
+                'jersey_size' => $p->jersey_size,
+                'created_at' => $p->created_at ? $p->created_at->format('Y-m-d H:i:s') : null,
+                'payment_status' => $p->transaction->payment_status ?? 'pending',
+                'transaction_id' => $p->transaction->id,
+                'is_picked_up' => $p->is_picked_up,
+                'picked_up_at' => $p->picked_up_at ? $p->picked_up_at->format('Y-m-d H:i:s') : null,
+                'picked_up_by' => $p->picked_up_by,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $items,
+            'meta' => [
+                'per_page' => $participants->perPage(),
+                'next_cursor' => $participants->nextCursor()?->encode(),
+                'prev_cursor' => $participants->previousCursor()?->encode(),
+            ],
+        ]);
+    }
+
     public function storeParticipant(Request $request, Event $event, StoreManualParticipantAction $action)
     {
         $this->authorizeEvent($event);
@@ -916,6 +1021,7 @@ class EventController extends Controller
             'email' => 'required|email|max:255',
             'phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
             'id_card' => 'required|string|max:50',
+            'address' => 'required|string|max:500',
             'category_id' => [
                 'required',
                 'exists:race_categories,id',
@@ -1012,6 +1118,14 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
+        \Illuminate\Support\Facades\Log::info('participants_export_csv_start', [
+            'event_id' => $event->id,
+            'payment_status' => request()->payment_status,
+            'is_picked_up' => request()->is_picked_up,
+            'gender' => request()->gender,
+            'category_id' => request()->category_id,
+        ]);
+
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
@@ -1038,8 +1152,6 @@ class EventController extends Controller
             $query->where('race_category_id', request()->category_id);
         }
 
-        $participants = $query->orderBy('created_at', 'desc')->get();
-
         $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.csv';
 
         $headers = [
@@ -1047,57 +1159,130 @@ class EventController extends Controller
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
-        $callback = function () use ($participants) {
+        $queryForStream = clone $query;
+
+        $callback = function () use ($queryForStream) {
             $file = fopen('php://output', 'w');
 
             // BOM for Excel UTF-8 support
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
             // Header
-            fputcsv($file, [
-                'No',
-                'Nama',
-                'Gender',
-                'Email',
-                'Phone',
-                'ID Card',
-                'Kategori',
-                'BIB Number',
-                'Jersey Size',
-                'Target Time',
-                'Status Pembayaran',
-                'Status Pengambilan',
-                'Tanggal Registrasi',
-                'Tanggal Pengambilan',
-                'Diambil Oleh (PIC)',
-            ]);
+            fputcsv($file, \App\Services\GoogleSheetsParticipantExporter::OUTPUT_COLUMNS);
 
             // Data
-            foreach ($participants as $index => $participant) {
-                fputcsv($file, [
-                    $index + 1,
-                    $participant->name,
-                    ucfirst($participant->gender ?? '-'),
-                    $participant->email,
-                    $participant->phone,
-                    $participant->id_card,
-                    $participant->category ? $participant->category->name : '-',
-                    $participant->bib_number ?? '-',
-                    $participant->jersey_size ?? '-',
-                    $participant->target_time ? $participant->target_time->format('H:i:s') : '-',
-                    ucfirst($participant->transaction->payment_status ?? 'pending'),
-                    $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
-                    $participant->created_at->format('Y-m-d H:i:s'),
-                    $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : '-',
-                    $participant->picked_up_by ?? '-',
-                ]);
-            }
+            $rowNumber = 0;
+            $queryForStream->orderBy('id')->chunkById(1000, function ($participants) use ($file, &$rowNumber) {
+                foreach ($participants as $participant) {
+                    $rowNumber++;
+                    fputcsv($file, [
+                        $rowNumber,
+                        $participant->name,
+                        ucfirst($participant->gender ?? '-'),
+                        $participant->email,
+                        $participant->phone,
+                        $participant->id_card,
+                        $participant->address ?? '-',
+                        $participant->category ? $participant->category->name : '-',
+                        $participant->bib_number ?? '-',
+                        $participant->jersey_size ?? '-',
+                        $participant->target_time ?? '-',
+                        ucfirst($participant->transaction->payment_status ?? 'pending'),
+                        $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
+                        $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '-',
+                        $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : '-',
+                        $participant->picked_up_by ?? '-',
+                    ]);
+                }
+            });
 
             fclose($file);
         };
 
         return response()->stream($callback, 200, $headers);
     }
+
+    public function exportParticipantsXlsx(Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        \Illuminate\Support\Facades\Log::info('participants_export_xlsx_start', [
+            'event_id' => $event->id,
+            'payment_status' => request()->payment_status,
+            'is_picked_up' => request()->is_picked_up,
+            'gender' => request()->gender,
+            'category_id' => request()->category_id,
+        ]);
+
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id);
+        })
+            ->with(['transaction', 'category']);
+
+        if (request()->has('payment_status') && request()->payment_status) {
+            $query->whereHas('transaction', function ($q) {
+                $q->where('payment_status', request()->payment_status);
+            });
+        }
+
+        if (request()->has('is_picked_up') && request()->is_picked_up !== '') {
+            $query->where('is_picked_up', request()->is_picked_up == '1');
+        }
+
+        if (request()->has('gender') && request()->gender) {
+            $query->where('gender', request()->gender);
+        }
+
+        if (request()->has('category_id') && request()->category_id) {
+            $query->where('race_category_id', request()->category_id);
+        }
+
+        $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.xlsx';
+
+        $queryForStream = clone $query;
+
+        return response()->streamDownload(function () use ($queryForStream) {
+            $writer = new \OpenSpout\Writer\XLSX\Writer();
+            $writer->openToFile('php://output');
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(\App\Services\GoogleSheetsParticipantExporter::OUTPUT_COLUMNS));
+
+            $rowNumber = 0;
+            $queryForStream->orderBy('id')->chunkById(1000, function ($participants) use (&$rowNumber, $writer) {
+                $rows = [];
+                foreach ($participants as $participant) {
+                    $rowNumber++;
+                    $rows[] = \OpenSpout\Common\Entity\Row::fromValues([
+                        $rowNumber,
+                        $participant->name,
+                        ucfirst($participant->gender ?? '-'),
+                        $participant->email,
+                        $participant->phone,
+                        $participant->id_card,
+                        $participant->address ?? '-',
+                        $participant->category ? $participant->category->name : '-',
+                        $participant->bib_number ?? '-',
+                        $participant->jersey_size ?? '-',
+                        $participant->target_time ?? '-',
+                        ucfirst($participant->transaction->payment_status ?? 'pending'),
+                        $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
+                        $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '-',
+                        $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : '-',
+                        $participant->picked_up_by ?? '-',
+                    ]);
+                }
+                if ($rows) {
+                    $writer->addRows($rows);
+                }
+            });
+
+            $writer->close();
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    // Google Sheets export removed as per request
 
     /**
      * Delete a participant (only if not paid)

@@ -69,6 +69,7 @@ class Event extends Model
         'lock_version',
         'payment_config',
         'whatsapp_config',
+        'sheets_config',
     ];
 
     protected $casts = [
@@ -93,6 +94,7 @@ class Event extends Model
         'lock_version' => 'integer',
         'payment_config' => 'array',
         'whatsapp_config' => 'array',
+        'sheets_config' => 'array',
     ];
 
     protected static function boot()

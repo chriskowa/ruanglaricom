@@ -75,6 +75,7 @@ class TargetTimeRegistrationTest extends TestCase
                     'email' => 'runner@example.com',
                     'phone' => '081234567890',
                     'id_card' => '1234567890123456',
+                    'address' => 'Jl. Test No. 1, Jakarta',
                     'category_id' => $category->id,
                     'emergency_contact_name' => 'Mom',
                     'emergency_contact_number' => '081111111111',
@@ -98,6 +99,7 @@ class TargetTimeRegistrationTest extends TestCase
         $this->assertDatabaseHas('participants', [
             'email' => 'runner@example.com',
             'target_time' => '01:45:30',
+            'address' => 'Jl. Test No. 1, Jakarta',
         ]);
     }
 
@@ -134,6 +136,7 @@ class TargetTimeRegistrationTest extends TestCase
                     'email' => 'invalid@example.com',
                     'phone' => '081234567890',
                     'id_card' => '1234567890123456',
+                    'address' => 'Jl. Test No. 2, Jakarta',
                     'category_id' => $category->id,
                     'emergency_contact_name' => 'Mom',
                     'emergency_contact_number' => '081111111111',
@@ -180,6 +183,7 @@ class TargetTimeRegistrationTest extends TestCase
                     'email' => 'invalid@example.com',
                     'phone' => '081234567890',
                     'id_card' => '1234567890123456',
+                    'address' => 'Jl. Test No. 3, Jakarta',
                     'category_id' => $category->id,
                     'emergency_contact_name' => 'Mom',
                     'emergency_contact_number' => '081111111111',
@@ -226,6 +230,7 @@ class TargetTimeRegistrationTest extends TestCase
                     'email' => 'zero@example.com',
                     'phone' => '081234567890',
                     'id_card' => '1234567890123456',
+                    'address' => 'Jl. Test No. 4, Jakarta',
                     'category_id' => $category->id,
                     'emergency_contact_name' => 'Mom',
                     'emergency_contact_number' => '081111111111',
@@ -244,4 +249,3 @@ class TargetTimeRegistrationTest extends TestCase
         $response->assertJsonValidationErrors(['participants.0.target_time']);
     }
 }
-

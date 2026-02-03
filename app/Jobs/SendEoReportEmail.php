@@ -6,12 +6,12 @@ use App\Mail\EoReportEmail;
 use App\Models\EoReportEmailDelivery;
 use App\Models\Participant;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class SendEoReportEmail implements ShouldQueue
 {
@@ -24,7 +24,7 @@ class SendEoReportEmail implements ShouldQueue
         $this->deliveryId = $deliveryId;
     }
 
-    public function handle()
+    public function handle(Mailer $mailer)
     {
         $delivery = EoReportEmailDelivery::find($this->deliveryId);
 
@@ -34,6 +34,18 @@ class SendEoReportEmail implements ShouldQueue
         }
 
         if ($delivery->status === 'sent') {
+            return;
+        }
+
+        if (! filter_var($delivery->to_email, FILTER_VALIDATE_EMAIL)) {
+            $delivery->update([
+                'status' => 'failed',
+                'failure_code' => 'invalid_email',
+                'failure_message' => 'Invalid email address',
+                'attempts' => $delivery->attempts + 1,
+                'last_attempt_at' => now(),
+                'first_attempt_at' => $delivery->first_attempt_at ?? now(),
+            ]);
             return;
         }
 
@@ -87,14 +99,14 @@ class SendEoReportEmail implements ShouldQueue
                 'delivery' => $delivery,
             ];
 
-            Mail::to($delivery->to_email)->send(new EoReportEmail($data, $delivery->subject));
+            $mailer->to($delivery->to_email)->send(new EoReportEmail($data, $delivery->subject));
 
             $delivery->update([
                 'status' => 'sent',
                 'sent_at' => now(),
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Failed to send EO Report Email: {$e->getMessage()}", [
                 'delivery_id' => $this->deliveryId,
                 'trace' => $e->getTraceAsString(),
@@ -102,7 +114,7 @@ class SendEoReportEmail implements ShouldQueue
 
             $delivery->update([
                 'status' => 'failed',
-                'failure_code' => $e->getCode(),
+                'failure_code' => 'transport_error',
                 'failure_message' => substr($e->getMessage(), 0, 255), // Truncate to fit column
             ]);
             

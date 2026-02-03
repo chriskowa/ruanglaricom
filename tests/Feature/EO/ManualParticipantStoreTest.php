@@ -137,6 +137,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'john@example.com',
             'phone' => '081234567890',
             'id_card' => '1234567890123456',
+            'address' => 'Jl. EO Test No. 1, Jakarta',
             'category_id' => $category->id,
             'date_of_birth' => '1990-01-01',
             'target_time' => '01:00:00',
@@ -184,6 +185,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'john@example.com',
             'phone' => '081234567890',
             'id_card' => '1234567890123456',
+            'address' => 'Jl. EO Test No. 2, Jakarta',
             'category_id' => $category->id,
         ]);
         
@@ -194,6 +196,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'john@example.com',
             'phone' => '081234567891',
             'id_card' => '1234567890123457',
+            'address' => 'Jl. EO Test No. 3, Jakarta',
             'category_id' => $category->id,
         ]);
         
@@ -225,6 +228,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'early@example.com',
             'phone' => '081234567890',
             'id_card' => '1234567890',
+            'address' => 'Jl. EO Test No. 4, Jakarta',
             'category_id' => $category->id,
         ]);
 
@@ -259,6 +263,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'regular@example.com',
             'phone' => '081234567890',
             'id_card' => '1234567890',
+            'address' => 'Jl. EO Test No. 5, Jakarta',
             'category_id' => $category->id,
         ]);
 
@@ -321,6 +326,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'late@example.com',
             'phone' => '081234567890',
             'id_card' => '1234567890',
+            'address' => 'Jl. EO Test No. 6, Jakarta',
             'category_id' => $category->id,
         ]);
 
@@ -357,6 +363,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'queue@example.com',
             'phone' => '081234567899',
             'id_card' => '1234567890123456',
+            'address' => 'Jl. EO Test No. 7, Jakarta',
             'category_id' => $category->id,
             'use_queue' => true,
         ];
@@ -393,6 +400,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'nowa@example.com',
             'phone' => '081234567898',
             'id_card' => '1234567890123456',
+            'address' => 'Jl. EO Test No. 8, Jakarta',
             'category_id' => $category->id,
             'send_whatsapp' => false,
         ];
@@ -437,6 +445,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'early@example.com',
             'phone' => '081234567800',
             'id_card' => '1234567890123456',
+            'address' => 'Jl. EO Test No. 9, Jakarta',
             'category_id' => $category->id,
         ];
         
@@ -480,6 +489,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'regular@example.com',
             'phone' => '081234567801',
             'id_card' => '1234567890123456',
+            'address' => 'Jl. EO Test No. 10, Jakarta',
             'category_id' => $category->id,
         ];
         
@@ -547,6 +557,7 @@ class ManualParticipantStoreTest extends TestCase
             'email' => 'late@example.com',
             'phone' => '081234567802',
             'id_card' => '1234567890123456',
+            'address' => 'Jl. EO Test No. 11, Jakarta',
             'category_id' => $category->id,
             'use_queue' => true,
         ];

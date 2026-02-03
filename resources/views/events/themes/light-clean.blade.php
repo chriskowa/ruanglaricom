@@ -542,6 +542,10 @@
                                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">ID Card (KTP/SIM)</label>
                                                     <input type="text" name="participants[0][id_card]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">
                                                 </div>
+                                                <div class="md:col-span-2">
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Alamat</label>
+                                                    <textarea name="participants[0][address]" required maxlength="500" rows="3" class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900"></textarea>
+                                                </div>
                                                 <div>
                                                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nama Kontak Darurat</label>
                                                     <input type="text" name="participants[0][emergency_contact_name]" required class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">

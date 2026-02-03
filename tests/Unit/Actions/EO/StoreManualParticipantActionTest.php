@@ -43,6 +43,7 @@ class StoreManualParticipantActionTest extends TestCase
             'email' => 'BUDI@EXAMPLE.COM',
             'phone' => '081234567890',
             'id_card' => '1234567890',
+            'address' => 'Jl. Unit Test No. 1, Jakarta',
             'category_id' => $category->id,
             'date_of_birth' => '1990-01-01',
             'target_time' => '01:30:00',
@@ -89,6 +90,7 @@ class StoreManualParticipantActionTest extends TestCase
             'email' => 'budi@example.com',
             'phone' => '081234567890',
             'id_card' => '1234567890',
+            'address' => 'Jl. Unit Test No. 2, Jakarta',
             'category_id' => $category->id,
         ], $operator);
 
@@ -98,6 +100,7 @@ class StoreManualParticipantActionTest extends TestCase
             'email' => 'BUDI@EXAMPLE.COM',
             'phone' => '081234567890',
             'id_card' => '2234567890',
+            'address' => 'Jl. Unit Test No. 3, Jakarta',
             'category_id' => $category->id,
         ], $operator);
     }
@@ -154,8 +157,8 @@ class StoreManualParticipantActionTest extends TestCase
             'email' => 'new@example.com',
             'phone' => '081234567890',
             'id_card' => '1234567890',
+            'address' => 'Jl. Unit Test No. 4, Jakarta',
             'category_id' => $category->id,
         ], $operator);
     }
 }
-
