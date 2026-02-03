@@ -3210,9 +3210,22 @@
                         required: true,
                         pattern: /^[0-9]{8,16}$/,
                         minLength: 8,
+                        custom: (value) => {
+                            const form = document.getElementById('registrationForm');
+                            if (!form) return true;
+                            const inputs = form.querySelectorAll('input[name*="[id_card]"]');
+                            let count = 0;
+                            inputs.forEach(input => {
+                                if (input.value.trim() === value) {
+                                    count++;
+                                }
+                            });
+                            return count <= 1;
+                        },
                         message: {
                             required: "Nomor Identitas (NIK/KTP/Kartu Pelajar) wajib diisi",
-                            pattern: "Nomor identitas harus berupa angka 8-16 digit"
+                            pattern: "Nomor identitas harus berupa angka 8-16 digit",
+                            custom: "NIK/ID ini sudah digunakan oleh peserta lain"
                         }
                     },
                     date_of_birth: {
