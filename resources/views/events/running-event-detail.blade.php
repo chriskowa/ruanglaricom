@@ -1,14 +1,14 @@
 @extends('layouts.pacerhub')
 
 @section('title', $event->name . ' - Jadwal Lari')
-@section('description', Str::limit(strip_tags($event->description), 150))
+@section('description', Str::limit(strip_tags($event->short_description ?? $event->full_description), 150))
 
 @section('content')
 <div class="relative min-h-screen bg-[#0B1120] font-sans selection:bg-neon selection:text-dark">
     <!-- Hero Background -->
     <div class="absolute inset-0 h-[60vh] overflow-hidden z-0">
-        @if($event->banner_image)
-            <img src="{{ $event->banner_image }}" class="w-full h-full object-cover opacity-30 blur-sm scale-105">
+        @if($event->hero_image_url)
+            <img src="{{ $event->hero_image_url }}" class="w-full h-full object-cover opacity-30 blur-sm scale-105">
             <div class="absolute inset-0 bg-gradient-to-b from-dark/60 via-dark/80 to-[#0B1120]"></div>
         @else
             <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
@@ -80,9 +80,9 @@
                 </header>
 
                 <!-- Featured Image (Article Style) -->
-                @if($event->banner_image)
+                @if($event->hero_image_url)
                     <figure class="relative rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 group">
-                        <img src="{{ $event->banner_image }}" alt="{{ $event->name }}" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out">
+                        <img src="{{ $event->hero_image_url }}" alt="{{ $event->name }}" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out">
                         <div class="absolute inset-0 bg-gradient-to-t from-dark/50 to-transparent opacity-60"></div>
                     </figure>
                 @endif
@@ -96,7 +96,7 @@
                         prose-strong:text-white prose-strong:font-black
                         prose-ul:list-disc prose-ul:pl-6 prose-li:text-slate-300
                         prose-img:rounded-2xl prose-img:shadow-xl">
-                        {!! nl2br(e($event->description)) !!}
+                        {!! nl2br(e($event->full_description)) !!}
                     </article>
                 </div>
 
@@ -135,8 +135,8 @@
                                 @foreach($relatedEvents as $related)
                                     <a href="{{ route('running-event.detail', $related->slug) }}" class="group block bg-slate-800/30 border border-slate-700 hover:border-neon/50 rounded-2xl overflow-hidden transition-all hover:bg-slate-800/50">
                                         <div class="aspect-video relative overflow-hidden">
-                                            @if($related->banner_image)
-                                                <img src="{{ $related->banner_image }}" alt="{{ $related->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                            @if($related->hero_image_url)
+                                                <img src="{{ $related->hero_image_url }}" alt="{{ $related->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                             @else
                                                 <div class="w-full h-full bg-slate-800 flex items-center justify-center">
                                                     <svg class="w-10 h-10 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -169,8 +169,8 @@
                                 @foreach($sameDateEvents as $sameDate)
                                     <a href="{{ route('running-event.detail', $sameDate->slug) }}" class="group block bg-slate-800/30 border border-slate-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all hover:bg-slate-800/50">
                                         <div class="aspect-video relative overflow-hidden">
-                                            @if($sameDate->banner_image)
-                                                <img src="{{ $sameDate->banner_image }}" alt="{{ $sameDate->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                            @if($sameDate->hero_image_url)
+                                                <img src="{{ $sameDate->hero_image_url }}" alt="{{ $sameDate->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                             @else
                                                 <div class="w-full h-full bg-slate-800 flex items-center justify-center">
                                                     <svg class="w-10 h-10 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -208,8 +208,8 @@
                             STATUS PENDAFTARAN
                         </h3>
                         
-                        @if($event->registration_link)
-                            <a href="{{ $event->registration_link }}" target="_blank" class="relative z-10 flex items-center justify-center w-full py-4 rounded-xl bg-neon text-dark font-black text-lg hover:bg-neonHover hover:scale-[1.02] transition-all shadow-lg shadow-neon/25 group">
+                        @if($event->external_registration_link)
+                            <a href="{{ $event->external_registration_link }}" target="_blank" class="relative z-10 flex items-center justify-center w-full py-4 rounded-xl bg-neon text-dark font-black text-lg hover:bg-neonHover hover:scale-[1.02] transition-all shadow-lg shadow-neon/25 group">
                                 DAFTAR SEKARANG
                                 <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                             </a>

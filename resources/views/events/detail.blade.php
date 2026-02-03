@@ -1,7 +1,7 @@
 @extends('layouts.pacerhub')
 
 @section('title', $event->name . ' - Jadwal Lari')
-@section('description', Str::limit($event->description, 150))
+@section('description', Str::limit($event->full_description, 150))
 
 @section('content')
 <div class="min-h-screen pt-20 pb-16 px-4 md:px-8 font-sans">
@@ -53,9 +53,9 @@
             </div>
 
             <!-- Banner -->
-            @if($event->banner_image)
+            @if($event->hero_image_url)
                 <div class="rounded-2xl overflow-hidden border border-slate-700 shadow-2xl">
-                    <img src="{{ $event->banner_image }}" alt="{{ $event->name }}" class="w-full h-auto object-cover">
+                    <img src="{{ $event->hero_image_url }}" alt="{{ $event->name }}" class="w-full h-auto object-cover">
                 </div>
             @endif
 
@@ -63,7 +63,7 @@
             <div class="prose prose-invert max-w-none">
                 <h3 class="text-white font-bold text-xl mb-4">Tentang Event</h3>
                 <div class="text-slate-300 leading-relaxed whitespace-pre-line">
-                    {{ $event->description }}
+                    {{ $event->full_description }}
                 </div>
             </div>
 
@@ -87,8 +87,8 @@
             <div class="bg-card/80 backdrop-blur-md border border-slate-700 rounded-2xl p-6 sticky top-24">
                 <h3 class="text-lg font-bold text-white mb-4">Informasi Pendaftaran</h3>
                 
-                @if($event->registration_link)
-                    <a href="{{ $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="block w-full py-4 rounded-xl bg-neon text-dark font-black text-center hover:bg-neon/90 transition-all shadow-lg shadow-neon/20 mb-4 text-lg">
+                @if($event->external_registration_link)
+                    <a href="{{ $event->external_registration_link }}" target="_blank" rel="noopener noreferrer" class="block w-full py-4 rounded-xl bg-neon text-dark font-black text-center hover:bg-neon/90 transition-all shadow-lg shadow-neon/20 mb-4 text-lg">
                         DAFTAR SEKARANG
                     </a>
                 @else

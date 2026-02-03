@@ -22,6 +22,8 @@ class Event extends Model
         'terms_and_conditions',
         'start_at',
         'end_at',
+        'city_id',      // Added
+        'race_type_id', // Added
         'location_name',
         'location_address',
         'location_lat',
@@ -64,6 +66,7 @@ class Event extends Model
         'organizer_contact',
         'contributor_contact',
         'is_featured',
+        'event_kind', // Added this field
         'status',
         'is_active',
         'lock_version',

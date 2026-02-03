@@ -159,7 +159,7 @@
                             </div>
                         </div>
                         <input type="hidden" name="banner_image" id="banner-input" value="{{ old('banner_image') }}">
-                        <input type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-400 focus:outline-none focus:border-neon transition-colors" placeholder="Or paste URL here..." oninput="updateBannerPreview(this.value)">
+                        <input type="text" value="{{ old('banner_image') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-400 focus:outline-none focus:border-neon transition-colors" placeholder="Or paste URL here..." oninput="updateBannerPreview(this.value)">
                     </div>
                 </div>
             </div>

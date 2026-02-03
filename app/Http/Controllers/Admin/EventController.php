@@ -150,6 +150,7 @@ class EventController extends Controller
             'organizer_name' => $validated['organizer_name'] ?? null,
             'organizer_contact' => $validated['organizer_contact'] ?? null,
             'contributor_contact' => $validated['contributor_contact'] ?? null,
+            'event_kind' => 'directory', // Force directory type
             'status' => $validated['status'],
             'is_active' => true,
         ]);
@@ -213,6 +214,7 @@ class EventController extends Controller
             'organizer_name' => $validated['organizer_name'] ?? null,
             'organizer_contact' => $validated['organizer_contact'] ?? null,
             'contributor_contact' => $validated['contributor_contact'] ?? null,
+            'event_kind' => 'directory', // Force directory type
             'status' => $validated['status'],
         ]);
 

@@ -38,11 +38,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-bold text-slate-300 mb-2">Tanggal Pelaksanaan</label>
-                                <input type="date" name="event_date" value="{{ old('event_date', $event->event_date->format('Y-m-d')) }}" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                                <input type="date" name="event_date" value="{{ old('event_date', $event->start_at ? $event->start_at->format('Y-m-d') : '') }}" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-300 mb-2">Jam & Menit</label>
-                                <input type="time" name="start_time" value="{{ old('start_time', $event->start_time ? $event->start_time->format('H:i') : '') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                                <input type="time" name="start_time" value="{{ old('start_time', $event->start_at ? $event->start_at->format('H:i') : '') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
                             </div>
                         </div>
 
@@ -64,7 +64,7 @@
 
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">Deskripsi Event</label>
-                            <textarea name="description" rows="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">{{ old('description', $event->description) }}</textarea>
+                            <textarea name="description" rows="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">{{ old('description', $event->full_description) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -103,7 +103,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">Link Pendaftaran</label>
-                            <input type="url" name="registration_link" value="{{ old('registration_link', $event->registration_link) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                            <input type="url" name="registration_link" value="{{ old('registration_link', $event->external_registration_link) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">Sosmed Event (URL)</label>
@@ -159,8 +159,8 @@
                                 <span class="text-xs text-slate-400">Click to change (Library / Cloudinary)</span>
                             </div>
                         </div>
-                        <input type="hidden" name="banner_image" id="banner-input" value="{{ old('banner_image', $event->banner_image) }}">
-                        <input type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-400 focus:outline-none focus:border-neon transition-colors" placeholder="Or paste URL here..." oninput="updateBannerPreview(this.value)">
+                        <input type="hidden" name="banner_image" id="banner-input" value="{{ old('banner_image', $event->hero_image_url) }}">
+                        <input type="text" value="{{ old('banner_image', $event->hero_image_url) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-400 focus:outline-none focus:border-neon transition-colors" placeholder="Or paste URL here..." oninput="updateBannerPreview(this.value)">
                     </div>
                 </div>
             </div>
