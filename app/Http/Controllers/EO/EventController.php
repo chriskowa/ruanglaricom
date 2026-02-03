@@ -413,6 +413,8 @@ class EventController extends Controller
             'categories.*.price_early' => 'nullable|integer|min:0',
             'categories.*.price_regular' => 'nullable|integer|min:0',
             'categories.*.price_late' => 'nullable|integer|min:0',
+            'categories.*.early_bird_quota' => 'nullable|integer|min:0',
+            'categories.*.early_bird_end_at' => 'nullable|date',
             'categories.*.reg_start_at' => 'nullable|date',
             'categories.*.reg_end_at' => 'nullable|date|after:categories.*.reg_start_at',
             'categories.*.is_active' => 'nullable|boolean',
