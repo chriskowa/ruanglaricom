@@ -282,6 +282,9 @@
 
                                     <div class="bg-slate-900 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl rounded-tl-sm p-4 border border-slate-800 relative">
                                         <div class="absolute -top-3 left-0 bg-neon text-dark text-[10px] font-bold px-2 py-0.5 rounded">AI COACH SAYS:</div>
+                                        <button id="rlfa-tts-btn" type="button" class="absolute -top-3 right-0 bg-slate-800 text-neon text-[10px] font-bold px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-700 transition flex items-center gap-1">
+                                            <i class="fa-solid fa-volume-high"></i> BACA
+                                        </button>
                                         <p class="text-sm text-slate-200 leading-relaxed mt-2" id="rlfa-coach-message"></p>
                                     </div>
 
@@ -1054,6 +1057,7 @@
         const metaFps = document.getElementById('rlfa-meta-fps');
         const metaSize = document.getElementById('rlfa-meta-size');
         const coachMessageEl = document.getElementById('rlfa-coach-message');
+        const ttsBtn = document.getElementById('rlfa-tts-btn');
         const issuesWrap = document.getElementById('rlfa-issues-wrap');
         const issuesEl = document.getElementById('rlfa-issues');
         const suggestionsWrap = document.getElementById('rlfa-suggestions-wrap');
@@ -1085,6 +1089,36 @@
             const s = Math.round(seconds % 60);
             return (m > 0 ? (m + 'm ') : '') + s + 's';
         };
+
+        if (ttsBtn) {
+            ttsBtn.addEventListener('click', () => {
+                const text = coachMessageEl.textContent;
+                if (!text) return;
+
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    ttsBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> BACA';
+                    return;
+                }
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+
+                utterance.onstart = () => {
+                    ttsBtn.innerHTML = '<i class="fa-solid fa-stop"></i> STOP';
+                };
+
+                utterance.onend = () => {
+                    ttsBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> BACA';
+                };
+
+                utterance.onerror = () => {
+                     ttsBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> BACA';
+                };
+
+                window.speechSynthesis.speak(utterance);
+            });
+        }
 
         const showInstructions = () => {
             stateResults.classList.add('hidden');
