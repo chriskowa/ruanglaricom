@@ -138,7 +138,34 @@ class PublicRunningEventController extends Controller
 
     public function cityArchive($citySlug)
     {
-        $city = City::where('seourl', $citySlug)->firstOrFail();
+        $citySlug = trim(Str::lower((string) $citySlug));
+
+        $city = City::where('seourl', $citySlug)->first();
+        if (! $city) {
+            $candidate = City::query()
+                ->select(['id', 'name', 'seourl'])
+                ->get()
+                ->first(function ($c) use ($citySlug) {
+                    return Str::slug((string) $c->name) === $citySlug;
+                });
+
+            if ($candidate) {
+                $city = City::find($candidate->id);
+            }
+        }
+
+        if (! $city) {
+            abort(404);
+        }
+
+        if ($city->seourl && $city->seourl !== $citySlug) {
+            $to = route('events.city', ['city' => $city->seourl]);
+            $qs = request()->getQueryString();
+            if ($qs) {
+                $to .= '?' . $qs;
+            }
+            return redirect()->to($to, 301);
+        }
 
         // Upcoming events
         $upcomingEvents = Event::published()
