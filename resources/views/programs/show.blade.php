@@ -1,7 +1,10 @@
 @extends('layouts.pacerhub')
 @php($withSidebar = true)
 
-@section('title', $program->title)
+@section('title', $program->title . ' | Program Lari')
+@section('meta_title', $program->title . ' | Ruang Lari')
+@section('meta_description', Str::limit(strip_tags($program->description), 150))
+@section('og_image', $program->image_url ?? $program->banner_url ?? asset('images/ruanglari-cover.jpg'))
 
 @push('styles')
 <script>
@@ -257,11 +260,12 @@
                                             <p class="text-sm text-slate-400">Please login as a Runner to purchase.</p>
                                         </div>
                                     @endif
-                                @else
+                                @endauth
+                                @guest
                                     <a href="{{ route('login') }}" class="block w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-lg rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 text-center">
                                         LOGIN TO JOIN
                                     </a>
-                                @endauth
+                                @endguest
                             @endif
                         @endif
 
@@ -323,13 +327,18 @@
                         </form>
                     @else
                         @auth
-                            <form action="{{ route('marketplace.cart.add', $program->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="px-6 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20">BUY</button>
-                            </form>
-                        @else
-                            <a href="{{ route('login') }}" class="px-6 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20">LOGIN</a>
+                            @if(auth()->user()->role === 'runner')
+                                <form action="{{ route('marketplace.cart.add', $program->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="px-6 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20">BUY</button>
+                                </form>
+                            @else
+                                <span class="text-xs text-slate-500 font-bold px-3">Runner Only</span>
+                            @endif
                         @endauth
+                        @guest
+                            <a href="{{ route('login') }}" class="px-6 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20">LOGIN</a>
+                        @endguest
                     @endif
                 @endif
             </div>
@@ -400,5 +409,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
 </script>
 @endpush
