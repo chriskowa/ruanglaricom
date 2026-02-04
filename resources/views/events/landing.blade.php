@@ -29,7 +29,13 @@
             <form id="filter-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Search -->
                 <div class="lg:col-span-1">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Cari Event</label>
+                    <div class="flex justify-between items-end mb-1">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Event</label>
+                        <button type="button" id="mobile-filter-toggle" class="md:hidden text-neon text-xs font-bold flex items-center gap-1 hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+                            Filter
+                        </button>
+                    </div>
                     <div class="relative">
                         <input type="text" name="search" placeholder="Nama event atau lokasi..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 pl-10 text-white focus:outline-none focus:border-neon transition-colors">
                         <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -37,7 +43,7 @@
                 </div>
 
                 <!-- Month & Year -->
-                <div>
+                <div class="mobile-filter-item hidden md:block">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Waktu</label>
                     <div class="flex gap-2">
                         <select name="month" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
@@ -56,7 +62,7 @@
                 </div>
 
                 <!-- City -->
-                <div>
+                <div class="mobile-filter-item hidden md:block">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Lokasi</label>
                     <select name="city_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
                         <option value="">Semua Kota</option>
@@ -67,7 +73,7 @@
                 </div>
 
                 <!-- Race Type -->
-                <div>
+                <div class="mobile-filter-item hidden md:block">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Jenis Lomba</label>
                     <select name="race_type_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
                         <option value="">Semua Jenis</option>
@@ -78,7 +84,7 @@
                 </div>
 
                 <!-- Distance -->
-                <div>
+                <div class="mobile-filter-item hidden md:block">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Kategori Jarak</label>
                     <select name="race_distance_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
                         <option value="">Semua Jarak</option>
@@ -183,6 +189,20 @@
             clearTimeout(timeout);
             timeout = setTimeout(() => fetchEvents(), 500);
         });
+
+        // Mobile Filter Toggle
+        const mobileToggle = document.getElementById('mobile-filter-toggle');
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', function() {
+                document.querySelectorAll('.mobile-filter-item').forEach(el => {
+                    el.classList.toggle('hidden');
+                });
+                
+                // Toggle active state styling on button
+                this.classList.toggle('text-neon');
+                this.classList.toggle('text-white');
+            });
+        }
 
         // Initial listeners
         attachPaginationListeners();

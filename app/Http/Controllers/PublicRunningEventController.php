@@ -16,7 +16,7 @@ class PublicRunningEventController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Event::directory()
+        $query = Event::whereIn('event_kind', ['directory', 'managed'])
             ->published()
             ->upcoming()
             ->with(['city', 'raceType', 'raceDistances', 'categories']);

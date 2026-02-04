@@ -295,6 +295,9 @@ Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
 Route::get('/realistic-running-program', function () {
     return view('programs.design');
 })->name('programs.realistic');
+
+Route::middleware('signed')->get('/reports/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])->name('report.show');
+
 Route::get('/coach-ladder-program', function () {
     return view('coach.hub');
 })->name('coach.hub');
@@ -755,6 +758,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'destroyParticipant'])->name('events.participants.destroy');
         Route::get('events/{event}/participants/export', [App\Http\Controllers\EO\EventController::class, 'exportParticipants'])->name('events.participants.export');
         Route::post('events/{event}/participants/{participant}/status', [App\Http\Controllers\EO\EventController::class, 'updateParticipantStatus'])->name('events.participants.status');
+        Route::post('events/{event}/participants/resend-email', [App\Http\Controllers\EO\EventController::class, 'resendEmail'])->name('events.participants.resend-email');
         Route::post('events/{event}/transactions/{transaction_id}/payment-status', [App\Http\Controllers\EO\EventController::class, 'updatePaymentStatus'])->name('events.transactions.payment-status');
         Route::post('events/{event}/packages', [App\Http\Controllers\EO\EventPackageController::class, 'store'])->name('events.packages.store');
         Route::put('events/packages/{package}', [App\Http\Controllers\EO\EventPackageController::class, 'update'])->name('events.packages.update');
