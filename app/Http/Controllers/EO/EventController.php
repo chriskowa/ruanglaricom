@@ -1173,7 +1173,8 @@ class EventController extends Controller
 
         $participant = \App\Models\Participant::with('transaction')->find($request->participant_id);
 
-        if (!$participant || $participant->transaction->event_id !== $event->id) {
+        $participantEventId = (int) ($participant?->transaction?->event_id ?? 0);
+        if (! $participant || $participantEventId !== (int) $event->id) {
             return response()->json([
                 'success' => false, 
                 'message' => 'Participant not found or does not belong to this event.'

@@ -1138,6 +1138,8 @@
             stateScanning.classList.add('hidden');
             stateResults.classList.remove('hidden');
             stateResults.classList.add('flex');
+            stateResults.scrollTop = 0;
+            document.getElementById('rlfa-app').scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
 
         const resetWarnings = () => {
@@ -1492,6 +1494,23 @@
             scanMetric1.textContent = '--';
             scanMetric2.textContent = '--';
 
+            // Dynamic loading messages
+            let loadingInterval = setInterval(() => {
+                const current = scanText.textContent;
+                if (current === 'MEMPROSES...' || current === 'MENGIRIM METRICS...') {
+                    const msgs = [
+                        'Menganalisis data biomekanik...',
+                        'Mengidentifikasi risiko cedera...',
+                        'Menghitung efisiensi lari...',
+                        'Menyusun rekomendasi latihan...',
+                        'Finalisasi laporan AI...'
+                    ];
+                    let idx = parseInt(scanText.dataset.msgIdx || '0');
+                    scanSubtext.textContent = msgs[idx % msgs.length];
+                    scanText.dataset.msgIdx = String(idx + 1);
+                }
+            }, 2000);
+
             const uploadVideo = (options.uploadVideoOverride !== undefined)
                 ? !!options.uploadVideoOverride
                 : (modeDevice ? !modeDevice.checked : true);
@@ -1552,7 +1571,10 @@
                     }
                 });
 
-                if (result.status >= 200 && result.status < 300) return result.json;
+                if (result.status >= 200 && result.status < 300) {
+                    clearInterval(loadingInterval);
+                    return result.json;
+                }
                 if (result.status === 429 && result.json && result.json.queued) {
                     const retryAfter = Math.max(2, Math.min(20, Number(result.json.retry_after) || 5));
                     let left = retryAfter;
@@ -1571,6 +1593,7 @@
                 throw (result.json || { error: 'Gagal memproses video.' });
             }
 
+            clearInterval(loadingInterval);
             throw { error: 'Antrian terlalu panjang. Coba lagi beberapa menit.' };
         };
 
