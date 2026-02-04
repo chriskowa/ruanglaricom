@@ -321,6 +321,8 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
 
 // Public event routes (Kalender Lari)
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
+Route::post('/jadwal-lari/submissions/request-otp', [App\Http\Controllers\PublicRunningEventSubmissionController::class, 'requestOtp'])->middleware('throttle:3,1')->name('events.submissions.request-otp');
+Route::post('/jadwal-lari/submissions', [App\Http\Controllers\PublicRunningEventSubmissionController::class, 'store'])->middleware('throttle:5,1')->name('events.submissions.store');
 Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventController::class, 'cityArchive'])->name('events.city');
 Route::get('/event-category/event-lari-{city}', function (Request $request, $city) {
     $to = route('events.city', ['city' => $city]);
@@ -546,6 +548,10 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/toggle-featured', [App\Http\Controllers\Admin\EventController::class, 'toggleFeatured'])->name('events.toggle-featured');
         Route::post('events/{event}/toggle-active', [App\Http\Controllers\Admin\EventController::class, 'toggleActive'])->name('events.toggle-active');
         Route::post('events/{event}/set-status', [App\Http\Controllers\Admin\EventController::class, 'setStatus'])->name('events.set-status');
+        Route::get('event-submissions', [App\Http\Controllers\Admin\EventSubmissionController::class, 'index'])->name('event-submissions.index');
+        Route::get('event-submissions/{submission}', [App\Http\Controllers\Admin\EventSubmissionController::class, 'show'])->name('event-submissions.show');
+        Route::post('event-submissions/{submission}/approve', [App\Http\Controllers\Admin\EventSubmissionController::class, 'approve'])->name('event-submissions.approve');
+        Route::post('event-submissions/{submission}/reject', [App\Http\Controllers\Admin\EventSubmissionController::class, 'reject'])->name('event-submissions.reject');
         Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class)->except(['show']);
 
         // User Management

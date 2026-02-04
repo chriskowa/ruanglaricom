@@ -155,6 +155,8 @@ class EventController extends Controller
             'categories.*.prizes.*' => 'nullable|string|max:255',
             'payment_config' => 'nullable|array',
             'payment_config.midtrans_demo_mode' => 'nullable|boolean',
+            'payment_config.allowed_methods' => 'nullable|array|min:1',
+            'payment_config.allowed_methods.*' => 'in:midtrans,moota,all',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -270,8 +272,13 @@ class EventController extends Controller
         // Process payment_config (Handle 'all' option)
         if (isset($validated['payment_config']['allowed_methods'])) {
             $methods = $validated['payment_config']['allowed_methods'];
+            if (is_string($methods)) {
+                $methods = [$methods];
+            }
             if (in_array('all', $methods)) {
                 $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota'];
+            } else {
+                $validated['payment_config']['allowed_methods'] = array_values(array_unique($methods));
             }
         }
         if (isset($validated['payment_config']['midtrans_demo_mode'])) {
@@ -422,6 +429,8 @@ class EventController extends Controller
             'categories.*.prizes.*' => 'nullable|string|max:255',
             'payment_config' => 'nullable|array',
             'payment_config.midtrans_demo_mode' => 'nullable|boolean',
+            'payment_config.allowed_methods' => 'nullable|array|min:1',
+            'payment_config.allowed_methods.*' => 'in:midtrans,moota,all',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -585,8 +594,13 @@ class EventController extends Controller
         // Process payment_config (Handle 'all' option)
         if (isset($validated['payment_config']['allowed_methods'])) {
             $methods = $validated['payment_config']['allowed_methods'];
+            if (is_string($methods)) {
+                $methods = [$methods];
+            }
             if (in_array('all', $methods)) {
                 $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota'];
+            } else {
+                $validated['payment_config']['allowed_methods'] = array_values(array_unique($methods));
             }
         }
         if (isset($validated['payment_config']['midtrans_demo_mode'])) {

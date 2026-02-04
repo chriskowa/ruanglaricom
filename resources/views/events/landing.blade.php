@@ -15,11 +15,15 @@
             Jadwal event lari terlengkap di Indonesia. Temukan race impianmu berikutnya, dari Fun Run hingga Ultra Marathon.
         </p>
         
-        <div class="mt-8 flex justify-center" data-aos="fade-up" data-aos-delay="50">
-            <a href="{{ url('/calendar') }}" class="px-8 py-3 rounded-full bg-slate-800 border border-slate-700 text-white font-bold hover:bg-neon hover:text-dark hover:border-neon transition-all flex items-center gap-2 shadow-lg hover:shadow-neon/20">
+        <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3" data-aos="fade-up" data-aos-delay="50">
+            <a href="{{ url('/calendar') }}" class="px-8 py-3 rounded-full bg-slate-800 border border-slate-700 text-white font-bold hover:bg-neon hover:text-dark hover:border-neon transition-all inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-neon/20">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 Kelola Kalender Lari Saya
             </a>
+            <button type="button" id="btn-open-submit-event" class="px-8 py-3 rounded-full bg-neon text-dark font-extrabold hover:bg-lime-300 transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-neon/20">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                Submit Event Lari
+            </button>
         </div>
     </div>
 
@@ -115,7 +119,144 @@
     </div>
 </div>
 
+<div id="submit-event-modal" class="fixed inset-0 z-[9999] hidden overflow-auto">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"></div>
+    <div class="relative h-full w-full flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-auto h-screen">
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Submit Event</div>
+                    <div class="text-lg font-black text-white italic tracking-tighter">AJUKAN EVENT LARI</div>
+                </div>
+                <button type="button" id="btn-close-submit-event" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <div id="submit-event-alert" class="hidden px-6 pt-4"></div>
+
+            <form id="submit-event-form" class="px-6 py-5 space-y-5">
+                <input type="text" name="website" id="submit_event_website" class="hidden" tabindex="-1" autocomplete="off">
+                <input type="hidden" name="started_at" id="submit_event_started_at" value="0">
+                <input type="hidden" name="otp_id" id="submit_event_otp_id" value="">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Event</label>
+                        <input type="text" name="event_name" id="submit_event_name" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Contoh: Jakarta City Run 2026" required>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanggal Event</label>
+                        <input type="date" name="event_date" id="submit_event_date" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" required>
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Banner Event (Opsional)</label>
+                        <input type="file" name="banner" id="submit_event_banner" accept="image/png, image/jpeg, image/jpg, image/webp" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-neon hover:file:bg-slate-700">
+                        <div class="text-[11px] text-slate-500">Maksimal 2MB. Disarankan landscape.</div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jam Mulai (Opsional)</label>
+                        <input type="time" name="start_time" id="submit_event_time" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kota (Opsional)</label>
+                        <select name="city_id" id="submit_event_city_id" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon">
+                            <option value="">Pilih Kota</option>
+                            @foreach($cities as $city)
+                                <option value="{{ $city->id }}">{{ $city->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lokasi</label>
+                        <input type="text" name="location_name" id="submit_event_location" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Contoh: Gelora Bung Karno" required>
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Alamat (Opsional)</label>
+                        <input type="text" name="location_address" id="submit_event_address" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Alamat lengkap / titik kumpul">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jenis Lomba (Opsional)</label>
+                        <select name="race_type_id" id="submit_event_race_type_id" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon">
+                            <option value="">Pilih Jenis</option>
+                            @foreach($raceTypes as $type)
+                                <option value="{{ $type->id }}">{{ $type->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori Jarak (Opsional)</label>
+                        <select name="race_distance_ids" id="submit_event_race_distance_ids" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" multiple>
+                            @foreach($raceDistances as $distance)
+                                <option value="{{ $distance->id }}">{{ $distance->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="text-[11px] text-slate-500">Bisa pilih lebih dari satu.</div>
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Pendaftaran (Opsional)</label>
+                        <input type="url" name="registration_link" id="submit_event_registration_link" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="https://...">
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Link Media Sosial (Opsional)</label>
+                        <input type="url" name="social_media_link" id="submit_event_social_media_link" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="https://instagram.com/...">
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-5 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Penyelenggara (Opsional)</label>
+                            <input type="text" name="organizer_name" id="submit_event_organizer_name" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Nama EO / komunitas">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kontak Penyelenggara (Opsional)</label>
+                            <input type="text" name="organizer_contact" id="submit_event_organizer_contact" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="WA / Email">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Kamu (Opsional)</label>
+                            <input type="text" name="contributor_name" id="submit_event_contributor_name" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Nama pengaju">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Kamu</label>
+                            <input type="email" name="contributor_email" id="submit_event_contributor_email" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="email@kamu.com" required>
+                        </div>
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Catatan (Opsional)</label>
+                            <textarea name="notes" id="submit_event_notes" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="Info tambahan (mis: kuota, kategori, syarat, dll)"></textarea>
+                        </div>
+                    </div>
+
+                    @if(env('RECAPTCHA_SITE_KEY'))
+                    <div class="flex justify-center">
+                        <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
+                    </div>
+                    @endif
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                        <div class="md:col-span-2 space-y-1">
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kode OTP</label>
+                            <input type="text" inputmode="numeric" maxlength="6" name="otp_code" id="submit_event_otp_code" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-neon" placeholder="6 digit">
+                        </div>
+                        <button type="button" id="btn-submit-event-send-otp" class="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold hover:bg-slate-700 transition">
+                            Kirim OTP
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="px-6 py-4 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row justify-end gap-2">
+                <button type="button" id="btn-submit-event-cancel" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold hover:bg-slate-700 transition">Batal</button>
+                <button type="button" id="btn-submit-event-submit" class="px-5 py-2.5 rounded-xl bg-neon text-dark font-extrabold hover:bg-lime-300 transition">Submit Event</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
+@if(env('RECAPTCHA_SITE_KEY'))
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+@endif
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('filter-form');
@@ -207,6 +348,231 @@
         // Initial listeners
         attachPaginationListeners();
     });
+</script>
+
+<script>
+    (function () {
+        var modal = document.getElementById('submit-event-modal');
+        var openBtn = document.getElementById('btn-open-submit-event');
+        var closeBtn = document.getElementById('btn-close-submit-event');
+        var cancelBtn = document.getElementById('btn-submit-event-cancel');
+        var sendOtpBtn = document.getElementById('btn-submit-event-send-otp');
+        var submitBtn = document.getElementById('btn-submit-event-submit');
+        var alertBox = document.getElementById('submit-event-alert');
+        var form = document.getElementById('submit-event-form');
+        var startedAtEl = document.getElementById('submit_event_started_at');
+        var otpIdEl = document.getElementById('submit_event_otp_id');
+        var otpCodeEl = document.getElementById('submit_event_otp_code');
+        var emailEl = document.getElementById('submit_event_contributor_email');
+
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+        function showAlert(type, msg) {
+            if (!alertBox) return;
+            var cls = type === 'success'
+                ? 'bg-green-900/30 border border-green-500/30 text-green-300'
+                : 'bg-red-900/30 border border-red-500/30 text-red-300';
+            alertBox.className = 'px-6 pt-4';
+            alertBox.innerHTML = '<div class="'+cls+' rounded-xl p-3 text-sm font-bold">'+String(msg || '')+'</div>';
+            alertBox.classList.remove('hidden');
+        }
+
+        function clearAlert() {
+            if (!alertBox) return;
+            alertBox.classList.add('hidden');
+            alertBox.innerHTML = '';
+        }
+
+        function openModal() {
+            if (!modal) return;
+            clearAlert();
+            otpIdEl.value = '';
+            otpCodeEl.value = '';
+            startedAtEl.value = String(Date.now());
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            if (!modal) return;
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function getCaptchaResponse() {
+            try {
+                if (typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) {
+                    return grecaptcha.getResponse();
+                }
+            } catch (e) {}
+            return '';
+        }
+
+        function resetCaptcha() {
+            try {
+                if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
+                    grecaptcha.reset();
+                }
+            } catch (e) {}
+        }
+
+        function getPayload() {
+            var formData = new FormData();
+            var els = form.querySelectorAll('input, select, textarea');
+            
+            els.forEach(function (el) {
+                if (!el.name) return;
+
+                if (el.type === 'file') {
+                    if (el.files && el.files[0]) {
+                        formData.append(el.name, el.files[0]);
+                    }
+                    return;
+                }
+
+                if (el.multiple) {
+                    Array.prototype.forEach.call(el.selectedOptions || [], function (opt) {
+                        formData.append(el.name + '[]', opt.value);
+                    });
+                    return;
+                }
+
+                if (el.type === 'radio' || el.type === 'checkbox') {
+                    if (el.checked) {
+                        formData.append(el.name, el.value);
+                    }
+                    return;
+                }
+
+                formData.append(el.name, el.value);
+            });
+
+            var captcha = getCaptchaResponse();
+            if (captcha) {
+                formData.append('g-recaptcha-response', captcha);
+            }
+
+            return formData;
+        }
+
+        function setBusy(btn, busy, text) {
+            if (!btn) return;
+            btn.disabled = !!busy;
+            if (text) btn.textContent = text;
+        }
+
+        if (openBtn) openBtn.addEventListener('click', openModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        if (modal) {
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        if (sendOtpBtn) {
+            sendOtpBtn.addEventListener('click', function () {
+                clearAlert();
+                var email = String(emailEl.value || '').trim();
+                if (!email) {
+                    showAlert('error', 'Email wajib diisi untuk kirim OTP.');
+                    return;
+                }
+
+                var captcha = getCaptchaResponse();
+                if ({{ env('RECAPTCHA_SITE_KEY') ? 'true' : 'false' }} && !captcha) {
+                    showAlert('error', 'Mohon selesaikan verifikasi reCAPTCHA.');
+                    return;
+                }
+
+                setBusy(sendOtpBtn, true, 'Mengirim...');
+                fetch(@json(route('events.submissions.request-otp')), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        website: '',
+                        'g-recaptcha-response': captcha
+                    })
+                })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
+                .then(function (res) {
+                    if (!res.ok || !res.data || !res.data.success) {
+                        showAlert('error', (res.data && res.data.message) ? res.data.message : 'Gagal mengirim OTP.');
+                        return;
+                    }
+                    otpIdEl.value = res.data.otp_id || '';
+                    showAlert('success', res.data.message || 'OTP terkirim. Cek email kamu.');
+                    resetCaptcha();
+                })
+                .catch(function () {
+                    showAlert('error', 'Terjadi kesalahan saat mengirim OTP.');
+                })
+                .finally(function () {
+                    setBusy(sendOtpBtn, false, 'Kirim OTP');
+                });
+            });
+        }
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function () {
+                clearAlert();
+                var payload = getPayload();
+
+                if (!payload.get('otp_id')) {
+                    showAlert('error', 'Klik “Kirim OTP” dulu sebelum submit.');
+                    return;
+                }
+                
+                var otpCode = payload.get('otp_code');
+                if (!otpCode || String(otpCode).length !== 6) {
+                    showAlert('error', 'Masukkan OTP 6 digit.');
+                    return;
+                }
+
+                if ({{ env('RECAPTCHA_SITE_KEY') ? 'true' : 'false' }} && !payload.get('g-recaptcha-response')) {
+                    showAlert('error', 'Mohon selesaikan verifikasi reCAPTCHA.');
+                    return;
+                }
+
+                setBusy(submitBtn, true, 'Memproses...');
+                fetch(@json(route('events.submissions.store')), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json'
+                    },
+                    body: payload
+                })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
+                .then(function (res) {
+                    if (!res.ok || !res.data || !res.data.success) {
+                        showAlert('error', (res.data && res.data.message) ? res.data.message : 'Submit gagal.');
+                        if (res.status === 422) resetCaptcha();
+                        return;
+                    }
+                    showAlert('success', res.data.message || 'Submit berhasil.');
+                    form.reset();
+                    otpIdEl.value = '';
+                    otpCodeEl.value = '';
+                    startedAtEl.value = String(Date.now());
+                    resetCaptcha();
+                    setTimeout(closeModal, 800);
+                })
+                .catch(function () {
+                    showAlert('error', 'Terjadi kesalahan saat submit.');
+                })
+                .finally(function () {
+                    setBusy(submitBtn, false, 'Submit Event');
+                });
+            });
+        }
+    })();
 </script>
 @endpush
 @endsection

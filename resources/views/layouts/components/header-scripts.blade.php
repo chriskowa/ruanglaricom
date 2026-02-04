@@ -8,6 +8,7 @@
     const authId = @json(auth()->id() ?: 0);
     const authAvatar = @json(auth()->user() && auth()->user()->avatar ? asset('storage/' . preg_replace('/^(\/)?storage\//', '', auth()->user()->avatar)) : asset('images/avatar/1.jpg'));
     const authName = @json(auth()->user() ? auth()->user()->name : '');
+    const authRole = @json(auth()->user() ? auth()->user()->role : '');
 
     // Chatbox toggle
     document.getElementById('chatbox-toggle')?.addEventListener('click', function() {
@@ -31,6 +32,9 @@
     function getNotificationUrl(notif) {
         if (notif.reference_type === 'Post' && notif.reference_id) {
             return @json(route("feed.index")) + '#post-' + notif.reference_id;
+        }
+        if (notif.reference_type === 'EventSubmission' && notif.reference_id && authRole === 'admin') {
+            return @json(route('admin.event-submissions.show', ':id')).replace(':id', notif.reference_id);
         }
         return @json(route("notifications.index"));
     }
