@@ -322,6 +322,14 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
 // Public event routes (Kalender Lari)
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
 Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventController::class, 'cityArchive'])->name('events.city');
+Route::get('/event-category/event-lari-{city}', function (Request $request, $city) {
+    $to = route('events.city', ['city' => $city]);
+    $qs = $request->getQueryString();
+    if ($qs) {
+        $to .= '?' . $qs;
+    }
+    return redirect()->to($to, 301);
+})->where('city', '[a-z0-9\-]+');
 Route::get('/event-lari/{slug}', [App\Http\Controllers\PublicRunningEventController::class, 'show'])->name('running-event.detail');
 Route::post('/api/running-events/{slug}/rating', [App\Http\Controllers\EventRatingController::class, 'store'])->name('api.running-events.rating.store');
 Route::get('/paolorunfest', function (Request $request) {
