@@ -319,6 +319,15 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
     ->where('slug', '[a-z0-9\-]+')
     ->name('api.events.results');
 
+Route::get('/komunitas/daftar', [App\Http\Controllers\CommunityRegistrationController::class, 'index'])->name('community.register.index');
+Route::post('/komunitas/daftar', [App\Http\Controllers\CommunityRegistrationController::class, 'start'])->name('community.register.start');
+Route::get('/komunitas/daftar/{event:slug}/{registration}', [App\Http\Controllers\CommunityRegistrationController::class, 'show'])->name('community.register.show');
+Route::post('/komunitas/daftar/{registration}/pic', [App\Http\Controllers\CommunityRegistrationController::class, 'updatePic'])->name('community.register.pic');
+Route::get('/komunitas/daftar/{registration}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'listParticipants'])->name('community.register.participants');
+Route::post('/komunitas/daftar/{registration}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'storeParticipant'])->name('community.register.participants.store');
+Route::delete('/komunitas/daftar/{registration}/participants/{participant}', [App\Http\Controllers\CommunityRegistrationController::class, 'deleteParticipant'])->name('community.register.participants.delete');
+Route::post('/komunitas/daftar/{event:slug}/{registration}/invoice', [App\Http\Controllers\CommunityRegistrationController::class, 'generateInvoice'])->name('community.register.invoice');
+
 // Public event routes (Kalender Lari)
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
 Route::post('/jadwal-lari/submissions/request-otp', [App\Http\Controllers\PublicRunningEventSubmissionController::class, 'requestOtp'])->middleware('throttle:3,1')->name('events.submissions.request-otp');
@@ -780,6 +789,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('events/packages/{package}', [App\Http\Controllers\EO\EventPackageController::class, 'destroy'])->name('events.packages.destroy');
         Route::post('events/{event}/coupons', [App\Http\Controllers\EO\CouponController::class, 'store'])->name('events.coupons.store');
         Route::delete('events/coupons/{coupon}', [App\Http\Controllers\EO\CouponController::class, 'destroy'])->name('events.coupons.destroy');
+
+        Route::get('community-participants', [App\Http\Controllers\EO\CommunityParticipantController::class, 'index'])->name('community.index');
+        Route::get('events/{event}/community-participants', [App\Http\Controllers\EO\CommunityParticipantController::class, 'show'])->name('events.community.index');
+        Route::post('events/{event}/community-participants/{registration}/import', [App\Http\Controllers\EO\CommunityParticipantController::class, 'import'])->name('events.community.import');
 
         // Race results management
         Route::get('events/{event}/results', [App\Http\Controllers\EO\RaceResultController::class, 'index'])->name('events.results');

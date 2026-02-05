@@ -196,6 +196,12 @@ class EventRegistrationController extends Controller
                     return response()->json([
                         'success' => true,
                         'message' => 'Registrasi berhasil! Silakan lakukan pembayaran.',
+                        'payment_gateway' => 'moota',
+                        'payment_status' => $transaction->payment_status,
+                        'transaction_id' => $transaction->id,
+                        'registration_id' => $transaction->public_ref,
+                        'final_amount' => (float) ($transaction->final_amount ?? 0),
+                        'unique_code' => (int) ($transaction->unique_code ?? 0),
                         'redirect_url' => route('events.payment', ['slug' => $slug, 'transaction' => $transaction->id]),
                     ]);
                 }

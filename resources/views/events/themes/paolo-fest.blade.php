@@ -2703,6 +2703,26 @@
                                     window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; 
                                 }
                             });
+                        } else if (data.payment_gateway === 'moota' || data.redirect_url) {
+                            if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+
+                                const phoneEl = form.querySelector('[name="pic_phone"]');
+                                window.RuangLariMoota.open({
+                                    transaction_id: data.transaction_id,
+                                    registration_id: data.registration_id,
+                                    final_amount: data.final_amount,
+                                    unique_code: data.unique_code,
+                                    phone: phoneEl ? phoneEl.value : '',
+                                });
+                            } else if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            } else {
+                                alert('Registrasi berhasil, namun data pembayaran tidak lengkap.');
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+                            }
                         } else {
                             // Free Event / Success direct
                             window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`;
@@ -3514,5 +3534,12 @@
             Hubungi Kami
         </span>
     </a>
+
+    @include('events.partials.moota-payment-modal', [
+        'modalPanelClass' => 'bg-white text-slate-900 border border-slate-200',
+        'modalTitleClass' => 'text-slate-900',
+        'modalAccentClass' => 'text-brand-600',
+        'modalCloseClass' => 'bg-brand-600 text-white hover:bg-brand-700',
+    ])
 </body>
 </html>

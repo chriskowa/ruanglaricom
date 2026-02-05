@@ -56,6 +56,7 @@
                     @elseif(auth()->user()->isEventOrganizer())
                         <li><a href="{{ route('eo.dashboard') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Dashboard</a></li>
                         <li><a href="{{ route('eo.coupons.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Master Kupon</a></li>
+                        <li><a href="{{ route('eo.community.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Community Participants</a></li>
                         <li>
                             <a href="{{ route('eo.email-reports.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">
                                 <span class="w-5 text-slate-400"><i class="fas fa-envelope-open-text"></i></span>

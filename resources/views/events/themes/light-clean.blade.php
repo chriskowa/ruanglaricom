@@ -1025,5 +1025,93 @@
             };
         })();
     </script>
+
+    <script>
+        (function () {
+            const form = document.getElementById('registrationForm');
+            if (!form) return;
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                if (typeof grecaptcha !== 'undefined') {
+                    const recaptchaResponse = grecaptcha.getResponse();
+                    if (!recaptchaResponse) {
+                        alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+                        return;
+                    }
+                }
+
+                const btn = document.getElementById('submitBtn');
+                const originalText = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.innerHTML = 'Memproses...';
+                    btn.disabled = true;
+                }
+
+                const formData = new FormData(form);
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.snap_token) {
+                        snap.pay(data.snap_token, {
+                            onSuccess: function () { window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
+                            onPending: function () { window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; },
+                            onError: function () { alert('Pembayaran gagal'); if (btn) { btn.disabled = false; btn.innerHTML = originalText; } },
+                            onClose: function () { if (btn) { btn.disabled = false; btn.innerHTML = originalText; } }
+                        });
+                        return;
+                    }
+
+                    if (data.success && (data.payment_gateway === 'moota' || data.redirect_url)) {
+                        if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
+                            if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                            const phoneEl = form.querySelector('[name="pic_phone"]');
+                            window.RuangLariMoota.open({
+                                transaction_id: data.transaction_id,
+                                registration_id: data.registration_id,
+                                final_amount: data.final_amount,
+                                unique_code: data.unique_code,
+                                phone: phoneEl ? phoneEl.value : '',
+                            });
+                            return;
+                        }
+
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                            return;
+                        }
+                    }
+
+                    if (data.success) {
+                        window.location.href = `{{ route("events.show", $event->slug) }}?success=true`;
+                        return;
+                    }
+
+                    alert(data.message || 'Terjadi kesalahan.');
+                    if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Gagal menghubungi server.');
+                    if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                });
+            });
+        })();
+    </script>
+
+    @include('events.partials.moota-payment-modal', [
+        'modalPanelClass' => 'glass-panel text-slate-900 border border-white/50',
+        'modalTitleClass' => 'text-slate-900',
+        'modalAccentClass' => 'text-brand-600',
+        'modalCloseClass' => 'bg-brand-600 text-white hover:bg-brand-700',
+    ])
 </body>
 </html>

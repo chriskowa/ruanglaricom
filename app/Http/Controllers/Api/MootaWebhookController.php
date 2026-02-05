@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CommunityInvoice;
+use App\Models\CommunityRegistration;
 use App\Models\Transaction;
 use App\Services\MootaService;
 use Illuminate\Http\Request;
@@ -67,11 +69,33 @@ class MootaWebhookController extends Controller
             if ($transaction) {
                 try {
                     DB::transaction(function () use ($transaction, $mutation) {
+                        $channel = $transaction->payment_channel;
+                        if (!is_string($channel) || trim($channel) === '') {
+                            $channel = $mutation['bank_type'] ?? 'bank_transfer';
+                        }
+
                         $transaction->update([
                             'payment_status' => 'paid',
                             'paid_at' => now(),
-                            'payment_channel' => $mutation['bank_type'] ?? 'bank_transfer',
+                            'payment_channel' => $channel,
                         ]);
+
+                        $pic = is_array($transaction->pic_data) ? $transaction->pic_data : [];
+                        $communityId = $pic['community_registration_id'] ?? null;
+                        if ($communityId) {
+                            CommunityRegistration::query()
+                                ->whereKey($communityId)
+                                ->update([
+                                    'status' => 'paid',
+                                    'paid_at' => now(),
+                                ]);
+
+                            CommunityInvoice::query()
+                                ->where('transaction_id', $transaction->id)
+                                ->update([
+                                    'status' => 'paid',
+                                ]);
+                        }
                         
                         // Log success
                         Log::info("Transaction {$transaction->id} marked as paid via Moota. Amount: {$mutation['amount']}");

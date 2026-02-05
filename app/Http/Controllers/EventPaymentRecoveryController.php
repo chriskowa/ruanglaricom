@@ -119,6 +119,13 @@ class EventPaymentRecoveryController extends Controller
             ], 403);
         }
 
+        if (($tx->payment_gateway ?? null) === 'moota') {
+            return response()->json([
+                'success' => true,
+                'transaction' => $this->serializeTransaction($tx),
+            ]);
+        }
+
         if (($tx->payment_gateway ?? null) !== 'midtrans') {
             return response()->json([
                 'success' => false,

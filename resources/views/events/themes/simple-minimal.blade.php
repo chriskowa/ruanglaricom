@@ -739,6 +739,25 @@
                             onError: function(result){ alert("Pembayaran gagal"); btn.disabled=false; btn.innerHTML=originalText; },
                             onClose: function(){ btn.disabled=false; btn.innerHTML=originalText; }
                         });
+                    } else if (data.success && (data.payment_gateway === 'moota' || data.redirect_url)) {
+                        if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalText;
+
+                            const phoneEl = form.querySelector('[name="pic_phone"]');
+                            window.RuangLariMoota.open({
+                                transaction_id: data.transaction_id,
+                                registration_id: data.registration_id,
+                                final_amount: data.final_amount,
+                                unique_code: data.unique_code,
+                                phone: phoneEl ? phoneEl.value : '',
+                            });
+                        } else if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            alert('Registrasi berhasil, namun data pembayaran tidak lengkap.');
+                            btn.disabled=false; btn.innerHTML=originalText;
+                        }
                     } else if(data.success) {
                          window.location.href = `{{ route("events.show", $event->slug) }}?success=true`;
                     } else {
@@ -754,5 +773,12 @@
             });
         }
     </script>
+
+    @include('events.partials.moota-payment-modal', [
+        'modalPanelClass' => 'bg-white text-slate-900 border border-slate-200',
+        'modalTitleClass' => 'text-slate-900',
+        'modalAccentClass' => 'text-accent',
+        'modalCloseClass' => 'bg-accent text-white hover:bg-blue-700',
+    ])
 </body>
 </html>

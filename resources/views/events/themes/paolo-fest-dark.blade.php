@@ -1438,6 +1438,26 @@
                                 onError: function(result) { alert("Pembayaran gagal"); btn.disabled = false; btn.innerHTML = originalText; },
                                 onClose: function() { btn.disabled = false; btn.innerHTML = originalText; }
                             });
+                        } else if (data.payment_gateway === 'moota' || data.redirect_url) {
+                            if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+
+                                const phoneEl = form.querySelector('[name="pic_phone"]');
+                                window.RuangLariMoota.open({
+                                    transaction_id: data.transaction_id,
+                                    registration_id: data.registration_id,
+                                    final_amount: data.final_amount,
+                                    unique_code: data.unique_code,
+                                    phone: phoneEl ? phoneEl.value : '',
+                                });
+                            } else if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            } else {
+                                alert('Registrasi berhasil, namun data pembayaran tidak lengkap.');
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+                            }
                         } else {
                             // Free Event / Success direct
                             alert('Pendaftaran Berhasil!');
@@ -1602,5 +1622,12 @@
         const mountEl = document.getElementById('vue-participants-app');
         if (mountEl) vueApp.mount(mountEl);
     </script>
+
+    @include('events.partials.moota-payment-modal', [
+        'modalPanelClass' => 'bg-slate-900 text-slate-100 border border-slate-700',
+        'modalTitleClass' => 'text-white',
+        'modalAccentClass' => 'text-neon-blue',
+        'modalCloseClass' => 'bg-neon-blue text-white hover:bg-neon-light',
+    ])
 </body>
 </html>
