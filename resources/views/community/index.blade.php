@@ -37,23 +37,46 @@
                 </select>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama Komunitas</label>
-                <input type="text" name="community_name" value="{{ old('community_name') }}" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon" placeholder="Contoh: Komunitas Lari Bandung">
+            @if(isset($communities) && count($communities) > 0)
+            <div class="p-4 rounded-2xl bg-slate-800/50 border border-slate-700">
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pilih dari Master Komunitas (Opsional)</label>
+                <select name="community_id" id="community_select" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
+                    <option value="">-- Buat Komunitas Baru --</option>
+                    @foreach($communities as $c)
+                        <option value="{{ $c->id }}" 
+                            data-name="{{ $c->name }}"
+                            data-pic-name="{{ $c->pic_name }}"
+                            data-pic-email="{{ $c->pic_email }}"
+                            data-pic-phone="{{ $c->pic_phone }}">
+                            {{ $c->name }} (PIC: {{ $c->pic_name }})
+                        </option>
+                    @endforeach
+                </select>
+                <div class="text-xs text-slate-500 mt-2">
+                    Jika memilih komunitas yang sudah ada, data PIC akan terisi otomatis dan Anda tidak perlu mengetik ulang.
+                </div>
             </div>
+            @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div id="manual_fields" class="space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama PIC</label>
-                    <input type="text" name="pic_name" value="{{ old('pic_name') }}" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon" placeholder="Nama lengkap">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama Komunitas</label>
+                    <input type="text" name="community_name" id="community_name" value="{{ old('community_name') }}" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon" placeholder="Contoh: Komunitas Lari Bandung">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email PIC</label>
-                    <input type="email" name="pic_email" value="{{ old('pic_email') }}" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon" placeholder="email@contoh.com">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp PIC</label>
-                    <input type="text" name="pic_phone" value="{{ old('pic_phone') }}" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon" placeholder="08xxxxxxxxxx">
+    
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama PIC</label>
+                        <input type="text" name="pic_name" id="pic_name" value="{{ old('pic_name') }}" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon" placeholder="Nama lengkap">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email PIC</label>
+                        <input type="email" name="pic_email" id="pic_email" value="{{ old('pic_email') }}" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon" placeholder="email@contoh.com">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp PIC</label>
+                        <input type="text" name="pic_phone" id="pic_phone" value="{{ old('pic_phone') }}" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon" placeholder="08xxxxxxxxxx">
+                    </div>
                 </div>
             </div>
 
@@ -65,5 +88,30 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const communitySelect = document.getElementById('community_select');
+        const manualFields = document.getElementById('manual_fields');
+        const inputs = manualFields.querySelectorAll('input');
+
+        if (communitySelect) {
+            communitySelect.addEventListener('change', function() {
+                if (this.value) {
+                    manualFields.style.display = 'none';
+                    inputs.forEach(input => input.removeAttribute('required'));
+                } else {
+                    manualFields.style.display = 'block';
+                    inputs.forEach(input => input.setAttribute('required', 'required'));
+                }
+            });
+            
+            // Trigger on load in case of validation error/old input
+            if (communitySelect.value) {
+                communitySelect.dispatchEvent(new Event('change'));
+            }
+        }
+    });
+</script>
 @endsection
 

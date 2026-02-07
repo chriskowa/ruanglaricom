@@ -9,6 +9,7 @@ class CommunityParticipant extends Model
 {
     protected $fillable = [
         'community_registration_id',
+        'community_member_id',
         'event_id',
         'race_category_id',
         'name',
@@ -47,5 +48,9 @@ class CommunityParticipant extends Model
     {
         return $this->belongsTo(RaceCategory::class, 'race_category_id');
     }
-}
 
+    public function member(): BelongsTo
+    {
+        return $this->belongsTo(CommunityMember::class, 'community_member_id');
+    }
+}

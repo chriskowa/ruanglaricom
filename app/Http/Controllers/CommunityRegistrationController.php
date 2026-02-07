@@ -14,6 +14,8 @@ use App\Services\QrisDynamicService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+use App\Models\Community; // Add this import
+
 class CommunityRegistrationController extends Controller
 {
     public function index()
@@ -25,8 +27,13 @@ class CommunityRegistrationController extends Controller
             ->orderByRaw('COALESCE(start_at, created_at) ASC')
             ->get(['id', 'name', 'slug', 'start_at', 'location_name']);
 
+        $communities = Community::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'pic_name', 'pic_email', 'pic_phone']);
+
         return view('community.index', [
             'events' => $events,
+            'communities' => $communities,
         ]);
     }
 
@@ -34,10 +41,11 @@ class CommunityRegistrationController extends Controller
     {
         $validated = $request->validate([
             'event_id' => 'required|exists:events,id',
-            'community_name' => 'required|string|max:255',
-            'pic_name' => 'required|string|max:255',
-            'pic_email' => 'required|email|max:255',
-            'pic_phone' => 'required|string|min:8|max:20',
+            'community_id' => 'nullable|exists:communities,id',
+            'community_name' => 'required_without:community_id|string|max:255',
+            'pic_name' => 'required_without:community_id|string|max:255',
+            'pic_email' => 'required_without:community_id|email|max:255',
+            'pic_phone' => 'required_without:community_id|string|min:8|max:20',
         ]);
 
         $event = Event::query()
@@ -47,14 +55,26 @@ class CommunityRegistrationController extends Controller
             ->whereKey($validated['event_id'])
             ->firstOrFail();
 
-        $registration = CommunityRegistration::create([
+        $data = [
             'event_id' => $event->id,
-            'community_name' => trim((string) $validated['community_name']),
-            'pic_name' => trim((string) $validated['pic_name']),
-            'pic_email' => strtolower(trim((string) $validated['pic_email'])),
-            'pic_phone' => trim((string) $validated['pic_phone']),
             'status' => 'draft',
-        ]);
+        ];
+
+        if (!empty($validated['community_id'])) {
+            $community = Community::find($validated['community_id']);
+            $data['community_id'] = $community->id;
+            $data['community_name'] = $community->name;
+            $data['pic_name'] = $community->pic_name;
+            $data['pic_email'] = $community->pic_email;
+            $data['pic_phone'] = $community->pic_phone;
+        } else {
+            $data['community_name'] = trim((string) $validated['community_name']);
+            $data['pic_name'] = trim((string) $validated['pic_name']);
+            $data['pic_email'] = strtolower(trim((string) $validated['pic_email']));
+            $data['pic_phone'] = trim((string) $validated['pic_phone']);
+        }
+
+        $registration = CommunityRegistration::create($data);
 
         return redirect()->route('community.register.show', [
             'event' => $event->slug,

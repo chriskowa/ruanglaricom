@@ -102,9 +102,20 @@ class EventPaymentRecoveryController extends Controller
             return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
         }
 
-        if ($tx->event_id !== $event->id) {
-            \Log::warning("Payment Status Check: Transaction {$transaction} belongs to event {$tx->event_id}, not {$event->id}");
-            return response()->json(['success' => false, 'message' => 'Transaksi tidak valid untuk event ini.'], 404);
+        // Use loose comparison to handle string/int mismatch
+        if ($tx->event_id != $event->id) {
+            \Log::warning("Payment Status Check: Transaction {$transaction} belongs to event {$tx->event_id} (" . gettype($tx->event_id) . "), not {$event->id} (" . gettype($event->id) . ")");
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaksi tidak valid untuk event ini.',
+                'debug' => [
+                    'url_slug' => $slug,
+                    'event_id_from_slug' => $event->id,
+                    'transaction_id' => $transaction,
+                    'transaction_event_id' => $tx->event_id,
+                ]
+            ], 404);
         }
 
         $validated = $request->validate([

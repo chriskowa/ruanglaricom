@@ -103,6 +103,12 @@ Route::get('/challenge/40-days-challenge', function () {
 })->name('challenge.40days');
 
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+// Community Registration (Must be before /komunitas/{slug})
+
+// Community Registration (Must be before /komunitas/{slug})
+
+Route::get('/komunitas/{slug}', [App\Http\Controllers\CommunityProfileController::class, 'show'])->name('community.profile');
+
 Route::get('/v-card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');
 Route::get('/vcard', function () {
     return redirect()->route('vcard.index', [], 301);
@@ -319,14 +325,14 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
     ->where('slug', '[a-z0-9\-]+')
     ->name('api.events.results');
 
-Route::get('/komunitas/daftar', [App\Http\Controllers\CommunityRegistrationController::class, 'index'])->name('community.register.index');
-Route::post('/komunitas/daftar', [App\Http\Controllers\CommunityRegistrationController::class, 'start'])->name('community.register.start');
-Route::get('/komunitas/daftar/{event:slug}/{registration}', [App\Http\Controllers\CommunityRegistrationController::class, 'show'])->name('community.register.show');
-Route::post('/komunitas/daftar/{registration}/pic', [App\Http\Controllers\CommunityRegistrationController::class, 'updatePic'])->name('community.register.pic');
-Route::get('/komunitas/daftar/{registration}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'listParticipants'])->name('community.register.participants');
-Route::post('/komunitas/daftar/{registration}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'storeParticipant'])->name('community.register.participants.store');
-Route::delete('/komunitas/daftar/{registration}/participants/{participant}', [App\Http\Controllers\CommunityRegistrationController::class, 'deleteParticipant'])->name('community.register.participants.delete');
-Route::post('/komunitas/daftar/{event:slug}/{registration}/invoice', [App\Http\Controllers\CommunityRegistrationController::class, 'generateInvoice'])->name('community.register.invoice');
+Route::get('/registrasi-komunitas', [App\Http\Controllers\CommunityRegistrationController::class, 'index'])->name('community.register.index');
+Route::post('/registrasi-komunitas', [App\Http\Controllers\CommunityRegistrationController::class, 'start'])->name('community.register.start');
+Route::get('/registrasi-komunitas/{event:slug}/{registration}', [App\Http\Controllers\CommunityRegistrationController::class, 'show'])->name('community.register.show');
+Route::post('/registrasi-komunitas/{registration}/pic', [App\Http\Controllers\CommunityRegistrationController::class, 'updatePic'])->name('community.register.pic');
+Route::get('/registrasi-komunitas/{registration}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'listParticipants'])->name('community.register.participants');
+Route::post('/registrasi-komunitas/{registration}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'storeParticipant'])->name('community.register.participants.store');
+Route::delete('/registrasi-komunitas/{registration}/participants/{participant}', [App\Http\Controllers\CommunityRegistrationController::class, 'deleteParticipant'])->name('community.register.participants.delete');
+Route::post('/registrasi-komunitas/{event:slug}/{registration}/invoice', [App\Http\Controllers\CommunityRegistrationController::class, 'generateInvoice'])->name('community.register.invoice');
 
 // Public event routes (Kalender Lari)
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
@@ -554,6 +560,7 @@ Route::middleware('auth')->group(function () {
         Route::post('events/import', [App\Http\Controllers\Admin\EventController::class, 'storeImport'])->name('events.import.store');
         Route::post('events/sync', [App\Http\Controllers\Admin\EventController::class, 'sync'])->name('events.sync');
         Route::resource('events', App\Http\Controllers\Admin\EventController::class);
+        Route::resource('communities', App\Http\Controllers\Admin\CommunityController::class);
         Route::post('events/{event}/toggle-featured', [App\Http\Controllers\Admin\EventController::class, 'toggleFeatured'])->name('events.toggle-featured');
         Route::post('events/{event}/toggle-active', [App\Http\Controllers\Admin\EventController::class, 'toggleActive'])->name('events.toggle-active');
         Route::post('events/{event}/set-status', [App\Http\Controllers\Admin\EventController::class, 'setStatus'])->name('events.set-status');

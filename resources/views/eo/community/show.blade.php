@@ -1,5 +1,7 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
+@php
+    $withSidebar = true;
+@endphp
 
 @section('title', 'Community Participants')
 

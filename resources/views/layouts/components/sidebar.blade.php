@@ -16,6 +16,10 @@
                         <i class="flaticon-381-list"></i>
                         <span class="nav-text">Manajemen Transaksi</span>
                     </a></li>
+                    <li><a class="ai-icon" href="{{ route('admin.communities.index') }}" aria-expanded="false">
+                        <i class="flaticon-381-heart"></i>
+                        <span class="nav-text">Master Komunitas</span>
+                    </a></li>
                     <li><a class="ai-icon" href="{{ route('admin.menus.index') }}" aria-expanded="false">
                         <i class="flaticon-381-menu"></i>
                         <span class="nav-text">Menu Manager</span>
