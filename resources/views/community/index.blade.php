@@ -30,7 +30,7 @@
                 <select name="event_id" required class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
                     <option value="">-- Pilih event managed --</option>
                     @foreach($events as $e)
-                        <option value="{{ $e->id }}">
+                        <option value="{{ $e->id }}" {{ old('event_id', $selectedEventId ?? '') == $e->id ? 'selected' : '' }}>
                             {{ $e->name }}{{ $e->start_at ? ' • ' . $e->start_at->format('d M Y') : '' }}{{ $e->location_name ? ' • ' . $e->location_name : '' }}
                         </option>
                     @endforeach

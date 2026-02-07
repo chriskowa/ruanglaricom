@@ -18,7 +18,7 @@ use App\Models\Community; // Add this import
 
 class CommunityRegistrationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $events = Event::query()
             ->where('event_kind', 'managed')
@@ -31,9 +31,18 @@ class CommunityRegistrationController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'pic_name', 'pic_email', 'pic_phone']);
 
+        $selectedEventId = $request->query('eventId');
+        if (!$selectedEventId && $request->query('slug')) {
+            $eventBySlug = $events->firstWhere('slug', $request->query('slug'));
+            if ($eventBySlug) {
+                $selectedEventId = $eventBySlug->id;
+            }
+        }
+
         return view('community.index', [
             'events' => $events,
             'communities' => $communities,
+            'selectedEventId' => $selectedEventId,
         ]);
     }
 
