@@ -465,7 +465,7 @@
                     <a href="https://www.instagram.com/paolorunfest/" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-purple-500/20">
                         <i class="fab fa-instagram text-xl"></i>
                     </a>
-                    <a href="http://wa.me/6287866950667" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-green-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-green-500/20">
+                    <a href="http://wa.me/6281958662550" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-green-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-green-500/20">
                         <i class="fab fa-whatsapp text-xl"></i>
                     </a>
                 </div>
@@ -545,7 +545,10 @@
                 <a href="#venue" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Lokasi</a>
                 <a href="#racepack" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Race Pack</a>
                 <a href="#info" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Info Event</a>
-                <a href="#participants-list" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Daftar Peserta</a>                
+                <a href="#participants-list" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Daftar Peserta</a>
+                <a href="{{ url('/registrasi-komunitas') }}" class="block text-emerald-600 font-bold p-2 hover:bg-emerald-50 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-users"></i> Daftar Komunitas
+                </a>
                 <a href="#register" class="block text-center bg-brand-600 text-white font-bold p-3 rounded-xl">Registrasi</a>
             </div>
         </div>
@@ -597,6 +600,10 @@
                             Pendaftaran Ditutup
                         </button>
                         @endif
+                        <a href="{{ url('/registrasi-komunitas') }}" class="px-8 py-4 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 backdrop-blur-sm font-bold rounded-2xl hover:bg-emerald-600/30 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-users text-xl"></i>
+                            Daftar Komunitas
+                        </a>
                         <a href="#about" class="px-8 py-4 bg-white/10 text-white border border-white/20 backdrop-blur-sm font-bold rounded-2xl hover:bg-white/20 transition flex items-center justify-center">
                             Explore Event
                         </a>

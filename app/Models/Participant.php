@@ -67,16 +67,15 @@ class Participant extends Model
 
         $eventDate = \Carbon\Carbon::parse($eventDate);
         $age = $this->date_of_birth->diffInYears($eventDate);
-/*
         if ($age >= 50) {
             return '50+';
-        }*/
+        }
         if ($age >= 45) {
             return 'Master 45+';
         }
-        /*if ($age >= 40) {
+        if ($age >= 40) {
             return 'Master';
-        }*/
+        }
 
         return 'Umum';
     }

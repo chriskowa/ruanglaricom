@@ -11,6 +11,7 @@
             const search = Vue.ref('');
             const selectedCategory = Vue.ref('all');
             const selectedGender = Vue.ref('all');
+            const selectedAgeGroup = Vue.ref('all');
             
             const fetchParticipants = async (page = 1) => {
                 isLoading.value = true;
@@ -20,6 +21,7 @@
                     if (search.value) params.append('search', search.value);
                     if (selectedCategory.value !== 'all') params.append('category_id', selectedCategory.value);
                     if (selectedGender.value !== 'all') params.append('gender', selectedGender.value);
+                    if (selectedAgeGroup.value !== 'all') params.append('age_group', selectedAgeGroup.value);
                     
                     const url = (window.rlUrl ? window.rlUrl(`event/${props.eventSlug}/participants-list?${params.toString()}`) : `/event/${props.eventSlug}/participants-list?${params.toString()}`);
                     const response = await fetch(url);
@@ -78,6 +80,7 @@
                 search,
                 selectedCategory,
                 selectedGender,
+                selectedAgeGroup,
                 onSearch,
                 onCategoryChange,
                 fetchParticipants,
@@ -101,6 +104,19 @@
                                 <option value="all" class="bg-slate-800">Semua Gender</option>
                                 <option value="male" class="bg-slate-800">Laki-laki</option>
                                 <option value="female" class="bg-slate-800">Perempuan</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                        </div>
+
+                        <!-- Age Group Filter -->
+                        <div class="relative min-w-[160px]">
+                            <select v-model="selectedAgeGroup" @change="fetchParticipants(1)" 
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:border-sport-volt focus:ring-1 focus:ring-sport-volt outline-none cursor-pointer appearance-none">
+                                <option value="all" class="bg-slate-800">Semua Umur</option>
+                                <option value="Umum" class="bg-slate-800">Umum (<40)</option>
+                                <option value="Master" class="bg-slate-800">Master (40-44)</option>
+                                <option value="Master 45+" class="bg-slate-800">Master 45+ (45-49)</option>
+                                <option value="50+" class="bg-slate-800">50+</option>
                             </select>
                             <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
                         </div>
@@ -138,17 +154,18 @@
                             <tr class="bg-white/5 text-gray-400 text-xs uppercase tracking-wider font-mono">
                                 <th class="p-4 font-normal">Nama Peserta</th>
                                 <th class="p-4 font-normal">Kategori</th>
+                                <th class="p-4 font-normal">Age Group</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5">
                             <tr v-if="isLoading">
-                                <td colspan="2" class="p-8 text-center text-gray-500">
+                                <td colspan="3" class="p-8 text-center text-gray-500">
                                     <i class="fas fa-circle-notch fa-spin text-2xl mb-2 text-sport-volt"></i>
                                     <p>Memuat data...</p>
                                 </td>
                             </tr>
                             <tr v-else-if="participants.length === 0">
-                                <td colspan="2" class="p-8 text-center text-gray-500">
+                                <td colspan="3" class="p-8 text-center text-gray-500">
                                     <i class="fas fa-users-slash text-2xl mb-2"></i>
                                     <p>Belum ada peserta</p>
                                 </td>
@@ -156,7 +173,7 @@
                             <tr v-for="(p, index) in participants" :key="index" class="hover:bg-white/5 transition-colors group">
                                 <td class="p-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded bg-gray-800 flex items-center justify-center text-sport-volt font-display text-xs border border-white/10 group-hover:border-sport-volt transition-colors">
+                                        <div class="w-8 h-8 rounded bg-gray-800 flex items-center justify-center text-white font-display text-xs border border-white/10 group-hover:border-sport-volt transition-colors">
                                             {{ getInitials(p.name) }}
                                         </div>
                                         <div>
@@ -168,6 +185,11 @@
                                 <td class="p-4 text-sm text-gray-300">
                                     <span class="bg-white/5 px-2 py-1 rounded text-xs border border-white/10">
                                         {{ p.category ? p.category.name : '-' }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-sm text-gray-300">
+                                    <span class="bg-white/5 px-2 py-1 rounded text-xs border border-white/10">
+                                        {{ p.age_group }}
                                     </span>
                                 </td>
                             </tr>

@@ -539,7 +539,9 @@ class CommunityRegistrationController extends Controller
             return $a['base'] <=> $b['base'];
         });
 
+        // Promo: Buy 10 Get 1 Free (Global for community registration)
         $freeCount = intdiv(count($priceRows), 11);
+        
         $freeIds = array_slice(array_column($priceRows, 'id'), 0, $freeCount);
 
         $totalOriginal = 0;

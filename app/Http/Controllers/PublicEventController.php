@@ -238,6 +238,24 @@ class PublicEventController extends Controller
             $query->where('gender', $request->gender);
         }
 
+        if ($request->has('age_group') && $request->age_group && $request->age_group !== 'all') {
+            $group = $request->age_group;
+            $eventDate = $event->start_at;
+            if ($eventDate) {
+                if ($group === '50+') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master 45+') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+                } elseif ($group === 'Umum') {
+                    $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+                }
+            }
+        }
+
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -247,10 +265,15 @@ class PublicEventController extends Controller
         }
 
         $participants = $query->orderBy('created_at', 'desc')
-            ->select('name', 'bib_number', 'race_category_id', 'created_at', 'gender', 'id_card')
+            ->select('name', 'bib_number', 'race_category_id', 'created_at', 'gender', 'id_card', 'date_of_birth')
             ->with('category:id,name')
             ->paginate(10);
 
+        $participants->getCollection()->transform(function ($participant) use ($event) {
+            $participant->age_group = $participant->getAgeGroup($event->start_at);
+            return $participant;
+        });
+        
         return response()->json($participants);
     }
 }
