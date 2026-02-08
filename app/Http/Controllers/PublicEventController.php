@@ -96,11 +96,18 @@ class PublicEventController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->limit(50)
                     ->get(['id','name']);
+
+                $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+                $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+                $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+
                 return view('events.latbar3', [
                     'event' => $event,
                     'categories' => $categories,
                     'participants' => $participants,
                     'hasPaidParticipants' => $hasPaidParticipants,
+                    'midtransUrl' => $midtransUrl,
+                    'midtransClientKey' => $midtransClientKey,
                 ]);
             }
 
@@ -146,11 +153,18 @@ class PublicEventController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(50)
             ->get(['id','name']);
+
+            $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+            $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+
             return view('events.latbar3', [
                 'event' => $event,
                 'categories' => $categories,
                 'participants' => $participants,
                 'hasPaidParticipants' => $hasPaidParticipants,
+                'midtransUrl' => $midtransUrl,
+                'midtransClientKey' => $midtransClientKey,
             ]);
         }
 
@@ -218,6 +232,10 @@ class PublicEventController extends Controller
 
         if ($request->has('category_id') && $request->category_id) {
             $query->where('race_category_id', $request->category_id);
+        }
+
+        if ($request->has('gender') && $request->gender && $request->gender !== 'all') {
+            $query->where('gender', $request->gender);
         }
 
         if ($request->has('search') && $request->search) {

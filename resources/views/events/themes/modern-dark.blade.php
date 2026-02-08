@@ -1888,6 +1888,7 @@
                                         final_amount: data.final_amount,
                                         unique_code: data.unique_code,
                                         phone: picPhone ? picPhone.value : '',
+                                        name: picName ? picName.value : '',
                                     });
                                 } else if (data.redirect_url) {
                                     window.location.href = data.redirect_url;

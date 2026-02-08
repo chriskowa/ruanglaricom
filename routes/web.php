@@ -218,6 +218,41 @@ Route::get('/tools/trackmaster', function () {
     return view('tools.trackmaster');
 })->name('tools.trackmaster');
 
+Route::get('/tools/race-master', function () {
+    return view('tools.race-master');
+})->name('tools.race-master');
+
+Route::get('/tools/race-master', function () {
+    return view('tools.race-master');
+})->name('tools.race-master');
+
+Route::get('/tools/race-master/results/{slug}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsPage'])
+    ->name('tools.race-master.results');
+
+Route::prefix('/api/tools/race-master')->group(function () {
+    Route::get('/docs', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'docs'])->name('tools.race-master.api.docs');
+    Route::post('/races', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeRace'])->name('tools.race-master.api.races.store');
+    Route::put('/races/{race}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'updateRace'])->name('tools.race-master.api.races.update');
+    Route::post('/races/{race}/participants/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'upsertParticipants'])->name('tools.race-master.api.races.participants.bulk');
+    Route::post('/races/{race}/sessions', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'startSession'])->name('tools.race-master.api.races.sessions.start');
+    Route::post('/sessions/{session}/laps', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLap'])->name('tools.race-master.api.sessions.laps.store');
+    Route::post('/sessions/{session}/finish', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'finishSession'])->name('tools.race-master.api.sessions.finish');
+    Route::post('/sessions/{session}/certificates', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateCertificates'])->name('tools.race-master.api.sessions.certificates.generate');
+    Route::post('/sessions/{session}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generatePoster'])->name('tools.race-master.api.sessions.poster');
+    Route::post('/sessions/{session}/poster/{participant}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateParticipantPoster'])->name('tools.race-master.api.sessions.poster.participant');
+    Route::prefix('/public')->group(function () {
+        Route::get('/{slug}/results', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsJson'])->name('tools.race-master.api.public.results');
+        Route::post('/{slug}/participants/{bib}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantPoster'])->name('tools.race-master.api.public.poster');
+        Route::post('/{slug}/participants/{bib}/certificate', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantCertificate'])->name('tools.race-master.api.public.certificate');
+    });
+});
+
+Route::middleware('auth')->get('/tools/race-master/certificates/{certificate}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'downloadCertificate'])
+    ->name('tools.race-master.certificates.download');
+
+Route::middleware('signed')->get('/tools/race-master/certificates/public/{certificate}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'downloadCertificatePublic'])
+    ->name('tools.race-master.certificates.public');
+
 Route::get('/tools/calculator', [App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
 Route::get('/tools/form-analyzer', [App\Http\Controllers\FormAnalyzerController::class, 'index'])->name('tools.form-analyzer');
 Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerController::class, 'analyze'])->name('tools.form-analyzer.analyze');
@@ -327,12 +362,34 @@ Route::get('/api/events/{slug}/results', [App\Http\Controllers\RaceResultControl
 
 Route::get('/registrasi-komunitas', [App\Http\Controllers\CommunityRegistrationController::class, 'index'])->name('community.register.index');
 Route::post('/registrasi-komunitas', [App\Http\Controllers\CommunityRegistrationController::class, 'start'])->name('community.register.start');
-Route::get('/registrasi-komunitas/{event:slug}/{registration}', [App\Http\Controllers\CommunityRegistrationController::class, 'show'])->name('community.register.show');
-Route::post('/registrasi-komunitas/{registration}/pic', [App\Http\Controllers\CommunityRegistrationController::class, 'updatePic'])->name('community.register.pic');
-Route::get('/registrasi-komunitas/{registration}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'listParticipants'])->name('community.register.participants');
-Route::post('/registrasi-komunitas/{registration}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'storeParticipant'])->name('community.register.participants.store');
-Route::delete('/registrasi-komunitas/{registration}/participants/{participant}', [App\Http\Controllers\CommunityRegistrationController::class, 'deleteParticipant'])->name('community.register.participants.delete');
-Route::post('/registrasi-komunitas/{event:slug}/{registration}/invoice', [App\Http\Controllers\CommunityRegistrationController::class, 'generateInvoice'])->name('community.register.invoice');
+Route::get('/registrasi-komunitas/{event:slug}/{community:slug}', [App\Http\Controllers\CommunityRegistrationController::class, 'show'])
+    ->withoutScopedBindings()
+    ->name('community.register.show');
+Route::post('/registrasi-komunitas/{event:slug}/{community:slug}/pic', [App\Http\Controllers\CommunityRegistrationController::class, 'updatePic'])
+    ->withoutScopedBindings()
+    ->name('community.register.pic');
+Route::get('/registrasi-komunitas/{event:slug}/{community:slug}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'listParticipants'])
+    ->withoutScopedBindings()
+    ->name('community.register.participants');
+Route::post('/registrasi-komunitas/{event:slug}/{community:slug}/participants', [App\Http\Controllers\CommunityRegistrationController::class, 'storeParticipant'])
+    ->withoutScopedBindings()
+    ->name('community.register.participants.store');
+Route::put('/registrasi-komunitas/{event:slug}/{community:slug}/participants/{participant}', [App\Http\Controllers\CommunityRegistrationController::class, 'updateParticipant'])
+    ->withoutScopedBindings()
+    ->name('community.register.participants.update');
+Route::delete('/registrasi-komunitas/{event:slug}/{community:slug}/participants/{participant}', [App\Http\Controllers\CommunityRegistrationController::class, 'deleteParticipant'])
+    ->withoutScopedBindings()
+    ->name('community.register.participants.delete');
+Route::post('/registrasi-komunitas/{event:slug}/{community:slug}/invoice', [App\Http\Controllers\CommunityRegistrationController::class, 'generateInvoice'])
+    ->withoutScopedBindings()
+    ->name('community.register.invoice');
+Route::post('/registrasi-komunitas/{event:slug}/{community:slug}/invoice/cancel', [App\Http\Controllers\CommunityRegistrationController::class, 'cancelInvoice'])
+    ->withoutScopedBindings()
+    ->name('community.register.invoice.cancel');
+
+Route::get('/registrasi-komunitas/{event:slug}/{registration}', [App\Http\Controllers\CommunityRegistrationController::class, 'legacyShow'])
+    ->whereNumber('registration')
+    ->name('community.register.show.legacy');
 
 // Public event routes (Kalender Lari)
 Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::class, 'index'])->name('events.index');
@@ -383,7 +440,7 @@ Route::get('/event/{slug}/payment/{transaction}', [App\Http\Controllers\EventReg
 Route::get('/event/{slug}/prediction', [App\Http\Controllers\EventPredictionController::class, 'show'])->name('events.prediction');
 Route::post('/event/{slug}/prediction/predict', [App\Http\Controllers\EventPredictionController::class, 'predict'])->middleware('throttle:30,1')->name('events.prediction.predict');
 Route::get('/event/{slug}/lanjutkan-pembayaran', [App\Http\Controllers\EventPaymentRecoveryController::class, 'show'])->name('events.payments.continue');
-Route::post('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:5,1')->name('events.register.store');
+Route::post('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'store'])->middleware('throttle:60,1')->name('events.register.store');
 Route::post('/event/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
 Route::post('/event/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
 

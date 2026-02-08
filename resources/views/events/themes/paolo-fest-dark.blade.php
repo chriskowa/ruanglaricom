@@ -1444,12 +1444,14 @@
                                 btn.innerHTML = originalText;
 
                                 const phoneEl = form.querySelector('[name="pic_phone"]');
+                                const nameEl = form.querySelector('[name="pic_name"]');
                                 window.RuangLariMoota.open({
                                     transaction_id: data.transaction_id,
                                     registration_id: data.registration_id,
                                     final_amount: data.final_amount,
                                     unique_code: data.unique_code,
                                     phone: phoneEl ? phoneEl.value : '',
+                                    name: nameEl ? nameEl.value : '',
                                 });
                             } else if (data.redirect_url) {
                                 window.location.href = data.redirect_url;

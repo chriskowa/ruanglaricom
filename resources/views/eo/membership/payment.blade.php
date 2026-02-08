@@ -1,39 +1,105 @@
-@extends('layouts.app')
+@extends('layouts.pacerhub')
 
 @section('title', 'Pembayaran Membership')
 
-@section('content')
-<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans flex items-center justify-center">
-    
-    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 text-center relative overflow-hidden">
-        <!-- Background decoration -->
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon via-cyan-400 to-purple-500"></div>
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/10 rounded-full blur-3xl"></div>
-        
-        <div class="relative z-10">
-            <h2 class="text-2xl font-black text-white italic tracking-tighter mb-2">COMPLETE PAYMENT</h2>
-            <p class="text-slate-400 text-sm mb-8 font-mono">Order ID: MEMBERSHIP-{{ $transaction->id }}</p>
-            
-            <div class="bg-slate-950 rounded-xl p-6 mb-8 border border-slate-800">
-                <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">{{ $transaction->package->name }} Package</div>
-                <div class="text-4xl font-black text-neon italic tracking-tighter">
-                    Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}
-                </div>
-                <div class="mt-2 text-xs text-slate-400">
-                    Durasi: {{ $transaction->package->duration_days }} Hari
-                </div>
-            </div>
+@push('styles')
+    <script>
+        tailwind.config.theme.extend = {
+            ...tailwind.config.theme.extend,
+            colors: {
+                ...tailwind.config.theme.extend.colors,
+                neon: {
+                    DEFAULT: '#ccff00',
+                    cyan: '#06b6d4',
+                    purple: '#a855f7',
+                    green: '#22c55e',
+                    dark: '#0f172a',
+                    card: '#1e293b'
+                }
+            }
+        }
+    </script>
+@endpush
 
-            <button id="pay-button" class="w-full bg-neon text-dark font-black text-lg py-4 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 group">
-                <span>PAY NOW</span>
-                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-            </button>
-            
-            <p class="text-xs text-slate-500 mt-6 flex items-center justify-center gap-2">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                Secured by Midtrans
+@section('content')
+<div class="min-h-screen bg-dark text-white font-sans selection:bg-neon selection:text-dark pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center justify-center">
+    
+    <!-- Background Accents -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-neon/10 rounded-full blur-[100px] -z-10"></div>
+
+    <div class="max-w-xl w-full">
+        
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center gap-2 mb-2">
+                <div class="w-2 h-6 bg-neon skew-x-[-12deg]"></div>
+                <span class="text-neon font-mono text-sm tracking-widest uppercase">EO MEMBERSHIP</span>
+            </div>
+            <h1 class="text-3xl md:text-5xl font-black italic tracking-tighter text-white uppercase mb-4">
+                {{ $transaction->package->name }}
+            </h1>
+            <p class="text-slate-400 max-w-xl mx-auto">
+                Selesaikan pembayaran untuk mengaktifkan fitur Event Organizer.
             </p>
         </div>
+
+        <!-- Payment Card -->
+        <div class="bg-card/50 backdrop-blur-sm rounded-3xl p-8 border border-slate-700 relative overflow-hidden group shadow-2xl">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-neon/5 rounded-full blur-2xl -mr-16 -mt-16 transition-all group-hover:bg-neon/10"></div>
+            
+            <div class="space-y-8 text-center">
+                
+                <div>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">Total Tagihan</span>
+                    <div class="text-5xl font-black text-neon tracking-tighter drop-shadow-[0_0_15px_rgba(204,255,0,0.3)]">
+                        Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}
+                    </div>
+                     <div class="mt-2 text-sm text-slate-400 font-mono">
+                        Durasi: <span class="text-white">{{ $transaction->package->duration_days }} Hari</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 text-left">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-neon">
+                            <i class="fa-regular fa-file-lines"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 font-bold uppercase">Order ID</div>
+                            <div class="text-white font-mono text-sm">MEMBERSHIP-{{ $transaction->id }}</div>
+                        </div>
+                    </div>
+                     <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-neon">
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 font-bold uppercase">Account</div>
+                            <div class="text-white font-mono text-sm">{{ auth()->user()->name }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="pay-button" class="w-full bg-neon text-dark font-black text-xl py-5 rounded-xl shadow-[0_0_20px_rgba(204,255,0,0.4)] hover:shadow-[0_0_30px_rgba(204,255,0,0.6)] hover:scale-[1.02] transition-all flex items-center justify-center gap-3 group relative overflow-hidden">
+                    <span class="relative z-10">BAYAR SEKARANG</span>
+                    <i class="fa-solid fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform"></i>
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                </button>
+
+                <div class="flex items-center justify-center gap-2 text-xs text-slate-500">
+                    <i class="fa-solid fa-lock text-green-500"></i>
+                    <span>Pembayaran aman & terenkripsi oleh Midtrans</span>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="text-center mt-8">
+             <a href="{{ route('eo.dashboard') }}" class="text-slate-500 hover:text-white text-sm transition font-bold uppercase tracking-wider">
+                Batalkan & Kembali
+            </a>
+        </div>
+
     </div>
 </div>
 

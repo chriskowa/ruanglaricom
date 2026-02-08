@@ -60,6 +60,23 @@
             </div>
         </a>
 
+        <!-- Race Master Pro -->
+        <a href="{{ route('tools.race-master') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="p-8 h-full flex flex-col">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fa-solid fa-stopwatch text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-black text-white italic tracking-tighter mb-2 group-hover:text-indigo-400 transition-colors">RACE MASTER</h3>
+                <p class="text-slate-400 mb-6 flex-grow">
+                    Manajemen race lengkap: BIB generator, manual timing, lap counter, dan leaderboard real-time. Cocok untuk event komunitas.
+                </p>
+                <div class="flex items-center text-indigo-400 font-bold text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform">
+                    Open Tool <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+            </div>
+        </a>
+
         <!-- Race Calculator -->
         <a href="{{ route('calculator') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1">
             <div class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -94,6 +111,25 @@
                 </p>
                 <div class="flex items-center text-[#ccff00] font-bold text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform">
                     Start Session <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+            </div>
+        </a>
+
+        <!-- Race Master Pro -->
+        <a href="{{ route('tools.race-master') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="p-8 h-full flex flex-col">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-8a2 2 0 012-2h14a2 2 0 012 2v8M12 11V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-black text-white italic tracking-tighter mb-2 group-hover:text-indigo-400 transition-colors">RACE MASTER</h3>
+                <p class="text-slate-400 mb-6 flex-grow">
+                    Sistem manajemen race lengkap. Kelola peserta, BIB generation dengan QR Code, dan Race Timer real-time.
+                </p>
+                <div class="flex items-center text-indigo-400 font-bold text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform">
+                    Manage Race <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </div>
             </div>
         </a>

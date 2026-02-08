@@ -13,8 +13,9 @@ use App\Services\MootaService;
 use App\Services\QrisDynamicService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-use App\Models\Community; // Add this import
+use App\Models\Community;
 
 class CommunityRegistrationController extends Controller
 {
@@ -39,10 +40,28 @@ class CommunityRegistrationController extends Controller
             }
         }
 
+        $eventItems = $events->map(function ($e) {
+            $label = $e->name;
+            if ($e->start_at) {
+                $label .= ' • ' . $e->start_at->format('d M Y');
+            }
+            if ($e->location_name) {
+                $label .= ' • ' . $e->location_name;
+            }
+            return [
+                'id' => $e->id,
+                'label' => $label,
+            ];
+        })->values();
+
+        $initialEventId = request()->old('event_id', $selectedEventId ?? '');
+
         return view('community.index', [
             'events' => $events,
+            'eventItems' => $eventItems,
             'communities' => $communities,
             'selectedEventId' => $selectedEventId,
+            'initialEventId' => $initialEventId,
         ]);
     }
 
@@ -64,38 +83,72 @@ class CommunityRegistrationController extends Controller
             ->whereKey($validated['event_id'])
             ->firstOrFail();
 
-        $data = [
-            'event_id' => $event->id,
-            'status' => 'draft',
-        ];
-
+        $community = null;
+        $snapshot = [];
         if (!empty($validated['community_id'])) {
-            $community = Community::find($validated['community_id']);
-            $data['community_id'] = $community->id;
-            $data['community_name'] = $community->name;
-            $data['pic_name'] = $community->pic_name;
-            $data['pic_email'] = $community->pic_email;
-            $data['pic_phone'] = $community->pic_phone;
+            $community = Community::query()->whereKey($validated['community_id'])->firstOrFail();
+            $snapshot = [
+                'community_name' => $community->name,
+                'pic_name' => (string) $community->pic_name,
+                'pic_email' => (string) $community->pic_email,
+                'pic_phone' => (string) $community->pic_phone,
+            ];
         } else {
-            $data['community_name'] = trim((string) $validated['community_name']);
-            $data['pic_name'] = trim((string) $validated['pic_name']);
-            $data['pic_email'] = strtolower(trim((string) $validated['pic_email']));
-            $data['pic_phone'] = trim((string) $validated['pic_phone']);
+            $communityName = trim((string) $validated['community_name']);
+            $picName = trim((string) $validated['pic_name']);
+            $picEmail = strtolower(trim((string) $validated['pic_email']));
+            $picPhone = trim((string) $validated['pic_phone']);
+
+            $community = Community::query()
+                ->whereRaw('LOWER(name) = ?', [strtolower($communityName)])
+                ->orWhere('pic_email', $picEmail)
+                ->first();
+
+            if (!$community) {
+                $community = Community::create([
+                    'name' => $communityName,
+                    'slug' => $this->generateUniqueCommunitySlug($communityName),
+                    'pic_name' => $picName,
+                    'pic_email' => $picEmail,
+                    'pic_phone' => $picPhone,
+                ]);
+            } else {
+                $community->update([
+                    'name' => $communityName,
+                    'pic_name' => $picName,
+                    'pic_email' => $picEmail,
+                    'pic_phone' => $picPhone,
+                ]);
+            }
+
+            $snapshot = [
+                'community_name' => $communityName,
+                'pic_name' => $picName,
+                'pic_email' => $picEmail,
+                'pic_phone' => $picPhone,
+            ];
         }
 
-        $registration = CommunityRegistration::create($data);
+        $registration = CommunityRegistration::query()->firstOrCreate([
+            'event_id' => $event->id,
+            'community_id' => $community->id,
+        ], array_merge($snapshot, [
+            'status' => 'draft',
+        ]));
+
+        if (!$registration->wasRecentlyCreated && $registration->status === 'draft') {
+            $registration->update($snapshot);
+        }
 
         return redirect()->route('community.register.show', [
             'event' => $event->slug,
-            'registration' => $registration->id,
+            'community' => $community->slug,
         ]);
     }
 
-    public function show(Event $event, CommunityRegistration $registration)
+    public function show(Event $event, Community $community)
     {
-        if ((int) $registration->event_id !== (int) $event->id) {
-            abort(404);
-        }
+        $registration = $this->getRegistration($event, $community);
 
         $categories = RaceCategory::query()
             ->where('event_id', $event->id)
@@ -114,11 +167,53 @@ class CommunityRegistrationController extends Controller
             'categories' => $categories,
             'participants' => $participants,
             'latestInvoice' => $registration->invoices()->latest()->first(),
+            'community' => $community,
         ]);
     }
 
-    public function updatePic(Request $request, CommunityRegistration $registration)
+    public function legacyShow(Event $event, CommunityRegistration $registration)
     {
+        if ((int) $registration->event_id !== (int) $event->id) {
+            abort(404);
+        }
+
+        $community = $registration->community;
+        if (!$community) {
+            $communityName = trim((string) $registration->community_name);
+            $picName = trim((string) $registration->pic_name);
+            $picEmail = strtolower(trim((string) $registration->pic_email));
+            $picPhone = trim((string) $registration->pic_phone);
+
+            $community = Community::query()
+                ->whereRaw('LOWER(name) = ?', [strtolower($communityName)])
+                ->orWhere('pic_email', $picEmail)
+                ->first();
+
+            if (!$community) {
+                $community = Community::create([
+                    'name' => $communityName,
+                    'slug' => $this->generateUniqueCommunitySlug($communityName),
+                    'pic_name' => $picName,
+                    'pic_email' => $picEmail,
+                    'pic_phone' => $picPhone,
+                ]);
+            }
+
+            $registration->update([
+                'community_id' => $community->id,
+            ]);
+        }
+
+        return redirect()->route('community.register.show', [
+            'event' => $event->slug,
+            'community' => $community->slug,
+        ]);
+    }
+
+    public function updatePic(Request $request, Event $event, Community $community)
+    {
+        $registration = $this->getRegistration($event, $community);
+
         if ($registration->status !== 'draft') {
             return response()->json([
                 'success' => false,
@@ -140,13 +235,22 @@ class CommunityRegistrationController extends Controller
             'pic_phone' => trim((string) $validated['pic_phone']),
         ]);
 
+        $community->update([
+            'name' => trim((string) $validated['community_name']),
+            'pic_name' => trim((string) $validated['pic_name']),
+            'pic_email' => strtolower(trim((string) $validated['pic_email'])),
+            'pic_phone' => trim((string) $validated['pic_phone']),
+        ]);
+
         return response()->json([
             'success' => true,
         ]);
     }
 
-    public function listParticipants(CommunityRegistration $registration)
+    public function listParticipants(Event $event, Community $community)
     {
+        $registration = $this->getRegistration($event, $community);
+
         $items = $registration->participants()
             ->with(['category:id,name'])
             ->orderBy('id')
@@ -158,9 +262,11 @@ class CommunityRegistrationController extends Controller
                     'email' => $p->email,
                     'phone' => $p->phone,
                     'id_card' => $p->id_card,
+                    'address' => $p->address,
                     'gender' => $p->gender,
                     'category_id' => $p->race_category_id,
                     'category_name' => $p->category?->name,
+                    'jersey_size' => $p->jersey_size,
                     'is_free' => (bool) $p->is_free,
                 ];
             });
@@ -172,8 +278,10 @@ class CommunityRegistrationController extends Controller
         ]);
     }
 
-    public function storeParticipant(Request $request, CommunityRegistration $registration)
+    public function storeParticipant(Request $request, Event $event, Community $community)
     {
+        $registration = $this->getRegistration($event, $community);
+
         if ($registration->status !== 'draft') {
             return response()->json([
                 'success' => false,
@@ -236,8 +344,77 @@ class CommunityRegistrationController extends Controller
         ]);
     }
 
-    public function deleteParticipant(CommunityRegistration $registration, CommunityParticipant $participant)
+    public function updateParticipant(Request $request, Event $event, Community $community, CommunityParticipant $participant)
     {
+        $registration = $this->getRegistration($event, $community);
+
+        if ($registration->status !== 'draft') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registrasi sudah dikunci (invoice sudah dibuat).',
+            ], 409);
+        }
+
+        if ((int) $participant->community_registration_id !== (int) $registration->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'gender' => 'nullable|in:male,female',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|min:8|max:20',
+            'id_card' => 'required|string|max:50',
+            'address' => 'required|string|max:500',
+            'race_category_id' => 'required|exists:race_categories,id',
+            'date_of_birth' => 'nullable|date|before:today',
+            'jersey_size' => 'nullable|string|max:10',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_number' => 'nullable|string|min:8|max:20',
+        ]);
+
+        $category = RaceCategory::query()->whereKey((int) $validated['race_category_id'])->firstOrFail();
+        if ((int) $category->event_id !== (int) $registration->event_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori tidak valid untuk event ini.',
+            ], 422);
+        }
+
+        $duplicateIdCard = $registration->participants()
+            ->where('id_card', $validated['id_card'])
+            ->where('id', '!=', $participant->id)
+            ->exists();
+        if ($duplicateIdCard) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ID Card sudah dipakai oleh peserta lain di komunitas ini.',
+            ], 422);
+        }
+
+        $participant->update([
+            'race_category_id' => (int) $validated['race_category_id'],
+            'name' => trim((string) $validated['name']),
+            'gender' => $validated['gender'] ?? null,
+            'email' => strtolower(trim((string) $validated['email'])),
+            'phone' => trim((string) $validated['phone']),
+            'id_card' => trim((string) $validated['id_card']),
+            'address' => trim((string) $validated['address']),
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
+            'jersey_size' => $validated['jersey_size'] ?? null,
+            'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
+            'emergency_contact_number' => $validated['emergency_contact_number'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
+    public function deleteParticipant(Event $event, Community $community, CommunityParticipant $participant)
+    {
+        $registration = $this->getRegistration($event, $community);
+
         if ($registration->status !== 'draft') {
             return response()->json([
                 'success' => false,
@@ -256,17 +433,65 @@ class CommunityRegistrationController extends Controller
         ]);
     }
 
+    public function cancelInvoice(Event $event, Community $community)
+    {
+        $registration = $this->getRegistration($event, $community);
+
+        if ($registration->status !== 'invoiced') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice tidak bisa dibatalkan pada status registrasi saat ini.',
+            ], 409);
+        }
+
+        $invoice = $registration->invoices()
+            ->with(['transaction'])
+            ->latest()
+            ->first();
+
+        if (! $invoice || ! $invoice->transaction) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice tidak ditemukan.',
+            ], 404);
+        }
+
+        if ($invoice->status !== 'pending' || $invoice->transaction->payment_status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invoice tidak bisa dibatalkan karena status pembayaran sudah berubah.',
+            ], 409);
+        }
+
+        DB::transaction(function () use ($registration, $invoice) {
+            $invoice->update([
+                'status' => 'cancelled',
+            ]);
+
+            $invoice->transaction->update([
+                'payment_status' => 'failed',
+            ]);
+
+            $registration->update([
+                'status' => 'draft',
+                'invoiced_at' => null,
+            ]);
+        }, 3);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
     public function generateInvoice(
         Request $request,
         Event $event,
-        CommunityRegistration $registration,
+        Community $community,
         CommunityPricingService $pricingService,
         MootaService $mootaService,
         QrisDynamicService $qrisService
     ) {
-        if ((int) $registration->event_id !== (int) $event->id) {
-            abort(404);
-        }
+        $registration = $this->getRegistration($event, $community);
 
         if ($registration->status !== 'draft') {
             return response()->json([
@@ -413,5 +638,26 @@ class CommunityRegistrationController extends Controller
             'unique_code' => (int) $transaction->unique_code,
             'qris_payload' => $invoice->qris_payload,
         ]);
+    }
+
+    private function getRegistration(Event $event, Community $community): CommunityRegistration
+    {
+        return CommunityRegistration::query()
+            ->where('event_id', $event->id)
+            ->where('community_id', $community->id)
+            ->firstOrFail();
+    }
+
+    private function generateUniqueCommunitySlug(string $name): string
+    {
+        $baseSlug = Str::slug($name);
+        $slug = $baseSlug !== '' ? $baseSlug : Str::random(10);
+        $base = $baseSlug !== '' ? $baseSlug : $slug;
+        $counter = 2;
+        while (Community::query()->where('slug', $slug)->exists()) {
+            $slug = $base . '-' . $counter;
+            $counter++;
+        }
+        return $slug;
     }
 }

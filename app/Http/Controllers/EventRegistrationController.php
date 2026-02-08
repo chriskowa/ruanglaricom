@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Events\StoreRegistrationAction;
 use App\Models\Coupon;
 use App\Models\Event;
+use App\Models\AppSettings;
 use App\Services\EventCacheService;
 use Illuminate\Http\Request;
 

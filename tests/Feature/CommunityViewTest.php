@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Community;
 use App\Models\CommunityRegistration;
 use App\Models\Event;
 use App\Models\User;
@@ -31,6 +32,13 @@ class CommunityViewTest extends TestCase
 
         $registration = CommunityRegistration::create([
             'event_id' => $event->id,
+            'community_id' => Community::create([
+                'name' => 'Test Community',
+                'slug' => 'test-community',
+                'pic_name' => 'PIC Test',
+                'pic_email' => 'pic@test.com',
+                'pic_phone' => '08123456789',
+            ])->id,
             'community_name' => 'Test Community',
             'pic_name' => 'PIC Test',
             'pic_email' => 'pic@test.com',
@@ -40,7 +48,7 @@ class CommunityViewTest extends TestCase
 
         $response = $this->get(route('community.register.show', [
             'event' => $event->slug,
-            'registration' => $registration->id,
+            'community' => 'test-community',
         ]));
 
         $response->assertStatus(200);

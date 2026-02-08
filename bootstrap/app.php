@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'membership/webhook',
             'webhook/moota',
             'api/moota/webhook',
+            'api/tools/race-master/public/*',
         ]);
 
         $middleware->web(append: [

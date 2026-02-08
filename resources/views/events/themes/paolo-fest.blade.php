@@ -1436,38 +1436,29 @@
                 </div>
 
                 <!-- FAQ -->
+                @php
+                    $faqs = isset($event->premium_amenities['faq']['items']) ? $event->premium_amenities['faq']['items'] : [];
+                    $isFaqEnabled = isset($event->premium_amenities['faq']['enabled']) ? $event->premium_amenities['faq']['enabled'] : false;
+                @endphp
+
+                @if($isFaqEnabled && !empty($faqs))
                 <div class="reveal delay-200">
                     <h3 class="text-2xl font-bold text-slate-900 mb-8">FAQ</h3>
                     <div class="space-y-4">
+                        @foreach($faqs as $faq)
                         <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
                             <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                                Apakah tiket bisa di-refund?
+                                {{ $faq['question'] }}
                                 <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
                             <div class="px-6 pb-4 text-sm text-slate-600 hidden">
-                                Tiket yang sudah dibeli tidak dapat dikembalikan (non-refundable), namun dapat dipindahtangankan sesuai syarat dan ketentuan yang berlaku.
+                                {!! nl2br(e($faq['answer'])) !!}
                             </div>
                         </div>
-                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                            <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                                Kapan batas akhir pendaftaran?
-                                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            <div class="px-6 pb-4 text-sm text-slate-600 hidden">
-                                Pendaftaran ditutup pada {{ $event->registration_close_at ? $event->registration_close_at->format('d F Y') : 'H-7 sebelum acara' }} atau saat kuota terpenuhi.
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                            <button class="w-full px-6 py-4 text-left font-bold text-slate-900 flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                                Apakah ada penitipan barang?
-                                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            <div class="px-6 pb-4 text-sm text-slate-600 hidden">
-                                Ya, kami menyediakan area deposit bag (penitipan tas) di area Race Village bagi peserta.
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
+                @endif
             </div>
         </div>
     </section>
@@ -2709,12 +2700,14 @@
                                 btn.innerHTML = originalText;
 
                                 const phoneEl = form.querySelector('[name="pic_phone"]');
+                                const nameEl = form.querySelector('[name="pic_name"]');
                                 window.RuangLariMoota.open({
                                     transaction_id: data.transaction_id,
                                     registration_id: data.registration_id,
                                     final_amount: data.final_amount,
                                     unique_code: data.unique_code,
                                     phone: phoneEl ? phoneEl.value : '',
+                                    name: nameEl ? nameEl.value : '',
                                 });
                             } else if (data.redirect_url) {
                                 window.location.href = data.redirect_url;

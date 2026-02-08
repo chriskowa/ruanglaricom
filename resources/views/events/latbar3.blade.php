@@ -246,6 +246,13 @@
                                     <label for="name" class="form-label">NAMA LENGKAP</label>
                                 </div>
 
+                                <!--
+                                <div class="form-input-group animate-fade-in delay-100">
+                                    <input type="text" id="id_card" v-model="form.id_card" required class="form-input" placeholder=" ">
+                                    <label for="id_card" class="form-label">NO. KTP / ID CARD</label>
+                                </div>
+                                -->
+
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="form-input-group animate-fade-in delay-200">
                                         <input type="tel" id="phone" v-model="form.phone" required class="form-input" placeholder=" ">
@@ -263,6 +270,18 @@
                                     </select>
                                     <label for="gender" class="form-label">GENDER</label>
                                 </div>
+
+                                <!--
+                                <div class="form-input-group animate-fade-in delay-250">
+                                    <textarea id="address" v-model="form.address" required class="form-input" rows="2" placeholder=" "></textarea>
+                                    <label for="address" class="form-label">ALAMAT LENGKAP</label>
+                                </div>
+
+                                <div class="form-input-group animate-fade-in delay-250">
+                                    <input type="date" id="dob" v-model="form.date_of_birth" required class="form-input" placeholder=" ">
+                                    <label for="dob" class="form-label">TANGGAL LAHIR</label>
+                                </div>
+                                -->
                                 
                                 <div class="form-input-group animate-fade-in delay-300">
                                     <input type="number" id="ticket" v-model="form.ticket_quantity" min="1" required class="form-input" placeholder=" ">
@@ -315,6 +334,15 @@
                                         </div>
                                         <div class="font-bold text-sm text-white">Online Payment</div>
                                         <div class="text-[10px] text-gray-500 mt-1">QRIS, E-Wallet, Virtual Account</div>
+                                    </div>
+
+                                    <div class="payment-card" :class="{'active': form.payment_method === 'moota'}" @click="form.payment_method = 'moota'">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <i class="fas fa-university text-xl text-gray-400" :class="{'text-sport-volt': form.payment_method === 'moota'}"></i>
+                                            <div class="check-circle"></div>
+                                        </div>
+                                        <div class="font-bold text-sm text-white">Transfer Bank</div>
+                                        <div class="text-[10px] text-gray-500 mt-1">BCA (Moota)</div>
                                     </div>
                                     
                                     <div class="payment-card" :class="{'active': form.payment_method === 'cod'}" @click="form.payment_method = 'cod'">
@@ -429,17 +457,12 @@
         @include('layouts.components.pacerhub-footer')
     </div>
 
-    @php
-        $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-        $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
-        $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
-    @endphp
     <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
     <script>
     const { createApp, ref, computed, onMounted } = Vue;
     const app = createApp({
         setup() {
-            const form = ref({ name: '', email: '', phone: '', ticket_quantity: 1, addons: [], gender: 'male', emergency_contact_name: '', emergency_contact_number: '' });
+            const form = ref({ name: '', email: '', phone: '', address: '', date_of_birth: '', id_card: '', ticket_quantity: 1, addons: [], gender: 'male', emergency_contact_name: '', emergency_contact_number: '' });
             const isLoading = ref(false);
             const prices = { base: 15000 };
             
@@ -515,7 +538,9 @@
                             gender: form.value.gender || 'male',
                             email: form.value.email,
                             phone: form.value.phone,
-                            id_card: form.value.phone,
+                            address: form.value.address || 'Malang',
+                            date_of_birth: form.value.date_of_birth || '2000-01-01',
+                            id_card: (form.value.id_card || '0000000000') + i + Date.now().toString().slice(-4), // Generate unique ID
                             category_id: defaultCategoryId,
                             emergency_contact_name: form.value.emergency_contact_name || form.value.name,
                             emergency_contact_number: form.value.emergency_contact_number || form.value.phone,
@@ -553,6 +578,12 @@
                         },
                         body: JSON.stringify(payload)
                     });
+
+                    if (res.status === 429) {
+                        alert('Terlalu banyak permintaan. Mohon tunggu beberapa saat sebelum mencoba lagi.');
+                        return;
+                    }
+
                     const data = await res.json();
                     if (!res.ok || !data.success) {
                         alert(data.message || 'Registrasi gagal');
@@ -576,6 +607,20 @@
                                 alert('Anda menutup popup tanpa menyelesaikan pembayaran');
                             }
                         });
+                    } else if (form.value.payment_method === 'moota') {
+                        if (data.redirect_url) {
+                            const nameEl = document.getElementById('name');
+                            const phoneEl = document.getElementById('phone');
+                            window.RuangLariMoota.open({
+                                transaction_id: data.transaction_id,
+                                registration_id: data.registration_id,
+                                final_amount: data.final_amount,
+                                unique_code: data.unique_code,
+                                phone: phoneEl ? phoneEl.value : '',
+                                name: nameEl ? nameEl.value : '',
+                            });
+                            return;
+                        }
                     } else {
                         alert('Registrasi COD berhasil. Silakan lakukan pembayaran di lokasi.');
                         window.location.reload();
@@ -590,7 +635,7 @@
                 }
             };
             onMounted(() => {
-                form.value.payment_method = 'midtrans';
+                form.value.payment_method = 'moota';
                 tick();
                 setInterval(tick, 1000);
             });
@@ -626,6 +671,7 @@
         };
     })();
     </script>
+    @include('events.partials.moota-payment-modal')
     <script>
     (function(){
         var btn = document.getElementById('ph-sidebar-toggle');

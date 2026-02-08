@@ -1074,12 +1074,14 @@
                         if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                             if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
                             const phoneEl = form.querySelector('[name="pic_phone"]');
+                            const nameEl = form.querySelector('[name="pic_name"]');
                             window.RuangLariMoota.open({
                                 transaction_id: data.transaction_id,
                                 registration_id: data.registration_id,
                                 final_amount: data.final_amount,
                                 unique_code: data.unique_code,
                                 phone: phoneEl ? phoneEl.value : '',
+                                name: nameEl ? nameEl.value : '',
                             });
                             return;
                         }

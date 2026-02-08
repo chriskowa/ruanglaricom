@@ -10,6 +10,7 @@
             const isLoading = Vue.ref(false);
             const search = Vue.ref('');
             const selectedCategory = Vue.ref('all');
+            const selectedGender = Vue.ref('all');
             
             const fetchParticipants = async (page = 1) => {
                 isLoading.value = true;
@@ -18,6 +19,7 @@
                     params.append('page', page);
                     if (search.value) params.append('search', search.value);
                     if (selectedCategory.value !== 'all') params.append('category_id', selectedCategory.value);
+                    if (selectedGender.value !== 'all') params.append('gender', selectedGender.value);
                     
                     const url = (window.rlUrl ? window.rlUrl(`event/${props.eventSlug}/participants-list?${params.toString()}`) : `/event/${props.eventSlug}/participants-list?${params.toString()}`);
                     const response = await fetch(url);
@@ -75,6 +77,7 @@
                 isLoading,
                 search,
                 selectedCategory,
+                selectedGender,
                 onSearch,
                 onCategoryChange,
                 fetchParticipants,
@@ -91,6 +94,17 @@
                     </div>
                     
                     <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                        <!-- Gender Filter -->
+                        <div class="relative min-w-[160px]">
+                            <select v-model="selectedGender" @change="fetchParticipants(1)" 
+                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:border-sport-volt focus:ring-1 focus:ring-sport-volt outline-none cursor-pointer appearance-none">
+                                <option value="all" class="bg-slate-800">Semua Gender</option>
+                                <option value="male" class="bg-slate-800">Laki-laki</option>
+                                <option value="female" class="bg-slate-800">Perempuan</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+                        </div>
+
                         <!-- Search -->
                         <div class="relative w-full">
                             <input type="text" v-model="search" @input="onSearch" 

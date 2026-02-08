@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Community;
 use App\Models\CommunityInvoice;
 use App\Models\CommunityParticipant;
 use App\Models\CommunityRegistration;
@@ -48,11 +49,19 @@ class CommunityRegistrationFlowTest extends TestCase
             'pic_phone' => '081234567890',
         ]);
 
-        $startRes->assertRedirect();
         $registration = CommunityRegistration::query()->latest()->first();
         $this->assertNotNull($registration);
+        $registration->load('community');
+        $this->assertNotNull($registration->community);
+        $startRes->assertRedirect(route('community.register.show', [
+            'event' => $event->slug,
+            'community' => $registration->community->slug,
+        ]));
 
-        $addRes = $this->postJson(route('community.register.participants.store', $registration), [
+        $addRes = $this->postJson(route('community.register.participants.store', [
+            'event' => $event->slug,
+            'community' => $registration->community->slug,
+        ]), [
             'name' => 'Peserta 1',
             'gender' => 'male',
             'email' => 'p1@example.com',
@@ -66,7 +75,7 @@ class CommunityRegistrationFlowTest extends TestCase
 
         $invoiceRes = $this->postJson(route('community.register.invoice', [
             'event' => $event->slug,
-            'registration' => $registration->id,
+            'community' => $registration->community->slug,
         ]), [
             'payment_method' => 'moota',
         ]);
@@ -116,6 +125,13 @@ class CommunityRegistrationFlowTest extends TestCase
 
         $registration = CommunityRegistration::create([
             'event_id' => $event->id,
+            'community_id' => Community::create([
+                'name' => 'Komunitas Test',
+                'slug' => 'komunitas-test',
+                'pic_name' => 'PIC',
+                'pic_email' => 'pic@example.com',
+                'pic_phone' => '081234567890',
+            ])->id,
             'community_name' => 'Komunitas Test',
             'pic_name' => 'PIC',
             'pic_email' => 'pic@example.com',
@@ -137,7 +153,7 @@ class CommunityRegistrationFlowTest extends TestCase
 
         $invoiceRes = $this->postJson(route('community.register.invoice', [
             'event' => $event->slug,
-            'registration' => $registration->id,
+            'community' => 'komunitas-test',
         ]), [
             'payment_method' => 'qris',
         ]);

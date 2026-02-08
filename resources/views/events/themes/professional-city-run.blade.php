@@ -952,6 +952,7 @@
                                 final_amount: data.final_amount,
                                 unique_code: data.unique_code,
                                 phone: document.getElementById('pic_phone') ? document.getElementById('pic_phone').value : '',
+                                name: document.querySelector('[name="pic_name"]') ? document.querySelector('[name="pic_name"]').value : '',
                             });
                         } else if (data.redirect_url) {
                             window.location.href = data.redirect_url;
