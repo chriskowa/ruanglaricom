@@ -2,7 +2,8 @@
     const ParticipantsTableComponent = {
         props: {
             eventSlug: { type: String, required: true },
-            categories: { type: Array, required: true }
+            categories: { type: Array, required: true },
+            fetchUrl: { type: String, required: false, default: '' }
         },
         setup(props) {
             const participants = Vue.ref([]);
@@ -23,7 +24,13 @@
                     if (selectedGender.value !== 'all') params.append('gender', selectedGender.value);
                     if (selectedAgeGroup.value !== 'all') params.append('age_group', selectedAgeGroup.value);
                     
-                    const url = (window.rlUrl ? window.rlUrl(`event/${props.eventSlug}/participants-list?${params.toString()}`) : `/event/${props.eventSlug}/participants-list?${params.toString()}`);
+                    let url;
+                    if (props.fetchUrl) {
+                        url = `${props.fetchUrl}?${params.toString()}`;
+                    } else {
+                        url = (window.rlUrl ? window.rlUrl(`event/${props.eventSlug}/participants-list?${params.toString()}`) : `/event/${props.eventSlug}/participants-list?${params.toString()}`);
+                    }
+                    
                     const response = await fetch(url);
                     
                     if (!response.ok) {
@@ -225,4 +232,8 @@
     };
 </script>
 
-<participants-table :event-slug="'{{ $event->slug }}'" :categories="categories"></participants-table>
+<participants-table 
+    :event-slug="'{{ $event->slug }}'" 
+    :categories="categories"
+    :fetch-url="'{{ route('events.participants-list', $event->slug) }}'"
+></participants-table>

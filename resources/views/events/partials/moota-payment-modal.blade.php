@@ -127,11 +127,7 @@
         const elViewSuccess = document.getElementById('rl-moota-view-success');
         const elTitle = document.querySelector('#rl-moota-modal h3');
         const elSubtitle = document.getElementById('rl-moota-subtitle');
-        const elConfirmPaid = document.getElementById('rl-moota-confirm-paid');
-        const elViewInstructions = document.getElementById('rl-moota-view-instructions');
-        const elViewSuccess = document.getElementById('rl-moota-view-success');
-        const elTitle = document.querySelector('#rl-moota-modal h3');
-        const elSubtitle = document.getElementById('rl-moota-subtitle');
+
 
         let pollTimer = null;
         let current = {
