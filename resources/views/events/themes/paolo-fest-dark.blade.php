@@ -845,7 +845,7 @@
     @include('events.partials.prizes-section', ['categories' => $categories])
 
     <!-- Participants Table Section -->
-    @if($hasPaidParticipants ?? false)
+    @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
     <section id="participants-list" class="py-24 bg-slate-900 relative">
         <div class="absolute inset-0 bg-brand-900/5"></div>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -1404,6 +1404,39 @@
             // 5. Submit Handler (AJAX)
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
+
+                // Validation: Unique Email Check
+                const emails = [];
+                const emailInputs = document.querySelectorAll('input[type="email"][name^="participants"]');
+                let hasDuplicate = false;
+                let firstDuplicateInput = null;
+
+                // Reset error styles
+                emailInputs.forEach(input => {
+                    input.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                });
+
+                emailInputs.forEach(input => {
+                    const email = input.value.trim().toLowerCase();
+                    if (email) {
+                        if (emails.includes(email)) {
+                            hasDuplicate = true;
+                            input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                            if (!firstDuplicateInput) firstDuplicateInput = input;
+                        } else {
+                            emails.push(email);
+                        }
+                    }
+                });
+
+                if (hasDuplicate) {
+                    alert('Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran.');
+                    if (firstDuplicateInput) {
+                        firstDuplicateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstDuplicateInput.focus();
+                    }
+                    return;
+                }
                 
                 if (typeof grecaptcha !== 'undefined') {
                     const recaptchaResponse = grecaptcha.getResponse();

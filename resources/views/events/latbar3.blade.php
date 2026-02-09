@@ -479,7 +479,7 @@
                 </div>
             </div>
             
-            @if($hasPaidParticipants ?? false)
+            @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
                 @include('events.partials.participants-table')
             @endif
         </main>

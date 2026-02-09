@@ -589,6 +589,12 @@
                         </p>
                     </div>                    
 
+                    @if($isRegOpen)
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-bold mb-6 animate-pulse">
+                        <i class="fas fa-fire"></i> TIKET SEMAKIN MENIPIS! BURUAN REGISTER
+                    </div>
+                    @endif
+
                     <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
                         @if($isRegOpen)
                         <a href="#register" class="group px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-600/30 hover:bg-brand-500 hover:shadow-brand-500/50 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
@@ -1576,7 +1582,7 @@
     </section>
 
     <!-- Participants Table Section -->
-    @if($hasPaidParticipants ?? false)
+    @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
     <section id="participants-list" class="py-24 bg-slate-900">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
@@ -3213,9 +3219,23 @@
                     email: {
                         required: true,
                         pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        custom: (value) => {
+                            const form = document.getElementById('registrationForm');
+                            if (!form) return true;
+                            const inputs = form.querySelectorAll('input[type="email"][name^="participants"]');
+                            let count = 0;
+                            const currentValue = value.trim().toLowerCase();
+                            inputs.forEach(input => {
+                                if (input.value.trim().toLowerCase() === currentValue) {
+                                    count++;
+                                }
+                            });
+                            return count <= 1;
+                        },
                         message: {
                             required: "Email wajib diisi",
-                            pattern: "Format email tidak valid (contoh: nama@domain.com)"
+                            pattern: "Format email tidak valid (contoh: nama@domain.com)",
+                            custom: "Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran."
                         }
                     },
                     phone: {
@@ -3459,6 +3479,16 @@
             // Initialize Validator
             document.addEventListener('DOMContentLoaded', () => {
                 window.formValidator = new FormValidator('registrationForm', VALIDATION_CONFIG);
+                
+                const form = document.getElementById('registrationForm');
+                if (form) {
+                    form.addEventListener('submit', (e) => {
+                        if (window.formValidator && !window.formValidator.validateAll()) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    });
+                }
             });
             
             // Unit Tests (Exposed for console verification)
@@ -3541,5 +3571,77 @@
         'modalAccentClass' => 'text-brand-600',
         'modalCloseClass' => 'bg-brand-600 text-white hover:bg-brand-700',
     ])
+    <!-- Promo Modal -->
+    <div id="promoModal" class="fixed inset-0 z-[100] hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity opacity-0 duration-300" id="promoBackdrop"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative transform scale-95 opacity-0 transition-all duration-300" id="promoContent">
+                <button onclick="closePromoModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                        <i class="fas fa-fire text-3xl text-red-500"></i>
+                    </div>
+                    
+                    <h3 class="text-2xl font-black text-slate-900 mb-2">TIKET SEMAKIN MENIPIS!</h3>
+                    <p class="text-slate-600 mb-6">
+                        Kuota peserta hampir penuh. Amankan slot kamu sekarang juga sebelum kehabisan!
+                    </p>
+                    
+                    <div class="space-y-3">
+                        <a href="#register" onclick="closePromoModal()" class="block w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/20 transition-all transform hover:-translate-y-1">
+                            DAFTAR SEKARANG 🚀
+                        </a>
+                        <button onclick="closePromoModal()" class="block w-full py-3 text-slate-400 font-semibold hover:text-slate-600 text-sm">
+                            Nanti Saja
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show modal after 2.5 seconds if not shown in this session and registration is open
+            if (!sessionStorage.getItem('promoModalShown') && {{ $isRegOpen ? 'true' : 'false' }}) {
+                setTimeout(function() {
+                    const modal = document.getElementById('promoModal');
+                    const backdrop = document.getElementById('promoBackdrop');
+                    const content = document.getElementById('promoContent');
+                    
+                    modal.classList.remove('hidden');
+                    
+                    // Animate in
+                    requestAnimationFrame(() => {
+                        backdrop.classList.remove('opacity-0');
+                        content.classList.remove('scale-95', 'opacity-0');
+                        content.classList.add('scale-100', 'opacity-100');
+                    });
+                    
+                    sessionStorage.setItem('promoModalShown', 'true');
+                }, 2500);
+            }
+        });
+
+        function closePromoModal() {
+            const modal = document.getElementById('promoModal');
+            const backdrop = document.getElementById('promoBackdrop');
+            const content = document.getElementById('promoContent');
+            
+            backdrop.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
 </body>
 </html>

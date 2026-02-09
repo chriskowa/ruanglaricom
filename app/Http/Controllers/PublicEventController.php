@@ -87,15 +87,18 @@ class PublicEventController extends Controller
                   ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
             })->exists();
             if ($event->hardcoded === 'latbarkamis') {
-                $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
-                        $q->where('event_id', $event->id)->where('payment_status', 'paid');
-                    })
-                    ->when($event->registration_open_at, function($q) use ($event) {
-                        $q->where('created_at', '>=', $event->registration_open_at);
-                    })
-                    ->orderBy('created_at', 'desc')
-                    ->limit(50)
-                    ->get(['id','name']);
+                $participants = collect();
+                if ($event->show_participant_list) {
+                    $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                            $q->where('event_id', $event->id)->where('payment_status', 'paid');
+                        })
+                        ->when($event->registration_open_at, function($q) use ($event) {
+                            $q->where('created_at', '>=', $event->registration_open_at);
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->limit(50)
+                        ->get(['id','name']);
+                }
 
                 $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
                 $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
@@ -144,15 +147,18 @@ class PublicEventController extends Controller
         })->exists();
 
         if ($event->hardcoded === 'latbarkamis') {
-            $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
-                $q->where('event_id', $event->id)->where('payment_status', 'paid');
-            })
-            ->when($event->registration_open_at, function($q) use ($event) {
-                $q->where('created_at', '>=', $event->registration_open_at);
-            })
-            ->orderBy('created_at', 'desc')
-            ->limit(50)
-            ->get(['id','name']);
+            $participants = collect();
+            if ($event->show_participant_list) {
+                $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                    $q->where('event_id', $event->id)->where('payment_status', 'paid');
+                })
+                ->when($event->registration_open_at, function($q) use ($event) {
+                    $q->where('created_at', '>=', $event->registration_open_at);
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(50)
+                ->get(['id','name']);
+            }
 
             $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
             $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
@@ -224,6 +230,15 @@ class PublicEventController extends Controller
     public function getParticipants(Request $request, $slug)
     {
         $event = Event::where('slug', $slug)->firstOrFail();
+
+        if (! $event->show_participant_list) {
+            return response()->json([
+                'data' => [],
+                'current_page' => 1,
+                'last_page' => 1,
+                'total' => 0,
+            ]);
+        }
         
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id)

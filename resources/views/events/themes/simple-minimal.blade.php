@@ -710,6 +710,39 @@
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
 
+                // Validation: Unique Email Check
+                const emails = [];
+                const emailInputs = document.querySelectorAll('input[type="email"][name^="participants"]');
+                let hasDuplicate = false;
+                let firstDuplicateInput = null;
+
+                // Reset error styles
+                emailInputs.forEach(input => {
+                    input.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                });
+
+                emailInputs.forEach(input => {
+                    const email = input.value.trim().toLowerCase();
+                    if (email) {
+                        if (emails.includes(email)) {
+                            hasDuplicate = true;
+                            input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                            if (!firstDuplicateInput) firstDuplicateInput = input;
+                        } else {
+                            emails.push(email);
+                        }
+                    }
+                });
+
+                if (hasDuplicate) {
+                    alert('Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran.');
+                    if (firstDuplicateInput) {
+                        firstDuplicateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstDuplicateInput.focus();
+                    }
+                    return;
+                }
+
                 if (typeof grecaptcha !== 'undefined') {
                     const recaptchaResponse = grecaptcha.getResponse();
                     if (!recaptchaResponse) {

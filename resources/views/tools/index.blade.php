@@ -96,6 +96,25 @@
             </div>
         </a>
 
+        <!-- QR Code Generator -->
+        <a href="{{ route('tools.qr-generator') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="p-8 h-full flex flex-col">
+                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4h2v-4zM6 6h2v4H6V6zm8 0h2v4h-2V6zM6 16h2v4H6v-4z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-black text-white italic tracking-tighter mb-2 group-hover:text-purple-400 transition-colors">QR GENERATOR</h3>
+                <p class="text-slate-400 mb-6 flex-grow">
+                    Buat QR Code untuk link, event, atau teks. Kustomisasi warna, ukuran, dan download dalam format high-res PNG.
+                </p>
+                <div class="flex items-center text-purple-400 font-bold text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform">
+                    Create QR <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+            </div>
+        </a>
+
         <!-- TrackMaster Pro -->
         <a href="{{ route('tools.trackmaster') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-[#ccff00]/50 transition-all duration-300 hover:shadow-2xl hover:shadow-[#ccff00]/10 hover:-translate-y-1">
             <div class="absolute inset-0 bg-gradient-to-br from-[#ccff00]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

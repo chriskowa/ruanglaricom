@@ -392,6 +392,35 @@
                     </div>
 
                     <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-4">Daftar Peserta (Public)</label>
+                        <div class="flex flex-wrap items-center gap-6">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="show_participant_list" value="1" class="peer sr-only" {{ old('show_participant_list', $event->show_participant_list ?? true) ? 'checked' : '' }}>
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 group-hover:text-white transition-colors">Tampilkan Daftar Peserta</span>
+                            </label>
+
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="show_participant_list" value="0" class="peer sr-only" {{ !old('show_participant_list', $event->show_participant_list ?? true) ? 'checked' : '' }}>
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="text-slate-300 group-hover:text-white transition-colors">Sembunyikan Daftar Peserta</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Mengatur apakah daftar peserta dapat dilihat oleh publik di halaman event.</p>
+                        @error('show_participant_list') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Rate Limit Email (Non-Instant)</label>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>

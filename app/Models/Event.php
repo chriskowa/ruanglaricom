@@ -66,6 +66,7 @@ class Event extends Model
         'organizer_contact',
         'contributor_contact',
         'is_featured',
+        'show_participant_list',
         'event_kind', // Added this field
         'status',
         'is_active',
@@ -93,6 +94,7 @@ class Event extends Model
         'blast_email_rate_limit_per_minute' => 'integer',
         'ticket_email_use_qr' => 'boolean',
         'is_featured' => 'boolean',
+        'show_participant_list' => 'boolean',
         'is_active' => 'boolean',
         'lock_version' => 'integer',
         'payment_config' => 'array',

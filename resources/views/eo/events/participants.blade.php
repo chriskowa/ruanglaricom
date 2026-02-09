@@ -500,6 +500,16 @@
                                 </select>
                             </div>
                             <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-xs font-medium text-slate-400">BIB Number</label>
+                                    <div class="flex gap-2 text-xs">
+                                        <button type="button" onclick="document.getElementById('add_bib_number').value='{{ $nextBibNumber }}'" class="text-yellow-500 hover:text-yellow-400 cursor-pointer">Auto</button>
+                                        <button type="button" onclick="document.getElementById('add_bib_number').value=''" class="text-slate-500 hover:text-slate-300 cursor-pointer">Clear</button>
+                                    </div>
+                                </div>
+                                <input id="add_bib_number" name="bib_number" value="{{ old('bib_number', $nextBibNumber) }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none font-mono text-yellow-400" placeholder="Auto (or manual)">
+                            </div>
+                            <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">Tanggal Lahir</label>
                                 <input name="date_of_birth" type="date" value="{{ old('date_of_birth') }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">
                             </div>

@@ -106,6 +106,7 @@ class EventController extends Controller
             'promo_buy_x' => 'nullable|integer|min:1',
             'custom_email_message' => 'nullable|string',
             'ticket_email_use_qr' => 'nullable|boolean',
+            'show_participant_list' => 'required|boolean',
             'is_instant_notification' => 'nullable|boolean',
             'ticket_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
             'blast_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
@@ -378,6 +379,7 @@ class EventController extends Controller
             'promo_buy_x' => 'nullable|integer|min:1',
             'custom_email_message' => 'nullable|string',
             'ticket_email_use_qr' => 'nullable|boolean',
+            'show_participant_list' => 'required|boolean',
             'is_instant_notification' => 'nullable|boolean',
             'ticket_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
             'blast_email_rate_limit_per_minute' => 'nullable|integer|min:1|max:10000',
@@ -925,7 +927,17 @@ class EventController extends Controller
 
         $reportLink = URL::signedRoute('report.show', ['event' => $event->id]);
 
-        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink'));
+        // Calculate next BIB number
+        $latestBib = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id);
+        })
+        ->whereNotNull('bib_number')
+        ->whereRaw('bib_number REGEXP "^[0-9]+$"')
+        ->max(DB::raw('CAST(bib_number AS UNSIGNED)'));
+
+        $nextBibNumber = $latestBib ? ($latestBib + 1) : null;
+
+        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink', 'nextBibNumber'));
     }
 
     public function participantsApi(Request $request, Event $event)
@@ -1069,6 +1081,7 @@ class EventController extends Controller
             'jersey_size' => 'nullable|string|max:10',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => 'nullable|string|min:10|max:15|regex:/^[0-9]+$/',
+            'bib_number' => 'nullable|string|max:20',
             'send_whatsapp' => 'nullable|boolean',
             'use_queue' => 'nullable|boolean',
         ]);

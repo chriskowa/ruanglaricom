@@ -28,17 +28,6 @@ class StoreManualParticipantAction
 
         try {
             return DB::transaction(function () use ($event, $validated, $operator, $email, $picEmail) {
-                $duplicate = Participant::whereRaw('LOWER(email) = ?', [$email])
-                    ->whereHas('transaction', function ($q) use ($event) {
-                        $q->where('event_id', $event->id);
-                    })
-                    ->exists();
-
-                if ($duplicate) {
-                    throw ValidationException::withMessages([
-                        'email' => ['Email sudah terdaftar untuk event ini.'],
-                    ]);
-                }
 
                 $category = RaceCategory::lockForUpdate()->findOrFail((int) $validated['category_id']);
                 if ((int) $category->event_id !== (int) $event->id) {
@@ -97,6 +86,7 @@ class StoreManualParticipantAction
                     'date_of_birth' => $validated['date_of_birth'] ?? null,
                     'target_time' => $validated['target_time'] ?? null,
                     'jersey_size' => $validated['jersey_size'] ?? null,
+                    'bib_number' => $validated['bib_number'] ?? null,
                     'price_type' => $priceInfo['type'],
                     'addons' => [],
                     'status' => 'pending',

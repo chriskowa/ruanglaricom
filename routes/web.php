@@ -259,6 +259,11 @@ Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerCo
 Route::get('/tools/buat-rute-lari', function () {
     return view('tools.buat-rute-lari');
 })->name('tools.buat-rute-lari');
+
+Route::get('/tools/qr-generator', function () {
+    return view('tools.qr-generator');
+})->name('tools.qr-generator');
+
 Route::post('/tools/shortlink', [App\Http\Controllers\ShortLinkController::class, 'store'])->name('tools.shortlink.store');
 Route::get('/s/{code}', [App\Http\Controllers\ShortLinkController::class, 'redirect'])->name('shortlink.redirect');
 Route::middleware('auth')->post('/tools/buat-rute-lari/strava-upload', [App\Http\Controllers\CalendarController::class, 'uploadRouteToStrava'])->name('tools.buat-rute-lari.strava-upload');

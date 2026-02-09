@@ -1504,6 +1504,44 @@
 
         // --- 5. Registration Form Logic (Preserved functionality with Tailwind classes) ---
         (function() {
+            // Validation: Unique Email Check
+            const registrationForm = document.getElementById('registrationForm');
+            if (registrationForm) {
+                registrationForm.addEventListener('submit', function(e) {
+                    const emails = [];
+                    const emailInputs = document.querySelectorAll('input[type="email"][name^="participants"]');
+                    let hasDuplicate = false;
+                    let firstDuplicateInput = null;
+
+                    // Reset error styles
+                    emailInputs.forEach(input => {
+                        input.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                    });
+
+                    emailInputs.forEach(input => {
+                        const email = input.value.trim().toLowerCase();
+                        if (email) {
+                            if (emails.includes(email)) {
+                                hasDuplicate = true;
+                                input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                                if (!firstDuplicateInput) firstDuplicateInput = input;
+                            } else {
+                                emails.push(email);
+                            }
+                        }
+                    });
+
+                    if (hasDuplicate) {
+                        e.preventDefault();
+                        alert('Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran.');
+                        if (firstDuplicateInput) {
+                            firstDuplicateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstDuplicateInput.focus();
+                        }
+                    }
+                });
+            }
+
             let participantIndex = 1;
             const participantsWrapper = document.getElementById('participantsWrapper');
             const addParticipantBtn = document.getElementById('addParticipant');
