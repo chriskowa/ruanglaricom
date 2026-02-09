@@ -192,10 +192,33 @@
             communitySelect.addEventListener('change', function() {
                 if (this.value) {
                     manualFields.style.display = 'none';
-                    inputs.forEach(input => input.removeAttribute('required'));
+                    inputs.forEach(input => {
+                        input.removeAttribute('required');
+                        input.disabled = true; // Disable inputs to prevent submission
+                    });
+
+                    // Auto-submit if event is selected
+                    const eventIdInput = document.querySelector('input[name="event_id"]');
+                    if (eventIdInput && eventIdInput.value) {
+                        // Show loading state
+                        const btn = this.form.querySelector('button[type="submit"]');
+                        if(btn) {
+                            btn.disabled = true;
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+                        }
+                        this.form.submit();
+                    } else {
+                        alert('Mohon pilih event terlebih dahulu.');
+                        this.value = ""; // Reset selection
+                        manualFields.style.display = 'block'; // Show manual fields again
+                        inputs.forEach(input => input.disabled = false); // Re-enable inputs
+                    }
                 } else {
                     manualFields.style.display = 'block';
-                    inputs.forEach(input => input.setAttribute('required', 'required'));
+                    inputs.forEach(input => {
+                        input.setAttribute('required', 'required');
+                        input.disabled = false;
+                    });
                 }
             });
             

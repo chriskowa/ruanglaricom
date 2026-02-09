@@ -70,10 +70,10 @@ class CommunityRegistrationController extends Controller
         $validated = $request->validate([
             'event_id' => 'required|exists:events,id',
             'community_id' => 'nullable|exists:communities,id',
-            'community_name' => 'required_without:community_id|string|max:255',
-            'pic_name' => 'required_without:community_id|string|max:255',
-            'pic_email' => 'required_without:community_id|email|max:255',
-            'pic_phone' => 'required_without:community_id|string|min:8|max:20',
+            'community_name' => 'nullable|required_without:community_id|string|max:255',
+            'pic_name' => 'nullable|required_without:community_id|string|max:255',
+            'pic_email' => 'nullable|required_without:community_id|email|max:255',
+            'pic_phone' => 'nullable|required_without:community_id|string|min:8|max:20',
         ]);
 
         $event = Event::query()
