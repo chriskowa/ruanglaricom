@@ -356,6 +356,18 @@
                                 </div>
                             </div>
 
+                            <div class="animate-fade-in delay-300 mt-6">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="w-1 h-4 bg-sport-volt rounded-full"></div>
+                                    <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider">Kode Promo</h3>
+                                </div>
+                                <div class="flex gap-3">
+                                    <input type="text" id="coupon_code" class="flex-1 form-input bg-white/5 border border-white/10 text-white placeholder-gray-500 uppercase font-bold" placeholder="KODE">
+                                    <button type="button" id="applyCouponBtn" class="px-4 py-2 rounded-lg bg-sport-volt text-black font-bold">Pakai</button>
+                                </div>
+                                <div id="couponMessage" class="mt-2 text-xs font-medium"></div>
+                            </div>
+
                             <!-- Total & Action -->
                             <div class="border-t border-white/10 pt-6 mt-6 animate-fade-in delay-300">
                                 <div class="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -454,6 +466,82 @@
                 @include('events.partials.participants-table')
             @endif
         </main>
+        
+        @php
+            $featuredEvents = \App\Models\Event::query()
+                ->where('is_featured', true)
+                ->where('is_active', true)
+                ->where('status', 'published')
+                ->orderBy('start_at', 'asc')
+                ->take(4)
+                ->get(['id','name','slug','start_at','location_name','hero_image','hero_image_url']);
+        @endphp
+        
+        @if($featuredEvents->count() > 0)
+        <section class="mt-10 px-4 md:px-0">
+            <div class="max-w-6xl mx-auto glass-dark border border-white/10 rounded-2xl p-6 md:p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2">
+                        <div class="w-1.5 h-6 bg-sport-volt rounded-full"></div>
+                        <h3 class="text-white font-display text-xl">Featured Events</h3>
+                    </div>
+                    <button type="button" id="openFeaturedModal" class="px-3 py-1.5 rounded-lg bg-sport-volt text-black font-bold text-xs">Lihat Semua</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @foreach($featuredEvents as $fe)
+                        @php
+                            $img = $fe->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
+                        @endphp
+                        <a href="{{ route('events.show', $fe->slug) }}" class="group block rounded-xl overflow-hidden border border-white/10 bg-white/5 hover:bg-white/10 transition">
+                            <div class="aspect-video bg-black/20 relative">
+                                <img src="{{ $img }}" alt="{{ $fe->name }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
+                            </div>
+                            <div class="p-4">
+                                <div class="text-[10px] text-gray-400 uppercase tracking-widest">{{ optional($fe->start_at)->format('d M Y') }}</div>
+                                <div class="text-white font-bold">{{ $fe->name }}</div>
+                                @if($fe->location_name)
+                                <div class="text-[11px] text-gray-500 mt-1"><i class="fas fa-map-marker-alt"></i> {{ $fe->location_name }}</div>
+                                @endif
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        
+        <!-- Featured Modal -->
+        <div id="featuredModal" class="fixed inset-0 z-[120] hidden">
+            <div class="absolute inset-0 bg-black/60" onclick="document.getElementById('featuredModal').classList.add('hidden')"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="glass-dark border border-white/10 rounded-2xl w-full max-w-4xl">
+                    <div class="flex items-center justify-between p-4 border-b border-white/10">
+                        <h4 class="text-white font-display text-lg">Event Unggulan</h4>
+                        <button type="button" class="text-gray-400 hover:text-white" onclick="document.getElementById('featuredModal').classList.add('hidden')">✕</button>
+                    </div>
+                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach($featuredEvents as $fe)
+                            @php
+                                $img = $fe->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
+                            @endphp
+                            <div class="rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                                <img src="{{ $img }}" alt="{{ $fe->name }}" class="w-full h-40 object-cover">
+                                <div class="p-4">
+                                    <div class="text-[10px] text-gray-400 uppercase tracking-widest">{{ optional($fe->start_at)->format('d M Y') }}</div>
+                                    <div class="text-white font-bold">{{ $fe->name }}</div>
+                                    @if($fe->location_name)
+                                    <div class="text-[11px] text-gray-500 mt-1"><i class="fas fa-map-marker-alt"></i> {{ $fe->location_name }}</div>
+                                    @endif
+                                    <a href="{{ route('events.show', $fe->slug) }}" class="mt-3 inline-block px-3 py-1.5 rounded-lg bg-sport-volt text-black font-bold text-xs">Lihat Event</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+        
         @include('layouts.components.pacerhub-footer')
     </div>
 
@@ -465,6 +553,10 @@
             const form = ref({ name: '', email: '', phone: '', address: '', date_of_birth: '', id_card: '', ticket_quantity: 1, addons: [], gender: 'male', emergency_contact_name: '', emergency_contact_number: '' });
             const isLoading = ref(false);
             const prices = { base: 15000 };
+            const couponCode = ref('');
+            const appliedCoupon = ref(null);
+            const discountAmount = ref(0);
+            const eventId = {{ $event->id }};
             
             // Defensives for array initialization
             const participantsRaw = @json($participants->map(fn($p) => ['id' => $p->id, 'name' => $p->name]));
@@ -487,7 +579,8 @@
             const formattedTotal = computed(() => {
                 const addonsList = Array.isArray(form.value.addons) ? form.value.addons : [];
                 const addonsTotal = addonsList.reduce((sum, addon) => sum + (parseInt(addon.price) || 0), 0);
-                const total = (prices.base * (form.value.ticket_quantity || 1)) + (addonsTotal * (form.value.ticket_quantity || 1));
+                let total = (prices.base * (form.value.ticket_quantity || 1)) + (addonsTotal * (form.value.ticket_quantity || 1)) - (discountAmount.value || 0);
+                if (total < 0) total = 0;
                 return formatCurrency(total);
             });
             const scrollToForm = () => document.getElementById('registration-area').scrollIntoView({ behavior: 'smooth' });
@@ -567,6 +660,7 @@
                         payment_method: form.value.payment_method || 'midtrans',
                         addons: form.value.addons,
                         participants: participantsList,
+                        coupon_code: appliedCoupon.value?.code || couponCode.value || '',
                         'g-recaptcha-response': recaptchaToken
                     };
                     const res = await fetch("{{ route('events.register.store', $event->slug) }}", {
@@ -638,6 +732,54 @@
                 form.value.payment_method = 'moota';
                 tick();
                 setInterval(tick, 1000);
+                const btn = document.getElementById('applyCouponBtn');
+                const msgEl = document.getElementById('couponMessage');
+                const codeEl = document.getElementById('coupon_code');
+                if (btn && codeEl) {
+                    btn.addEventListener('click', async () => {
+                        const addonsList = Array.isArray(form.value.addons) ? form.value.addons : [];
+                        const addonsTotal = addonsList.reduce((sum, addon) => sum + (parseInt(addon.price) || 0), 0);
+                        const qty = (form.value.ticket_quantity || 1);
+                        const subtotal = (prices.base * qty) + (addonsTotal * qty);
+                        const code = (codeEl.value || '').trim().toUpperCase();
+                        if (!code) { alert('Masukkan kode kupon'); return; }
+                        if (subtotal <= 0) { alert('Pilih paket terlebih dahulu'); return; }
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '...';
+                        btn.disabled = true;
+                        try {
+                            const res = await fetch(`{{ route('events.register.coupon', $event->slug) }}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                },
+                                body: JSON.stringify({ event_id: eventId, coupon_code: code, total_amount: subtotal })
+                            });
+                            const data = await res.json();
+                            if (data && data.success) {
+                                appliedCoupon.value = data.coupon;
+                                discountAmount.value = data.discount_amount || 0;
+                                couponCode.value = data.coupon.code;
+                                codeEl.value = data.coupon.code;
+                                if (msgEl) msgEl.innerHTML = '<span class="text-sport-volt">Kupon berhasil digunakan!</span>';
+                            } else {
+                                appliedCoupon.value = null;
+                                discountAmount.value = 0;
+                                couponCode.value = '';
+                                if (msgEl) msgEl.innerHTML = `<span class="text-red-500">${(data && data.message) || 'Kupon tidak valid'}</span>`;
+                            }
+                        } catch (err) {
+                            appliedCoupon.value = null;
+                            discountAmount.value = 0;
+                            couponCode.value = '';
+                            alert('Gagal memproses kupon');
+                        } finally {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    });
+                }
             });
             return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon };
         }
@@ -648,6 +790,17 @@
     }
 
     app.mount('#app');
+
+    // Featured Modal toggle
+    (function(){
+        var btn = document.getElementById('openFeaturedModal');
+        var modal = document.getElementById('featuredModal');
+        if (btn && modal) {
+            btn.addEventListener('click', function(){
+                modal.classList.remove('hidden');
+            });
+        }
+    })();
 
     // Nominatim CORS Proxy Interceptor (Fetch & XHR)
     (function() {
