@@ -179,6 +179,9 @@
                             <button id="rl-share" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-500 transition">
                                 Share Link
                             </button>
+                            <button id="rl-export-image" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-pink-600 text-white font-black hover:bg-pink-500 transition">
+                                Export IMG
+                            </button>
                             <button id="rl-export-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
                                 Export GPX
                             </button>
@@ -356,6 +359,73 @@
     </div>
 @endsection
 
+    <!-- Hidden Export Card -->
+    <div id="rl-export-card" style="position: fixed; left: -9999px; top: 0; width: 800px; height: 1000px; background: #0f172a; font-family: 'Inter', sans-serif; overflow: hidden;">
+        <!-- Background Gradient -->
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black opacity-80"></div>
+        
+        <!-- Route SVG Container -->
+        <div class="absolute inset-0 flex items-center justify-center p-20">
+            <svg id="rl-export-svg" width="100%" height="100%" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" style="filter: drop-shadow(0 0 15px rgba(204, 255, 0, 0.4));">
+                <!-- Path will be injected here -->
+            </svg>
+        </div>
+
+        <!-- Header -->
+        <div class="absolute top-0 left-0 right-0 p-12 flex justify-between items-start z-10">
+            <div>
+                <h1 class="text-4xl font-black italic tracking-tighter text-white">RUANG <span class="text-[#ccff00]">LARI</span></h1>
+                <p class="text-slate-400 font-bold tracking-widest text-sm mt-1 uppercase">Route Builder</p>
+            </div>
+            <div class="text-right">
+                <div class="text-5xl font-black text-white tracking-tighter" id="rl-export-dist">0.00</div>
+                <div class="text-xl font-bold text-slate-400 uppercase tracking-wider">Kilometers</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="absolute bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-black via-black/90 to-transparent pt-32 z-10">
+            <div class="grid grid-cols-2 gap-12">
+                <div>
+                    <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Elevation Profile</div>
+                    <!-- Mini Elevation Graph -->
+                    <div class="h-24 w-full relative">
+                        <svg id="rl-export-elev-svg" width="100%" height="100%" viewBox="0 0 1000 220" preserveAspectRatio="none">
+                            <!-- Elev Path -->
+                        </svg>
+                    </div>
+                    <div class="flex justify-between mt-2 text-sm font-bold text-slate-400">
+                        <span id="rl-export-min-elev">0m</span>
+                        <span id="rl-export-max-elev">0m</span>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>
+                        <div class="text-2xl font-black text-white leading-tight line-clamp-2" id="rl-export-name">Untitled Route</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Est. Time</div>
+                            <div class="text-xl font-bold text-white" id="rl-export-time">00:00:00</div>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Elev Gain</div>
+                            <div class="text-xl font-bold text-[#ccff00]" id="rl-export-gain">-</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-[10px] font-mono text-slate-500 border-t border-slate-800 pt-4 mt-2">
+                        <div>
+                            <span class="text-[#22c55e] font-bold">START</span> <span id="rl-export-start">0,0</span>
+                        </div>
+                        <div>
+                            <span class="text-[#ef4444] font-bold">FINISH</span> <span id="rl-export-finish">0,0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
@@ -1814,6 +1884,116 @@
             routePoints = points.slice();
             applyFromQuery();
             updateRouteFromWaypoints();
+
+            // Export Image Logic
+            els.exportImage = document.getElementById('rl-export-image');
+            els.exportImage.addEventListener('click', function() {
+                if (routePoints.length < 2) {
+                    setStatus('Minimal 2 titik untuk export image');
+                    return;
+                }
+                
+                setStatus('Generating image...');
+                
+                document.getElementById('rl-export-dist').textContent = document.getElementById('rl-distance-km').textContent;
+                document.getElementById('rl-export-time').textContent = document.getElementById('rl-est-time').textContent;
+                document.getElementById('rl-export-name').textContent = els.name.value || 'Untitled Route';
+                
+                var mainElevSvg = els.elevSvg.querySelector('path[fill="url(#rlElevFill)"]');
+                var mainElevLine = els.elevSvg.querySelector('path[stroke="#ccff00"]');
+                var exportElevSvg = document.getElementById('rl-export-elev-svg');
+                exportElevSvg.innerHTML = '';
+                
+                if (mainElevSvg && mainElevLine) {
+                    exportElevSvg.innerHTML += '<defs><linearGradient id="rlExportElevFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#ccff00" stop-opacity="0.5"></stop><stop offset="100%" stop-color="#ccff00" stop-opacity="0.1"></stop></linearGradient></defs>';
+                    exportElevSvg.innerHTML += mainElevSvg.outerHTML.replace('url(#rlElevFill)', 'url(#rlExportElevFill)');
+                    exportElevSvg.innerHTML += mainElevLine.outerHTML;
+                    
+                    var metaText = els.elevMeta.textContent;
+                    var minM = metaText.match(/Min\s+(\d+)/);
+                    var maxM = metaText.match(/Max\s+(\d+)/);
+                    if (minM) document.getElementById('rl-export-min-elev').textContent = minM[0] + 'm';
+                    if (maxM) document.getElementById('rl-export-max-elev').textContent = maxM[0] + 'm';
+                    
+                    var gain = (maxM ? parseInt(maxM[1]) : 0) - (minM ? parseInt(minM[1]) : 0);
+                    document.getElementById('rl-export-gain').textContent = '+' + gain + 'm';
+                }
+
+                var startP = routePoints[0];
+                var endP = routePoints[routePoints.length-1];
+                document.getElementById('rl-export-start').textContent = startP.lat.toFixed(4) + ', ' + startP.lng.toFixed(4);
+                document.getElementById('rl-export-finish').textContent = endP.lat.toFixed(4) + ', ' + endP.lng.toFixed(4);
+
+                var svg = document.getElementById('rl-export-svg');
+                svg.innerHTML = '';
+                
+                var minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+                routePoints.forEach(function(p) {
+                    minLat = Math.min(minLat, p.lat);
+                    maxLat = Math.max(maxLat, p.lat);
+                    minLng = Math.min(minLng, p.lng);
+                    maxLng = Math.max(maxLng, p.lng);
+                });
+                
+                var latSpan = maxLat - minLat;
+                var lngSpan = maxLng - minLng;
+                var padLat = latSpan * 0.1;
+                var padLng = lngSpan * 0.1;
+                minLat -= padLat; maxLat += padLat;
+                minLng -= padLng; maxLng += padLng;
+                
+                var w = 800;
+                var h = 1000;
+                
+                var pathData = 'M';
+                routePoints.forEach(function(p, i) {
+                    var x = ((p.lng - minLng) / (maxLng - minLng)) * w;
+                    var y = ((maxLat - p.lat) / (maxLat - minLat)) * h;
+                    pathData += ' ' + x.toFixed(1) + ' ' + y.toFixed(1);
+                    if (i === 0) pathData += ' L';
+                });
+                
+                var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", pathData);
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke", "#ccff00");
+                path.setAttribute("stroke-width", "8");
+                path.setAttribute("stroke-linecap", "round");
+                path.setAttribute("stroke-linejoin", "round");
+                svg.appendChild(path);
+                
+                var startX = ((routePoints[0].lng - minLng) / (maxLng - minLng)) * w;
+                var startY = ((maxLat - routePoints[0].lat) / (maxLat - minLat)) * h;
+                var endX = ((routePoints[routePoints.length-1].lng - minLng) / (maxLng - minLng)) * w;
+                var endY = ((maxLat - routePoints[routePoints.length-1].lat) / (maxLat - minLat)) * h;
+                
+                var startDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                startDot.setAttribute("cx", startX); startDot.setAttribute("cy", startY); startDot.setAttribute("r", "12"); startDot.setAttribute("fill", "#22c55e");
+                startDot.setAttribute("stroke", "#ffffff"); startDot.setAttribute("stroke-width", "3");
+                svg.appendChild(startDot);
+
+                var endDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                endDot.setAttribute("cx", endX); endDot.setAttribute("cy", endY); endDot.setAttribute("r", "12"); endDot.setAttribute("fill", "#ef4444");
+                endDot.setAttribute("stroke", "#ffffff"); endDot.setAttribute("stroke-width", "3");
+                svg.appendChild(endDot);
+                
+                var card = document.getElementById('rl-export-card');
+                html2canvas(card, {
+                    scale: 2, 
+                    backgroundColor: '#0f172a',
+                    useCORS: true
+                }).then(function(canvas) {
+                    var link = document.createElement('a');
+                    link.download = 'ruanglari-route-' + Date.now() + '.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    setStatus('Export selesai');
+                }).catch(function(err) {
+                    console.error(err);
+                    setStatus('Export gagal');
+                });
+            });
+
         })();
     </script>
 @endpush
