@@ -1358,8 +1358,27 @@
                     });
             }
 
+            var elevTimer = null;
+            var elevAbortController = null;
             function updateElevation() {
+                if (elevTimer) clearTimeout(elevTimer);
+                if (els.elevSub) els.elevSub.textContent = 'Menunggu update elevasi...';
+                
+                elevTimer = setTimeout(function() {
+                    _performUpdateElevation();
+                }, 1000);
+            }
+
+            function _performUpdateElevation() {
                 if (!els.elevSvg || !els.elevSub || !els.elevMeta) return;
+
+                // Cancel previous running request if any
+                if (elevAbortController) {
+                    elevAbortController.abort();
+                }
+                elevAbortController = new AbortController();
+                var signal = elevAbortController.signal;
+
                 if (routePoints.length < 2) {
                     els.elevSub.textContent = 'Buat rute dulu untuk lihat grafik.';
                     els.elevMeta.textContent = '';
@@ -1371,7 +1390,7 @@
                 els.elevSub.textContent = 'Mengambil elevasi...';
 
                 var samples = [];
-                var maxSamples = 120;
+                var maxSamples = 150; // Increased limit, handled by chunking
                 if (routePoints.length <= maxSamples) {
                     samples = routePoints.slice();
                 } else {
@@ -1381,21 +1400,18 @@
                     }
                 }
 
-                var lats = samples.map(function (p) { return p.lat.toFixed(6); }).join(',');
-                var lngs = samples.map(function (p) { return p.lng.toFixed(6); }).join(',');
-                var url = 'https://api.open-meteo.com/v1/elevation?latitude=' + encodeURIComponent(lats) + '&longitude=' + encodeURIComponent(lngs);
+                var latArray = samples.map(function(p) { return p.lat.toFixed(6); });
+                var lngArray = samples.map(function(p) { return p.lng.toFixed(6); });
 
-                fetch(url, { headers: { 'Accept': 'application/json' } })
-                    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); })
-                    .then(function (res) {
+                fetchElevationBatched(latArray, lngArray, signal)
+                    .then(function(elevations) {
+                        if (signal.aborted) return;
                         if (seq !== elevSeq) return;
-                        if (!res.ok || !res.json || !Array.isArray(res.json.elevation)) {
-                            throw new Error('elev_failed');
-                        }
-                        var elev = res.json.elevation.map(function (v) { return (typeof v === 'number' ? v : null); });
-                        if (elev.length !== samples.length) {
+                        if (!elevations || elevations.length !== samples.length) {
                             throw new Error('elev_mismatch');
                         }
+
+                        var elev = elevations.map(function (v) { return (typeof v === 'number' ? v : null); });
 
                         var dists = [0];
                         var total = 0;
@@ -1407,12 +1423,59 @@
                         renderElevation(samples, dists, elev);
                         els.elevSub.textContent = 'Hover untuk lihat elevasi per titik.';
                     })
-                    .catch(function () {
+                    .catch(function (err) {
+                        if (err.name === 'AbortError') return;
                         if (seq !== elevSeq) return;
-                        els.elevSub.textContent = 'Gagal mengambil elevasi.';
+                        console.error('Elevation Error:', err);
+                        if (err.message === 'rate_limit') {
+                            els.elevSub.textContent = 'Terlalu banyak request (429). Coba lagi nanti.';
+                        } else {
+                            els.elevSub.textContent = 'Gagal mengambil elevasi.';
+                        }
                         els.elevMeta.textContent = '';
                         els.elevSvg.innerHTML = '';
                     });
+            }
+
+            function fetchElevationBatched(lats, lngs, signal) {
+                var chunkSize = 50; // Reduced for safety
+                var chunks = [];
+                for (var i = 0; i < lats.length; i += chunkSize) {
+                    chunks.push({
+                        lats: lats.slice(i, i + chunkSize),
+                        lngs: lngs.slice(i, i + chunkSize)
+                    });
+                }
+                
+                var results = [];
+                var p = Promise.resolve();
+                
+                chunks.forEach(function(chunk) {
+                    p = p.then(function() {
+                        if (signal && signal.aborted) throw new DOMException('Aborted', 'AbortError');
+
+                        var url = 'https://api.open-meteo.com/v1/elevation?latitude=' + 
+                                  encodeURIComponent(chunk.lats.join(',')) + 
+                                  '&longitude=' + 
+                                  encodeURIComponent(chunk.lngs.join(','));
+                        
+                        return fetch(url, { headers: { 'Accept': 'application/json' }, signal: signal })
+                            .then(function(r) {
+                                if (r.status === 429) throw new Error('rate_limit');
+                                if (!r.ok) throw new Error('elev_api_error: ' + r.status);
+                                return r.json();
+                            })
+                            .then(function(data) {
+                                if (data && data.elevation) {
+                                    results = results.concat(data.elevation);
+                                }
+                                // Delay 500ms between chunks to be nice to API
+                                return new Promise(function(resolve) { setTimeout(resolve, 500); });
+                            });
+                    });
+                });
+                
+                return p.then(function() { return results; });
             }
 
             function renderElevation(samples, distsKm, elevM) {
