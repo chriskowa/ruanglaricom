@@ -365,7 +365,7 @@
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-black opacity-80"></div>
         
         <!-- Route SVG Container -->
-        <div class="absolute inset-0 flex items-center justify-center p-20">
+        <div class="absolute inset-0 flex items-center justify-center p-20 pb-64">
             <svg id="rl-export-svg" width="100%" height="100%" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" style="filter: drop-shadow(0 0 15px rgba(204, 255, 0, 0.4));">
                 <!-- Path will be injected here -->
             </svg>
@@ -402,7 +402,9 @@
                 <div class="space-y-6">
                     <div>
                         <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>
-                        <div class="text-2xl font-black text-white leading-tight line-clamp-2" id="rl-export-name">Untitled Route</div>
+                        <div class="h-[4.5rem] flex items-center">
+                            <div class="text-2xl font-black text-white leading-tight line-clamp-2" id="rl-export-name">Untitled Route</div>
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
@@ -1962,21 +1964,77 @@
                 path.setAttribute("stroke-linecap", "round");
                 path.setAttribute("stroke-linejoin", "round");
                 svg.appendChild(path);
+
+                // Add direction arrows
+                var totalPoints = routePoints.length;
+                if (totalPoints > 5) {
+                    var arrowIndices = [
+                        Math.floor(totalPoints * 0.25),
+                        Math.floor(totalPoints * 0.5),
+                        Math.floor(totalPoints * 0.75)
+                    ];
+                    
+                    arrowIndices.forEach(function(idx) {
+                        if (idx < totalPoints - 1) {
+                            var p1 = routePoints[idx];
+                            var p2 = routePoints[idx + 1];
+                            
+                            var x1 = ((p1.lng - minLng) / (maxLng - minLng)) * w;
+                            var y1 = ((maxLat - p1.lat) / (maxLat - minLat)) * h;
+                            var x2 = ((p2.lng - minLng) / (maxLng - minLng)) * w;
+                            var y2 = ((maxLat - p2.lat) / (maxLat - minLat)) * h;
+                            
+                            var angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                            
+                            var arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                            arrow.setAttribute("d", "M-6,-6 L6,0 L-6,6"); // Simple arrowhead
+                            arrow.setAttribute("fill", "none");
+                            arrow.setAttribute("stroke", "#ccff00");
+                            arrow.setAttribute("stroke-width", "3");
+                            arrow.setAttribute("stroke-linecap", "round");
+                            arrow.setAttribute("stroke-linejoin", "round");
+                            arrow.setAttribute("transform", "translate(" + x1 + "," + y1 + ") rotate(" + angle + ")");
+                            svg.appendChild(arrow);
+                        }
+                    });
+                }
                 
                 var startX = ((routePoints[0].lng - minLng) / (maxLng - minLng)) * w;
                 var startY = ((maxLat - routePoints[0].lat) / (maxLat - minLat)) * h;
                 var endX = ((routePoints[routePoints.length-1].lng - minLng) / (maxLng - minLng)) * w;
                 var endY = ((maxLat - routePoints[routePoints.length-1].lat) / (maxLat - minLat)) * h;
                 
+                // Start Marker (Green Circle with S)
+                var startG = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 var startDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                startDot.setAttribute("cx", startX); startDot.setAttribute("cy", startY); startDot.setAttribute("r", "12"); startDot.setAttribute("fill", "#22c55e");
-                startDot.setAttribute("stroke", "#ffffff"); startDot.setAttribute("stroke-width", "3");
-                svg.appendChild(startDot);
+                startDot.setAttribute("cx", startX); startDot.setAttribute("cy", startY); startDot.setAttribute("r", "14"); 
+                startDot.setAttribute("fill", "#22c55e"); startDot.setAttribute("stroke", "#ffffff"); startDot.setAttribute("stroke-width", "3");
+                
+                var startText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                startText.setAttribute("x", startX); startText.setAttribute("y", startY); startText.setAttribute("dy", "5");
+                startText.setAttribute("text-anchor", "middle"); startText.setAttribute("fill", "#ffffff"); 
+                startText.setAttribute("font-family", "Arial, sans-serif"); startText.setAttribute("font-weight", "bold"); startText.setAttribute("font-size", "14");
+                startText.textContent = "S";
+                
+                startG.appendChild(startDot);
+                startG.appendChild(startText);
+                svg.appendChild(startG);
 
+                // Finish Marker (Red Circle with F)
+                var endG = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 var endDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                endDot.setAttribute("cx", endX); endDot.setAttribute("cy", endY); endDot.setAttribute("r", "12"); endDot.setAttribute("fill", "#ef4444");
-                endDot.setAttribute("stroke", "#ffffff"); endDot.setAttribute("stroke-width", "3");
-                svg.appendChild(endDot);
+                endDot.setAttribute("cx", endX); endDot.setAttribute("cy", endY); endDot.setAttribute("r", "14"); 
+                endDot.setAttribute("fill", "#ef4444"); endDot.setAttribute("stroke", "#ffffff"); endDot.setAttribute("stroke-width", "3");
+                
+                var endText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                endText.setAttribute("x", endX); endText.setAttribute("y", endY); endText.setAttribute("dy", "5");
+                endText.setAttribute("text-anchor", "middle"); endText.setAttribute("fill", "#ffffff"); 
+                endText.setAttribute("font-family", "Arial, sans-serif"); startText.setAttribute("font-weight", "bold"); endText.setAttribute("font-size", "14");
+                endText.textContent = "F";
+                
+                endG.appendChild(endDot);
+                endG.appendChild(endText);
+                svg.appendChild(endG);
                 
                 var card = document.getElementById('rl-export-card');
                 html2canvas(card, {
