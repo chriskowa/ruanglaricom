@@ -366,7 +366,7 @@
         
         <!-- Route SVG Container -->
         <div class="absolute inset-0 flex items-center justify-center p-20 pb-64">
-            <svg id="rl-export-svg" width="100%" height="100%" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" style="filter: drop-shadow(0 0 15px rgba(204, 255, 0, 0.4));">
+            <svg id="rl-export-svg" width="100%" height="auto" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" style="filter: drop-shadow(0 0 15px rgba(204, 255, 0, 0.4));">
                 <!-- Path will be injected here -->
             </svg>
         </div>
@@ -401,10 +401,8 @@
                 </div>
                 <div class="space-y-6">
                     <div>
-                        <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>
-                        <div class="h-[4.5rem] flex items-center">
-                            <div class="text-2xl font-black text-white leading-tight line-clamp-2" id="rl-export-name">Untitled Route</div>
-                        </div>
+                        <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>                        
+                        <div class="text-2xl font-black text-white leading-tight line-clamp-2 h-[3.5rem]" id="rl-export-name"> Untitled Route </div>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
@@ -1948,11 +1946,28 @@
                 var w = 800;
                 var h = 1000;
                 
+                // Fix Aspect Ratio: Use uniform scaling based on Mercator projection approximation
+                var centerLat = (minLat + maxLat) / 2;
+                var cosLat = Math.cos(centerLat * Math.PI / 180);
+                var degW = (maxLng - minLng) * cosLat;
+                var degH = (maxLat - minLat);
+                var scale = Math.min(w / degW, h / degH);
+                var drawW = degW * scale;
+                var drawH = degH * scale;
+                var offX = (w - drawW) / 2;
+                var offY = (h - drawH) / 2;
+
+                function getXY(lat, lng) {
+                    return {
+                        x: offX + (lng - minLng) * cosLat * scale,
+                        y: offY + (maxLat - lat) * scale
+                    };
+                }
+
                 var pathData = 'M';
                 routePoints.forEach(function(p, i) {
-                    var x = ((p.lng - minLng) / (maxLng - minLng)) * w;
-                    var y = ((maxLat - p.lat) / (maxLat - minLat)) * h;
-                    pathData += ' ' + x.toFixed(1) + ' ' + y.toFixed(1);
+                    var pos = getXY(p.lat, p.lng);
+                    pathData += ' ' + pos.x.toFixed(1) + ' ' + pos.y.toFixed(1);
                     if (i === 0) pathData += ' L';
                 });
                 
@@ -1979,12 +1994,10 @@
                             var p1 = routePoints[idx];
                             var p2 = routePoints[idx + 1];
                             
-                            var x1 = ((p1.lng - minLng) / (maxLng - minLng)) * w;
-                            var y1 = ((maxLat - p1.lat) / (maxLat - minLat)) * h;
-                            var x2 = ((p2.lng - minLng) / (maxLng - minLng)) * w;
-                            var y2 = ((maxLat - p2.lat) / (maxLat - minLat)) * h;
+                            var pos1 = getXY(p1.lat, p1.lng);
+                            var pos2 = getXY(p2.lat, p2.lng);
                             
-                            var angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                            var angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x) * 180 / Math.PI;
                             
                             var arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
                             arrow.setAttribute("d", "M-6,-6 L6,0 L-6,6"); // Simple arrowhead
@@ -1993,16 +2006,19 @@
                             arrow.setAttribute("stroke-width", "3");
                             arrow.setAttribute("stroke-linecap", "round");
                             arrow.setAttribute("stroke-linejoin", "round");
-                            arrow.setAttribute("transform", "translate(" + x1 + "," + y1 + ") rotate(" + angle + ")");
+                            arrow.setAttribute("transform", "translate(" + pos1.x + "," + pos1.y + ") rotate(" + angle + ")");
                             svg.appendChild(arrow);
                         }
                     });
                 }
                 
-                var startX = ((routePoints[0].lng - minLng) / (maxLng - minLng)) * w;
-                var startY = ((maxLat - routePoints[0].lat) / (maxLat - minLat)) * h;
-                var endX = ((routePoints[routePoints.length-1].lng - minLng) / (maxLng - minLng)) * w;
-                var endY = ((maxLat - routePoints[routePoints.length-1].lat) / (maxLat - minLat)) * h;
+                var startPos = getXY(routePoints[0].lat, routePoints[0].lng);
+                var startX = startPos.x;
+                var startY = startPos.y;
+                
+                var endPos = getXY(routePoints[routePoints.length-1].lat, routePoints[routePoints.length-1].lng);
+                var endX = endPos.x;
+                var endY = endPos.y;
                 
                 // Start Marker (Green Circle with S)
                 var startG = document.createElementNS("http://www.w3.org/2000/svg", "g");
