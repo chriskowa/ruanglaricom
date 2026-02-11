@@ -96,7 +96,10 @@ class EventPaymentRecoveryController extends Controller
             return response()->json(['success' => false, 'message' => 'Event tidak ditemukan.'], 404);
         }
         
-        $tx = Transaction::find($transaction);
+        $tx = is_numeric($transaction) 
+            ? Transaction::find($transaction) 
+            : Transaction::where('public_ref', $transaction)->first();
+
         if (! $tx) {
             \Log::warning("Payment Status Check: Transaction {$transaction} not found");
             return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
@@ -185,7 +188,10 @@ class EventPaymentRecoveryController extends Controller
     {
         $event = Event::query()->where('slug', $slug)->firstOrFail();
         
-        $tx = Transaction::find($transaction);
+        $tx = is_numeric($transaction)
+            ? Transaction::find($transaction)
+            : Transaction::where('public_ref', $transaction)->first();
+
         if (! $tx) {
             return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
         }

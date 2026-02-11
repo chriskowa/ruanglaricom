@@ -3,6 +3,7 @@
 @section('title', 'Ruang Lari Tools - Calculator')
 
 @push('styles')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         #rl-calculator {
             --primary: #ccff00;
@@ -268,6 +269,120 @@
                         <button class="tab-btn" onclick="openTab(event, 'fueling')">Fueling</button>
                         <button class="tab-btn" onclick="openTab(event, 'vo2max')">VO2 Max</button>
                         <button class="tab-btn" onclick="openTab(event, 'heartrate')">Heart Rate</button>
+                        <button class="tab-btn" onclick="openTab(event, 'smartMileage')">Smart Mileage Builder</button>
+                    </div>
+
+                    <div id="smartMileage" class="tab-content" data-hash="smartmileage">
+                        <div class="info-note">
+                            Rencanakan peningkatan volume lari Anda secara aman dengan algoritma "Cutback Week" otomatis.
+                        </div>
+
+                        <!-- Smart Recommendation Section -->
+                        <div class="form-group" style="padding: 1rem; background: rgba(2,6,23,.3); border-radius: 12px; border: 1px solid rgba(148,163,184,.1); margin-bottom: 1.5rem;">
+                            <label style="color:#3b82f6; margin-bottom:0.75rem; display:block; border-bottom:1px solid rgba(59,130,246,0.2); padding-bottom:0.5rem;">
+                                <i class="fas fa-magic" style="margin-right:0.5rem;"></i> Smart Recommendation (Opsional)
+                            </label>
+                            <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1rem;">
+                                Bingung menentukan volume awal? Masukkan Personal Best (PB) 1 bulan terakhir untuk mendapatkan saran volume mingguan yang aman.
+                            </p>
+                            <div class="form-row">
+                                 <div class="form-group">
+                                    <label>Recent Distance</label>
+                                    <select id="smPbDist">
+                                        <option value="5">5K</option>
+                                        <option value="10">10K</option>
+                                        <option value="21.1">Half Marathon</option>
+                                        <option value="42.2">Marathon</option>
+                                    </select>
+                                 </div>
+                                 <div class="form-group">
+                                    <label>Time</label>
+                                    <div class="time-inputs" style="grid-template-columns: repeat(3, 1fr); gap: 0.25rem;">
+                                         <input type="number" id="smPbH" placeholder="H" min="0">
+                                         <input type="number" id="smPbM" placeholder="M" min="0">
+                                         <input type="number" id="smPbS" placeholder="S" min="0">
+                                    </div>
+                                 </div>
+                            </div>
+                            <button type="button" onclick="calculateSmartSuggestion()" style="width:100%; padding:0.6rem; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); color:#60a5fa; border-radius:8px; font-weight:700; cursor:pointer; margin-top:0.5rem; transition:all .2s;">
+                                <i class="fas fa-calculator"></i> Hitung Rekomendasi Volume
+                            </button>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Mode Perhitungan</label>
+                                <select id="smMode" onchange="updateSmartMileageInputs()">
+                                    <option value="distance">Berdasarkan Jarak (km/miles)</option>
+                                    <option value="time">Berdasarkan Waktu (menit)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label id="smCurrentLabel">Current Weekly Volume</label>
+                                <input type="number" id="smCurrent" min="0" step="1" placeholder="e.g., 20">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Mulai Tanggal</label>
+                                <input type="date" id="smStartDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Durasi Program (Minggu)</label>
+                                <input type="number" id="smDuration" min="4" max="52" value="16">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Event / Goal</label>
+                            <select id="smGoal">
+                                <option value="5K">5K</option>
+                                <option value="10K">10K</option>
+                                <option value="Half Marathon">Half Marathon</option>
+                                <option value="Marathon">Marathon</option>
+                                <option value="Ultra Marathon">Ultra Marathon</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem; padding: 1rem; background: rgba(2,6,23,.3); border-radius: 12px; border: 1px solid rgba(148,163,184,.1);">
+                            <label style="display:flex; justify-content:space-between; align-items:center;">
+                                Progression Aggressiveness
+                                <span id="smAggressivenessLabel" style="font-size:0.8rem; padding:2px 8px; border-radius:4px; background:#10b981; color:#fff;">Standard Progressive</span>
+                            </label>
+                            <div style="display:flex; align-items:center; gap:1rem;">
+                                <input type="range" id="smSlider" min="1" max="15" value="10" step="1" style="flex:1;" oninput="updateSmartMileageSlider()">
+                                <span id="smSliderVal" style="font-weight:800; color:var(--primary); min-width:3rem; text-align:right;">10%</span>
+                            </div>
+                            <p style="font-size:0.8rem; color:var(--muted); margin-top:0.5rem; line-height:1.4;">
+                                Persentase kenaikan volume mingguan. <br>
+                                <span style="color:#10b981;">&lt; 8%: Conservative / Rehab</span> | 
+                                <span style="color:#3b82f6;">8-12%: Standard</span> | 
+                                <span style="color:#ef4444;">&gt; 13%: Aggressive / High Risk</span>
+                            </p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-container" style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                                <input type="checkbox" id="smInjury" onchange="updateSmartMileageSlider()" style="width:auto; transform:scale(1.2);">
+                                <span>Sedang dalam pemulihan cedera? (Rehab Mode)</span>
+                            </label>
+                            <p style="font-size:0.8rem; color:var(--muted); margin-left:1.8rem; margin-top:0.2rem;">
+                                Mengunci kenaikan maks 7% dan memperbanyak frekuensi minggu istirahat (cutback).
+                            </p>
+                        </div>
+
+                        <button class="rlc-action" onclick="calculateSmartMileage()">Generate Smart Plan</button>
+                        <div id="smartMileageError" class="error" style="display: none;"></div>
+                        
+                        <div id="smartMileageResults" class="results">
+                            <canvas id="smChart" style="max-height: 300px; margin-bottom: 1.5rem;"></canvas>
+                            <div id="smTable"></div>
+                        </div>
+                        
+                        <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+                             <button type="button" class="rlc-export-btn" id="smartMileageExportBtn" onclick="exportResults('smartMileageResults', 'Smart Mileage Plan')" style="flex:1;">Export Image (PNG)</button>
+                             <button type="button" class="rlc-export-btn" id="smartMileageIcsBtn" onclick="exportSmartMileageICS()" style="flex:1; display:none; background:rgba(59,130,246,.15); border-color:rgba(59,130,246,.5); color:#93c5fd;">Export to Calendar (.ics)</button>
+                        </div>
                     </div>
 
                     <div id="magicMile" class="tab-content active" data-hash="magicmile">
@@ -1576,7 +1691,376 @@
             showResults('fuelingResults', results);
         }
         
+        let smChartInstance = null;
+
+        function updateSmartMileageInputs() {
+            const mode = document.getElementById('smMode').value;
+            const label = document.getElementById('smCurrentLabel');
+            const input = document.getElementById('smCurrent');
+            
+            if (mode === 'time') {
+                label.textContent = 'Current Weekly Duration (Minutes)';
+                input.placeholder = 'e.g., 180';
+            } else {
+                label.textContent = `Current Weekly Volume (${globalUnit === 'metric' ? 'km' : 'miles'})`;
+                input.placeholder = 'e.g., 20';
+            }
+        }
+
+        function calculateSmartSuggestion() {
+            const dist = parseFloat(document.getElementById('smPbDist').value);
+            const h = parseInt(document.getElementById('smPbH').value) || 0;
+            const m = parseInt(document.getElementById('smPbM').value) || 0;
+            const s = parseInt(document.getElementById('smPbS').value) || 0;
+            
+            const totalMinutes = (h * 60) + m + (s / 60);
+            
+            if (totalMinutes <= 0) {
+                alert('Mohon masukkan waktu PB yang valid.');
+                return;
+            }
+            
+            let suggestedVol = 0;
+            
+            // Logic Heuristics (Upper Bound / Aggressive Start)
+            // User feedback: "gunakan batas atasnya saja"
+            if (dist === 5) {
+                if (totalMinutes < 20) suggestedVol = 50;      // Was 35
+                else if (totalMinutes < 25) suggestedVol = 40; // Was 25
+                else if (totalMinutes < 30) suggestedVol = 30; // Was 20
+                else suggestedVol = 25;                        // Was 15
+            } else if (dist === 10) {
+                if (totalMinutes < 40) suggestedVol = 65;      // Was 45
+                else if (totalMinutes < 50) suggestedVol = 50; // Was 35
+                else if (totalMinutes < 60) suggestedVol = 40; // Was 25
+                else suggestedVol = 30;                        // Was 20
+            } else if (dist === 21.1) {
+                if (totalMinutes < 90) suggestedVol = 80;      // Was 60
+                else if (totalMinutes < 105) suggestedVol = 65;// Was 45
+                else if (totalMinutes < 120) suggestedVol = 50;// Was 35
+                else suggestedVol = 40;                        // Was 25
+            } else if (dist === 42.2) {
+                if (totalMinutes < 180) suggestedVol = 100;    // Was 80
+                else if (totalMinutes < 210) suggestedVol = 80;// Was 60
+                else if (totalMinutes < 240) suggestedVol = 65;// Was 50
+                else suggestedVol = 50;                        // Was 40
+            }
+            
+            // Adjust for imperial if needed
+            if (globalUnit === 'imperial') {
+                suggestedVol = Math.round(suggestedVol * 0.621371);
+            }
+            
+            // Set value
+            const currentInput = document.getElementById('smCurrent');
+            currentInput.value = suggestedVol;
+            
+            // Auto-set mode to distance since this calculation is distance-based
+            const modeSelect = document.getElementById('smMode');
+            if (modeSelect.value !== 'distance') {
+                modeSelect.value = 'distance';
+                updateSmartMileageInputs();
+            }
+            
+            // Visual Feedback
+            currentInput.style.transition = 'all 0.3s';
+            currentInput.style.borderColor = '#10b981';
+            currentInput.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.2)';
+            
+            // Show toast or alert
+            // Simple approach: remove highlight after 2s
+            setTimeout(() => {
+                currentInput.style.borderColor = '';
+                currentInput.style.boxShadow = '';
+            }, 2000);
+            
+            // Scroll to input
+            currentInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function updateSmartMileageSlider() {
+            const slider = document.getElementById('smSlider');
+            const output = document.getElementById('smSliderVal');
+            const label = document.getElementById('smAggressivenessLabel');
+            const injury = document.getElementById('smInjury');
+            
+            let val = parseInt(slider.value);
+            
+            // Injury Logic: Cap at 7%
+            if (injury.checked && val > 7) {
+                slider.value = 7;
+                val = 7;
+            }
+            
+            output.textContent = val + '%';
+            
+            if (val < 8) {
+                label.textContent = 'Conservative / Rehab';
+                label.style.background = '#10b981'; // Green
+                output.style.color = '#10b981';
+            } else if (val >= 8 && val <= 12) {
+                label.textContent = 'Standard Progressive';
+                label.style.background = '#3b82f6'; // Blue
+                output.style.color = '#3b82f6';
+            } else {
+                label.textContent = 'Aggressive / High Risk';
+                label.style.background = '#ef4444'; // Red
+                output.style.color = '#ef4444';
+            }
+        }
+
+        function calculateSmartMileage() {
+            const current = parseFloat(document.getElementById('smCurrent').value);
+            const duration = parseInt(document.getElementById('smDuration').value);
+            const pct = parseInt(document.getElementById('smSlider').value) / 100;
+            const injury = document.getElementById('smInjury').checked;
+            const mode = document.getElementById('smMode').value;
+            
+            if (!current || current <= 0) {
+                showError('smartMileageError', 'Please enter a valid current volume.');
+                return;
+            }
+            
+            const cutbackFreq = injury ? 3 : 4; // Cutback every 3 weeks if injured, else 4
+            const cutbackRate = 0.25; // 25% volume reduction
+            
+            // Rational Cap (User feedback: "tidak bisa lebih dari 200km")
+            // Assuming 200km is the hard cap for metric. For imperial ~125 miles.
+            const maxVolume = globalUnit === 'metric' ? 200 : 125;
+
+            let plan = [];
+            let volume = current;
+            let peakVolume = current; // Track highest volume before cutback
+            
+            // Week 1 is current volume (or maybe week 1 starts higher? Usually start from current)
+            // User input is "Current Weekly Volume", so Week 1 should probably be Current * (1+pct) or just Current?
+            // Usually "Current" means what I did last week. So Week 1 is Current * (1+pct).
+            // Let's assume Week 1 is the first build week.
+            
+            // Re-reading user prompt: "Minggu 1-3: Naik sesuai % slider."
+            // This implies starting from Week 1.
+            
+            // Let's initialize previous volume as 'current'.
+            let prevVolume = current;
+            
+            for (let w = 1; w <= duration; w++) {
+                let weekVol = 0;
+                let isCutback = false;
+                
+                if (w % cutbackFreq === 0) {
+                    // Cutback Week
+                    isCutback = true;
+                    // "Turunkan volume sekitar 20-30% dari Minggu 3" (which is peakVolume)
+                    weekVol = peakVolume * (1 - cutbackRate);
+                } else {
+                    // Build Week
+                    if (w > 1 && (w - 1) % cutbackFreq === 0) {
+                        // Post-Cutback Week: "Kembali ke volume Minggu 3 + % kenaikan"
+                        // Meaning: Go back to Peak Volume + increase
+                        weekVol = peakVolume * (1 + pct);
+                    } else {
+                        // Normal increase
+                        weekVol = prevVolume * (1 + pct);
+                    }
+                    
+                    // Apply Cap
+                    if (weekVol > maxVolume) weekVol = maxVolume;
+                    
+                    peakVolume = weekVol;
+                }
+                
+                // Also cap cutback weeks just in case (though unlikely to exceed if peak is capped)
+                if (weekVol > maxVolume) weekVol = maxVolume;
+
+                plan.push({
+                    week: w,
+                    volume: weekVol,
+                    isCutback: isCutback
+                });
+                prevVolume = weekVol;
+            }
+            
+            renderSmartMileageChart(plan, mode);
+            renderSmartMileageTable(plan, mode);
+            
+            document.getElementById('smartMileageError').style.display = 'none';
+            document.getElementById('smartMileageResults').classList.add('show');
+            document.getElementById('smartMileageExportBtn').style.display = 'inline-flex';
+            document.getElementById('smartMileageIcsBtn').style.display = 'inline-flex';
+            
+            // Scroll to results
+             setTimeout(() => {
+                document.getElementById('smartMileageResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 60);
+        }
+
+        function renderSmartMileageChart(plan, mode) {
+            const ctx = document.getElementById('smChart').getContext('2d');
+            
+            if (smChartInstance) {
+                smChartInstance.destroy();
+            }
+            
+            const labels = plan.map(p => `Week ${p.week}`);
+            const data = plan.map(p => p.volume.toFixed(1));
+            const colors = plan.map(p => p.isCutback ? '#10b981' : '#3b82f6'); // Green for cutback, Blue for build
+            
+            const unitLabel = mode === 'time' ? 'Minutes' : (globalUnit === 'metric' ? 'km' : 'miles');
+            
+            smChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Weekly Volume (${unitLabel})`,
+                        data: data,
+                        backgroundColor: colors,
+                        borderRadius: 4,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(148,163,184,0.1)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15,23,42,0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#cbd5e1',
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} ${unitLabel} ${plan[context.dataIndex].isCutback ? '(Cutback)' : ''}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderSmartMileageTable(plan, mode) {
+            const unit = mode === 'time' ? 'min' : (globalUnit === 'metric' ? 'km' : 'mi');
+            
+            let html = '<div class="result-grid" style="grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));">';
+            
+            plan.forEach(p => {
+                const color = p.isCutback ? '#10b981' : 'rgba(226,232,240,.82)';
+                const label = p.isCutback ? 'Cutback' : 'Build';
+                
+                html += `
+                    <div class="result-item" style="flex-direction:column; align-items:flex-start; gap:0.2rem;">
+                        <div class="result-label" style="font-size:0.75rem;">Week ${p.week}</div>
+                        <div class="result-value" style="font-size:1.1rem; color:${p.isCutback ? '#10b981' : '#fff'};">
+                            ${Math.round(p.volume)} <span style="font-size:0.8rem; color:var(--muted);">${unit}</span>
+                        </div>
+                        <div style="font-size:0.7rem; color:${color}; opacity:0.8;">${label}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('smTable').innerHTML = html;
+        }
+
+        function exportSmartMileageICS() {
+            const startDateVal = document.getElementById('smStartDate').value;
+            if (!startDateVal) {
+                alert('Silakan pilih Start Date untuk export ke kalender.');
+                return;
+            }
+            
+            // Retrieve plan data (we need to re-calculate or store it globally. Re-calc is safer/easier here)
+            // Copy logic from calculateSmartMileage
+             const current = parseFloat(document.getElementById('smCurrent').value);
+            const duration = parseInt(document.getElementById('smDuration').value);
+            const pct = parseInt(document.getElementById('smSlider').value) / 100;
+            const injury = document.getElementById('smInjury').checked;
+            const mode = document.getElementById('smMode').value;
+            const goal = document.getElementById('smGoal').value || 'Smart Mileage Builder';
+            
+            const cutbackFreq = injury ? 3 : 4;
+            const cutbackRate = 0.25;
+            
+            let volume = current;
+            let peakVolume = current;
+            let prevVolume = current;
+            
+            let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Ruang Lari//Smart Mileage//EN\nCALSCALE:GREGORIAN\n";
+            
+            let currentDate = new Date(startDateVal);
+            
+            const unit = mode === 'time' ? 'min' : (globalUnit === 'metric' ? 'km' : 'mi');
+            
+            for (let w = 1; w <= duration; w++) {
+                let weekVol = 0;
+                let isCutback = false;
+                
+                if (w % cutbackFreq === 0) {
+                    isCutback = true;
+                    weekVol = peakVolume * (1 - cutbackRate);
+                } else {
+                    if (w > 1 && (w - 1) % cutbackFreq === 0) {
+                        weekVol = peakVolume * (1 + pct);
+                    } else {
+                        weekVol = prevVolume * (1 + pct);
+                    }
+                    peakVolume = weekVol;
+                }
+                
+                // Format Date for ICS: YYYYMMDD
+                const dStart = currentDate.toISOString().replace(/-/g, '').split('T')[0];
+                
+                // End date is +6 days (Sunday) or +1 day (Event usually marks the start of the week)
+                // Let's make it an all-day event for the Monday
+                // DTEND for all-day event is the next day
+                let nextDay = new Date(currentDate);
+                nextDay.setDate(nextDay.getDate() + 1);
+                const dEnd = nextDay.toISOString().replace(/-/g, '').split('T')[0];
+                
+                const type = isCutback ? 'Recovery Week' : 'Build Week';
+                const desc = `Target: ${Math.round(weekVol)} ${unit}. Focus: ${type}. Goal: ${goal}`;
+                
+                icsContent += "BEGIN:VEVENT\n";
+                icsContent += `DTSTART;VALUE=DATE:${dStart}\n`;
+                icsContent += `DTEND;VALUE=DATE:${dEnd}\n`;
+                icsContent += `SUMMARY:Week ${w} Run Volume: ${Math.round(weekVol)} ${unit}\n`;
+                icsContent += `DESCRIPTION:${desc}\n`;
+                icsContent += "END:VEVENT\n";
+                
+                prevVolume = weekVol;
+                
+                // Move to next week
+                currentDate.setDate(currentDate.getDate() + 7);
+            }
+            
+            icsContent += "END:VCALENDAR";
+            
+            // Download
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', 'smart_mileage_plan.ics');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to today
+            document.getElementById('smStartDate').valueAsDate = new Date();
+
             setDefaultDistance();
             updateAllLabels();
             updateSplitPercentageValue();
