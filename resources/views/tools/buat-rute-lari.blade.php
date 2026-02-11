@@ -401,6 +401,7 @@
                 </div>
                 <div class="space-y-6">
                     <div>
+                        <div id="rl-export-qr" class="mb-4 p-1 bg-white inline-block rounded-lg"></div>
                         <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>                        
                         <div class="text-2xl font-black text-white leading-tight line-clamp-2 h-[3.5rem]" id="rl-export-name"> Untitled Route </div>
                     </div>
@@ -427,6 +428,7 @@
         </div>
     </div>
 @push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
@@ -1923,6 +1925,23 @@
                 var startP = routePoints[0];
                 var endP = routePoints[routePoints.length-1];
                 document.getElementById('rl-export-start').textContent = startP.lat.toFixed(4) + ', ' + startP.lng.toFixed(4);
+
+                // Generate QR Code for Start Location
+                var qrContainer = document.getElementById('rl-export-qr');
+                qrContainer.innerHTML = '';
+                try {
+                    new QRCode(qrContainer, {
+                        text: "https://www.google.com/maps/search/?api=1&query=" + startP.lat + "," + startP.lng,
+                        width: 70,
+                        height: 70,
+                        colorDark : "#0f172a",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.L
+                    });
+                } catch(e) {
+                    console.error("QR Code Error:", e);
+                }
+
                 document.getElementById('rl-export-finish').textContent = endP.lat.toFixed(4) + ', ' + endP.lng.toFixed(4);
 
                 var svg = document.getElementById('rl-export-svg');
@@ -2053,20 +2072,28 @@
                 svg.appendChild(endG);
                 
                 var card = document.getElementById('rl-export-card');
-                html2canvas(card, {
-                    scale: 2, 
-                    backgroundColor: '#0f172a',
-                    useCORS: true
-                }).then(function(canvas) {
-                    var link = document.createElement('a');
-                    link.download = 'ruanglari-route-' + Date.now() + '.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    setStatus('Export selesai');
-                }).catch(function(err) {
-                    console.error(err);
-                    setStatus('Export gagal');
-                });
+                
+                // Delay export to ensure QR code renders
+                setTimeout(function() {
+                    // Force layout recalc
+                    var _ = card.offsetHeight;
+                    
+                    html2canvas(card, {
+                        scale: 2, 
+                        backgroundColor: '#0f172a',
+                        useCORS: true,
+                        allowTaint: true
+                    }).then(function(canvas) {
+                        var link = document.createElement('a');
+                        link.download = 'ruanglari-route-' + Date.now() + '.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        setStatus('Export selesai');
+                    }).catch(function(err) {
+                        console.error(err);
+                        setStatus('Export gagal');
+                    });
+                }, 1500);
             });
 
         })();
