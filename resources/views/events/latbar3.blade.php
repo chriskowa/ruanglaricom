@@ -207,7 +207,7 @@
                 </div>
                
                 <h1 class="text-6xl md:text-8xl font-display uppercase tracking-wider mb-2 leading-none text-white">
-                    {{ strtoupper($event->name) }} <span class="text-sport-volt">Track Series</span>
+                    {{ strtoupper($event->name) }} <span class="text-sport-volt">Road Series</span>
                 </h1>
                 <p class="text-gray-300 text-lg md:text-xl font-light mb-8 max-w-2xl mx-auto">
                     Dorong batas kemampuanmu. Bergabunglah dengan sesi latihan di stadion kebanggaan Malang.
