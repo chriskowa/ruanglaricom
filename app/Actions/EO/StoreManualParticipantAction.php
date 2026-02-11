@@ -2,6 +2,7 @@
 
 namespace App\Actions\EO;
 
+use App\Models\Coupon;
 use App\Models\Event;
 use App\Models\Participant;
 use App\Models\RaceCategory;
@@ -51,6 +52,18 @@ class StoreManualParticipantAction
                 $priceInfo = $this->getCategoryPrice($category);
                 $amount = (int) $priceInfo['price'];
 
+                // Handle Coupon
+                $coupon = null;
+                $discountAmount = 0;
+                if (!empty($validated['coupon_id'])) {
+                    $coupon = Coupon::find($validated['coupon_id']);
+                    if ($coupon) {
+                        $discountAmount = $coupon->applyDiscount($amount);
+                    }
+                }
+
+                $finalAmount = max(0, $amount - $discountAmount);
+
                 $transaction = Transaction::create([
                     'event_id' => $event->id,
                     'user_id' => $operator->id,
@@ -62,10 +75,10 @@ class StoreManualParticipantAction
                         'send_whatsapp' => $validated['send_whatsapp'] ?? true,
                     ],
                     'total_original' => $amount,
-                    'coupon_id' => null,
-                    'discount_amount' => 0,
+                    'coupon_id' => $coupon?->id,
+                    'discount_amount' => $discountAmount,
                     'admin_fee' => 0,
-                    'final_amount' => $amount,
+                    'final_amount' => $finalAmount,
                     'payment_status' => 'paid',
                     'paid_at' => now(),
                     'payment_gateway' => 'manual',

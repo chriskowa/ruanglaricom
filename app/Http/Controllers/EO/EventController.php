@@ -771,7 +771,7 @@ class EventController extends Controller
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
-            ->with(['transaction', 'category']);
+            ->with(['transaction.coupon', 'category']);
 
         // Filter by payment status
         if (request()->has('payment_status') && request()->payment_status) {
@@ -885,6 +885,7 @@ class EventController extends Controller
                     'pic_email' => $p->transaction->pic_data['email'] ?? '-',
                     'transaction_date' => $p->transaction->created_at ? $p->transaction->created_at->format('d M Y H:i') : '-',
                     'payment_method' => $p->transaction->payment_gateway ?? '-',
+                    'coupon_code' => $p->transaction->coupon->code ?? null,
                     'addons' => $p->addons,
                 ];
             });
@@ -937,7 +938,12 @@ class EventController extends Controller
 
         $nextBibNumber = $latestBib ? ($latestBib + 1) : null;
 
-        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink', 'nextBibNumber'));
+        $coupons = \App\Models\Coupon::where('event_id', $event->id)
+            ->where('is_active', true)
+            ->orderBy('code')
+            ->get();
+
+        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink', 'nextBibNumber', 'coupons'));
     }
 
     public function participantsApi(Request $request, Event $event)
@@ -1084,6 +1090,16 @@ class EventController extends Controller
             'bib_number' => 'nullable|string|max:20',
             'send_whatsapp' => 'nullable|boolean',
             'use_queue' => 'nullable|boolean',
+            'coupon_id' => [
+                'nullable',
+                'exists:coupons,id',
+                function ($attribute, $value, $fail) use ($event) {
+                    $coupon = \App\Models\Coupon::find($value);
+                    if ($coupon && (int) $coupon->event_id !== (int) $event->id) {
+                        $fail('Kupon tidak valid untuk event ini.');
+                    }
+                },
+            ],
         ]);
 
         $transaction = $action->execute($event, $validated, $request->user());

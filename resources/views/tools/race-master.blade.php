@@ -56,14 +56,14 @@
                 <i class="fa-solid fa-stopwatch text-indigo-600 text-2xl dark:text-indigo-400"></i>
                 <h1 class="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Race Master <span class="text-indigo-600 dark:text-indigo-400">Pro</span></h1>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="flex bg-slate-100 rounded-lg p-1 dark:bg-slate-700">
-                    <button @click="currentView = 'setup'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='setup', 'text-slate-500 dark:text-slate-400': currentView!=='setup'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all">Setup</button>
-                    <button @click="currentView = 'bibs'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='bibs', 'text-slate-500 dark:text-slate-400': currentView!=='bibs'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all">BIBs</button>
-                    <button @click="currentView = 'race'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='race', 'text-slate-500 dark:text-slate-400': currentView!=='race'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all">Race</button>
-                    <button @click="currentView = 'results'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='results', 'text-slate-500 dark:text-slate-400': currentView!=='results'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all">Results</button>
+            <div class="flex items-center gap-4 max-w-full">
+                <div class="flex bg-slate-100 rounded-lg p-1 dark:bg-slate-700 overflow-x-auto max-w-[calc(100vw-100px)] md:max-w-none no-scrollbar">
+                    <button @click="currentView = 'setup'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='setup', 'text-slate-500 dark:text-slate-400': currentView!=='setup'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">Setup</button>
+                    <button @click="currentView = 'bibs'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='bibs', 'text-slate-500 dark:text-slate-400': currentView!=='bibs'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">BIBs</button>
+                    <button @click="currentView = 'race'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='race', 'text-slate-500 dark:text-slate-400': currentView!=='race'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">Race</button>
+                    <button @click="currentView = 'results'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='results', 'text-slate-500 dark:text-slate-400': currentView!=='results'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">Results</button>
                 </div>
-                <button @click="toggleDarkMode" class="text-slate-400 hover:text-indigo-600 dark:text-slate-500 dark:hover:text-indigo-400 transition-colors">
+                <button @click="toggleDarkMode" class="text-slate-400 hover:text-indigo-600 dark:text-slate-500 dark:hover:text-indigo-400 transition-colors flex-shrink-0">
                     <i class="fa-solid" :class="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
                 </button>
             </div>
@@ -154,9 +154,9 @@
         </div>
 
         <div v-show="currentView === 'bibs'" class="animate-fade-in">
-            <div class="flex justify-between items-center mb-6 no-print">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 no-print gap-4">
                 <h2 class="text-2xl font-bold">Preview BIB (A5 Landscape)</h2>
-                <div class="flex gap-3">
+                <div class="flex gap-3 flex-wrap justify-center">
                     <button @click="currentView = 'setup'" class="text-slate-500 font-medium px-4">Kembali</button>
                     <button @click="printBibs" class="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700">
                         <i class="fa-solid fa-print mr-2"></i> Print / Download PDF
@@ -167,8 +167,8 @@
                 </div>
             </div>
 
-            <div id="bib-print-area" class="grid grid-cols-1 gap-8 justify-items-center">
-                <div v-for="p in participants" :key="p.id" class="bib-card bg-white border border-slate-200 shadow-sm relative overflow-hidden">
+            <div id="bib-print-area" class="grid grid-cols-1 gap-8 justify-items-center overflow-x-auto pb-8">
+                <div v-for="p in participants" :key="p.id" class="bib-card bg-white border border-slate-200 shadow-sm relative overflow-hidden flex-shrink-0">
                     <div class="absolute top-0 left-0 w-full h-4 bg-indigo-600"></div>
                     <div class="absolute bottom-0 left-0 w-full h-4 bg-indigo-600"></div>
                     
@@ -199,29 +199,29 @@
                     </div>
                 </div>
 
-                <div class="flex gap-3">
-                    <button v-if="!timer.running" @click="startRace" class="bg-green-500 hover:bg-green-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-green-900/50 transition transform hover:scale-105" title="Start/Resume">
-                        <i class="fa-solid fa-play text-2xl"></i>
+                <div class="flex gap-3 flex-wrap justify-center md:justify-end">
+                    <button v-if="!timer.running" @click="startRace" class="bg-green-500 hover:bg-green-600 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg shadow-green-900/50 transition transform hover:scale-105 flex-shrink-0" title="Start/Resume">
+                        <i class="fa-solid fa-play text-xl md:text-2xl"></i>
                     </button>
-                    <button v-if="timer.running" @click="pauseRace" class="bg-yellow-500 hover:bg-yellow-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-yellow-900/50 transition transform hover:scale-105" title="Pause Timer">
-                        <i class="fa-solid fa-pause text-2xl"></i>
+                    <button v-if="timer.running" @click="pauseRace" class="bg-yellow-500 hover:bg-yellow-600 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg shadow-yellow-900/50 transition transform hover:scale-105 flex-shrink-0" title="Pause Timer">
+                        <i class="fa-solid fa-pause text-xl md:text-2xl"></i>
                     </button>
-                    <button v-if="timer.elapsed > 0" @click="finishRace" class="bg-red-600 hover:bg-red-700 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-red-900/50 transition transform hover:scale-105" title="Finish Sesi">
-                        <i class="fa-solid fa-flag-checkered text-2xl"></i>
+                    <button v-if="timer.elapsed > 0" @click="finishRace" class="bg-red-600 hover:bg-red-700 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg shadow-red-900/50 transition transform hover:scale-105 flex-shrink-0" title="Finish Sesi">
+                        <i class="fa-solid fa-flag-checkered text-xl md:text-2xl"></i>
                     </button>
-                    <button @click="resetRace" class="bg-slate-700 hover:bg-slate-600 text-white w-12 h-12 rounded-full flex items-center justify-center transition" title="Reset Total">
+                    <button @click="resetRace" class="bg-slate-700 hover:bg-slate-600 text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition flex-shrink-0" title="Reset Total">
                         <i class="fa-solid fa-rotate-right"></i>
                     </button>
-                    <button v-show="camera.active" @click="captureScan" :disabled="camera.busy" :class="camera.busy ? 'bg-slate-600' : 'bg-yellow-500 hover:bg-yellow-600'" class="text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition transform hover:scale-105" title="Capture (Spasi)">
-                        <i class="fa-solid fa-camera text-2xl"></i>
+                    <button v-show="camera.active" @click="captureScan" :disabled="camera.busy" :class="camera.busy ? 'bg-slate-600' : 'bg-yellow-500 hover:bg-yellow-600'" class="text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-lg transition transform hover:scale-105 flex-shrink-0" title="Capture (Spasi)">
+                        <i class="fa-solid fa-camera text-xl md:text-2xl"></i>
                     </button>
-                    <button @click="toggleScanner" :class="camera.active ? 'bg-indigo-500 ring-2 ring-white' : 'bg-slate-700'" class="ml-4 hover:bg-indigo-600 text-white w-12 h-12 rounded-full flex items-center justify-center transition" title="Toggle Camera">
+                    <button @click="toggleScanner" :class="camera.active ? 'bg-indigo-500 ring-2 ring-white' : 'bg-slate-700'" class="md:ml-4 hover:bg-indigo-600 text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition flex-shrink-0" title="Toggle Camera">
                         <i class="fa-solid fa-qrcode"></i>
                     </button>
                 </div>
             </div>
 
-            <div v-show="camera.active" class="bg-black rounded-2xl overflow-hidden shadow-2xl relative max-w-lg mx-auto border-4 border-indigo-500">
+            <div v-show="camera.active" class="bg-black rounded-2xl overflow-hidden shadow-2xl relative w-full max-w-lg mx-auto border-4 border-indigo-500 mb-6">
                 <div id="reader" class="w-full"></div>
                 <div class="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">Camera ON • SPACE = CAPTURE</div>
                 <div class="p-2 bg-slate-900 text-center text-green-400 font-mono text-sm" v-if="camera.lastScanMsg">
@@ -229,7 +229,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pt-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 pt-4">
                 <div v-for="p in activeParticipants" :key="p.id" 
                      class="relative bg-white rounded-xl shadow-sm border-2 transition-all duration-200 cursor-pointer hover:border-indigo-400 group select-none dark:bg-slate-800 dark:border-slate-700 dark:hover:border-indigo-500"
                      :class="{'border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900': p.recentlyScanned, 'border-slate-200 dark:border-slate-700': !p.recentlyScanned}"
@@ -273,9 +273,9 @@
         </div>
 
         <div v-if="currentView === 'results'" class="animate-fade-in">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h2 class="text-2xl font-bold dark:text-white">Hasil Race: @{{ raceCategory }}</h2>
-                <div class="flex gap-2 no-print">
+                <div class="flex gap-2 no-print flex-wrap justify-center">
                     <button @click="currentView = 'race'" class="bg-slate-200 text-slate-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 transition-colors">Kembali ke Timer</button>
                     <button v-if="publicResultsUrl || sessionSlug" @click="copyResultsLink" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600 transition-colors">Share Link</button>
                     <button onclick="window.print()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Print Hasil</button>

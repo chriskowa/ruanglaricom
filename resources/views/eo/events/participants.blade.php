@@ -322,6 +322,7 @@
                             'payment_status' => $participant->transaction->payment_status ?? 'pending',
                             'is_picked_up' => $participant->is_picked_up,
                             'picked_up_by' => $participant->picked_up_by,
+                            'coupon_code' => $participant->transaction->coupon->code ?? null,
                             'addons' => $participant->addons,
                         ]) }}">
                         <td class="px-6 py-4">
@@ -379,6 +380,12 @@
                                     <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'cod', this)">COD</button>
                                 </div>
                             </div>
+                            @if($participant->transaction->coupon)
+                                <div class="mt-2 text-xs text-yellow-400 flex items-center gap-1" title="Coupon Used">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                                    <span class="font-mono font-bold">{{ $participant->transaction->coupon->code }}</span>
+                                </div>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
                             @if($status == 'paid')
@@ -508,6 +515,17 @@
                                     </div>
                                 </div>
                                 <input id="add_bib_number" name="bib_number" value="{{ old('bib_number', $nextBibNumber) }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none font-mono text-yellow-400" placeholder="Auto (or manual)">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Kupon (Opsional)</label>
+                                <select name="coupon_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                    <option value="">-- Pilih Kupon --</option>
+                                    @foreach($coupons as $coupon)
+                                        <option value="{{ $coupon->id }}" {{ old('coupon_id') == $coupon->id ? 'selected' : '' }}>
+                                            {{ $coupon->code }} ({{ $coupon->type == 'percent' ? (float)$coupon->value . '%' : 'Rp ' . number_format($coupon->value, 0, ',', '.') }})
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">Tanggal Lahir</label>
@@ -753,6 +771,7 @@
                                 <div class="space-y-3">
                                     <div><div class="text-xs text-slate-500">Transaction Date</div><div class="text-white" id="dm_trx_date"></div></div>
                                     <div><div class="text-xs text-slate-500">Payment Method</div><div class="text-white uppercase" id="dm_payment_method"></div></div>
+                                    <div><div class="text-xs text-slate-500">Coupon</div><div class="text-white font-mono" id="dm_coupon"></div></div>
                                 </div>
                                 <div class="space-y-3">
                                     <div><div class="text-xs text-slate-500">Status</div><div id="dm_payment_status"></div></div>
@@ -849,6 +868,15 @@
                     '<button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus(\''+ p.payment_update_url +'\', \'expired\', this)">Expired</button>'+
                     '<button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus(\''+ p.payment_update_url +'\', \'cod\', this)">COD</button>'+
                 '</div>';
+                
+                var couponHtml = '';
+                if (p.coupon_code) {
+                    couponHtml = '<div class="mt-2 text-xs text-yellow-400 flex items-center gap-1" title="Coupon Used">' +
+                        '<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>' +
+                        '<span class="font-mono font-bold">' + p.coupon_code + '</span>' +
+                        '</div>';
+                }
+
                 var genderLabel = p.gender ? (p.gender.charAt(0).toUpperCase() + p.gender.slice(1)) : '-';
                 var regDate = p.created_at ? p.created_at.split(' ').slice(0, 2).join(' ') : '-';
                 
@@ -878,6 +906,7 @@
                     payment_status: p.payment_status,
                     is_picked_up: p.is_picked_up,
                     picked_up_by: p.picked_up_by,
+                    coupon_code: p.coupon_code,
                     addons: p.addons
                 }).replace(/'/g, "&#39;");
 
@@ -888,7 +917,7 @@
                     '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
                     '<td class="px-6 py-4"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
-                    '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div></td>'+
+                    '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div>'+ couponHtml +'</td>'+
                     '<td class="px-6 py-4">'+ pickedBadge +'</td>'+
                     '<td class="px-6 py-4 text-right"><div class="flex items-center justify-end gap-2">'+
                         '<a href="mailto:'+ (p.email || '') +'" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Email"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2 2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></a>'+
@@ -1429,6 +1458,15 @@
         // Populate Transaction Info
         document.getElementById('dm_trx_date').textContent = data.transaction_date;
         document.getElementById('dm_payment_method').textContent = data.payment_method;
+        
+        var couponEl = document.getElementById('dm_coupon');
+        if (data.coupon_code) {
+            couponEl.innerHTML = '<span class="text-yellow-400 font-bold">' + data.coupon_code + '</span>';
+            couponEl.parentElement.classList.remove('hidden');
+        } else {
+            couponEl.textContent = '-';
+            couponEl.parentElement.classList.add('hidden');
+        }
         
         // Payment Status Badge
         var status = data.payment_status;
