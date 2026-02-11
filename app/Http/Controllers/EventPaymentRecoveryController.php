@@ -190,7 +190,7 @@ class EventPaymentRecoveryController extends Controller
             return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
         }
 
-        if ($tx->event_id !== $event->id) {
+        if ($tx->event_id != $event->id) {
             return response()->json(['success' => false, 'message' => 'Transaksi tidak valid untuk event ini.'], 404);
         }
 
