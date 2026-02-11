@@ -792,7 +792,7 @@
                     });
                 }
             });
-            return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon };
+            return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices };
         }
     });
     
