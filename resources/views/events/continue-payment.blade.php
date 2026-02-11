@@ -111,6 +111,7 @@
                         btn.disabled = true;
                         try {
                             const r = await fetch(routes.status.replace(':id', id) + `?phone=${encodeURIComponent(phone)}`, {
+                                credentials: 'same-origin',
                                 headers: { 'Accept': 'application/json' }
                             });
                             const data = await r.json();
@@ -119,6 +120,7 @@
                             if (data.transaction) {
                                 const r2 = await fetch(routes.pending, {
                                     method: 'POST',
+                                    credentials: 'same-origin',
                                     headers: {
                                         'Content-Type': 'application/json',
                                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -144,6 +146,7 @@
                         try {
                             const r = await fetch(routes.resume.replace(':id', id), {
                                 method: 'POST',
+                                credentials: 'same-origin',
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -162,6 +165,7 @@
                                     try {
                                         // Force update status on server
                                         await fetch(routes.status.replace(':id', id) + `?phone=${encodeURIComponent(phone)}`, {
+                                            credentials: 'same-origin',
                                             headers: { 'Accept': 'application/json' }
                                         });
                                     } catch (e) {
@@ -204,6 +208,7 @@
                 try {
                     const r = await fetch(routes.pending, {
                         method: 'POST',
+                        credentials: 'same-origin',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -231,4 +236,3 @@
         })();
     </script>
 @endsection
-

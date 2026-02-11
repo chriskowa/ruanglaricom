@@ -2316,14 +2316,31 @@
                         // Replace index in name: participants[0][name] -> participants[1][name]
                         input.setAttribute('name', name.replace(/participants\[\d+\]/, `participants[${idx}]`));
                         
-                        // Handle Radios explicitly (need unique names per group)
-                        if(input.type === 'radio') {
+                        // Handle Radios/Checkboxes
+                        if(input.type === 'radio' || input.type === 'checkbox') {
                             input.checked = false; 
+                        } else if (input.tagName === 'SELECT') {
+                            input.value = ''; // Reset select to first option
+                        } else if (input.type === 'hidden') {
+                            // Only clear hidden inputs that are NOT addon metadata or other structural data
+                            // We explicitly want to clear target-time-input
+                            if (input.classList.contains('target-time-input')) {
+                                input.value = '';
+                            }
+                            // Do NOT clear addon name/price (which end in [name] or [price])
                         } else {
+                            // Text, email, date, number, etc.
                             input.value = '';
                         }
                     }
                 });
+
+                // Ensure a default category is selected for the new participant to avoid 422 on missing category_id
+                const firstCategoryRadio = newItem.querySelector('input[type="radio"][name*="[category_id]"]');
+                if (firstCategoryRadio) {
+                    firstCategoryRadio.checked = true;
+                    firstCategoryRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                }
 
                 participantsWrapper.appendChild(newItem);
                 attachListeners(newItem); // Re-attach change events
