@@ -50,23 +50,50 @@
 
 <div id="app" :class="{'dark': isDarkMode}">
     <header class="bg-white shadow-sm sticky top-0 z-50 no-print dark:bg-slate-800 dark:border-b dark:border-slate-700 transition-colors duration-300">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center relative">
             <div class="flex items-center gap-2">
                 <a href="{{ route('tools.index') }}" class="text-slate-400 hover:text-indigo-600 mr-2 dark:text-slate-500 dark:hover:text-indigo-400"><i class="fa-solid fa-arrow-left"></i></a>
                 <i class="fa-solid fa-stopwatch text-indigo-600 text-2xl dark:text-indigo-400"></i>
                 <h1 class="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Race Master <span class="text-indigo-600 dark:text-indigo-400">Pro</span></h1>
             </div>
-            <div class="flex items-center gap-4 max-w-full">
-                <div class="flex bg-slate-100 rounded-lg p-1 dark:bg-slate-700 overflow-x-auto max-w-[calc(100vw-100px)] md:max-w-none no-scrollbar">
+            
+            <div class="flex items-center gap-2">
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex bg-slate-100 rounded-lg p-1 dark:bg-slate-700">
                     <button @click="currentView = 'setup'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='setup', 'text-slate-500 dark:text-slate-400': currentView!=='setup'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">Setup</button>
                     <button @click="currentView = 'bibs'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='bibs', 'text-slate-500 dark:text-slate-400': currentView!=='bibs'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">BIBs</button>
                     <button @click="currentView = 'race'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='race', 'text-slate-500 dark:text-slate-400': currentView!=='race'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">Race</button>
                     <button @click="currentView = 'results'" :class="{'bg-white shadow-sm text-indigo-700 dark:bg-slate-600 dark:text-indigo-300': currentView==='results', 'text-slate-500 dark:text-slate-400': currentView!=='results'}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap">Results</button>
                 </div>
-                <button @click="toggleDarkMode" class="text-slate-400 hover:text-indigo-600 dark:text-slate-500 dark:hover:text-indigo-400 transition-colors flex-shrink-0">
+
+                <!-- Dark Mode Toggle -->
+                <button @click="toggleDarkMode" class="text-slate-400 hover:text-indigo-600 dark:text-slate-500 dark:hover:text-indigo-400 transition-colors w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
                     <i class="fa-solid" :class="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
                 </button>
+
+                <!-- Mobile Burger -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 w-10 h-10 flex items-center justify-center transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <i class="fa-solid" :class="mobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
+                </button>
             </div>
+        </div>
+        
+        <!-- Mobile Menu Dropdown -->
+        <div v-show="mobileMenuOpen" class="md:hidden border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg animate-fade-in">
+             <div class="p-2 space-y-1">
+                 <button @click="currentView = 'setup'; mobileMenuOpen = false" :class="currentView==='setup' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'" class="block w-full text-left px-4 py-3 rounded-xl font-medium transition-colors">
+                    <i class="fa-solid fa-cog w-6"></i> Setup
+                 </button>
+                 <button @click="currentView = 'bibs'; mobileMenuOpen = false" :class="currentView==='bibs' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'" class="block w-full text-left px-4 py-3 rounded-xl font-medium transition-colors">
+                    <i class="fa-solid fa-ticket w-6"></i> BIBs
+                 </button>
+                 <button @click="currentView = 'race'; mobileMenuOpen = false" :class="currentView==='race' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'" class="block w-full text-left px-4 py-3 rounded-xl font-medium transition-colors">
+                    <i class="fa-solid fa-stopwatch w-6"></i> Race
+                 </button>
+                 <button @click="currentView = 'results'; mobileMenuOpen = false" :class="currentView==='results' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'" class="block w-full text-left px-4 py-3 rounded-xl font-medium transition-colors">
+                    <i class="fa-solid fa-list-ol w-6"></i> Results
+                 </button>
+             </div>
         </div>
     </header>
 
@@ -113,15 +140,21 @@
                 <div class="flex flex-col md:flex-row gap-3 mb-6">
                     <input v-model="newBib" @keyup.enter="focusName" ref="inputBib" placeholder="No. BIB (Contoh: 101)" type="number" class="w-full md:w-1/4 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors">
                     <input v-model="newName" @keyup.enter="addParticipant" ref="inputName" placeholder="Nama Peserta" type="text" class="w-full md:w-2/4 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 text-lg dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors">
-                    <input v-model="newPredictedTime" @keyup.enter="addParticipant" placeholder="Prediksi (mm:ss) contoh 24:30" type="text" inputmode="numeric" class="w-full md:w-1/4 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors">
+                    <div class="w-full md:w-1/4 flex gap-1 items-center">
+                        <input v-model="newPredictedHH" @keyup.enter="addParticipant" placeholder="HH" type="number" min="0" max="99" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg text-center dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors" title="Jam">
+                        <span class="text-slate-400 font-bold">:</span>
+                        <input v-model="newPredictedMM" @keyup.enter="addParticipant" placeholder="MM" type="number" min="0" max="59" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg text-center dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors" title="Menit">
+                        <span class="text-slate-400 font-bold">:</span>
+                        <input v-model="newPredictedSS" @keyup.enter="addParticipant" placeholder="SS" type="number" min="0" max="59" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-mono-numbers text-lg text-center dark:bg-slate-900 dark:border-slate-600 dark:text-white transition-colors" title="Detik">
+                    </div>
                     <button @click="addParticipant" class="w-full md:w-1/4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-indigo-200 dark:shadow-none">
                         <i class="fa-solid fa-plus mr-2"></i> Tambah
                     </button>
                 </div>
 
-                <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-700">
+                <div class="overflow-auto max-h-96 rounded-xl border border-slate-100 dark:border-slate-700">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-50 dark:bg-slate-900/50">
+                        <thead class="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
                             <tr class="text-slate-400 text-sm border-b border-slate-100 dark:border-slate-700">
                                 <th class="p-3 font-medium">BIB</th>
                                 <th class="p-3 font-medium">Nama</th>
@@ -284,7 +317,53 @@
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden dark:bg-slate-800 dark:border-slate-700 transition-colors">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <!-- Mobile Stack View -->
+                    <div class="md:hidden space-y-4 p-4">
+                        <div v-for="(p, idx) in sortedResults" :key="p.id" class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center gap-3">
+                                     <span v-if="p.status === 'finished'" :class="{'text-yellow-500': idx===0, 'text-slate-500 dark:text-slate-400': idx > 0}" class="font-bold text-lg">#@{{ idx + 1 }}</span>
+                                     <span v-else class="text-slate-400">-</span>
+                                     <div>
+                                         <div class="font-oswald font-bold text-xl dark:text-white">@{{ p.bib }}</div>
+                                         <div class="text-sm font-medium text-slate-600 dark:text-slate-300">@{{ p.name }}</div>
+                                     </div>
+                                </div>
+                                <div class="text-right">
+                                    <span v-if="p.status === 'dnf'" class="bg-red-100 text-red-700 text-xs px-2 py-1 rounded font-bold dark:bg-red-900/30 dark:text-red-400">DNF</span>
+                                    <span v-else-if="p.status === 'finished'" class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold dark:bg-green-900/30 dark:text-green-400">FINISH</span>
+                                    <span v-else class="text-slate-400 text-xs dark:text-slate-500">RUNNING</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-2 py-3 border-t border-slate-200 dark:border-slate-600 mt-2">
+                                <div class="text-center">
+                                    <div class="text-[10px] text-slate-400 uppercase">Laps</div>
+                                    <div class="font-bold text-slate-700 dark:text-slate-200">@{{ p.laps.length }}</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-[10px] text-slate-400 uppercase">Total Time</div>
+                                    <div class="font-mono font-bold text-indigo-600 dark:text-indigo-400">@{{ formatTime(p.totalTime) }}</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-[10px] text-slate-400 uppercase">Pace</div>
+                                    <div class="font-mono text-slate-600 dark:text-slate-400">@{{ formatPace(p) }}</div>
+                                </div>
+                            </div>
+
+                            <div v-if="p.status === 'finished'" class="flex gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-600 justify-end no-print">
+                                <button @click="openMediaModal('certificate', p)" class="flex-1 bg-slate-800 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors">
+                                    <i class="fa-solid fa-file-pdf"></i> Cert
+                                </button>
+                                <button @click="openMediaModal('poster', p)" class="flex-1 bg-pink-600 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-pink-700 transition-colors">
+                                    <i class="fa-brands fa-instagram"></i> Poster
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Table View -->
+                    <table class="w-full text-left hidden md:table">
                         <thead class="bg-slate-50 border-b border-slate-200 dark:bg-slate-900/50 dark:border-slate-700">
                             <tr>
                                 <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Rank</th>
@@ -409,9 +488,13 @@
             const raceLogoFileName = ref('');
             const newName = ref('');
             const newBib = ref('');
-            const newPredictedTime = ref('');
+            // const newPredictedTime = ref(''); // Removed in favor of HH:MM:SS
+            const newPredictedHH = ref('');
+            const newPredictedMM = ref('');
+            const newPredictedSS = ref('');
             const inputName = ref(null);
             const inputBib = ref(null);
+            const mobileMenuOpen = ref(false);
             
             // Core Data Structure
             const participants = ref([]); 
@@ -710,7 +793,16 @@
                 }
                 
                 const bibValue = String(newBib.value).trim();
-                const predictedMs = parseTimeInputToMs(newPredictedTime.value);
+                
+                // Parse HH:MM:SS
+                const h = parseInt(newPredictedHH.value) || 0;
+                const m = parseInt(newPredictedMM.value) || 0;
+                const s = parseInt(newPredictedSS.value) || 0;
+                let predictedMs = null;
+                if (h > 0 || m > 0 || s > 0) {
+                    predictedMs = (h * 3600 * 1000) + (m * 60 * 1000) + (s * 1000);
+                }
+
                 participants.value.push({
                     id: crypto.randomUUID(),
                     bib: bibValue,
@@ -727,7 +819,9 @@
                 
                 newBib.value = '';
                 newName.value = '';
-                newPredictedTime.value = '';
+                newPredictedHH.value = '';
+                newPredictedMM.value = '';
+                newPredictedSS.value = '';
                 saveState();
                 nextTick(() => inputBib.value.focus());
             };
@@ -1359,7 +1453,7 @@
             onMounted(() => {
                 loadState();
                 window.addEventListener('keydown', onKeydown);
-                initTesseract();
+                // initTesseract(); // Tesseract not defined
             });
 
             onBeforeUnmount(() => {
@@ -1523,7 +1617,7 @@
 
             return {
                 currentView, raceName, raceLogoPreviewUrl, raceLogoFileName, onLogoChange,
-                raceCategory, categories, raceDistanceKm, publicResultsUrl, sessionSlug, newName, newBib, newPredictedTime, inputName, inputBib,
+                raceCategory, categories, raceDistanceKm, publicResultsUrl, sessionSlug, newName, newBib, newPredictedHH, newPredictedMM, newPredictedSS, mobileMenuOpen, inputName, inputBib,
                 participants, timer, camera, formattedTime, certificatesByBib,
                 focusName, addParticipant, removeParticipant, goToBibs, printBibs,
                 startRace, pauseRace, finishRace, resetRace, toggleScanner, captureScan,
