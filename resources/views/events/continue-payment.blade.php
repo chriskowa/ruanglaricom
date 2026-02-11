@@ -144,6 +144,28 @@
                         const id = btn.getAttribute('data-id');
                         btn.disabled = true;
                         try {
+                            const statusResp = await fetch(routes.status.replace(':id', id) + `?phone=${encodeURIComponent(phone)}`, {
+                                credentials: 'same-origin',
+                                headers: { 'Accept': 'application/json' }
+                            });
+                            const statusData = await statusResp.json();
+                            if (!statusResp.ok || !statusData.success || !statusData.transaction || statusData.transaction.payment_status !== 'pending') {
+                                setMsg(statusData.message || 'Transaksi tidak dalam status pending.', 'error');
+                                const r2 = await fetch(routes.pending, {
+                                    method: 'POST',
+                                    credentials: 'same-origin',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({ phone, transaction_id: id })
+                                });
+                                const data2 = await r2.json();
+                                renderTransactions(data2.transactions || [], phone);
+                                return;
+                            }
+
                             const r = await fetch(routes.resume.replace(':id', id), {
                                 method: 'POST',
                                 credentials: 'same-origin',
@@ -154,6 +176,32 @@
                                 },
                                 body: JSON.stringify({ phone })
                             });
+                            // Handle 404/405 gracefully
+                            if (!r.ok) {
+                                let msgText = 'Gagal melanjutkan pembayaran.';
+                                try {
+                                    const err = await r.json();
+                                    if (err && err.message) msgText = err.message;
+                                } catch (_) {}
+                                // 404: Not Found or invalid transaction for this event -> refresh pending list
+                                if (r.status === 404) {
+                                    setMsg(msgText, 'error');
+                                    const r2 = await fetch(routes.pending, {
+                                        method: 'POST',
+                                        credentials: 'same-origin',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                            'Accept': 'application/json'
+                                        },
+                                        body: JSON.stringify({ phone, transaction_id: id })
+                                    });
+                                    const data2 = await r2.json();
+                                    renderTransactions(data2.transactions || [], phone);
+                                    return;
+                                }
+                                throw new Error(msgText);
+                            }
                             const data = await r.json();
                             if (!data.success) throw new Error(data.message || 'Gagal melanjutkan pembayaran');
                             if (!data.snap_token) throw new Error(data.message || 'Token tidak tersedia');
