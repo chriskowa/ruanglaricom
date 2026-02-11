@@ -228,8 +228,11 @@
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <button v-on:click="scrollToForm" class="bg-sport-volt hover:bg-white text-black font-bold py-3 px-8 text-sm md:text-base uppercase tracking-wider transition-all rounded-lg shadow-[0_0_20px_rgba(204,255,0,0.4)]">
+                    <button v-if="!isFull" v-on:click="scrollToForm" class="bg-sport-volt hover:bg-white text-black font-bold py-3 px-8 text-sm md:text-base uppercase tracking-wider transition-all rounded-lg shadow-[0_0_20px_rgba(204,255,0,0.4)]">
                         Daftar Sekarang
+                    </button>
+                    <button v-else disabled class="bg-gray-600 text-gray-400 font-bold py-3 px-8 text-sm md:text-base uppercase tracking-wider transition-all rounded-lg cursor-not-allowed">
+                        Slot Penuh
                     </button>
                     @if(isset($featuredEvents) && $featuredEvents->count() > 0)
                     <button type="button" onclick="document.getElementById('featuredModal').classList.remove('hidden')" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold py-3 px-8 text-sm md:text-base uppercase tracking-wider transition-all rounded-lg backdrop-blur-md">
@@ -242,6 +245,41 @@
         <main id="registration-area" class="flex-grow max-w-7xl mx-auto px-4 md:px-8 -mt-20 pt-20 relative z-20 pb-20">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                 <div class="lg:col-span-7">
+                    <!-- Description & Location Section -->
+                    <div class="glass-dark p-6 md:p-8 shadow-2xl rounded-2xl animate-fade-in mb-8">
+                        @if($event->full_description)
+                        <div class="prose prose-invert max-w-none mb-8">
+                            <h3 class="text-xl font-display uppercase text-sport-volt mb-4">Tentang Event</h3>
+                            <div class="text-gray-300 font-light leading-relaxed whitespace-pre-line">
+                                {!! $event->full_description !!}
+                            </div>
+                        </div>
+                        @endif
+                        
+                        @if($event->location_name)
+                        <div class="border-t border-white/10 pt-6">
+                            <h3 class="text-xl font-display uppercase text-sport-volt mb-4">Lokasi</h3>
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10">
+                                    <i class="fas fa-map-marker-alt text-sport-volt"></i>
+                                </div>
+                                <div class="w-full">
+                                    <h4 class="text-white font-bold">{{ $event->location_name }}</h4>
+                                    @if($event->location_address)
+                                    <p class="text-gray-400 text-sm mt-1">{{ $event->location_address }}</p>
+                                    @endif
+                                    
+                                    @if($event->map_embed_url)
+                                    <div class="mt-4 rounded-xl overflow-hidden border border-white/10 bg-white/5 h-[300px] w-full">
+                                        <iframe src="{{ $event->map_embed_url }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+
                     <div class="glass-dark p-6 md:p-8 shadow-2xl rounded-2xl animate-fade-in">
                         <div class="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
                             <div>
@@ -397,10 +435,11 @@
                                         <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
                                     </div>
                                     @endif
-                                    <button type="submit" :disabled="isLoading" 
+                                    <button type="submit" :disabled="isLoading || isFull" 
                                             class="group relative w-full md:w-auto bg-white hover:bg-sport-volt text-black font-black py-4 px-10 text-base uppercase tracking-widest transition-all duration-300 rounded-xl overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(204,255,0,0.3)]">
                                         <div class="relative z-10 flex items-center justify-center gap-3">
                                             <span v-if="isLoading">Processing...</span>
+                                            <span v-else-if="isFull">Slot Penuh</span>
                                             <span v-else>Bayar Sekarang</span>
                                             <i v-if="!isLoading" class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                                         </div>
@@ -572,9 +611,10 @@
             const participantsRaw = @json($participants->map(fn($p) => ['id' => $p->id, 'name' => $p->name]));
             const participants = ref(Array.isArray(participantsRaw) ? participantsRaw : []);
             
-            const categoriesRaw = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'price' => $c->price_regular ?? 0]));
+            const categoriesRaw = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'price' => $c->price_regular ?? 0, 'remaining' => $c->getRemainingQuota()]));
             const categories = Array.isArray(categoriesRaw) ? categoriesRaw : [];
             const prices = { base: categories.length > 0 ? Number(categories[0].price) : 0 };
+            const isFull = computed(() => categories.length > 0 && categories[0].remaining <= 0);
             
             const addonsRaw = @json($event->addons ?? []);
             const availableAddons = ref(Array.isArray(addonsRaw) ? addonsRaw : []);
@@ -792,7 +832,7 @@
                     });
                 }
             });
-            return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices };
+            return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull };
         }
     });
     
