@@ -596,6 +596,16 @@
     </div>
 
     <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
+    @php
+        // Pre-calculate quotas to avoid query in loop and N+1
+        if (isset($categories) && $categories->count() > 0) {
+             $categories->loadCount(['participants as sold_count' => function($q) {
+                $q->whereHas('transaction', function($t) {
+                    $t->whereIn('payment_status', ['paid', 'cod']);
+                });
+            }]);
+        }
+    @endphp
     <script>
     const { createApp, ref, computed, onMounted } = Vue;
     const app = createApp({
@@ -611,7 +621,12 @@
             const participantsRaw = @json($participants->map(fn($p) => ['id' => $p->id, 'name' => $p->name]));
             const participants = ref(Array.isArray(participantsRaw) ? participantsRaw : []);
             
-            const categoriesRaw = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'price' => $c->price_regular ?? 0, 'remaining' => $c->getRemainingQuota()]));
+            const categoriesRaw = @json($categories->map(fn($c) => [
+                'id' => $c->id, 
+                'name' => $c->name, 
+                'price' => $c->price_regular ?? 0, 
+                'remaining' => $c->quota ? max(0, $c->quota - ($c->sold_count ?? 0)) : 999999
+            ]));
             const categories = Array.isArray(categoriesRaw) ? categoriesRaw : [];
             const prices = { base: categories.length > 0 ? Number(categories[0].price) : 0 };
             const isFull = computed(() => categories.length > 0 && categories[0].remaining <= 0);
