@@ -342,7 +342,7 @@
                                     <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider">Metode Pembayaran</h3>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div class="payment-card" :class="{'active': form.payment_method === 'midtrans'}" @click="form.payment_method = 'midtrans'">
+                                    <div class="payment-card" v-if="prices.base > 0" :class="{'active': form.payment_method === 'midtrans'}" @click="form.payment_method = 'midtrans'">
                                         <div class="flex items-center justify-between mb-2">
                                             <i class="fas fa-credit-card text-xl text-gray-400" :class="{'text-sport-volt': form.payment_method === 'midtrans'}"></i>
                                             <div class="check-circle"></div>
@@ -351,7 +351,7 @@
                                         <div class="text-[10px] text-gray-500 mt-1">QRIS, E-Wallet, Virtual Account</div>
                                     </div>
 
-                                    <div class="payment-card" :class="{'active': form.payment_method === 'moota'}" @click="form.payment_method = 'moota'">
+                                    <div class="payment-card" v-if="prices.base > 0" :class="{'active': form.payment_method === 'moota'}" @click="form.payment_method = 'moota'">
                                         <div class="flex items-center justify-between mb-2">
                                             <i class="fas fa-university text-xl text-gray-400" :class="{'text-sport-volt': form.payment_method === 'moota'}"></i>
                                             <div class="check-circle"></div>
@@ -563,7 +563,6 @@
         setup() {
             const form = ref({ name: '', email: '', phone: '', address: '', date_of_birth: '', id_card: '', ticket_quantity: 1, addons: [], gender: 'male', emergency_contact_name: '', emergency_contact_number: '' });
             const isLoading = ref(false);
-            const prices = { base: 15000 };
             const couponCode = ref('');
             const appliedCoupon = ref(null);
             const discountAmount = ref(0);
@@ -573,8 +572,9 @@
             const participantsRaw = @json($participants->map(fn($p) => ['id' => $p->id, 'name' => $p->name]));
             const participants = ref(Array.isArray(participantsRaw) ? participantsRaw : []);
             
-            const categoriesRaw = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name]));
+            const categoriesRaw = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'price' => $c->price_regular ?? 0]));
             const categories = Array.isArray(categoriesRaw) ? categoriesRaw : [];
+            const prices = { base: categories.length > 0 ? Number(categories[0].price) : 0 };
             
             const addonsRaw = @json($event->addons ?? []);
             const availableAddons = ref(Array.isArray(addonsRaw) ? addonsRaw : []);
@@ -740,7 +740,7 @@
                 }
             };
             onMounted(() => {
-                form.value.payment_method = 'moota';
+                form.value.payment_method = prices.base === 0 ? 'cod' : 'moota';
                 tick();
                 setInterval(tick, 1000);
                 const btn = document.getElementById('applyCouponBtn');

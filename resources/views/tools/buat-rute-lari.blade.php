@@ -11,6 +11,7 @@
         @media (max-width: 640px) { #rl-route-map { height: calc(100vh - 250px); min-height: 420px; } }
         .leaflet-control-attribution { font-size: 10px; opacity: .85; }
         .leaflet-container { background: #0b1220; }
+        svg { height: auto; }
     </style>
 @endpush
 
@@ -366,7 +367,7 @@
         
         <!-- Route SVG Container -->
         <div class="absolute inset-0 flex items-center justify-center p-20 pb-64">
-            <svg id="rl-export-svg" width="100%" height="auto" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" style="filter: drop-shadow(0 0 15px rgba(204, 255, 0, 0.4));">
+            <svg id="rl-export-svg" width="100%" height="100%" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid meet" style="filter: drop-shadow(0 0 15px rgba(204, 255, 0, 0.4));">
                 <!-- Path will be injected here -->
             </svg>
         </div>
@@ -401,9 +402,13 @@
                 </div>
                 <div class="space-y-6">
                     <div>
-                        <div id="rl-export-qr" class="mb-4 p-1 bg-white inline-block rounded-lg"></div>
-                        <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>                        
-                        <div class="text-2xl font-black text-white leading-tight line-clamp-2 h-[3.5rem]" id="rl-export-name"> Untitled Route </div>
+                        <div class="flex flex-col gap-2">
+                            <div id="rl-export-qr" class="p-1 bg-white inline-block rounded-lg self-start"></div>
+                            <div>
+                                <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>                        
+                                <div class="text-2xl font-black text-white leading-tight line-clamp-2 h-[3.5rem]" id="rl-export-name"> Untitled Route </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
@@ -1941,6 +1946,14 @@
                 } catch(e) {
                     console.error("QR Code Error:", e);
                 }
+
+                // Wait for QR code image to be generated
+                setTimeout(function() {
+                    var qrImg = qrContainer.querySelector('img');
+                    if (qrImg) {
+                        qrImg.style.display = 'block'; // Ensure it's visible
+                    }
+                }, 100);
 
                 document.getElementById('rl-export-finish').textContent = endP.lat.toFixed(4) + ', ' + endP.lng.toFixed(4);
 
