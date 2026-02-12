@@ -652,19 +652,58 @@
                         if (r.category) raceCategory.value = r.category;
                         if (r.distance_km) raceDistanceKm.value = r.distance_km;
 
+                        // Restore session if exists
+                        if (data.session) {
+                            currentSessionId.value = data.session.id;
+                            sessionSlug.value = data.session.slug || '';
+                            
+                            // Timer logic
+                            timer.value.elapsed = data.session.timer_elapsed || 0;
+                            if (data.session.is_running) {
+                                timer.value.running = true;
+                                timer.value.startTime = Date.now() - timer.value.elapsed;
+                                // Restart interval if needed
+                                if (timer.value.interval) clearInterval(timer.value.interval);
+                                timer.value.interval = setInterval(() => {
+                                    timer.value.elapsed = Date.now() - timer.value.startTime;
+                                }, 50);
+                            } else {
+                                timer.value.running = false;
+                                if (timer.value.interval) clearInterval(timer.value.interval);
+                            }
+                        } else {
+                            // Reset session if race has no active session
+                            currentSessionId.value = null;
+                            sessionSlug.value = '';
+                            timer.value.running = false;
+                            timer.value.elapsed = 0;
+                            if (timer.value.interval) clearInterval(timer.value.interval);
+                        }
+
                         // Load participants
                         if (data.participants) {
-                            participants.value = data.participants.map(p => ({
-                                id: p.id || crypto.randomUUID(),
-                                bib: String(p.bib ?? '').trim(),
-                                name: String(p.name ?? ''),
-                                predictedTimeMs: typeof p.predictedTimeMs === 'number' ? p.predictedTimeMs : null,
-                                laps: [],
-                                status: 'ready',
-                                totalTime: 0,
-                                recentlyScanned: false,
-                                lastScanTime: 0,
-                            }));
+                            participants.value = data.participants.map(p => {
+                                const hasLaps = Array.isArray(p.laps) && p.laps.length > 0;
+                                let status = 'ready';
+                                if (hasLaps) {
+                                    // If they have laps, they are running or finished.
+                                    // If session is ended, they are finished.
+                                    // If session is running, they are running.
+                                    status = (data.session?.ended_at) ? 'finished' : 'running';
+                                }
+
+                                return {
+                                    id: p.id || crypto.randomUUID(),
+                                    bib: String(p.bib ?? '').trim(),
+                                    name: String(p.name ?? ''),
+                                    predictedTimeMs: typeof p.predictedTimeMs === 'number' ? p.predictedTimeMs : null,
+                                    laps: hasLaps ? p.laps : [],
+                                    status: status,
+                                    totalTime: typeof p.totalTime === 'number' ? p.totalTime : 0,
+                                    recentlyScanned: false,
+                                    lastScanTime: 0,
+                                };
+                            });
                         }
                         saveState();
                         alert('Race berhasil dimuat!');

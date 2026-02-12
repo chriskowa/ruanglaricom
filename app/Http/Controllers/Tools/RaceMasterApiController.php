@@ -78,17 +78,59 @@ class RaceMasterApiController extends Controller
         $participants = $race->participants()
             ->select('id', 'bib_number', 'name', 'predicted_time_ms')
             ->orderByRaw('CAST(bib_number AS UNSIGNED) ASC')
-            ->get()
-            ->map(function ($p) {
-                return [
-                    'id' => $p->id,
-                    'bib' => $p->bib_number,
-                    'name' => $p->name,
-                    'predictedTimeMs' => $p->predicted_time_ms,
-                ];
-            });
+            ->get();
 
         $latestSession = $race->sessions()->latest()->first();
+        $sessionData = null;
+        $lapsGrouped = [];
+
+        if ($latestSession) {
+            $sessionData = [
+                'id' => $latestSession->id,
+                'slug' => $latestSession->slug,
+                'category' => $latestSession->category,
+                'distance_km' => $latestSession->distance_km,
+                'started_at' => $latestSession->started_at?->toISOString(),
+                'ended_at' => $latestSession->ended_at?->toISOString(),
+                'timer_elapsed' => $latestSession->ended_at
+                    ? $latestSession->ended_at->diffInMilliseconds($latestSession->started_at)
+                    : ($latestSession->started_at ? now()->diffInMilliseconds($latestSession->started_at) : 0),
+                'is_running' => $latestSession->started_at && ! $latestSession->ended_at,
+            ];
+
+            $laps = RaceSessionLap::where('race_session_id', $latestSession->id)
+                ->orderBy('lap_number', 'asc')
+                ->get();
+
+            foreach ($laps as $lap) {
+                $pid = $lap->race_session_participant_id;
+                if (! isset($lapsGrouped[$pid])) {
+                    $lapsGrouped[$pid] = [];
+                }
+                $lapsGrouped[$pid][] = [
+                    'lap_time_ms' => $lap->lap_time_ms,
+                    'total_time_ms' => $lap->total_time_ms,
+                    'recorded_at' => $lap->recorded_at?->toISOString(),
+                ];
+            }
+        }
+
+        $participantsMapped = $participants->map(function ($p) use ($lapsGrouped) {
+            $pLaps = $lapsGrouped[$p->id] ?? [];
+            $totalTime = 0;
+            if (count($pLaps) > 0) {
+                $totalTime = end($pLaps)['total_time_ms'];
+            }
+
+            return [
+                'id' => $p->id,
+                'bib' => $p->bib_number,
+                'name' => $p->name,
+                'predictedTimeMs' => $p->predicted_time_ms,
+                'laps' => $pLaps,
+                'totalTime' => $totalTime,
+            ];
+        });
 
         return response()->json([
             'success' => true,
@@ -99,7 +141,8 @@ class RaceMasterApiController extends Controller
                 'category' => $latestSession ? $latestSession->category : null,
                 'distance_km' => $latestSession ? $latestSession->distance_km : null,
             ],
-            'participants' => $participants,
+            'session' => $sessionData,
+            'participants' => $participantsMapped,
         ]);
     }
 

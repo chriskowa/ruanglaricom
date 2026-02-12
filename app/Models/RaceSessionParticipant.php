@@ -15,6 +15,13 @@ class RaceSessionParticipant extends Model
         'bib_number',
         'name',
         'predicted_time_ms',
+        'result_time_ms',
+        'finished_at',
+        'created_at',
+    ];
+
+    protected $casts = [
+        'finished_at' => 'datetime',
     ];
 
     public function race(): BelongsTo
@@ -40,6 +47,22 @@ class RaceSessionParticipant extends Model
     public function getFormattedPredictedTimeAttribute(): string
     {
         $ms = $this->predicted_time_ms;
+        if ($ms === null) {
+            return '-';
+        }
+
+        $ms = max(0, (int) $ms);
+        $cs = (int) floor(($ms % 1000) / 10);
+        $totalSeconds = (int) floor($ms / 1000);
+        $minutes = intdiv($totalSeconds, 60);
+        $seconds = $totalSeconds % 60;
+
+        return sprintf('%d:%02d.%02d', $minutes, $seconds, $cs);
+    }
+
+    public function getFormattedResultTimeAttribute(): string
+    {
+        $ms = $this->result_time_ms;
         if ($ms === null) {
             return '-';
         }

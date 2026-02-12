@@ -24,7 +24,7 @@ class RaceParticipantController extends Controller
             'predicted_time' => 'nullable|string|max:32',
         ]);
 
-        $predictedMs = $this->parsePredictedTimeToMs($validated['predicted_time'] ?? null);
+        $predictedMs = $this->parseTimeToMs($validated['predicted_time'] ?? null, 'predicted_time');
 
         RaceSessionParticipant::create([
             'race_id' => $race->id,
@@ -54,13 +54,24 @@ class RaceParticipantController extends Controller
             ],
             'name' => 'required|string|max:255',
             'predicted_time' => 'nullable|string|max:32',
+            'result_time' => 'nullable|string|max:32',
+            'finished_at' => 'nullable|date',
+            'created_at' => 'nullable|date',
         ]);
 
-        $predictedMs = $this->parsePredictedTimeToMs($validated['predicted_time'] ?? null);
+        $predictedMs = $this->parseTimeToMs($validated['predicted_time'] ?? null, 'predicted_time');
+        $resultMs = $this->parseTimeToMs($validated['result_time'] ?? null, 'result_time');
 
         $raceSessionParticipant->bib_number = trim((string) $validated['bib_number']);
         $raceSessionParticipant->name = trim((string) $validated['name']);
         $raceSessionParticipant->predicted_time_ms = $predictedMs;
+        $raceSessionParticipant->result_time_ms = $resultMs;
+        $raceSessionParticipant->finished_at = $validated['finished_at'] ?? null;
+        
+        if (!empty($validated['created_at'])) {
+            $raceSessionParticipant->created_at = $validated['created_at'];
+        }
+
         $raceSessionParticipant->save();
 
         return back()->with('success', 'Participant berhasil diupdate.');
@@ -77,7 +88,7 @@ class RaceParticipantController extends Controller
         return back()->with('success', 'Participant berhasil dihapus.');
     }
 
-    private function parsePredictedTimeToMs($raw): ?int
+    private function parseTimeToMs($raw, $field = 'predicted_time'): ?int
     {
         $s = trim((string) ($raw ?? ''));
         if ($s === '') {
@@ -88,7 +99,7 @@ class RaceParticipantController extends Controller
             $n = (int) $s;
             if ($n < 0 || $n > 86400000) {
                 throw ValidationException::withMessages([
-                    'predicted_time' => 'Predicted time (ms) tidak valid.',
+                    $field => ucfirst(str_replace('_', ' ', $field)) . ' (ms) tidak valid.',
                 ]);
             }
 
@@ -98,10 +109,11 @@ class RaceParticipantController extends Controller
         if (preg_match('/^(\d{1,3}):(\d{1,2})(?:\.(\d{1,2}))?$/', $s, $m)) {
             $minutes = (int) $m[1];
             $seconds = (int) $m[2];
-            $cs = isset($m[3]) ? (int) str_pad(substr($m[3], 0, 2), 2, '0') : 0;
-            if ($seconds >= 60) {
+            $cs = isset($m[3]) ? (int) $m[3] : 0;
+
+            if ($minutes > 1440 || $seconds >= 60 || $cs >= 100) {
                 throw ValidationException::withMessages([
-                    'predicted_time' => 'Format predicted time tidak valid.',
+                    $field => ucfirst(str_replace('_', ' ', $field)) . ' format mm:ss.cc tidak valid.',
                 ]);
             }
 
@@ -112,24 +124,19 @@ class RaceParticipantController extends Controller
             $hours = (int) $m[1];
             $minutes = (int) $m[2];
             $seconds = (int) $m[3];
-            $cs = isset($m[4]) ? (int) str_pad(substr($m[4], 0, 2), 2, '0') : 0;
-            if ($minutes >= 60 || $seconds >= 60) {
+            $cs = isset($m[4]) ? (int) $m[4] : 0;
+
+            if ($hours > 24 || $minutes >= 60 || $seconds >= 60 || $cs >= 100) {
                 throw ValidationException::withMessages([
-                    'predicted_time' => 'Format predicted time tidak valid.',
-                ]);
-            }
-            $total = ($hours * 3600 * 1000) + ($minutes * 60 * 1000) + ($seconds * 1000) + ($cs * 10);
-            if ($total > 86400000) {
-                throw ValidationException::withMessages([
-                    'predicted_time' => 'Predicted time terlalu besar.',
+                    $field => ucfirst(str_replace('_', ' ', $field)) . ' format hh:mm:ss.cc tidak valid.',
                 ]);
             }
 
-            return $total;
+            return ($hours * 3600 * 1000) + ($minutes * 60 * 1000) + ($seconds * 1000) + ($cs * 10);
         }
 
         throw ValidationException::withMessages([
-            'predicted_time' => 'Format predicted time gunakan mm:ss(.cc), hh:mm:ss(.cc), atau ms.',
+            $field => ucfirst(str_replace('_', ' ', $field)) . ' format salah. Gunakan mm:ss.cc, hh:mm:ss.cc, atau milidetik.',
         ]);
     }
 }

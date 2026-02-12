@@ -149,6 +149,9 @@
                             <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">BIB</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Name</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Predicted</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Result</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Finished At</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Created At</th>
                             <th class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
                         </tr>
                     </thead>
@@ -157,13 +160,22 @@
                             @foreach ($participants as $p)
                                 <tr class="hover:bg-slate-950/60">
                                     <td class="px-4 py-3">
-                                        <input form="participant-update-{{ $p->id }}" name="bib_number" value="{{ old('bib_number_'.$p->id, $p->bib_number) }}" class="w-28 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:ring-2 focus:ring-red-500 outline-none">
+                                        <input form="participant-update-{{ $p->id }}" name="bib_number" value="{{ old('bib_number_'.$p->id, $p->bib_number) }}" class="w-20 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:ring-2 focus:ring-red-500 outline-none">
                                     </td>
                                     <td class="px-4 py-3">
-                                        <input form="participant-update-{{ $p->id }}" name="name" value="{{ old('name_'.$p->id, $p->name) }}" class="w-full min-w-64 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:ring-2 focus:ring-red-500 outline-none">
+                                        <input form="participant-update-{{ $p->id }}" name="name" value="{{ old('name_'.$p->id, $p->name) }}" class="w-full min-w-48 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:ring-2 focus:ring-red-500 outline-none">
                                     </td>
                                     <td class="px-4 py-3">
-                                        <input form="participant-update-{{ $p->id }}" name="predicted_time" value="{{ old('predicted_time_'.$p->id, $p->formatted_predicted_time) }}" class="w-40 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                                        <input form="participant-update-{{ $p->id }}" name="predicted_time" value="{{ old('predicted_time_'.$p->id, $p->formatted_predicted_time) }}" class="w-32 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <input form="participant-update-{{ $p->id }}" name="result_time" value="{{ old('result_time_'.$p->id, $p->formatted_result_time) }}" class="w-32 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <input type="datetime-local" form="participant-update-{{ $p->id }}" name="finished_at" value="{{ old('finished_at_'.$p->id, $p->finished_at?->format('Y-m-d\TH:i')) }}" class="w-full min-w-40 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:ring-2 focus:ring-red-500 outline-none">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <input type="datetime-local" form="participant-update-{{ $p->id }}" name="created_at" value="{{ old('created_at_'.$p->id, $p->created_at?->format('Y-m-d\TH:i')) }}" class="w-full min-w-40 px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:ring-2 focus:ring-red-500 outline-none">
                                     </td>
                                     <td class="px-4 py-3">
                                         <form id="participant-update-{{ $p->id }}" method="POST" action="{{ route('admin.races.participants.update', [$race, $p]) }}">
@@ -183,7 +195,7 @@
                             @endforeach
                         @else
                             <tr>
-                                <td colspan="4" class="px-4 py-10 text-center text-slate-500">Belum ada participant.</td>
+                                <td colspan="7" class="px-4 py-10 text-center text-slate-500">Belum ada participant.</td>
                             </tr>
                         @endif
                     </tbody>
