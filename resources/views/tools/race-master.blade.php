@@ -542,7 +542,12 @@
                 const headers = options.headers ? { ...options.headers } : {};
                 headers['Accept'] = 'application/json';
                 if (csrf) headers['X-CSRF-TOKEN'] = csrf;
-                const res = await fetch(url, { ...options, headers });
+                
+                // Ensure credentials are sent (cookies)
+                const fetchOptions = { ...options, headers };
+                fetchOptions.credentials = 'same-origin';
+
+                const res = await fetch(url, fetchOptions);
                 const data = await res.json().catch(() => null);
                 if (!res.ok) {
                     const msg = (data && (data.message || data.error)) ? (data.message || data.error) : 'Request gagal.';

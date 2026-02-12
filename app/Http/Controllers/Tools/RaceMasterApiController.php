@@ -44,8 +44,13 @@ class RaceMasterApiController extends Controller
 
     public function index()
     {
-        $races = Race::where('created_by', Auth::id())
-            ->with(['sessions' => function ($q) {
+        $query = Race::query();
+
+        if (Auth::user()?->role !== 'admin') {
+            $query->where('created_by', Auth::id());
+        }
+
+        $races = $query->with(['sessions' => function ($q) {
                 $q->latest();
             }])
             ->latest()
@@ -71,7 +76,7 @@ class RaceMasterApiController extends Controller
 
     public function show(Race $race)
     {
-        if ($race->created_by !== Auth::id()) {
+        if ($race->created_by !== Auth::id() && Auth::user()?->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
