@@ -32,9 +32,9 @@ class Page extends Model
                 $page->slug = Str::slug($page->title);
             }
         });
-        
+
         static::updating(function ($page) {
-            if ($page->isDirty('title') && !$page->isDirty('slug')) {
+            if ($page->isDirty('title') && ! $page->isDirty('slug')) {
                 $page->slug = Str::slug($page->title);
             }
         });

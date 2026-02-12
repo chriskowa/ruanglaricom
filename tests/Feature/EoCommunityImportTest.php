@@ -128,4 +128,3 @@ class EoCommunityImportTest extends TestCase
         Queue::assertPushed(ProcessPaidEventTransaction::class);
     }
 }
-

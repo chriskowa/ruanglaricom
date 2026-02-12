@@ -100,4 +100,3 @@ class MootaPaymentModalFlowTest extends TestCase
         ]);
     }
 }
-

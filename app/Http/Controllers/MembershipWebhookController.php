@@ -22,14 +22,14 @@ class MembershipWebhookController extends Controller
         // We can just search by partial match or store midtrans_order_id if we had that column,
         // but currently we constructed order_id as MEMBERSHIP-id.
         // Let's parse the ID.
-        
+
         // However, looking at MidtransService:
         // 'order_id' => 'MEMBERSHIP-'.$transaction->id,
-        
+
         $parts = explode('-', $orderId);
         // MEMBERSHIP-uuid... wait, UUID can contain dashes.
         // So we should remove 'MEMBERSHIP-' prefix.
-        
+
         $transactionId = str_replace('MEMBERSHIP-', '', $orderId);
 
         // Find transaction
@@ -38,7 +38,7 @@ class MembershipWebhookController extends Controller
         if (! $transaction) {
             Log::warning('Membership webhook: Transaction not found', [
                 'order_id' => $orderId,
-                'parsed_id' => $transactionId
+                'parsed_id' => $transactionId,
             ]);
 
             return response()->json([
@@ -69,7 +69,7 @@ class MembershipWebhookController extends Controller
                 Log::info('Membership activated via webhook', [
                     'user_id' => $user->id,
                     'package' => $package->slug,
-                    'transaction_id' => $transaction->id
+                    'transaction_id' => $transaction->id,
                 ]);
 
                 return response()->json([

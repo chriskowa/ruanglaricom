@@ -138,8 +138,9 @@ class PacerRegistrationController extends Controller
             'race_portfolio' => isset($data['race_portfolio']) ? array_filter(array_map('trim', explode(',', $data['race_portfolio']))) : [],
         ]);
 
-        if (!env('LOGIN_OTP_ENABLED', true)) {
+        if (! env('LOGIN_OTP_ENABLED', true)) {
             \Illuminate\Support\Facades\Auth::login($user);
+
             return redirect()->route('dashboard'); // Assuming general dashboard or pacer specific
         }
 

@@ -21,6 +21,7 @@ class MembershipController extends Controller
     public function index()
     {
         $packages = Package::where('is_active', true)->get();
+
         return view('eo.membership.packages', compact('packages'));
     }
 
@@ -35,13 +36,13 @@ class MembershipController extends Controller
         }
 
         // Generate Snap Token if not exists
-        if (!$transaction->snap_token) {
+        if (! $transaction->snap_token) {
             $result = $this->midtransService->createMembershipTransaction($transaction);
-            
-            if (!$result['success']) {
-                return back()->with('error', 'Gagal memproses pembayaran: ' . ($result['message'] ?? 'Unknown error'));
+
+            if (! $result['success']) {
+                return back()->with('error', 'Gagal memproses pembayaran: '.($result['message'] ?? 'Unknown error'));
             }
-            
+
             // Refresh transaction to get the saved token
             $transaction->refresh();
         }
@@ -52,18 +53,18 @@ class MembershipController extends Controller
     public function selectPackage(Request $request)
     {
         $request->validate([
-            'package_id' => 'required|exists:packages,id'
+            'package_id' => 'required|exists:packages,id',
         ]);
 
         $package = Package::findOrFail($request->package_id);
-        
+
         // Create Transaction
         $transaction = MembershipTransaction::create([
             'user_id' => Auth::id(),
             'package_id' => $package->id,
             'amount' => $package->price,
             'total_amount' => $package->price,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         return redirect()->route('eo.membership.payment', $transaction->id);

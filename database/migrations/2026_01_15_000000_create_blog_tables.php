@@ -15,11 +15,11 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->foreignId('parent_id')->nullable()->constrained('blog_categories')->nullOnDelete();
-            
+
             // SEO
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
-            
+
             $table->timestamps();
         });
 
@@ -36,24 +36,24 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); // Author
             $table->foreignId('category_id')->nullable()->constrained('blog_categories')->nullOnDelete();
-            
+
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('excerpt')->nullable();
             $table->longText('content');
             $table->string('featured_image')->nullable();
-            
+
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
             $table->timestamp('published_at')->nullable();
-            
+
             // SEO
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
             $table->string('meta_keywords')->nullable();
             $table->string('canonical_url')->nullable();
-            
+
             $table->integer('views_count')->default(0);
-            
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -64,7 +64,7 @@ return new class extends Migration
             $table->foreignId('article_id')->constrained('articles')->cascadeOnDelete();
             $table->foreignId('tag_id')->constrained('blog_tags')->cascadeOnDelete();
             $table->timestamps();
-            
+
             $table->unique(['article_id', 'tag_id']);
         });
     }

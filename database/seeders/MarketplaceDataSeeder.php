@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
-use App\Models\Marketplace\MarketplaceCategory;
 use App\Models\Marketplace\MarketplaceBrand;
+use App\Models\Marketplace\MarketplaceCategory;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MarketplaceDataSeeder extends Seeder
 {
@@ -19,31 +19,31 @@ class MarketplaceDataSeeder extends Seeder
         $categories = [
             'Sepatu Lari' => [
                 'icon' => 'fa-shoe-prints',
-                'children' => ['Road Running', 'Trail Running', 'Daily Trainer', 'Race Day (Carbon)', 'Recovery', 'Spikes']
+                'children' => ['Road Running', 'Trail Running', 'Daily Trainer', 'Race Day (Carbon)', 'Recovery', 'Spikes'],
             ],
             'Pakaian Pria' => [
                 'icon' => 'fa-tshirt',
-                'children' => ['Jersey Lari', 'Celana Lari', 'Jaket Lari', 'Kaos Kaki', 'Compression', 'Singlet']
+                'children' => ['Jersey Lari', 'Celana Lari', 'Jaket Lari', 'Kaos Kaki', 'Compression', 'Singlet'],
             ],
             'Pakaian Wanita' => [
                 'icon' => 'fa-female',
-                'children' => ['Jersey Lari', 'Sports Bra', 'Celana Lari', 'Jaket Lari', 'Kaos Kaki', 'Compression', 'Singlet', 'Hijab Sport']
+                'children' => ['Jersey Lari', 'Sports Bra', 'Celana Lari', 'Jaket Lari', 'Kaos Kaki', 'Compression', 'Singlet', 'Hijab Sport'],
             ],
             'Elektronik & Gadget' => [
                 'icon' => 'fa-watch',
-                'children' => ['Jam Tangan GPS', 'Heart Rate Monitor', 'Headphones', 'Running Pods', 'Massage Gun']
+                'children' => ['Jam Tangan GPS', 'Heart Rate Monitor', 'Headphones', 'Running Pods', 'Massage Gun'],
             ],
             'Nutrisi & Suplemen' => [
                 'icon' => 'fa-nutrition',
-                'children' => ['Energy Gel', 'Energy Bar', 'Hydration / Electrolytes', 'Recovery Drink', 'Vitamin & Mineral']
+                'children' => ['Energy Gel', 'Energy Bar', 'Hydration / Electrolytes', 'Recovery Drink', 'Vitamin & Mineral'],
             ],
             'Aksesoris' => [
                 'icon' => 'fa-hat-cowboy',
-                'children' => ['Topi & Visor', 'Kacamata Lari', 'Hydration Vest & Belt', 'Arm Sleeve', 'Calf Sleeve', 'Bib Holder', 'Headband']
+                'children' => ['Topi & Visor', 'Kacamata Lari', 'Hydration Vest & Belt', 'Arm Sleeve', 'Calf Sleeve', 'Bib Holder', 'Headband'],
             ],
             'Slot & Tiket Lari' => [
                 'icon' => 'fa-ticket',
-                'children' => ['Bib Transfer', 'Jastip Race Pack', 'Tiket Early Bird']
+                'children' => ['Bib Transfer', 'Jastip Race Pack', 'Tiket Early Bird'],
             ],
         ];
 
@@ -52,7 +52,7 @@ class MarketplaceDataSeeder extends Seeder
                 ['slug' => Str::slug($parentName)],
                 [
                     'name' => $parentName,
-                    'icon' => $data['icon']
+                    'icon' => $data['icon'],
                 ]
             );
 
@@ -62,7 +62,7 @@ class MarketplaceDataSeeder extends Seeder
                     [
                         'name' => $childName,
                         'parent_id' => $parent->id,
-                        'icon' => null
+                        'icon' => null,
                     ]
                 );
             }
@@ -142,7 +142,7 @@ class MarketplaceDataSeeder extends Seeder
                     'name' => $brandData['name'],
                     'type' => $brandData['type'],
                     // Placeholder logo logic if needed, or leave null
-                    'logo' => null 
+                    'logo' => null,
                 ]
             );
 
@@ -160,7 +160,7 @@ class MarketplaceDataSeeder extends Seeder
             'Pakaian Pria' => ['Nike', 'Adidas', 'Asics', 'New Balance', 'Under Armour', '2XU', 'Compressport', 'Duraking', 'Tiento', 'Atalon', 'Sub Jersey'],
             'Elektronik & Gadget' => ['Garmin', 'Coros', 'Suunto', 'Polar', 'Shokz', 'Amazfit', 'Samsung', 'Apple'],
             'Nutrisi & Suplemen' => ['GU', 'Maurten', 'SIS', 'Tailwind', 'Saltstick', 'Strive', 'Honey'],
-            'Aksesoris' => ['Ciele', 'Goodr', 'Oakley', 'Nathan', 'Naked', 'Flipbelt', 'Garmin', 'Coros']
+            'Aksesoris' => ['Ciele', 'Goodr', 'Oakley', 'Nathan', 'Naked', 'Flipbelt', 'Garmin', 'Coros'],
         ];
 
         foreach ($categoryKeywords as $catName => $keywords) {

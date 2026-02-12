@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('master_gpxes')) {
+        if (! Schema::hasTable('master_gpxes')) {
             Schema::create('master_gpxes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('running_event_id')->nullable()->constrained('running_events')->nullOnDelete();
@@ -70,14 +70,14 @@ return new class extends Migration
             $originalSlug = $slug;
             $count = 1;
             while (DB::table('events')->where('slug', $slug)->exists()) {
-                $slug = $originalSlug . '-' . $count++;
+                $slug = $originalSlug.'-'.$count++;
             }
 
             // Combine date and time
             $startAt = null;
             if ($re->event_date) {
                 $time = $re->start_time ?? '00:00:00';
-                $startAt = $re->event_date . ' ' . $time;
+                $startAt = $re->event_date.' '.$time;
             }
 
             // Insert to events
@@ -88,7 +88,7 @@ return new class extends Migration
                 'full_description' => $re->description,
                 'start_at' => $startAt,
                 // Default end_at +6 hours
-                'end_at' => $startAt ? date('Y-m-d H:i:s', strtotime($startAt . ' +6 hours')) : null,
+                'end_at' => $startAt ? date('Y-m-d H:i:s', strtotime($startAt.' +6 hours')) : null,
                 'city_id' => $re->city_id,
                 'location_name' => $re->location_name,
                 'race_type_id' => $re->race_type_id,
@@ -113,7 +113,7 @@ return new class extends Migration
         }
 
         // 4. Rename columns and tables, and add new constraints
-        
+
         // master_gpxes
         if (Schema::hasTable('master_gpxes') && Schema::hasColumn('master_gpxes', 'running_event_id')) {
             Schema::table('master_gpxes', function (Blueprint $table) {
@@ -158,21 +158,21 @@ return new class extends Migration
     {
         // 1. Rename running_events_backup back
         Schema::rename('running_events_backup', 'running_events');
-        
+
         // 2. Rename event_distances back
         Schema::rename('event_distances', 'running_event_distances');
-        
+
         // 3. Revert columns in child tables
         Schema::table('event_distances', function (Blueprint $table) { // It's named running_event_distances now
-             $table->dropForeign(['event_id']);
-             $table->renameColumn('event_id', 'running_event_id');
-             $table->foreign('running_event_id')->references('id')->on('running_events')->cascadeOnDelete();
+            $table->dropForeign(['event_id']);
+            $table->renameColumn('event_id', 'running_event_id');
+            $table->foreign('running_event_id')->references('id')->on('running_events')->cascadeOnDelete();
         });
-        
+
         Schema::table('master_gpxes', function (Blueprint $table) {
-             $table->dropForeign(['event_id']);
-             $table->renameColumn('event_id', 'running_event_id');
-             $table->foreign('running_event_id')->references('id')->on('running_events')->cascadeOnDelete();
+            $table->dropForeign(['event_id']);
+            $table->renameColumn('event_id', 'running_event_id');
+            $table->foreign('running_event_id')->references('id')->on('running_events')->cascadeOnDelete();
         });
 
         // 4. Drop columns from events
@@ -186,7 +186,7 @@ return new class extends Migration
                 'organizer_contact',
                 'contributor_contact',
                 'is_featured',
-                'status'
+                'status',
             ]);
         });
     }

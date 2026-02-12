@@ -42,6 +42,67 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
+    public function index()
+    {
+        $races = Race::where('created_by', Auth::id())
+            ->with(['sessions' => function ($q) {
+                $q->latest();
+            }])
+            ->latest()
+            ->get()
+            ->map(function ($race) {
+                $latestSession = $race->sessions->first();
+
+                return [
+                    'id' => $race->id,
+                    'name' => $race->name,
+                    'logo_url' => $race->logo_path ? Storage::disk('public')->url($race->logo_path) : null,
+                    'created_at' => $race->created_at->format('Y-m-d H:i'),
+                    'latest_category' => $latestSession ? $latestSession->category : null,
+                    'latest_distance' => $latestSession ? $latestSession->distance_km : null,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'races' => $races,
+        ]);
+    }
+
+    public function show(Race $race)
+    {
+        if ($race->created_by !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $participants = $race->participants()
+            ->select('id', 'bib_number', 'name', 'predicted_time_ms')
+            ->orderByRaw('CAST(bib_number AS UNSIGNED) ASC')
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'bib' => $p->bib_number,
+                    'name' => $p->name,
+                    'predictedTimeMs' => $p->predicted_time_ms,
+                ];
+            });
+
+        $latestSession = $race->sessions()->latest()->first();
+
+        return response()->json([
+            'success' => true,
+            'race' => [
+                'id' => $race->id,
+                'name' => $race->name,
+                'logo_url' => $race->logo_path ? Storage::disk('public')->url($race->logo_path) : null,
+                'category' => $latestSession ? $latestSession->category : null,
+                'distance_km' => $latestSession ? $latestSession->distance_km : null,
+            ],
+            'participants' => $participants,
+        ]);
+    }
+
     public function storeRace(Request $request)
     {
         $validated = $request->validate([
@@ -350,199 +411,201 @@ class RaceMasterApiController extends Controller
     }
 
     public function generatePoster(Request $request, RaceSession $session)
-{
-    // 1. Validasi
-    $request->validate([
-        'background' => 'nullable|file|mimes:png,jpg,jpeg|max:8192', // Naikkan limit jika perlu
-    ]);
+    {
+        // 1. Validasi
+        $request->validate([
+            'background' => 'nullable|file|mimes:png,jpg,jpeg|max:8192', // Naikkan limit jika perlu
+        ]);
 
-    $race = $session->race()->firstOrFail();
-    $standings = $this->computeStandings($session);
+        $race = $session->race()->firstOrFail();
+        $standings = $this->computeStandings($session);
 
-    // 2. Setup Canvas (1080x1920 - Story Size)
-    $w = 1080;
-    $h = 1920;
-    $img = imagecreatetruecolor($w, $h);
-    
-    // 3. Warna
-    $white = imagecolorallocate($img, 255, 255, 255);
-    $gold  = imagecolorallocate($img, 255, 215, 0); // Untuk Juara 1
-    $grey  = imagecolorallocate($img, 200, 200, 200);
-    $blackOptions = imagecolorallocate($img, 15, 23, 42); // Fallback bg
-    
-    // Isi background default
-    imagefilledrectangle($img, 0, 0, $w, $h, $blackOptions);
+        // 2. Setup Canvas (1080x1920 - Story Size)
+        $w = 1080;
+        $h = 1920;
+        $img = imagecreatetruecolor($w, $h);
 
-    // 4. Proses Background Image (Aspect Fill / Object-fit: Cover)
-    if ($request->hasFile('background')) {
-        try {
-            $bgFile = $request->file('background');
-            $ext = strtolower($bgFile->getClientOriginalExtension());
-            
-            $src = match ($ext) {
-                'jpg', 'jpeg' => @imagecreatefromjpeg($bgFile->getRealPath()),
-                'png' => @imagecreatefrompng($bgFile->getRealPath()),
-                default => null,
+        // 3. Warna
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $gold = imagecolorallocate($img, 255, 215, 0); // Untuk Juara 1
+        $grey = imagecolorallocate($img, 200, 200, 200);
+        $blackOptions = imagecolorallocate($img, 15, 23, 42); // Fallback bg
+
+        // Isi background default
+        imagefilledrectangle($img, 0, 0, $w, $h, $blackOptions);
+
+        // 4. Proses Background Image (Aspect Fill / Object-fit: Cover)
+        if ($request->hasFile('background')) {
+            try {
+                $bgFile = $request->file('background');
+                $ext = strtolower($bgFile->getClientOriginalExtension());
+
+                $src = match ($ext) {
+                    'jpg', 'jpeg' => @imagecreatefromjpeg($bgFile->getRealPath()),
+                    'png' => @imagecreatefrompng($bgFile->getRealPath()),
+                    default => null,
+                };
+
+                if ($src) {
+                    $srcW = imagesx($src);
+                    $srcH = imagesy($src);
+
+                    // Hitung rasio untuk "Cover" area
+                    $ratioSrc = $srcW / $srcH;
+                    $ratioDst = $w / $h;
+
+                    if ($ratioSrc > $ratioDst) {
+                        // Gambar lebih lebar dari canvas: Crop kiri-kanan
+                        $newH = $h;
+                        $newW = $h * $ratioSrc;
+                    } else {
+                        // Gambar lebih tinggi dari canvas: Crop atas-bawah
+                        $newW = $w;
+                        $newH = $w / $ratioSrc;
+                    }
+
+                    // Copy dan resize ke canvas
+                    // Posisi X dan Y diatur minus agar gambar terpusat (Center Crop)
+                    $x = ($w - $newW) / 2;
+                    $y = ($h - $newH) / 2;
+
+                    imagecopyresampled($img, $src, (int) $x, (int) $y, 0, 0, (int) $newW, (int) $newH, $srcW, $srcH);
+                    imagedestroy($src);
+                }
+            } catch (\Exception $e) {
+                // Jika gagal load gambar, biarkan background default
+            }
+        }
+
+        // 5. Tambahkan Overlay Gelap (Agar teks terbaca)
+        // Alpha: 0 (Opaque) - 127 (Transparent). 40 adalah sekitar 30% gelap.
+        $overlay = imagecolorallocatealpha($img, 0, 0, 0, 40);
+        imagefilledrectangle($img, 0, 0, $w, $h, $overlay);
+
+        // 6. Setup Font
+        // PASTIKAN FILE INI ADA. Jika tidak, ganti ke path font yang valid di server Anda.
+        $fontBold = public_path('fonts/Inter-Bold.ttf');
+        $fontReg = public_path('fonts/Inter-Regular.ttf');
+
+        // Fallback jika font tidak ada (kembali ke imagestring)
+        $hasFont = file_exists($fontBold) && file_exists($fontReg);
+
+        // --- Header Section ---
+        $cursorY = 80;
+
+        // Logo Race
+        if ($race->logo_path && Storage::disk('public')->exists($race->logo_path)) {
+            $logoPath = Storage::disk('public')->path($race->logo_path);
+            $ext = pathinfo($logoPath, PATHINFO_EXTENSION);
+
+            $logo = match (strtolower($ext)) {
+                'png' => @imagecreatefrompng($logoPath),
+                'jpg', 'jpeg' => @imagecreatefromjpeg($logoPath),
+                default => null
             };
 
-            if ($src) {
-                $srcW = imagesx($src);
-                $srcH = imagesy($src);
+            if ($logo) {
+                $lw = imagesx($logo);
+                $lh = imagesy($logo);
 
-                // Hitung rasio untuk "Cover" area
-                $ratioSrc = $srcW / $srcH;
-                $ratioDst = $w / $h;
+                // Resize logo max width 250px
+                $targetLW = 250;
+                $scale = $targetLW / $lw;
+                $targetLH = $lh * $scale;
 
-                if ($ratioSrc > $ratioDst) {
-                    // Gambar lebih lebar dari canvas: Crop kiri-kanan
-                    $newH = $h;
-                    $newW = $h * $ratioSrc;
-                } else {
-                    // Gambar lebih tinggi dari canvas: Crop atas-bawah
-                    $newW = $w;
-                    $newH = $w / $ratioSrc;
+                imagecopyresampled($img, $logo, 50, 50, 0, 0, (int) $targetLW, (int) $targetLH, $lw, $lh);
+                imagedestroy($logo);
+
+                $cursorY = 50 + $targetLH + 40; // Update cursor ke bawah logo
+            }
+        }
+
+        // Judul Race
+        if ($hasFont) {
+            imagettftext($img, 32, 0, 50, $cursorY, $white, $fontBold, strtoupper($race->name));
+            imagettftext($img, 18, 0, 50, $cursorY + 40, $grey, $fontReg, 'OFFICIAL RESULTS • TOP FINISHERS');
+        } else {
+            // Fallback font bawaan
+            imagestring($img, 5, 50, $cursorY, strtoupper(substr($race->name, 0, 20)), $white);
+        }
+
+        // --- Leaderboard Section ---
+        $cursorY += 100;
+
+        // Background kotak transparan untuk list
+        $boxColor = imagecolorallocatealpha($img, 255, 255, 255, 110); // Putih transparan (glass effect)
+        // Atau Hitam transparan: imagecolorallocatealpha($img, 0, 0, 0, 80);
+
+        $boxH = 1000;
+        // imagefilledrectangle($img, 40, $cursorY, $w - 40, $cursorY + $boxH, $boxColor); // Opsional: Kotak pembungkus
+
+        $top = array_slice($standings, 0, 5);
+        $rank = 1;
+
+        foreach ($top as $row) {
+            $rsp = RaceSessionParticipant::find($row['race_session_participant_id']);
+            if (! $rsp) {
+                continue;
+            }
+
+            // Warna Rank: Emas untuk #1, Putih sisanya
+            $rankColor = ($rank === 1) ? $gold : $white;
+            $name = mb_strimwidth($rsp->name, 0, 25, '...'); // Potong nama jika kepanjangan
+
+            if ($hasFont) {
+                // RANK (Besar di kiri)
+                imagettftext($img, 40, 0, 60, $cursorY + 50, $rankColor, $fontBold, '#'.$rank);
+
+                // NAMA
+                imagettftext($img, 28, 0, 180, $cursorY + 45, $white, $fontBold, $name);
+
+                // BIB & DETAILS
+                imagettftext($img, 16, 0, 180, $cursorY + 80, $grey, $fontReg, 'BIB '.$rsp->bib_number);
+
+                // WAKTU (Kanan)
+                $timeText = $this->formatMs((int) $row['total_time_ms']);
+                // Hitung lebar teks waktu agar rata kanan
+                $bbox = imagettfbbox(24, 0, $fontBold, $timeText);
+                $textW = abs($bbox[4] - $bbox[0]);
+                imagettftext($img, 24, 0, $w - 60 - $textW, $cursorY + 55, $white, $fontBold, $timeText);
+
+                // Garis pemisah tipis
+                if ($rank < 5) {
+                    $lineColor = imagecolorallocatealpha($img, 255, 255, 255, 100);
+                    imageline($img, 60, $cursorY + 110, $w - 60, $cursorY + 110, $lineColor);
                 }
 
-                // Copy dan resize ke canvas
-                // Posisi X dan Y diatur minus agar gambar terpusat (Center Crop)
-                $x = ($w - $newW) / 2;
-                $y = ($h - $newH) / 2;
-
-                imagecopyresampled($img, $src, (int)$x, (int)$y, 0, 0, (int)$newW, (int)$newH, $srcW, $srcH);
-                imagedestroy($src);
+            } else {
+                // Fallback
+                imagestring($img, 5, 50, $cursorY, "#$rank ".$name, $white);
+                imagestring($img, 4, $w - 150, $cursorY, $this->formatMs((int) $row['total_time_ms']), $white);
             }
-        } catch (\Exception $e) {
-            // Jika gagal load gambar, biarkan background default
+
+            $cursorY += 130; // Jarak antar baris
+            $rank++;
         }
-    }
 
-    // 5. Tambahkan Overlay Gelap (Agar teks terbaca)
-    // Alpha: 0 (Opaque) - 127 (Transparent). 40 adalah sekitar 30% gelap.
-    $overlay = imagecolorallocatealpha($img, 0, 0, 0, 40); 
-    imagefilledrectangle($img, 0, 0, $w, $h, $overlay);
-
-    // 6. Setup Font
-    // PASTIKAN FILE INI ADA. Jika tidak, ganti ke path font yang valid di server Anda.
-    $fontBold = public_path('fonts/Inter-Bold.ttf'); 
-    $fontReg  = public_path('fonts/Inter-Regular.ttf');
-    
-    // Fallback jika font tidak ada (kembali ke imagestring)
-    $hasFont = file_exists($fontBold) && file_exists($fontReg);
-
-    // --- Header Section ---
-    $cursorY = 80;
-
-    // Logo Race
-    if ($race->logo_path && Storage::disk('public')->exists($race->logo_path)) {
-        $logoPath = Storage::disk('public')->path($race->logo_path);
-        $ext = pathinfo($logoPath, PATHINFO_EXTENSION);
-        
-        $logo = match (strtolower($ext)) {
-            'png' => @imagecreatefrompng($logoPath),
-            'jpg', 'jpeg' => @imagecreatefromjpeg($logoPath),
-            default => null
-        };
-
-        if ($logo) {
-            $lw = imagesx($logo);
-            $lh = imagesy($logo);
-            
-            // Resize logo max width 250px
-            $targetLW = 250;
-            $scale = $targetLW / $lw;
-            $targetLH = $lh * $scale;
-
-            imagecopyresampled($img, $logo, 50, 50, 0, 0, (int)$targetLW, (int)$targetLH, $lw, $lh);
-            imagedestroy($logo);
-            
-            $cursorY = 50 + $targetLH + 40; // Update cursor ke bawah logo
-        }
-    }
-
-    // Judul Race
-    if ($hasFont) {
-        imagettftext($img, 32, 0, 50, $cursorY, $white, $fontBold, strtoupper($race->name));
-        imagettftext($img, 18, 0, 50, $cursorY + 40, $grey, $fontReg, 'OFFICIAL RESULTS • TOP FINISHERS');
-    } else {
-        // Fallback font bawaan
-        imagestring($img, 5, 50, $cursorY, strtoupper(substr($race->name, 0, 20)), $white);
-    }
-
-    // --- Leaderboard Section ---
-    $cursorY += 100;
-    
-    // Background kotak transparan untuk list
-    $boxColor = imagecolorallocatealpha($img, 255, 255, 255, 110); // Putih transparan (glass effect)
-    // Atau Hitam transparan: imagecolorallocatealpha($img, 0, 0, 0, 80);
-    
-    $boxH = 1000;
-    // imagefilledrectangle($img, 40, $cursorY, $w - 40, $cursorY + $boxH, $boxColor); // Opsional: Kotak pembungkus
-
-    $top = array_slice($standings, 0, 5);
-    $rank = 1;
-
-    foreach ($top as $row) {
-        $rsp = RaceSessionParticipant::find($row['race_session_participant_id']);
-        if (! $rsp) continue;
-
-        // Warna Rank: Emas untuk #1, Putih sisanya
-        $rankColor = ($rank === 1) ? $gold : $white;
-        $name = mb_strimwidth($rsp->name, 0, 25, "..."); // Potong nama jika kepanjangan
-
+        // --- Footer ---
+        $footerText = 'Generated by RuangLari.com';
         if ($hasFont) {
-            // RANK (Besar di kiri)
-            imagettftext($img, 40, 0, 60, $cursorY + 50, $rankColor, $fontBold, "#" . $rank);
-            
-            // NAMA
-            imagettftext($img, 28, 0, 180, $cursorY + 45, $white, $fontBold, $name);
-            
-            // BIB & DETAILS
-            imagettftext($img, 16, 0, 180, $cursorY + 80, $grey, $fontReg, "BIB " . $rsp->bib_number);
-
-            // WAKTU (Kanan)
-            $timeText = $this->formatMs((int) $row['total_time_ms']);
-            // Hitung lebar teks waktu agar rata kanan
-            $bbox = imagettfbbox(24, 0, $fontBold, $timeText);
-            $textW = abs($bbox[4] - $bbox[0]);
-            imagettftext($img, 24, 0, $w - 60 - $textW, $cursorY + 55, $white, $fontBold, $timeText);
-            
-            // Garis pemisah tipis
-            if ($rank < 5) {
-                $lineColor = imagecolorallocatealpha($img, 255, 255, 255, 100);
-                imageline($img, 60, $cursorY + 110, $w - 60, $cursorY + 110, $lineColor);
-            }
-
+            $bbox = imagettfbbox(14, 0, $fontReg, $footerText);
+            $fw = abs($bbox[4] - $bbox[0]);
+            imagettftext($img, 14, 0, ($w - $fw) / 2, $h - 40, $grey, $fontReg, $footerText);
         } else {
-            // Fallback
-            imagestring($img, 5, 50, $cursorY, "#$rank " . $name, $white);
-            imagestring($img, 4, $w - 150, $cursorY, $this->formatMs((int)$row['total_time_ms']), $white);
+            imagestring($img, 3, ($w / 2) - 50, $h - 40, $footerText, $grey);
         }
 
-        $cursorY += 130; // Jarak antar baris
-        $rank++;
+        // Output
+        ob_start();
+        imagepng($img, null, 6); // Compression 6 (balance speed/size)
+        $content = ob_get_clean();
+        imagedestroy($img);
+
+        return response($content, 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'inline; filename="result-poster.png"',
+        ]);
     }
-
-    // --- Footer ---
-    $footerText = 'Generated by RuangLari.com';
-    if ($hasFont) {
-        $bbox = imagettfbbox(14, 0, $fontReg, $footerText);
-        $fw = abs($bbox[4] - $bbox[0]);
-        imagettftext($img, 14, 0, ($w - $fw) / 2, $h - 40, $grey, $fontReg, $footerText);
-    } else {
-        imagestring($img, 3, ($w/2)-50, $h - 40, $footerText, $grey);
-    }
-
-    // Output
-    ob_start();
-    imagepng($img, null, 6); // Compression 6 (balance speed/size)
-    $content = ob_get_clean();
-    imagedestroy($img);
-
-    return response($content, 200, [
-        'Content-Type' => 'image/png',
-        'Content-Disposition' => 'inline; filename="result-poster.png"',
-    ]);
-}
 
     public function downloadCertificate(RaceCertificate $certificate)
     {
@@ -634,7 +697,10 @@ class RaceMasterApiController extends Controller
         usort($rows, function ($a, $b) {
             $ra = $a['rank'] ?? PHP_INT_MAX;
             $rb = $b['rank'] ?? PHP_INT_MAX;
-            if ($ra === $rb) return strcmp((string) $a['bib'], (string) $b['bib']);
+            if ($ra === $rb) {
+                return strcmp((string) $a['bib'], (string) $b['bib']);
+            }
+
             return $ra <=> $rb;
         });
 
@@ -782,7 +848,7 @@ class RaceMasterApiController extends Controller
         $logoDataUri = $this->raceLogoDataUri($race);
         $generated = 0;
 
-        $options = new Options();
+        $options = new Options;
         $options->set('dpi', 300);
         $options->set('isRemoteEnabled', false);
         $options->set('defaultFont', 'DejaVu Sans');
@@ -792,6 +858,7 @@ class RaceMasterApiController extends Controller
             $rsp = RaceSessionParticipant::query()->whereKey((int) $row['race_session_participant_id'])->first();
             if (! $rsp) {
                 $rank++;
+
                 continue;
             }
 
@@ -870,7 +937,7 @@ class RaceMasterApiController extends Controller
 
     private function storeLogo($file): string
     {
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver);
         $image = $manager->read($file);
 
         if ($image->width() < 200 || $image->height() < 200) {
@@ -946,7 +1013,7 @@ class RaceMasterApiController extends Controller
         $img = imagecreatetruecolor($w, $h);
         imagealphablending($img, true);
         imagesavealpha($img, true);
-        
+
         // 1. Background
         $bg = null;
         if ($backgroundFile) {
@@ -977,10 +1044,10 @@ class RaceMasterApiController extends Controller
             $bottomColor = imagecolorallocate($img, 30, 41, 59); // Slightly lighter
             imagefilledrectangle($img, 0, 0, $w, $h, $topColor);
             // Simple gradient effect for default bg
-            for ($i = 0; $i < $h; $i+=5) {
+            for ($i = 0; $i < $h; $i += 5) {
                 $alpha = (int) (127 * ($i / $h)); // Fade out
                 $c = imagecolorallocatealpha($img, 0, 0, 0, $alpha); // Darken bottom
-                imagefilledrectangle($img, 0, $i, $w, $i+5, $c);
+                imagefilledrectangle($img, 0, $i, $w, $i + 5, $c);
             }
         }
 
@@ -1016,38 +1083,42 @@ class RaceMasterApiController extends Controller
         // 3. Top Section: Logo & Race Name
         $logoY = 80;
         $contentX = 80;
-        
+
         if ($race && $race->logo_path && Storage::disk('public')->exists($race->logo_path)) {
             $logoPath = Storage::disk('public')->path($race->logo_path);
             $ext = strtolower(pathinfo($logoPath, PATHINFO_EXTENSION));
             $logo = null;
-            if ($ext === 'png') $logo = @imagecreatefrompng($logoPath);
-            if ($ext === 'jpg' || $ext === 'jpeg') $logo = @imagecreatefromjpeg($logoPath);
-            
+            if ($ext === 'png') {
+                $logo = @imagecreatefrompng($logoPath);
+            }
+            if ($ext === 'jpg' || $ext === 'jpeg') {
+                $logo = @imagecreatefromjpeg($logoPath);
+            }
+
             if ($logo) {
                 $lw = imagesx($logo);
                 $lh = imagesy($logo);
                 $maxH = 120; // Max height for logo
                 $scale = min(300 / $lw, $maxH / $lh); // Constraint width too
-                
+
                 $tw = (int) ($lw * $scale);
                 $th = (int) ($lh * $scale);
-                
+
                 $dst = imagecreatetruecolor($tw, $th);
                 imagealphablending($dst, false);
                 imagesavealpha($dst, true);
                 $t = imagecolorallocatealpha($dst, 0, 0, 0, 127);
                 imagefilledrectangle($dst, 0, 0, $tw, $th, $t);
                 imagecopyresampled($dst, $logo, 0, 0, 0, 0, $tw, $th, $lw, $lh);
-                
+
                 imagecopy($img, $dst, $contentX, $logoY, 0, 0, $tw, $th);
                 imagedestroy($dst);
                 imagedestroy($logo);
-                
+
                 $logoY += $th + 30; // Push text down
             }
         } else {
-             $logoY += 20;
+            $logoY += 20;
         }
 
         $raceName = $race ? strtoupper(mb_substr($race->name, 0, 35)) : 'RACE EVENT';
@@ -1056,19 +1127,18 @@ class RaceMasterApiController extends Controller
 
         // 4. Middle Section: Rank & Participant
         // Rank Badge (Right aligned)
-        $rankText = 'RANK #' . $rank;
+        $rankText = 'RANK #'.$rank;
         $this->gdText($img, $rankText, $w - 80, 200, 48, $accent, $font, 'right');
 
         // Participant Info (Bottom Left, above stats)
         $nameY = $h - 550;
         $this->gdText($img, $rsp->name, 80, $nameY, 55, $white, $font, 'left');
-        
+
         // BIB Pill
-        $bibText = 'BIB ' . $rsp->bib_number;
+        $bibText = 'BIB '.$rsp->bib_number;
         // Draw a pill background for BIB
         // (Simplified as text for now, maybe add a rectangle behind it if needed, but text with accent color is clean)
         $this->gdText($img, $bibText, 80, $nameY + 80, 32, $brand, $font, 'left');
-
 
         // 5. Bottom Section: Stats Grid
         // Calculate Data
@@ -1082,7 +1152,7 @@ class RaceMasterApiController extends Controller
         $timeStr = $this->formatMs($totalMs);
 
         $distStr = $session->category ?: ($distanceKm ? (rtrim(rtrim(number_format($distanceKm, 2, '.', ''), '0'), '.').' KM') : '-');
-        
+
         $paceStr = '-';
         $speedStr = '-';
         if ($distanceKm && $distanceKm > 0) {
@@ -1095,7 +1165,7 @@ class RaceMasterApiController extends Controller
         // Draw Stats
         $statsY = $h - 250;
         $colWidth = $w / 3;
-        
+
         // Col 1: Distance
         $c1 = $colWidth * 0.5;
         $this->gdText($img, 'DISTANCE', $c1, $statsY, 20, $gray, $font, 'center');
@@ -1109,8 +1179,8 @@ class RaceMasterApiController extends Controller
         // Col 3: Pace
         $c3 = $colWidth * 2.5;
         $this->gdText($img, 'AVG PACE', $c3, $statsY, 20, $gray, $font, 'center');
-        $this->gdText($img, $paceStr . ' /km', $c3, $statsY + 50, 40, $white, $font, 'center');
-        
+        $this->gdText($img, $paceStr.' /km', $c3, $statsY + 50, 40, $white, $font, 'center');
+
         // Footer Line
         $lineY = $h - 120;
         imageline($img, 100, $lineY, $w - 100, $lineY, $gray);
@@ -1134,7 +1204,9 @@ class RaceMasterApiController extends Controller
         ];
 
         foreach ($candidates as $p) {
-            if (is_string($p) && file_exists($p)) return $p;
+            if (is_string($p) && file_exists($p)) {
+                return $p;
+            }
         }
 
         return null;
@@ -1144,6 +1216,7 @@ class RaceMasterApiController extends Controller
     {
         if (! $font) {
             imagestring($img, 5, $x, $y, $text, $color);
+
             return;
         }
 
@@ -1163,7 +1236,9 @@ class RaceMasterApiController extends Controller
     private function guessDistanceKm(string $category): ?float
     {
         $c = strtolower(trim($category));
-        if ($c === '') return null;
+        if ($c === '') {
+            return null;
+        }
 
         $map = [
             '5k' => 5.0,
@@ -1173,10 +1248,16 @@ class RaceMasterApiController extends Controller
             'half marathon' => 21.1,
             'full marathon' => 42.195,
         ];
-        if (isset($map[$c])) return $map[$c];
+        if (isset($map[$c])) {
+            return $map[$c];
+        }
 
-        if (str_contains($c, 'marathon') && ! str_contains($c, 'half')) return 42.195;
-        if (str_contains($c, 'half')) return 21.1;
+        if (str_contains($c, 'marathon') && ! str_contains($c, 'half')) {
+            return 42.195;
+        }
+        if (str_contains($c, 'half')) {
+            return 21.1;
+        }
 
         if (preg_match('/(\d+(?:\.\d+)?)\s*k/', $c, $m)) {
             return (float) $m[1];
@@ -1195,7 +1276,7 @@ class RaceMasterApiController extends Controller
 
         $logoDataUri = $this->raceLogoDataUri($race);
 
-        $options = new Options();
+        $options = new Options;
         $options->set('dpi', 300);
         $options->set('isRemoteEnabled', false);
         $options->set('defaultFont', 'DejaVu Sans');

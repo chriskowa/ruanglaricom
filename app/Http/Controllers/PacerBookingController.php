@@ -28,7 +28,7 @@ class PacerBookingController extends Controller
 
     public function store(Request $request, string $slug, PlatformWalletService $platformWalletService)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
@@ -101,7 +101,7 @@ class PacerBookingController extends Controller
 
     public function pay(PacerBooking $booking)
     {
-        if (!Auth::check() || $booking->runner_id !== Auth::id()) {
+        if (! Auth::check() || $booking->runner_id !== Auth::id()) {
             abort(403);
         }
 
@@ -109,7 +109,7 @@ class PacerBookingController extends Controller
             return redirect()->route('pacer.show', $booking->pacer->seo_slug)->with('info', 'Booking already processed.');
         }
 
-        if (!$booking->snap_token) {
+        if (! $booking->snap_token) {
             $runner = Auth::user();
             $pacer = $booking->pacer()->with('user')->first();
 
@@ -144,23 +144,24 @@ class PacerBookingController extends Controller
         }
 
         $booking->load('pacer.user');
+
         return view('pacer.bookings.pay', compact('booking'));
     }
 
     public function confirm(PacerBooking $booking)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
         $user = Auth::user();
         $booking->load('pacer.user');
 
-        if (!$user->is_pacer || $booking->pacer->user_id !== $user->id) {
+        if (! $user->is_pacer || $booking->pacer->user_id !== $user->id) {
             abort(403);
         }
 
-        if (!in_array($booking->status, ['paid', 'confirmed'], true)) {
+        if (! in_array($booking->status, ['paid', 'confirmed'], true)) {
             return back()->with('error', 'Booking status invalid.');
         }
 
@@ -186,11 +187,11 @@ class PacerBookingController extends Controller
 
     public function complete(PacerBooking $booking, PlatformWalletService $platformWalletService)
     {
-        if (!Auth::check() || $booking->runner_id !== Auth::id()) {
+        if (! Auth::check() || $booking->runner_id !== Auth::id()) {
             abort(403);
         }
 
-        if (!in_array($booking->status, ['paid', 'confirmed'], true)) {
+        if (! in_array($booking->status, ['paid', 'confirmed'], true)) {
             return back()->with('error', 'Booking status invalid.');
         }
 
@@ -235,7 +236,7 @@ class PacerBookingController extends Controller
 
             $pacerUser = $booking->pacer->user;
             $pacerWallet = $pacerUser->wallet;
-            if (!$pacerWallet) {
+            if (! $pacerWallet) {
                 $pacerWallet = Wallet::create([
                     'user_id' => $pacerUser->id,
                     'balance' => 0,

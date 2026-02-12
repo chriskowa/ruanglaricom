@@ -30,9 +30,9 @@ class TargetTimeRegistrationTest extends TestCase
         $this->mock(MidtransService::class, function (MockInterface $mock) {
             $mock->shouldReceive('createEventTransaction')
                 ->andReturn([
-                    'success' => true, 
-                    'snap_token' => 'dummy-snap-token', 
-                    'order_id' => 'dummy-order-id'
+                    'success' => true,
+                    'snap_token' => 'dummy-snap-token',
+                    'order_id' => 'dummy-order-id',
                 ]);
         });
 

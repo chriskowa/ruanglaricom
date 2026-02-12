@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
 use App\Services\StravaApiService;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use App\Models\Event;
 
 class CalendarController extends Controller
 {
@@ -74,7 +71,7 @@ class CalendarController extends Controller
                         'start_at' => $ev->start_at,
                         'slug' => $ev->slug,
                         'location_name' => $ev->location_name,
-                        'source' => 'events'
+                        'source' => 'events',
                     ];
                 });
 
@@ -94,7 +91,7 @@ class CalendarController extends Controller
         } else {
             session()->forget('strava_return_to');
         }
-        
+
         $query = http_build_query([
             'client_id' => $clientId,
             'redirect_uri' => route('calendar.strava.callback'),
@@ -214,6 +211,7 @@ class CalendarController extends Controller
             if ($result['ok'] ?? false) {
                 return redirect()->route('tools.buat-rute-lari')->with('success', $result['message'] ?? 'Upload dikirim ke Strava.');
             }
+
             return redirect()->route('tools.buat-rute-lari')->with('error', $result['message'] ?? 'Gagal upload ke Strava.');
         }
 
@@ -282,11 +280,21 @@ class CalendarController extends Controller
 
         $description = trim((string) ($validated['description'] ?? ''));
         $extras = [];
-        if (! empty($validated['device'])) $extras[] = 'Device: '.$validated['device'];
-        if (! empty($validated['hr'])) $extras[] = 'Avg HR: '.$validated['hr'].' bpm';
-        if (! empty($validated['cadence'])) $extras[] = 'Avg Cadence: '.$validated['cadence'].' spm';
-        if (! empty($validated['power'])) $extras[] = 'Avg Power: '.$validated['power'].' W';
-        if (! empty($validated['pace_sec_per_km'])) $extras[] = 'Target Pace: '.$this->formatPaceSec((int) $validated['pace_sec_per_km']).'/km';
+        if (! empty($validated['device'])) {
+            $extras[] = 'Device: '.$validated['device'];
+        }
+        if (! empty($validated['hr'])) {
+            $extras[] = 'Avg HR: '.$validated['hr'].' bpm';
+        }
+        if (! empty($validated['cadence'])) {
+            $extras[] = 'Avg Cadence: '.$validated['cadence'].' spm';
+        }
+        if (! empty($validated['power'])) {
+            $extras[] = 'Avg Power: '.$validated['power'].' W';
+        }
+        if (! empty($validated['pace_sec_per_km'])) {
+            $extras[] = 'Target Pace: '.$this->formatPaceSec((int) $validated['pace_sec_per_km']).'/km';
+        }
         if (! empty($extras)) {
             $description = trim($description."\n\n".implode(' • ', $extras));
         }
@@ -409,8 +417,13 @@ class CalendarController extends Controller
 
     private function parsePaceTextToSec(string $pace): ?int
     {
-        if ($pace === '') return null;
-        if (! preg_match('/^(\d{1,2}):([0-5]\d)$/', $pace, $m)) return null;
+        if ($pace === '') {
+            return null;
+        }
+        if (! preg_match('/^(\d{1,2}):([0-5]\d)$/', $pace, $m)) {
+            return null;
+        }
+
         return ((int) $m[1] * 60) + (int) $m[2];
     }
 
@@ -418,6 +431,7 @@ class CalendarController extends Controller
     {
         $min = (int) floor($sec / 60);
         $s = $sec % 60;
+
         return $min.':'.str_pad((string) $s, 2, '0', STR_PAD_LEFT);
     }
 
@@ -430,6 +444,7 @@ class CalendarController extends Controller
             sin($dLat / 2) * sin($dLat / 2)
             + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) * sin($dLon / 2);
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
         return $R * $c;
     }
 

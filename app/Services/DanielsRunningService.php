@@ -410,21 +410,26 @@ class DanielsRunningService
         $dayCounter = 1;
 
         // --- Helper to add session ---
-        $addSession = function($type, $dist, $desc) use (&$sessions, &$dayCounter, $paces) {
+        $addSession = function ($type, $dist, $desc) use (&$sessions, &$dayCounter, $paces) {
             $paceType = 'E';
-            if ($type == 'interval') $paceType = 'I';
-            elseif ($type == 'tempo' || $type == 'threshold') $paceType = 'T';
-            elseif ($type == 'repetition') $paceType = 'R';
-            elseif ($type == 'long_run') $paceType = 'E';
-            
-            // Calculate estimated duration based on mixed paces if description contains details, 
+            if ($type == 'interval') {
+                $paceType = 'I';
+            } elseif ($type == 'tempo' || $type == 'threshold') {
+                $paceType = 'T';
+            } elseif ($type == 'repetition') {
+                $paceType = 'R';
+            } elseif ($type == 'long_run') {
+                $paceType = 'E';
+            }
+
+            // Calculate estimated duration based on mixed paces if description contains details,
             // but for simplicity we use the main pace type or Easy pace for mixed.
             $mainPace = $paces[$paceType] ?? $paces['E'];
-            
+
             // If it's a mixed workout (e.g. Warmup + Tempo + Cooldown), average pace is slightly faster than E but slower than T
             // This is just an estimation for the total duration field
             if (strpos($desc, 'Warmup') !== false) {
-                 $mainPace = ($paces['E'] + $mainPace) / 2;
+                $mainPace = ($paces['E'] + $mainPace) / 2;
             }
 
             $sessions[] = [
@@ -436,7 +441,7 @@ class DanielsRunningService
             ];
         };
 
-        $addRest = function() use (&$sessions, &$dayCounter) {
+        $addRest = function () use (&$sessions, &$dayCounter) {
             $sessions[] = ['day' => $dayCounter++, 'type' => 'rest', 'distance' => 0, 'duration' => '00:00:00', 'description' => 'Rest Day. Recover for the next session.'];
         };
 
@@ -447,24 +452,33 @@ class DanielsRunningService
             $easyDist = ($currentWeeklyKm - $longRunDist) / ($frequency - 1);
 
             for ($d = 1; $d <= 7; $d++) {
-                if ($d == 1) $addRest(); // Monday Rest
-                elseif ($d == 3 && $frequency >= 4) $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}. Focus on relaxed breathing.");
-                elseif ($d == 5 && $frequency >= 3) {
-                     // Introduce some strides in late Phase 1
-                     if ($week == $phase1Weeks) {
+                if ($d == 1) {
+                    $addRest();
+                } // Monday Rest
+                elseif ($d == 3 && $frequency >= 4) {
+                    $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}. Focus on relaxed breathing.");
+                } elseif ($d == 5 && $frequency >= 3) {
+                    // Introduce some strides in late Phase 1
+                    if ($week == $phase1Weeks) {
                         $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']} + 4x Strides (20s fast / 40s jog)");
-                     } else {
+                    } else {
                         $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
-                     }
+                    }
+                } elseif ($d == 7) {
+                    $addSession('long_run', $longRunDist, "Long Run @ {$paceStr['E']}. Conversational pace.");
+                } elseif ($frequency >= 5 && $d == 4) {
+                    $addSession('easy_run', $easyDist * 0.8, "Recovery Run @ {$paceStr['E']}");
+                } elseif ($d == 2 || $d == 6) { // Fill remaining days based on freq
+                    if ($frequency >= 5 && $d == 2) {
+                        $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
+                    } elseif ($frequency >= 6 && $d == 6) {
+                        $addSession('easy_run', $easyDist * 0.8, "Shakeout Run @ {$paceStr['E']}");
+                    } else {
+                        $addRest();
+                    }
+                } else {
+                    $addRest();
                 }
-                elseif ($d == 7) $addSession('long_run', $longRunDist, "Long Run @ {$paceStr['E']}. Conversational pace.");
-                elseif ($frequency >= 5 && $d == 4) $addSession('easy_run', $easyDist * 0.8, "Recovery Run @ {$paceStr['E']}");
-                elseif ($d == 2 || $d == 6) { // Fill remaining days based on freq
-                     if ($frequency >= 5 && $d == 2) $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
-                     else if ($frequency >= 6 && $d == 6) $addSession('easy_run', $easyDist * 0.8, "Shakeout Run @ {$paceStr['E']}");
-                     else $addRest();
-                }
-                else $addRest();
             }
         }
 
@@ -472,15 +486,15 @@ class DanielsRunningService
         for ($week = 1; $week <= $phase2Weeks; $week++) {
             $currentWeeklyKm = $weeklyMileage * 1.05;
             $longRunDist = $currentWeeklyKm * 0.25;
-            
+
             // Quality Session 1 (Reps for speed economy or Tempo intro)
-            $quality1Dist = 8; 
-            $q1Desc = "";
-            
+            $quality1Dist = 8;
+            $q1Desc = '';
+
             if ($goalDistance == '5k' || $goalDistance == '10k') {
                 $reps = ($week % 2 == 1) ? 8 : 10; // Alternate 8x200 or 10x200 (simplified)
                 $q1Desc = "Warmup 3km E, {$reps}x200m @ {$paceStr['R']} (200m jog recovery), Cooldown 2km E";
-                $quality1Dist = 3 + ($reps * 0.4) + 2; 
+                $quality1Dist = 3 + ($reps * 0.4) + 2;
             } else {
                 // HM/FM: Cruise Intervals
                 $reps = ($week % 2 == 1) ? 4 : 5;
@@ -493,14 +507,23 @@ class DanielsRunningService
             $easyDist = $easyRunsCount > 0 ? $remainingKm / $easyRunsCount : 0;
 
             for ($d = 1; $d <= 7; $d++) {
-                if ($d == 1) $addRest();
-                elseif ($d == 3) $addSession($goalDistance == '5k' ? 'repetition' : 'threshold', $quality1Dist, $q1Desc);
-                elseif ($d == 7) $addSession('long_run', $longRunDist, "Long Run @ {$paceStr['E']}");
-                elseif ($d == 2 && $frequency >= 5) $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
-                elseif ($d == 4 && $frequency >= 4) $addSession('easy_run', $easyDist, "Recovery Run @ {$paceStr['E']}");
-                elseif ($d == 5 && $frequency >= 3) $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
-                elseif ($d == 6 && $frequency >= 6) $addSession('easy_run', $easyDist, "Shakeout Run @ {$paceStr['E']}");
-                else $addRest();
+                if ($d == 1) {
+                    $addRest();
+                } elseif ($d == 3) {
+                    $addSession($goalDistance == '5k' ? 'repetition' : 'threshold', $quality1Dist, $q1Desc);
+                } elseif ($d == 7) {
+                    $addSession('long_run', $longRunDist, "Long Run @ {$paceStr['E']}");
+                } elseif ($d == 2 && $frequency >= 5) {
+                    $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
+                } elseif ($d == 4 && $frequency >= 4) {
+                    $addSession('easy_run', $easyDist, "Recovery Run @ {$paceStr['E']}");
+                } elseif ($d == 5 && $frequency >= 3) {
+                    $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
+                } elseif ($d == 6 && $frequency >= 6) {
+                    $addSession('easy_run', $easyDist, "Shakeout Run @ {$paceStr['E']}");
+                } else {
+                    $addRest();
+                }
             }
         }
 
@@ -508,24 +531,24 @@ class DanielsRunningService
         for ($week = 1; $week <= $phase3Weeks; $week++) {
             $currentWeeklyKm = $weeklyMileage * 1.1;
             $longRunDist = $currentWeeklyKm * 0.25;
-            
+
             // Workout A: Intervals (VO2max)
             $workoutADist = 0;
-            $workoutADesc = "";
-            
+            $workoutADesc = '';
+
             // 5x1000m or 4x1200m or 3x1600m
-            $iDist = ($week % 2 == 1) ? 1.0 : 0.8; 
+            $iDist = ($week % 2 == 1) ? 1.0 : 0.8;
             $reps = ($week % 2 == 1) ? 5 : 6;
             $workoutADesc = "Warmup 3km E, {$reps}x{$iDist}km @ {$paceStr['I']} (3 min jog), Cooldown 2km E";
             $workoutADist = 3 + ($reps * $iDist) + 2;
 
             // Workout B: Threshold (only for frequency >= 4)
             $workoutBDist = 0;
-            $workoutBDesc = "";
+            $workoutBDesc = '';
             if ($frequency >= 4) {
-                 $tempoDuration = ($goalDistance == '5k') ? 20 : 30;
-                 $workoutBDesc = "Warmup 2km E, {$tempoDuration} mins @ {$paceStr['T']}, Cooldown 2km E";
-                 $workoutBDist = 2 + ($tempoDuration/60 * (60/$paces['T'])) + 2;
+                $tempoDuration = ($goalDistance == '5k') ? 20 : 30;
+                $workoutBDesc = "Warmup 2km E, {$tempoDuration} mins @ {$paceStr['T']}, Cooldown 2km E";
+                $workoutBDist = 2 + ($tempoDuration / 60 * (60 / $paces['T'])) + 2;
             }
 
             $remainingKm = $currentWeeklyKm - $longRunDist - $workoutADist - $workoutBDist;
@@ -533,18 +556,27 @@ class DanielsRunningService
             $easyDist = $easyRunsCount > 0 ? max(3, $remainingKm / $easyRunsCount) : 0;
 
             for ($d = 1; $d <= 7; $d++) {
-                if ($d == 1) $addRest();
-                elseif ($d == 3) $addSession('interval', $workoutADist, $workoutADesc);
-                elseif ($d == 5 && $workoutBDist > 0) $addSession('tempo', $workoutBDist, $workoutBDesc);
-                elseif ($d == 7) {
+                if ($d == 1) {
+                    $addRest();
+                } elseif ($d == 3) {
+                    $addSession('interval', $workoutADist, $workoutADesc);
+                } elseif ($d == 5 && $workoutBDist > 0) {
+                    $addSession('tempo', $workoutBDist, $workoutBDesc);
+                } elseif ($d == 7) {
                     $desc = "Long Run @ {$paceStr['E']}";
-                    if ($week >= $phase3Weeks - 1) $desc .= " (Last 3km @ {$paceStr['M']})"; // Fast finish
+                    if ($week >= $phase3Weeks - 1) {
+                        $desc .= " (Last 3km @ {$paceStr['M']})";
+                    } // Fast finish
                     $addSession('long_run', $longRunDist, $desc);
-                }
-                elseif ($d == 2 && $frequency >= 5) $addSession('easy_run', $easyDist, "Recovery Run @ {$paceStr['E']}");
-                elseif ($d == 4 && $frequency >= 4 && $workoutBDist == 0) $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
-                elseif ($d == 6 && $frequency >= 6) $addSession('easy_run', $easyDist, "Shakeout Run @ {$paceStr['E']}");
-                else $addRest(); // Fill gaps
+                } elseif ($d == 2 && $frequency >= 5) {
+                    $addSession('easy_run', $easyDist, "Recovery Run @ {$paceStr['E']}");
+                } elseif ($d == 4 && $frequency >= 4 && $workoutBDist == 0) {
+                    $addSession('easy_run', $easyDist, "Easy Run @ {$paceStr['E']}");
+                } elseif ($d == 6 && $frequency >= 6) {
+                    $addSession('easy_run', $easyDist, "Shakeout Run @ {$paceStr['E']}");
+                } else {
+                    $addRest();
+                } // Fill gaps
             }
         }
 
@@ -552,32 +584,35 @@ class DanielsRunningService
         for ($week = 1; $week <= $phase4Weeks; $week++) {
             $taperFactor = ($week == $phase4Weeks) ? 0.4 : 0.7; // Last week 40%, previous 70%
             $currentWeeklyKm = $weeklyMileage * $taperFactor;
-            
+
             $longRunDist = $currentWeeklyKm * 0.25;
             $qDist = 6;
             $qDesc = "Warmup 2km, 3x1km @ {$paceStr['T']} (1 min rest), Cooldown 1km";
-            
+
             if ($week == $phase4Weeks) {
-                 // Race Week
-                 $qDist = 5;
-                 $qDesc = "Shakeout 5km with 4x Strides. Race Ready!";
-                 $longRunDist = 0; // Replaced by race
+                // Race Week
+                $qDist = 5;
+                $qDesc = 'Shakeout 5km with 4x Strides. Race Ready!';
+                $longRunDist = 0; // Replaced by race
             }
 
             $easyDist = ($currentWeeklyKm - $longRunDist - $qDist) / max(1, $frequency - 2);
 
             for ($d = 1; $d <= 7; $d++) {
                 if ($week == $phase4Weeks && $d == 7) {
-                    $addSession('race', $this->distanceToMeters($goalDistance)/1000, "RACE DAY: {$goalDistance}! Go crush it! Target Pace: " . ($goalDistance=='5k'?$paceStr['I']:$paceStr['T']));
+                    $addSession('race', $this->distanceToMeters($goalDistance) / 1000, "RACE DAY: {$goalDistance}! Go crush it! Target Pace: ".($goalDistance == '5k' ? $paceStr['I'] : $paceStr['T']));
                 } elseif ($d == 1) {
                     $addRest();
                 } elseif ($d == 3) {
-                     $addSession('tempo', $qDist, $qDesc);
+                    $addSession('tempo', $qDist, $qDesc);
                 } elseif ($d == 7 && $week != $phase4Weeks) {
-                     $addSession('long_run', $longRunDist, "Taper Long Run @ {$paceStr['E']}");
+                    $addSession('long_run', $longRunDist, "Taper Long Run @ {$paceStr['E']}");
                 } else {
-                     if ($easyDist > 1) $addSession('easy_run', $easyDist, "Easy Taper Run @ {$paceStr['E']}");
-                     else $addRest();
+                    if ($easyDist > 1) {
+                        $addSession('easy_run', $easyDist, "Easy Taper Run @ {$paceStr['E']}");
+                    } else {
+                        $addRest();
+                    }
                 }
             }
         }

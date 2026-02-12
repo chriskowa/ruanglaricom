@@ -111,10 +111,19 @@ class EventPredictionController extends Controller
 
     private function pbBoundsSeconds(float $distanceKm): array
     {
-        if (abs($distanceKm - 5.0) < 0.6) return [10 * 60, 90 * 60];
-        if (abs($distanceKm - 10.0) < 1.0) return [20 * 60, 3 * 3600];
-        if (abs($distanceKm - 21.1) < 1.0 || abs($distanceKm - 21.0) < 1.0) return [60 * 60, 6 * 3600];
-        if (abs($distanceKm - 42.2) < 2.0 || abs($distanceKm - 42.0) < 2.0) return [2 * 3600, 9 * 3600];
+        if (abs($distanceKm - 5.0) < 0.6) {
+            return [10 * 60, 90 * 60];
+        }
+        if (abs($distanceKm - 10.0) < 1.0) {
+            return [20 * 60, 3 * 3600];
+        }
+        if (abs($distanceKm - 21.1) < 1.0 || abs($distanceKm - 21.0) < 1.0) {
+            return [60 * 60, 6 * 3600];
+        }
+        if (abs($distanceKm - 42.2) < 2.0 || abs($distanceKm - 42.0) < 2.0) {
+            return [2 * 3600, 9 * 3600];
+        }
+
         return [null, null];
     }
 }

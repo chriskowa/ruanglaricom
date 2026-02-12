@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Events\StoreRegistrationAction;
+use App\Models\AppSettings;
 use App\Models\Coupon;
 use App\Models\Event;
-use App\Models\AppSettings;
 use App\Services\EventCacheService;
 use Illuminate\Http\Request;
 
@@ -52,12 +52,13 @@ class EventRegistrationController extends Controller
             $coupon = Coupon::where('code', $validated['coupon_code'])
                 ->where(function ($query) use ($validated) {
                     $query->where('event_id', $validated['event_id'])
-                          ->orWhereNull('event_id');
+                        ->orWhereNull('event_id');
                 })
                 ->first();
 
             if (! $coupon) {
                 \Illuminate\Support\Facades\Log::warning('Coupon not found', ['code' => $validated['coupon_code']]);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Kode kupon tidak ditemukan',
@@ -69,9 +70,9 @@ class EventRegistrationController extends Controller
                     'code' => $coupon->code,
                     'reason' => 'Failed canBeUsed check',
                     'min_trx' => $coupon->min_transaction_amount ?? 0,
-                    'request_amount' => $validated['total_amount']
+                    'request_amount' => $validated['total_amount'],
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Kupon tidak valid atau syarat minimum transaksi tidak terpenuhi',
@@ -84,7 +85,7 @@ class EventRegistrationController extends Controller
             \Illuminate\Support\Facades\Log::info('Coupon Applied Successfully', [
                 'code' => $coupon->code,
                 'discount' => $discountAmount,
-                'final' => $finalAmount
+                'final' => $finalAmount,
             ]);
 
             return response()->json([
@@ -101,13 +102,13 @@ class EventRegistrationController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Apply Coupon Error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+            \Illuminate\Support\Facades\Log::error('Apply Coupon Error: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan server: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalahan server: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -154,15 +155,15 @@ class EventRegistrationController extends Controller
     public function payment($slug, \App\Models\Transaction $transaction)
     {
         $event = Event::where('slug', $slug)->firstOrFail();
-        
+
         // Security check: ensure transaction belongs to this event
         if ($transaction->event_id !== $event->id) {
             abort(404);
         }
-        
+
         // Ensure transaction is moota and pending
         if ($transaction->payment_gateway !== 'moota' || $transaction->payment_status !== 'pending') {
-             return redirect()->route('events.show', $slug)->with('info', 'Transaksi tidak valid atau sudah dibayar.');
+            return redirect()->route('events.show', $slug)->with('info', 'Transaksi tidak valid atau sudah dibayar.');
         }
 
         return view('events.payment', [
@@ -193,7 +194,7 @@ class EventRegistrationController extends Controller
 
             // Handle Moota Redirect
             if ($transaction->payment_gateway === 'moota' && $transaction->payment_status === 'pending') {
-                 if ($request->ajax() || $request->wantsJson()) {
+                if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
                         'success' => true,
                         'message' => 'Registrasi berhasil! Silakan lakukan pembayaran.',
@@ -206,7 +207,7 @@ class EventRegistrationController extends Controller
                         'redirect_url' => route('events.payment', ['slug' => $slug, 'transaction' => $transaction->id]),
                     ]);
                 }
-                
+
                 return redirect()->route('events.payment', ['slug' => $slug, 'transaction' => $transaction->id]);
             }
 

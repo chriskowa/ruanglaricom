@@ -8,8 +8,8 @@ use App\Models\CommunityRegistration;
 use App\Models\Transaction;
 use App\Services\MootaService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MootaWebhookController extends Controller
 {
@@ -27,7 +27,7 @@ class MootaWebhookController extends Controller
 
         // 1. Signature Verification
         // Note: Check actual Moota docs for header name. Assuming 'Signature' or similar.
-        // For now, we skip strict verification if we don't know the exact header, 
+        // For now, we skip strict verification if we don't know the exact header,
         // but we should implement it if we find out.
         // $signature = $request->header('Signature');
         // if (!$this->mootaService->verifySignature($signature, $request->getContent())) {
@@ -37,23 +37,25 @@ class MootaWebhookController extends Controller
         // 2. Parse Payload
         // Moota typically sends a JSON with a list of mutations
         $data = $request->all();
-        
+
         // Handle if 'push_id' exists, it's a push notification
         $mutations = $data;
-        
+
         // If data is wrapped in 'data' key?
         // Let's handle generic array of mutations
-        if (!is_array($mutations)) {
-             return response()->json(['status' => 'error', 'message' => 'Invalid data format'], 400);
+        if (! is_array($mutations)) {
+            return response()->json(['status' => 'error', 'message' => 'Invalid data format'], 400);
         }
 
         foreach ($mutations as $mutation) {
             // Ensure it's an array
-            if (!is_array($mutation)) continue;
+            if (! is_array($mutation)) {
+                continue;
+            }
 
             $amount = $mutation['amount'] ?? 0;
             $type = $mutation['type'] ?? ''; // CR / DR
-            
+
             // We only care about Credit (Incoming)
             if ($type !== 'CR') {
                 continue;
@@ -70,7 +72,7 @@ class MootaWebhookController extends Controller
                 try {
                     DB::transaction(function () use ($transaction, $mutation) {
                         $channel = $transaction->payment_channel;
-                        if (!is_string($channel) || trim($channel) === '') {
+                        if (! is_string($channel) || trim($channel) === '') {
                             $channel = $mutation['bank_type'] ?? 'bank_transfer';
                         }
 
@@ -96,12 +98,12 @@ class MootaWebhookController extends Controller
                                     'status' => 'paid',
                                 ]);
                         }
-                        
+
                         // Log success
                         Log::info("Transaction {$transaction->id} marked as paid via Moota. Amount: {$mutation['amount']}");
                     });
                 } catch (\Exception $e) {
-                    Log::error("Failed to update transaction {$transaction->id}: " . $e->getMessage());
+                    Log::error("Failed to update transaction {$transaction->id}: ".$e->getMessage());
                 }
             } else {
                 Log::warning("No pending transaction found for amount: {$amount}");

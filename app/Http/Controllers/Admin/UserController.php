@@ -52,7 +52,7 @@ class UserController extends Controller
             ->latest()
             ->paginate(10)
             ->withQueryString();
-        
+
         if ($request->ajax()) {
             return view('admin.users.partials.table', compact('users'))->render();
         }
@@ -75,9 +75,9 @@ class UserController extends Controller
     public function transactions(User $user)
     {
         return response()->json([
-            'transactions' => $user->wallet 
-                ? $user->wallet->transactions()->latest()->limit(5)->get() 
-                : []
+            'transactions' => $user->wallet
+                ? $user->wallet->transactions()->latest()->limit(5)->get()
+                : [],
         ]);
     }
 
@@ -186,6 +186,7 @@ class UserController extends Controller
         if (request()->wantsJson()) {
             return response()->json($user->load('wallet'));
         }
+
         return view('admin.users.show', compact('user'));
     }
 

@@ -37,4 +37,3 @@ class CommunityInvoice extends Model
         return $this->belongsTo(Transaction::class);
     }
 }
-

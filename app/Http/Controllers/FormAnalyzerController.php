@@ -95,7 +95,7 @@ class FormAnalyzerController extends Controller
                 $ext = strtolower($file->getClientOriginalExtension() ?: 'mp4');
                 $originalPath = $file->storeAs($dir, "original.{$ext}");
 
-                $originalAbs = storage_path('app/' . $originalPath);
+                $originalAbs = storage_path('app/'.$originalPath);
                 $originalSize = @filesize($originalAbs) ?: 0;
 
                 $probeOriginal = $this->probeVideo($originalAbs);
@@ -211,26 +211,41 @@ class FormAnalyzerController extends Controller
 
     private function parseMetrics(?string $metrics): ?array
     {
-        if (! is_string($metrics) || trim($metrics) === '') return null;
+        if (! is_string($metrics) || trim($metrics) === '') {
+            return null;
+        }
         $decoded = json_decode($metrics, true);
+
         return is_array($decoded) ? $decoded : null;
     }
 
     private function normalizeBiomechMetrics(?array $metrics): ?array
     {
-        if (! is_array($metrics)) return null;
+        if (! is_array($metrics)) {
+            return null;
+        }
 
         $num = function ($key) use ($metrics) {
             $v = $metrics[$key] ?? null;
-            if ($v === null || $v === '') return null;
-            if (is_numeric($v)) return (float) $v;
+            if ($v === null || $v === '') {
+                return null;
+            }
+            if (is_numeric($v)) {
+                return (float) $v;
+            }
+
             return null;
         };
 
         $int = function ($key) use ($metrics) {
             $v = $metrics[$key] ?? null;
-            if ($v === null || $v === '') return null;
-            if (is_numeric($v)) return (int) $v;
+            if ($v === null || $v === '') {
+                return null;
+            }
+            if (is_numeric($v)) {
+                return (int) $v;
+            }
+
             return null;
         };
 
@@ -257,11 +272,17 @@ class FormAnalyzerController extends Controller
         $fps = $probe['fps'] ?? null;
         $bitrate = $probe['bitrate'] ?? null;
 
-        if (! $duration && ! empty($clientData['client_duration'])) $duration = (float) $clientData['client_duration'];
-        if (! $width && ! empty($clientData['client_width'])) $width = (int) $clientData['client_width'];
-        if (! $height && ! empty($clientData['client_height'])) $height = (int) $clientData['client_height'];
+        if (! $duration && ! empty($clientData['client_duration'])) {
+            $duration = (float) $clientData['client_duration'];
+        }
+        if (! $width && ! empty($clientData['client_width'])) {
+            $width = (int) $clientData['client_width'];
+        }
+        if (! $height && ! empty($clientData['client_height'])) {
+            $height = (int) $clientData['client_height'];
+        }
 
-        $resolution = ($width && $height) ? ($width . 'x' . $height) : null;
+        $resolution = ($width && $height) ? ($width.'x'.$height) : null;
         $isPortrait = ($width && $height) ? ($height > $width) : null;
 
         return [
@@ -272,7 +293,7 @@ class FormAnalyzerController extends Controller
             'resolution' => $resolution ?: '--',
             'is_portrait' => $isPortrait,
             'fps' => $fps,
-            'fps_human' => $fps ? (round($fps, 2) . ' fps') : '--',
+            'fps_human' => $fps ? (round($fps, 2).' fps') : '--',
             'bitrate_bps' => $bitrate,
             'size_bytes' => $sizeBytes,
             'size_human' => $this->formatBytes($sizeBytes),
@@ -281,7 +302,9 @@ class FormAnalyzerController extends Controller
 
     private function probeVideo(string $absPath): ?array
     {
-        if (! $this->canRunBinary('ffprobe')) return null;
+        if (! $this->canRunBinary('ffprobe')) {
+            return null;
+        }
 
         $process = new Process([
             'ffprobe',
@@ -294,15 +317,23 @@ class FormAnalyzerController extends Controller
         $process->setTimeout(30);
         $process->run();
 
-        if (! $process->isSuccessful()) return null;
+        if (! $process->isSuccessful()) {
+            return null;
+        }
 
         $json = json_decode($process->getOutput(), true);
-        if (! is_array($json)) return null;
+        if (! is_array($json)) {
+            return null;
+        }
 
         $duration = null;
         $bitrate = null;
-        if (isset($json['format']['duration'])) $duration = (float) $json['format']['duration'];
-        if (isset($json['format']['bit_rate'])) $bitrate = (int) $json['format']['bit_rate'];
+        if (isset($json['format']['duration'])) {
+            $duration = (float) $json['format']['duration'];
+        }
+        if (isset($json['format']['bit_rate'])) {
+            $bitrate = (int) $json['format']['bit_rate'];
+        }
 
         $width = null;
         $height = null;
@@ -320,7 +351,9 @@ class FormAnalyzerController extends Controller
                     [$n, $d] = array_pad(explode('/', $rate, 2), 2, null);
                     $n = (float) $n;
                     $d = (float) $d;
-                    if ($d > 0) $fps = $n / $d;
+                    if ($d > 0) {
+                        $fps = $n / $d;
+                    }
                 } elseif (is_numeric($rate)) {
                     $fps = (float) $rate;
                 }
@@ -346,6 +379,7 @@ class FormAnalyzerController extends Controller
                 'message' => 'Server belum menyediakan ffmpeg. Video tetap dianalisis dari metadata yang ada.',
                 'severity' => 'info',
             ];
+
             return ['used' => false, 'warnings' => $warnings];
         }
 
@@ -354,10 +388,10 @@ class FormAnalyzerController extends Controller
         $fps = $probe['fps'] ?? null;
 
         $targetWidth = ($width && $width > 720) ? 720 : null;
-        $vf = $targetWidth ? "scale='min({$targetWidth},iw)':-2" : "scale=iw:ih";
+        $vf = $targetWidth ? "scale='min({$targetWidth},iw)':-2" : 'scale=iw:ih';
 
-        $outRel = $dir . '/optimized.mp4';
-        $outAbs = storage_path('app/' . $outRel);
+        $outRel = $dir.'/optimized.mp4';
+        $outAbs = storage_path('app/'.$outRel);
 
         $args = [
             'ffmpeg',
@@ -388,6 +422,7 @@ class FormAnalyzerController extends Controller
                 'message' => 'Video tetap diproses tanpa optimasi. Pastikan ffmpeg mendukung H.264 (libx264) di server.',
                 'severity' => 'info',
             ];
+
             return ['used' => false, 'warnings' => $warnings];
         }
 
@@ -399,6 +434,7 @@ class FormAnalyzerController extends Controller
                 'message' => 'Video tetap diproses tanpa optimasi.',
                 'severity' => 'info',
             ];
+
             return ['used' => false, 'warnings' => $warnings];
         }
 
@@ -671,6 +707,7 @@ class FormAnalyzerController extends Controller
                 'severity' => 'medium',
             ];
             $coachLines[] = 'Analisis form (heel strike, overstride, dll) butuh deteksi pose. Rekam lebih terang dan pastikan tubuh full di frame.';
+
             return [$formIssues, $strengthPlan, $recoveryPlan, $coachLines, $positives];
         }
 
@@ -997,8 +1034,11 @@ class FormAnalyzerController extends Controller
         }
 
         $num = function ($key) use ($biomech) {
-            if (! is_array($biomech)) return null;
+            if (! is_array($biomech)) {
+                return null;
+            }
             $v = $biomech[$key] ?? null;
+
             return is_numeric($v) ? (float) $v : null;
         };
 
@@ -1019,7 +1059,9 @@ class FormAnalyzerController extends Controller
             $cur = $s['status'] ?? 'ok';
             if (($priority[$status] ?? 0) >= ($priority[$cur] ?? 0)) {
                 $s['status'] = $status;
-                if ($summary) $s['summary'] = $summary;
+                if ($summary) {
+                    $s['summary'] = $summary;
+                }
             }
         };
 
@@ -1036,6 +1078,7 @@ class FormAnalyzerController extends Controller
                 $s['actions'][] = 'Rekam tampak samping, tubuh full terlihat, cahaya cukup, dan pace stabil 5–10 detik.';
             }
             unset($s);
+
             return [$landing, $lever, $push, $pull, $arm, $posture];
         }
 
@@ -1155,7 +1198,9 @@ class FormAnalyzerController extends Controller
                     $c = (int) $coverage[$code]['count'];
                     $m = (int) $coverage[$code]['min'];
                     $s['findings'][] = "Cakupan frame: {$c}/{$m}";
-                    if ($c < $m) $setStatus($s, 'missing', 'Frame belum cukup untuk kategori ini');
+                    if ($c < $m) {
+                        $setStatus($s, 'missing', 'Frame belum cukup untuk kategori ini');
+                    }
                 }
             }
             unset($s);
@@ -1170,6 +1215,7 @@ class FormAnalyzerController extends Controller
             $p = new Process([$bin, '-version']);
             $p->setTimeout(5);
             $p->run();
+
             return $p->isSuccessful();
         } catch (\Throwable $e) {
             return false;
@@ -1178,20 +1224,26 @@ class FormAnalyzerController extends Controller
 
     private function formatBytes(int $bytes): string
     {
-        if ($bytes <= 0) return '--';
+        if ($bytes <= 0) {
+            return '--';
+        }
         $units = ['B', 'KB', 'MB', 'GB'];
         $i = (int) floor(log($bytes, 1024));
         $i = max(0, min($i, count($units) - 1));
         $val = $bytes / (1024 ** $i);
         $dec = $val >= 100 ? 0 : ($val >= 10 ? 1 : 2);
-        return number_format($val, $dec) . ' ' . $units[$i];
+
+        return number_format($val, $dec).' '.$units[$i];
     }
 
     private function formatDuration(float $seconds): string
     {
-        if ($seconds <= 0) return '--';
+        if ($seconds <= 0) {
+            return '--';
+        }
         $m = (int) floor($seconds / 60);
         $s = (int) round($seconds % 60);
-        return ($m > 0 ? ($m . 'm ') : '') . $s . 's';
+
+        return ($m > 0 ? ($m.'m ') : '').$s.'s';
     }
 }

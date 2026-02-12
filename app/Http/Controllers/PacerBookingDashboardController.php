@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PacerBooking;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PacerBookingDashboardController extends Controller
@@ -23,7 +22,7 @@ class PacerBookingDashboardController extends Controller
     public function inbox()
     {
         $user = Auth::user();
-        if (!$user->is_pacer) {
+        if (! $user->is_pacer) {
             abort(403);
         }
 
@@ -37,4 +36,3 @@ class PacerBookingDashboardController extends Controller
         return view('pacer.bookings.inbox', compact('bookings'));
     }
 }
-

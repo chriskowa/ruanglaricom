@@ -10,11 +10,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('community_registrations') || !Schema::hasTable('communities')) {
+        if (! Schema::hasTable('community_registrations') || ! Schema::hasTable('communities')) {
             return;
         }
 
-        if (!Schema::hasColumn('community_registrations', 'community_id')) {
+        if (! Schema::hasColumn('community_registrations', 'community_id')) {
             return;
         }
 
@@ -50,7 +50,7 @@ return new class extends Migration
                         $base = $baseSlug !== '' ? $baseSlug : $slug;
                         $counter = 2;
                         while (DB::table('communities')->where('slug', $slug)->exists()) {
-                            $slug = $base . '-' . $counter;
+                            $slug = $base.'-'.$counter;
                             $counter++;
                         }
 
@@ -59,7 +59,7 @@ return new class extends Migration
                             'name' => $communityName !== '' ? $communityName : $slug,
                             'slug' => $slug,
                             'pic_name' => $picName !== '' ? $picName : '-',
-                            'pic_email' => $picEmail !== '' ? $picEmail : ($slug . '@invalid.local'),
+                            'pic_email' => $picEmail !== '' ? $picEmail : ($slug.'@invalid.local'),
                             'pic_phone' => $picPhone !== '' ? $picPhone : '-',
                             'created_at' => $now,
                             'updated_at' => $now,
@@ -119,7 +119,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (!Schema::hasTable('community_registrations')) {
+        if (! Schema::hasTable('community_registrations')) {
             return;
         }
 
@@ -128,4 +128,3 @@ return new class extends Migration
         });
     }
 };
-

@@ -18,6 +18,7 @@ class BenchmarkGpxParsing extends Command
 
         if (! $disk->exists($publicPath)) {
             $this->error('File tidak ditemukan di storage/public: '.$publicPath);
+
             return self::FAILURE;
         }
 
@@ -26,10 +27,11 @@ class BenchmarkGpxParsing extends Command
 
         $start = microtime(true);
 
-        $reader = new \XMLReader();
+        $reader = new \XMLReader;
         $ok = $reader->open($fullPath, null, LIBXML_NONET | LIBXML_COMPACT);
         if (! $ok) {
             $this->error('Gagal membuka file GPX.');
+
             return self::FAILURE;
         }
 
@@ -82,8 +84,12 @@ class BenchmarkGpxParsing extends Command
                 $distanceKm += $this->haversineKm($prevLat, $prevLon, $latF, $lonF);
                 if ($ele !== null && $prevEle !== null) {
                     $d = $ele - $prevEle;
-                    if ($d > 0) $gain += $d;
-                    if ($d < 0) $loss += abs($d);
+                    if ($d > 0) {
+                        $gain += $d;
+                    }
+                    if ($d < 0) {
+                        $loss += abs($d);
+                    }
                 }
             }
 
@@ -122,7 +128,7 @@ class BenchmarkGpxParsing extends Command
         $dLon = $toRad($lon2 - $lon1);
         $a = sin($dLat / 2) ** 2 + cos($toRad($lat1)) * cos($toRad($lat2)) * sin($dLon / 2) ** 2;
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
         return $R * $c;
     }
 }
-

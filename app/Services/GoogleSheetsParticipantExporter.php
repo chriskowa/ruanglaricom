@@ -2,9 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Event;
-use App\Models\Participant;
-
 class GoogleSheetsParticipantExporter
 {
     public const OUTPUT_COLUMNS = [
@@ -25,6 +22,4 @@ class GoogleSheetsParticipantExporter
         'Tanggal Pengambilan',
         'Diambil Oleh (PIC)',
     ];
-
 }
-

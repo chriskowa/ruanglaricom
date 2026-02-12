@@ -36,6 +36,7 @@ Route::get('/', function (StravaClubService $stravaService) {
     $leaderboard = \Illuminate\Support\Facades\Cache::remember('home.leaderboard.data', 3600, function () use ($stravaService) {
         try {
             $data = $stravaService->getLeaderboard();
+
             return (is_array($data) && ($data['fastest'] || $data['distance'] || $data['elevation'])) ? $data : null;
         } catch (\Throwable $e) {
             return null;
@@ -43,7 +44,7 @@ Route::get('/', function (StravaClubService $stravaService) {
     });
 
     // Fallback to permanent cache if recent fetch failed/returned null but we have old data
-    if (!$leaderboard) {
+    if (! $leaderboard) {
         $leaderboard = \Illuminate\Support\Facades\Cache::get('home.leaderboard.last');
     } else {
         // Update permanent cache
@@ -68,15 +69,15 @@ Route::get('/', function (StravaClubService $stravaService) {
             ->first();
 
         $coach = $coachData ? \App\Models\User::withCount('programs')->find($coachData->coach_id) : null;
-        
-        $totalUsers = \App\Models\User::whereIn('role', ['runner','coach'])->count();
+
+        $totalUsers = \App\Models\User::whereIn('role', ['runner', 'coach'])->count();
 
         return [
             'runner' => $runner,
             'pacer' => $pacer,
             'coach' => $coach,
             'coachData' => $coachData,
-            'totalUsers' => $totalUsers
+            'totalUsers' => $totalUsers,
         ];
     });
 
@@ -88,7 +89,7 @@ Route::get('/', function (StravaClubService $stravaService) {
         'topPacer' => $topStats['pacer'],
         'topCoach' => $topStats['coach'],
         'topCoachData' => $topStats['coachData'],
-        'totalUsers' => $topStats['totalUsers'] ?? 0
+        'totalUsers' => $topStats['totalUsers'] ?? 0,
     ]);
 })->name('home');
 
@@ -117,7 +118,6 @@ Route::get('/vcard', function () {
 Route::get('/halaman-lama', function () {
     return redirect('/halaman-baru');
 });
-
 
 // Challenge assessment persistence (auth required)
 Route::middleware('auth')->post('/challenge/40-days-challenge/assessment', function (Illuminate\Http\Request $request) {
@@ -197,7 +197,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Pages Management
     Route::resource('pages', App\Http\Controllers\Admin\PageController::class);
-    
+
     // Homepage Content Management
     Route::get('/homepage/content', [App\Http\Controllers\Admin\HomepageContentController::class, 'index'])->name('homepage.content');
     Route::post('/homepage/content', [App\Http\Controllers\Admin\HomepageContentController::class, 'update'])->name('homepage.content.update');
@@ -231,6 +231,8 @@ Route::get('/tools/race-master/results/{slug}', [App\Http\Controllers\Tools\Race
 
 Route::prefix('/api/tools/race-master')->group(function () {
     Route::get('/docs', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'docs'])->name('tools.race-master.api.docs');
+    Route::get('/races', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'index'])->name('tools.race-master.api.races.index');
+    Route::get('/races/{race}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'show'])->name('tools.race-master.api.races.show');
     Route::post('/races', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeRace'])->name('tools.race-master.api.races.store');
     Route::put('/races/{race}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'updateRace'])->name('tools.race-master.api.races.update');
     Route::post('/races/{race}/participants/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'upsertParticipants'])->name('tools.race-master.api.races.participants.bulk');
@@ -327,7 +329,7 @@ Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
 
     try {
         $response = Illuminate\Support\Facades\Http::withHeaders([
-            'User-Agent' => 'RuangLari/1.0 (contact@ruanglari.com)'
+            'User-Agent' => 'RuangLari/1.0 (contact@ruanglari.com)',
         ])->withoutVerifying()->get($url);
 
         return response($response->body())
@@ -405,8 +407,9 @@ Route::get('/event-category/event-lari-{city}', function (Request $request, $cit
     $to = route('events.city', ['city' => $city]);
     $qs = $request->getQueryString();
     if ($qs) {
-        $to .= '?' . $qs;
+        $to .= '?'.$qs;
     }
+
     return redirect()->to($to, 301);
 })->where('city', '[a-z0-9\-]+');
 Route::get('/event-lari/{slug}', [App\Http\Controllers\PublicRunningEventController::class, 'show'])->name('running-event.detail');
@@ -415,8 +418,9 @@ Route::get('/paolorunfest', function (Request $request) {
     $to = route('events.show', 'paolorunfest-2026');
     $qs = $request->getQueryString();
     if ($qs) {
-        $to .= '?' . $qs;
+        $to .= '?'.$qs;
     }
+
     return redirect()->to($to, 301);
 });
 
@@ -474,7 +478,10 @@ Route::get('/api/events/upcoming', function () {
         }
 
         $events = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id', 'external_registration_link')
-            ->orderByRaw('COALESCE(start_at, created_at) ASC')
+            ->whereYear('start_at', now()->year)
+            ->whereMonth('start_at', now()->month)
+            ->where('start_at', '>=', now())
+            ->orderBy('start_at', 'asc')
             ->limit(4)
             ->get()
             ->map(function ($e) {
@@ -511,7 +518,7 @@ Route::get('/api/blog/latest', function () {
             ->map(function ($a) {
                 $img = $a->featured_image;
                 if ($img && ! str_starts_with($img, 'http')) {
-                    $img = asset('storage/' . ltrim($img, '/'));
+                    $img = asset('storage/'.ltrim($img, '/'));
                 }
 
                 $dt = $a->published_at ?: $a->created_at;
@@ -633,11 +640,17 @@ Route::middleware('auth')->group(function () {
         Route::resource('master-gpx', App\Http\Controllers\Admin\MasterGpxController::class)->except(['show']);
 
         // User Management
-    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
-    Route::get('users/{user}/transactions', [App\Http\Controllers\Admin\UserController::class, 'transactions'])->name('users.transactions');
-    Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
-    Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
-    Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
+        Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+        Route::get('users/{user}/transactions', [App\Http\Controllers\Admin\UserController::class, 'transactions'])->name('users.transactions');
+        Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
+        Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
+
+        // Race Master Management
+        Route::resource('races', App\Http\Controllers\Admin\RaceController::class);
+        Route::post('races/{race}/participants', [App\Http\Controllers\Admin\RaceParticipantController::class, 'store'])->name('races.participants.store');
+        Route::put('races/{race}/participants/{raceSessionParticipant}', [App\Http\Controllers\Admin\RaceParticipantController::class, 'update'])->name('races.participants.update');
+        Route::delete('races/{race}/participants/{raceSessionParticipant}', [App\Http\Controllers\Admin\RaceParticipantController::class, 'destroy'])->name('races.participants.destroy');
 
         Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');
         Route::post('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'update'])->name('marketplace.settings.update');
@@ -667,7 +680,7 @@ Route::middleware('auth')->group(function () {
         Route::post('blog/images/upload', [App\Http\Controllers\Admin\Blog\ImageController::class, 'upload'])->name('blog.images.upload');
         Route::get('blog/import', [App\Http\Controllers\Admin\Blog\ImportController::class, 'index'])->name('blog.import');
         Route::post('blog/import', [App\Http\Controllers\Admin\Blog\ImportController::class, 'store'])->name('blog.import.store');
-        
+
         // Media Library
         Route::get('blog/media', [App\Http\Controllers\Admin\Blog\MediaController::class, 'index'])->name('blog.media.index');
         Route::post('blog/media', [App\Http\Controllers\Admin\Blog\MediaController::class, 'store'])->name('blog.media.store');
@@ -923,10 +936,10 @@ Route::post('/webhook/moota', [App\Http\Controllers\Api\MootaWebhookController::
 
 Route::get('/run-queue-worker', function () {
     // Security: Only allow admin or secure usage (optional, for now open for debug)
-    
+
     $exitCode = Illuminate\Support\Facades\Artisan::call('queue:work', [
-        '--stop-when-empty' => true
+        '--stop-when-empty' => true,
     ]);
-    
-    return 'Worker executed. Output: ' . Illuminate\Support\Facades\Artisan::output();
+
+    return 'Worker executed. Output: '.Illuminate\Support\Facades\Artisan::output();
 });

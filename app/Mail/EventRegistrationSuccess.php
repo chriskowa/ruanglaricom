@@ -5,7 +5,6 @@ namespace App\Mail;
 use App\Models\Event;
 use App\Models\Transaction;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -16,8 +15,11 @@ class EventRegistrationSuccess extends Mailable
     use Queueable, SerializesModels;
 
     public $event;
+
     public $transaction;
+
     public $participants;
+
     public $notifiableName;
 
     /**
@@ -37,7 +39,7 @@ class EventRegistrationSuccess extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tiket & Konfirmasi Registrasi: ' . $this->event->name,
+            subject: 'Tiket & Konfirmasi Registrasi: '.$this->event->name,
         );
     }
 

@@ -13,14 +13,14 @@ class AgeGroupTest extends TestCase
      */
     public function test_age_group_umum()
     {
-        $participant = new Participant();
-        
+        $participant = new Participant;
+
         // 39 years old
         $eventDate = Carbon::parse('2024-01-01');
         $participant->date_of_birth = $eventDate->copy()->subYears(39);
-        
+
         $this->assertEquals('Umum', $participant->getAgeGroup($eventDate));
-        
+
         // 39 years and 364 days old (almost 40)
         $participant->date_of_birth = $eventDate->copy()->subYears(40)->addDay();
         $this->assertEquals('Umum', $participant->getAgeGroup($eventDate));
@@ -31,7 +31,7 @@ class AgeGroupTest extends TestCase
      */
     public function test_age_group_master()
     {
-        $participant = new Participant();
+        $participant = new Participant;
         $eventDate = Carbon::parse('2024-01-01');
 
         // Exactly 40 years old
@@ -52,7 +52,7 @@ class AgeGroupTest extends TestCase
      */
     public function test_age_group_master_45_plus()
     {
-        $participant = new Participant();
+        $participant = new Participant;
         $eventDate = Carbon::parse('2024-01-01');
 
         // Exactly 45 years old
@@ -62,7 +62,7 @@ class AgeGroupTest extends TestCase
         // 49 years old
         $participant->date_of_birth = $eventDate->copy()->subYears(49);
         $this->assertEquals('Master 45+', $participant->getAgeGroup($eventDate));
-        
+
         // Almost 50 (50 years - 1 day)
         $participant->date_of_birth = $eventDate->copy()->subYears(50)->addDay();
         $this->assertEquals('Master 45+', $participant->getAgeGroup($eventDate));
@@ -73,7 +73,7 @@ class AgeGroupTest extends TestCase
      */
     public function test_age_group_50_plus()
     {
-        $participant = new Participant();
+        $participant = new Participant;
         $eventDate = Carbon::parse('2024-01-01');
 
         // Exactly 50 years old
@@ -90,7 +90,7 @@ class AgeGroupTest extends TestCase
      */
     public function test_age_group_missing_data()
     {
-        $participant = new Participant();
+        $participant = new Participant;
         $eventDate = Carbon::parse('2024-01-01');
 
         // Missing DOB

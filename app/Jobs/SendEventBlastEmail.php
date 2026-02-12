@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Event;
 use App\Models\Participant;
-use App\Jobs\SendSingleEventBlastEmail;
 use App\Services\EventInstantEmailLimiter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -15,8 +14,11 @@ class SendEventBlastEmail implements ShouldQueue
     use Queueable;
 
     protected $event;
+
     protected $subject;
+
     protected $content;
+
     protected $filters;
 
     /**
@@ -35,7 +37,7 @@ class SendEventBlastEmail implements ShouldQueue
      */
     public function handle(EventInstantEmailLimiter $limiter): void
     {
-        Log::info('Starting blast email for event: ' . $this->event->name);
+        Log::info('Starting blast email for event: '.$this->event->name);
 
         $this->event = $this->event->fresh();
         if (! $this->event) {
@@ -44,20 +46,20 @@ class SendEventBlastEmail implements ShouldQueue
 
         $query = Participant::whereHas('transaction', function ($q) {
             $q->where('event_id', $this->event->id)
-              ->where('payment_status', 'paid');
+                ->where('payment_status', 'paid');
         });
 
         // Apply filters
-        if (!empty($this->filters['category_id'])) {
+        if (! empty($this->filters['category_id'])) {
             $query->where('race_category_id', $this->filters['category_id']);
         }
-        
+
         // Chunk results to handle large datasets
         $query->chunk(100, function ($participants) use ($limiter) {
             $this->dispatchBlastChunk($participants, $limiter);
         });
 
-        Log::info('Blast email completed for event: ' . $this->event->name);
+        Log::info('Blast email completed for event: '.$this->event->name);
     }
 
     private function dispatchBlastChunk($participants, EventInstantEmailLimiter $limiter): void

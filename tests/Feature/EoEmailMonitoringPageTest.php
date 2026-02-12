@@ -92,4 +92,3 @@ class EoEmailMonitoringPageTest extends TestCase
         $resp->assertDontSee('EO2 Event');
     }
 }
-

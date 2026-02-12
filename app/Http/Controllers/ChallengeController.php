@@ -5,16 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\ChallengeActivity;
 use App\Models\LeaderboardStat;
 use App\Models\OtpToken;
+use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Models\User;
-use App\Models\Program;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 
 class ChallengeController extends Controller
 {
@@ -255,9 +254,9 @@ class ChallengeController extends Controller
                     'at' => now()->toIsoString(),
                     'context' => 'challenge_registration',
                     'pb_5km' => $data['pb_5km'] ?? null,
-                    'valid_proof' => $proofPath
-                ]
-            ]
+                    'valid_proof' => $proofPath,
+                ],
+            ],
         ]);
 
         // Generate OTP
@@ -289,7 +288,7 @@ class ChallengeController extends Controller
         return response()->json([
             'success' => true,
             'user_id' => $user->id,
-            'message' => $successMsg
+            'message' => $successMsg,
         ]);
     }
 
@@ -339,7 +338,7 @@ class ChallengeController extends Controller
         return response()->json([
             'success' => true,
             'redirect_url' => route('runner.calendar'),
-            'message' => 'Verifikasi berhasil!'
+            'message' => 'Verifikasi berhasil!',
         ]);
     }
 

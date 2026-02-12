@@ -172,4 +172,3 @@ class MarketplaceAuctionAndConsignmentTest extends TestCase
         $this->assertEquals('listed', $intake->status);
     }
 }
-

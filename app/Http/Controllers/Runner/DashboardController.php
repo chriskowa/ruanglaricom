@@ -95,26 +95,26 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($act) {
                 $act->distance_km = $act->distance_m ? round($act->distance_m / 1000, 2) : 0;
-                $act->pace_min_km = ($act->distance_m > 0) ? gmdate("i:s", (int)($act->moving_time_s / ($act->distance_m / 1000))) : '-';
-                $act->formatted_duration = gmdate("H:i:s", $act->moving_time_s);
-                
+                $act->pace_min_km = ($act->distance_m > 0) ? gmdate('i:s', (int) ($act->moving_time_s / ($act->distance_m / 1000))) : '-';
+                $act->formatted_duration = gmdate('H:i:s', $act->moving_time_s);
+
                 $type = strtolower($act->type ?? '');
-                $act->border_color = match(true) {
+                $act->border_color = match (true) {
                     in_array($type, ['run', 'virtualrun', 'trailrun', 'treadmill']) => '#4CAF50',
                     in_array($type, ['ride', 'virtualride', 'ebikeride']) => '#2196F3',
                     $type === 'swim' => '#00BCD4',
                     in_array($type, ['walk', 'hike']) => '#FF9800',
                     default => '#9E9E9E'
                 };
-                
-                $act->icon = match(true) {
+
+                $act->icon = match (true) {
                     in_array($type, ['run', 'virtualrun', 'trailrun', 'treadmill']) => '🏃',
                     in_array($type, ['ride', 'virtualride', 'ebikeride']) => '🚴',
                     $type === 'swim' => '🏊',
                     in_array($type, ['walk', 'hike']) => '🚶',
                     default => '🏋️'
                 };
-                
+
                 return $act;
             });
 

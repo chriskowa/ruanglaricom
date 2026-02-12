@@ -68,6 +68,7 @@ class StravaApiService
         }
 
         $json = $res->json();
+
         return is_array($json) ? $json : null;
     }
 
@@ -90,6 +91,7 @@ class StravaApiService
         }
 
         $json = $res->json();
+
         return is_array($json) ? $json : null;
     }
 

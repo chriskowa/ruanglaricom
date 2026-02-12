@@ -113,7 +113,7 @@ class ManualParticipantStoreTest extends TestCase
     public function test_eo_can_add_participant_and_email_is_sent_synchronously(): void
     {
         Mail::fake();
-        
+
         $eo = User::factory()->create(['role' => 'eo']);
         $event = Event::factory()->create(['user_id' => $eo->id]);
         $category = RaceCategory::create([
@@ -130,7 +130,7 @@ class ManualParticipantStoreTest extends TestCase
             'reg_end_at' => now()->addDay(),
             'is_active' => true,
         ]);
-        
+
         $data = [
             'name' => 'John Doe',
             'gender' => 'male',
@@ -145,13 +145,13 @@ class ManualParticipantStoreTest extends TestCase
             'emergency_contact_name' => 'Jane Doe',
             'emergency_contact_number' => '081234567891',
         ];
-        
+
         $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), $data);
-        
+
         $response->assertStatus(201);
         $this->assertDatabaseCount('transactions', 1);
         $this->assertDatabaseCount('participants', 1);
-        
+
         Mail::assertSent(EventRegistrationSuccess::class, function ($mail) {
             return $mail->hasTo('john@example.com');
         });
@@ -160,7 +160,7 @@ class ManualParticipantStoreTest extends TestCase
     public function test_duplicate_email_is_rejected(): void
     {
         Mail::fake();
-        
+
         $eo = User::factory()->create(['role' => 'eo']);
         $event = Event::factory()->create(['user_id' => $eo->id]);
         $category = RaceCategory::create([
@@ -177,7 +177,7 @@ class ManualParticipantStoreTest extends TestCase
             'reg_end_at' => now()->addDay(),
             'is_active' => true,
         ]);
-        
+
         // First participant
         $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), [
             'name' => 'John Doe',
@@ -188,7 +188,7 @@ class ManualParticipantStoreTest extends TestCase
             'address' => 'Jl. EO Test No. 2, Jakarta',
             'category_id' => $category->id,
         ]);
-        
+
         // Second participant (duplicate email)
         $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), [
             'name' => 'John Doe 2',
@@ -199,7 +199,7 @@ class ManualParticipantStoreTest extends TestCase
             'address' => 'Jl. EO Test No. 3, Jakarta',
             'category_id' => $category->id,
         ]);
-        
+
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['email']);
     }
@@ -233,7 +233,7 @@ class ManualParticipantStoreTest extends TestCase
         ]);
 
         $response->assertStatus(201);
-        
+
         $participant = Participant::where('email', 'early@example.com')->first();
         $this->assertEquals('early', $participant->price_type);
         $this->assertEquals(100000, $participant->transaction->final_amount);
@@ -268,7 +268,7 @@ class ManualParticipantStoreTest extends TestCase
         ]);
 
         $response->assertStatus(201);
-        
+
         $participant = Participant::where('email', 'regular@example.com')->first();
         $this->assertEquals('regular', $participant->price_type);
         $this->assertEquals(150000, $participant->transaction->final_amount);
@@ -331,7 +331,7 @@ class ManualParticipantStoreTest extends TestCase
         ]);
 
         $response->assertStatus(201);
-        
+
         $participant = Participant::where('email', 'late@example.com')->first();
         $this->assertEquals('regular', $participant->price_type);
         $this->assertEquals(150000, $participant->transaction->final_amount);
@@ -408,8 +408,8 @@ class ManualParticipantStoreTest extends TestCase
         $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), $data);
 
         $response->assertStatus(201);
-        
-        $transaction = Transaction::whereHas('participants', function($q) {
+
+        $transaction = Transaction::whereHas('participants', function ($q) {
             $q->where('email', 'nowa@example.com');
         })->first();
 
@@ -419,7 +419,7 @@ class ManualParticipantStoreTest extends TestCase
     public function test_eo_manual_entry_uses_early_bird_price_when_eligible(): void
     {
         Mail::fake();
-        
+
         $eo = User::factory()->create(['role' => 'eo']);
         $event = Event::factory()->create(['user_id' => $eo->id]);
         $category = RaceCategory::create([
@@ -439,7 +439,7 @@ class ManualParticipantStoreTest extends TestCase
             'reg_end_at' => now()->addDay(),
             'is_active' => true,
         ]);
-        
+
         $data = [
             'name' => 'Early Bird Runner',
             'email' => 'early@example.com',
@@ -448,14 +448,14 @@ class ManualParticipantStoreTest extends TestCase
             'address' => 'Jl. EO Test No. 9, Jakarta',
             'category_id' => $category->id,
         ];
-        
+
         $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), $data);
-        
+
         $response->assertStatus(201);
-        
+
         $participant = Participant::where('email', 'early@example.com')->first();
         $this->assertEquals('early', $participant->price_type);
-        
+
         $transaction = $participant->transaction;
         $this->assertEquals(80000, $transaction->total_original);
     }
@@ -463,7 +463,7 @@ class ManualParticipantStoreTest extends TestCase
     public function test_eo_manual_entry_uses_regular_price_when_early_bird_expired(): void
     {
         Mail::fake();
-        
+
         $eo = User::factory()->create(['role' => 'eo']);
         $event = Event::factory()->create(['user_id' => $eo->id]);
         $category = RaceCategory::create([
@@ -483,7 +483,7 @@ class ManualParticipantStoreTest extends TestCase
             'reg_end_at' => now()->addDay(),
             'is_active' => true,
         ]);
-        
+
         $data = [
             'name' => 'Regular Runner',
             'email' => 'regular@example.com',
@@ -492,14 +492,14 @@ class ManualParticipantStoreTest extends TestCase
             'address' => 'Jl. EO Test No. 10, Jakarta',
             'category_id' => $category->id,
         ];
-        
+
         $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), $data);
-        
+
         $response->assertStatus(201);
-        
+
         $participant = Participant::where('email', 'regular@example.com')->first();
         $this->assertEquals('regular', $participant->price_type);
-        
+
         $transaction = $participant->transaction;
         $this->assertEquals(100000, $transaction->total_original);
     }
@@ -507,7 +507,7 @@ class ManualParticipantStoreTest extends TestCase
     public function test_eo_manual_entry_uses_regular_price_when_early_bird_quota_full(): void
     {
         Mail::fake();
-        
+
         $eo = User::factory()->create(['role' => 'eo']);
         $event = Event::factory()->create(['user_id' => $eo->id]);
         $category = RaceCategory::create([
@@ -527,7 +527,7 @@ class ManualParticipantStoreTest extends TestCase
             'reg_end_at' => now()->addDay(),
             'is_active' => true,
         ]);
-        
+
         // Fill the quota
         $t1 = Transaction::create([
             'event_id' => $event->id,
@@ -539,7 +539,7 @@ class ManualParticipantStoreTest extends TestCase
             'payment_gateway' => 'manual',
             'final_amount' => 80000,
         ]);
-        
+
         Participant::create([
             'transaction_id' => $t1->id,
             'race_category_id' => $category->id,
@@ -550,7 +550,7 @@ class ManualParticipantStoreTest extends TestCase
             'status' => 'pending',
             'price_type' => 'early', // Mark as early
         ]);
-        
+
         // Now try to add another one
         $data = [
             'name' => 'Late Runner',
@@ -561,14 +561,14 @@ class ManualParticipantStoreTest extends TestCase
             'category_id' => $category->id,
             'use_queue' => true,
         ];
-        
+
         $response = $this->actingAs($eo)->postJson(route('eo.events.participants.store', $event), $data);
-        
+
         $response->assertStatus(201);
-        
+
         $participant = Participant::where('email', 'late@example.com')->first();
         $this->assertEquals('regular', $participant->price_type);
-        
+
         $transaction = $participant->transaction;
         $this->assertEquals(100000, $transaction->total_original);
     }

@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
-use App\Models\RaceDistance;
 
 class Event extends Model
 {
@@ -324,9 +323,9 @@ class Event extends Model
         if ($this->event_kind === 'directory') {
             return route('running-event.detail', $this->slug);
         }
-        
+
         if ($this->event_kind === 'managed') {
-             return route('events.show', $this->slug);
+            return route('events.show', $this->slug);
         }
 
         // 3. Admin / Aggregator Event -> Listing View (/event-lari/)

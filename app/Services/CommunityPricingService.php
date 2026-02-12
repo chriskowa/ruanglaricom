@@ -46,4 +46,3 @@ class CommunityPricingService
         return ['price' => $regular, 'type' => 'regular'];
     }
 }
-

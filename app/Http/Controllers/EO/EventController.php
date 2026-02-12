@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\EO;
 
-use App\Http\Controllers\Controller;
 use App\Actions\EO\StoreManualParticipantAction;
+use App\Http\Controllers\Controller;
 use App\Mail\EventRegistrationSuccess;
 use App\Models\Event;
 use App\Models\RaceCategory;
@@ -23,6 +23,7 @@ use Intervention\Image\ImageManager;
 class EventController extends Controller
 {
     protected $cacheService;
+
     protected $reportService;
 
     public function __construct(EventCacheService $cacheService, EventReportService $reportService)
@@ -34,9 +35,9 @@ class EventController extends Controller
     public function index()
     {
         $events = Event::where('user_id', auth()->id())
-            ->with(['categories' => function($query) {
-                $query->withCount(['participants as total_participants', 'participants as paid_participants' => function($q) {
-                    $q->whereHas('transaction', function($t) {
+            ->with(['categories' => function ($query) {
+                $query->withCount(['participants as total_participants', 'participants as paid_participants' => function ($q) {
+                    $q->whereHas('transaction', function ($t) {
                         $t->where('payment_status', 'paid');
                     });
                 }]);
@@ -50,6 +51,7 @@ class EventController extends Controller
     public function create()
     {
         $gpxList = \App\Models\MasterGpx::where('is_published', true)->orderBy('title')->get();
+
         return view('eo.events.create', compact('gpxList'));
     }
 
@@ -850,9 +852,10 @@ class EventController extends Controller
                     'ticket_type' => request('report_ticket_type'),
                 ];
                 $eventReport = $this->reportService->getEventReport($event, $reportFilters);
+
                 return response()->json([
                     'success' => true,
-                    'report' => $eventReport
+                    'report' => $eventReport,
                 ]);
             }
 
@@ -932,9 +935,9 @@ class EventController extends Controller
         $latestBib = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
-        ->whereNotNull('bib_number')
-        ->whereRaw('bib_number REGEXP "^[0-9]+$"')
-        ->max(DB::raw('CAST(bib_number AS UNSIGNED)'));
+            ->whereNotNull('bib_number')
+            ->whereRaw('bib_number REGEXP "^[0-9]+$"')
+            ->max(DB::raw('CAST(bib_number AS UNSIGNED)'));
 
         $nextBibNumber = $latestBib ? ($latestBib + 1) : null;
 
@@ -1103,7 +1106,7 @@ class EventController extends Controller
         ]);
 
         $transaction = $action->execute($event, $validated, $request->user());
-        
+
         if ($request->boolean('use_queue')) {
             \App\Jobs\SendEventRegistrationNotification::dispatch($transaction);
         } else {
@@ -1140,7 +1143,7 @@ class EventController extends Controller
             $belongsToEvent = true;
         }
 
-        if (!$belongsToEvent) {
+        if (! $belongsToEvent) {
             abort(404);
         }
 
@@ -1163,10 +1166,10 @@ class EventController extends Controller
         // If is_picked_up is toggled, handle timestamp
         if (isset($validated['is_picked_up'])) {
             $validated['is_picked_up'] = (bool) $validated['is_picked_up'];
-            if ($validated['is_picked_up'] && !$participant->is_picked_up) {
+            if ($validated['is_picked_up'] && ! $participant->is_picked_up) {
                 $validated['picked_up_at'] = now();
                 $validated['picked_up_by'] = auth()->user()->name ?? 'Admin';
-            } elseif (!$validated['is_picked_up'] && $participant->is_picked_up) {
+            } elseif (! $validated['is_picked_up'] && $participant->is_picked_up) {
                 $validated['picked_up_at'] = null;
                 $validated['picked_up_by'] = null;
             }
@@ -1199,7 +1202,7 @@ class EventController extends Controller
                 'is_picked_up' => $participant->is_picked_up,
                 'picked_up_at' => $participant->picked_up_at,
                 'picked_up_by' => $participant->picked_up_by,
-            ]
+            ],
         ]);
     }
 
@@ -1211,7 +1214,7 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         $request->validate([
-            'participant_id' => 'required|exists:participants,id'
+            'participant_id' => 'required|exists:participants,id',
         ]);
 
         $participant = \App\Models\Participant::with('transaction')->find($request->participant_id);
@@ -1219,8 +1222,8 @@ class EventController extends Controller
         $participantEventId = (int) ($participant?->transaction?->event_id ?? 0);
         if (! $participant || $participantEventId !== (int) $event->id) {
             return response()->json([
-                'success' => false, 
-                'message' => 'Participant not found or does not belong to this event.'
+                'success' => false,
+                'message' => 'Participant not found or does not belong to this event.',
             ], 404);
         }
 
@@ -1228,25 +1231,26 @@ class EventController extends Controller
             // Construct data for the email
             // We pass a collection containing only this participant so the email is specific to them
             $participants = collect([$participant]);
-            
+
             Mail::to($participant->email)->send(
                 new EventRegistrationSuccess(
-                    $event, 
-                    $participant->transaction, 
-                    $participants, 
+                    $event,
+                    $participant->transaction,
+                    $participants,
                     $participant->name
                 )
             );
 
             return response()->json([
-                'success' => true, 
-                'message' => 'Email sent successfully to ' . $participant->email
+                'success' => true,
+                'message' => 'Email sent successfully to '.$participant->email,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Resend Email Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Resend Email Error: '.$e->getMessage());
+
             return response()->json([
-                'success' => false, 
-                'message' => 'Failed to send email: ' . $e->getMessage()
+                'success' => false,
+                'message' => 'Failed to send email: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1382,7 +1386,7 @@ class EventController extends Controller
         $queryForStream = clone $query;
 
         return response()->streamDownload(function () use ($queryForStream) {
-            $writer = new \OpenSpout\Writer\XLSX\Writer();
+            $writer = new \OpenSpout\Writer\XLSX\Writer;
             $writer->openToFile('php://output');
 
             $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(\App\Services\GoogleSheetsParticipantExporter::OUTPUT_COLUMNS));
@@ -1560,6 +1564,7 @@ class EventController extends Controller
         if (mb_strlen($name.$suffix) <= $max) {
             return $name.$suffix;
         }
+
         return mb_substr($name, 0, $max - mb_strlen($suffix)).$suffix;
     }
 
@@ -1639,7 +1644,7 @@ class EventController extends Controller
         ]);
 
         $filters = [];
-        if (!empty($validated['category_id'])) {
+        if (! empty($validated['category_id'])) {
             $filters['category_id'] = $validated['category_id'];
         }
 
@@ -1663,8 +1668,10 @@ class EventController extends Controller
         if ($request->has('ticket_email_use_qr')) {
             $event->ticket_email_use_qr = (bool) $request->boolean('ticket_email_use_qr');
         }
-        if ($request->has('name')) $event->name = $request->input('name');
-        
+        if ($request->has('name')) {
+            $event->name = $request->input('name');
+        }
+
         // Mock Participant
         $participant = new \App\Models\Participant([
             'id' => 12345,
@@ -1675,7 +1682,7 @@ class EventController extends Controller
             'bib_number' => '1001',
             'gender' => 'male',
         ]);
-        
+
         // Mock Category
         $category = new \App\Models\RaceCategory([
             'name' => '10K Open',

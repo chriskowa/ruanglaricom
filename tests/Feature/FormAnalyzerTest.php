@@ -17,7 +17,8 @@ class FormAnalyzerTest extends TestCase
         if ($fill < 0) {
             $fill = 0;
         }
-        return $prefix . str_repeat('a', $fill) . $suffix;
+
+        return $prefix.str_repeat('a', $fill).$suffix;
     }
 
     public function test_analyze_accepts_video_and_returns_json(): void
@@ -142,7 +143,10 @@ class FormAnalyzerTest extends TestCase
                 ->assertJsonPath('ok', false);
         } finally {
             foreach ($locks as $l) {
-                try { $l->release(); } catch (\Throwable $e) {}
+                try {
+                    $l->release();
+                } catch (\Throwable $e) {
+                }
             }
         }
     }

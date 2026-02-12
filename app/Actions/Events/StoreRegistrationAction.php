@@ -4,10 +4,10 @@ namespace App\Actions\Events;
 
 use App\Models\Coupon;
 use App\Models\Event;
-use App\Models\User;
 use App\Models\Participant;
 use App\Models\RaceCategory;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\EventCacheService;
 use App\Services\MidtransService;
 use App\Services\MootaService;
@@ -23,6 +23,7 @@ class StoreRegistrationAction
     protected $cacheService;
 
     protected $midtransService;
+
     protected $mootaService;
 
     public function __construct(EventCacheService $cacheService, MidtransService $midtransService, MootaService $mootaService)
@@ -89,6 +90,7 @@ class StoreRegistrationAction
 
                 if (! $value) {
                     $fail('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+
                     return;
                 }
 
@@ -119,21 +121,21 @@ class StoreRegistrationAction
 
         foreach ($validated['participants'] as $pIndex => $pData) {
             $pAddons = [];
-            if (!empty($pData['addons']) && is_array($pData['addons']) && !empty($event->addons)) {
+            if (! empty($pData['addons']) && is_array($pData['addons']) && ! empty($event->addons)) {
                 foreach ($pData['addons'] as $addonInput) {
                     // Check if selected (checkbox)
                     if (isset($addonInput['selected']) && $addonInput['selected']) {
                         // Find matching event addon to get trusted price
                         foreach ($event->addons as $eventAddon) {
                             if ($eventAddon['name'] === $addonInput['name']) {
-                                $price = isset($eventAddon['price']) ? (int)$eventAddon['price'] : 0;
+                                $price = isset($eventAddon['price']) ? (int) $eventAddon['price'] : 0;
                                 $totalAddonsPrice += $price;
-                                
+
                                 $addonData = [
                                     'name' => $eventAddon['name'],
-                                    'price' => $price
+                                    'price' => $price,
                                 ];
-                                
+
                                 $pAddons[] = $addonData;
                                 $allSelectedAddonsForPic[] = $addonData;
                                 break;
@@ -214,7 +216,7 @@ class StoreRegistrationAction
             $coupon = Coupon::where('code', $validated['coupon_code'])
                 ->where(function ($query) use ($event) {
                     $query->where('event_id', $event->id)
-                          ->orWhereNull('event_id');
+                        ->orWhereNull('event_id');
                 })
                 ->first();
 
@@ -306,14 +308,16 @@ class StoreRegistrationAction
                 $priceInfo = $this->getCategoryPrice($category, $now);
                 $categoryPriceInfo[$categoryId] = $priceInfo;
                 $price = (int) ($priceInfo['price'] ?? 0);
-                
+
                 // Promo Buy X Get 1 Free
                 $paidQuantity = $quantity;
                 $isBuyXGet1Active = false;
                 if ($event->promo_buy_x && $event->promo_buy_x > 0) {
                     $bundleSize = $event->promo_buy_x + 1;
                     $freeCount = floor($quantity / $bundleSize);
-                    if ($freeCount > 0) $isBuyXGet1Active = true;
+                    if ($freeCount > 0) {
+                        $isBuyXGet1Active = true;
+                    }
                     $paidQuantity = $quantity - $freeCount;
                 }
 
@@ -340,7 +344,7 @@ class StoreRegistrationAction
                         ->where('payment_status', 'pending')
                         ->where('created_at', '>', now()->subMinutes(60))
                         ->count();
-                    
+
                     if (($coupon->used_count + $pendingCount) >= $coupon->max_uses) {
                         $couponLock->release();
                         throw new \Exception('Kuota kupon sudah habis (termasuk yang sedang menunggu pembayaran).');
@@ -349,13 +353,15 @@ class StoreRegistrationAction
 
                 // Strict validation with actual amount and user
                 if (! $coupon->canBeUsed($event->id, $totalOriginal, auth()->id())) {
-                    if (isset($couponLock)) $couponLock->release();
+                    if (isset($couponLock)) {
+                        $couponLock->release();
+                    }
                     throw new \Exception('Kupon tidak valid untuk transaksi ini (cek minimum pembelian atau batas penggunaan).');
                 }
 
                 $discountAmount = $coupon->applyDiscount($totalOriginal);
             }
-            
+
             // Calculate Platform Fee
             $totalParticipants = count($validated['participants']);
             $platformFeePerParticipant = $event->platform_fee ?? 0;
@@ -381,27 +387,27 @@ class StoreRegistrationAction
                 $finalAmount += $uniqueCode;
             }
 
-        // Create transaction
-        $transaction = Transaction::create([
-            'event_id' => $event->id,
-            'user_id' => auth()->id() ?: (isset($picUser) ? $picUser->id : null),
-            'pic_data' => [
-                'name' => $validated['pic_name'],
-                'email' => $validated['pic_email'],
-                'phone' => $validated['pic_phone'],
-                'created_users' => array_keys($createdUsers),
-                'addons' => $allSelectedAddonsForPic,
-            ],
-            'total_original' => $totalOriginal,
-            'coupon_id' => $coupon?->id,
-            'discount_amount' => $discountAmount,
-            'admin_fee' => $totalAdminFee,
-            'final_amount' => $finalAmount,
-            'payment_status' => $isZeroAmount ? 'paid' : 'pending',
-            'paid_at' => $isZeroAmount ? now() : null,
-            'payment_gateway' => $paymentMethod === 'moota' ? 'moota' : 'midtrans',
-            'unique_code' => $uniqueCode > 0 ? $uniqueCode : 0,
-        ]);
+            // Create transaction
+            $transaction = Transaction::create([
+                'event_id' => $event->id,
+                'user_id' => auth()->id() ?: (isset($picUser) ? $picUser->id : null),
+                'pic_data' => [
+                    'name' => $validated['pic_name'],
+                    'email' => $validated['pic_email'],
+                    'phone' => $validated['pic_phone'],
+                    'created_users' => array_keys($createdUsers),
+                    'addons' => $allSelectedAddonsForPic,
+                ],
+                'total_original' => $totalOriginal,
+                'coupon_id' => $coupon?->id,
+                'discount_amount' => $discountAmount,
+                'admin_fee' => $totalAdminFee,
+                'final_amount' => $finalAmount,
+                'payment_status' => $isZeroAmount ? 'paid' : 'pending',
+                'paid_at' => $isZeroAmount ? now() : null,
+                'payment_gateway' => $paymentMethod === 'moota' ? 'moota' : 'midtrans',
+                'unique_code' => $uniqueCode > 0 ? $uniqueCode : 0,
+            ]);
 
             // Create participants
             foreach ($validated['participants'] as $pIndex => $participantData) {
@@ -449,13 +455,13 @@ class StoreRegistrationAction
 
             if ($isZeroAmount) {
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
-                
+
                 // Dispatch emails
                 app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
-                
+
                 // Process Paid Event Transaction (Wallet, Stats, etc)
                 \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
-                
+
                 return $transaction;
             }
 
@@ -463,9 +469,11 @@ class StoreRegistrationAction
                 $transaction->update(['payment_status' => 'cod']);
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
                 app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
+
                 return $transaction;
             } elseif ($paymentMethod === 'moota') {
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
+
                 // Notification/Email can be sent here if needed
                 return $transaction;
             } else {
@@ -550,7 +558,7 @@ class StoreRegistrationAction
 
         // 2. Fallback to Late if Regular is 0 (optional logic from previous code) or just Regular
         if ($late > 0 && $regular === 0) {
-             return ['price' => $late, 'type' => 'late'];
+            return ['price' => $late, 'type' => 'late'];
         }
 
         return ['price' => $regular, 'type' => 'regular'];

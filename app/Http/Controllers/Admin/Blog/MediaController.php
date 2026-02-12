@@ -23,7 +23,7 @@ class MediaController extends Controller
         if ($request->has('search')) {
             $search = $request->search;
             $query->where('filename', 'like', "%{$search}%")
-                  ->orWhere('alt_text', 'like', "%{$search}%");
+                ->orWhere('alt_text', 'like', "%{$search}%");
         }
 
         if ($request->has('type')) {
@@ -37,7 +37,7 @@ class MediaController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('admin.blog.media.partials.grid', compact('media'))->render(),
-                'pagination' => (string) $media->links()
+                'pagination' => (string) $media->links(),
             ]);
         }
 
@@ -50,14 +50,15 @@ class MediaController extends Controller
         $apiKey = env('CLOUDINARY_API_KEY');
         $apiSecret = env('CLOUDINARY_API_SECRET');
 
-        if (!$cloudName || !$apiKey || !$apiSecret) {
+        if (! $cloudName || ! $apiKey || ! $apiSecret) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Cloudinary credentials not configured. Please set CLOUDINARY_CLOUD_NAME in .env'], 400);
             }
+
             // Pass error to view
             return view('admin.blog.media.index', [
                 'media' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 24),
-                'cloudinaryError' => 'Cloudinary credentials missing (Cloud Name)'
+                'cloudinaryError' => 'Cloudinary credentials missing (Cloud Name)',
             ]);
         }
 
@@ -65,7 +66,7 @@ class MediaController extends Controller
         // GET /resources/image
         $nextCursor = $request->cursor;
         $url = "https://api.cloudinary.com/v1_1/{$cloudName}/resources/image";
-        
+
         try {
             $response = Http::withBasicAuth($apiKey, $apiSecret)
                 ->get($url, [
@@ -75,7 +76,7 @@ class MediaController extends Controller
                 ]);
 
             if ($response->failed()) {
-                throw new \Exception('Cloudinary API Error: ' . $response->body());
+                throw new \Exception('Cloudinary API Error: '.$response->body());
             }
 
             $data = $response->json();
@@ -83,36 +84,37 @@ class MediaController extends Controller
             $nextCursor = $data['next_cursor'] ?? null;
 
             // Transform to match local media structure partially or use separate view
-        // We'll wrap them in objects to look like BlogMedia for the grid
-        $mediaItems = collect($resources)->map(function ($res) {
-            return (object) [
-                'id' => $res['public_id'], // Use public_id as ID
-                'filename' => $res['public_id'] . '.' . $res['format'],
-                'url' => $res['secure_url'],
-                'mime_type' => 'image/' . $res['format'],
-                'is_cloudinary' => true
-            ];
-        });
+            // We'll wrap them in objects to look like BlogMedia for the grid
+            $mediaItems = collect($resources)->map(function ($res) {
+                return (object) [
+                    'id' => $res['public_id'], // Use public_id as ID
+                    'filename' => $res['public_id'].'.'.$res['format'],
+                    'url' => $res['secure_url'],
+                    'mime_type' => 'image/'.$res['format'],
+                    'is_cloudinary' => true,
+                ];
+            });
 
-        if ($request->ajax()) {
-            return response()->json([
-                'html' => view('admin.blog.media.partials.grid_cloudinary', ['media' => $mediaItems])->render(),
-                'next_cursor' => $nextCursor
+            if ($request->ajax()) {
+                return response()->json([
+                    'html' => view('admin.blog.media.partials.grid_cloudinary', ['media' => $mediaItems])->render(),
+                    'next_cursor' => $nextCursor,
+                ]);
+            }
+
+            return view('admin.blog.media.index', [
+                'media' => $mediaItems, // Use standard variable name
+                'nextCursor' => $nextCursor,
             ]);
-        }
-
-        return view('admin.blog.media.index', [
-            'media' => $mediaItems, // Use standard variable name
-            'nextCursor' => $nextCursor
-        ]);
-    } catch (\Exception $e) {
+        } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json(['error' => $e->getMessage()], 500);
             }
+
             return view('admin.blog.media.index', [
                 'media' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 24),
                 'cloudinaryError' => $e->getMessage(),
-                'activeTab' => 'cloudinary'
+                'activeTab' => 'cloudinary',
             ]);
         }
     }
@@ -126,7 +128,7 @@ class MediaController extends Controller
         $file = $request->file('file');
         $filename = $file->getClientOriginalName();
         $path = $file->store('blog/media', 'public');
-        
+
         $media = BlogMedia::create([
             'user_id' => auth()->id(),
             'filename' => $filename,
@@ -140,7 +142,7 @@ class MediaController extends Controller
         return response()->json([
             'success' => true,
             'media' => $media,
-            'url' => $media->url
+            'url' => $media->url,
         ]);
     }
 
@@ -149,7 +151,7 @@ class MediaController extends Controller
         if (Storage::disk($media->disk)->exists($media->path)) {
             Storage::disk($media->disk)->delete($media->path);
         }
-        
+
         $media->delete();
 
         return response()->json(['success' => true]);

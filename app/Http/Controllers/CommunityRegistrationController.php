@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Community;
 use App\Models\CommunityInvoice;
 use App\Models\CommunityParticipant;
 use App\Models\CommunityRegistration;
@@ -14,8 +15,6 @@ use App\Services\QrisDynamicService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
-use App\Models\Community;
 
 class CommunityRegistrationController extends Controller
 {
@@ -33,7 +32,7 @@ class CommunityRegistrationController extends Controller
             ->get(['id', 'name', 'pic_name', 'pic_email', 'pic_phone']);
 
         $selectedEventId = $request->query('eventId');
-        if (!$selectedEventId && $request->query('slug')) {
+        if (! $selectedEventId && $request->query('slug')) {
             $eventBySlug = $events->firstWhere('slug', $request->query('slug'));
             if ($eventBySlug) {
                 $selectedEventId = $eventBySlug->id;
@@ -43,11 +42,12 @@ class CommunityRegistrationController extends Controller
         $eventItems = $events->map(function ($e) {
             $label = $e->name;
             if ($e->start_at) {
-                $label .= ' • ' . $e->start_at->format('d M Y');
+                $label .= ' • '.$e->start_at->format('d M Y');
             }
             if ($e->location_name) {
-                $label .= ' • ' . $e->location_name;
+                $label .= ' • '.$e->location_name;
             }
+
             return [
                 'id' => $e->id,
                 'label' => $label,
@@ -85,7 +85,7 @@ class CommunityRegistrationController extends Controller
 
         $community = null;
         $snapshot = [];
-        if (!empty($validated['community_id'])) {
+        if (! empty($validated['community_id'])) {
             $community = Community::query()->whereKey($validated['community_id'])->firstOrFail();
             $snapshot = [
                 'community_name' => $community->name,
@@ -104,7 +104,7 @@ class CommunityRegistrationController extends Controller
                 ->orWhere('pic_email', $picEmail)
                 ->first();
 
-            if (!$community) {
+            if (! $community) {
                 $community = Community::create([
                     'name' => $communityName,
                     'slug' => $this->generateUniqueCommunitySlug($communityName),
@@ -136,7 +136,7 @@ class CommunityRegistrationController extends Controller
             'status' => 'draft',
         ]));
 
-        if (!$registration->wasRecentlyCreated && $registration->status === 'draft') {
+        if (! $registration->wasRecentlyCreated && $registration->status === 'draft') {
             $registration->update($snapshot);
         }
 
@@ -178,7 +178,7 @@ class CommunityRegistrationController extends Controller
         }
 
         $community = $registration->community;
-        if (!$community) {
+        if (! $community) {
             $communityName = trim((string) $registration->community_name);
             $picName = trim((string) $registration->pic_name);
             $picEmail = strtolower(trim((string) $registration->pic_email));
@@ -189,7 +189,7 @@ class CommunityRegistrationController extends Controller
                 ->orWhere('pic_email', $picEmail)
                 ->first();
 
-            if (!$community) {
+            if (! $community) {
                 $community = Community::create([
                     'name' => $communityName,
                     'slug' => $this->generateUniqueCommunitySlug($communityName),
@@ -541,7 +541,7 @@ class CommunityRegistrationController extends Controller
 
         // Promo: Buy 10 Get 1 Free (Global for community registration)
         $freeCount = intdiv(count($priceRows), 11);
-        
+
         $freeIds = array_slice(array_column($priceRows, 'id'), 0, $freeCount);
 
         $totalOriginal = 0;
@@ -657,9 +657,10 @@ class CommunityRegistrationController extends Controller
         $base = $baseSlug !== '' ? $baseSlug : $slug;
         $counter = 2;
         while (Community::query()->where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $counter;
+            $slug = $base.'-'.$counter;
             $counter++;
         }
+
         return $slug;
     }
 }

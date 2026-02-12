@@ -17,7 +17,7 @@ class OrderController extends Controller
             ->with(['items.product.primaryImage', 'seller'])
             ->latest()
             ->get();
-            
+
         $sales = MarketplaceOrder::where('seller_id', Auth::id())
             ->with(['items.product.primaryImage', 'buyer'])
             ->latest()

@@ -12,16 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-            if (!Schema::hasColumn('transactions', 'payment_gateway')) {
+            if (! Schema::hasColumn('transactions', 'payment_gateway')) {
                 $table->string('payment_gateway')->default('midtrans')->after('payment_status');
             }
-            if (!Schema::hasColumn('transactions', 'payment_gateway_reference')) {
+            if (! Schema::hasColumn('transactions', 'payment_gateway_reference')) {
                 $table->string('payment_gateway_reference')->nullable()->after('payment_gateway');
             }
-            if (!Schema::hasColumn('transactions', 'unique_code')) {
+            if (! Schema::hasColumn('transactions', 'unique_code')) {
                 $table->integer('unique_code')->default(0)->after('total_original');
             }
-            if (!Schema::hasColumn('transactions', 'moota_transaction_id')) {
+            if (! Schema::hasColumn('transactions', 'moota_transaction_id')) {
                 $table->string('moota_transaction_id')->nullable()->after('payment_gateway_reference');
             }
         });

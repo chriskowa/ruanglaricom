@@ -13,6 +13,7 @@ class MenuController extends Controller
     public function index()
     {
         $menus = Menu::withCount('items')->latest()->paginate(10);
+
         return view('admin.menus.index', compact('menus'));
     }
 
@@ -37,7 +38,7 @@ class MenuController extends Controller
         $menu->load(['items' => function ($query) {
             $query->whereNull('parent_id')->with('children.children')->orderBy('order');
         }]);
-        
+
         return view('admin.menus.builder', compact('menu'));
     }
 
@@ -45,7 +46,7 @@ class MenuController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255|unique:menus,location,' . $menu->id,
+            'location' => 'required|string|max:255|unique:menus,location,'.$menu->id,
         ]);
 
         $menu->update($request->only('name', 'location'));
@@ -56,6 +57,7 @@ class MenuController extends Controller
     public function destroy(Menu $menu)
     {
         $menu->delete();
+
         return redirect()->route('admin.menus.index')->with('success', 'Menu deleted successfully');
     }
 
@@ -95,6 +97,7 @@ class MenuController extends Controller
     public function deleteItem(MenuItem $item)
     {
         $item->delete();
+
         return redirect()->back()->with('success', 'Item deleted successfully');
     }
 
@@ -117,7 +120,7 @@ class MenuController extends Controller
                 'order' => $index,
             ]);
 
-            if (isset($item['children']) && !empty($item['children'])) {
+            if (isset($item['children']) && ! empty($item['children'])) {
                 $this->updateTree($item['children'], $item['id']);
             }
         }

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('meta_title')->nullable()->after('status');
             $table->text('meta_description')->nullable()->after('meta_title');
             $table->string('meta_keywords')->nullable()->after('meta_description');
-            
+
             // Drop is_published if it exists (optional, but cleaner)
             $table->dropColumn('is_published');
         });

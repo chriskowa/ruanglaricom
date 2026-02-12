@@ -19,8 +19,8 @@ class MootaWebhookController extends Controller
     public function handle(Request $request)
     {
         // 1. Verify Signature if secret is set
-        $signature = $request->header('Signature'); 
-        
+        $signature = $request->header('Signature');
+
         // $this->mootaService->verifySignature($signature, $request->getContent());
 
         $data = $request->all();
@@ -28,7 +28,7 @@ class MootaWebhookController extends Controller
 
         // Moota payload structure usually contains array of mutations or a single push
         $mutations = isset($data['data']) ? $data['data'] : $data;
-        
+
         // Normalize if it's a single object
         if (isset($mutations['id'])) {
             $mutations = [$mutations];
@@ -41,12 +41,12 @@ class MootaWebhookController extends Controller
             }
 
             $amount = $mutation['amount'];
-            
+
             // Find transaction with this exact amount (including unique code)
             // and status pending
             $transaction = Transaction::where('final_amount', $amount)
                 ->where('payment_status', 'pending')
-                ->where('payment_gateway', 'moota') 
+                ->where('payment_gateway', 'moota')
                 ->first();
 
             if ($transaction) {
@@ -63,7 +63,7 @@ class MootaWebhookController extends Controller
                     \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
                     Log::info('Transaction processed via Moota', ['id' => $transaction->id]);
                 } catch (\Exception $e) {
-                    Log::error('Failed to dispatch ProcessPaidEventTransaction: ' . $e->getMessage());
+                    Log::error('Failed to dispatch ProcessPaidEventTransaction: '.$e->getMessage());
                 }
             }
         }

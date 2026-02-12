@@ -31,4 +31,3 @@ class EventSubmissionOtp extends Model
 
     protected $keyType = 'string';
 }
-

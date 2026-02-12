@@ -9,27 +9,26 @@ use App\Models\EventAudit;
 use App\Models\RaceDistance;
 use App\Models\RaceType;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class EventController extends Controller
 {
     public function index(Request $request)
     {
         $query = Event::with(['city', 'raceType', 'raceDistances', 'user']);
-        
+
         if ($request->filled('search')) {
             $s = $request->input('search');
             $query->where(function ($q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('location_name', 'like', "%{$s}%")
-                  ->orWhereHas('user', function ($uq) use ($s) {
-                      $uq->where('name', 'like', "%{$s}%");
-                  });
+                    ->orWhere('location_name', 'like', "%{$s}%")
+                    ->orWhereHas('user', function ($uq) use ($s) {
+                        $uq->where('name', 'like', "%{$s}%");
+                    });
             });
         }
 
@@ -98,7 +97,7 @@ class EventController extends Controller
         $cities = City::orderBy('name')->get();
         $raceTypes = RaceType::all();
         $raceDistances = RaceDistance::all();
-        
+
         return view('admin.events.create', compact('cities', 'raceTypes', 'raceDistances'));
     }
 
@@ -124,14 +123,14 @@ class EventController extends Controller
         ]);
 
         $startAt = Carbon::parse($validated['event_date']);
-        if (!empty($validated['start_time'])) {
+        if (! empty($validated['start_time'])) {
             $time = Carbon::createFromFormat('H:i', $validated['start_time']);
             $startAt->setTime($time->hour, $time->minute);
         }
         $validated['start_at'] = $startAt;
 
         $validated['slug'] = $this->generateSlug($validated['name']);
-        
+
         $validated['user_id'] = 1; // Admin
 
         $event = Event::create([
@@ -155,7 +154,7 @@ class EventController extends Controller
             'is_active' => true,
         ]);
 
-        if (!empty($validated['race_distances'])) {
+        if (! empty($validated['race_distances'])) {
             $event->raceDistances()->sync($validated['race_distances']);
         }
 
@@ -168,7 +167,7 @@ class EventController extends Controller
         $raceTypes = RaceType::all();
         $raceDistances = RaceDistance::all();
         $selectedDistances = $event->raceDistances->pluck('id')->toArray();
-        
+
         return view('admin.events.edit', compact('event', 'cities', 'raceTypes', 'raceDistances', 'selectedDistances'));
     }
 
@@ -194,7 +193,7 @@ class EventController extends Controller
         ]);
 
         $startAt = Carbon::parse($validated['event_date']);
-        if (!empty($validated['start_time'])) {
+        if (! empty($validated['start_time'])) {
             $time = Carbon::createFromFormat('H:i', $validated['start_time']);
             $startAt->setTime($time->hour, $time->minute);
         }
@@ -399,7 +398,7 @@ class EventController extends Controller
 
         $file = $request->file('file');
         $handle = fopen($file->getPathname(), 'r');
-        
+
         // Skip header
         fgetcsv($handle);
 
@@ -410,24 +409,28 @@ class EventController extends Controller
         while (($data = fgetcsv($handle, 1000, ',')) !== false) {
             $row++;
             try {
-                if (count($data) < 2) continue;
+                if (count($data) < 2) {
+                    continue;
+                }
 
                 $name = $data[0] ?? null;
                 $dateStr = $data[1] ?? null;
-                if (!$name || !$dateStr) continue;
+                if (! $name || ! $dateStr) {
+                    continue;
+                }
 
                 $city = null;
-                if (!empty($data[4])) {
+                if (! empty($data[4])) {
                     $city = City::where('name', 'like', trim($data[4]))->first();
                 }
 
                 $raceType = null;
-                if (!empty($data[5])) {
+                if (! empty($data[5])) {
                     $raceType = RaceType::where('name', 'like', trim($data[5]))->first();
                 }
 
                 $startAt = Carbon::parse($dateStr);
-                if (!empty($data[2])) {
+                if (! empty($data[2])) {
                     $time = Carbon::createFromFormat('H:i', $data[2]);
                     $startAt->setTime($time->hour, $time->minute);
                 }
@@ -446,7 +449,7 @@ class EventController extends Controller
                     'slug' => $this->generateSlug($name),
                 ]);
 
-                if (!empty($data[6])) {
+                if (! empty($data[6])) {
                     $distanceNames = explode(',', $data[6]);
                     $distanceIds = [];
                     foreach ($distanceNames as $distName) {
@@ -456,7 +459,7 @@ class EventController extends Controller
                             $distanceIds[] = $dist->id;
                         }
                     }
-                    if (!empty($distanceIds)) {
+                    if (! empty($distanceIds)) {
                         $event->raceDistances()->sync($distanceIds);
                     }
                 }
@@ -464,15 +467,15 @@ class EventController extends Controller
                 $success++;
 
             } catch (\Exception $e) {
-                $errors[] = "Row {$row}: " . $e->getMessage();
+                $errors[] = "Row {$row}: ".$e->getMessage();
             }
         }
-        
+
         fclose($handle);
 
         $message = "Imported {$success} events.";
         if (count($errors) > 0) {
-            $message .= " Errors: " . implode(', ', array_slice($errors, 0, 5));
+            $message .= ' Errors: '.implode(', ', array_slice($errors, 0, 5));
         }
 
         return redirect()->route('admin.events.index')->with('success', $message);
@@ -485,7 +488,7 @@ class EventController extends Controller
                 ->withHeaders(['ruangLariKey' => 'Thinkpadx390'])
                 ->get('https://ruanglari.com/wp-json/ruanglari/v1/events');
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return back()->with('error', 'Failed to fetch events from source.');
             }
 
@@ -501,21 +504,22 @@ class EventController extends Controller
                 }
 
                 $name = html_entity_decode($item['title']);
-                
+
                 $existing = Event::where('name', $name)
                     ->whereDate('start_at', $date->toDateString())
                     ->first();
 
                 if ($existing) {
-                    if (empty($existing->registration_link) && !empty($item['link'])) {
+                    if (empty($existing->registration_link) && ! empty($item['link'])) {
                         $existing->update(['registration_link' => $item['link']]);
                         $updated++;
                     }
+
                     continue;
                 }
 
                 $city = null;
-                if (!empty($item['location'])) {
+                if (! empty($item['location'])) {
                     $location = trim($item['location']);
                     $city = City::where('name', 'like', "%{$location}%")
                         ->orWhere('name', 'like', "Kota {$location}%")
@@ -541,7 +545,7 @@ class EventController extends Controller
                 ->with('success', "Synced successfully. Added {$count} new events, updated {$updated} events.");
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Sync failed: ' . $e->getMessage());
+            return back()->with('error', 'Sync failed: '.$e->getMessage());
         }
     }
 
@@ -551,9 +555,10 @@ class EventController extends Controller
         $slug = $baseSlug;
         $counter = 1;
         while (Event::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $counter;
+            $slug = $baseSlug.'-'.$counter;
             $counter++;
         }
+
         return $slug;
     }
 }

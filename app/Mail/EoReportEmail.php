@@ -13,6 +13,7 @@ class EoReportEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $data;
+
     public $subjectLine;
 
     public function __construct($data, $subject)

@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\MembershipTransaction;
 use App\Models\Notification;
 use App\Models\Transaction as EventTransaction;
 use App\Models\User;
 use App\Models\WalletTopup;
-use App\Models\MembershipTransaction;
 use Illuminate\Http\Request;
 use Midtrans\Config as MidtransConfig;
 use Midtrans\Snap;
@@ -32,6 +32,7 @@ class MidtransService
             }
             MidtransConfig::$serverKey = $serverKey;
             MidtransConfig::$isProduction = false;
+
             return;
         }
 
@@ -104,7 +105,7 @@ class MidtransService
                     'user_id' => $user->id,
                     'type' => 'wallet_deposit',
                     'title' => 'Topup Berhasil',
-                    'message' => 'Topup Rp ' . number_format($amount, 0, ',', '.') . ' berhasil masuk ke wallet.',
+                    'message' => 'Topup Rp '.number_format($amount, 0, ',', '.').' berhasil masuk ke wallet.',
                     'reference_type' => WalletTopup::class,
                     'reference_id' => $topup->id,
                     'is_read' => false,
@@ -116,7 +117,7 @@ class MidtransService
                         'user_id' => $adminId,
                         'type' => 'wallet_deposit',
                         'title' => 'Deposit Masuk (Topup)',
-                        'message' => ($user->name ?? 'User') . ' topup Rp ' . number_format($amount, 0, ',', '.') . ' (Testing Mode).',
+                        'message' => ($user->name ?? 'User').' topup Rp '.number_format($amount, 0, ',', '.').' (Testing Mode).',
                         'reference_type' => WalletTopup::class,
                         'reference_id' => $topup->id,
                         'is_read' => false,
@@ -232,7 +233,7 @@ class MidtransService
                         'user_id' => $user->id,
                         'type' => 'wallet_deposit',
                         'title' => 'Topup Berhasil',
-                        'message' => 'Topup Rp ' . number_format((float) $topup->amount, 0, ',', '.') . ' berhasil masuk ke wallet.',
+                        'message' => 'Topup Rp '.number_format((float) $topup->amount, 0, ',', '.').' berhasil masuk ke wallet.',
                         'reference_type' => WalletTopup::class,
                         'reference_id' => $topup->id,
                         'is_read' => false,
@@ -244,7 +245,7 @@ class MidtransService
                             'user_id' => $adminId,
                             'type' => 'wallet_deposit',
                             'title' => 'Deposit Masuk (Topup)',
-                            'message' => ($user->name ?? 'User') . ' topup Rp ' . number_format((float) $topup->amount, 0, ',', '.') . '.',
+                            'message' => ($user->name ?? 'User').' topup Rp '.number_format((float) $topup->amount, 0, ',', '.').'.',
                             'reference_type' => WalletTopup::class,
                             'reference_id' => $topup->id,
                             'is_read' => false,

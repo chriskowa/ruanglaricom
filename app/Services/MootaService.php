@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 class MootaService
 {
     protected $apiToken;
+
     protected $secretKey;
 
     public function __construct()
@@ -19,9 +20,10 @@ class MootaService
 
     /**
      * Generate unique code for transaction
-     * 
-     * @param float $amount
+     *
+     * @param  float  $amount
      * @return int
+     *
      * @throws \Exception
      */
     public function generateUniqueCode($amount)
@@ -40,7 +42,7 @@ class MootaService
                 ->where('created_at', '>=', now()->subHours(24))
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 return $code;
             }
         }
@@ -50,9 +52,9 @@ class MootaService
 
     /**
      * Verify Webhook Signature
-     * 
-     * @param string $signature
-     * @param string $payload
+     *
+     * @param  string  $signature
+     * @param  string  $payload
      * @return bool
      */
     public function verifySignature($signature, $payload)
@@ -61,24 +63,25 @@ class MootaService
             // If no secret key configured, maybe skip verification or fail?
             // For security, better to fail, but for dev maybe log warning.
             Log::warning('Moota Secret Key is not set.');
+
             return false;
         }
 
         // Moota signature usually matches the secret key or HMAC
         // Based on common practices. If specific Moota logic is needed, update here.
-        // Assuming simple token check or HMAC. 
+        // Assuming simple token check or HMAC.
         // If the documentation says just check the secret in the payload or header:
-        // Ideally we need to know the exact algorithm. 
-        // For now, let's assume the signature passed IS the secret key (simple auth) 
+        // Ideally we need to know the exact algorithm.
+        // For now, let's assume the signature passed IS the secret key (simple auth)
         // or a computed HMAC.
-        
+
         // Placeholder for HMAC verification:
         // $computed = hash_hmac('sha256', $payload, $this->secretKey);
         // return hash_equals($computed, $signature);
-        
+
         // If we don't know the algo, we might just return true for now but log it.
         // Or better, let's assume we compare it with the configured secret if it's sent as a simple token.
-        
+
         return $signature === $this->secretKey;
     }
 }

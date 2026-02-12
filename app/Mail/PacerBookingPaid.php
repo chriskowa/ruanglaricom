@@ -13,14 +13,12 @@ class PacerBookingPaid extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public PacerBooking $booking)
-    {
-    }
+    public function __construct(public PacerBooking $booking) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Booking Pacer Paid - ' . $this->booking->invoice_number,
+            subject: 'Booking Pacer Paid - '.$this->booking->invoice_number,
         );
     }
 
@@ -36,4 +34,3 @@ class PacerBookingPaid extends Mailable
         return [];
     }
 }
-

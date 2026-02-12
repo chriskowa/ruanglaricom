@@ -48,4 +48,3 @@ class MonitorEoReportEmailDeliveries extends Command
         return self::SUCCESS;
     }
 }
-

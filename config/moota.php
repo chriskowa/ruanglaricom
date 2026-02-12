@@ -13,5 +13,5 @@ return [
         ],
         // Tambahkan bank lain jika perlu
     ],
-    'webhook_url' => env('MOOTA_WEBHOOK_URL', env('APP_URL') . '/api/webhook/moota'),
+    'webhook_url' => env('MOOTA_WEBHOOK_URL', env('APP_URL').'/api/webhook/moota'),
 ];

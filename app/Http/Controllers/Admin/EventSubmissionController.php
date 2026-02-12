@@ -131,7 +131,7 @@ class EventSubmissionController extends Controller
             $slug = $base.'-'.$i;
             $i++;
         }
+
         return $slug;
     }
 }
-

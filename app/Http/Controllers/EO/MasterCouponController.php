@@ -21,7 +21,7 @@ class MasterCouponController extends Controller
 
         // Search
         if ($request->has('search') && $request->search) {
-            $query->where('code', 'like', '%' . $request->search . '%');
+            $query->where('code', 'like', '%'.$request->search.'%');
         }
 
         // Filter by Event
@@ -41,6 +41,7 @@ class MasterCouponController extends Controller
     public function create()
     {
         $events = Event::where('user_id', auth()->id())->latest()->get(['id', 'name', 'start_at']);
+
         return view('eo.coupons.create', compact('events'));
     }
 
@@ -74,7 +75,7 @@ class MasterCouponController extends Controller
         $validated['is_active'] = $request->has('is_active');
         $validated['is_stackable'] = $request->has('is_stackable');
         $validated['code'] = strtoupper($validated['code']);
-        
+
         // Default values for nullable fields to avoid null violation if DB default is missing or strict
         $validated['min_transaction_amount'] = $validated['min_transaction_amount'] ?? 0;
 
@@ -94,7 +95,7 @@ class MasterCouponController extends Controller
         }
 
         $events = Event::where('user_id', auth()->id())->latest()->get(['id', 'name', 'start_at']);
-        
+
         // Load categories for the selected event to populate the checklist if needed
         $coupon->event->load('categories');
 
@@ -111,7 +112,7 @@ class MasterCouponController extends Controller
         }
 
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:coupons,code,' . $coupon->id,
+            'code' => 'required|string|max:50|unique:coupons,code,'.$coupon->id,
             'type' => 'required|in:percent,fixed',
             'value' => 'required|numeric|min:0',
             'min_transaction_amount' => 'nullable|numeric|min:0',
@@ -128,7 +129,7 @@ class MasterCouponController extends Controller
         $validated['is_active'] = $request->has('is_active');
         $validated['is_stackable'] = $request->has('is_stackable');
         $validated['code'] = strtoupper($validated['code']);
-        
+
         // Default values for nullable fields to avoid null violation
         $validated['min_transaction_amount'] = $validated['min_transaction_amount'] ?? 0;
 
@@ -136,7 +137,7 @@ class MasterCouponController extends Controller
         // Usually coupons are tied to an event. If we allow changing event, we must verify ownership.
         // For now let's assume event_id is fixed on creation or add it if needed.
         // If we want to allow changing event, we need to validate 'event_id' again.
-        
+
         $coupon->update($validated);
 
         return redirect()->route('eo.coupons.index')
@@ -164,11 +165,11 @@ class MasterCouponController extends Controller
     public function generateCode(Request $request)
     {
         $prefix = $request->input('prefix', 'PROMO');
-        $code = strtoupper($prefix . Str::random(5));
-        
+        $code = strtoupper($prefix.Str::random(5));
+
         // Ensure uniqueness
         while (Coupon::where('code', $code)->exists()) {
-            $code = strtoupper($prefix . Str::random(5));
+            $code = strtoupper($prefix.Str::random(5));
         }
 
         return response()->json(['code' => $code]);

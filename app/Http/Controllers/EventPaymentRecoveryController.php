@@ -93,21 +93,23 @@ class EventPaymentRecoveryController extends Controller
         $event = Event::query()->where('slug', $slug)->first();
         if (! $event) {
             \Log::warning("Payment Status Check: Event not found for slug {$slug}");
+
             return response()->json(['success' => false, 'message' => 'Event tidak ditemukan.'], 404);
         }
-        
-        $tx = is_numeric($transaction) 
-            ? Transaction::find($transaction) 
+
+        $tx = is_numeric($transaction)
+            ? Transaction::find($transaction)
             : Transaction::where('public_ref', $transaction)->first();
 
         if (! $tx) {
             \Log::warning("Payment Status Check: Transaction {$transaction} not found");
+
             return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
         }
 
         // Use loose comparison to handle string/int mismatch
         if ($tx->event_id != $event->id) {
-            \Log::warning("Payment Status Check: Transaction {$transaction} belongs to event {$tx->event_id} (" . gettype($tx->event_id) . "), not {$event->id} (" . gettype($event->id) . ")");
+            \Log::warning("Payment Status Check: Transaction {$transaction} belongs to event {$tx->event_id} (".gettype($tx->event_id)."), not {$event->id} (".gettype($event->id).')');
 
             return response()->json([
                 'success' => false,
@@ -117,7 +119,7 @@ class EventPaymentRecoveryController extends Controller
                     'event_id_from_slug' => $event->id,
                     'transaction_id' => $transaction,
                     'transaction_event_id' => $tx->event_id,
-                ]
+                ],
             ], 404);
         }
 
@@ -187,7 +189,7 @@ class EventPaymentRecoveryController extends Controller
     public function resume(Request $request, string $slug, string $transaction, MidtransService $midtransService)
     {
         $event = Event::query()->where('slug', $slug)->firstOrFail();
-        
+
         $tx = is_numeric($transaction)
             ? Transaction::find($transaction)
             : Transaction::where('public_ref', $transaction)->first();
@@ -232,7 +234,7 @@ class EventPaymentRecoveryController extends Controller
             try {
                 $tx->load(['participants.category']);
                 $snapResult = $midtransService->createEventTransaction($tx);
-                
+
                 if ($snapResult['success']) {
                     $tx->update([
                         'snap_token' => $snapResult['snap_token'],
@@ -243,13 +245,13 @@ class EventPaymentRecoveryController extends Controller
                 } else {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Gagal membuat token pembayaran: ' . ($snapResult['message'] ?? 'Unknown error'),
+                        'message' => 'Gagal membuat token pembayaran: '.($snapResult['message'] ?? 'Unknown error'),
                     ], 500);
                 }
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Terjadi kesalahan saat membuat token: ' . $e->getMessage(),
+                    'message' => 'Terjadi kesalahan saat membuat token: '.$e->getMessage(),
                 ], 500);
             }
         }

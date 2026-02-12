@@ -4,17 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Event;
 use App\Models\RaceCategory;
-use App\Models\Participant;
-use App\Models\Transaction;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\Http;
-use Tests\TestCase;
-
 use App\Models\User;
-
 use App\Services\MidtransService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
+use Tests\TestCase;
 
 class RegistrationEmergencyContactTest extends TestCase
 {
@@ -35,9 +30,9 @@ class RegistrationEmergencyContactTest extends TestCase
         $this->mock(MidtransService::class, function (MockInterface $mock) {
             $mock->shouldReceive('createEventTransaction')
                 ->andReturn([
-                    'success' => true, 
-                    'snap_token' => 'dummy-snap-token', 
-                    'order_id' => 'dummy-order-id'
+                    'success' => true,
+                    'snap_token' => 'dummy-snap-token',
+                    'order_id' => 'dummy-order-id',
                 ]);
         });
 

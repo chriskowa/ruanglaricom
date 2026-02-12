@@ -25,4 +25,3 @@ class EoEventAuthorizationSmokeTest extends TestCase
         $this->actingAs($eo)->delete(route('eo.events.destroy', $event))->assertRedirect(route('eo.events.index'));
     }
 }
-

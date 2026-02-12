@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('participants', function (Blueprint $table) {
             // Composite index for finding duplicate participants in a category
             $table->index(['race_category_id', 'id_card'], 'idx_participants_category_idcard');
-            
+
             // Index for filtering/searching
             $table->index('email', 'idx_participants_email');
             $table->index('id_card', 'idx_participants_idcard');

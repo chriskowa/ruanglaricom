@@ -16,12 +16,12 @@ class EventFactory extends Factory
 
     public function definition(): array
     {
-        $name = 'Event ' . fake()->unique()->words(3, true);
+        $name = 'Event '.fake()->unique()->words(3, true);
 
         return [
             'user_id' => User::factory(),
             'name' => $name,
-            'slug' => Str::slug($name) . '-' . fake()->unique()->randomNumber(5),
+            'slug' => Str::slug($name).'-'.fake()->unique()->randomNumber(5),
             'short_description' => fake()->sentence(),
             'full_description' => fake()->paragraph(),
             'start_at' => now()->addDays(fake()->numberBetween(1, 90))->setTime(6, 0),
@@ -33,4 +33,3 @@ class EventFactory extends Factory
         ];
     }
 }
-

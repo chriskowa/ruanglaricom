@@ -33,7 +33,7 @@ class EmailReportController extends Controller
         } catch (\Exception $e) {
             Log::error('EmailReportController::index error', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             abort(500, 'Terjadi kesalahan saat memuat laporan email.');
         }
@@ -45,9 +45,9 @@ class EmailReportController extends Controller
             $eo = $request->user();
 
             $query = $this->baseQuery($eo->id, $request);
-            
+
             $count = $query->count();
-            
+
             // Debug logging
             Log::info('EmailReportController::data', [
                 'eo_user_id' => $eo->id,
@@ -86,9 +86,9 @@ class EmailReportController extends Controller
         } catch (\Exception $e) {
             Log::error('EmailReportController::data error', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'ok' => false,
                 'message' => 'Terjadi kesalahan saat memuat data laporan.',

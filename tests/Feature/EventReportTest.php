@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Event;
 use App\Models\Participant;
-use App\Models\Transaction;
 use App\Models\RaceCategory;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Services\EventReportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,18 +17,22 @@ class EventReportTest extends TestCase
     use RefreshDatabase;
 
     protected $event;
+
     protected $category;
+
     protected $package;
+
     protected $reportService;
+
     protected $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->reportService = new EventReportService();
+
+        $this->reportService = new EventReportService;
         $this->user = User::factory()->create();
-        
+
         // Create event
         $this->event = Event::factory()->create([
             'start_at' => now()->addDays(10),
@@ -80,7 +84,7 @@ class EventReportTest extends TestCase
             'gender' => 'male',
             'phone' => '08123456789',
             'email' => 'john@example.com',
-            'id_card' => '1234567890' . rand(1000, 9999),
+            'id_card' => '1234567890'.rand(1000, 9999),
             'date_of_birth' => '1990-01-01',
             'price_type' => $priceType,
             'status' => 'active', // Assuming 'status' column exists and matters
@@ -103,7 +107,7 @@ class EventReportTest extends TestCase
         $report = $this->reportService->getEventReport($this->event);
 
         $this->assertEquals(100, $report['total_slots']);
-        $this->assertEquals(5, $report['sold_slots']); 
+        $this->assertEquals(5, $report['sold_slots']);
         $this->assertEquals(3, $report['pending_slots']);
         $this->assertFalse($report['show_warning']);
     }
@@ -112,11 +116,11 @@ class EventReportTest extends TestCase
     public function it_shows_warning_when_slots_low()
     {
         // Sell 91 slots (9 remaining) -> < 10%
-        
+
         // Optimization: Create one transaction and many participants?
         // Service queries participants whereHas transaction.
         // If they share transaction, it still counts participants.
-        
+
         $transaction = Transaction::create([
             'event_id' => $this->event->id,
             'user_id' => $this->user->id,
@@ -127,15 +131,15 @@ class EventReportTest extends TestCase
         ]);
 
         for ($i = 0; $i < 91; $i++) {
-             Participant::create([
+            Participant::create([
                 'transaction_id' => $transaction->id,
                 'event_package_id' => $this->package->id,
                 'race_category_id' => $this->category->id,
-                'name' => 'Runner ' . $i,
+                'name' => 'Runner '.$i,
                 'gender' => 'male',
                 'phone' => '08123456789',
                 'email' => "runner{$i}@example.com",
-                'id_card' => '1234567890' . $i,
+                'id_card' => '1234567890'.$i,
                 'date_of_birth' => '1990-01-01',
                 'price_type' => 'regular',
                 'status' => 'active',
@@ -165,8 +169,8 @@ class EventReportTest extends TestCase
 
         $this->assertEquals(2, $report['breakdown']['early_bird']);
         $this->assertEquals(3, $report['breakdown']['regular']);
-        $this->assertEquals(40, $report['percentages']['early_bird']); 
-        $this->assertEquals(60, $report['percentages']['regular']);   
+        $this->assertEquals(40, $report['percentages']['early_bird']);
+        $this->assertEquals(60, $report['percentages']['regular']);
     }
 
     /** @test */
@@ -181,7 +185,7 @@ class EventReportTest extends TestCase
                 'percentages' => [],
                 'coupon_usage' => 0,
                 'is_unlimited' => false,
-                'show_warning' => false
+                'show_warning' => false,
             ]);
 
         $this->reportService->getEventReport($this->event);
@@ -190,16 +194,24 @@ class EventReportTest extends TestCase
     /** @test */
     public function it_handles_concurrent_bookings_simulation()
     {
-        // Simulate concurrent state: 
+        // Simulate concurrent state:
         // 5 Paid (Sold)
         // 5 Pending (Reserved/Booking in progress)
         // 2 Expired (Should not count as sold/pending)
         // 3 Failed (Should not count)
 
-        for ($i = 0; $i < 5; $i++) $this->createParticipant('paid');
-        for ($i = 0; $i < 5; $i++) $this->createParticipant('pending');
-        for ($i = 0; $i < 2; $i++) $this->createParticipant('expired');
-        for ($i = 0; $i < 3; $i++) $this->createParticipant('failed');
+        for ($i = 0; $i < 5; $i++) {
+            $this->createParticipant('paid');
+        }
+        for ($i = 0; $i < 5; $i++) {
+            $this->createParticipant('pending');
+        }
+        for ($i = 0; $i < 2; $i++) {
+            $this->createParticipant('expired');
+        }
+        for ($i = 0; $i < 3; $i++) {
+            $this->createParticipant('failed');
+        }
 
         $report = $this->reportService->getEventReport($this->event);
 
@@ -209,14 +221,14 @@ class EventReportTest extends TestCase
         $this->assertEquals(5, $report['pending_slots']);
         // Total Used = 10
         // Expired/Failed ignored
-        
+
         // Check percentages logic
         // 5 Early Bird (default in createParticipant)
-        // Breakdown only counts SOLD slots in current logic? 
-        // Let's check Service logic. 
+        // Breakdown only counts SOLD slots in current logic?
+        // Let's check Service logic.
         // "breakdown" is based on $query (which is payment_status IN paid/settlement/capture)
         // So pending shouldn't appear in breakdown.
-        
+
         $this->assertEquals(5, $report['breakdown']['regular']); // 5 paid regulars
     }
 }

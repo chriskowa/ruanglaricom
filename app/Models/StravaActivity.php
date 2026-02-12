@@ -44,4 +44,3 @@ class StravaActivity extends Model
         return 'https://www.strava.com/activities/'.$this->strava_activity_id;
     }
 }
-

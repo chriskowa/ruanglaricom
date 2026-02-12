@@ -96,17 +96,17 @@
                     </div>
                     <span class="text-sm font-bold text-slate-300">User Management</span>
                 </a>
-                <a href="#" class="p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group text-center">
+                <a href="{{ route('admin.transactions.index') }}" class="p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group text-center">
                     <div class="w-12 h-12 rounded-full bg-green-500/10 text-green-400 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
                     <span class="text-sm font-bold text-slate-300">Transactions</span>
                 </a>
-                <a href="#" class="p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group text-center">
+                <a href="{{ route('admin.races.index') }}" class="p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group text-center">
                     <div class="w-12 h-12 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                     </div>
-                    <span class="text-sm font-bold text-slate-300">Content Moderation</span>
+                    <span class="text-sm font-bold text-slate-300">Race Master</span>
                 </a>
             </div>
         </div>

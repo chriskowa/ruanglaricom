@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Wallet;
 use App\Models\Notification;
+use App\Models\User;
+use App\Models\Wallet;
 use App\Models\WalletTopup;
 use App\Models\WalletTransaction;
 use App\Models\WalletWithdrawal;
@@ -11,7 +12,6 @@ use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
 
 class WalletController extends Controller
 {
@@ -228,7 +228,7 @@ class WalletController extends Controller
                         'user_id' => $adminId,
                         'type' => 'wallet_withdrawal',
                         'title' => 'Withdraw Baru',
-                        'message' => ($user->name ?? 'User') . ' mengajukan withdraw Rp ' . number_format($amount, 0, ',', '.') . '.',
+                        'message' => ($user->name ?? 'User').' mengajukan withdraw Rp '.number_format($amount, 0, ',', '.').'.',
                         'reference_type' => WalletWithdrawal::class,
                         'reference_id' => $withdrawal->id,
                         'is_read' => false,

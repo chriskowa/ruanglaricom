@@ -193,4 +193,3 @@ class EventPrizesTest extends TestCase
         $this->assertSame([], $category->prizes);
     }
 }
-

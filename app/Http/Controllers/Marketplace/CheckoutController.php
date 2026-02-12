@@ -44,7 +44,7 @@ class CheckoutController extends Controller
         // Check for existing pending order for this product by this user to avoid duplicates
         $existingOrder = MarketplaceOrder::where('buyer_id', Auth::id())
             ->where('status', 'pending')
-            ->whereHas('items', function($q) use ($product) {
+            ->whereHas('items', function ($q) use ($product) {
                 $q->where('product_id', $product->id);
             })
             ->latest()
@@ -92,7 +92,8 @@ class CheckoutController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal membuat order: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal membuat order: '.$e->getMessage());
         }
 
         // Midtrans Payload
@@ -127,7 +128,7 @@ class CheckoutController extends Controller
 
     public function pay(MarketplaceOrder $order)
     {
-        if ($order->buyer_id !== Auth::id() && (!Auth::user() || !Auth::user()->isAdmin())) {
+        if ($order->buyer_id !== Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
             return redirect()
                 ->route('marketplace.orders.index')
                 ->with('error', 'Order ini bukan milik Anda. Silakan checkout dari halaman produk untuk membuat order Anda sendiri.');

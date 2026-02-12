@@ -41,4 +41,3 @@ class AdminEmailReportPageTest extends TestCase
         $resp->assertSee('REPORT');
     }
 }
-

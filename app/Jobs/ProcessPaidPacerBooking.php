@@ -11,23 +11,21 @@ use App\Services\PlatformWalletService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class ProcessPaidPacerBooking implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public int $bookingId)
-    {
-    }
+    public function __construct(public int $bookingId) {}
 
     public function handle(): void
     {
         $booking = PacerBooking::with('pacer.user', 'runner')->find($this->bookingId);
-        if (!$booking) {
+        if (! $booking) {
             return;
         }
 
@@ -36,7 +34,7 @@ class ProcessPaidPacerBooking implements ShouldQueue
         }
 
         $metadata = is_array($booking->metadata) ? $booking->metadata : [];
-        if (!empty($metadata['escrow_locked_at'])) {
+        if (! empty($metadata['escrow_locked_at'])) {
             return;
         }
 

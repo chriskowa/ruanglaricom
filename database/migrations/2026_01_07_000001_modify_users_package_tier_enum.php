@@ -1,9 +1,8 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -20,10 +19,10 @@ return new class extends Migration
         // Strategy to handle ENUM change with data migration:
         // 1. Change to VARCHAR to allow intermediate values
         DB::statement("ALTER TABLE users MODIFY COLUMN package_tier VARCHAR(255) DEFAULT 'basic'");
-        
+
         // 2. Migrate data
         DB::table('users')->where('package_tier', 'business')->update(['package_tier' => 'elite']);
-        
+
         // 3. Apply new ENUM definition
         DB::statement("ALTER TABLE users MODIFY COLUMN package_tier ENUM('basic', 'lite', 'pro', 'elite') DEFAULT 'basic'");
     }

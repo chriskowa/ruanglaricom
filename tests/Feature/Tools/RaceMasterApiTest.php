@@ -202,7 +202,7 @@ class RaceMasterApiTest extends TestCase
         // Setup data directly to avoid needing CSRF for setup
         Storage::fake('public');
         Storage::fake('local');
-        
+
         $user = User::factory()->create();
         $race = Race::create(['name' => 'CSRF Test', 'created_by' => $user->id]);
         $session = $race->sessions()->create([
@@ -211,13 +211,13 @@ class RaceMasterApiTest extends TestCase
             'ended_at' => now(),
             'created_by' => $user->id,
         ]);
-        
+
         $participant = $race->participants()->create([
             'race_id' => $race->id,
             'bib_number' => '999',
             'name' => 'CSRF Runner',
         ]);
-        
+
         $session->laps()->create([
             'race_id' => $race->id,
             'participant_id' => $participant->participant_id,
@@ -234,9 +234,9 @@ class RaceMasterApiTest extends TestCase
         $poster = $this->post("/api/tools/race-master/public/{$session->slug}/participants/999/poster", [
             'background' => $bg,
         ]);
-        
+
         $poster->assertStatus(200);
-        
+
         // Try to access public certificate endpoint WITHOUT CSRF token
         $cert = $this->post("/api/tools/race-master/public/{$session->slug}/participants/999/certificate");
         $cert->assertStatus(200);

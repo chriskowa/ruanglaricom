@@ -140,10 +140,9 @@ class CouponRegistrationTest extends TestCase
             'https://www.google.com/recaptcha/api/siteverify' => Http::response(['success' => true], 200),
         ]);
         $this->resetSchema();
-        $this->app->instance(MootaService::class, new class extends MootaService {
-            public function __construct()
-            {
-            }
+        $this->app->instance(MootaService::class, new class extends MootaService
+        {
+            public function __construct() {}
 
             public function generateUniqueCode($amount)
             {
@@ -223,10 +222,9 @@ class CouponRegistrationTest extends TestCase
             'https://www.google.com/recaptcha/api/siteverify' => Http::response(['success' => true], 200),
         ]);
         $this->resetSchema();
-        $this->app->instance(MootaService::class, new class extends MootaService {
-            public function __construct()
-            {
-            }
+        $this->app->instance(MootaService::class, new class extends MootaService
+        {
+            public function __construct() {}
 
             public function generateUniqueCode($amount)
             {

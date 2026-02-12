@@ -50,9 +50,9 @@ class VCardSettingsController extends Controller
         ]);
 
         foreach (['vcard_featured_links', 'vcard_links', 'vcard_social_links'] as $jsonKey) {
-            if (!empty($data[$jsonKey])) {
+            if (! empty($data[$jsonKey])) {
                 $decoded = json_decode($data[$jsonKey], true);
-                if (!is_array($decoded)) {
+                if (! is_array($decoded)) {
                     return back()->with('error', $jsonKey.' harus berupa JSON array.');
                 }
             }
@@ -65,4 +65,3 @@ class VCardSettingsController extends Controller
         return back()->with('success', 'V-Card settings updated.');
     }
 }
-

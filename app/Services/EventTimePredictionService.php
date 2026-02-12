@@ -65,10 +65,19 @@ class EventTimePredictionService
 
     private function distanceKeyFromKm(float $km): string
     {
-        if (abs($km - 5.0) < 0.6) return '5k';
-        if (abs($km - 10.0) < 1.0) return '10k';
-        if (abs($km - 21.1) < 1.0 || abs($km - 21.0) < 1.0) return '21k';
-        if (abs($km - 42.2) < 2.0 || abs($km - 42.0) < 2.0) return '42k';
+        if (abs($km - 5.0) < 0.6) {
+            return '5k';
+        }
+        if (abs($km - 10.0) < 1.0) {
+            return '10k';
+        }
+        if (abs($km - 21.1) < 1.0 || abs($km - 21.0) < 1.0) {
+            return '21k';
+        }
+        if (abs($km - 42.2) < 2.0 || abs($km - 42.0) < 2.0) {
+            return '42k';
+        }
+
         return '10k';
     }
 
@@ -78,6 +87,7 @@ class EventTimePredictionService
         $h = intdiv($seconds, 3600);
         $m = intdiv($seconds % 3600, 60);
         $s = $seconds % 60;
+
         return sprintf('%02d:%02d:%02d', $h, $m, $s);
     }
 
@@ -96,9 +106,16 @@ class EventTimePredictionService
     {
         $days = now()->diffInDays($pbDate);
         $score = 0.7;
-        if ($days <= 30) $score += 0.1;
-        if ($days >= 61) $score -= 0.1;
-        if (! $gpx) $score -= 0.2;
+        if ($days <= 30) {
+            $score += 0.1;
+        }
+        if ($days >= 61) {
+            $score -= 0.1;
+        }
+        if (! $gpx) {
+            $score -= 0.2;
+        }
+
         return max(0.2, min(0.9, round($score, 2)));
     }
 
@@ -122,4 +139,3 @@ class EventTimePredictionService
         return trim($base.$wx);
     }
 }
-

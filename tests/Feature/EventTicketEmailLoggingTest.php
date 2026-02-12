@@ -65,4 +65,3 @@ class EventTicketEmailLoggingTest extends TestCase
         $this->assertSame(2, EventEmailDeliveryLog::query()->where('event_id', $event->id)->where('channel', 'email')->where('status', 'sent')->count());
     }
 }
-

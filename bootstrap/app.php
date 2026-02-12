@@ -48,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($value === null || $value === '') {
                     return null;
                 }
+
                 return substr(hash('sha256', $value), 0, 12);
             };
 

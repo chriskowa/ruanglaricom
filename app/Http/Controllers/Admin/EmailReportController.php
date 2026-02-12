@@ -130,4 +130,3 @@ class EmailReportController extends Controller
         ];
     }
 }
-

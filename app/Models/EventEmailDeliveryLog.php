@@ -27,4 +27,3 @@ class EventEmailDeliveryLog extends Model
         return $this->belongsTo(Transaction::class);
     }
 }
-

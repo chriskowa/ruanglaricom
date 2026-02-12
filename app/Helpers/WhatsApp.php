@@ -38,13 +38,13 @@ class WhatsApp
         if ($error) {
             \Illuminate\Support\Facades\Log::error('WhatsApp API Connection Error', [
                 'to' => $to,
-                'error' => $error
+                'error' => $error,
             ]);
         } else {
             \Illuminate\Support\Facades\Log::info('WhatsApp API Response', [
                 'to' => $to,
                 'http_code' => $httpCode,
-                'response' => $response
+                'response' => $response,
             ]);
         }
     }

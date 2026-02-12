@@ -71,4 +71,3 @@ class MarketplaceAuctionController extends Controller
         return back()->with('success', 'Finalize triggered.');
     }
 }
-

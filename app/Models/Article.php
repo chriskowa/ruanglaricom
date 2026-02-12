@@ -42,9 +42,9 @@ class Article extends Model
                 $article->slug = Str::slug($article->title);
             }
         });
-        
+
         static::updating(function ($article) {
-            if ($article->isDirty('title') && !$article->isDirty('slug')) {
+            if ($article->isDirty('title') && ! $article->isDirty('slug')) {
                 $article->slug = Str::slug($article->title);
             }
         });
@@ -68,6 +68,6 @@ class Article extends Model
     public function scopePublished($query)
     {
         return $query->where('status', 'published')
-                     ->where('published_at', '<=', now());
+            ->where('published_at', '<=', now());
     }
 }

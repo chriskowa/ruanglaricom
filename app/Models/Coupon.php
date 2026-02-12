@@ -85,7 +85,7 @@ class Coupon extends Model
                 ->where('user_id', $userId)
                 ->whereIn('payment_status', ['paid', 'pending'])
                 ->count();
-            
+
             if ($userUsage >= $this->usage_limit_per_user) {
                 return false;
             }

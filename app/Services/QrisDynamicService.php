@@ -49,7 +49,7 @@ class QrisDynamicService
 
     private function toCRC16(string $input): string
     {
-        $crc = 0xffff;
+        $crc = 0xFFFF;
         $len = strlen($input);
         for ($i = 0; $i < $len; $i++) {
             $crc ^= ord($input[$i]) << 8;
@@ -58,8 +58,8 @@ class QrisDynamicService
             }
         }
 
-        $hex = strtoupper(dechex($crc & 0xffff));
+        $hex = strtoupper(dechex($crc & 0xFFFF));
+
         return strlen($hex) === 3 ? '0'.$hex : str_pad($hex, 4, '0', STR_PAD_LEFT);
     }
 }
-

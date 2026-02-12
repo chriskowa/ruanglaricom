@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Console\Commands\MonitorEoReportEmailDeliveries;
 use App\Jobs\SendEoReportEmail;
 use App\Models\EoReportEmailDelivery;
 use App\Models\Event;
@@ -158,4 +157,3 @@ class EoReportEmailDeliveryTest extends TestCase
         parent::tearDown();
     }
 }
-

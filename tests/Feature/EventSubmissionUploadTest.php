@@ -66,10 +66,10 @@ class EventSubmissionUploadTest extends TestCase
         $files = Storage::disk('public')->allFiles('event-submissions');
         $this->assertCount(1, $files);
         $path = $files[0];
-        
+
         // Assert path ends with .webp (our conversion)
         $this->assertTrue(Str::endsWith($path, '.webp'));
-        
+
         // Assert DB has path
         $this->assertDatabaseHas('event_submissions', [
             'banner' => $path,

@@ -18,12 +18,12 @@ class PacerBookingWebhookController extends Controller
         $transactionStatus = $payload['transaction_status'] ?? null;
         $fraudStatus = $payload['fraud_status'] ?? null;
 
-        if (!$orderId) {
+        if (! $orderId) {
             return response()->json(['message' => 'Missing order_id'], 422);
         }
 
         $booking = PacerBooking::where('invoice_number', $orderId)->first();
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
@@ -50,4 +50,3 @@ class PacerBookingWebhookController extends Controller
         return response()->json(['status' => 'ok']);
     }
 }
-

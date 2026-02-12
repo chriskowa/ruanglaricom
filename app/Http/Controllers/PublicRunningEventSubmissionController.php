@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class PublicRunningEventSubmissionController extends Controller
 {
@@ -34,6 +34,7 @@ class PublicRunningEventSubmissionController extends Controller
 
                     if (! $value) {
                         $fail('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+
                         return;
                     }
 
@@ -52,7 +53,7 @@ class PublicRunningEventSubmissionController extends Controller
 
         $email = Str::lower(trim((string) $validated['email']));
 
-        $emailKey = 'event_submit:otp_email:' . hash('sha256', $email);
+        $emailKey = 'event_submit:otp_email:'.hash('sha256', $email);
         if (RateLimiter::tooManyAttempts($emailKey, 3)) {
             return response()->json([
                 'success' => false,
@@ -140,6 +141,7 @@ class PublicRunningEventSubmissionController extends Controller
 
                     if (! $value) {
                         $fail('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+
                         return;
                     }
 
@@ -197,6 +199,7 @@ class PublicRunningEventSubmissionController extends Controller
 
         if (! Hash::check($validated['otp_code'], $otp->code_hash)) {
             $otp->increment('attempts');
+
             return response()->json([
                 'success' => false,
                 'message' => 'OTP tidak valid atau kedaluwarsa.',
@@ -231,23 +234,23 @@ class PublicRunningEventSubmissionController extends Controller
         if ($request->hasFile('banner')) {
             try {
                 $file = $request->file('banner');
-                $filename = Str::uuid() . '.webp';
-                
-                $manager = new ImageManager(new Driver());
+                $filename = Str::uuid().'.webp';
+
+                $manager = new ImageManager(new Driver);
                 $image = $manager->read($file);
-                
+
                 // Resize if too large (max width 1000px)
                 if ($image->width() > 1000) {
                     $image->scale(width: 1000);
                 }
-                
+
                 $encoded = $image->toWebp(quality: 80);
-                
-                Storage::disk('public')->put('event-submissions/' . $filename, (string) $encoded);
-                $bannerPath = 'event-submissions/' . $filename;
+
+                Storage::disk('public')->put('event-submissions/'.$filename, (string) $encoded);
+                $bannerPath = 'event-submissions/'.$filename;
             } catch (\Exception $e) {
                 // Fail silently for image processing, or log it
-                // We don't want to block submission if image fails? 
+                // We don't want to block submission if image fails?
                 // Better to nullify path
                 $bannerPath = null;
             }
@@ -319,6 +322,7 @@ class PublicRunningEventSubmissionController extends Controller
         if (! $ip) {
             return null;
         }
+
         return hash('sha256', $ip.'|'.(string) config('app.key'));
     }
 
@@ -328,6 +332,7 @@ class PublicRunningEventSubmissionController extends Controller
         if ($ua === '') {
             return null;
         }
+
         return hash('sha256', $ua.'|'.(string) config('app.key'));
     }
 }

@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Helpers\WhatsApp;
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Wallet;
-use App\Models\Package;
 use App\Models\MembershipTransaction;
 use App\Models\OtpToken;
-use App\Helpers\WhatsApp;
+use App\Models\Package;
+use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -61,21 +61,22 @@ class AuthController extends Controller
                 if ($request->wantsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Akun belum terverifikasi. Silakan masukkan kode OTP.'
+                        'message' => 'Akun belum terverifikasi. Silakan masukkan kode OTP.',
                     ], 403);
                 }
+
                 return redirect()->route('pacer.otp', ['user' => $user->id])
                     ->with('success', 'Akun belum terverifikasi. Silakan masukkan kode OTP yang dikirim.');
             }
 
             // Cek Status Membership EO
-            if ($user->role === 'eo' && !$user->isMembershipActive()) {
+            if ($user->role === 'eo' && ! $user->isMembershipActive()) {
                 // Cari transaksi pending
                 $pendingTx = $user->membershipTransactions()
                     ->where('status', 'pending')
                     ->latest()
                     ->first();
-                
+
                 if ($pendingTx) {
                     return redirect()->route('eo.membership.payment', $pendingTx->id);
                 }
@@ -89,7 +90,7 @@ class AuthController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Login successful',
-                    'user' => $user
+                    'user' => $user,
                 ]);
             }
 
@@ -108,7 +109,7 @@ class AuthController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email atau password salah.'
+                'message' => 'Email atau password salah.',
             ], 422);
         }
 
@@ -172,7 +173,7 @@ class AuthController extends Controller
         $membershipStatus = 'inactive';
         $membershipExpiresAt = null;
 
-        if ($validated['role'] === 'eo' && !empty($validated['package_tier'])) {
+        if ($validated['role'] === 'eo' && ! empty($validated['package_tier'])) {
             $package = Package::where('slug', $validated['package_tier'])->first();
             if ($package && $package->price == 0) {
                 $membershipStatus = 'active';
@@ -186,7 +187,7 @@ class AuthController extends Controller
             'phone' => $phone,
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
-            'is_active' => !env('LOGIN_OTP_ENABLED', true),
+            'is_active' => ! env('LOGIN_OTP_ENABLED', true),
             'referral_code' => $this->generateReferralCode(),
             'package_tier' => $validated['role'] === 'eo' ? $validated['package_tier'] : 'basic',
             'current_package_id' => $package?->id,
@@ -212,7 +213,7 @@ class AuthController extends Controller
 
         $user->update(['wallet_id' => $wallet->id]);
 
-        if (!env('LOGIN_OTP_ENABLED', true)) {
+        if (! env('LOGIN_OTP_ENABLED', true)) {
             Auth::login($user);
             $dashboard = match ($user->role) {
                 'admin' => route('admin.dashboard'),
@@ -221,6 +222,7 @@ class AuthController extends Controller
                 'eo' => route('eo.dashboard'),
                 default => route('runner.dashboard'),
             };
+
             return redirect()->intended($dashboard);
         }
 

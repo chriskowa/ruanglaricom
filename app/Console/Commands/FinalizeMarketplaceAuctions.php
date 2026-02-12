@@ -49,11 +49,13 @@ class FinalizeMarketplaceAuctions extends Command
 
                         if (! $topBid) {
                             $locked->save();
+
                             return;
                         }
 
                         if ($locked->reserve_price && (float) $topBid->amount < (float) $locked->reserve_price) {
                             $locked->save();
+
                             return;
                         }
 

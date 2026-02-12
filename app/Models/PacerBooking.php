@@ -57,4 +57,3 @@ class PacerBooking extends Model
         return $this->belongsTo(Pacer::class);
     }
 }
-

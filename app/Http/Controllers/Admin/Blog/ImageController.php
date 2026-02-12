@@ -11,8 +11,10 @@ class ImageController extends Controller
     {
         if ($request->hasFile('file')) {
             $path = $request->file('file')->store('blog/content', 'public');
-            return response()->json(['location' => asset('storage/' . $path)]);
+
+            return response()->json(['location' => asset('storage/'.$path)]);
         }
+
         return response()->json(['error' => 'No file uploaded'], 400);
     }
 }

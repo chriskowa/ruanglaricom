@@ -240,6 +240,7 @@ class StravaController extends Controller
                     ->get()
                     ->filter(function ($act) {
                         $t = strtolower((string) $act->type);
+
                         return in_array($t, ['run', 'virtualrun', 'trailrun', 'treadmill']);
                     })
                     ->groupBy(fn ($act) => $act->start_date?->format('Y-m-d'))

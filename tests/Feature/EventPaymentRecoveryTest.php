@@ -139,7 +139,7 @@ class EventPaymentRecoveryTest extends TestCase
             ],
         ]);
 
-        $statusObj = new \stdClass();
+        $statusObj = new \stdClass;
         $statusObj->transaction_status = 'settlement';
 
         $mock = Mockery::mock(MidtransService::class);
@@ -161,4 +161,3 @@ class EventPaymentRecoveryTest extends TestCase
         $this->assertNotNull($tx->paid_at);
     }
 }
-

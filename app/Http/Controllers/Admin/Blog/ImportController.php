@@ -24,7 +24,7 @@ class ImportController extends Controller
         ]);
 
         $url = rtrim($request->wordpress_url, '/');
-        $endpoint = $url . '/wp-json/wp/v2/posts?_embed&per_page=10';
+        $endpoint = $url.'/wp-json/wp/v2/posts?_embed&per_page=10';
 
         try {
             $response = Http::get($endpoint);
@@ -48,7 +48,7 @@ class ImportController extends Controller
                     // In a real scenario, you might want to download this image to local storage
                     // For now, we'll just use the external URL or null if you prefer
                     // $featuredImage = $post['_embedded']['wp:featuredmedia'][0]['source_url'];
-                    
+
                     // Option 2: Download image (simplified)
                     /*
                     $imageUrl = $post['_embedded']['wp:featuredmedia'][0]['source_url'];
@@ -75,7 +75,7 @@ class ImportController extends Controller
                 // Handle Categories (Simplified: Create if not exists)
                 // Note: WP API returns category IDs, not names directly in 'categories' field without _embed context or separate fetch
                 // For better category mapping, we'd need to fetch categories from WP first or use _embedded['wp:term']
-                
+
                 if (isset($post['_embedded']['wp:term'][0])) {
                     foreach ($post['_embedded']['wp:term'][0] as $term) {
                         $category = BlogCategory::firstOrCreate(
@@ -83,12 +83,12 @@ class ImportController extends Controller
                             ['name' => $term['name']]
                         );
                         // Assign first category found as main category
-                        if (!$article->category_id) {
+                        if (! $article->category_id) {
                             $article->update(['category_id' => $category->id]);
                         }
                     }
                 }
-                
+
                 // Handle Tags
                 if (isset($post['_embedded']['wp:term'][1])) {
                     $tagIds = [];
@@ -108,7 +108,7 @@ class ImportController extends Controller
             return back()->with('success', "Successfully imported {$importedCount} posts.");
 
         } catch (\Exception $e) {
-            return back()->with('error', 'An error occurred during import: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred during import: '.$e->getMessage());
         }
     }
 }

@@ -118,7 +118,7 @@ class MarketplaceController extends Controller
         $product = MarketplaceProduct::with(['category', 'images', 'seller.city', 'brand'])->where('slug', $slug)->firstOrFail();
         $recentBids = collect();
         $withSidebar = true;
-        
+
         $isAuction = $product->sale_type === 'auction';
         $currentBid = $isAuction ? ($product->current_price ?? $product->starting_price ?? $product->price) : null;
         $auctionRunning = $product->auction_status === 'running';

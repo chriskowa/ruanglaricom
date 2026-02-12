@@ -30,6 +30,7 @@ class SendEoReportEmail implements ShouldQueue
 
         if (! $delivery) {
             Log::error("EoReportEmailDelivery not found: {$this->deliveryId}");
+
             return;
         }
 
@@ -46,6 +47,7 @@ class SendEoReportEmail implements ShouldQueue
                 'last_attempt_at' => now(),
                 'first_attempt_at' => $delivery->first_attempt_at ?? now(),
             ]);
+
             return;
         }
 
@@ -61,35 +63,35 @@ class SendEoReportEmail implements ShouldQueue
             $filters = $delivery->filters ?? [];
             $query = Participant::query()
                 ->with(['category', 'transaction'])
-                ->whereHas('transaction', function($q) use ($delivery) {
+                ->whereHas('transaction', function ($q) use ($delivery) {
                     $q->where('event_id', $delivery->event_id);
                 });
-            
+
             // Note: Participant table usually doesn't have event_id directly if it belongs to transaction
-            // But checking Participant model in previous turn, it didn't show event_id fillable, 
+            // But checking Participant model in previous turn, it didn't show event_id fillable,
             // but usually it's related via Transaction.
             // Let's check if Participant has event_id column.
             // In the previous `Read` of Participant.php, fillable didn't have event_id.
-            // But Relation is belongsTo Transaction. 
+            // But Relation is belongsTo Transaction.
             // So query should be via transaction.
-            
-            if (!empty($filters['status'])) {
+
+            if (! empty($filters['status'])) {
                 $status = $filters['status'];
-                $query->whereHas('transaction', function($q) use ($status) {
+                $query->whereHas('transaction', function ($q) use ($status) {
                     $q->where('payment_status', $status);
                 });
             }
 
-            if (!empty($filters['date_from'])) {
+            if (! empty($filters['date_from'])) {
                 $query->whereDate('created_at', '>=', $filters['date_from']);
             }
 
-            if (!empty($filters['date_to'])) {
+            if (! empty($filters['date_to'])) {
                 $query->whereDate('created_at', '<=', $filters['date_to']);
             }
 
-            $participants = $query->orderByDesc('created_at')->limit(500)->get(); 
-            // Limit to 500 to avoid memory issues for email body. 
+            $participants = $query->orderByDesc('created_at')->limit(500)->get();
+            // Limit to 500 to avoid memory issues for email body.
             // If more needed, should use attachment (CSV).
 
             $data = [
@@ -117,7 +119,7 @@ class SendEoReportEmail implements ShouldQueue
                 'failure_code' => 'transport_error',
                 'failure_message' => substr($e->getMessage(), 0, 255), // Truncate to fit column
             ]);
-            
+
             // Do not rethrow to prevent infinite loop
         }
     }

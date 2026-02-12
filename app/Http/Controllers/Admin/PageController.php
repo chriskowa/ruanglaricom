@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
     public function index()
     {
         $pages = Page::latest()->paginate(10);
+
         return view('admin.pages.index', compact('pages'));
     }
 
@@ -61,7 +62,7 @@ class PageController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:pages,slug,' . $page->id,
+            'slug' => 'nullable|string|max:255|unique:pages,slug,'.$page->id,
             'content' => 'nullable|string',
             'excerpt' => 'nullable|string',
             'hardcoded' => 'nullable|string|max:50',
@@ -97,6 +98,7 @@ class PageController extends Controller
             Storage::disk('public')->delete($page->featured_image);
         }
         $page->delete();
+
         return redirect()->route('admin.pages.index')->with('success', 'Page deleted successfully.');
     }
 }

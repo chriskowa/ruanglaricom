@@ -56,4 +56,3 @@ class MarketplaceConsignmentController extends Controller
         return back()->with('success', 'Consignment listed and published.');
     }
 }
-

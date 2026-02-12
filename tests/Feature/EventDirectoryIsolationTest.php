@@ -62,4 +62,3 @@ class EventDirectoryIsolationTest extends TestCase
             ->assertDontSee($managedEvent->name);
     }
 }
-

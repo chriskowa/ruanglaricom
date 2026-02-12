@@ -74,4 +74,3 @@ class NonInstantTicketRateLimitCounterTest extends TestCase
         return $txn;
     }
 }
-

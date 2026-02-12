@@ -154,7 +154,7 @@ class TransactionController extends Controller
                             'user_id' => $adminId,
                             'type' => 'wallet_withdrawal',
                             'title' => 'Withdraw Approved',
-                            'message' => 'Withdraw #' . $wd->id . ' disetujui.',
+                            'message' => 'Withdraw #'.$wd->id.' disetujui.',
                             'reference_type' => WalletWithdrawal::class,
                             'reference_id' => $wd->id,
                             'is_read' => false,
@@ -234,7 +234,7 @@ class TransactionController extends Controller
 
                 $message = 'Withdraw kamu ditolak. Dana dikembalikan ke saldo.';
                 if (! empty($validated['notes'])) {
-                    $message .= ' Catatan admin: ' . $validated['notes'];
+                    $message .= ' Catatan admin: '.$validated['notes'];
                 }
 
                 Notification::create([
@@ -255,7 +255,7 @@ class TransactionController extends Controller
                             'user_id' => $adminId,
                             'type' => 'wallet_withdrawal',
                             'title' => 'Withdraw Rejected',
-                            'message' => 'Withdraw #' . $wd->id . ' ditolak.',
+                            'message' => 'Withdraw #'.$wd->id.' ditolak.',
                             'reference_type' => WalletWithdrawal::class,
                             'reference_id' => $wd->id,
                             'is_read' => false,

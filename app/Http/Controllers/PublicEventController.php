@@ -84,20 +84,20 @@ class PublicEventController extends Controller
             $seo = $this->buildSeo($event);
             $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                 $q->where('event_id', $event->id)
-                  ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+                    ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
             })->exists();
             if ($event->hardcoded === 'latbarkamis') {
                 $participants = collect();
                 if ($event->show_participant_list) {
                     $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
-                            $q->where('event_id', $event->id)->where('payment_status', 'paid');
-                        })
-                        ->when($event->registration_open_at, function($q) use ($event) {
+                        $q->where('event_id', $event->id)->where('payment_status', 'paid');
+                    })
+                        ->when($event->registration_open_at, function ($q) use ($event) {
                             $q->where('created_at', '>=', $event->registration_open_at);
                         })
                         ->orderBy('created_at', 'desc')
                         ->limit(50)
-                        ->get(['id','name']);
+                        ->get(['id', 'name']);
                 }
 
                 $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
@@ -133,17 +133,17 @@ class PublicEventController extends Controller
         // Get categories
         $categories = $event->categories()->where('is_active', true)
             ->with('masterGpx')
-            ->withCount(['participants as early_bird_sold_count' => function($q) {
+            ->withCount(['participants as early_bird_sold_count' => function ($q) {
                 $q->where('price_type', 'early')
-                  ->whereHas('transaction', function($t) {
-                      $t->whereIn('payment_status', ['pending', 'paid', 'cod']);
-                  });
+                    ->whereHas('transaction', function ($t) {
+                        $t->whereIn('payment_status', ['pending', 'paid', 'cod']);
+                    });
             }])
             ->get();
         $seo = $this->buildSeo($event);
         $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id)
-              ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+                ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
         })->exists();
 
         if ($event->hardcoded === 'latbarkamis') {
@@ -152,12 +152,12 @@ class PublicEventController extends Controller
                 $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                     $q->where('event_id', $event->id)->where('payment_status', 'paid');
                 })
-                ->when($event->registration_open_at, function($q) use ($event) {
-                    $q->where('created_at', '>=', $event->registration_open_at);
-                })
-                ->orderBy('created_at', 'desc')
-                ->limit(50)
-                ->get(['id','name']);
+                    ->when($event->registration_open_at, function ($q) use ($event) {
+                        $q->where('created_at', '>=', $event->registration_open_at);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->limit(50)
+                    ->get(['id', 'name']);
             }
 
             $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
@@ -239,10 +239,10 @@ class PublicEventController extends Controller
                 'total' => 0,
             ]);
         }
-        
+
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id)
-              ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+                ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
         });
 
         if ($request->has('category_id') && $request->category_id) {
@@ -273,9 +273,9 @@ class PublicEventController extends Controller
 
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('id_card', 'like', "%{$search}%");
+                    ->orWhere('id_card', 'like', "%{$search}%");
             });
         }
 
@@ -286,9 +286,10 @@ class PublicEventController extends Controller
 
         $participants->getCollection()->transform(function ($participant) use ($event) {
             $participant->age_group = $participant->getAgeGroup($event->start_at);
+
             return $participant;
         });
-        
+
         return response()->json($participants);
     }
 }

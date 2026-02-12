@@ -26,4 +26,3 @@ class InstantEmailRateLimitTest extends TestCase
         $this->assertLessThanOrEqual(70, $delay2);
     }
 }
-

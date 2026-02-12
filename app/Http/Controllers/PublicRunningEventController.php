@@ -8,9 +8,8 @@ use App\Models\EventRating;
 use App\Models\RaceDistance;
 use App\Models\RaceType;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class PublicRunningEventController extends Controller
 {
@@ -24,7 +23,7 @@ class PublicRunningEventController extends Controller
         if ($request->filled('month')) {
             $query->whereMonth('start_at', $request->month);
         }
-        
+
         if ($request->filled('year')) {
             $query->whereYear('start_at', $request->year);
         }
@@ -45,9 +44,9 @@ class PublicRunningEventController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('location_name', 'like', "%{$search}%");
+                    ->orWhere('location_name', 'like', "%{$search}%");
             });
         }
 
@@ -56,16 +55,17 @@ class PublicRunningEventController extends Controller
 
         if ($request->ajax()) {
             $events = $query->paginate(10);
+
             return response()->json([
                 'html' => view('events.partials.list', compact('events'))->render(),
-                'pagination' => (string) $events->links()
+                'pagination' => (string) $events->links(),
             ]);
         }
 
         $cities = City::whereHas('events', fn ($q) => $q->directory())->orderBy('name')->get();
         $raceTypes = RaceType::whereHas('events', fn ($q) => $q->directory())->get();
         $raceDistances = RaceDistance::whereHas('events', fn ($q) => $q->directory())->get();
-        
+
         $events = $query->paginate(10);
 
         return view('events.landing', compact('events', 'cities', 'raceTypes', 'raceDistances'));
@@ -162,8 +162,9 @@ class PublicRunningEventController extends Controller
             $to = route('events.city', ['city' => $city->seourl]);
             $qs = request()->getQueryString();
             if ($qs) {
-                $to .= '?' . $qs;
+                $to .= '?'.$qs;
             }
+
             return redirect()->to($to, 301);
         }
 

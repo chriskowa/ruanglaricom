@@ -4,12 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Coupon;
 use App\Models\Event;
-use App\Models\RaceCategory;
-use App\Models\User;
-use App\Models\Transaction;
 use App\Models\Participant;
+use App\Models\RaceCategory;
+use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -18,7 +17,9 @@ class ZeroAmountRegistrationTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $event;
+
     protected $category;
 
     protected function setUp(): void
@@ -31,7 +32,7 @@ class ZeroAmountRegistrationTest extends TestCase
         ]);
 
         $this->user = User::factory()->create();
-        
+
         $this->event = Event::factory()->create([
             'user_id' => $this->user->id,
             'slug' => 'zero-amount-event',
@@ -60,7 +61,7 @@ class ZeroAmountRegistrationTest extends TestCase
     protected function getRegistrationData($couponCode = null, $user = null)
     {
         $userData = $user ?? User::factory()->create();
-        
+
         return [
             'pic_name' => $userData->name,
             'pic_email' => $userData->email,
@@ -82,7 +83,7 @@ class ZeroAmountRegistrationTest extends TestCase
                     'date_of_birth' => '1990-01-01',
                     'target_time' => '01:00:00',
                     'jersey_size' => 'M',
-                ]
+                ],
             ],
         ];
     }
@@ -107,15 +108,15 @@ class ZeroAmountRegistrationTest extends TestCase
         $response->assertJson(['success' => true]);
 
         $transaction = Transaction::latest()->first();
-        
+
         $this->assertEquals(0, $transaction->final_amount, 'Final amount should be 0');
         $this->assertEquals('paid', $transaction->payment_status, 'Payment status should be paid for zero amount');
         $this->assertNull($transaction->snap_token, 'Snap token should be null for zero amount');
         $this->assertNotNull($transaction->paid_at, 'Paid at should be set');
-        
+
         // Ensure used count is incremented (if implemented in Action)
-        // StoreRegistrationAction doesn't explicitly increment used_count in the snippet I saw, 
-        // but it might rely on a model event or another service. 
+        // StoreRegistrationAction doesn't explicitly increment used_count in the snippet I saw,
+        // but it might rely on a model event or another service.
         // If not implemented, this assertion might fail, identifying a bug.
         // Let's check if it increments. Usually it should.
         $this->assertEquals(1, $coupon->fresh()->used_count);
@@ -144,7 +145,7 @@ class ZeroAmountRegistrationTest extends TestCase
         $response->assertJson(['success' => true]);
 
         $transaction = Transaction::latest()->first();
-        
+
         $this->assertEquals(0, $transaction->admin_fee, 'Admin fee should be 0 for fully discounted transaction');
         $this->assertEquals(0, $transaction->final_amount, 'Final amount should be 0');
         $this->assertEquals('paid', $transaction->payment_status);

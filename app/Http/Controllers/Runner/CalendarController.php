@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Runner;
 
-use App\Http\Controllers\Controller; 
+use App\Http\Controllers\Controller;
 use App\Models\CustomWorkout;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
@@ -565,9 +565,10 @@ class CalendarController extends Controller
 
         if ($validator->fails()) {
             \Log::warning('updateSessionStatus validation failed:', $validator->errors()->toArray());
+
             return response()->json([
-                'message' => 'Validation failed', 
-                'errors' => $validator->errors()
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -575,17 +576,25 @@ class CalendarController extends Controller
         $user = auth()->user();
 
         // 1. Check if Custom Workout
-        if (!empty($validated['workout_id'])) {
+        if (! empty($validated['workout_id'])) {
             $workout = CustomWorkout::where('id', $validated['workout_id'])
                 ->where('runner_id', $user->id)
                 ->firstOrFail();
 
             $updateData = ['status' => $validated['status']];
-            
-            if ($request->has('strava_link')) $updateData['strava_link'] = $validated['strava_link'];
-            if ($request->has('notes')) $updateData['notes'] = $validated['notes'];
-            if ($request->has('rpe')) $updateData['rpe'] = $validated['rpe'];
-            if ($request->has('feeling')) $updateData['feeling'] = $validated['feeling'];
+
+            if ($request->has('strava_link')) {
+                $updateData['strava_link'] = $validated['strava_link'];
+            }
+            if ($request->has('notes')) {
+                $updateData['notes'] = $validated['notes'];
+            }
+            if ($request->has('rpe')) {
+                $updateData['rpe'] = $validated['rpe'];
+            }
+            if ($request->has('feeling')) {
+                $updateData['feeling'] = $validated['feeling'];
+            }
 
             $workout->update($updateData);
 
@@ -596,7 +605,7 @@ class CalendarController extends Controller
         }
 
         // 2. Check if Program Session
-        if (!empty($validated['enrollment_id']) && isset($validated['session_day'])) {
+        if (! empty($validated['enrollment_id']) && isset($validated['session_day'])) {
             // Verify enrollment belongs to user
             $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
                 ->where('runner_id', $user->id)
@@ -1079,7 +1088,7 @@ class CalendarController extends Controller
                     if ($existingWorkout) {
                         DB::transaction(function () use ($workout, $existingWorkout, $newDate) {
                             $originalDate = $workout->workout_date;
-                            
+
                             // 3-step swap to avoid unique constraint violation
                             // 1. Move existing to a temporary safe date (far past)
                             $tempDate = Carbon::parse('1970-01-01');

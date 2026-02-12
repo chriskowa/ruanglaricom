@@ -83,4 +83,3 @@ class EmailTicketQrOptionTest extends TestCase
         $view->assertSee('Nomor Tiket', false);
     }
 }
-

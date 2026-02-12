@@ -29,8 +29,8 @@ class EoEventRpcFieldTest extends TestCase
                     'name' => '5K',
                     'distance_km' => 5,
                     'price_regular' => 100000,
-                ]
-            ]
+                ],
+            ],
         ];
 
         $response = $this->actingAs($eo)->post(route('eo.events.store'), $payload);

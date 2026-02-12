@@ -26,16 +26,16 @@ return new class extends Migration
             $table->uuid('id')->primary(); // Pakai UUID biar aman untuk Order ID Midtrans
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('package_id')->constrained('packages');
-            
+
             $table->decimal('amount', 12, 2);
             $table->decimal('admin_fee', 10, 2)->default(0);
             $table->decimal('total_amount', 12, 2);
-            
+
             $table->string('status')->default('pending'); // pending, paid, failed, expired
             $table->string('snap_token')->nullable(); // Token Midtrans
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('expired_at')->nullable(); // Kapan membership berakhir
-            
+
             $table->timestamps();
         });
 

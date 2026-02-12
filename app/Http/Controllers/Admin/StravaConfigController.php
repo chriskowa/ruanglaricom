@@ -11,6 +11,7 @@ class StravaConfigController extends Controller
     public function index()
     {
         $config = StravaConfig::firstOrNew();
+
         return view('admin.strava.config', compact('config'));
     }
 
@@ -25,11 +26,11 @@ class StravaConfigController extends Controller
 
         $config = StravaConfig::firstOrNew();
         $config->fill($data);
-        
+
         // If refresh token changed or access token is missing, we might want to clear access token to force refresh
         // But for manual input, we just save what we have.
         // We'll rely on the service to refresh the token using these credentials.
-        
+
         $config->save();
 
         return redirect()->back()->with('success', 'Konfigurasi Strava berhasil disimpan.');

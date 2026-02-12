@@ -36,4 +36,20 @@ class RaceSessionParticipant extends Model
     {
         return $this->hasOne(RaceCertificate::class, 'race_session_participant_id');
     }
+
+    public function getFormattedPredictedTimeAttribute(): string
+    {
+        $ms = $this->predicted_time_ms;
+        if ($ms === null) {
+            return '-';
+        }
+
+        $ms = max(0, (int) $ms);
+        $cs = (int) floor(($ms % 1000) / 10);
+        $totalSeconds = (int) floor($ms / 1000);
+        $minutes = intdiv($totalSeconds, 60);
+        $seconds = $totalSeconds % 60;
+
+        return sprintf('%d:%02d.%02d', $minutes, $seconds, $cs);
+    }
 }

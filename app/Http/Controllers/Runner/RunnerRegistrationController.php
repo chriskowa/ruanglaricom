@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Runner;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\OtpToken;
 use App\Helpers\WhatsApp;
+use App\Http\Controllers\Controller;
+use App\Models\OtpToken;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class RunnerRegistrationController extends Controller
 {
@@ -68,11 +68,12 @@ class RunnerRegistrationController extends Controller
             'pb_42k_time' => $validated['pb_42k_time'] ?? null,
             'cooper_distance' => $validated['cooper_distance'] ?? null,
             'resting_hr' => $validated['resting_hr'] ?? null,
-            'is_active' => !env('LOGIN_OTP_ENABLED', true),
+            'is_active' => ! env('LOGIN_OTP_ENABLED', true),
         ]);
 
-        if (!env('LOGIN_OTP_ENABLED', true)) {
+        if (! env('LOGIN_OTP_ENABLED', true)) {
             Auth::login($user);
+
             return redirect()->route('runner.dashboard');
         }
 

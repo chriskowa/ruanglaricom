@@ -16,13 +16,13 @@ class IntegrationSettingsController extends Controller
             'google_analytics' => AppSettings::get('google_analytics'),
             'bing_search_console' => AppSettings::get('bing_search_console'),
             'google_ads_tag' => AppSettings::get('google_ads_tag'),
-            
+
             // General
             'site_title' => AppSettings::get('site_title', 'Ruang Lari'),
             'site_tagline' => AppSettings::get('site_tagline', 'Platform komunitas lari terbesar di Indonesia'),
             'contact_email' => AppSettings::get('contact_email'),
             'contact_whatsapp' => AppSettings::get('contact_whatsapp'),
-            
+
             // Social Media
             'social_instagram' => AppSettings::get('social_instagram'),
             'social_tiktok' => AppSettings::get('social_tiktok'),

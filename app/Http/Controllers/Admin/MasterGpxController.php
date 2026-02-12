@@ -161,7 +161,9 @@ class MasterGpxController extends Controller
         foreach ($trkpts as $pt) {
             $lat = isset($pt['lat']) ? (float) $pt['lat'] : null;
             $lon = isset($pt['lon']) ? (float) $pt['lon'] : null;
-            if (! is_finite($lat) || ! is_finite($lon)) continue;
+            if (! is_finite($lat) || ! is_finite($lon)) {
+                continue;
+            }
 
             $eleNode = $pt->xpath('./*[local-name()="ele"]');
             $ele = null;
@@ -174,8 +176,12 @@ class MasterGpxController extends Controller
                 $total += $this->haversineKm($prevLat, $prevLon, $lat, $lon);
                 if ($hasEle && $prevEle !== null && $ele !== null) {
                     $d = $ele - $prevEle;
-                    if ($d > 0) $gainSum += $d;
-                    if ($d < 0) $lossSum += abs($d);
+                    if ($d > 0) {
+                        $gainSum += $d;
+                    }
+                    if ($d < 0) {
+                        $lossSum += abs($d);
+                    }
                 }
             }
 
@@ -206,6 +212,7 @@ class MasterGpxController extends Controller
             sin($dLat / 2) * sin($dLat / 2)
             + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) * sin($dLon / 2);
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
         return $R * $c;
     }
 }

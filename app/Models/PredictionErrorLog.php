@@ -31,4 +31,3 @@ class PredictionErrorLog extends Model
         return $this->belongsTo(RaceCategory::class);
     }
 }
-

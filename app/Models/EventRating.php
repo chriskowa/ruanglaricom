@@ -27,4 +27,3 @@ class EventRating extends Model
         return $this->belongsTo(Event::class);
     }
 }
-

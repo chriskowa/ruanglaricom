@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Package;
 use App\Models\MembershipTransaction;
+use App\Models\Package;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Str;
+use Tests\TestCase;
 
 class EoMembershipPaymentTest extends TestCase
 {
@@ -29,7 +29,7 @@ class EoMembershipPaymentTest extends TestCase
             'duration_days' => 30,
             'is_active' => true,
             'benefits' => [], // Add empty array for json cast
-            'description' => 'Test Package'
+            'description' => 'Test Package',
         ]);
 
         // 3. Create Transaction
@@ -39,7 +39,7 @@ class EoMembershipPaymentTest extends TestCase
             'package_id' => $package->id,
             'amount' => 500000,
             'total_amount' => 500000,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         // 4. Act as User and Request
@@ -70,7 +70,7 @@ class EoMembershipPaymentTest extends TestCase
             'duration_days' => 30,
             'is_active' => true,
             'benefits' => [],
-            'description' => 'Test Package'
+            'description' => 'Test Package',
         ]);
 
         // 4. Create Transaction for User 2
@@ -80,7 +80,7 @@ class EoMembershipPaymentTest extends TestCase
             'package_id' => $package->id,
             'amount' => 500000,
             'total_amount' => 500000,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         // 5. Act as User 1 and Request User 2's transaction
@@ -101,8 +101,8 @@ class EoMembershipPaymentTest extends TestCase
         // 2. Create Transaction (even if they own it, route is protected by role:eo)
         // Wait, if they are runner, they shouldn't have MembershipTransaction for EO packages usually,
         // but let's assume they somehow have one or try to access one.
-        
-        $transaction = new MembershipTransaction();
+
+        $transaction = new MembershipTransaction;
         $transaction->id = (string) Str::uuid();
         $transaction->user_id = $user->id; // They own it
         // We need a package and save it to allow route binding
@@ -111,28 +111,28 @@ class EoMembershipPaymentTest extends TestCase
         // But route model binding runs before middleware? No, middleware runs first usually?
         // Laravel: Global middleware -> Route middleware -> Controller.
         // Route Model Binding happens in the routing layer.
-        
+
         // Let's just mock the route access.
         // We need a real transaction in DB for binding to work if bindings are checked.
         // If binding fails -> 404.
         // If middleware fails -> 403.
-        
+
         $package = Package::create([
             'name' => 'Test',
             'slug' => 'test',
             'price' => 100,
             'duration_days' => 1,
             'benefits' => [],
-            'description' => 'Test'
+            'description' => 'Test',
         ]);
-        
+
         $transaction = MembershipTransaction::create([
             'id' => (string) Str::uuid(),
             'user_id' => $user->id,
             'package_id' => $package->id,
             'amount' => 100,
             'total_amount' => 100,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $response = $this->actingAs($user)
@@ -156,7 +156,7 @@ class EoMembershipPaymentTest extends TestCase
             'duration_days' => 30,
             'is_active' => true,
             'benefits' => [],
-            'description' => 'Test Package'
+            'description' => 'Test Package',
         ]);
 
         // 3. Create Transaction
@@ -166,14 +166,14 @@ class EoMembershipPaymentTest extends TestCase
             'package_id' => $package->id,
             'amount' => 500000,
             'total_amount' => 500000,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         // 4. Force mismatch in Auth::id() by mocking or just relying on logic
         // We can't easily force Auth::id() to return string if it returns int.
         // But we can rely on the fact that if this test passes, the change to `!=` didn't break anything.
         // To really test it, we'd need to mock Auth facade.
-        
+
         $response = $this->actingAs($user)
             ->get(route('eo.membership.payment', $transaction->id));
 

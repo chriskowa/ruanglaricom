@@ -4,16 +4,16 @@ namespace Database\Seeders;
 
 use App\Models\Event;
 use App\Models\User;
-use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class JabarRunSeeder extends Seeder
 {
     public function run()
     {
         $eo = User::where('role', 'eo')->first();
-        
-        if (!$eo) {
+
+        if (! $eo) {
             $eo = User::factory()->create([
                 'name' => 'Event Organizer',
                 'email' => 'eo@ruanglari.com',
@@ -68,7 +68,7 @@ class JabarRunSeeder extends Seeder
                 'is_active' => true,
             ],
         ]);
-        
+
         $this->command->info('Jabar Run 2025 event seeded successfully.');
     }
 }

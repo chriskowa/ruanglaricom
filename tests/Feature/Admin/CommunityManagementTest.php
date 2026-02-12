@@ -40,7 +40,7 @@ class CommunityManagementTest extends TestCase
     public function test_admin_can_create_community()
     {
         $city = City::factory()->create();
-        
+
         $data = [
             'name' => 'New Community',
             'slug' => 'new-community',
@@ -50,9 +50,9 @@ class CommunityManagementTest extends TestCase
             'pic_phone' => '08123',
             'theme_color' => 'neon',
             'schedules' => [
-                ['day' => 'Monday', 'time' => '19:00', 'activity' => 'Run', 'location' => 'Park']
+                ['day' => 'Monday', 'time' => '19:00', 'activity' => 'Run', 'location' => 'Park'],
             ],
-            'tiktok_link' => 'https://tiktok.com/@test'
+            'tiktok_link' => 'https://tiktok.com/@test',
         ];
 
         $response = $this->post(route('admin.communities.store'), $data);
@@ -64,7 +64,7 @@ class CommunityManagementTest extends TestCase
     public function test_admin_can_update_community_clearing_schedules()
     {
         $community = Community::factory()->create([
-            'schedules' => [['day' => 'Monday', 'time' => '19:00']]
+            'schedules' => [['day' => 'Monday', 'time' => '19:00']],
         ]);
 
         // Update with NO schedules (simulating empty form)
@@ -78,9 +78,9 @@ class CommunityManagementTest extends TestCase
         ];
 
         $response = $this->put(route('admin.communities.update', $community), $data);
-        
+
         $response->assertRedirect(route('admin.communities.index'));
-        
+
         $community->refresh();
         $this->assertEmpty($community->schedules);
     }
@@ -88,7 +88,7 @@ class CommunityManagementTest extends TestCase
     public function test_admin_can_manage_community_faqs()
     {
         $city = City::factory()->create();
-        
+
         $data = [
             'name' => 'FAQ Community',
             'slug' => 'faq-community',
@@ -99,12 +99,12 @@ class CommunityManagementTest extends TestCase
             'faqs' => [
                 ['question' => 'Q1', 'answer' => 'A1'],
                 ['question' => 'Q2', 'answer' => 'A2'],
-            ]
+            ],
         ];
 
         $response = $this->post(route('admin.communities.store'), $data);
         $response->assertRedirect(route('admin.communities.index'));
-        
+
         $community = Community::where('slug', 'faq-community')->first();
         $this->assertCount(2, $community->faqs);
         $this->assertEquals('Q1', $community->faqs[0]['question']);
@@ -121,7 +121,7 @@ class CommunityManagementTest extends TestCase
 
         $response = $this->put(route('admin.communities.update', $community), $updateData);
         $response->assertRedirect(route('admin.communities.index'));
-        
+
         $community->refresh();
         $this->assertEmpty($community->faqs);
     }

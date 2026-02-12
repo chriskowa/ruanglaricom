@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Race extends Model
 {
@@ -13,6 +14,24 @@ class Race extends Model
         'logo_path',
         'created_by',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Race $race) {
+            if ($race->logo_path) {
+                Storage::disk('public')->delete($race->logo_path);
+            }
+
+            $paths = $race->certificates()
+                ->pluck('pdf_path')
+                ->filter(fn ($p) => is_string($p) && trim($p) !== '')
+                ->all();
+
+            if (! empty($paths)) {
+                Storage::disk('public')->delete($paths);
+            }
+        });
+    }
 
     public function creator(): BelongsTo
     {
@@ -34,4 +53,3 @@ class Race extends Model
         return $this->hasMany(RaceCertificate::class);
     }
 }
-

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Coach;
-use App\Models\User;
-use App\Models\OtpToken;
 use App\Helpers\WhatsApp;
+use App\Models\Coach;
+use App\Models\OtpToken;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class CoachRegistrationController extends Controller
 {
@@ -49,7 +49,7 @@ class CoachRegistrationController extends Controller
             'phone' => $phone,
             'password' => bcrypt(str()->random(12)),
             'role' => 'coach',
-            'is_active' => !env('LOGIN_OTP_ENABLED', true),
+            'is_active' => ! env('LOGIN_OTP_ENABLED', true),
             'city' => $data['city'],
         ]);
 

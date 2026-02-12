@@ -79,16 +79,16 @@ class SendEventRegistrationNotification implements ShouldQueue
     {
         try {
             $notifiableName = $participants->first()->name ?? 'Peserta';
-            
+
             // If sending to PIC, use PIC name
             if ($email === ($this->transaction->pic_data['email'] ?? '')) {
                 $notifiableName = $this->transaction->pic_data['name'] ?? $notifiableName;
             }
 
             Mail::to($email)->send(new \App\Mail\EventRegistrationSuccess(
-                $event, 
-                $this->transaction, 
-                $participants, 
+                $event,
+                $this->transaction,
+                $participants,
                 $notifiableName
             ));
 

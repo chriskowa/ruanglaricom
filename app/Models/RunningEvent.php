@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class RunningEvent extends Model
@@ -46,9 +46,9 @@ class RunningEvent extends Model
                 $event->slug = Str::slug($event->name);
             }
         });
-        
+
         static::updating(function ($event) {
-            if ($event->isDirty('name') && !$event->isDirty('slug')) {
+            if ($event->isDirty('name') && ! $event->isDirty('slug')) {
                 $event->slug = Str::slug($event->name);
             }
         });
@@ -78,7 +78,7 @@ class RunningEvent extends Model
     {
         return $query->where('status', 'published');
     }
-    
+
     public function scopeUpcoming($query)
     {
         return $query->where('event_date', '>=', now()->toDateString())->orderBy('event_date', 'asc');

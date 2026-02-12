@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Community;
 use App\Models\City;
+use App\Models\Community;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,12 +13,14 @@ class CommunityController extends Controller
     public function index()
     {
         $communities = Community::with('city')->latest()->paginate(10);
+
         return view('admin.communities.index', compact('communities'));
     }
 
     public function create()
     {
         $cities = City::orderBy('name')->get();
+
         return view('admin.communities.create', compact('cities'));
     }
 
@@ -87,12 +89,14 @@ class CommunityController extends Controller
     public function show(Community $community)
     {
         $community->load(['city', 'members']);
+
         return view('admin.communities.show', compact('community'));
     }
 
     public function edit(Community $community)
     {
         $cities = City::orderBy('name')->get();
+
         return view('admin.communities.edit', compact('community', 'cities'));
     }
 
@@ -100,7 +104,7 @@ class CommunityController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:communities,slug,' . $community->id,
+            'slug' => 'required|string|max:255|unique:communities,slug,'.$community->id,
             'pic_name' => 'required|string|max:255',
             'pic_email' => 'required|email|max:255',
             'pic_phone' => 'required|string|max:20',
@@ -156,7 +160,7 @@ class CommunityController extends Controller
             $processedCaptains = [];
             foreach ($request->captains as $index => $cap) {
                 $imagePath = $cap['existing_image'] ?? null;
-                
+
                 if (isset($cap['image']) && $cap['image'] instanceof \Illuminate\Http\UploadedFile) {
                     $imagePath = $cap['image']->store('communities/captains', 'public');
                 } elseif (isset($cap['remove_image']) && $cap['remove_image'] == '1') {
@@ -171,14 +175,14 @@ class CommunityController extends Controller
             }
             $data['captains'] = $processedCaptains;
         } else {
-             $data['captains'] = [];
+            $data['captains'] = [];
         }
 
-        if (!$request->has('schedules')) {
+        if (! $request->has('schedules')) {
             $data['schedules'] = [];
         }
 
-        if (!$request->has('faqs')) {
+        if (! $request->has('faqs')) {
             $data['faqs'] = [];
         }
 

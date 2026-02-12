@@ -16,27 +16,27 @@ class VCardController extends Controller
         $ogImageUrl = AppSettings::get('vcard_og_image_url', $bgImageUrl);
 
         $featuredLinks = json_decode((string) AppSettings::get('vcard_featured_links', ''), true);
-        if (!is_array($featuredLinks) || count($featuredLinks) === 0) {
+        if (! is_array($featuredLinks) || count($featuredLinks) === 0) {
             $featuredLinks = [
                 [
                     'title' => 'RuangLari Marketplace',
                     'url' => route('marketplace.index'),
                     'badge' => 'New Arrival',
                     'icon' => 'shopping-bag',
-                    'color' => 'from-pink-500 to-rose-500'
+                    'color' => 'from-pink-500 to-rose-500',
                 ],
                 [
                     'title' => 'Hire Professional Pacer',
                     'url' => route('pacer.index'),
                     'badge' => 'PacerHub',
                     'icon' => 'running',
-                    'color' => 'from-neon to-lime-500 text-slate-900' // Custom handling for neon
+                    'color' => 'from-neon to-lime-500 text-slate-900', // Custom handling for neon
                 ],
             ];
         }
 
         $links = json_decode((string) AppSettings::get('vcard_links', ''), true);
-        if (!is_array($links) || count($links) === 0) {
+        if (! is_array($links) || count($links) === 0) {
             $links = [
                 ['title' => 'Kalender Lari Indonesia', 'url' => route('events.index'), 'icon' => 'calendar-alt'],
                 ['title' => 'Kalkulator Pace & Race', 'url' => route('calculator'), 'icon' => 'calculator'],
@@ -48,7 +48,7 @@ class VCardController extends Controller
         }
 
         $socialLinks = json_decode((string) AppSettings::get('vcard_social_links', ''), true);
-        if (!is_array($socialLinks) || count($socialLinks) === 0) {
+        if (! is_array($socialLinks) || count($socialLinks) === 0) {
             $socialLinks = [
                 ['title' => 'Instagram', 'url' => 'https://instagram.com/ruanglaricom', 'icon' => 'instagram', 'external' => true],
                 ['title' => 'WhatsApp', 'url' => 'https://wa.me/6287866950667', 'icon' => 'whatsapp', 'external' => true],
@@ -81,4 +81,3 @@ class VCardController extends Controller
         ));
     }
 }
-

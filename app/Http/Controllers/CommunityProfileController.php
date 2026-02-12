@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Community;
-use Illuminate\Http\Request;
 
 class CommunityProfileController extends Controller
 {
@@ -18,12 +17,12 @@ class CommunityProfileController extends Controller
             'blue' => ['#3b82f6', '#1e3a8a', '#172554'],
             'red' => ['#ef4444', '#7f1d1d', '#450a0a'],
         ];
-        
+
         $theme = $community->theme_color ?? 'neon';
         $palette = $colors[$theme] ?? $colors['neon'];
 
         // Process Schedules to match View expectations
-        $schedules = collect($community->schedules ?? [])->map(function($s) {
+        $schedules = collect($community->schedules ?? [])->map(function ($s) {
             return [
                 'day' => $s['day'] ?? '',
                 'time' => $s['time'] ?? '',
@@ -33,16 +32,16 @@ class CommunityProfileController extends Controller
         });
 
         // Process Captains to include full image URL
-        $captains = collect($community->captains ?? [])->map(function($c) {
+        $captains = collect($community->captains ?? [])->map(function ($c) {
             return [
                 'name' => $c['name'] ?? '',
                 'role' => $c['role'] ?? '',
-                'img' => $c['image'] ? asset('storage/' . $c['image']) : 'https://via.placeholder.com/400x400?text=' . urlencode($c['name'] ?? 'Captain'),
+                'img' => $c['image'] ? asset('storage/'.$c['image']) : 'https://via.placeholder.com/400x400?text='.urlencode($c['name'] ?? 'Captain'),
             ];
         });
 
         // Process FAQs
-        $faqs = collect($community->faqs ?? [])->map(function($f) {
+        $faqs = collect($community->faqs ?? [])->map(function ($f) {
             return [
                 'question' => $f['question'] ?? '',
                 'answer' => $f['answer'] ?? '',

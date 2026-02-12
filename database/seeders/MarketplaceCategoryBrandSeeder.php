@@ -35,7 +35,7 @@ class MarketplaceCategoryBrandSeeder extends Seeder
                         ['name' => 'Skechers', 'type' => 'International'],
                         ['name' => 'Under Armour', 'type' => 'International'],
                         ['name' => 'Reebok', 'type' => 'International'],
-                        
+
                         // Local
                         ['name' => '910 Nineten', 'type' => 'Local'],
                         ['name' => 'Ortuseight', 'type' => 'Local'],
@@ -59,7 +59,7 @@ class MarketplaceCategoryBrandSeeder extends Seeder
                         ['name' => 'Compressport', 'type' => 'International'],
                         ['name' => 'The North Face', 'type' => 'International'],
                         ['name' => 'Patagonia', 'type' => 'International'],
-                        
+
                         // Local
                         ['name' => 'Tiento', 'type' => 'Local'],
                         ['name' => 'SUB Jersey', 'type' => 'Local'],

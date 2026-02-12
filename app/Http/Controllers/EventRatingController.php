@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\EventRating;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class EventRatingController extends Controller
 {
@@ -25,9 +25,9 @@ class EventRatingController extends Controller
         $cookieValue = $request->cookie($cookieName) ?: (string) Str::uuid();
 
         $salt = (string) config('app.key');
-        $cookieHash = hash('sha256', $cookieValue . '|' . $salt);
-        $ipHash = hash('sha256', (string) $request->ip() . '|' . $salt);
-        $fingerprintHash = hash('sha256', (string) $validated['fingerprint'] . '|' . $salt);
+        $cookieHash = hash('sha256', $cookieValue.'|'.$salt);
+        $ipHash = hash('sha256', (string) $request->ip().'|'.$salt);
+        $fingerprintHash = hash('sha256', (string) $validated['fingerprint'].'|'.$salt);
 
         $isDuplicate = EventRating::where('event_id', $event->id)
             ->where(function ($q) use ($cookieHash, $ipHash, $fingerprintHash) {

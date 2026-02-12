@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Community;
 use App\Models\CommunityRegistration;
 use App\Models\Event;
-use App\Models\RaceCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -46,9 +45,9 @@ class CommunityMasterRegistrationTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        
+
         $registration = CommunityRegistration::latest()->first();
-        
+
         $this->assertNotNull($registration);
         $this->assertEquals($community->id, $registration->community_id);
         $this->assertEquals('Indo Runners', $registration->community_name);
@@ -83,9 +82,9 @@ class CommunityMasterRegistrationTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        
+
         $registration = CommunityRegistration::latest()->first();
-        
+
         $this->assertNotNull($registration);
         $this->assertNull($registration->community_id);
         $this->assertEquals('Manual Community', $registration->community_name);

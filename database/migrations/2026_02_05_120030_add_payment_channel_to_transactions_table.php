@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-            if (!Schema::hasColumn('transactions', 'payment_channel')) {
+            if (! Schema::hasColumn('transactions', 'payment_channel')) {
                 $table->string('payment_channel')->nullable()->after('payment_gateway');
                 $table->index('payment_channel');
             }
@@ -26,4 +26,3 @@ return new class extends Migration
         });
     }
 };
-

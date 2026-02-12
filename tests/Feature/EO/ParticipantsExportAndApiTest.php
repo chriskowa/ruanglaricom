@@ -7,7 +7,6 @@ use App\Models\Participant;
 use App\Models\RaceCategory;
 use App\Models\Transaction;
 use App\Models\User;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -128,6 +127,4 @@ class ParticipantsExportAndApiTest extends TestCase
         $content = $response->streamedContent();
         $this->assertStringStartsWith('PK', $content);
     }
-
 }
-

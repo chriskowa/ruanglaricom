@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\Event;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -15,8 +14,11 @@ class EventBlastEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $event;
+
     public $subjectLine;
+
     public $content;
+
     public $participantName;
 
     /**
@@ -36,7 +38,7 @@ class EventBlastEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[' . $this->event->name . '] ' . $this->subjectLine,
+            subject: '['.$this->event->name.'] '.$this->subjectLine,
         );
     }
 

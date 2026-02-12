@@ -55,7 +55,7 @@ class AuctionController extends Controller
             $minAllowed = $hasAnyBid ? ($current + $minIncrement) : $starting;
 
             if ($amount < $minAllowed) {
-                return ['ok' => false, 'message' => 'Nominal bid minimal Rp ' . number_format($minAllowed, 0, ',', '.') . '.'];
+                return ['ok' => false, 'message' => 'Nominal bid minimal Rp '.number_format($minAllowed, 0, ',', '.').'.'];
             }
 
             MarketplaceBid::create([

@@ -47,7 +47,7 @@ class PublicEventReportController extends Controller
             $filters['category_id'] = null;
         }
 
-        $cacheKey = 'public_event_report_' . $eventModel->id . '_' . md5(json_encode($filters));
+        $cacheKey = 'public_event_report_'.$eventModel->id.'_'.md5(json_encode($filters));
 
         $payload = Cache::remember($cacheKey, 30, function () use ($eventModel, $filters, $reportService) {
             $participantsQuery = Participant::query()

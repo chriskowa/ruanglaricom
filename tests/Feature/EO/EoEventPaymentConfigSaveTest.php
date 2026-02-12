@@ -73,4 +73,3 @@ class EoEventPaymentConfigSaveTest extends TestCase
         $this->assertSame(['midtrans', 'moota'], $event->payment_config['allowed_methods'] ?? null);
     }
 }
-

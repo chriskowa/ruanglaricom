@@ -18,6 +18,7 @@ class StravaClubService
             $token = $this->getSystemToken();
             if (! empty($token)) {
                 $activities = $this->fetchClubActivitiesByToken($token);
+
                 return $this->processLeaderboard($activities);
             }
 
@@ -32,7 +33,7 @@ class StravaClubService
             $config = \App\Models\Admin\StravaConfig::first();
             if ($config) {
                 // Check expiry
-                if ($config->refresh_token && (!$config->access_token || ($config->expires_at && now()->greaterThan($config->expires_at)))) {
+                if ($config->refresh_token && (! $config->access_token || ($config->expires_at && now()->greaterThan($config->expires_at)))) {
                     // Refresh it
                     $response = Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
                         'client_id' => $config->client_id,
@@ -40,7 +41,7 @@ class StravaClubService
                         'grant_type' => 'refresh_token',
                         'refresh_token' => $config->refresh_token,
                     ]);
-    
+
                     if ($response->successful()) {
                         $data = $response->json();
                         $config->update([
@@ -48,6 +49,7 @@ class StravaClubService
                             'refresh_token' => $data['refresh_token'],
                             'expires_at' => now()->addSeconds($data['expires_in']),
                         ]);
+
                         return $data['access_token'];
                     }
                 }
@@ -67,6 +69,7 @@ class StravaClubService
     {
         try {
             $config = \App\Models\Admin\StravaConfig::first();
+
             return $config->club_id ?? env('STRAVA_CLUB_ID', '1859982');
         } catch (\Throwable $e) {
             return env('STRAVA_CLUB_ID', '1859982');
@@ -375,7 +378,7 @@ class StravaClubService
     private function fetchClubMembersByToken($token): array
     {
         $clubId = $this->getClubId();
-        
+
         $response = \Illuminate\Support\Facades\Http::withToken($token)
             ->withoutVerifying()
             ->get("https://www.strava.com/api/v3/clubs/{$clubId}/members", ['per_page' => 200]);

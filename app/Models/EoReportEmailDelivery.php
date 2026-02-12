@@ -54,4 +54,3 @@ class EoReportEmailDelivery extends Model
         return $this->belongsTo(User::class, 'triggered_by_user_id');
     }
 }
-

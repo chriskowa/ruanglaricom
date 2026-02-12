@@ -30,4 +30,3 @@ class JoinNowController extends Controller
         }
     }
 }
-

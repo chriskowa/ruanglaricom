@@ -51,4 +51,3 @@ class StravaAuthorizeAndPostTest extends TestCase
         $this->assertStringContainsString('/calendar/strava/connect', $response->headers->get('Location'));
     }
 }
-

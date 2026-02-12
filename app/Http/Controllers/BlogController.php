@@ -39,9 +39,9 @@ class BlogController extends Controller
 
         if ($search !== '') {
             $articlesQuery->where(function ($q) use ($search) {
-                $q->where('title', 'like', '%' . $search . '%')
-                    ->orWhere('excerpt', 'like', '%' . $search . '%')
-                    ->orWhere('content', 'like', '%' . $search . '%');
+                $q->where('title', 'like', '%'.$search.'%')
+                    ->orWhere('excerpt', 'like', '%'.$search.'%')
+                    ->orWhere('content', 'like', '%'.$search.'%');
             });
         }
 
@@ -90,25 +90,25 @@ class BlogController extends Controller
     {
         // Reuse index logic but force category
         $request->merge(['category' => $slug]);
-        
+
         // Validation to ensure category exists, otherwise 404
         $category = BlogCategory::where('slug', $slug)->firstOrFail();
 
         // SEO Override
         $seo = [
-            'title' => $category->name . ' | Blog Ruang Lari',
-            'meta_title' => 'Arsip Artikel ' . $category->name . ' - Ruang Lari',
-            'meta_description' => 'Kumpulan artikel, berita, dan tips seputar ' . $category->name . ' di Ruang Lari. Panduan lengkap untuk pelari Indonesia.',
-            'meta_keywords' => 'blog ' . $category->name . ', artikel ' . $category->name . ', info ' . $category->name . ', ruang lari',
+            'title' => $category->name.' | Blog Ruang Lari',
+            'meta_title' => 'Arsip Artikel '.$category->name.' - Ruang Lari',
+            'meta_description' => 'Kumpulan artikel, berita, dan tips seputar '.$category->name.' di Ruang Lari. Panduan lengkap untuk pelari Indonesia.',
+            'meta_keywords' => 'blog '.$category->name.', artikel '.$category->name.', info '.$category->name.', ruang lari',
         ];
 
         // Call index logic
         // We can't easily inject SEO into index() response without modifying index().
         // So let's refactor index() slightly to accept optional SEO data or handle it there.
-        
+
         // Better: let index() handle the view, but we pass the category object so index() can derive SEO.
         // index() already fetches $activeCategory.
-        
+
         return $this->index($request);
     }
 
@@ -117,7 +117,7 @@ class BlogController extends Controller
         $article = Article::where('slug', $slug)->published()->firstOrFail();
 
         $article->increment('views_count');
-        
+
         $relatedArticles = Article::where('category_id', $article->category_id)
             ->where('id', '!=', $article->id)
             ->published()

@@ -44,4 +44,3 @@ return new class extends Migration
         Schema::dropIfExists('eo_report_email_deliveries');
     }
 };
-

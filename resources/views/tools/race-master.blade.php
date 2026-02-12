@@ -100,6 +100,14 @@
     <main class="max-w-7xl mx-auto p-4">
 
         <div v-if="currentView === 'setup'" class="space-y-6 animate-fade-in">
+            <div v-if="existingRaces.length > 0" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
+                <h2 class="text-lg font-bold mb-4 text-slate-900 dark:text-white">Load Existing Race</h2>
+                 <select @change="selectExistingRace($event.target.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold dark:bg-slate-900 dark:border-slate-700 dark:text-white transition-colors">
+                    <option value="">-- Pilih Race Sebelumnya --</option>
+                    <option v-for="r in existingRaces" :value="r.id">@{{ r.name }} (@{{ r.created_at }})</option>
+                </select>
+            </div>
+
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
                 <h2 class="text-lg font-bold mb-4 text-slate-900 dark:text-white">1. Konfigurasi Race</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -475,6 +483,7 @@
 
             const currentView = ref('setup'); // setup, bibs, race, results
             const raceName = ref('');
+            const existingRaces = ref([]);
             const raceCategory = ref('5K');
             const categories = ['400M','800M','1500M','1600M','3000M','3200M','5K','10K','HM','FM'];
             const currentRaceId = ref(null);
@@ -619,6 +628,53 @@
             };
 
             // Methods
+            const loadExistingRaces = async () => {
+                try {
+                    const data = await apiFetchJson(`${apiBase}/races`);
+                    if (data && data.success) {
+                        existingRaces.value = data.races;
+                    }
+                } catch (e) {
+                    console.error('Failed to load races', e);
+                }
+            };
+
+            const selectExistingRace = async (raceId) => {
+                if (!raceId) return;
+                try {
+                    const data = await apiFetchJson(`${apiBase}/races/${raceId}`);
+                    if (data && data.success) {
+                        const r = data.race;
+                        currentRaceId.value = r.id;
+                        raceName.value = r.name;
+                        raceLogoUrl.value = r.logo_url || '';
+                        raceLogoPreviewUrl.value = r.logo_url || '';
+                        if (r.category) raceCategory.value = r.category;
+                        if (r.distance_km) raceDistanceKm.value = r.distance_km;
+
+                        // Load participants
+                        if (data.participants) {
+                            participants.value = data.participants.map(p => ({
+                                id: p.id || crypto.randomUUID(),
+                                bib: String(p.bib ?? '').trim(),
+                                name: String(p.name ?? ''),
+                                predictedTimeMs: typeof p.predictedTimeMs === 'number' ? p.predictedTimeMs : null,
+                                laps: [],
+                                status: 'ready',
+                                totalTime: 0,
+                                recentlyScanned: false,
+                                lastScanTime: 0,
+                            }));
+                        }
+                        saveState();
+                        alert('Race berhasil dimuat!');
+                    }
+                } catch (e) {
+                    alert('Gagal memuat race.');
+                    console.error(e);
+                }
+            };
+
             const focusName = () => { inputName.value.focus(); };
 
             const onLogoChange = (e) => {
@@ -1452,6 +1508,7 @@
 
             onMounted(() => {
                 loadState();
+                loadExistingRaces();
                 window.addEventListener('keydown', onKeydown);
                 // initTesseract(); // Tesseract not defined
             });
@@ -1616,7 +1673,7 @@
             };
 
             return {
-                currentView, raceName, raceLogoPreviewUrl, raceLogoFileName, onLogoChange,
+                currentView, raceName, existingRaces, selectExistingRace, raceLogoPreviewUrl, raceLogoFileName, onLogoChange,
                 raceCategory, categories, raceDistanceKm, publicResultsUrl, sessionSlug, newName, newBib, newPredictedHH, newPredictedMM, newPredictedSS, mobileMenuOpen, inputName, inputBib,
                 participants, timer, camera, formattedTime, certificatesByBib,
                 focusName, addParticipant, removeParticipant, goToBibs, printBibs,

@@ -16,7 +16,7 @@ class EventReportService
     {
         // Cache key based on event ID and filters
         // Use a shorter cache duration (e.g. 30 seconds) for "real-time" feel while saving DB hits
-        $cacheKey = 'event_report_' . $event->id . '_' . md5(json_encode($filters));
+        $cacheKey = 'event_report_'.$event->id.'_'.md5(json_encode($filters));
 
         return Cache::remember($cacheKey, 30, function () use ($event, $filters) {
             return $this->generateReportData($event, $filters);
@@ -34,7 +34,7 @@ class EventReportService
         $isUnlimited = false;
 
         foreach ($categories as $category) {
-            if (!$category->quota) {
+            if (! $category->quota) {
                 $isUnlimited = true;
             } else {
                 $totalSlots += $category->quota;
@@ -45,30 +45,30 @@ class EventReportService
         $query = Participant::query()
             ->whereHas('transaction', function ($q) use ($event) {
                 $q->where('event_id', $event->id)
-                  ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+                    ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
             });
 
         // Query for Pending Slots (Reserved but not yet Paid)
         $pendingQuery = Participant::query()
             ->whereHas('transaction', function ($q) use ($event) {
                 $q->where('event_id', $event->id)
-                  ->where('payment_status', 'pending');
+                    ->where('payment_status', 'pending');
             });
 
         // Apply Filters
-        if (!empty($filters['start_date'])) {
+        if (! empty($filters['start_date'])) {
             $query->whereDate('created_at', '>=', $filters['start_date']);
             $pendingQuery->whereDate('created_at', '>=', $filters['start_date']);
         }
-        if (!empty($filters['end_date'])) {
+        if (! empty($filters['end_date'])) {
             $query->whereDate('created_at', '<=', $filters['end_date']);
             $pendingQuery->whereDate('created_at', '<=', $filters['end_date']);
         }
-        if (!empty($filters['ticket_type'])) {
+        if (! empty($filters['ticket_type'])) {
             $query->where('price_type', $filters['ticket_type']);
             $pendingQuery->where('price_type', $filters['ticket_type']);
         }
-        
+
         // 2. Total Sold & Pending
         $soldSlots = $query->count();
         $pendingSlots = $pendingQuery->count();
@@ -84,11 +84,11 @@ class EventReportService
         // 4. Coupon Usage
         // Count participants whose transaction has a coupon_id
         $couponQuery = clone $query;
-        $couponCount = $couponQuery->whereHas('transaction', function($q) {
+        $couponCount = $couponQuery->whereHas('transaction', function ($q) {
             $q->whereNotNull('coupon_id');
         })->count();
 
-        // Add Coupon to breakdown for display if requested, 
+        // Add Coupon to breakdown for display if requested,
         // though strictly it's an attribute, not a mutually exclusive type with price_type.
         // We'll pass it separately.
 
@@ -106,7 +106,7 @@ class EventReportService
         $usedSlots = $soldSlots + $pendingSlots;
         $remainingSlots = $isUnlimited ? 999999 : ($totalSlots - $usedSlots);
         $warning = false;
-        if (!$isUnlimited && $totalSlots > 0) {
+        if (! $isUnlimited && $totalSlots > 0) {
             $percentageRemaining = ($remainingSlots / $totalSlots) * 100;
             if ($percentageRemaining < 10) {
                 $warning = true;

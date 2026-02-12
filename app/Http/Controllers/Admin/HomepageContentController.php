@@ -12,6 +12,7 @@ class HomepageContentController extends Controller
     public function index()
     {
         $content = HomepageContent::firstOrNew();
+
         return view('admin.homepage.index', compact('content'));
     }
 
@@ -34,14 +35,14 @@ class HomepageContentController extends Controller
                 // It's tricky to delete from public_path if stored as 'storage/...' which maps to storage/app/public
                 // Better to just store new one. Clean up is optimization.
             }
-            
+
             $path = $request->file('hero_image')->store('homepage', 'public');
-            $content->hero_image = 'storage/' . $path;
+            $content->hero_image = 'storage/'.$path;
         }
 
         if ($request->hasFile('floating_image')) {
             $path = $request->file('floating_image')->store('homepage', 'public');
-            $content->floating_image = 'storage/' . $path;
+            $content->floating_image = 'storage/'.$path;
         }
 
         $content->save();

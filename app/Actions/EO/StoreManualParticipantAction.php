@@ -55,7 +55,7 @@ class StoreManualParticipantAction
                 // Handle Coupon
                 $coupon = null;
                 $discountAmount = 0;
-                if (!empty($validated['coupon_id'])) {
+                if (! empty($validated['coupon_id'])) {
                     $coupon = Coupon::find($validated['coupon_id']);
                     if ($coupon) {
                         $discountAmount = $coupon->applyDiscount($amount);
@@ -156,7 +156,7 @@ class StoreManualParticipantAction
 
         // 2. Fallback to Late if Regular is 0
         if ($late > 0 && $regular === 0) {
-             return ['price' => $late, 'type' => 'late'];
+            return ['price' => $late, 'type' => 'late'];
         }
 
         return ['price' => $regular, 'type' => 'regular'];
