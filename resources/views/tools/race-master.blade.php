@@ -814,7 +814,8 @@
                     currentRaceId.value = data?.race?.id || null;
                     raceLogoUrl.value = data?.race?.logo_url || '';
                 } else {
-                    const data = await apiFetchJson(`${apiBase}/races/${encodeURIComponent(String(currentRaceId.value))}`, { method: 'PUT', body: form });
+                    form.append('_method', 'PUT');
+                    const data = await apiFetchJson(`${apiBase}/races/${encodeURIComponent(String(currentRaceId.value))}`, { method: 'POST', body: form });
                     raceLogoUrl.value = data?.race?.logo_url || '';
                 }
 
