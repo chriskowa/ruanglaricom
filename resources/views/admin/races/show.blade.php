@@ -209,6 +209,111 @@
 </div>
 
 <script>
+    function parseTimeToMs(s) {
+        s = String(s).trim();
+        if (!s) return null;
+
+        // hh:mm:ss.cc
+        const parts = s.split(':');
+        if (parts.length === 2) {
+            // mm:ss or mm:ss.cc
+            const m = parseInt(parts[0]);
+            const sc = parseFloat(parts[1]);
+            return (m * 60 * 1000) + (sc * 1000);
+        } else if (parts.length === 3) {
+            // hh:mm:ss or hh:mm:ss.cc
+            const h = parseInt(parts[0]);
+            const m = parseInt(parts[1]);
+            const sc = parseFloat(parts[2]);
+            return (h * 3600 * 1000) + (m * 60 * 1000) + (sc * 1000);
+        } else if (!isNaN(s)) {
+            return parseInt(s);
+        }
+        return null;
+    }
+
+    document.addEventListener('change', async (e) => {
+        // Auto-calculate finished_at when result_time changes
+        if (e.target.name === 'result_time') {
+            const row = e.target.closest('tr');
+            const createdAtInput = row.querySelector('input[name="created_at"]');
+            const finishedAtInput = row.querySelector('input[name="finished_at"]');
+            
+            const resultStr = e.target.value.trim();
+            const createdAtStr = createdAtInput.value;
+            
+            if (resultStr && createdAtStr) {
+                const ms = parseTimeToMs(resultStr);
+                if (ms !== null) {
+                    const createdDate = new Date(createdAtStr);
+                    if (!isNaN(createdDate.getTime())) {
+                        const finishedDate = new Date(createdDate.getTime() + ms);
+                        // Format to YYYY-MM-DDTHH:mm:ss (local time)
+                        // Note: toISOString() uses UTC. We need local.
+                        const pad = (n) => String(n).padStart(2, '0');
+                        const Y = finishedDate.getFullYear();
+                        const M = pad(finishedDate.getMonth() + 1);
+                        const D = pad(finishedDate.getDate());
+                        const h = pad(finishedDate.getHours());
+                        const m = pad(finishedDate.getMinutes());
+                        const s = pad(finishedDate.getSeconds());
+                        
+                        finishedAtInput.value = `${Y}-${M}-${D}T${h}:${m}:${s}`;
+                    }
+                }
+            }
+        }
+
+        // AJAX Save for specific fields
+        if (['bib_number', 'name', 'predicted_time', 'result_time', 'finished_at', 'created_at'].includes(e.target.name)) {
+            const input = e.target;
+            const formId = input.getAttribute('form');
+            if (!formId) return;
+            
+            const form = document.getElementById(formId);
+            if (!form) return;
+
+            // Visual indicator: saving
+            const originalBg = input.classList.contains('bg-slate-950') ? 'bg-slate-950' : '';
+            input.classList.remove('bg-slate-950');
+            input.classList.add('bg-indigo-900/50', 'text-indigo-200');
+
+            try {
+                const formData = new FormData(form);
+                // Ensure all inputs associated with this form are included
+                // (FormData(formElement) should handle this automatically if inputs have form attribute)
+                
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    // Success indicator
+                    input.classList.remove('bg-indigo-900/50', 'text-indigo-200');
+                    input.classList.add('bg-emerald-900/50', 'text-emerald-200');
+                    setTimeout(() => {
+                        input.classList.remove('bg-emerald-900/50', 'text-emerald-200');
+                        input.classList.add('bg-slate-950');
+                    }, 1000);
+                } else {
+                    throw new Error(data.message || 'Error saving');
+                }
+            } catch (err) {
+                console.error(err);
+                input.classList.remove('bg-indigo-900/50', 'text-indigo-200');
+                input.classList.add('bg-red-900/50', 'text-red-200');
+                // alert('Gagal menyimpan: ' + err.message);
+            }
+        }
+    });
+
     document.addEventListener('click', async (e) => {
         const btn = e.target.closest('[data-copy]');
         if (!btn) return;

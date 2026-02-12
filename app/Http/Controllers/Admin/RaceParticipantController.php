@@ -74,6 +74,14 @@ class RaceParticipantController extends Controller
 
         $raceSessionParticipant->save();
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Participant updated.',
+                'data' => $raceSessionParticipant,
+            ]);
+        }
+
         return back()->with('success', 'Participant berhasil diupdate.');
     }
 

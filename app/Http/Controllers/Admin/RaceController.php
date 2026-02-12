@@ -87,7 +87,7 @@ class RaceController extends Controller
             ->get();
 
         $participants = $race->participants()
-            ->select(['id', 'race_id', 'bib_number', 'name', 'predicted_time_ms', 'created_at'])
+            ->select(['id', 'race_id', 'bib_number', 'name', 'predicted_time_ms', 'result_time_ms', 'finished_at', 'created_at'])
             ->orderByRaw('CAST(bib_number AS UNSIGNED) ASC')
             ->orderBy('bib_number')
             ->paginate(50)
