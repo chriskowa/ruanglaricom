@@ -133,6 +133,33 @@
                     </div>
                     
                     <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Tampilkan Promo Modal <span class="text-red-400">*</span></label>
+                        <div class="flex items-center gap-6">
+                            <label class="inline-flex items-center cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="premium_amenities[promo_modal_enabled]" value="1" class="peer sr-only" {{ old('premium_amenities.promo_modal_enabled') == '1' ? 'checked' : '' }} required>
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="ml-2 text-slate-300 group-hover:text-white transition-colors">Ya</span>
+                            </label>
+                            <label class="inline-flex items-center cursor-pointer group">
+                                <div class="relative flex items-center">
+                                    <input type="radio" name="premium_amenities[promo_modal_enabled]" value="0" class="peer sr-only" {{ old('premium_amenities.promo_modal_enabled', '0') == '0' ? 'checked' : '' }} required>
+                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-yellow-400 peer-checked:bg-yellow-400 transition-colors"></div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
+                                        <div class="w-2 h-2 bg-black rounded-full"></div>
+                                    </div>
+                                </div>
+                                <span class="ml-2 text-slate-300 group-hover:text-white transition-colors">Tidak</span>
+                            </label>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Jika aktif, modal promo akan muncul otomatis saat user membuka halaman event (hanya jika pendaftaran dibuka).</p>
+                    </div>
+
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Template</label>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <label class="relative cursor-pointer group">

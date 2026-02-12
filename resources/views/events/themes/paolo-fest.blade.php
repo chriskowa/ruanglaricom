@@ -545,7 +545,9 @@
                 <a href="#venue" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Lokasi</a>
                 <a href="#racepack" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Race Pack</a>
                 <a href="#info" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Info Event</a>
-                <a href="#participants-list" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Daftar Peserta</a>
+                @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
+                    <a href="#participants-list" class="block text-slate-700 font-medium p-2 hover:bg-slate-50 rounded-lg">Daftar Peserta</a>
+                @endif
                 <a href="{{ route('community.register.index', ['slug' => $event->slug]) }}" class="block text-emerald-600 font-bold p-2 hover:bg-emerald-50 rounded-lg flex items-center gap-2">
                     <i class="fas fa-users"></i> Daftar Komunitas
                 </a>
@@ -1841,6 +1843,13 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Bottom Add Participant Button -->
+                            <div class="mt-6 flex justify-center border-t border-slate-100 pt-6">
+                                <button type="button" id="addParticipantBottom" class="text-sm font-bold text-brand-600 border border-brand-600 px-6 py-3 rounded-full hover:bg-brand-50 transition flex items-center gap-2 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 duration-200">
+                                    <i class="fas fa-plus"></i> Tambah Peserta Lainnya
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -2288,7 +2297,7 @@
             }
 
             // 2. Add Participant
-            addBtn.addEventListener('click', () => {
+            const addParticipantHandler = () => {
                 resetCoupon();
                 const newItem = template.cloneNode(true);
                 const idx = participantCount++;
@@ -2298,9 +2307,6 @@
                 newItem.setAttribute('data-index', idx);
                 newItem.querySelector('.remove-participant').classList.remove('hidden');
 
-                // Add Reset Button to the first participant or near form bottom? 
-                // Actually let's add a global reset button to the footer later via HTML edit
-                
                 // Show/Hide Copy Prev Button
                 const copyPrevBtn = newItem.querySelector('.copy-prev-btn');
                 if (idx > 0) {
@@ -2344,7 +2350,20 @@
 
                 participantsWrapper.appendChild(newItem);
                 attachListeners(newItem); // Re-attach change events
-            });
+                
+                // Scroll to the new participant form with a slight delay to ensure DOM update
+                setTimeout(() => {
+                    newItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            };
+
+            addBtn.addEventListener('click', addParticipantHandler);
+
+            // Bind bottom add button if exists
+            const addBtnBottom = document.getElementById('addParticipantBottom');
+            if (addBtnBottom) {
+                addBtnBottom.addEventListener('click', addParticipantHandler);
+            }
 
             // 3. Remove Participant
             participantsWrapper.addEventListener('click', (e) => {
@@ -3588,6 +3607,7 @@
         'modalAccentClass' => 'text-brand-600',
         'modalCloseClass' => 'bg-brand-600 text-white hover:bg-brand-700',
     ])
+    @if(($event->premium_amenities['promo_modal_enabled'] ?? 0) == 1)
     <!-- Promo Modal -->
     <div id="promoModal" class="fixed inset-0 z-[100] hidden">
         <!-- Backdrop -->
@@ -3622,11 +3642,12 @@
             </div>
         </div>
     </div>
+    @endif
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Show modal after 2.5 seconds if not shown in this session and registration is open
-            if (!sessionStorage.getItem('promoModalShown') && {{ $isRegOpen ? 'true' : 'false' }}) {
+            if (!sessionStorage.getItem('promoModalShown') && {{ $isRegOpen ? 'true' : 'false' }} && {{ ($event->premium_amenities['promo_modal_enabled'] ?? 0) == 1 ? 'true' : 'false' }}) {
                 setTimeout(function() {
                     const modal = document.getElementById('promoModal');
                     const backdrop = document.getElementById('promoBackdrop');
@@ -3659,6 +3680,269 @@
                 modal.classList.add('hidden');
             }, 300);
         }
+    </script>
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm transition-opacity opacity-0" id="confirmationBackdrop"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg scale-95 opacity-0" id="confirmationPanel">
+                    <div class="bg-brand-600 px-4 py-4 sm:px-6">
+                        <h3 class="text-lg font-bold leading-6 text-white" id="modal-title">
+                            <i class="fas fa-clipboard-check mr-2"></i> Konfirmasi Data Pendaftaran
+                        </h3>
+                    </div>
+                    <div class="px-4 py-5 sm:p-6 bg-slate-50">
+                        <p class="text-sm text-slate-600 mb-4">
+                            Mohon periksa kembali data pendaftaran Anda. Pastikan informasi peserta (NIK, Gender, Ukuran Jersey) sudah benar karena data tidak dapat diubah setelah pembayaran.
+                        </p>
+                        
+                        <!-- Main Info Card -->
+                        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden text-sm mb-4 shadow-sm">
+                            <div class="divide-y divide-slate-100">
+                                <div class="px-4 py-3 flex justify-between hover:bg-slate-50">
+                                    <span class="text-slate-500">Event</span>
+                                    <span class="font-bold text-slate-900 text-right">{{ $event->name }}</span>
+                                </div>
+                                <div class="px-4 py-3 flex justify-between hover:bg-slate-50">
+                                    <span class="text-slate-500">Waktu Mulai</span>
+                                    <span class="font-bold text-slate-900 text-right">
+                                        {{ $event->start_at ? \Carbon\Carbon::parse($event->start_at)->isoFormat('D MMMM Y, HH:mm') : ($event->date ? \Carbon\Carbon::parse($event->date)->isoFormat('D MMMM Y') : '-') }} WIB
+                                    </span>
+                                </div>
+                                <div class="px-4 py-3 flex justify-between hover:bg-slate-50">
+                                    <span class="text-slate-500">Pemesan</span>
+                                    <div class="text-right">
+                                        <div class="font-bold text-slate-900" id="confName">-</div>
+                                        <div class="text-xs text-slate-500" id="confPhone">-</div>
+                                        <div class="text-xs text-slate-500" id="confEmail">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Participants List -->
+                        <div class="mb-2 flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Detail Peserta</h4>
+                            <span class="text-xs text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded-full" id="confCountBadge">0 Peserta</span>
+                        </div>
+                        
+                        <div id="confParticipantsList" class="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                            <!-- JS Generated Content -->
+                        </div>
+
+                        <!-- Total Section -->
+                        <div class="mt-4 bg-brand-50 rounded-xl p-4 flex justify-between items-center border border-brand-100">
+                            <span class="text-brand-700 font-bold text-sm">Total Pembayaran</span>
+                            <span class="font-black text-brand-700 text-xl" id="confTotal">Rp 0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                        <button type="button" id="confirmSubmitBtn" class="inline-flex w-full justify-center rounded-xl bg-brand-600 px-3 py-3 text-sm font-bold text-white shadow-sm hover:bg-brand-500 sm:w-auto transition-colors">
+                            Saya Sudah Memeriksa dan Setuju
+                        </button>
+                        <button type="button" onclick="closeConfirmationModal()" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-3 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors">
+                            Kembali untuk Perbaiki
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            const backdrop = document.getElementById('confirmationBackdrop');
+            const panel = document.getElementById('confirmationPanel');
+            
+            backdrop.classList.add('opacity-0');
+            panel.classList.remove('scale-100', 'opacity-100');
+            panel.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registrationForm');
+            if (!form) return;
+
+            let isConfirmed = false;
+
+            // Use capture: true to intercept the event before other listeners
+            form.addEventListener('submit', function(e) {
+                if (isConfirmed) return;
+                
+                // Stop other listeners from running immediately
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                // Optional: Trigger custom validation if available
+                if (window.formValidator && !window.formValidator.validateAll()) {
+                    return;
+                }
+
+                // --- Populate Main Info ---
+                const firstParticipant = document.querySelector('.participant-item');
+                if (firstParticipant) {
+                    const nameInput = firstParticipant.querySelector('input[name*="[name]"]');
+                    const emailInput = firstParticipant.querySelector('input[name*="[email]"]');
+                    const phoneInput = firstParticipant.querySelector('input[name*="[phone]"]');
+                    
+                    document.getElementById('confName').textContent = nameInput ? nameInput.value : '-';
+                    document.getElementById('confEmail').textContent = emailInput ? emailInput.value : '-';
+                    document.getElementById('confPhone').textContent = phoneInput ? phoneInput.value : '-';
+                }
+
+                // --- Populate Participants List ---
+                const listContainer = document.getElementById('confParticipantsList');
+                listContainer.innerHTML = '';
+                
+                const items = document.querySelectorAll('.participant-item');
+                document.getElementById('confCountBadge').textContent = items.length + ' Peserta';
+
+                items.forEach((item, index) => {
+                    // Extract Data
+                    const pName = item.querySelector('input[name*="[name]"]')?.value || '-';
+                    const pNik = item.querySelector('input[name*="[id_card]"]')?.value || '-';
+                    
+                    const genderSelect = item.querySelector('select[name*="[gender]"]');
+                    const pGender = genderSelect ? (genderSelect.options[genderSelect.selectedIndex]?.text || '-') : '-';
+                    
+                    const jerseySelect = item.querySelector('select[name*="[jersey_size]"]');
+                    const pJersey = jerseySelect ? (jerseySelect.options[jerseySelect.selectedIndex]?.text || '-') : '-';
+
+                    const catInput = item.querySelector('input[name*="[category_id]"]:checked');
+                    let pCategory = '-';
+                    if (catInput) {
+                        const label = catInput.closest('label');
+                        pCategory = label.querySelector('.font-bold')?.textContent || '-';
+                    }
+
+                    // Create Wrapper
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm transition-all hover:border-brand-200';
+                    
+                    // State: First item expanded by default, others collapsed
+                    const isExpanded = (index === 0);
+                    
+                    // Header HTML
+                    const header = document.createElement('div');
+                    header.className = `px-4 py-3 flex justify-between items-center cursor-pointer bg-slate-50 hover:bg-slate-100 transition select-none ${isExpanded ? 'border-b border-slate-100' : ''}`;
+                    header.innerHTML = `
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-slate-200 text-slate-600 text-xs font-bold rounded-full">
+                                ${index + 1}
+                            </span>
+                            <div class="flex flex-col min-w-0">
+                                <span class="font-bold text-slate-800 text-sm truncate pr-2 leading-tight">${pName}</span>
+                                <span class="text-[10px] text-slate-500 truncate">${pCategory}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-400">
+                             <i class="fas fa-chevron-down transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}"></i>
+                        </div>
+                    `;
+
+                    // Body HTML
+                    const body = document.createElement('div');
+                    body.className = `px-4 py-3 text-sm space-y-2 bg-white ${isExpanded ? 'block' : 'hidden'}`;
+                    body.innerHTML = `
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div>
+                                <span class="block text-[10px] uppercase text-slate-400 font-bold tracking-wider">NIK / ID Card</span>
+                                <span class="block font-medium text-slate-800 break-all">${pNik}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] uppercase text-slate-400 font-bold tracking-wider">Gender</span>
+                                <span class="block font-medium text-slate-800">${pGender}</span>
+                            </div>
+                            <div class="col-span-2 border-t border-slate-50 pt-2 mt-1">
+                                <span class="block text-[10px] uppercase text-slate-400 font-bold tracking-wider">Ukuran Jersey</span>
+                                <span class="block font-bold text-brand-600">${pJersey}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    // Toggle Event
+                    header.addEventListener('click', () => {
+                        const content = body;
+                        const icon = header.querySelector('.fa-chevron-down');
+                        
+                        if (content.classList.contains('hidden')) {
+                            // Expand
+                            content.classList.remove('hidden');
+                            header.classList.add('border-b', 'border-slate-100');
+                            icon.classList.add('rotate-180');
+                        } else {
+                            // Collapse
+                            content.classList.add('hidden');
+                            header.classList.remove('border-b', 'border-slate-100');
+                            icon.classList.remove('rotate-180');
+                        }
+                    });
+
+                    wrapper.appendChild(header);
+                    wrapper.appendChild(body);
+                    listContainer.appendChild(wrapper);
+                });
+
+                // --- Total ---
+                const totalDisplay = document.getElementById('totalDisplay');
+                document.getElementById('confTotal').textContent = totalDisplay ? totalDisplay.textContent : 'Rp 0';
+
+                // --- Show Modal ---
+                const modal = document.getElementById('confirmationModal');
+                const backdrop = document.getElementById('confirmationBackdrop');
+                const panel = document.getElementById('confirmationPanel');
+
+                modal.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    backdrop.classList.remove('opacity-0');
+                    panel.classList.remove('scale-95', 'opacity-0');
+                    panel.classList.add('scale-100', 'opacity-100');
+                });
+            }, true); // Capture phase
+
+            document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
+                const btn = this;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Memproses...';
+                
+                isConfirmed = true;
+                
+                // Close modal first
+                closeConfirmationModal();
+
+                // Dispatch a new submit event that bubbles up to trigger existing listeners
+                // We use setTimeout to allow the modal close animation to start/finish if needed, 
+                // but for UX responsiveness we dispatch immediately.
+                // However, since we used stopImmediatePropagation, we need to re-trigger the event.
+                
+                const event = new Event('submit', {
+                    bubbles: true,
+                    cancelable: true
+                });
+                form.dispatchEvent(event);
+                
+                // Note: The dispatched event will trigger our capture listener again, 
+                // but this time isConfirmed is true, so it returns and lets it bubble 
+                // to the existing listeners (Duplicate Check -> Submission).
+                
+                // Reset button state after a delay in case submission fails validation
+                setTimeout(() => {
+                    if (!form.submitted) { // A flag we can't easily check unless we set it?
+                        // Just reset button if page doesn't reload
+                        btn.disabled = false;
+                        btn.innerHTML = 'Saya Sudah Memeriksa dan Setuju';
+                        isConfirmed = false; // Reset so next attempt shows modal again if it failed
+                    }
+                }, 3000);
+            });
+        });
     </script>
 </body>
 </html>
