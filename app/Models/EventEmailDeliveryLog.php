@@ -10,6 +10,7 @@ class EventEmailDeliveryLog extends Model
     protected $fillable = [
         'event_id',
         'transaction_id',
+        'context',
         'channel',
         'to',
         'status',

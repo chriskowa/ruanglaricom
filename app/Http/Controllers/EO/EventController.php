@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Mail\EventRegistrationSuccess;
 use App\Models\Event;
 use App\Models\RaceCategory;
+use App\Models\Transaction;
+use App\Jobs\SendPendingPaymentReminder;
 use App\Services\EventCacheService;
 use App\Services\EventReportService;
 use Illuminate\Http\Request;
@@ -1863,5 +1865,53 @@ class EventController extends Controller
         }
 
         return $dom->saveHTML();
+    }
+
+    public function remindPending(Request $request, Event $event, Transaction $transaction)
+    {
+        $this->authorizeEvent($event);
+
+        if ($transaction->event_id !== $event->id) {
+            abort(404);
+        }
+
+        if ($transaction->payment_status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaksi tidak dalam status pending.'
+            ], 422);
+        }
+
+        SendPendingPaymentReminder::dispatch($transaction);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reminder berhasil dijadwalkan.'
+        ]);
+    }
+
+    public function remindPendingBulk(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $transactions = Transaction::where('event_id', $event->id)
+            ->where('payment_status', 'pending')
+            ->where('created_at', '<', now()->subDay())
+            ->where(function ($query) {
+                $query->whereNull('pending_reminder_last_sent_at')
+                      ->orWhere('pending_reminder_last_sent_at', '<', now()->subHours(24));
+            })
+            ->get();
+
+        $count = 0;
+        foreach ($transactions as $transaction) {
+            SendPendingPaymentReminder::dispatch($transaction);
+            $count++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil menjadwalkan {$count} reminder pembayaran."
+        ]);
     }
 }

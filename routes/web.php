@@ -854,6 +854,8 @@ Route::middleware('auth')->group(function () {
         Route::get('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participants'])->name('events.participants');
         Route::post('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'storeParticipant'])->name('events.participants.store');
         Route::put('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'updateParticipant'])->name('events.participants.update');
+        Route::post('events/{event}/transactions/{transaction}/remind-pending', [App\Http\Controllers\EO\EventController::class, 'remindPending'])->name('events.transactions.remind-pending');
+        Route::post('events/{event}/remind-pending-bulk', [App\Http\Controllers\EO\EventController::class, 'remindPendingBulk'])->name('events.remind-pending.bulk');
         Route::get('email-reports', [App\Http\Controllers\EO\EmailReportController::class, 'index'])->name('email-reports.index');
         Route::get('email-reports/data', [App\Http\Controllers\EO\EmailReportController::class, 'data'])->name('email-reports.data');
         Route::post('email-reports/send', [App\Http\Controllers\EO\EmailReportController::class, 'send'])->name('email-reports.send');

@@ -30,6 +30,9 @@ class Transaction extends Model
         'midtrans_order_id',
         'midtrans_transaction_status',
         'paid_at',
+        'pending_reminder_last_sent_at',
+        'pending_reminder_count',
+        'pending_reminder_last_channel',
     ];
 
     protected $casts = [
@@ -39,6 +42,7 @@ class Transaction extends Model
         'admin_fee' => 'decimal:2',
         'final_amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'pending_reminder_last_sent_at' => 'datetime',
     ];
 
     public function event(): BelongsTo
