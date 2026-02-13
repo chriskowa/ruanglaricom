@@ -521,8 +521,9 @@
                     <a href="#venue" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Lokasi</a>
                     <a href="#racepack" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Race Pack</a>
                     <a href="#info" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Info</a>
-                    <a href="#participants-list" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Daftar Peserta</a>
-                    
+                    @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
+                        <a href="#participants-list" class="nav-link text-sm font-semibold text-white/90 hover:text-white transition">Daftar Peserta</a>
+                    @endif
                     @if($isRegOpen)
                         <a href="#register" class="bg-brand-600 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all duration-300">
                             Daftar Sekarang
