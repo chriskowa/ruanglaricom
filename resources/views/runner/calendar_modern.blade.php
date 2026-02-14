@@ -269,23 +269,23 @@
                                     </thead>
                                     <tbody class="text-slate-300">
                                         <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-green-400 font-bold" id="pace-easy-label">Easy (E)</td>
+                                            <td class="py-2 text-green-400 font-bold" id="pace-easy-label">Easy (E) Pace</td>
                                             <td class="py-2 text-right" id="pace-easy-value">@{{ formatPace(trainingProfile.paces?.E) }}</td>
                                         </tr>
                                         <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-blue-400 font-bold" id="pace-marathon-label">Marathon (M)</td>
+                                            <td class="py-2 text-blue-400 font-bold" id="pace-marathon-label">Marathon (M) Pace</td>
                                             <td class="py-2 text-right" id="pace-marathon-value">@{{ formatPace(trainingProfile.paces?.M) }}</td>
                                         </tr>
                                         <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-yellow-400 font-bold" id="pace-threshold-label">Threshold (T)</td>
+                                            <td class="py-2 text-yellow-400 font-bold" id="pace-threshold-label">Threshold (T) Pace</td>
                                             <td class="py-2 text-right" id="pace-threshold-value">@{{ formatPace(trainingProfile.paces?.T) }}</td>
                                         </tr>
                                         <tr class="border-b border-slate-800">
-                                            <td class="py-2 text-orange-400 font-bold" id="pace-interval-label">Interval (I)</td>
+                                            <td class="py-2 text-orange-400 font-bold" id="pace-interval-label">Interval (I) Pace</td>
                                             <td class="py-2 text-right" id="pace-interval-value">@{{ formatPace(trainingProfile.paces?.I) }}</td>
                                         </tr>
                                         <tr>
-                                            <td class="py-2 text-red-400 font-bold" id="pace-repetition-label">Repetition (R)</td>
+                                            <td class="py-2 text-red-400 font-bold" id="pace-repetition-label">Repetition (R) Pace</td>
                                             <td class="py-2 text-right" id="pace-repetition-value">@{{ formatPace(trainingProfile.paces?.R) }}</td>
                                         </tr>
                                     </tbody>
