@@ -833,7 +833,7 @@ class EventController extends Controller
             });
         }
 
-        $participants = $query->orderBy('created_at', 'desc')->paginate(20);
+        $participants = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
         $financials = [
             'gross_revenue' => \App\Models\Transaction::where('event_id', $event->id)
@@ -1890,16 +1890,46 @@ class EventController extends Controller
         ]);
     }
 
+    public function bulkDelete(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $request->validate([
+            'participant_ids' => 'required|array',
+            'participant_ids.*' => 'exists:participants,id'
+        ]);
+
+        // Ensure participants belong to this event
+        $count = \App\Models\Participant::whereIn('id', $request->participant_ids)
+            ->whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil menghapus {$count} peserta."
+        ]);
+    }
+
     public function remindPendingBulk(Request $request, Event $event)
     {
         $this->authorizeEvent($event);
 
-        $transactions = Transaction::where('event_id', $event->id)
-            ->where('payment_status', 'pending')
-            ->where('created_at', '<', now()->subDay())
-            ->where(function ($query) {
-                $query->whereNull('pending_reminder_last_sent_at')
-                      ->orWhere('pending_reminder_last_sent_at', '<', now()->subHours(24));
+        $query = Transaction::where('event_id', $event->id)
+            ->where('payment_status', 'pending');
+
+        if ($request->has('participant_ids') && is_array($request->participant_ids)) {
+             $query->whereHas('participants', function($q) use ($request) {
+                $q->whereIn('id', $request->participant_ids);
+            });
+        } else {
+            $query->where('created_at', '<', now()->subDay());
+        }
+
+        $transactions = $query->where(function ($q) {
+                $q->whereNull('pending_reminder_last_sent_at')
+                  ->orWhere('pending_reminder_last_sent_at', '<', now()->subHours(24));
             })
             ->get();
 

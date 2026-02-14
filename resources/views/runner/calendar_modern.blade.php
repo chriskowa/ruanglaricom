@@ -394,7 +394,7 @@
                     <div v-if="plansLoading" class="p-6 text-center text-slate-400">Loading plans...</div>
                     <div v-else-if="plans.length === 0" class="p-6 text-center text-slate-400">No workout plans</div>
                     <div v-else class="space-y-4">
-                        <div v-for="plan in plans" :key="plan.id || plan.date+plan.enrollment_id" class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3 relative overflow-hidden group hover:border-slate-600 transition">
+                        <div v-for="plan in displayedPlans" :key="plan.id || plan.date+plan.enrollment_id" class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3 relative overflow-hidden group hover:border-slate-600 transition">
                             <!-- Status Indicator Strip -->
                             <div class="absolute left-0 top-0 bottom-0 w-1" :class="plan.status==='completed'?'bg-green-500':(plan.status==='started'?'bg-blue-500':'bg-slate-600')"></div>
                             
@@ -439,6 +439,19 @@
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <div class="flex items-center justify-between text-xs text-slate-400 mb-3" v-if="plans.length > 0">
+                                <div>Showing @{{ displayedPlans.length }} of @{{ plans.length }} plans</div>
+                                <div v-if="!canLoadMore" class="text-green-400 font-bold">All loaded</div>
+                            </div>
+                            <button 
+                                v-if="canLoadMore" 
+                                class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-bold hover:bg-slate-700 transition"
+                                @click="loadMorePlans">
+                                Load More
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1311,6 +1324,13 @@ createApp({
 
         const filter = ref('unfinished');
         const plans = ref([]);
+        const pageSize = 10;
+        const visibleCount = ref(pageSize);
+        const displayedPlans = computed(() => plans.value.slice(0, visibleCount.value));
+        const canLoadMore = computed(() => visibleCount.value < plans.value.length);
+        const loadMorePlans = () => {
+            visibleCount.value = Math.min(visibleCount.value + pageSize, plans.value.length);
+        };
         const weeklyVolume = ref([]);
         const maxVolume = computed(() => {
             if (weeklyVolume.value.length === 0) return 0;
@@ -2229,6 +2249,7 @@ createApp({
                 const res = await fetch(`{{ route('runner.calendar.workout-plans') }}?filter=${filter.value}`, { headers: { 'Accept':'application/json' }});
                 const data = await res.json();
                 plans.value = Array.isArray(data) ? data : [];
+                visibleCount.value = pageSize;
             } catch (e) {
                 plans.value = [];
             } finally {
@@ -2802,7 +2823,7 @@ createApp({
             ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             stravaDetailsLoading, stravaDetailsError, formatSeconds, displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass,
             showRescheduleModal, rescheduleTarget, rescheduleForm, rescheduleLoading, openRescheduleModal, submitReschedule,
-            showStravaGraphModal
+            showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans
         };
     }
 
