@@ -9,6 +9,9 @@ use App\Models\ProgramSessionTracking;
 use App\Models\StravaActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Models\Notification;
+use App\Helpers\WhatsApp;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 
 class CalendarController extends Controller
@@ -847,6 +850,38 @@ class CalendarController extends Controller
             'start_date' => $startDate,
             'end_date' => $endDate,
         ]);
+
+        // Notify Coach (program applied)
+        try {
+            $coach = $program->coach;
+            if ($coach) {
+                Notification::create([
+                    'user_id' => $coach->id,
+                    'type' => 'program_applied',
+                    'title' => 'Runner Mengaktifkan Program',
+                    'message' => 'Runner '.$user->name.' mengaktifkan program: '.$program->title.' mulai '.$startDate->format('d M Y'),
+                    'reference_type' => ProgramEnrollment::class,
+                    'reference_id' => $enrollment->id,
+                    'is_read' => false,
+                ]);
+                if ($coach->email) {
+                    Mail::raw('Runner '.$user->name.' mengaktifkan program "'.$program->title.'" mulai '.$startDate->format('d M Y').'.', function ($m) use ($coach, $program) {
+                        $m->to($coach->email)->subject('Program Diaktifkan: '.$program->title);
+                    });
+                }
+                $phone = $coach->phone ?? null;
+                if ($phone) {
+                    $normalized = preg_replace('/\D+/', '', $phone);
+                    if (str_starts_with($normalized, '0')) {
+                        $normalized = '62'.substr($normalized, 1);
+                    } elseif (! str_starts_with($normalized, '62')) {
+                        $normalized = '62'.$normalized;
+                    }
+                    WhatsApp::send($normalized, "*Program Diaktifkan*\nRunner: ".$user->name."\nProgram: ".$program->title."\nMulai: ".$startDate->format('d M Y'));
+                }
+            }
+        } catch (\Throwable $e) {
+        }
 
         return response()->json(['success' => true, 'message' => 'Program applied successfully!']);
     }
