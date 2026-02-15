@@ -12,6 +12,14 @@
                         <i class="flaticon-381-layer-1"></i>
                         <span class="nav-text">Approval Setoran</span>
                     </a></li>
+                    <li><a class="ai-icon" href="{{ route('admin.event-submissions.index') }}" aria-expanded="false">
+                        <i class="flaticon-381-layer-1"></i>
+                        <span class="nav-text">Event Approval</span>
+                    </a></li>
+                    <li><a class="ai-icon" href="{{ route('admin.transactions.index') }}" aria-expanded="false">
+                        <i class="flaticon-381-list"></i>
+                        <span class="nav-text">Manajemen Transaksi</span>
+                    </a></li>
                     <li><a class="ai-icon" href="{{ route('admin.transactions.index') }}" aria-expanded="false">
                         <i class="flaticon-381-list"></i>
                         <span class="nav-text">Manajemen Transaksi</span>

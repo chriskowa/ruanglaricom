@@ -24,7 +24,7 @@
 @endpush
 
 @section('content')
-<div id="eo-events-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans" x-data="{ showModal: false, activeEvent: null }" x-cloak>
+<div id="eo-events-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans" x-data="{ showModal: false, activeEvent: { name: '', date: '', time: '', location_name: '', location_address: '', description: '', total_registered: 0, total_paid: 0, categories: [] } }" x-cloak>
     
     <!-- Header Section -->
     <div class="mb-8 relative z-10" data-aos="fade-up">

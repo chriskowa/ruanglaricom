@@ -10,6 +10,7 @@
             colors: {
                 ...tailwind.config.theme.extend.colors,
                 neon: {
+                    DEFAULT: '#ccff00',
                     cyan: '#06b6d4',
                     purple: '#a855f7',
                     green: '#22c55e',

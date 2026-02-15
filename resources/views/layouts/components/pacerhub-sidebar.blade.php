@@ -15,6 +15,12 @@
                                 <span>Event Management</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('admin.event-submissions.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">
+                                <span class="w-5 text-slate-400"><i class="fas fa-clipboard-check"></i></span>
+                                <span>Event Approval</span>
+                            </a>
+                        </li>
                         <li><a href="{{ route('admin.master-gpx.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Master GPX</a></li>
                         <li><a href="{{ route('admin.races.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Race Master</a></li>
                         <li><a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Manage Users</a></li>
