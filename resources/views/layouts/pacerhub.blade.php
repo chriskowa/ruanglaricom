@@ -501,7 +501,7 @@
 
             function fetchUnread() {
                 if (!isAuthenticated) return;
-                fetch(@json(route('notifications.unread')), { headers: { 'Accept': 'application/json' } })
+                fetch(@json(route('notifications.unread', [], false)), { headers: { 'Accept': 'application/json' } })
                     .then(function (r) { if (!r.ok) throw new Error('err'); return r.json(); })
                     .then(function (data) {
                         if (!data) return;
@@ -514,7 +514,7 @@
             }
 
             function markRead(id) {
-                return fetch(@json(route('notifications.read', ':id')).replace(':id', id), {
+                return fetch(@json(route('notifications.read', ':id', false)).replace(':id', id), {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrf,
@@ -525,7 +525,7 @@
             }
 
             function markAllRead() {
-                return fetch(@json(route('notifications.read-all')), {
+                return fetch(@json(route('notifications.read-all', [], false)), {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrf,

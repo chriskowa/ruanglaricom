@@ -42,7 +42,7 @@
     function checkNotifications() {
         if (!isAuthenticated) return;
 
-        fetch(@json(route("notifications.unread")))
+        fetch(@json(route("notifications.unread", [], false)))
             .then(response => {
                 if (response.status === 401) return null;
                 return response.json();

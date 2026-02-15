@@ -444,6 +444,13 @@
                                 <input type="number" id="paceSeconds" placeholder="Sec" min="0">
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label>Pace (<span id="pacePerUnitLabel">min/km</span>)</label>
+                            <div class="time-inputs">
+                                <input type="number" id="pacePerUnitMinutes" placeholder="Min per unit" min="0">
+                                <input type="number" id="pacePerUnitSeconds" placeholder="Sec per unit" min="0" max="59">
+                            </div>
+                        </div>
                         <button class="rlc-action" onclick="calculatePace()">Calculate Pace</button>
                         <div id="paceError" class="error" style="display: none;"></div>
                         <div id="paceResults" class="results"></div>
@@ -1220,6 +1227,83 @@
             }
         }
         
+        function updatePacePerUnitLabel() {
+            const label = document.getElementById('pacePerUnitLabel');
+            if (label) {
+                label.textContent = globalUnit === 'metric' ? 'min/km' : 'min/mile';
+            }
+        }
+        
+        function getPaceSecondsPerUnit() {
+            const m = parseInt(document.getElementById('pacePerUnitMinutes').value) || 0;
+            const s = parseInt(document.getElementById('pacePerUnitSeconds').value) || 0;
+            return m * 60 + s;
+        }
+        
+        function setPaceInputsFromSeconds(secPerUnit) {
+            const m = Math.floor(secPerUnit / 60);
+            const s = Math.round(secPerUnit % 60);
+            document.getElementById('pacePerUnitMinutes').value = isFinite(m) ? m : 0;
+            document.getElementById('pacePerUnitSeconds').value = isFinite(s) ? s : 0;
+        }
+        
+        function getTimeTotalSeconds() {
+            const h = parseInt(document.getElementById('paceHours').value) || 0;
+            const m = parseInt(document.getElementById('paceMinutes').value) || 0;
+            const s = parseInt(document.getElementById('paceSeconds').value) || 0;
+            return timeToSeconds(h, m, s);
+        }
+        
+        function setTimeFieldsFromSeconds(totalSeconds) {
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = Math.floor(totalSeconds % 60);
+            document.getElementById('paceHours').value = isFinite(h) ? h : 0;
+            document.getElementById('paceMinutes').value = isFinite(m) ? m : 0;
+            document.getElementById('paceSeconds').value = isFinite(s) ? s : 0;
+        }
+        
+        function getDistanceInGlobalUnit() {
+            const distance = parseFloat(document.getElementById('paceDistance').value);
+            const unit = document.getElementById('paceUnit').value; // meter|km
+            if (!distance || distance <= 0) return 0;
+            let km = unit === 'meter' ? (distance / 1000) : distance;
+            return globalUnit === 'metric' ? km : km / 1.60934;
+        }
+        
+        let _syncLock = false;
+        function syncPaceTriplet(changed) {
+            if (_syncLock) return;
+            _syncLock = true;
+            try {
+                const distUnits = getDistanceInGlobalUnit();
+                const totalSec = getTimeTotalSeconds();
+                const paceSec = getPaceSecondsPerUnit();
+                
+                const hasDist = distUnits > 0;
+                const hasTime = totalSec > 0;
+                const hasPace = paceSec > 0;
+                
+                if (changed === 'time' && hasTime && hasDist) {
+                    const secPerUnit = totalSec / distUnits;
+                    setPaceInputsFromSeconds(secPerUnit);
+                } else if (changed === 'pace' && hasPace && hasDist) {
+                    const total = paceSec * distUnits;
+                    setTimeFieldsFromSeconds(total);
+                } else if (changed === 'distance') {
+                    if (hasTime) {
+                        const secPerUnit = totalSec / distUnits;
+                        setPaceInputsFromSeconds(secPerUnit);
+                    } else if (hasPace) {
+                        const total = paceSec * distUnits;
+                        setTimeFieldsFromSeconds(total);
+                    }
+                }
+            } finally {
+                _syncLock = false;
+            }
+        }
+        
         function calculatePace() {
             const distance = parseFloat(document.getElementById('paceDistance').value);
             const paceUnitInput = document.getElementById('paceUnit').value;
@@ -1260,6 +1344,8 @@
             `;
             
             showResults('paceResults', results);
+            
+            setPaceInputsFromSeconds(pacePerUnit);
         }
         
         function calculateRacePredictor() {
@@ -2063,11 +2149,29 @@
 
             setDefaultDistance();
             updateAllLabels();
+            updatePacePerUnitLabel();
             updateSplitPercentageValue();
             updateSplitDistance();
             updateRecentRaceDistance();
             updateTargetRaceDistance();
             updatePaceDistanceLabel();
+            
+            const paceInputs = ['paceHours','paceMinutes','paceSeconds','pacePerUnitMinutes','pacePerUnitSeconds','paceDistance','paceUnit','globalUnit'];
+            paceInputs.forEach(function(id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const handler = function() {
+                    if (id === 'globalUnit') {
+                        updateAllLabels();
+                        updatePacePerUnitLabel();
+                    }
+                    if (id === 'paceUnit') updatePaceDistanceLabel();
+                    const changedGroup = (id.startsWith('pacePerUnit') ? 'pace' : (id.startsWith('pace') && (id.endsWith('Hours') || id.endsWith('Minutes') || id.endsWith('Seconds')) ? 'time' : (id === 'paceDistance' || id === 'paceUnit' ? 'distance' : null)));
+                    if (changedGroup) syncPaceTriplet(changedGroup);
+                };
+                el.addEventListener('input', handler);
+                el.addEventListener('change', handler);
+            });
             
             const hash = window.location.hash.substring(1);
             if (hash) {

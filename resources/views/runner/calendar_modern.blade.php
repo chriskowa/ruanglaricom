@@ -157,6 +157,39 @@
             </div>
         </div>
 
+        <!-- Apply Program Modal -->
+        <div v-if="showApplyModal" class="fixed inset-0 z-[250] overflow-y-auto">
+            <div class="fixed inset-0 bg-black/80"></div>
+            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6 border-green-500/30 shadow-2xl shadow-green-500/10">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-white font-black text-xl flex items-center gap-2">
+                        <span class="text-2xl">🚀</span> Mulai Program
+                    </h3>
+                    <button class="text-slate-400 hover:text-white" @click="showApplyModal = false">×</button>
+                </div>
+                <div class="mb-4">
+                    <p class="text-slate-300 text-sm mb-2">Aktifkan program dari Program Bag dengan memilih tanggal mulai.</p>
+                    <div class="bg-green-900/20 border border-green-800 rounded-lg p-3" v-if="applyTarget">
+                        <p class="text-xs text-green-300">Program: <span class="font-bold text-white">@{{ applyTarget?.program?.title }}</span></p>
+                    </div>
+                </div>
+                <form @submit.prevent="submitApply" class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-green-400 uppercase">Start Date</label>
+                        <input type="date" v-model="applyForm.start_date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-green-500 focus:outline-none">
+                    </div>
+                    
+                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
+                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showApplyModal = false">Batal</button>
+                        <button type="submit" :disabled="applyLoading" class="px-6 py-2 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-400 shadow-lg shadow-green-500/20 flex items-center gap-2">
+                            <span v-if="applyLoading" class="animate-spin">⌛</span>
+                            <span>Aktifkan</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Weekly Volume Chart -->
         <div class="glass-panel rounded-2xl p-6 mb-8" v-if="weeklyVolume.length > 0">
             <div class="flex justify-between items-center mb-4">
@@ -1591,11 +1624,21 @@ createApp({
                     if (calendar) calendar.refetchEvents();
                     loadWeeklyVolume();
                 } else {
-                    alert(data.message || 'Failed to sync Strava activities');
+                    const msg = (data.message || 'Failed to sync Strava activities') + '\nHubungkan akun Strava sekarang?';
+                    if (confirm(msg)) {
+                        window.location.href = '{{ route("runner.strava.connect") }}';
+                    } else {
+                        alert(data.message || 'Failed to sync Strava activities');
+                    }
                 }
             } catch (e) {
                 console.error(e);
-                alert('An error occurred while syncing Strava');
+                const msg = 'Gagal sync Strava.\nHubungkan akun Strava sekarang?';
+                if (confirm(msg)) {
+                    window.location.href = '{{ route("runner.strava.connect") }}';
+                } else {
+                    alert('An error occurred while syncing Strava');
+                }
             } finally {
                 isSyncingStrava.value = false;
             }
@@ -1638,21 +1681,22 @@ createApp({
         };
 
         const applyProgram = async (enrollmentId) => {
-            const startDate = prompt('Enter Start Date (YYYY-MM-DD):', new Date().toISOString().slice(0,10));
-            if(!startDate) return;
-
             try {
-                const res = await fetch(`{{ route('runner.calendar.apply-program') }}`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
-                    body: JSON.stringify({ enrollment_id: enrollmentId, start_date: startDate })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    window.location.reload();
-                } else {
-                    alert(data.message || 'Failed to apply program');
-                }
+                const target = programBag.value.find(e => e.id === enrollmentId);
+                showDetailModal.value = false;
+                showVdotModal.value = false;
+                showFormModal.value = false;
+                showRaceModal.value = false;
+                showRescheduleModal.value = false;
+                showApplyModal.value = false;
+                await nextTick();
+                applyTarget.value = target || { id: enrollmentId };
+                const d = new Date();
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const dd = String(d.getDate()).padStart(2,'0');
+                applyForm.start_date = `${yyyy}-${mm}-${dd}`;
+                showApplyModal.value = true;
             } catch (e) {
                 alert('An error occurred');
             }
@@ -1828,6 +1872,42 @@ createApp({
             isPlaying.value = false;
             clearInterval(timerInterval);
             timerSeconds.value = 0;
+        };
+
+        // Apply Program Logic (Modal)
+        const showApplyModal = ref(false);
+        const applyLoading = ref(false);
+        const applyTarget = ref(null);
+        const applyForm = reactive({
+            start_date: ''
+        });
+        const submitApply = async () => {
+            if (!applyTarget.value || !applyTarget.value.id) {
+                alert('Invalid program');
+                return;
+            }
+            if (!applyForm.start_date) {
+                alert('Please select a start date');
+                return;
+            }
+            applyLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('runner.calendar.apply-program') }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
+                    body: JSON.stringify({ enrollment_id: applyTarget.value.id, start_date: applyForm.start_date })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to apply program');
+                }
+            } catch (e) {
+                alert('An error occurred');
+            } finally {
+                applyLoading.value = false;
+            }
         };
 
         const previewExercise = (ex) => {
@@ -2823,7 +2903,8 @@ createApp({
             ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             stravaDetailsLoading, stravaDetailsError, formatSeconds, displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass,
             showRescheduleModal, rescheduleTarget, rescheduleForm, rescheduleLoading, openRescheduleModal, submitReschedule,
-            showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans
+            showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans,
+            showApplyModal, applyForm, applyLoading, applyTarget, submitApply
         };
     }
 
