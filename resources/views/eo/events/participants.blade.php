@@ -1,5 +1,8 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
+
+@php
+    $withSidebar = true;
+@endphp
 
 @section('title', 'Participants - ' . $event->name)
 
@@ -10,6 +13,7 @@
             colors: {
                 ...tailwind.config.theme.extend.colors,
                 neon: {
+                    ...tailwind.config.theme.extend.colors.neon,
                     cyan: '#06b6d4',
                     purple: '#a855f7',
                     green: '#22c55e',

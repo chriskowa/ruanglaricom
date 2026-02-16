@@ -110,7 +110,9 @@
                     colors: {
                         dark: '#0f172a',
                         card: '#1e293b',
-                        neon: '#ccff00',
+                        neon: {
+                            DEFAULT: '#ccff00',
+                        },
                         primary: '#ccff00',
                         strava: '#fc4c02',
                         accent: '#3b82f6',
