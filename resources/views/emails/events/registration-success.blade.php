@@ -91,6 +91,10 @@
                         </td>
                     </tr>
                     <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">Ukuran Jersey</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->jersey_size ?? '-' }}</td>
+                    </tr>
+                    <tr>
                         <td class="ticket-label" style="padding-bottom: 8px;">Status Pembayaran</td>
                         <td class="ticket-value" style="padding-bottom: 8px; color: {{ $transaction->payment_status == 'paid' ? '#10b981' : '#f59e0b' }}">
                             {{ strtoupper($transaction->payment_status) }}

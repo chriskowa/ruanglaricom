@@ -66,10 +66,20 @@
 
                 <div class="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-600 font-medium">
                     <p>&copy; {{ date('Y') }} RuangLari Indonesia. All rights reserved.</p>
-                    <div class="flex gap-8">
-                        <a href="#" class="hover:text-white transition">Privacy Policy</a>
-                        <a href="#" class="hover:text-white transition">Terms of Service</a>
-                        <a href="#" class="hover:text-white transition">Cookie Policy</a>
+                    <div class="flex items-center gap-6">
+                        <div class="flex gap-8">
+                            <a href="#" class="hover:text-white transition">Privacy Policy</a>
+                            <a href="#" class="hover:text-white transition">Terms of Service</a>
+                            <a href="#" class="hover:text-white transition">Cookie Policy</a>
+                        </div>
+                        <a href="https://id.seedbacklink.com/" target="_blank" rel="noopener noreferrer" class="block w-20 md:w-24">
+                            <img
+                                title="Seedbacklink"
+                                src="https://id.seedbacklink.com/wp-content/uploads/2023/11/Badge-Seedbacklink_Artboard-1-webp-version.webp"
+                                alt="Seedbacklink"
+                                class="w-full h-auto opacity-80 hover:opacity-100 transition"
+                            >
+                        </a>
                     </div>
                 </div>
             </div>

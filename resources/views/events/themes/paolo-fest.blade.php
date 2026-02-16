@@ -3119,10 +3119,24 @@
         </div>
     </div>
     @endif
+    @php
+        $ticketDate = $event->start_at
+            ? \Carbon\Carbon::parse($event->start_at)->isoFormat('D MMM Y, HH:mm')
+            : ($event->date ? \Carbon\Carbon::parse($event->date)->isoFormat('D MMM Y') : '-');
+        $ticketLocation = $event->location_name ?? $event->city ?? '-';
+    @endphp
     <div id="registrationSuccessModal" class="fixed inset-0 z-[100] hidden">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" id="registrationSuccessModalBackdrop"></div>
         <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden" id="registrationSuccessContainer"
+                data-event-id="{{ $event->id }}"
+                data-event-name="{{ $event->name }}"
+                data-event-date="{{ $ticketDate }}"
+                data-event-location="{{ $ticketLocation }}"
+                @if($event->logo_image)
+                    data-event-logo="{{ asset('storage/' . $event->logo_image) }}"
+                @endif
+            >
                 <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
                     <h3 class="text-lg font-black text-slate-900">Registrasi Berhasil</h3>
                     <button type="button" id="registrationSuccessCloseBtn" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center">✕</button>
@@ -3135,13 +3149,15 @@
                         <div class="flex-1">
                             <p class="text-slate-900 font-bold">Terima kasih sudah mendaftar.</p>
                             <p class="text-slate-600 text-sm mt-1">Tiket akan dikirim via email. Silakan cek inbox dan folder spam.</p>
-                            <p class="text-slate-500 text-xs mt-3">Modal akan tertutup otomatis dalam <span class="font-black text-slate-900" id="registrationSuccessCountdown">5</span> detik.</p>
+                            <p class="text-slate-500 text-xs mt-3">Silakan download e-ticket dan tutup modal ini saat sudah selesai.</p>
                         </div>
                     </div>
                     <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                        <button type="button" id="downloadEticketBtn" class="flex-1 py-3 rounded-xl bg-yellow-400 text-black font-black hover:bg-yellow-300 transition">Download E-Ticket</button>
                         <button type="button" id="checkEmailBtn" class="flex-1 py-3 rounded-xl bg-slate-900 text-white font-black hover:bg-slate-800 transition">Cek Email Saya</button>
                         <button type="button" id="closeNowBtn" class="flex-1 py-3 rounded-xl border border-slate-300 text-slate-800 font-black hover:bg-slate-50 transition">Tutup</button>
                     </div>
+                    <canvas id="registrationSuccessEticketCanvas" width="900" height="450" class="hidden"></canvas>
                 </div>
             </div>
         </div>
@@ -3168,7 +3184,9 @@
             const closeBtn = document.getElementById('registrationSuccessCloseBtn');
             const closeNowBtn = document.getElementById('closeNowBtn');
             const checkEmailBtn = document.getElementById('checkEmailBtn');
-            const countdownEl = document.getElementById('registrationSuccessCountdown');
+            const container = document.getElementById('registrationSuccessContainer');
+            const downloadBtn = document.getElementById('downloadEticketBtn');
+            const canvas = document.getElementById('registrationSuccessEticketCanvas');
 
             // Failure Modal Elements
             const failModal = document.getElementById('registrationFailureModal');
@@ -3176,9 +3194,6 @@
             const failCloseBtn = document.getElementById('registrationFailureCloseBtn');
             const failCloseNowBtn = document.getElementById('closeFailureNowBtn');
             const failMessageEl = document.getElementById('registrationFailureMessage');
-
-            let timer = null;
-            let remaining = 5;
 
             function cleanupUrl() {
                 try {
@@ -3192,23 +3207,11 @@
             function closeModal() {
                 modal.classList.add('hidden');
                 if (failModal) failModal.classList.add('hidden');
-                if (timer) {
-                    clearInterval(timer);
-                    timer = null;
-                }
                 cleanupUrl();
             }
 
             function openModal() {
-                remaining = 5;
-                if (countdownEl) countdownEl.textContent = String(remaining);
                 modal.classList.remove('hidden');
-                if (timer) clearInterval(timer);
-                timer = setInterval(() => {
-                    remaining -= 1;
-                    if (countdownEl) countdownEl.textContent = String(Math.max(0, remaining));
-                    if (remaining <= 0) closeModal();
-                }, 1000);
             }
 
             window.openFailModal = function(message) {
@@ -3227,6 +3230,236 @@
             checkEmailBtn?.addEventListener('click', () => {
                 window.location.href = 'mailto:';
             });
+
+            function drawFittedText(ctx, text, x, y, maxWidth, font) {
+                ctx.font = font;
+                if (!text) {
+                    ctx.fillText('-', x, y);
+                    return;
+                }
+                if (ctx.measureText(text).width <= maxWidth) {
+                    ctx.fillText(text, x, y);
+                    return;
+                }
+
+                const ellipsis = '...';
+                let width = ctx.measureText(ellipsis).width;
+                let i = 0;
+                while (i < text.length && width < maxWidth) {
+                    i++;
+                    width = ctx.measureText(text.slice(0, i) + ellipsis).width;
+                }
+                const trimmed = text.slice(0, Math.max(0, i - 1)) + ellipsis;
+                ctx.fillText(trimmed, x, y);
+            }
+
+            function drawEticket() {
+                if (!canvas || !container) return;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                const eventName = container.dataset.eventName || '';
+                const eventDate = container.dataset.eventDate || '';
+                const eventLocation = container.dataset.eventLocation || '';
+
+                const form = document.getElementById('registrationForm');
+                let participantName = '';
+                let jerseySize = '';
+                let categoryLabel = '';
+
+                if (form) {
+                    const firstParticipant = form.querySelector('.participant-item');
+                    if (firstParticipant) {
+                        const nameInput = firstParticipant.querySelector('input[name*="[name]"]');
+                        const jerseySelect = firstParticipant.querySelector('select[name*="[jersey_size]"]');
+                        const catInput = firstParticipant.querySelector('input[name*="[category_id]"]:checked');
+
+                        participantName = nameInput ? nameInput.value : '';
+
+                        if (jerseySelect) {
+                            const opt = jerseySelect.options[jerseySelect.selectedIndex];
+                            jerseySize = opt ? opt.text : '';
+                        }
+
+                        if (catInput) {
+                            const label = catInput.closest('label');
+                            const title = label ? label.querySelector('.font-bold') : null;
+                            categoryLabel = title ? title.textContent : '';
+                        }
+                    }
+                }
+
+                // Fallback: ambil dari localStorage draft jika nama masih kosong
+                if (!participantName || !jerseySize) {
+                    try {
+                        const eventId = container.dataset.eventId || '{{ $event->id }}';
+                        const storageKey = 'ruanglari_draft_' + eventId;
+                        const encrypted = localStorage.getItem(storageKey);
+                        if (encrypted) {
+                            const json = decodeURIComponent(atob(encrypted));
+                            const payload = JSON.parse(json);
+                            const data = payload.data || {};
+
+                            if (!participantName && data['participants[0][name]']) {
+                                participantName = data['participants[0][name]'];
+                            }
+                            if (!jerseySize && data['participants[0][jersey_size]']) {
+                                jerseySize = data['participants[0][jersey_size]'];
+                            }
+                        }
+                    } catch (e) {
+                        // ignore fallback errors
+                    }
+                }
+
+                const logoUrl = container.dataset.eventLogo || '';
+
+                const w = canvas.width;
+                const h = canvas.height;
+
+                ctx.clearRect(0, 0, w, h);
+
+                // Background
+                ctx.fillStyle = '#e5e7eb';
+                ctx.fillRect(0, 0, w, h);
+
+                // Ticket body
+                const ticketX = 80;
+                const ticketY = 50;
+                const ticketW = w - 160;
+                const ticketH = h - 100;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(ticketX, ticketY, ticketW, ticketH);
+
+                // Ticket border (silver)
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(ticketX, ticketY, ticketW, ticketH);
+
+                // Perforated separator
+                const cutX = ticketX + ticketW * 0.65;
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.setLineDash([6, 6]);
+                ctx.beginPath();
+                ctx.moveTo(cutX, ticketY + 16);
+                ctx.lineTo(cutX, ticketY + ticketH - 16);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Logo (left top)
+                const leftPaddingX = ticketX + 32;
+                let y = ticketY + 60;
+
+                if (logoUrl) {
+                    const logoImg = new Image();
+                    logoImg.crossOrigin = 'anonymous';
+                    logoImg.onload = function() {
+                        const targetH = 40;
+                        const ratio = logoImg.width / logoImg.height || 1;
+                        const targetW = targetH * ratio;
+                        const maxW = cutX - leftPaddingX - 16;
+                        const wScale = targetW > maxW ? maxW / targetW : 1;
+                        const finalW = targetW * wScale;
+                        const finalH = targetH * wScale;
+                        ctx.drawImage(logoImg, leftPaddingX, ticketY + 28, finalW, finalH);
+                    };
+                    logoImg.src = logoUrl;
+                }
+
+                // Event name & info (left side)
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '800 26px "Inter", system-ui';
+                drawFittedText(ctx, eventName.toUpperCase(), leftPaddingX, y, cutX - leftPaddingX - 16, ctx.font);
+
+                y += 36;
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '12px "Inter", system-ui';
+                ctx.fillText('Date & Time', leftPaddingX, y);
+
+                y += 18;
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '14px "Inter", system-ui';
+                drawFittedText(ctx, eventDate, leftPaddingX, y, cutX - leftPaddingX - 16, ctx.font);
+
+                y += 26;
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '12px "Inter", system-ui';
+                ctx.fillText('Location', leftPaddingX, y);
+
+                y += 18;
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '14px "Inter", system-ui';
+                drawFittedText(ctx, eventLocation, leftPaddingX, y, cutX - leftPaddingX - 16, ctx.font);
+
+                // Participant section (left bottom)
+                const boxX = leftPaddingX;
+                const boxY = ticketY + ticketH - 120;
+                const boxW = cutX - leftPaddingX - 16;
+                const boxH = 80;
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(boxX, boxY, boxW, boxH);
+
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '11px "Inter", system-ui';
+                ctx.fillText('Participant', boxX + 12, boxY + 20);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '700 16px "Inter", system-ui';
+                drawFittedText(ctx, participantName || '-', boxX + 12, boxY + 40, boxW - 24, ctx.font);
+
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '11px "Inter", system-ui';
+                ctx.fillText('Category', boxX + 12, boxY + 58);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '13px "Inter", system-ui';
+                drawFittedText(ctx, categoryLabel || '-', boxX + 12, boxY + 74, boxW - 24, ctx.font);
+
+                // Right side info: status + jersey
+                const rightX = cutX + 32;
+                let rightY = ticketY + 80;
+
+                ctx.fillStyle = '#16a34a';
+                ctx.font = '700 18px "Inter", system-ui';
+                drawFittedText(ctx, 'PAID', rightX, rightY, ticketX + ticketW - rightX - 24, ctx.font);
+
+                rightY += 32;
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '11px "Inter", system-ui';
+                ctx.fillText('Jersey Size', rightX, rightY);
+
+                rightY += 22;
+                ctx.fillStyle = '#1d4ed8';
+                ctx.font = '700 18px "Inter", system-ui';
+                drawFittedText(ctx, jerseySize || '-', rightX, rightY, ticketX + ticketW - rightX - 24, ctx.font);
+
+                // Footer note (inside ticket)
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '10px "Inter", system-ui';
+                const footerY = ticketY + ticketH - 20;
+                drawFittedText(ctx, 'Tunjukkan e-ticket ini saat pengambilan race pack atau masuk area event.', ticketX + 32, footerY, ticketW - 64, ctx.font);
+            }
+
+            function downloadEticket() {
+                if (!canvas) return;
+                drawEticket();
+                const dataUrl = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                const fallbackName = container?.dataset.eventName || 'event';
+                a.download = 'e-ticket-' + fallbackName.replace(/\s+/g, '-').toLowerCase() + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            downloadBtn?.addEventListener('click', downloadEticket);
 
             const params = new URLSearchParams(window.location.search);
             if (params.get('payment') === 'success') {
