@@ -477,28 +477,43 @@ Route::get('/api/events/upcoming', function () {
             return response()->json([]);
         }
 
-        $events = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id', 'external_registration_link')
-            ->whereYear('start_at', now()->year)
-            ->whereMonth('start_at', now()->month)
-            ->where('start_at', '>=', now())
-            ->orderBy('start_at', 'asc')
+        $now = now();
+
+        $baseQuery = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id', 'external_registration_link')
+            ->where('start_at', '>=', $now)
+            ->orderBy('start_at', 'asc');
+
+        $events = (clone $baseQuery)
+            ->whereYear('start_at', $now->year)
+            ->whereMonth('start_at', $now->month)
             ->limit(4)
-            ->get()
-            ->map(function ($e) {
-                $dt = $e->start_at ?: $e->created_at;
+            ->get();
 
-                return [
-                    'name' => $e->name,
-                    'slug' => $e->slug ?: Illuminate\Support\Str::slug($e->name),
-                    'is_eo' => $e->is_eo,
-                    'date' => optional($dt)->format('Y-m-d'),
-                    'time' => optional($dt)->format('H:i'),
-                    'location' => $e->location_name,
-                    'url' => $e->public_url,
-                ];
-            });
+        if ($events->isEmpty()) {
+            $nextMonth = $now->copy()->addMonth();
 
-        return response()->json($events);
+            $events = (clone $baseQuery)
+                ->whereYear('start_at', $nextMonth->year)
+                ->whereMonth('start_at', $nextMonth->month)
+                ->limit(4)
+                ->get();
+        }
+
+        $payload = $events->map(function ($e) {
+            $dt = $e->start_at ?: $e->created_at;
+
+            return [
+                'name' => $e->name,
+                'slug' => $e->slug ?: Illuminate\Support\Str::slug($e->name),
+                'is_eo' => $e->is_eo,
+                'date' => optional($dt)->format('Y-m-d'),
+                'time' => optional($dt)->format('H:i'),
+                'location' => $e->location_name,
+                'url' => $e->public_url,
+            ];
+        });
+
+        return response()->json($payload);
     } catch (\Throwable $e) {
         return response()->json([]);
     }
