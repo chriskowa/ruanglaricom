@@ -3466,6 +3466,11 @@
                 openModal();
             } else if (params.get('payment') === 'failed') {
                 window.openFailModal(params.get('error_message'));
+            } else if (params.get('payment') === 'pending') {
+                const registerSection = document.getElementById('register');
+                if (registerSection) {
+                    registerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             }
         })();
     </script>
