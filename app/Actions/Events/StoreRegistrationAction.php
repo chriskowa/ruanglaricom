@@ -39,11 +39,24 @@ class StoreRegistrationAction
         if ($request->has('pic_email')) {
             $request->merge(['pic_email' => trim($request->pic_email)]);
         }
+        if ($request->has('coupon_code')) {
+            $couponCode = trim((string) $request->coupon_code);
+            if ($couponCode === '') {
+                $couponCode = null;
+            }
+            $request->merge(['coupon_code' => $couponCode]);
+        }
         if ($request->has('participants')) {
             $participants = $request->participants;
             foreach ($participants as &$p) {
                 if (isset($p['email'])) {
                     $p['email'] = trim($p['email']);
+                }
+                if (isset($p['target_time'])) {
+                    $p['target_time'] = trim((string) $p['target_time']);
+                    if ($p['target_time'] === '') {
+                        $p['target_time'] = null;
+                    }
                 }
             }
             $request->merge(['participants' => $participants]);
@@ -75,8 +88,8 @@ class StoreRegistrationAction
             'participants.*.emergency_contact_name' => 'required|string|max:255',
             'participants.*.emergency_contact_number' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
             'participants.*.date_of_birth' => 'required|date|before:today',
-            'participants.*.target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/', 'not_in:00:00:00'],
-            'participants.*.jersey_size' => 'nullable|string|max:10',
+            'participants.*.target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],
+            'participants.*.jersey_size' => 'required|string|max:10',
             'coupon_code' => 'nullable|string|exists:coupons,code',
             'payment_method' => 'nullable|in:midtrans,cod,moota',
             'participants.*.addons' => 'nullable|array',
