@@ -3523,7 +3523,7 @@
                         custom: (value) => {
                             const form = document.getElementById('registrationForm');
                             if (!form) return true;
-                            const inputs = form.querySelectorAll('input[name*="[id_card]"]');
+                            const inputs = form.querySelectorAll('input[name*=\"[id_card]\"]');
                             let count = 0;
                             inputs.forEach(input => {
                                 if (input.value.trim() === value) {
@@ -3536,6 +3536,26 @@
                             required: "Nomor Identitas (NIK/KTP/Kartu Pelajar) wajib diisi",
                             pattern: "Nomor identitas harus berupa angka 8-16 digit",
                             custom: "NIK/ID ini sudah digunakan oleh peserta lain"
+                        }
+                    },
+                    gender: {
+                        required: true,
+                        message: {
+                            required: "Gender wajib dipilih"
+                        }
+                    },
+                    address: {
+                        required: true,
+                        minLength: 10,
+                        message: {
+                            required: "Alamat wajib diisi",
+                            minLength: "Alamat minimal 10 karakter"
+                        }
+                    },
+                    jersey_size: {
+                        required: true,
+                        message: {
+                            required: "Ukuran jersey wajib dipilih"
                         }
                     },
                     date_of_birth: {
