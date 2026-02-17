@@ -473,9 +473,12 @@
 
             function setBadge(count) {
                 if (!badge) return;
-                if ((Number(count) || 0) > 0) {
+                var num = Number(count) || 0;
+                if (num > 0) {
+                    badge.textContent = num > 99 ? '99+' : String(num);
                     badge.classList.remove('hidden');
                 } else {
+                    badge.textContent = '';
                     badge.classList.add('hidden');
                 }
             }

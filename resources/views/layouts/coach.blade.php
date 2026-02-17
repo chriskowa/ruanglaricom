@@ -151,5 +151,145 @@
         document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ closeSidebar(); } });
     })();
 </script>
+<script>
+    (function () {
+        var isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+        var authRole = @json(auth()->user() ? auth()->user()->role : '');
+        var navBtn = document.getElementById('nav-bell-btn');
+        var dropdown = document.getElementById('nav-bell-dropdown');
+        var badge = document.getElementById('notification-badge');
+        var list = document.getElementById('notification-list');
+        var markAll = document.getElementById('mark-all-read');
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrf = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+        function getUrl(notif) {
+            if (notif.reference_type === 'Post' && notif.reference_id) {
+                return @json(route('feed.index')) + '#post-' + notif.reference_id;
+            }
+            if (notif.reference_type === 'EventSubmission' && notif.reference_id && authRole === 'admin') {
+                return @json(route('admin.event-submissions.show', ':id')).replace(':id', notif.reference_id);
+            }
+            return @json(route('notifications.index'));
+        }
+
+        function setBadge(count) {
+            if (!badge) return;
+            var num = Number(count) || 0;
+            if (num > 0) {
+                badge.textContent = num > 99 ? '99+' : String(num);
+                badge.classList.remove('hidden');
+            } else {
+                badge.textContent = '';
+                badge.classList.add('hidden');
+            }
+        }
+
+        function render(items) {
+            if (!list) return;
+            if (!items || !items.length) {
+                list.innerHTML = '<div class="p-8 text-center text-slate-500 text-sm">Tidak ada notifikasi</div>';
+                return;
+            }
+            list.innerHTML = '';
+            items.forEach(function (n) {
+                var wrap = document.createElement('a');
+                var url = getUrl(n);
+                wrap.href = url;
+                wrap.className = 'block px-4 py-3 border-b border-slate-800 hover:bg-slate-800/60 transition';
+                wrap.dataset.notificationId = n.id;
+                wrap.innerHTML =
+                    '<div class="text-white font-bold text-sm">'+String(n.title || '')+'</div>' +
+                    '<div class="text-slate-300 text-xs mt-0.5">'+String(n.message || '')+'</div>' +
+                    '<div class="text-[10px] text-slate-500 font-mono mt-1">'+(n.created_at ? dayjs(n.created_at).format('DD/MM/YYYY, HH.mm.ss') : '')+'</div>';
+                list.appendChild(wrap);
+            });
+        }
+
+        function fetchUnread() {
+            if (!isAuthenticated) return;
+            fetch(@json(route('notifications.unread', [], false)), { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { if (!r.ok) throw new Error('err'); return r.json(); })
+                .then(function (data) {
+                    if (!data) return;
+                    setBadge(data.count);
+                    if (dropdown && !dropdown.classList.contains('hidden')) {
+                        render(data.notifications || []);
+                    }
+                })
+                .catch(function () {});
+        }
+
+        function markRead(id) {
+            return fetch(@json(route('notifications.read', ':id', false)).replace(':id', id), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }).then(function (r) { return r.json(); });
+        }
+
+        function markAllRead() {
+            return fetch(@json(route('notifications.read-all', [], false)), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }).then(function (r) { return r.json(); });
+        }
+
+        if (navBtn && dropdown) {
+            navBtn.addEventListener('click', function () {
+                dropdown.classList.toggle('hidden');
+                if (!dropdown.classList.contains('hidden')) {
+                    if (list) list.innerHTML = '<div class="p-8 text-center text-slate-500 text-sm">Loading...</div>';
+                    fetchUnread();
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!dropdown) return;
+                if (dropdown.classList.contains('hidden')) return;
+                if (e.target.closest('#nav-bell-dropdown') || e.target.closest('#nav-bell-btn')) return;
+                dropdown.classList.add('hidden');
+            });
+        }
+
+        if (list) {
+            list.addEventListener('click', function (e) {
+                var a = e.target.closest('a[data-notification-id]');
+                if (!a) return;
+                var id = a.dataset.notificationId;
+                if (!id) return;
+                e.preventDefault();
+                markRead(id)
+                    .catch(function () {})
+                    .finally(function () {
+                        dropdown && dropdown.classList.add('hidden');
+                        fetchUnread();
+                        window.location.href = a.href;
+                    });
+            });
+        }
+
+        if (markAll) {
+            markAll.addEventListener('click', function () {
+                markAllRead()
+                    .catch(function () {})
+                    .finally(function () {
+                        fetchUnread();
+                        if (list) list.innerHTML = '<div class="p-8 text-center text-slate-500 text-sm">Tidak ada notifikasi</div>';
+                    });
+            });
+        }
+
+        fetchUnread();
+        setInterval(fetchUnread, 30000);
+    })();
+</script>
 </body>
 </html>

@@ -96,9 +96,12 @@
                 <!-- Notifications -->
                 @auth
                 <div class="relative" id="notification-container">
-                    <button id="nav-bell-btn" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Notifications">
+                    <button id="nav-bell-btn" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Notifications" type="button">
                         @include('layouts.components.svg-bell')
-                        <span id="notification-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-dark hidden"></span>
+                        <span
+                            id="notification-badge"
+                            class="absolute -top-1 -right-1 min-w-[1.1rem] h-4 px-1 bg-red-500 text-[10px] font-bold text-white rounded-full border border-dark flex items-center justify-center hidden"
+                        ></span>
                     </button>
                     <div id="nav-bell-dropdown" class="absolute right-0 -mr-16 md:mr-0 mt-4 w-80 sm:w-96 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl hidden overflow-hidden transform transition-all origin-top-right z-50">
                         <div class="p-4 border-b border-slate-800 flex justify-between items-center">
