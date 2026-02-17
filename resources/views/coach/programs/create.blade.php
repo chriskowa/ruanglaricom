@@ -641,12 +641,17 @@ createApp({
                         toolbar: [
                             'heading',
                             '|',
-                            'bold', 'italic', 'link',
+                            'bold', 'italic', 'underline', 'link',
+                            'fontColor', 'fontBackgroundColor',
+                            '|',
                             'bulletedList', 'numberedList',
                             'blockQuote',
                             '|',
                             'insertTable',
                             'imageUpload', 'imageInsert',
+                            '|',
+                            'alignment',
+                            'removeFormat',
                             '|',
                             'undo', 'redo'
                         ]
