@@ -673,7 +673,7 @@
                         <div class="mb-2">
                             <span class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-300 uppercase tracking-wide">@{{ activityLabel(detail.type) }}</span>
                         </div>
-                        <div class="text-5xl md:text-6xl font-black text-white leading-none tracking-tight">@{{ primaryMetricValue }}</div>
+                        <div :class="['text-5xl md:text-6xl font-black leading-none tracking-tight', detail.distance ? 'text-[#FC4C02]' : 'text-white']">@{{ primaryMetricValue }}</div>
                         <div class="text-slate-500 text-xs mt-1">@{{ primaryMetricUnit }}</div>
                     </div>
                 </div>
@@ -817,7 +817,15 @@
                     </div>
 
                     <div v-if="detail.description" class="mt-3 text-sm text-slate-300">
-                        <div class="text-[11px] text-slate-400 uppercase font-bold mb-1">Description</div>
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="text-[11px] text-slate-400 uppercase font-bold">Description</div>
+                            <button v-if="ttsSupported" @click="speakDetailDescription" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-neon transition" type="button">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M5 9v6h4l5 5V4L9 9H5z" />
+                                    <path d="M16.5 8.11a5 5 0 010 7.78v-1.74a3.25 3.25 0 000-4.3V8.11z" />
+                                </svg>
+                            </button>
+                        </div>
                         <div>@{{ detail.description }}</div>
                     </div>
                     <div v-if="detail.strava_link" class="mt-3 text-sm">
@@ -1390,6 +1398,10 @@ createApp({
         const stravaStreamsLoading = ref(false);
         const stravaStreamsError = ref('');
         let stravaChart = null;
+        const ttsSupported = computed(() => typeof window !== 'undefined' && 'speechSynthesis' in window);
+        const isSpeaking = ref(false);
+        let ttsVoice = null;
+        let currentUtterance = null;
         const displayPace = computed(() => detail.actual_pace || detail.target_pace || detail.recommended_pace || null);
         const primaryMetricValue = computed(() => {
             try {
@@ -1428,10 +1440,52 @@ createApp({
             name: '',
             date: '',
             distance: '',
-            distLabel: '', // 5K, 10K, etc.
+            distLabel: '',
             goal_time: '',
             notes: ''
         });
+
+        const loadTtsVoices = () => {
+            if (!ttsSupported.value) return;
+            const voices = window.speechSynthesis.getVoices();
+            if (!voices || !voices.length) return;
+            const preferred = voices.filter(v => /id-ID|en-US/i.test(v.lang));
+            const male = preferred.find(v => /male|laki/i.test((v.name || '') + ' ' + (v.voiceURI || '')));
+            ttsVoice = male || preferred[0] || voices[0];
+        };
+
+        const stopDetailSpeech = () => {
+            if (!ttsSupported.value) return;
+            window.speechSynthesis.cancel();
+            isSpeaking.value = false;
+            currentUtterance = null;
+        };
+
+        const speakDetailDescription = () => {
+            if (!ttsSupported.value) return;
+            const text = detail.description || '';
+            if (!text) return;
+            if (isSpeaking.value) {
+                stopDetailSpeech();
+                return;
+            }
+            if (!ttsVoice) loadTtsVoices();
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (ttsVoice) utterance.voice = ttsVoice;
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            isSpeaking.value = true;
+            utterance.onend = () => {
+                isSpeaking.value = false;
+                currentUtterance = null;
+            };
+            utterance.onerror = () => {
+                isSpeaking.value = false;
+                currentUtterance = null;
+            };
+            currentUtterance = utterance;
+            window.speechSynthesis.speak(utterance);
+        };
         
         // Workout Builder Helper Methods
         const addStep = (type) => {
