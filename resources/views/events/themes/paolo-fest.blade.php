@@ -2795,7 +2795,51 @@
                 .then(data => {
                     if (data.success) {
                         try { sessionStorage.removeItem(sessionRetryKey); } catch (e) {}
-                        // Clear draft on successful submission
+
+                        try {
+                            const participants = [];
+                            const items = form.querySelectorAll('.participant-item');
+                            items.forEach(item => {
+                                const nameInput = item.querySelector('input[name*="[name]"]');
+                                const jerseySelect = item.querySelector('select[name*="[jersey_size]"]');
+                                const catInput = item.querySelector('input[name*="[category_id]"]:checked');
+                                const phoneInput = item.querySelector('input[name*="[phone]"]');
+                                const idCardInput = item.querySelector('input[name*="[id_card]"]');
+
+                                const entry = {
+                                    participant_name: nameInput ? nameInput.value : '',
+                                    jersey_size_label: '',
+                                    category_label: '',
+                                    phone: phoneInput ? phoneInput.value : '',
+                                    id_card: idCardInput ? idCardInput.value : ''
+                                };
+
+                                if (jerseySelect) {
+                                    const opt = jerseySelect.options[jerseySelect.selectedIndex];
+                                    entry.jersey_size_label = opt ? opt.text : '';
+                                }
+
+                                if (catInput) {
+                                    const label = catInput.closest('label');
+                                    const title = label ? label.querySelector('.font-bold') : null;
+                                    entry.category_label = title ? title.textContent : '';
+                                }
+
+                                if (entry.participant_name || entry.jersey_size_label || entry.category_label) {
+                                    participants.push(entry);
+                                }
+                            });
+
+                            if (participants.length > 0) {
+                                const eventId = '{{ $event->id }}';
+                                const payload = {
+                                    participants: participants,
+                                    registration_id: data.registration_id || null
+                                };
+                                localStorage.setItem('ruanglari_last_ticket_' + eventId, JSON.stringify(payload));
+                            }
+                        } catch (e) {}
+
                         if(window.clearAutoSave) window.clearAutoSave();
                         
                         if (data.snap_token) {
@@ -3207,8 +3251,10 @@
                 </div>
                 <div class="p-6">
                     <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-yellow-100 flex items-center justify-center">
-                            <div class="w-6 h-6 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                            <svg class="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
                         </div>
                         <div class="flex-1">
                             <p class="text-slate-900 font-bold">Terima kasih sudah mendaftar.</p>
@@ -3221,7 +3267,22 @@
                         <button type="button" id="checkEmailBtn" class="flex-1 py-3 rounded-xl bg-slate-900 text-white font-black hover:bg-slate-800 transition">Cek Email Saya</button>
                         <button type="button" id="closeNowBtn" class="flex-1 py-3 rounded-xl border border-slate-300 text-slate-800 font-black hover:bg-slate-50 transition">Tutup</button>
                     </div>
-                    <canvas id="registrationSuccessEticketCanvas" width="900" height="450" class="hidden"></canvas>
+                    <div class="mt-4 flex items-center justify-between gap-3 border border-slate-200 rounded-xl px-4 py-2 bg-slate-50">
+                        <div class="text-xs text-slate-500">
+                            <span class="font-semibold text-slate-700">Peserta:</span>
+                            <span id="eticketParticipantLabel" class="ml-2 font-bold text-slate-900">-</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="eticketPrevBtn" class="w-8 h-8 rounded-full border border-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">&larr;</button>
+                            <span class="text-xs text-slate-500">
+                                <span id="eticketParticipantIndex">1</span>/<span id="eticketParticipantTotal">1</span>
+                            </span>
+                            <button type="button" id="eticketNextBtn" class="w-8 h-8 rounded-full border border-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">&rarr;</button>
+                        </div>
+                    </div>
+                    <div class="mt-4 border border-slate-200 rounded-2xl bg-slate-50 p-3">
+                        <canvas id="registrationSuccessEticketCanvas" width="900" height="450" class="w-full h-auto"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3251,6 +3312,11 @@
             const container = document.getElementById('registrationSuccessContainer');
             const downloadBtn = document.getElementById('downloadEticketBtn');
             const canvas = document.getElementById('registrationSuccessEticketCanvas');
+            const participantLabelEl = document.getElementById('eticketParticipantLabel');
+            const participantIndexEl = document.getElementById('eticketParticipantIndex');
+            const participantTotalEl = document.getElementById('eticketParticipantTotal');
+            const prevBtn = document.getElementById('eticketPrevBtn');
+            const nextBtn = document.getElementById('eticketNextBtn');
 
             // Failure Modal Elements
             const failModal = document.getElementById('registrationFailureModal');
@@ -3258,6 +3324,11 @@
             const failCloseBtn = document.getElementById('registrationFailureCloseBtn');
             const failCloseNowBtn = document.getElementById('closeFailureNowBtn');
             const failMessageEl = document.getElementById('registrationFailureMessage');
+
+            let currentParticipantIndex = 0;
+            let cachedParticipants = [];
+            let cacheLoaded = false;
+            let ticketNumber = '';
 
             function cleanupUrl() {
                 try {
@@ -3276,6 +3347,18 @@
 
             function openModal() {
                 modal.classList.remove('hidden');
+                if (canvas) {
+                    canvas.classList.remove('hidden');
+                }
+                ensureTicketCache();
+                if (cachedParticipants.length > 0) {
+                    currentParticipantIndex = 0;
+                    updateParticipantControls();
+                    drawEticket(0);
+                } else {
+                    updateParticipantControls();
+                    drawEticket();
+                }
             }
 
             window.openFailModal = function(message) {
@@ -3293,6 +3376,63 @@
 
             checkEmailBtn?.addEventListener('click', () => {
                 window.location.href = 'mailto:';
+            });
+
+            function ensureTicketCache() {
+                if (cacheLoaded) return;
+                cacheLoaded = true;
+                try {
+                    const eventId = container?.dataset.eventId || '{{ $event->id }}';
+                    const cacheKey = 'ruanglari_last_ticket_' + eventId;
+                    const raw = localStorage.getItem(cacheKey);
+                    if (!raw) return;
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed.participants)) {
+                        cachedParticipants = parsed.participants;
+                        ticketNumber = parsed.registration_id || '';
+                    } else if (parsed && (parsed.participant_name || parsed.jersey_size_label || parsed.category_label)) {
+                        cachedParticipants = [parsed];
+                        ticketNumber = parsed.registration_id || '';
+                    }
+                } catch (e) {
+                    cachedParticipants = [];
+                }
+            }
+
+            function updateParticipantControls() {
+                const total = cachedParticipants.length || 0;
+                if (participantTotalEl) {
+                    participantTotalEl.textContent = total ? String(total) : '0';
+                }
+                if (participantIndexEl) {
+                    const displayIndex = total ? currentParticipantIndex + 1 : 0;
+                    participantIndexEl.textContent = String(displayIndex);
+                }
+                if (participantLabelEl) {
+                    const current = cachedParticipants[currentParticipantIndex] || null;
+                    const name = current && current.participant_name ? current.participant_name : '-';
+                    participantLabelEl.textContent = name;
+                }
+                if (prevBtn) {
+                    prevBtn.disabled = total <= 1;
+                }
+                if (nextBtn) {
+                    nextBtn.disabled = total <= 1;
+                }
+            }
+
+            prevBtn?.addEventListener('click', () => {
+                if (!cachedParticipants.length) return;
+                currentParticipantIndex = (currentParticipantIndex - 1 + cachedParticipants.length) % cachedParticipants.length;
+                updateParticipantControls();
+                drawEticket(currentParticipantIndex);
+            });
+
+            nextBtn?.addEventListener('click', () => {
+                if (!cachedParticipants.length) return;
+                currentParticipantIndex = (currentParticipantIndex + 1) % cachedParticipants.length;
+                updateParticipantControls();
+                drawEticket(currentParticipantIndex);
             });
 
             function drawFittedText(ctx, text, x, y, maxWidth, font) {
@@ -3317,7 +3457,7 @@
                 ctx.fillText(trimmed, x, y);
             }
 
-            function drawEticket() {
+            function drawEticket(index) {
                 if (!canvas || !container) return;
                 const ctx = canvas.getContext('2d');
                 if (!ctx) return;
@@ -3330,13 +3470,32 @@
                 let participantName = '';
                 let jerseySize = '';
                 let categoryLabel = '';
+                let phone = '';
+                let idCard = '';
+                let ticketNo = '';
 
-                if (form) {
+                ensureTicketCache();
+
+                if (cachedParticipants.length > 0) {
+                    let idx = typeof index === 'number' ? index : currentParticipantIndex;
+                    if (idx < 0) idx = 0;
+                    if (idx >= cachedParticipants.length) idx = cachedParticipants.length - 1;
+                    currentParticipantIndex = idx;
+                    const current = cachedParticipants[currentParticipantIndex];
+                    participantName = current && current.participant_name ? current.participant_name : '';
+                    jerseySize = current && current.jersey_size_label ? current.jersey_size_label : '';
+                    categoryLabel = current && current.category_label ? current.category_label : '';
+                    phone = current && current.phone ? current.phone : '';
+                    idCard = current && current.id_card ? current.id_card : '';
+                    ticketNo = ticketNumber || (current && current.ticket_number) || '';
+                } else if (form) {
                     const firstParticipant = form.querySelector('.participant-item');
                     if (firstParticipant) {
                         const nameInput = firstParticipant.querySelector('input[name*="[name]"]');
                         const jerseySelect = firstParticipant.querySelector('select[name*="[jersey_size]"]');
                         const catInput = firstParticipant.querySelector('input[name*="[category_id]"]:checked');
+                        const phoneInput = firstParticipant.querySelector('input[name*="[phone]"]');
+                        const idCardInput = firstParticipant.querySelector('input[name*="[id_card]"]');
 
                         participantName = nameInput ? nameInput.value : '';
 
@@ -3350,11 +3509,11 @@
                             const title = label ? label.querySelector('.font-bold') : null;
                             categoryLabel = title ? title.textContent : '';
                         }
-                    }
-                }
 
-                // Fallback: ambil dari localStorage draft jika nama masih kosong
-                if (!participantName || !jerseySize) {
+                        phone = phoneInput ? phoneInput.value : '';
+                        idCard = idCardInput ? idCardInput.value : '';
+                    }
+                } else {
                     try {
                         const eventId = container.dataset.eventId || '{{ $event->id }}';
                         const storageKey = 'ruanglari_draft_' + eventId;
@@ -3364,16 +3523,20 @@
                             const payload = JSON.parse(json);
                             const data = payload.data || {};
 
-                            if (!participantName && data['participants[0][name]']) {
+                            if (data['participants[0][name]']) {
                                 participantName = data['participants[0][name]'];
                             }
-                            if (!jerseySize && data['participants[0][jersey_size]']) {
+                            if (data['participants[0][jersey_size]']) {
                                 jerseySize = data['participants[0][jersey_size]'];
                             }
+                            if (data['participants[0][phone]']) {
+                                phone = data['participants[0][phone]'];
+                            }
+                            if (data['participants[0][id_card]']) {
+                                idCard = data['participants[0][id_card]'];
+                            }
                         }
-                    } catch (e) {
-                        // ignore fallback errors
-                    }
+                    } catch (e) {}
                 }
 
                 const logoUrl = container.dataset.eventLogo || '';
@@ -3485,7 +3648,7 @@
                 ctx.font = '13px "Inter", system-ui';
                 drawFittedText(ctx, categoryLabel || '-', boxX + 12, boxY + 74, boxW - 24, ctx.font);
 
-                // Right side info: status + jersey
+                // Right side info: status + jersey + contacts
                 const rightX = cutX + 32;
                 let rightY = ticketY + 80;
 
@@ -3502,6 +3665,19 @@
                 ctx.fillStyle = '#1d4ed8';
                 ctx.font = '700 18px "Inter", system-ui';
                 drawFittedText(ctx, jerseySize || '-', rightX, rightY, ticketX + ticketW - rightX - 24, ctx.font);
+
+                rightY += 30;
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '10px "Inter", system-ui';
+                drawFittedText(ctx, 'No. HP: ' + (phone || '-'), rightX, rightY, ticketX + ticketW - rightX - 24, ctx.font);
+
+                rightY += 16;
+                drawFittedText(ctx, 'No. ID: ' + (idCard || '-'), rightX, rightY, ticketX + ticketW - rightX - 24, ctx.font);
+
+                rightY += 16;
+                if (ticketNo) {
+                    drawFittedText(ctx, 'No. Tiket: ' + ticketNo, rightX, rightY, ticketX + ticketW - rightX - 24, ctx.font);
+                }
 
                 // Footer note (inside ticket)
                 ctx.fillStyle = '#9ca3af';
@@ -4044,7 +4220,7 @@
         ctx.fillStyle = 'rgba(255, 255, 255, 1)';
         ctx.textAlign = 'center';
         ctx.font = '900 24px sans-serif';
-        ctx.fillText("POWERED BY RUANGLARI.COM", w / 2, h - 40);
+        ctx.fillText("RUANGLARI.COM", w / 2, h - 40);
     }
 
     // Event Handler (Sama seperti sebelumnya)

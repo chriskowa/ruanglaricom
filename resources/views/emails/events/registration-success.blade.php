@@ -109,6 +109,10 @@
                         <td class="ticket-value" style="padding-bottom: 8px;">{{ $transaction->pic_data['phone'] ?? '-' }}</td>
                     </tr>
                     <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">Nomor Registrasi</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">{{ $transaction->public_ref ?? ('REG-'.$transaction->id) }}</td>
+                    </tr>
+                    <tr>
                         <td class="ticket-label" style="padding-bottom: 8px;">Nomor Tiket</td>
                         <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->bib_number ?? 'TICKET-'.$participant->id }}</td>
                     </tr>
