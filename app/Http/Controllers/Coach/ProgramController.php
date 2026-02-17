@@ -206,14 +206,58 @@ class ProgramController extends Controller
         $sessions = [];
         $totalDays = $validated['duration_weeks'] * 7;
 
-        // Generate basic template
+        // Generate more realistic weekly pattern
+        // Pattern per 7-day block:
+        // 1: Easy Run, 2: Intervals, 3: Easy Run, 4: Tempo, 5: Strength, 6: Long Run, 7: Rest
         for ($day = 1; $day <= $totalDays; $day++) {
+            $weekDay = (($day - 1) % 7) + 1;
+
+            switch ($weekDay) {
+                case 1:
+                case 3:
+                    $type = 'easy_run';
+                    $distance = 5;
+                    $duration = '00:35:00';
+                    $description = 'Easy run';
+                    break;
+                case 2:
+                    $type = 'interval';
+                    $distance = 6;
+                    $duration = '00:45:00';
+                    $description = 'Interval session';
+                    break;
+                case 4:
+                    $type = 'tempo';
+                    $distance = 8;
+                    $duration = '00:45:00';
+                    $description = 'Tempo run';
+                    break;
+                case 5:
+                    $type = 'strength';
+                    $distance = null;
+                    $duration = '00:40:00';
+                    $description = 'Strength & mobility';
+                    break;
+                case 6:
+                    $type = 'long_run';
+                    $distance = 12;
+                    $duration = '01:30:00';
+                    $description = 'Long run';
+                    break;
+                default:
+                    $type = 'rest';
+                    $distance = null;
+                    $duration = null;
+                    $description = 'Rest day';
+                    break;
+            }
+
             $sessions[] = [
                 'day' => $day,
-                'type' => 'easy_run', // easy_run, long_run, tempo, interval, rest
-                'distance' => 5,
-                'duration' => '00:30:00',
-                'description' => 'Easy run',
+                'type' => $type,
+                'distance' => $distance,
+                'duration' => $duration,
+                'description' => $description,
             ];
         }
 
