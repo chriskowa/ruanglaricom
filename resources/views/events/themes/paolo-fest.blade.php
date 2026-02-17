@@ -1865,6 +1865,11 @@
                                 </div>
                                 <div id="couponMessage" class="mt-2 text-xs font-medium"></div>
                                 <input type="hidden" name="coupon_code" id="coupon_code_hidden">
+                                @if(($event->premium_amenities['promo_modal_enabled'] ?? 0) == 1)
+                                <button type="button" onclick="openPromoModal()" class="mt-3 text-[11px] font-semibold text-brand-700 hover:text-brand-900 underline underline-offset-2">
+                                    Lihat detail promo yang sedang aktif
+                                </button>
+                                @endif
                             </div>
 
                             <div class="bg-brand-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
@@ -1950,6 +1955,65 @@
             @endif
         </div>
     </section>
+
+    <section id="ugc" class="py-20 bg-gradient-to-b from-slate-950 via-slate-950 to-[#020617]">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="flex flex-col items-center text-center mb-12 space-y-4">
+            <span class="text-[11px] font-semibold tracking-[0.35em] uppercase text-[#1e40af] bg-[#f1f5f9] px-4 py-1 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.35)]">
+                Share The Hype
+            </span>
+            <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight">
+                Ubah Pendaftaranmu Jadi <span class="text-[#1e40af] drop-shadow-[0_0_22px_rgba(255,255,255,0.6)]">Cerita</span>
+            </h2>
+            <p class="text-slate-300 max-w-2xl text-sm md:text-base">
+                Setelah daftar, jangan diam saja. Buat kartu <span class="font-semibold">&quot;I&apos;m Ready&quot;</span>, post di story,
+                mention temanmu, dan ajak mereka lari bareng kamu.
+            </p>
+            <p class="text-xs text-slate-500 italic max-w-xl">
+                “Every start line is better with friends. One post bisa jadi alasan mereka ikut lari juga.”
+            </p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-10 items-center justify-center">
+            <div class="w-full max-w-[420px]">
+                <div class="bg-slate-900 p-3 rounded-2xl shadow-[0_24px_80px_rgba(15,118,220,0.45)] border border-slate-800/80">
+                    <canvas id="ugcCanvas" width="1080" height="1350" class="w-full h-auto rounded-lg shadow-lg"
+                        data-event-name="{{ $event->name }}"
+                        data-event-date="{{ $event->start_at->format('d F Y') }}"
+                        data-event-location="{{ $event->location_name }}"
+                        data-event-logo="{{ $event->logo_image ? asset('storage/'.$event->logo_image) : '' }}">
+                    </canvas>
+                </div>
+            </div>
+
+            <div class="w-full max-w-md space-y-6">
+                <div id="ugcDropzone" class="border-2 border-dashed border-slate-800/80 bg-slate-900/70 p-8 rounded-3xl text-center cursor-pointer hover:border-[#1e40af]/70 hover:bg-slate-900 transition-all group">
+                    <input id="ugcFileInput" type="file" accept="image/*" class="hidden">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 bg-[#1e40af]/15 text-[#60a5fa] mx-auto rounded-full flex items-center justify-center group-hover:bg-[#1e40af]/25 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round"/></svg>
+                        </div>
+                        <div class="space-y-1.5">
+                            <p class="text-white font-semibold text-sm">Tarik & lepas foto terbaikmu</p>
+                            <p class="text-slate-400 text-xs max-w-xs mx-auto">
+                                Disarankan foto portrait dengan wajah terlihat jelas. File tidak pernah dikirim ke server.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="ugcDownloadBtn" disabled class="w-full py-4 bg-[#1e40af] hover:bg-[#1d4ed8] disabled:opacity-25 disabled:cursor-not-allowed text-slate-50 font-bold uppercase rounded-2xl transition-all shadow-lg shadow-[#1e40af]/30 text-sm tracking-wide">
+                    Unduh &amp; Bagikan Kartu &quot;I&apos;m Ready&quot;
+                </button>
+
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    Setelah diunduh, post di Instagram Story atau WhatsApp Status dengan caption
+                    <span class="text-[#60a5fa] font-semibold">&quot;I&apos;m registered, are you?&quot;</span> dan mention teman yang ingin kamu ajak.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
 
     <!-- Sponsor Carousel -->
     @include('events.partials.sponsor-carousel', [
@@ -3825,6 +3889,188 @@
                 return passed === testCases.length;
             };
         })();
+(function() {
+    const canvas = document.getElementById('ugcCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const fileInput = document.getElementById('ugcFileInput');
+    const downloadBtn = document.getElementById('ugcDownloadBtn');
+    let userImg = null;
+    let logoImg = null;
+
+    const logoUrl = canvas.dataset.eventLogo;
+    if (logoUrl) {
+        logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        logoImg.src = logoUrl;
+        logoImg.onload = () => drawCard();
+    }
+
+    function drawCard() {
+        const w = canvas.width;
+        const h = canvas.height;
+
+        // 1. Background (Dark Blue with Radial Glow)
+        const bgGrad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, h);
+        bgGrad.addColorStop(0, '#0f172a');
+        bgGrad.addColorStop(1, '#020617');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // 2. Racing Lines Decoration
+        ctx.strokeStyle = 'rgba(14, 165, 233, 0.15)';
+        ctx.lineWidth = 2;
+        for(let i=0; i<w; i+=40) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i-200, h); ctx.stroke();
+        }
+
+        // 3. Event Logo above frame (if available)
+        if (logoImg && logoImg.complete) {
+            const logoW = 235;
+            const logoH = 125;
+            const lx = w / 2 - logoW / 2;
+            const ly = 40;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.45)';
+            ctx.shadowBlur = 24;
+            ctx.drawImage(logoImg, lx, ly, logoW, logoH);
+            ctx.restore();
+        }
+
+        // 4. Draw Gold Frames (Tumpukan Polaroid)
+        const drawFrame = (angle, offset) => {
+            ctx.save();
+            ctx.translate(w/2 + offset, h/2 - 100);
+            ctx.rotate(angle);
+            
+            // Gold Gradient for Frame
+            const gold = ctx.createLinearGradient(-400, -400, 400, 400);
+            gold.addColorStop(0, '#B8860B'); gold.addColorStop(0.5, '#FFD700'); gold.addColorStop(1, '#8B6508');
+            
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = gold;
+            ctx.fillRect(-410, -410, 820, 920); // Frame size
+            ctx.restore();
+        };
+
+        drawFrame(0.05, 20); // Frame belakang
+        drawFrame(-0.02, 0); // Frame utama
+
+        // 5. Clip & Draw User Image in Front Frame
+        ctx.save();
+        ctx.translate(w/2, h/2 - 100);
+        ctx.rotate(-0.02);
+        
+        const photoW = 760;
+        const photoH = 760;
+        const px = -photoW/2;
+        const py = -380;
+
+        ctx.beginPath();
+        ctx.rect(px, py, photoW, photoH);
+        ctx.clip();
+
+        if (userImg) {
+            const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
+            const dw = userImg.width * scale;
+            const dh = userImg.height * scale;
+            ctx.drawImage(userImg, px + (photoW - dw)/2, py + (photoH - dh)/2, dw, dh);
+        } else {
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(px, py, photoW, photoH);
+        }
+        ctx.restore();
+
+        // 6. Typography "I'M READY" (The Highlight)
+        ctx.save();
+        ctx.translate(w/2, h/2 + 280);
+        ctx.rotate(-0.05);
+        ctx.font = 'italic 900 120px sans-serif';
+        ctx.textAlign = 'center';
+        
+        // Shadow untuk teks
+        ctx.shadowColor = 'rgba(14, 165, 233, 0.8)';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 8;
+        ctx.shadowOffsetY = 8;
+        
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = '#0ea5e9';
+        ctx.lineWidth = 8;
+        ctx.strokeText("I'M READY", 0, 0);
+        ctx.fillText("I'M READY", 0, 0);
+        ctx.restore();
+
+        // 7. Bottom Info Panel (Cyan Gradient)
+        const panelY = h - 280;
+        const pGrad = ctx.createLinearGradient(0, panelY, w, panelY);
+        pGrad.addColorStop(0, '#0ea5e9'); pGrad.addColorStop(1, '#38bdf8');
+        
+        ctx.fillStyle = pGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, panelY); ctx.lineTo(w, panelY + 40);
+        ctx.lineTo(w, h - 80); ctx.lineTo(0, h - 120);
+        ctx.closePath();
+        ctx.fill();
+
+        // Event Text rotated following panel angle
+        const eventName = canvas.dataset.eventName || '';
+        const eventMetaRaw = `${canvas.dataset.eventDate || ''} | ${canvas.dataset.eventLocation || ''}`;
+        const eventMeta = eventMetaRaw.replace(/^ \| /, '').replace(/ \| $/, '');
+        const tilt = Math.atan2(40, w);
+
+        ctx.save();
+        ctx.translate(120, h-320 + 120);
+        ctx.rotate(tilt);
+        ctx.fillStyle = '#020617';
+        ctx.textAlign = 'left';
+        ctx.font = '800 40px "Inter", system-ui';
+        ctx.shadowColor = 'rgba(15,23,42,0.6)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 4;
+        if (eventName) {
+            ctx.fillText(eventName, 0, 0);
+        }
+        if (eventMeta) {
+            ctx.font = '500 26px "Inter", system-ui';
+            ctx.fillText(eventMeta, 0, 55);
+        }
+        ctx.restore();
+
+        // Footer Branding
+        ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+        ctx.textAlign = 'center';
+        ctx.font = '900 24px sans-serif';
+        ctx.fillText("POWERED BY RUANGLARI.COM", w / 2, h - 40);
+    }
+
+    // Event Handler (Sama seperti sebelumnya)
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            const img = new Image();
+            img.onload = () => { userImg = img; drawCard(); downloadBtn.disabled = false; };
+            img.src = f.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    document.getElementById('ugcDropzone').onclick = () => fileInput.click();
+    downloadBtn.onclick = () => {
+        const link = document.createElement('a');
+        link.download = 'ReadyCard-PaoloRun.png';
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+    };
+
+    drawCard();
+})();
+        
     </script>
     
     <script>
@@ -3880,21 +4126,22 @@
                 </button>
                 
                 <div class="text-center">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-                        <i class="fas fa-fire text-3xl text-red-500"></i>
+                    <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-ticket-alt text-2xl text-yellow-500"></i>
                     </div>
                     
-                    <h3 class="text-2xl font-black text-slate-900 mb-2">TIKET SEMAKIN MENIPIS!</h3>
-                    <p class="text-slate-600 mb-6">
-                        Kuota peserta hampir penuh. Amankan slot kamu sekarang juga sebelum kehabisan!
+                    <h3 class="text-2xl font-black text-slate-900 mb-2">MASTER KUPON &amp; PROMO EVENT</h3>
+                    <p class="text-slate-600 mb-6 text-sm">
+                        Event ini bisa punya beberapa kupon berbeda. Cek kembali komunikasi resmi dari EO
+                        atau materi promosi untuk kode yang paling sesuai denganmu.
                     </p>
                     
                     <div class="space-y-3">
                         <a href="#register" onclick="closePromoModal()" class="block w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/20 transition-all transform hover:-translate-y-1">
-                            DAFTAR SEKARANG 🚀
+                            KEMBALI KE FORM PENDAFTARAN
                         </a>
                         <button onclick="closePromoModal()" class="block w-full py-3 text-slate-400 font-semibold hover:text-slate-600 text-sm">
-                            Nanti Saja
+                            Mengerti
                         </button>
                     </div>
                 </div>
@@ -3925,6 +4172,21 @@
                 }, 2500);
             }
         });
+
+        function openPromoModal() {
+            const modal = document.getElementById('promoModal');
+            const backdrop = document.getElementById('promoBackdrop');
+            const content = document.getElementById('promoContent');
+            if (!modal || !backdrop || !content) return;
+
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            });
+            sessionStorage.setItem('promoModalShown', 'true');
+        }
 
         function closePromoModal() {
             const modal = document.getElementById('promoModal');
