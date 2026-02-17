@@ -638,7 +638,18 @@ createApp({
             if (window.ClassicEditor && document.querySelector('#program_description_editor')) {
                 ClassicEditor
                     .create(document.querySelector('#program_description_editor'), {
-                        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+                        toolbar: [
+                            'heading',
+                            '|',
+                            'bold', 'italic', 'link',
+                            'bulletedList', 'numberedList',
+                            'blockQuote',
+                            '|',
+                            'insertTable',
+                            'imageUpload', 'imageInsert',
+                            '|',
+                            'undo', 'redo'
+                        ]
                     })
                     .then(editor => {
                         editor.setData(form.description || '');
