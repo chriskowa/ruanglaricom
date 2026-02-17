@@ -43,7 +43,10 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Description</label>
-                            <textarea v-model="form.description" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon outline-none" placeholder="Short description..."></textarea>
+                            <div class="w-full bg-slate-900 border border-slate-700 rounded-xl text-white">
+                                <div id="program_description_editor" class="min-h-[120px] px-4 py-3 text-sm"></div>
+                            </div>
+                            <textarea v-model="form.description" id="program_description" class="hidden"></textarea>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Feature Image (Thumbnail)</label>
@@ -564,6 +567,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
 @include('layouts.components.advanced-builder-utils')
 <script>
 const { createApp, ref, reactive, computed, onMounted } = Vue;
@@ -646,6 +650,22 @@ createApp({
             is_published: !!programData.is_published,
             is_challenge: !!programData.is_challenge,
             sessions: programSessions
+        });
+
+        onMounted(() => {
+            if (window.ClassicEditor && document.querySelector('#program_description_editor')) {
+                ClassicEditor
+                    .create(document.querySelector('#program_description_editor'), {
+                        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+                    })
+                    .then(editor => {
+                        editor.setData(form.description || '');
+                        editor.model.document.on('change:data', () => {
+                            form.description = editor.getData();
+                        });
+                    })
+                    .catch(error => console.error(error));
+            }
         });
 
         // Calculate absolute day index: (week-1)*7 + day

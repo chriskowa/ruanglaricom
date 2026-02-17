@@ -120,7 +120,7 @@
                 <div class="glass-panel rounded-2xl p-8" data-aos="fade-up">
                     <h3 class="text-xl font-bold text-white mb-4 border-b border-slate-800 pb-4">About the Program</h3>
                     <div class="prose prose-invert prose-sm max-w-none text-slate-300">
-                        {!! nl2br(e($program->description)) !!}
+                        {!! $program->description !!}
                     </div>
                 </div>
 
