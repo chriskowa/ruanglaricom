@@ -96,12 +96,9 @@
                 <!-- Notifications -->
                 @auth
                 <div class="relative" id="notification-container">
-                    <button id="nav-bell-btn" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Notifications" type="button">
+                    <button id="nav-bell-btn" class="p-1 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors relative" title="Notifications">
                         @include('layouts.components.svg-bell')
-                        <span
-                            id="notification-badge"
-                            class="absolute -top-1 -right-1 min-w-[1.1rem] h-4 px-1 bg-red-500 text-[10px] font-bold text-white rounded-full border border-dark flex items-center justify-center hidden"
-                        ></span>
+                        <span id="notification-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-dark hidden"></span>
                     </button>
                     <div id="nav-bell-dropdown" class="absolute right-0 -mr-16 md:mr-0 mt-4 w-80 sm:w-96 bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl shadow-2xl hidden overflow-hidden transform transition-all origin-top-right z-50">
                         <div class="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -321,11 +318,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Notifications Logic
     const notifBadge = document.getElementById('notification-badge');
     const mobileNotifBadge = document.getElementById('mobile-notif-count');
     const notifList = document.getElementById('notification-list');
-    
+
+    function getNotificationUrl(notif) {
+        if (notif.reference_type === 'Post' && notif.reference_id) {
+            return @json(route('feed.index')) + '#post-' + notif.reference_id;
+        }
+        if (notif.reference_type === 'EventSubmission' && notif.reference_id && userRole === 'admin') {
+            return @json(route('admin.event-submissions.show', ':id')).replace(':id', notif.reference_id);
+        }
+        return @json(route('notifications.index'));
+    }
+
     function fetchNotifications() {
         if (!isAuthenticated || !supportsCartAndNotif) return;
 
@@ -353,18 +359,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 mobileNotifBadge?.classList.add('hidden');
             }
             
-            if (notifList) {
-                if (!data.notifications || data.notifications.length === 0) {
-                    notifList.innerHTML = `
+                if (notifList) {
+                    if (!data.notifications || data.notifications.length === 0) {
+                        notifList.innerHTML = `
                         <div class="p-8 text-center">
                             <div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <svg class="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                             </div>
                             <p class="text-slate-400 text-sm">No new notifications</p>
                         </div>`;
-                } else {
-                    notifList.innerHTML = data.notifications.map(n => `
-                        <a href="#" data-id="${n.id}" class="block p-4 border-b border-slate-800 hover:bg-slate-800/50 transition-colors group">
+                    } else {
+                        notifList.innerHTML = data.notifications
+                            .map(n => {
+                                const url = getNotificationUrl(n);
+                                return `
+                        <a href="${url}" data-id="${n.id}" class="block p-4 border-b border-slate-800 hover:bg-slate-800/50 transition-colors group">
                             <div class="flex gap-3">
                                 <div class="mt-1 w-2 h-2 rounded-full bg-neon shrink-0"></div>
                                 <div>
@@ -373,8 +382,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <p class="text-[10px] text-slate-500 mt-2">${dayjs(n.created_at).fromNow()}</p>
                                 </div>
                             </div>
-                        </a>
-                    `).join('');
+                        </a>`;
+                            })
+                            .join('');
+                    }
                 }
             }
         })
@@ -418,7 +429,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Accept': 'application/json'
                     }
                 }).then(() => {
-                    window.location.href = '{{ route("notifications.index") }}'; // Redirect to index as fallback
+                    const target = link.getAttribute('href') || '{{ route("notifications.index") }}';
+                    window.location.href = target;
                 });
             }
         });

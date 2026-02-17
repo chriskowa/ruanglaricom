@@ -285,6 +285,38 @@
             </form>
         </div>
 
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-6 pb-2">
+            <div class="text-xs text-slate-400">
+                Showing
+                <span class="font-semibold text-slate-200">
+                    <span id="participantsRangeFrom">{{ $participants->firstItem() ?? 0 }}</span>-<span id="participantsRangeTo">{{ $participants->lastItem() ?? 0 }}</span>
+                </span>
+                of
+                <span class="font-semibold text-slate-200" id="participantsTotal">
+                    {{ $participants->total() }}
+                </span>
+                participants
+            </div>
+            <form method="GET" action="{{ route('eo.events.participants', $event) }}" class="flex items-center gap-2 text-xs">
+                <span class="text-slate-400">Show</span>
+                <select name="per_page" class="bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-2 py-1 focus:border-yellow-400 focus:outline-none" onchange="this.form.submit()">
+                    @php
+                        $perPage = (int) request('per_page', $participants->perPage());
+                    @endphp
+                    @foreach([10, 20, 50, 100, 200] as $size)
+                        <option value="{{ $size }}" {{ $perPage === $size ? 'selected' : '' }}>{{ $size }}</option>
+                    @endforeach
+                </select>
+                <span class="text-slate-400">per page</span>
+                <input type="hidden" name="payment_status" value="{{ request('payment_status') }}">
+                <input type="hidden" name="is_picked_up" value="{{ request('is_picked_up') }}">
+                <input type="hidden" name="gender" value="{{ request('gender') }}">
+                <input type="hidden" name="category_id" value="{{ request('category_id') }}">
+                <input type="hidden" name="age_group" value="{{ request('age_group') }}">
+                <input type="hidden" name="search" value="{{ request('search') }}">
+            </form>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-slate-400">
                 <thead class="bg-slate-900/50 text-xs uppercase font-bold text-slate-300">
@@ -462,7 +494,40 @@
         
         @if($participants->hasPages())
         <div id="paginationContainer" class="px-6 py-4 border-t border-slate-800 bg-slate-900/30">
-            {{ $participants->links() }}
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div class="text-xs text-slate-400">
+                    Page
+                    <span class="font-semibold text-slate-200">{{ $participants->currentPage() }}</span>
+                    of
+                    <span class="font-semibold text-slate-200">{{ $participants->lastPage() }}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <a href="{{ $participants->url(1) }}" data-role="first"
+                       class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->onFirstPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
+                        « First
+                    </a>
+                    <a href="{{ $participants->previousPageUrl() ?: $participants->url(1) }}" data-role="prev"
+                       class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->onFirstPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
+                        ‹ Prev
+                    </a>
+
+                    @foreach ($participants->getUrlRange(max(1, $participants->currentPage() - 2), min($participants->lastPage(), $participants->currentPage() + 2)) as $page => $url)
+                        <a href="{{ $url }}" data-page="{{ $page }}"
+                           class="px-3 py-1 text-xs rounded-lg border {{ $page == $participants->currentPage() ? 'border-yellow-500 bg-yellow-500 text-black font-bold' : 'border-slate-700 text-slate-300 hover:bg-slate-800' }}">
+                            {{ $page }}
+                        </a>
+                    @endforeach
+
+                    <a href="{{ $participants->nextPageUrl() ?: $participants->url($participants->lastPage()) }}" data-role="next"
+                       class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->currentPage() == $participants->lastPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
+                        Next ›
+                    </a>
+                    <a href="{{ $participants->url($participants->lastPage()) }}" data-role="last"
+                       class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->currentPage() == $participants->lastPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
+                        Last »
+                    </a>
+                </div>
+            </div>
         </div>
         @endif
         
@@ -993,26 +1058,108 @@
             }
         }
 
-        function fetchParticipants() {
-            var q = qs(serializeForm());
+        var rangeFrom = document.getElementById('participantsRangeFrom');
+        var rangeTo = document.getElementById('participantsRangeTo');
+        var rangeTotal = document.getElementById('participantsTotal');
+        var perPageSelect = document.querySelector('select[name="per_page"]');
+
+        function buildQuery(page) {
+            var data = serializeForm();
+            if (perPageSelect && perPageSelect.value) {
+                data.per_page = perPageSelect.value;
+            }
+            if (page) {
+                data.page = page;
+            }
+            return qs(data);
+        }
+
+        function updateRange(meta) {
+            if (!meta || !rangeFrom || !rangeTo || !rangeTotal) return;
+            var total = Number(meta.total || 0);
+            var perPage = Number(meta.per_page || 0);
+            var current = Number(meta.current_page || 1);
+            if (!total || !perPage) {
+                rangeFrom.textContent = '0';
+                rangeTo.textContent = '0';
+                rangeTotal.textContent = '0';
+                return;
+            }
+            var from = (current - 1) * perPage + 1;
+            var to = Math.min(total, current * perPage);
+            rangeFrom.textContent = String(from);
+            rangeTo.textContent = String(to);
+            rangeTotal.textContent = String(total);
+        }
+
+        function setDisabled(link, disabled) {
+            if (!link) return;
+            if (disabled) {
+                link.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+            } else {
+                link.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+            }
+        }
+
+        function updatePaginationControls(meta) {
+            if (!meta || !pagination) return;
+            var current = Number(meta.current_page || 1);
+            var last = Number(meta.last_page || 1);
+
+            var firstLink = pagination.querySelector('a[data-role="first"]');
+            var prevLink = pagination.querySelector('a[data-role="prev"]');
+            var nextLink = pagination.querySelector('a[data-role="next"]');
+            var lastLink = pagination.querySelector('a[data-role="last"]');
+
+            setDisabled(firstLink, current <= 1);
+            setDisabled(prevLink, current <= 1);
+            setDisabled(nextLink, current >= last);
+            setDisabled(lastLink, current >= last);
+
+            var pageLinks = pagination.querySelectorAll('a[data-page]');
+            pageLinks.forEach(function(a){
+                var p = Number(a.getAttribute('data-page') || '0');
+                if (p === current) {
+                    a.classList.add('border-yellow-500', 'bg-yellow-500', 'text-black', 'font-bold');
+                    a.classList.remove('border-slate-700', 'text-slate-300');
+                } else {
+                    a.classList.remove('border-yellow-500', 'bg-yellow-500', 'text-black', 'font-bold');
+                    a.classList.add('border-slate-700', 'text-slate-300');
+                }
+            });
+        }
+
+        function handleResponse(res) {
+            if (!res || !res.success) {
+                alert('Gagal memuat data');
+                return;
+            }
+            tbody.innerHTML = renderRows(res.data || []);
+            document.querySelectorAll('button[data-dropdown]').forEach(function(btn){
+                setStatusButtonStyle(btn, btn.dataset.status || 'pending');
+            });
+            updateStats(res.stats || {});
+            updateExportLink();
+            if (res.meta) {
+                updateRange(res.meta);
+                updatePaginationControls(res.meta);
+            }
+        }
+
+        function fetchParticipants(page) {
+            var q = buildQuery(page);
             var url = baseUrl + (q ? ('?' + q) : '');
             fetch(url, { headers: { 'Accept': 'application/json' } })
             .then(function(r){ return r.json(); })
             .then(function(res){
-                if (!res || !res.success) { alert('Gagal memuat data'); return; }
-                tbody.innerHTML = renderRows(res.data || []);
-                document.querySelectorAll('button[data-dropdown]').forEach(function(btn){
-                    setStatusButtonStyle(btn, btn.dataset.status || 'pending');
-                });
-                updateStats(res.stats || {});
-                updateExportLink();
+                handleResponse(res);
             })
             .catch(function(){ alert('Terjadi kesalahan'); });
         }
 
-        form.addEventListener('submit', function(e){ e.preventDefault(); fetchParticipants(); });
+        form.addEventListener('submit', function(e){ e.preventDefault(); fetchParticipants(1); });
         form.querySelectorAll('select').forEach(function(sel){
-            sel.addEventListener('change', fetchParticipants);
+            sel.addEventListener('change', function(){ fetchParticipants(1); });
         });
         var searchInput = form.querySelector('input[name="search"]');
         if (searchInput) searchInput.addEventListener('input', debounce(fetchParticipants, 400));
@@ -1022,19 +1169,16 @@
                 var a = e.target.closest('a');
                 if (!a) return;
                 e.preventDefault();
-                var url = a.getAttribute('href');
-                if (!url) return;
-                fetch(url, { headers: { 'Accept': 'application/json' } })
-                .then(function(r){ return r.json(); })
-                .then(function(res){
-                    if (!res || !res.success) return;
-                    tbody.innerHTML = renderRows(res.data || []);
-                    document.querySelectorAll('button[data-dropdown]').forEach(function(btn){
-                        setStatusButtonStyle(btn, btn.dataset.status || 'pending');
-                    });
-                    updateStats(res.stats || {});
-                    updateExportLink();
-                });
+                var href = a.getAttribute('href');
+                if (!href) return;
+                try {
+                    var urlObj = new URL(href, window.location.origin);
+                    var page = parseInt(urlObj.searchParams.get('page') || '1', 10);
+                    if (!page || page < 1) page = 1;
+                    fetchParticipants(page);
+                } catch (err) {
+                    fetchParticipants();
+                }
             });
         }
 

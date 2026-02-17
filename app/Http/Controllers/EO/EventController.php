@@ -818,7 +818,6 @@ class EventController extends Controller
             }
         }
 
-        // Search filter
         if (request()->has('search') && trim(request()->search) !== '') {
             $search = trim(request()->search);
             $query->where(function ($qq) use ($search) {
@@ -833,7 +832,15 @@ class EventController extends Controller
             });
         }
 
-        $participants = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        $perPage = (int) request()->query('per_page', 20);
+        if ($perPage < 5) {
+            $perPage = 5;
+        }
+        if ($perPage > 200) {
+            $perPage = 200;
+        }
+
+        $participants = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
         $financials = [
             'gross_revenue' => \App\Models\Transaction::where('event_id', $event->id)
