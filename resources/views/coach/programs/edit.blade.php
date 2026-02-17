@@ -43,7 +43,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Description</label>
-                            <div class="w-full bg-slate-900 border border-slate-700 rounded-xl text-white">
+                            <div class="w-full bg-white rounded-xl overflow-hidden text-slate-900">
                                 <div id="program_description_editor" class="min-h-[120px] px-4 py-3 text-sm"></div>
                             </div>
                             <textarea v-model="form.description" id="program_description" class="hidden"></textarea>
