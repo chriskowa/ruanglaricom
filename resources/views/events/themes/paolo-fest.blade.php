@@ -1981,7 +1981,8 @@
                         data-event-name="{{ $event->name }}"
                         data-event-date="{{ $event->start_at->format('d F Y') }}"
                         data-event-location="{{ $event->location_name }}"
-                        data-event-logo="{{ $event->logo_image ? asset('storage/'.$event->logo_image) : '' }}">
+                        data-event-logo="{{ $event->logo_image ? asset('storage/'.$event->logo_image) : '' }}"
+                        data-template-url="{{ asset('images/paolo/ugc-template.png') }}">
                     </canvas>
                 </div>
             </div>
@@ -4074,8 +4075,10 @@
     const downloadBtn = document.getElementById('ugcDownloadBtn');
     let userImg = null;
     let logoImg = null;
+    let templateImg = null;
 
     const logoUrl = canvas.dataset.eventLogo;
+    const templateUrl = canvas.dataset.templateUrl;
     if (logoUrl) {
         logoImg = new Image();
         logoImg.crossOrigin = 'anonymous';
@@ -4083,22 +4086,33 @@
         logoImg.onload = () => drawCard();
     }
 
+    if (templateUrl) {
+        templateImg = new Image();
+        templateImg.crossOrigin = 'anonymous';
+        templateImg.src = templateUrl;
+        templateImg.onload = () => drawCard();
+    }
+
     function drawCard() {
         const w = canvas.width;
         const h = canvas.height;
 
-        // 1. Background (Dark Blue with Radial Glow)
-        const bgGrad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, h);
-        bgGrad.addColorStop(0, '#0f172a');
-        bgGrad.addColorStop(1, '#020617');
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, w, h);
+        ctx.clearRect(0, 0, w, h);
 
-        // 2. Racing Lines Decoration
-        ctx.strokeStyle = 'rgba(14, 165, 233, 0.15)';
-        ctx.lineWidth = 2;
-        for(let i=0; i<w; i+=40) {
-            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i-200, h); ctx.stroke();
+        if (templateImg && templateImg.complete) {
+            ctx.drawImage(templateImg, 0, 0, w, h);
+        } else {
+            const bgGrad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, h);
+            bgGrad.addColorStop(0, '#0f172a');
+            bgGrad.addColorStop(1, '#020617');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.strokeStyle = 'rgba(14, 165, 233, 0.15)';
+            ctx.lineWidth = 2;
+            for(let i=0; i<w; i+=40) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i-200, h); ctx.stroke();
+            }
         }
 
         // 3. Event Logo above frame (if available)
