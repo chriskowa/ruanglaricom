@@ -355,37 +355,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     mobileNotifBadge.innerText = data.count > 9 ? '9+' : data.count;
                 }
             } else {
-                notifBadge?.classList.add('hidden');
-                mobileNotifBadge?.classList.add('hidden');
+                if (notifBadge) notifBadge.classList.add('hidden');
+                if (mobileNotifBadge) mobileNotifBadge.classList.add('hidden');
             }
-            
-                if (notifList) {
-                    if (!data.notifications || data.notifications.length === 0) {
-                        notifList.innerHTML = `
-                        <div class="p-8 text-center">
-                            <div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <svg class="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                            </div>
-                            <p class="text-slate-400 text-sm">No new notifications</p>
-                        </div>`;
-                    } else {
-                        notifList.innerHTML = data.notifications
-                            .map(n => {
-                                const url = getNotificationUrl(n);
-                                return `
-                        <a href="${url}" data-id="${n.id}" class="block p-4 border-b border-slate-800 hover:bg-slate-800/50 transition-colors group">
-                            <div class="flex gap-3">
-                                <div class="mt-1 w-2 h-2 rounded-full bg-neon shrink-0"></div>
-                                <div>
-                                    <p class="text-sm text-slate-200 group-hover:text-white transition-colors">${n.title || 'Notification'}</p>
-                                    <p class="text-xs text-slate-400 mt-1 line-clamp-2">${n.message}</p>
-                                    <p class="text-[10px] text-slate-500 mt-2">${dayjs(n.created_at).fromNow()}</p>
-                                </div>
-                            </div>
-                        </a>`;
-                            })
-                            .join('');
-                    }
+
+            if (notifList) {
+                if (!data.notifications || data.notifications.length === 0) {
+                    notifList.innerHTML =
+                        '<div class="p-8 text-center">' +
+                            '<div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">' +
+                                '<svg class="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>' +
+                                '</svg>' +
+                            '</div>' +
+                            '<p class="text-slate-400 text-sm">No new notifications</p>' +
+                        '</div>';
+                } else {
+                    var html = '';
+                    data.notifications.forEach(function(n) {
+                        var url = getNotificationUrl(n);
+                        var title = n.title || 'Notification';
+                        var message = n.message || '';
+                        var timeText = dayjs(n.created_at).fromNow();
+                        html += '<a href="' + url + '" data-id="' + n.id + '" class="block p-4 border-b border-slate-800 hover:bg-slate-800/50 transition-colors group">';
+                        html +=   '<div class="flex gap-3">';
+                        html +=     '<div class="mt-1 w-2 h-2 rounded-full bg-neon shrink-0"></div>';
+                        html +=     '<div>';
+                        html +=       '<p class="text-sm text-slate-200 group-hover:text-white transition-colors">' + title + '</p>';
+                        html +=       '<p class="text-xs text-slate-400 mt-1 line-clamp-2">' + message + '</p>';
+                        html +=       '<p class="text-[10px] text-slate-500 mt-2">' + timeText + '</p>';
+                        html +=     '</div>';
+                        html +=   '</div>';
+                        html += '</a>';
+                    });
+                    notifList.innerHTML = html;
                 }
             }
         })
@@ -396,16 +399,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (notifList) {
         if (isAuthenticated && supportsCartAndNotif) {
             fetchNotifications();
-            setInterval(fetchNotifications, 60000); // Check every minute
+            setInterval(fetchNotifications, 60000);
         } else {
-            notifBadge?.classList.add('hidden');
-            notifList.innerHTML = `
-                <div class="p-8 text-center">
-                    <div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <svg class="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    </div>
-                    <p class="text-slate-400 text-sm">Login untuk melihat notifikasi</p>
-                </div>`;
+            if (notifBadge) notifBadge.classList.add('hidden');
+            notifList.innerHTML =
+                '<div class="p-8 text-center">' +
+                    '<div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">' +
+                        '<svg class="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>' +
+                        '</svg>' +
+                    '</div>' +
+                    '<p class="text-slate-400 text-sm">Login untuk melihat notifikasi</p>' +
+                '</div>';
         }
     }
 
