@@ -4116,7 +4116,7 @@
         }
 
         // 3. Event Logo above frame (if available)
-        if (logoImg && logoImg.complete) {
+        /*if (logoImg && logoImg.complete) {
             const logoW = 235;
             const logoH = 125;
             const lx = w / 2 - logoW / 2;
@@ -4126,12 +4126,12 @@
             ctx.shadowBlur = 24;
             ctx.drawImage(logoImg, lx, ly, logoW, logoH);
             ctx.restore();
-        }
+        }*/
 
         // 4. Draw Gold Frames (Tumpukan Polaroid)
         const drawFrame = (angle, offset) => {
             ctx.save();
-            ctx.translate(w/2 + offset, h/2 - 100);
+            ctx.translate(w/2 + offset, h/2 - 40);
             ctx.rotate(angle);
             
             // Gold Gradient for Frame
@@ -4150,7 +4150,7 @@
 
         // 5. Clip & Draw User Image in Front Frame
         ctx.save();
-        ctx.translate(w/2, h/2 - 100);
+        ctx.translate(w/2, h/2 - 60);
         ctx.rotate(-0.02);
         
         const photoW = 760;
@@ -4175,7 +4175,7 @@
 
         // 6. Typography "I'M READY" (The Highlight)
         ctx.save();
-        ctx.translate(w/2, h/2 + 280);
+        ctx.translate(w/2, h/2 + 350);
         ctx.rotate(-0.05);
         ctx.font = 'italic 900 120px sans-serif';
         ctx.textAlign = 'center';
@@ -4188,13 +4188,13 @@
         
         ctx.fillStyle = 'white';
         ctx.strokeStyle = '#0ea5e9';
-        ctx.lineWidth = 8;
+        ctx.lineWidth = 6;
         ctx.strokeText("I'M READY", 0, 0);
         ctx.fillText("I'M READY", 0, 0);
         ctx.restore();
 
         // 7. Bottom Info Panel (Cyan Gradient)
-        const panelY = h - 280;
+        /*const panelY = h - 280;
         const pGrad = ctx.createLinearGradient(0, panelY, w, panelY);
         pGrad.addColorStop(0, '#0ea5e9'); pGrad.addColorStop(1, '#38bdf8');
         
@@ -4231,10 +4231,10 @@
         ctx.restore();
 
         // Footer Branding
-        ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+       /* ctx.fillStyle = 'rgba(255, 255, 255, 1)';
         ctx.textAlign = 'center';
         ctx.font = '900 24px sans-serif';
-        ctx.fillText("RUANGLARI.COM", w / 2, h - 40);
+        ctx.fillText("RUANGLARI.COM", w / 2, h - 40);*/
     }
 
     // Event Handler (Sama seperti sebelumnya)
