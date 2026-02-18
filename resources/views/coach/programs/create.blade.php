@@ -268,7 +268,7 @@
 
         <div v-if="builderVisible" class="fixed inset-0 z-50 overflow-y-auto">
             <div class="fixed inset-0 bg-black/80" @click="closeBuilder"></div>
-            <div class="relative z-10 max-w-2xl mx-auto my-10 glass-panel rounded-2xl p-6">
+            <div class="relative z-10 max-w-2xl mx-auto my-10 rounded-2xl p-6 bg-slate-950 border border-slate-800 shadow-2xl shadow-black/70">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-white font-bold text-lg">Advanced Workout Builder</h3>
                     <button class="text-slate-400 hover:text-white" @click="closeBuilder">×</button>
