@@ -1974,6 +1974,11 @@
             </p>
         </div>
 
+        @php
+            $ugcTemplatePath = public_path('images/paolo/ugc-template.png');
+            $ugcTemplateVersion = file_exists($ugcTemplatePath) ? filemtime($ugcTemplatePath) : null;
+        @endphp
+
         <div class="flex flex-col lg:flex-row gap-10 items-center justify-center">
             <div class="w-full max-w-[420px]">
                 <div class="bg-slate-900 p-3 rounded-2xl shadow-[0_24px_80px_rgba(15,118,220,0.45)] border border-slate-800/80">
@@ -1982,7 +1987,7 @@
                         data-event-date="{{ $event->start_at->format('d F Y') }}"
                         data-event-location="{{ $event->location_name }}"
                         data-event-logo="{{ $event->logo_image ? asset('storage/'.$event->logo_image) : '' }}"
-                        data-template-url="{{ asset('images/paolo/ugc-template.png') }}">
+                        data-template-url="{{ asset('images/paolo/ugc-template.png') }}@if($ugcTemplateVersion)?v={{ $ugcTemplateVersion }}@endif">
                     </canvas>
                 </div>
             </div>
