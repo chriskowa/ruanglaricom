@@ -1874,26 +1874,33 @@ class EventController extends Controller
         return $dom->saveHTML();
     }
 
-    public function remindPending(Request $request, Event $event, Transaction $transaction)
+    public function remindPending(Request $request, Event $event, $transaction)
     {
         $this->authorizeEvent($event);
 
-        if ($transaction->event_id !== $event->id) {
-            abort(404);
-        }
+        $tx = Transaction::where('id', $transaction)
+            ->where('event_id', $event->id)
+            ->first();
 
-        if ($transaction->payment_status !== 'pending') {
+        if (! $tx) {
             return response()->json([
                 'success' => false,
-                'message' => 'Transaksi tidak dalam status pending.'
+                'message' => 'Transaksi tidak ditemukan untuk event ini.',
+            ], 404);
+        }
+
+        if ($tx->payment_status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaksi tidak dalam status pending.',
             ], 422);
         }
 
-        SendPendingPaymentReminder::dispatch($transaction);
+        SendPendingPaymentReminder::dispatch($tx);
 
         return response()->json([
             'success' => true,
-            'message' => 'Reminder berhasil dijadwalkan.'
+            'message' => 'Reminder berhasil dijadwalkan.',
         ]);
     }
 
