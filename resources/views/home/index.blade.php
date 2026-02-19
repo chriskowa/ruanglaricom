@@ -450,7 +450,7 @@
                                     <div class="flex items-center gap-4 mb-6">
                                         <div class="relative">
                                             <div class="w-16 h-16 rounded-full p-1 bg-gradient-to-br from-blue-500 to-cyan-400">
-                                                <img src="{{ $leaderboard['fastest']['avatar'] }}" class="w-full h-full rounded-full object-cover border-2 border-slate-900">
+                                                <img src="{{ $leaderboard['fastest']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-2 border-slate-900">
                                             </div>
                                             <div class="absolute -bottom-2 -right-2 bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-slate-900">#1</div>
                                         </div>
@@ -493,7 +493,7 @@
                                     <div class="flex items-center gap-4 mb-8">
                                         <div class="relative">
                                             <div class="w-20 h-20 rounded-full p-1 bg-gradient-to-br from-neon to-lime-500 shadow-lg shadow-neon/20">
-                                                <img src="{{ $leaderboard['distance']['avatar'] }}" class="w-full h-full rounded-full object-cover border-4 border-slate-900">
+                                                <img src="{{ $leaderboard['distance']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-4 border-slate-900">
                                             </div>
                                             <div class="absolute -bottom-2 -right-2 bg-neon text-dark text-xs font-black px-2 py-0.5 rounded-full border-2 border-slate-900">MVP</div>
                                         </div>
@@ -533,7 +533,7 @@
                                     <div class="flex items-center gap-4 mb-6">
                                         <div class="relative">
                                             <div class="w-16 h-16 rounded-full p-1 bg-gradient-to-br from-purple-500 to-pink-500">
-                                                <img src="{{ $leaderboard['elevation']['avatar'] }}" class="w-full h-full rounded-full object-cover border-2 border-slate-900">
+                                                <img src="{{ $leaderboard['elevation']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-2 border-slate-900">
                                             </div>
                                             <div class="absolute -bottom-2 -right-2 bg-purple-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-slate-900">#1</div>
                                         </div>
@@ -601,9 +601,9 @@
                             </div>
                             <div class="h-64 overflow-hidden relative">
                                 @if(isset($topRunner))
-                                    <img src="{{ $topRunner->banner ? asset('storage/' . $topRunner->banner) : ($topRunner->avatar ? asset('storage/' . $topRunner->avatar) : ($topRunner->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg'))) }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                    <img src="{{ $topRunner->banner ? asset('storage/' . $topRunner->banner) : ($topRunner->avatar ? asset('storage/' . $topRunner->avatar) : ($topRunner->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg'))) }}" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
                                 @else
-                                    <img src="https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                    <img src="https://images.unsplash.com/photo-1596727145-0043c7576566?auto=format&fit=crop&q=80&w=600" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
                                 @endif
                                 <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
                                 <div class="absolute bottom-4 left-4">
@@ -647,9 +647,9 @@
                             </div>
                             <div class="h-64 overflow-hidden relative">
                                 @if(isset($topPacer))
-                                    <img src="{{ $topPacer->image_url ?? ($topPacer->user && $topPacer->user->avatar ? asset('storage/' . $topPacer->user->avatar) : asset('images/default-male.svg')) }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                    <img src="{{ $topPacer->image_url ?? ($topPacer->user && $topPacer->user->avatar ? asset('storage/' . $topPacer->user->avatar) : asset('images/default-male.svg')) }}" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
                                 @else
-                                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
                                 @endif
                                 <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
                                 <div class="absolute bottom-4 left-4">
@@ -693,9 +693,9 @@
                             </div>
                             <div class="h-64 overflow-hidden relative">
                                 @if(isset($topCoach))
-                                    <img src="{{ $topCoach->avatar ? asset('storage/' . $topCoach->avatar) : asset('images/default-male.svg') }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                    <img src="{{ $topCoach->avatar ? asset('storage/' . $topCoach->avatar) : asset('images/default-male.svg') }}" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
                                 @else
-                                    <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
+                                    <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
                                 @endif
                                 <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
                                 <div class="absolute bottom-4 left-4">
@@ -731,7 +731,7 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section>!-->
 
         <!-- PRICING SECTION -->
         <section id="pricing" class="py-32 relative hidden">
@@ -868,7 +868,7 @@
                 
                 card.innerHTML=`
                     <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener" class="block overflow-hidden relative aspect-video">
-                        <img src="${img}" alt="${t.replace(/<[^>]*>/g,'')}" class="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110" />
+                        <img src="${img}" alt="${t.replace(/<[^>]*>/g,'')}" loading="lazy" class="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110" />
                         <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
                     </a>
                     <div class="p-6 flex-grow flex flex-col">
