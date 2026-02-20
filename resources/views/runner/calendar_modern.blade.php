@@ -738,21 +738,104 @@
                             </div>
                         </div>
 
-                        <!-- Analysis & Suggestion Section -->
-                        <div v-if="detail.analysis" class="mt-4 p-4 bg-slate-800/40 border border-slate-700 rounded-xl space-y-3">
-                            <div>
-                                <h4 class="text-neon font-bold text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                    Analisis Singkat
-                                </h4>
-                                <p class="text-slate-300 text-sm leading-relaxed">@{{ detail.analysis }}</p>
+                        <div class="grid grid-cols-3 gap-2 mt-3">
+                            <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                                <div class="text-[11px] text-slate-400">Total Time</div>
+                                <div class="text-white font-black text-sm">@{{ detail.strava_metrics.total_time_s ? formatSeconds(detail.strava_metrics.total_time_s) : '-' }}</div>
                             </div>
-                            <div class="pt-3 border-t border-slate-700/50">
-                                <h4 class="text-yellow-500 font-bold text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                    Saran Next Workout
-                                </h4>
-                                <p class="text-white font-medium text-sm">@{{ detail.suggestion }}</p>
+                            <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                                <div class="text-[11px] text-slate-400">Moving</div>
+                                <div class="text-white font-black text-sm">@{{ detail.strava_metrics.moving_time_s ? formatSeconds(detail.strava_metrics.moving_time_s) : '-' }}</div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                                <div class="text-[11px] text-slate-400">Paused</div>
+                                <div class="text-white font-black text-sm">@{{ detail.strava_metrics.pause_time_s ? formatSeconds(detail.strava_metrics.pause_time_s) : '-' }}</div>
+                            </div>
+                        </div>
+
+                        <div v-if="detail.strava_pace_zones" class="mt-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700">
+                            <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Pace Distribution</div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="flex flex-col items-center justify-center rounded-lg bg-slate-900/50 border border-slate-700 p-2">
+                                    <div class="text-[10px] text-slate-400">Easy</div>
+                                    <div class="text-white font-black text-sm">@{{ detail.strava_pace_zones.summary.easy }}%</div>
+                                </div>
+                                <div class="flex flex-col items-center justify-center rounded-lg bg-slate-900/50 border border-slate-700 p-2">
+                                    <div class="text-[10px] text-slate-400">Tempo</div>
+                                    <div class="text-white font-black text-sm">@{{ detail.strava_pace_zones.summary.tempo }}%</div>
+                                </div>
+                                <div class="flex flex-col items-center justify-center rounded-lg bg-slate-900/50 border border-slate-700 p-2">
+                                    <div class="text-[10px] text-slate-400">Speed</div>
+                                    <div class="text-white font-black text-sm">@{{ detail.strava_pace_zones.summary.speed }}%</div>
+                                </div>
+                            </div>
+                            <div class="text-[10px] text-slate-500 mt-2">
+                                E @{{ detail.strava_pace_zones.zones.E }}% • M @{{ detail.strava_pace_zones.zones.M }}% • T @{{ detail.strava_pace_zones.zones.T }}% • I @{{ detail.strava_pace_zones.zones.I }}% • R @{{ detail.strava_pace_zones.zones.R }}%
+                            </div>
+                        </div>
+
+                        <div v-if="detail.strava_hr_zones" class="mt-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700">
+                            <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Heart Rate Distribution</div>
+                            <div class="grid grid-cols-5 gap-2">
+                                <div class="flex flex-col items-center justify-center rounded-lg bg-slate-900/50 border border-slate-700 p-2">
+                                    <div class="text-[10px] text-slate-400">Z1</div>
+                                    <div class="text-white font-black text-xs">@{{ detail.strava_hr_zones.Z1 }}%</div>
+                                </div>
+                                <div class="flex flex-col items-center justify-center rounded-lg bg-slate-900/50 border border-slate-700 p-2">
+                                    <div class="text-[10px] text-slate-400">Z2</div>
+                                    <div class="text-white font-black text-xs">@{{ detail.strava_hr_zones.Z2 }}%</div>
+                                </div>
+                                <div class="flex flex-col items-center justify-center rounded-lg bg-slate-900/50 border border-slate-700 p-2">
+                                    <div class="text-[10px] text-slate-400">Z3</div>
+                                    <div class="text-white font-black text-xs">@{{ detail.strava_hr_zones.Z3 }}%</div>
+                                </div>
+                                <div class="flex flex-col items-center justify-center rounded-lg bg-slate-900/50 border border-slate-700 p-2">
+                                    <div class="text-[10px] text-slate-400">Z4</div>
+                                    <div class="text-white font-black text-xs">@{{ detail.strava_hr_zones.Z4 }}%</div>
+                                </div>
+                                <div class="flex flex-col items-center justify-center rounded-lg bg-slate-900/50 border border-slate-700 p-2">
+                                    <div class="text-[10px] text-slate-400">Z5</div>
+                                    <div class="text-white font-black text-xs">@{{ detail.strava_hr_zones.Z5 }}%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="detail.strava_zone_analysis || detail.analysis" class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                            <div v-if="detail.strava_zone_analysis" class="p-3 rounded-xl bg-slate-800/40 border border-slate-700 space-y-2">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase">Analisis Zona & Efek</div>
+                                <div class="text-slate-300 text-sm">@{{ detail.strava_zone_analysis }}</div>
+                                <div v-if="detail.strava_zone_effect" class="text-[11px] text-neon font-bold uppercase">Efek Latihan</div>
+                                <div v-if="detail.strava_zone_effect" class="text-white text-sm font-medium">@{{ detail.strava_zone_effect }}</div>
+                                <div v-if="detail.strava_zone_suggestion" class="pt-2 border-t border-slate-700/50">
+                                    <div class="text-[11px] text-yellow-500 font-bold uppercase">Saran</div>
+                                    <div class="text-white text-sm font-medium">@{{ detail.strava_zone_suggestion }}</div>
+                                </div>
+                            </div>
+
+                            <div v-if="detail.analysis" class="p-4 bg-slate-800/40 border border-slate-700 rounded-xl space-y-3">
+                                <div>
+                                    <h4 class="text-neon font-bold text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                        Analisis Singkat
+                                    </h4>
+                                    <p class="text-slate-300 text-sm leading-relaxed">@{{ detail.analysis }}</p>
+                                </div>
+                                <div class="pt-3 border-t border-slate-700/50">
+                                    <h4 class="text-yellow-500 font-bold text-xs uppercase tracking-wider mb-1 flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                        Saran Next Workout
+                                    </h4>
+                                    <p class="text-white font-medium text-sm">@{{ detail.suggestion }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="detail.strava_media && detail.strava_media.length" class="mt-3 border-t border-slate-700 pt-3">
+                            <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Media</div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                <a v-for="(m, idx) in detail.strava_media" :key="idx" :href="m" target="_blank" class="block">
+                                    <img :src="m" class="w-full h-28 object-cover rounded-lg border border-slate-700 bg-slate-900" loading="lazy">
+                                </a>
                             </div>
                         </div>
 
@@ -1323,7 +1406,7 @@
 
 
         <!-- Strava Graph Modal -->
-        <div v-if="showStravaGraphModal" class="fixed inset-0 z-[350] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div v-if="showStravaGraphModal" class="fixed inset-0 z-[1200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <div class="w-full max-w-5xl h-[80vh] bg-slate-900 border border-slate-700 rounded-2xl p-6 relative flex flex-col shadow-2xl shadow-neon/10">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-black text-[#FC4C02] italic uppercase flex items-center gap-2">
@@ -2107,6 +2190,161 @@ createApp({
             return `${mins}:${String(secs).padStart(2,'0')}`;
         };
 
+        const paceMinToSec = (minPerKm) => {
+            const v = parseFloat(minPerKm || 0);
+            if (!v || v <= 0) return null;
+            return v * 60;
+        };
+
+        const buildPaceZones = (streams, paces) => {
+            if (!streams || !Array.isArray(streams.velocity_smooth)) return null;
+            const thresholds = {
+                E: paceMinToSec(paces?.E),
+                M: paceMinToSec(paces?.M),
+                T: paceMinToSec(paces?.T),
+                I: paceMinToSec(paces?.I),
+                R: paceMinToSec(paces?.R)
+            };
+            if (!thresholds.E || !thresholds.M || !thresholds.T || !thresholds.I || !thresholds.R) return null;
+            const counts = { E: 0, M: 0, T: 0, I: 0, R: 0 };
+            let total = 0;
+            streams.velocity_smooth.forEach((v) => {
+                const paceSec = toPaceSecPerKm(v);
+                if (!paceSec) return;
+                total += 1;
+                if (paceSec >= thresholds.E) counts.E += 1;
+                else if (paceSec >= thresholds.M) counts.M += 1;
+                else if (paceSec >= thresholds.T) counts.T += 1;
+                else if (paceSec >= thresholds.I) counts.I += 1;
+                else counts.R += 1;
+            });
+            if (!total) return null;
+            const toPct = (v) => Math.round((v / total) * 100);
+            const zones = {
+                E: toPct(counts.E),
+                M: toPct(counts.M),
+                T: toPct(counts.T),
+                I: toPct(counts.I),
+                R: toPct(counts.R)
+            };
+            return {
+                zones,
+                summary: {
+                    easy: Math.round(zones.E + zones.M),
+                    tempo: Math.round(zones.T),
+                    speed: Math.round(zones.I + zones.R)
+                }
+            };
+        };
+
+        const buildHrZones = (streams, maxHrValue) => {
+            if (!streams || !Array.isArray(streams.heartrate)) return null;
+            const maxFromStream = Math.max(...streams.heartrate.filter(v => typeof v === 'number' && !isNaN(v)));
+            const maxHr = parseFloat(maxHrValue || maxFromStream || 0);
+            if (!maxHr || maxHr <= 0) return null;
+            const counts = { Z1: 0, Z2: 0, Z3: 0, Z4: 0, Z5: 0 };
+            let total = 0;
+            streams.heartrate.forEach((v) => {
+                const hr = typeof v === 'number' ? v : parseFloat(v);
+                if (!hr || hr <= 0) return;
+                const ratio = hr / maxHr;
+                total += 1;
+                if (ratio < 0.6) counts.Z1 += 1;
+                else if (ratio < 0.7) counts.Z2 += 1;
+                else if (ratio < 0.8) counts.Z3 += 1;
+                else if (ratio < 0.9) counts.Z4 += 1;
+                else counts.Z5 += 1;
+            });
+            if (!total) return null;
+            const toPct = (v) => Math.round((v / total) * 100);
+            return {
+                Z1: toPct(counts.Z1),
+                Z2: toPct(counts.Z2),
+                Z3: toPct(counts.Z3),
+                Z4: toPct(counts.Z4),
+                Z5: toPct(counts.Z5)
+            };
+        };
+
+        const buildZoneAnalysis = (paceZones, hrZones, metrics) => {
+            if (!paceZones && !hrZones) return null;
+            const analysis = [];
+            const effects = [];
+            const suggestions = [];
+
+            const easy = paceZones?.summary?.easy ?? null;
+            const tempo = paceZones?.summary?.tempo ?? null;
+            const speed = paceZones?.summary?.speed ?? null;
+
+            const z1 = hrZones?.Z1 ?? null;
+            const z2 = hrZones?.Z2 ?? null;
+            const z3 = hrZones?.Z3 ?? null;
+            const z4 = hrZones?.Z4 ?? null;
+            const z5 = hrZones?.Z5 ?? null;
+
+            const total = metrics?.total_time_s || 0;
+            const pause = metrics?.pause_time_s || 0;
+            const pauseRatio = total ? pause / total : 0;
+
+            if (easy !== null && easy >= 70) {
+                analysis.push('Distribusi pace dominan Easy, fokus utama ada di base aerobik dan efisiensi.');
+            } else if (speed !== null && speed >= 30) {
+                analysis.push('Porsi speed cukup besar, sesi ini tergolong intens dan menstimulasi VO2Max/kecepatan.');
+            } else if (tempo !== null && tempo >= 30) {
+                analysis.push('Tempo cukup dominan, latihan mengarah ke penguatan threshold dan ketahanan pace.');
+            } else if (easy !== null || tempo !== null || speed !== null) {
+                analysis.push('Distribusi pace cukup seimbang, efeknya campuran antara aerobik dan kualitas.');
+            }
+
+            if (z1 !== null && z2 !== null && (z1 + z2) >= 70) {
+                analysis.push('Mayoritas detak jantung berada di Z1–Z2, menunjukkan sesi aerobik atau recovery.');
+            } else if (z4 !== null && z5 !== null && (z4 + z5) >= 30) {
+                analysis.push('Zona detak jantung Z4–Z5 cukup tinggi, beban latihan berat dan menstimulasi adaptasi intensitas.');
+            } else if (z3 !== null && z4 !== null && (z3 + z4) >= 40) {
+                analysis.push('Banyak waktu di Z3–Z4, cocok untuk tempo/threshold dan peningkatan stamina pace.');
+            }
+
+            if (pauseRatio > 0.18) {
+                analysis.push('Proporsi pause cukup besar, artinya banyak berhenti sehingga efek intensitas berkurang.');
+            } else if (pauseRatio > 0.08) {
+                analysis.push('Terdapat pause moderat, kemungkinan karena interval atau kondisi rute.');
+            }
+
+            if (speed !== null && speed >= 25) {
+                effects.push('VO2Max & kecepatan');
+            } else if (tempo !== null && tempo >= 25) {
+                effects.push('Threshold & tempo endurance');
+            } else if (easy !== null && easy >= 60) {
+                effects.push('Base aerobik & recovery');
+            } else if (z4 !== null && z5 !== null && (z4 + z5) >= 25) {
+                effects.push('Kualitas intensitas tinggi');
+            } else if (z1 !== null && z2 !== null && (z1 + z2) >= 60) {
+                effects.push('Aerobic maintenance');
+            } else {
+                effects.push('Mixed aerobic & quality');
+            }
+
+            if (speed !== null && speed >= 30) {
+                suggestions.push('Prioritaskan recovery run 24–48 jam ke depan agar adaptasi optimal.');
+            } else if (tempo !== null && tempo >= 30) {
+                suggestions.push('Pertahankan volume easy berikutnya, lalu sisipkan interval ringan jika tubuh segar.');
+            } else if (easy !== null && easy >= 70) {
+                suggestions.push('Kondisi cocok untuk sesi kualitas berikutnya (tempo/interval) jika rencana mengizinkan.');
+            } else {
+                suggestions.push('Jaga keseimbangan easy dan kualitas untuk mencegah overtraining.');
+            }
+
+            if (pauseRatio > 0.18) {
+                suggestions.push('Jika targetnya steady run, kurangi pause agar stimulus lebih konsisten.');
+            }
+
+            return {
+                analysis: analysis.join(' '),
+                effect: effects.join(' • '),
+                suggestion: suggestions.join(' ')
+            };
+        };
+
         const renderChartToCanvas = (streams, canvasId) => {
             if (!streams || !streams.time || !window.Chart) return null;
             const canvas = document.getElementById(canvasId);
@@ -2268,6 +2506,12 @@ createApp({
                 if (res.ok && data && data.success) {
                     detail.strava_streams = data.streams || null;
                     setTimeout(() => renderStravaChart(detail.strava_streams), 50);
+                    detail.strava_pace_zones = buildPaceZones(detail.strava_streams, trainingProfile.value?.paces);
+                    detail.strava_hr_zones = buildHrZones(detail.strava_streams, detail.strava_metrics?.max_heartrate);
+                    const zoneInsight = buildZoneAnalysis(detail.strava_pace_zones, detail.strava_hr_zones, detail.strava_metrics);
+                    detail.strava_zone_analysis = zoneInsight?.analysis || null;
+                    detail.strava_zone_effect = zoneInsight?.effect || null;
+                    detail.strava_zone_suggestion = zoneInsight?.suggestion || null;
                 } else {
                     stravaStreamsError.value = (data && data.message) ? data.message : 'Gagal mengambil streams Strava.';
                 }
@@ -2339,6 +2583,12 @@ createApp({
             detail.strava_laps = [];
             detail.actual_pace = null;
             detail.strava_streams = null;
+            detail.strava_pace_zones = null;
+            detail.strava_hr_zones = null;
+            detail.strava_media = [];
+            detail.strava_zone_analysis = null;
+            detail.strava_zone_effect = null;
+            detail.strava_zone_suggestion = null;
             detail.analysis = null;
             detail.suggestion = null;
             stravaStreamsError.value = '';
@@ -2355,6 +2605,7 @@ createApp({
                     detail.actual_pace = a.pace ? `${a.pace} /km` : null;
                     detail.strava_splits = Array.isArray(a.splits_metric) ? a.splits_metric : [];
                     detail.strava_laps = Array.isArray(a.laps) ? a.laps : [];
+                    detail.strava_media = Array.isArray(a.media) ? a.media : [];
                     
                     // Generate Analysis
                     const ana = generateStravaAnalysis(a);

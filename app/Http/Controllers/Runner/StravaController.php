@@ -407,6 +407,39 @@ class StravaController extends Controller
         $api = app(StravaApiService::class);
         $pace = $api->formatPaceFromSpeed($avgSpeed);
 
+        $photos = data_get($details, 'photos', []);
+        $media = [];
+        if (is_array($photos)) {
+            $primary = data_get($photos, 'primary.urls.600') ?? data_get($photos, 'primary.urls.100');
+            if ($primary) {
+                $media[] = $primary;
+            }
+            $list = data_get($photos, 'photos', []);
+            if (is_array($list)) {
+                foreach ($list as $p) {
+                    $url = data_get($p, 'urls.600') ?? data_get($p, 'urls.100');
+                    if ($url) {
+                        $media[] = $url;
+                    }
+                }
+            }
+        }
+        $media = array_values(array_unique($media));
+
+        $startDate = data_get($details, 'start_date') ?: ($activity->start_date?->toIso8601String());
+        $elapsedTime = (int) data_get($details, 'elapsed_time', $activity->elapsed_time_s);
+        $movingTime = (int) data_get($details, 'moving_time', $activity->moving_time_s);
+        $totalTime = $elapsedTime > 0 ? $elapsedTime : ($activity->elapsed_time_s ?: 0);
+        $pauseTime = max(0, ($totalTime ?: 0) - ($movingTime ?: 0));
+        $endDate = null;
+        if ($startDate && $totalTime) {
+            try {
+                $endDate = Carbon::parse($startDate)->addSeconds($totalTime)->toIso8601String();
+            } catch (\Throwable $e) {
+                $endDate = null;
+            }
+        }
+
         $splits = data_get($details, 'splits_metric', []);
         $splitsOut = [];
         if (is_array($splits)) {
@@ -456,14 +489,18 @@ class StravaController extends Controller
                 'name' => $activity->name,
                 'type' => $activity->type,
                 'start_date' => $activity->start_date?->toIso8601String(),
+                'end_date' => $endDate,
                 'distance_m' => $activity->distance_m,
                 'moving_time_s' => $activity->moving_time_s,
                 'elapsed_time_s' => $activity->elapsed_time_s,
+                'total_time_s' => $totalTime ?: null,
+                'pause_time_s' => $pauseTime ?: null,
                 'average_speed' => $avgSpeed,
                 'pace' => $pace,
                 'average_heartrate' => data_get($details, 'average_heartrate'),
                 'max_heartrate' => data_get($details, 'max_heartrate'),
                 'average_cadence' => data_get($details, 'average_cadence'),
+                'media' => $media,
                 'splits_metric' => $splitsOut,
                 'laps' => $lapsOut,
             ],
