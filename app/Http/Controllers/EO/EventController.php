@@ -940,15 +940,42 @@ class EventController extends Controller
 
         $reportLink = URL::signedRoute('report.show', ['event' => $event->id]);
 
-        // Calculate next BIB number
-        $latestBib = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+        $bibNumbers = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
             ->whereNotNull('bib_number')
-            ->whereRaw('bib_number REGEXP "^[0-9]+$"')
-            ->max(DB::raw('CAST(bib_number AS UNSIGNED)'));
+            ->pluck('bib_number');
 
-        $nextBibNumber = $latestBib ? ($latestBib + 1) : 1;
+        $nextBibNumber = null;
+
+        if ($bibNumbers->isNotEmpty()) {
+            $maxNumber = null;
+            $prefix = '';
+            $suffixLength = null;
+
+            foreach ($bibNumbers as $bib) {
+                if (! preg_match('/(\d+)\s*$/', $bib, $m)) {
+                    continue;
+                }
+
+                $number = (int) $m[1];
+
+                if ($maxNumber === null || $number > $maxNumber) {
+                    $maxNumber = $number;
+                    $suffixLength = strlen($m[1]);
+                    $prefix = substr($bib, 0, -$suffixLength);
+                }
+            }
+
+            if ($maxNumber !== null) {
+                $next = $maxNumber + 1;
+                $nextBibNumber = $prefix.str_pad((string) $next, $suffixLength, '0', STR_PAD_LEFT);
+            }
+        }
+
+        if (! $nextBibNumber) {
+            $nextBibNumber = '1';
+        }
 
         $coupons = \App\Models\Coupon::where('event_id', $event->id)
             ->where('is_active', true)
