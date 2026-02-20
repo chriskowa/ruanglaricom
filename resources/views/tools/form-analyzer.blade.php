@@ -280,10 +280,55 @@
                                         </div>
                                     </div>
 
+                                    <div id="rlfa-ideal-preview" class="mb-6 p-4 rounded-2xl border border-slate-800 bg-slate-900/60">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Perfect Running Form (Guide)</div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                                            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 flex items-center justify-center">
+                                                <svg viewBox="0 0 220 320" class="w-full h-56" fill="none">
+                                                    <rect x="8" y="8" width="204" height="304" rx="16" stroke="#1f2937" stroke-width="2"/>
+                                                    <line x1="110" y1="40" x2="110" y2="120" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                                    <line x1="110" y1="120" x2="140" y2="200" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                                    <line x1="140" y1="200" x2="90" y2="260" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                                    <circle cx="110" cy="30" r="10" fill="#ccff00"/>
+                                                    <circle cx="110" cy="120" r="5" fill="#ffffff"/>
+                                                    <circle cx="140" cy="200" r="5" fill="#ffffff"/>
+                                                    <circle cx="90" cy="260" r="5" fill="#60a5fa"/>
+                                                    <path d="M110 120 L150 120" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
+                                                    <path d="M140 200 L170 200" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
+                                                    <text x="118" y="110" fill="#ccff00" font-size="10" font-weight="700">Trunk 5–10°</text>
+                                                    <text x="148" y="190" fill="#ccff00" font-size="10" font-weight="700">Knee 30–45°</text>
+                                                    <text x="100" y="250" fill="#ccff00" font-size="10" font-weight="700">Shin 85–95°</text>
+                                                </svg>
+                                            </div>
+                                            <div class="space-y-2 text-xs text-slate-300">
+                                                <div class="flex items-center justify-between bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2">
+                                                    <span>Trunk lean</span>
+                                                    <span class="font-mono text-white">5–10°</span>
+                                                </div>
+                                                <div class="flex items-center justify-between bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2">
+                                                    <span>Knee flex (stance)</span>
+                                                    <span class="font-mono text-white">30–45°</span>
+                                                </div>
+                                                <div class="flex items-center justify-between bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2">
+                                                    <span>Shin angle</span>
+                                                    <span class="font-mono text-white">85–95°</span>
+                                                </div>
+                                                <div class="flex items-center justify-between bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2">
+                                                    <span>Foot strike</span>
+                                                    <span class="font-mono text-white">Under hip</span>
+                                                </div>
+                                                <div class="flex items-center justify-between bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2">
+                                                    <span>Arm swing</span>
+                                                    <span class="font-mono text-white">Compact & drive</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="bg-slate-900 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl rounded-tl-sm p-4 border border-slate-800 relative">
                                         <div class="absolute -top-3 left-0 bg-neon text-dark text-[10px] font-bold px-2 py-0.5 rounded">AI COACH SAYS:</div>
                                         <button id="rlfa-tts-btn" type="button" class="absolute -top-3 right-0 bg-slate-800 text-neon text-[10px] font-bold px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-700 transition flex items-center gap-1">
-                                            <i class="fa-solid fa-volume-high"></i> BACA
+                                            <i class="fa-solid fa-volume-high"></i> BACAKAN
                                         </button>
                                         <p class="text-sm text-slate-200 leading-relaxed mt-2" id="rlfa-coach-message"></p>
                                     </div>
@@ -324,12 +369,121 @@
                                     </div>
 
                                     <div class="pt-4 space-y-2">
+                                        <button id="rlfa-advanced-btn" type="button" class="w-full bg-neon text-dark font-bold py-3 rounded-xl text-sm hover:bg-white">
+                                            Lihat Analisis Advance
+                                        </button>
                                         <button id="rlfa-retry-btn" type="button" class="w-full bg-white text-dark font-bold py-3 rounded-xl text-sm hover:bg-slate-200">
                                             Ulangi Analisis
                                         </button>
                                         <button id="rlfa-back-btn" type="button" class="w-full text-slate-500 text-xs py-3 hover:text-white">
                                             Kembali
                                         </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="rlfa-advanced-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/80 backdrop-blur p-4">
+                            <div class="w-full max-w-5xl max-h-[90vh] overflow-y-auto no-scrollbar bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl">
+                                <div class="sticky top-0 z-10 bg-slate-950/95 backdrop-blur border-b border-slate-800 p-4 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-xs text-slate-400 uppercase tracking-widest">Laporan Advance</div>
+                                        <div class="text-white font-black text-lg">Analisis Form Lengkap</div>
+                                    </div>
+                                    <button id="rlfa-advanced-close" type="button" class="text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg px-3 py-2">Tutup</button>
+                                </div>
+                                <div class="p-5 space-y-6">
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div class="space-y-3">
+                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Preview Analisis</div>
+                                            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                                                <img id="rlfa-advanced-preview" class="w-full h-auto object-cover" src="" alt="Preview Analisis">
+                                            </div>
+                                        </div>
+                                        <div class="space-y-3">
+                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ideal Form Guide</div>
+                                            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3">
+                                                <svg viewBox="0 0 220 320" class="w-full h-56" fill="none">
+                                                    <rect x="8" y="8" width="204" height="304" rx="16" stroke="#1f2937" stroke-width="2"/>
+                                                    <line x1="110" y1="40" x2="110" y2="120" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                                    <line x1="110" y1="120" x2="140" y2="200" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                                    <line x1="140" y1="200" x2="90" y2="260" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                                    <circle cx="110" cy="30" r="10" fill="#ccff00"/>
+                                                    <circle cx="110" cy="120" r="5" fill="#ffffff"/>
+                                                    <circle cx="140" cy="200" r="5" fill="#ffffff"/>
+                                                    <circle cx="90" cy="260" r="5" fill="#60a5fa"/>
+                                                    <path d="M110 120 L150 120" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
+                                                    <path d="M140 200 L170 200" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
+                                                    <text x="118" y="110" fill="#ccff00" font-size="10" font-weight="700">Trunk 5–10°</text>
+                                                    <text x="148" y="190" fill="#ccff00" font-size="10" font-weight="700">Knee 30–45°</text>
+                                                    <text x="100" y="250" fill="#ccff00" font-size="10" font-weight="700">Shin 85–95°</text>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="rlfa-adv-snapshots-wrap" class="hidden">
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Snapshot Form Bermasalah</div>
+                                        <div id="rlfa-adv-snapshots" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                                            <div class="text-slate-400 uppercase tracking-widest">Trunk Lean</div>
+                                            <div class="text-white font-mono" id="rlfa-adv-trunk">--</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                                            <div class="text-slate-400 uppercase tracking-widest">Knee Flex</div>
+                                            <div class="text-white font-mono" id="rlfa-adv-knee">--</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                                            <div class="text-slate-400 uppercase tracking-widest">Shin Angle</div>
+                                            <div class="text-white font-mono" id="rlfa-adv-shin">--</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                                            <div class="text-slate-400 uppercase tracking-widest">Arm Swing</div>
+                                            <div class="text-white font-mono" id="rlfa-adv-arm">--</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                                            <div class="text-slate-400 uppercase tracking-widest">Overstride</div>
+                                            <div class="text-white font-mono" id="rlfa-adv-overstride">--</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                                            <div class="text-slate-400 uppercase tracking-widest">Heel Strike</div>
+                                            <div class="text-white font-mono" id="rlfa-adv-heel">--</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Analisis Ayunan & Postur</div>
+                                            <div id="rlfa-adv-swing" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Saran Penguatan</div>
+                                            <div id="rlfa-adv-strength" class="space-y-2"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Hip & Core Stability</div>
+                                            <div id="rlfa-adv-hipcore" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Calf & Ankle Load</div>
+                                            <div id="rlfa-adv-calf" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Laporan Form Lengkap</div>
+                                        <div id="rlfa-adv-report" class="space-y-3"></div>
+                                    </div>
+
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Preview Rekomendasi</div>
+                                        <div id="rlfa-adv-suggestions" class="space-y-2"></div>
                                     </div>
                                 </div>
                             </div>
@@ -606,6 +760,13 @@
         };
 
         const getPt = (lm, idx) => lm?.[idx] ? { x: lm[idx].x, y: lm[idx].y, v: lm[idx].visibility ?? 0 } : null;
+        const isSideView = (lShoulder, rShoulder, lHip, rHip) => {
+            if (!lShoulder || !rShoulder || !lHip || !rHip) return false;
+            const shoulderDx = Math.abs(lShoulder.x - rShoulder.x);
+            const hipDx = Math.abs(lHip.x - rHip.x);
+            const avgDx = (shoulderDx + hipDx) / 2;
+            return avgDx <= 0.18;
+        };
 
         const inFrame = (pt) => {
             if (!pt) return false;
@@ -659,6 +820,8 @@
             const rShoulder = getPt(lm, L.rightShoulder);
             const lWrist = getPt(lm, L.leftWrist);
             const rWrist = getPt(lm, L.rightWrist);
+            const lHip = getPt(lm, L.leftHip);
+            const rHip = getPt(lm, L.rightHip);
 
             if (!hip || !knee || !ankle || !heel || !footIndex || !lShoulder || !rShoulder) {
                 if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: maxSamples, coverage: { ...counts } });
@@ -666,6 +829,11 @@
             }
 
             const midX = (lShoulder.x + rShoulder.x) / 2;
+            const sideOk = isSideView(lShoulder, rShoulder, lHip, rHip);
+            if (!sideOk) {
+                if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: maxSamples, coverage: { ...counts }, note: 'Menunggu posisi samping...' });
+                continue;
+            }
 
             const keyPts = {
                 hip,
@@ -783,8 +951,10 @@
         const trunkAng = avg(frames.map((f) => f.trunkAng));
         const armCrossPct = 100 * (frames.reduce((a, f) => a + f.cross, 0) / frames.length);
         const verticalOsc = std(frames.map((f) => f.hipY));
+        const trunkStd = std(frames.map((f) => f.trunkAng));
 
         let visualization = null;
+        let snapshots = [];
         try {
             const pickBest = () => {
                 const landing = best.landing?.landmarks ? best.landing : null;
@@ -803,6 +973,34 @@
                     video.addEventListener('seeked', handler);
                 });
                 visualization = drawBiomechanics(video, bf.landmarks, width, height);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
+        try {
+            const phaseLabel = {
+                landing: 'Landing',
+                lever: 'Lever',
+                push: 'Push',
+                pull: 'Pull',
+            };
+            const phaseOrder = ['landing', 'lever', 'push', 'pull'];
+            const used = new Set();
+            for (const phase of phaseOrder) {
+                if (snapshots.length >= 3) break;
+                const bf = best[phase];
+                if (!bf || !bf.landmarks || !Number.isFinite(bf.t) || used.has(bf.t)) continue;
+                used.add(bf.t);
+                video.currentTime = bf.t;
+                await new Promise((resolve) => {
+                    const handler = () => { video.removeEventListener('seeked', handler); resolve(); };
+                    video.addEventListener('seeked', handler);
+                });
+                const img = drawBiomechanics(video, bf.landmarks, width, height);
+                if (img) {
+                    snapshots.push({ phase, label: phaseLabel[phase] || phase, image: img });
+                }
             }
         } catch (e) {
             console.error(e);
@@ -833,9 +1031,11 @@
             trunk_lean_deg: Number.isFinite(trunkAng) ? Number(trunkAng.toFixed(1)) : null,
             arm_cross_pct: Number.isFinite(armCrossPct) ? Number(armCrossPct.toFixed(1)) : null,
             vertical_oscillation: Number.isFinite(verticalOsc) ? Number(verticalOsc.toFixed(4)) : null,
+            trunk_std_deg: Number.isFinite(trunkStd) ? Number(trunkStd.toFixed(2)) : null,
             coverage: coverage,
             coverage_missing: coverageMissing,
-            visualization: visualization
+            visualization: visualization,
+            snapshots: snapshots,
         };
     };
 
@@ -983,6 +1183,7 @@
             trunk_lean_deg: pickNum(trunkLean) ? Number(trunkLean.toFixed(1)) : null,
             arm_cross_pct: pickNum(front?.arm_cross_pct) ? Number(front.arm_cross_pct.toFixed(1)) : null,
             vertical_oscillation: null,
+            trunk_std_deg: null,
             visualization: visualization,
         };
     };
@@ -1074,6 +1275,25 @@
         const recoveryEl = document.getElementById('rlfa-recovery');
         const visualizationWrap = document.getElementById('rlfa-visualization-wrap');
         const visualizationImg = document.getElementById('rlfa-visualization-img');
+        const advancedBtn = document.getElementById('rlfa-advanced-btn');
+        const advancedModal = document.getElementById('rlfa-advanced-modal');
+        const advancedClose = document.getElementById('rlfa-advanced-close');
+        const advancedPreview = document.getElementById('rlfa-advanced-preview');
+        const advTrunk = document.getElementById('rlfa-adv-trunk');
+        const advKnee = document.getElementById('rlfa-adv-knee');
+        const advShin = document.getElementById('rlfa-adv-shin');
+        const advArm = document.getElementById('rlfa-adv-arm');
+        const advOverstride = document.getElementById('rlfa-adv-overstride');
+        const advHeel = document.getElementById('rlfa-adv-heel');
+        const advSwing = document.getElementById('rlfa-adv-swing');
+        const advHipcore = document.getElementById('rlfa-adv-hipcore');
+        const advCalf = document.getElementById('rlfa-adv-calf');
+        const advSnapshotsWrap = document.getElementById('rlfa-adv-snapshots-wrap');
+        const advSnapshots = document.getElementById('rlfa-adv-snapshots');
+        const advStrength = document.getElementById('rlfa-adv-strength');
+        const advReport = document.getElementById('rlfa-adv-report');
+        const advSuggestions = document.getElementById('rlfa-adv-suggestions');
+        let lastResult = null;
 
         const formatBytes = (bytes) => {
             if (!Number.isFinite(bytes) || bytes <= 0) return '--';
@@ -1090,10 +1310,262 @@
             return (m > 0 ? (m + 'm ') : '') + s + 's';
         };
 
+        const formatDeg = (v) => Number.isFinite(v) ? `${v.toFixed(1)}°` : '--';
+        const formatPct = (v) => Number.isFinite(v) ? `${Math.round(v)}%` : '--';
+        const formatNum = (v) => Number.isFinite(v) ? String(v) : '--';
+
+        const buildSwingInsight = (metrics) => {
+            if (!metrics) return 'Data ayunan tidak tersedia.';
+            const armCross = metrics.arm_cross_pct;
+            const trunk = metrics.trunk_lean_deg;
+            const overstride = metrics.overstride_pct;
+            const parts = [];
+            if (Number.isFinite(armCross)) {
+                if (armCross >= 15) parts.push('Ayunan tangan cukup banyak melintasi garis tengah, berpotensi membuang energi.');
+                else if (armCross >= 8) parts.push('Ayunan tangan sedikit melintasi garis tengah, masih perlu dirapikan.');
+                else parts.push('Ayunan tangan cukup rapi dan terkontrol.');
+            }
+            if (Number.isFinite(trunk)) {
+                if (trunk < 3) parts.push('Trunk terlalu tegak, coba sedikit condong dari pergelangan kaki.');
+                else if (trunk > 12) parts.push('Condong badan cukup besar, jaga agar tetap dari pergelangan kaki.');
+                else parts.push('Trunk lean berada di rentang ideal.');
+            }
+            if (Number.isFinite(overstride)) {
+                if (overstride >= 50) parts.push('Overstride sering terjadi, perpendek langkah dan fokus ke cadence.');
+                else if (overstride >= 20) parts.push('Ada kecenderungan overstride, kontrol posisi kaki di bawah pinggul.');
+                else parts.push('Posisi foot strike relatif dekat pinggul.');
+            }
+            return parts.length ? parts.join(' ') : 'Data ayunan tidak cukup untuk analisis detail.';
+        };
+
+        const buildHipCoreInsight = (metrics) => {
+            if (!metrics) return 'Data hip dan core belum cukup.';
+            const osc = metrics.vertical_oscillation;
+            const trunk = metrics.trunk_lean_deg;
+            const trunkStd = metrics.trunk_std_deg;
+            const overstride = metrics.overstride_pct;
+            const parts = [];
+            if (Number.isFinite(osc)) {
+                if (osc <= 0.007) parts.push('Stabilitas hip sangat baik, osilasi vertikal rendah.');
+                else if (osc <= 0.012) parts.push('Stabilitas hip cukup baik, masih bisa lebih stabil.');
+                else parts.push('Osilasi vertikal tinggi, indikasi kontrol hip & core belum stabil.');
+            }
+            if (Number.isFinite(trunkStd)) {
+                if (trunkStd <= 3) parts.push('Variasi trunk kecil, core stabil sepanjang siklus.');
+                else if (trunkStd <= 6) parts.push('Variasi trunk sedang, core cukup stabil.');
+                else parts.push('Variasi trunk tinggi, core cenderung collapse saat fatigue.');
+            }
+            if (Number.isFinite(trunk)) {
+                if (trunk < 3) parts.push('Core terlihat pasif karena trunk terlalu tegak.');
+                else if (trunk > 12) parts.push('Trunk condong cukup besar, jaga stabilitas core agar tidak collapse.');
+                else parts.push('Trunk lean berada di rentang efisien.');
+            }
+            if (Number.isFinite(overstride)) {
+                if (overstride >= 40) parts.push('Overstride tinggi, sering dipicu hip control yang terlambat.');
+                else if (overstride >= 20) parts.push('Ada kecenderungan overstride, kontrol pelvis & cadence.');
+                else parts.push('Foot strike relatif di bawah hip.');
+            }
+            return parts.length ? parts.join(' ') : 'Data hip/core tidak cukup untuk analisis detail.';
+        };
+
+        const buildCalfInsight = (metrics) => {
+            if (!metrics) return 'Data calf dan ankle belum cukup.';
+            const heel = metrics.heel_strike_pct;
+            const shin = metrics.shin_angle_deg;
+            const knee = metrics.knee_flex_deg;
+            const osc = metrics.vertical_oscillation;
+            const parts = [];
+            if (Number.isFinite(heel)) {
+                if (heel >= 60) parts.push('Heel strike dominan, beban calf & tibialis meningkat.');
+                else if (heel >= 35) parts.push('Heel strike sedang, kontrol dorsiflexion lebih baik.');
+                else parts.push('Foot strike cenderung mid/forefoot, calf aktif.');
+            }
+            if (Number.isFinite(shin)) {
+                if (shin < 80) parts.push('Shin angle kecil, potensi braking meningkat.');
+                else if (shin > 100) parts.push('Shin angle terlalu maju, beban ankle tinggi.');
+                else parts.push('Shin angle stabil di rentang efisien.');
+            }
+            if (Number.isFinite(knee)) {
+                if (knee < 25) parts.push('Landing kaku, absorpsi shock kurang sehingga calf cepat lelah.');
+                else if (knee > 60) parts.push('Knee flex besar, efektif menyerap tetapi butuh kontrol ankle.');
+                else parts.push('Knee flex berada di rentang aman.');
+            }
+            if (Number.isFinite(osc)) {
+                if (osc >= 0.014) parts.push('Osilasi vertikal tinggi, beban calf meningkat pada tiap langkah.');
+            }
+            return parts.length ? parts.join(' ') : 'Data calf/ankle tidak cukup untuk analisis detail.';
+        };
+
+        const buildIssueFlags = (metrics) => {
+            if (!metrics) return {};
+            return {
+                overstride: Number.isFinite(metrics.overstride_pct) && metrics.overstride_pct >= 20,
+                heel: Number.isFinite(metrics.heel_strike_pct) && metrics.heel_strike_pct >= 50,
+                trunk: Number.isFinite(metrics.trunk_lean_deg) && (metrics.trunk_lean_deg < 3 || metrics.trunk_lean_deg > 12),
+                knee: Number.isFinite(metrics.knee_flex_deg) && (metrics.knee_flex_deg < 25 || metrics.knee_flex_deg > 60),
+                shin: Number.isFinite(metrics.shin_angle_deg) && (metrics.shin_angle_deg < 80 || metrics.shin_angle_deg > 100),
+                arm: Number.isFinite(metrics.arm_cross_pct) && metrics.arm_cross_pct >= 10,
+            };
+        };
+
+        const buildSnapshotsFromMetrics = (metrics) => {
+            if (!metrics) return [];
+            if (metrics.source === 'photos' && metrics.phases) {
+                return Object.entries(metrics.phases)
+                    .filter(([, v]) => v?.visualization)
+                    .map(([phase, v]) => ({ phase, label: String(phase).toUpperCase(), image: v.visualization }));
+            }
+            if (Array.isArray(metrics.snapshots)) {
+                return metrics.snapshots.filter((s) => s && s.image).map((s) => ({
+                    ...s,
+                    label: s.label ? String(s.label).toUpperCase() : String(s.phase || 'SNAPSHOT').toUpperCase()
+                }));
+            }
+            return [];
+        };
+
+        const createSnapshotCard = (snap) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden';
+            const img = document.createElement('img');
+            img.src = snap.image;
+            img.alt = snap.label || 'Snapshot';
+            img.className = 'w-full h-40 object-cover';
+            const label = document.createElement('div');
+            label.className = 'px-3 py-2 text-xs font-bold text-slate-300 uppercase tracking-widest';
+            label.textContent = snap.label || snap.phase || 'Snapshot';
+            wrap.appendChild(img);
+            wrap.appendChild(label);
+            return wrap;
+        };
+
+        const buildAdvancedReportSections = (metrics) => {
+            if (!metrics) return [];
+            const trunkStd = metrics.trunk_std_deg;
+            const osc = metrics.vertical_oscillation;
+            const over = metrics.overstride_pct;
+            const heel = metrics.heel_strike_pct;
+            const shin = metrics.shin_angle_deg;
+            const knee = metrics.knee_flex_deg;
+            const trunk = metrics.trunk_lean_deg;
+
+            const sections = [];
+            const hipStatus = (Number.isFinite(osc) && osc >= 0.013) || (Number.isFinite(trunkStd) && trunkStd >= 6) ? 'issue'
+                : (Number.isFinite(osc) && osc >= 0.009) ? 'warn' : 'ok';
+            sections.push({
+                title: 'Hip & Core Stability',
+                status: hipStatus,
+                summary: 'Stabilitas pelvis dan kontrol core selama siklus langkah.',
+                findings: [
+                    Number.isFinite(osc) ? `Osilasi vertikal: ${osc.toFixed(3)}` : null,
+                    Number.isFinite(trunkStd) ? `Variasi trunk: ${trunkStd.toFixed(1)}°` : null,
+                    Number.isFinite(trunk) ? `Trunk lean rata-rata: ${trunk.toFixed(1)}°` : null
+                ].filter(Boolean),
+                actions: [
+                    hipStatus === 'issue' ? 'Kurangi bounding, fokus cadence stabil 170–185.' : null,
+                    hipStatus !== 'ok' ? 'Latih kontrol pelvis dengan single-leg balance.' : null,
+                    'Jaga core aktif saat kontak tanah.'
+                ].filter(Boolean),
+                strength: [
+                    'Dead bug, side plank, hip bridge.',
+                    'Single-leg RDL ringan.'
+                ]
+            });
+
+            const calfStatus = (Number.isFinite(heel) && heel >= 60) || (Number.isFinite(shin) && (shin < 80 || shin > 100)) ? 'issue'
+                : (Number.isFinite(heel) && heel >= 35) ? 'warn' : 'ok';
+            sections.push({
+                title: 'Calf & Ankle Load',
+                status: calfStatus,
+                summary: 'Distribusi beban pada ankle & calf saat kontak.',
+                findings: [
+                    Number.isFinite(heel) ? `Heel strike: ${Math.round(heel)}%` : null,
+                    Number.isFinite(shin) ? `Shin angle: ${shin.toFixed(1)}°` : null,
+                    Number.isFinite(knee) ? `Knee flex: ${knee.toFixed(1)}°` : null
+                ].filter(Boolean),
+                actions: [
+                    calfStatus === 'issue' ? 'Turunkan braking dengan landing lebih dekat pinggul.' : null,
+                    'Fokus ankle stiffness saat toe-off.'
+                ].filter(Boolean),
+                strength: [
+                    'Calf raise eksentrik.',
+                    'Ankle mobility + tibialis raise.'
+                ]
+            });
+
+            const strideStatus = (Number.isFinite(over) && over >= 40) ? 'issue'
+                : (Number.isFinite(over) && over >= 20) ? 'warn' : 'ok';
+            sections.push({
+                title: 'Stride Efficiency',
+                status: strideStatus,
+                summary: 'Keseimbangan panjang langkah dan braking.',
+                findings: [
+                    Number.isFinite(over) ? `Overstride: ${Math.round(over)}%` : null
+                ].filter(Boolean),
+                actions: [
+                    strideStatus !== 'ok' ? 'Perpendek langkah, fokus landing di bawah hip.' : null,
+                    'Pertahankan cadence stabil.'
+                ].filter(Boolean),
+                strength: [
+                    'A-skip ringan, marching drill.',
+                    'Wall drive drill.'
+                ]
+            });
+
+            return sections;
+        };
+
+        let preferredVoice = null;
+        const pickPreferredVoice = () => {
+            const synth = window.speechSynthesis;
+            if (!synth || typeof synth.getVoices !== 'function') return null;
+            const voices = synth.getVoices() || [];
+            if (!voices.length) return null;
+            const idVoices = voices.filter((v) => (v.lang || '').toLowerCase().startsWith('id'));
+            const from = (arr) => {
+                if (!arr || !arr.length) return null;
+                return arr.find((v) => /gadis/i.test(v.name))
+                    || arr.find((v) => /damayanti/i.test(v.name))
+                    || arr.find((v) => /google bahasa indonesia/i.test(v.name))
+                    || arr.find((v) => /google/i.test(v.name) && /indonesian/i.test(v.name))
+                    || arr.find((v) => /indonesian/i.test(v.name))
+                    || arr.find((v) => /google/i.test(v.name))
+                    || arr[0];
+            };
+            return from(idVoices) || from(voices);
+        };
+        const refreshPreferredVoice = () => {
+            preferredVoice = pickPreferredVoice();
+        };
+        refreshPreferredVoice();
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = refreshPreferredVoice;
+        }
+
+        const openAdvanced = () => {
+            if (!advancedModal) return;
+            advancedModal.classList.remove('hidden');
+            advancedModal.classList.add('flex');
+        };
+
+        const closeAdvanced = () => {
+            if (!advancedModal) return;
+            advancedModal.classList.add('hidden');
+            advancedModal.classList.remove('flex');
+        };
+
+        if (advancedBtn) advancedBtn.addEventListener('click', openAdvanced);
+        if (advancedClose) advancedClose.addEventListener('click', closeAdvanced);
+        if (advancedModal) {
+            advancedModal.addEventListener('click', (e) => {
+                if (e.target === advancedModal) closeAdvanced();
+            });
+        }
+
         if (ttsBtn) {
             ttsBtn.addEventListener('click', () => {
                 const text = coachMessageEl.textContent;
-                if (!text) return;
+                if (!text || !window.speechSynthesis) return;
 
                 if (window.speechSynthesis.speaking) {
                     window.speechSynthesis.cancel();
@@ -1101,8 +1573,14 @@
                     return;
                 }
 
+                refreshPreferredVoice();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'id-ID';
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+                utterance.pitch = 1.1;
+                utterance.rate = 0.98;
 
                 utterance.onstart = () => {
                     ttsBtn.innerHTML = '<i class="fa-solid fa-stop"></i> STOP';
@@ -1140,6 +1618,13 @@
             stateResults.classList.add('flex');
             stateResults.scrollTop = 0;
             document.getElementById('rlfa-app').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                if (visualizationWrap && visualizationImg && !visualizationWrap.classList.contains('hidden') && visualizationImg.src) {
+                    visualizationImg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    stateResults.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 150);
         };
 
         const resetWarnings = () => {
@@ -1413,6 +1898,22 @@
             strengthWrap.classList.add('hidden');
             recoveryWrap.classList.add('hidden');
 
+            if (advStrength) advStrength.innerHTML = '';
+            if (advReport) advReport.innerHTML = '';
+            if (advSuggestions) advSuggestions.innerHTML = '';
+            if (advSwing) advSwing.textContent = '';
+            if (advHipcore) advHipcore.textContent = '';
+            if (advCalf) advCalf.textContent = '';
+            if (advSnapshots) advSnapshots.innerHTML = '';
+            if (advSnapshotsWrap) advSnapshotsWrap.classList.add('hidden');
+            if (advancedPreview) advancedPreview.src = '';
+            if (advTrunk) advTrunk.textContent = '--';
+            if (advKnee) advKnee.textContent = '--';
+            if (advShin) advShin.textContent = '--';
+            if (advArm) advArm.textContent = '--';
+            if (advOverstride) advOverstride.textContent = '--';
+            if (advHeel) advHeel.textContent = '--';
+
             const positives = Array.isArray(result.positives) ? result.positives : [];
             if (positives.length) {
                 positives.forEach((x) => positivesEl.appendChild(createChip(x)));
@@ -1454,6 +1955,56 @@
                 recovery.forEach((x) => recoveryEl.appendChild(createChip(x)));
                 recoveryWrap.classList.remove('hidden');
             }
+
+            lastResult = result;
+            const metrics = result?.client_metrics || null;
+            const snapshots = buildSnapshotsFromMetrics(metrics);
+            if (advancedPreview) {
+                if (result.visualization) {
+                    advancedPreview.src = result.visualization;
+                } else if (snapshots.length) {
+                    advancedPreview.src = snapshots[0].image || '';
+                } else {
+                    advancedPreview.removeAttribute('src');
+                }
+            }
+            if (advTrunk) advTrunk.textContent = formatDeg(metrics?.trunk_lean_deg);
+            if (advKnee) advKnee.textContent = formatDeg(metrics?.knee_flex_deg);
+            if (advShin) advShin.textContent = formatDeg(metrics?.shin_angle_deg);
+            if (advArm) advArm.textContent = formatPct(metrics?.arm_cross_pct);
+            if (advOverstride) advOverstride.textContent = formatPct(metrics?.overstride_pct);
+            if (advHeel) advHeel.textContent = formatPct(metrics?.heel_strike_pct);
+            if (advSwing) advSwing.textContent = buildSwingInsight(metrics);
+            if (advHipcore) advHipcore.textContent = buildHipCoreInsight(metrics);
+            if (advCalf) advCalf.textContent = buildCalfInsight(metrics);
+
+            const issueFlags = buildIssueFlags(metrics);
+            const issuePhases = new Set();
+            if (issueFlags.overstride || issueFlags.heel || issueFlags.shin) issuePhases.add('landing');
+            if (issueFlags.knee || issueFlags.trunk) issuePhases.add('lever');
+            if (issueFlags.overstride || issueFlags.heel) issuePhases.add('push');
+            if (issueFlags.arm) issuePhases.add('front');
+            const issueSnapshots = issuePhases.size
+                ? snapshots.filter((s) => issuePhases.has(s.phase))
+                : [];
+            let finalSnapshots = issueSnapshots;
+            if (finalSnapshots.length < 3 && snapshots.length > finalSnapshots.length) {
+                const extra = snapshots.filter((s) => !finalSnapshots.includes(s));
+                finalSnapshots = finalSnapshots.concat(extra.slice(0, Math.max(0, 3 - finalSnapshots.length)));
+            }
+            if (advSnapshots && advSnapshotsWrap && finalSnapshots.length) {
+                finalSnapshots.forEach((s) => advSnapshots.appendChild(createSnapshotCard(s)));
+                advSnapshotsWrap.classList.remove('hidden');
+            }
+
+            const advStrengthList = Array.isArray(result.strength_plan) ? result.strength_plan : [];
+            if (advStrength) advStrengthList.forEach((x) => advStrength.appendChild(createChip(x)));
+            const advSections = buildAdvancedReportSections(metrics);
+            if (advReport) advSections.forEach((x) => advReport.appendChild(createReportCard(x)));
+            const advReportList = Array.isArray(result.form_report) ? result.form_report : [];
+            if (advReport) advReportList.forEach((x) => advReport.appendChild(createReportCard(x)));
+            const advSuggestionsList = Array.isArray(result.suggestions) ? result.suggestions : [];
+            if (advSuggestions) advSuggestionsList.forEach((x) => advSuggestions.appendChild(createChip(x)));
         };
 
         const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -1465,7 +2016,7 @@
             if (Array.isArray(value)) return value.map(stripLargeMetricFields);
             const out = {};
             Object.keys(value).forEach((k) => {
-                if (k === 'visualization') return;
+                if (k === 'visualization' || k === 'snapshots') return;
                 out[k] = stripLargeMetricFields(value[k]);
             });
             return out;
@@ -1630,13 +2181,14 @@
                                 return `${label} ${x.count}/${x.min}${ok ? '✓' : ''}`;
                             }).filter(Boolean).join(' • ');
                         };
-                        metrics = await window.RLFormAnalyzerPose.analyzeVideoFile(file, ({ done, total, coverage }) => {
+                        metrics = await window.RLFormAnalyzerPose.analyzeVideoFile(file, ({ done, total, coverage, note }) => {
                             const pct = total ? Math.round((done / total) * 100) : 0;
                             scanMetric1.textContent = pct + '%';
                             if (coverage) {
                                 const msg = formatCoverage(coverage);
                                 if (msg) scanSubtext.textContent = msg;
                             }
+                            if (note) scanSubtext.textContent = note;
                         });
                     } catch (e) {
                         metrics = null;
@@ -1647,6 +2199,7 @@
                 }
 
                 const result = await analyze(file, v.meta, metrics);
+                if (metrics) result.client_metrics = metrics;
                 if (metrics && metrics.visualization) result.visualization = metrics.visualization;
                 renderResults(result);
                 showResults();
@@ -1694,6 +2247,7 @@
 
                 const meta = await getPhotoMeta();
                 const result = await analyze(null, meta, metrics, { uploadVideoOverride: false });
+                if (metrics) result.client_metrics = metrics;
                 if (metrics && metrics.visualization) result.visualization = metrics.visualization;
                 renderResults(result);
                 showResults();

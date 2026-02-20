@@ -201,7 +201,18 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Homepage Content Management
     Route::get('/homepage/content', [App\Http\Controllers\Admin\HomepageContentController::class, 'index'])->name('homepage.content');
     Route::post('/homepage/content', [App\Http\Controllers\Admin\HomepageContentController::class, 'update'])->name('homepage.content.update');
+
+    Route::get('/popups/scheduled', [App\Http\Controllers\Admin\PopupController::class, 'scheduled'])->name('popups.scheduled');
+    Route::post('/popups/bulk', [App\Http\Controllers\Admin\PopupController::class, 'bulk'])->name('popups.bulk');
+    Route::post('/popups/{popup}/versions/{version}/restore', [App\Http\Controllers\Admin\PopupController::class, 'restoreVersion'])->name('popups.versions.restore');
+    Route::resource('popups', App\Http\Controllers\Admin\PopupController::class);
+    Route::get('/popups-analytics', [App\Http\Controllers\Admin\PopupAnalyticsController::class, 'index'])->name('popups.analytics');
+    Route::get('/popups-settings', [App\Http\Controllers\Admin\PopupSettingsController::class, 'index'])->name('popups.settings');
+    Route::post('/popups-settings', [App\Http\Controllers\Admin\PopupSettingsController::class, 'update'])->name('popups.settings.update');
 });
+
+Route::get('/popups/active', [App\Http\Controllers\PopupRuntimeController::class, 'active'])->name('popups.active');
+Route::post('/popups/{popup}/track', [App\Http\Controllers\PopupRuntimeController::class, 'track'])->name('popups.track');
 
 // Public routes
 Route::get('/v-card', [App\Http\Controllers\VCardController::class, 'index'])->name('vcard.index');

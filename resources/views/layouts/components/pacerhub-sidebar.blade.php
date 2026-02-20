@@ -46,6 +46,13 @@
                         <li><a href="{{ route('admin.vcard.settings') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">V-Card</a></li>
                         <li><a href="{{ route('admin.seo.settings') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">SEO Settings</a></li>
                         <li><a href="{{ route('admin.transactions.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Transactions</a></li>
+
+                        <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Popup Management</li>
+                        <li><a href="{{ route('admin.popups.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">All Popups</a></li>
+                        <li><a href="{{ route('admin.popups.create') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Create New Popup</a></li>
+                        <li><a href="{{ route('admin.popups.scheduled') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Scheduled Popups</a></li>
+                        <li><a href="{{ route('admin.popups.analytics') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Analytics</a></li>
+                        <li><a href="{{ route('admin.popups.settings') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Settings</a></li>
                         
                         <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Commerce Marketplace</li>
                         <li><a href="{{ route('admin.marketplace.categories.index') }}" class="flex items-center px-3 py-2 rounded-lg text-slate-200 hover:text-primary hover:bg-slate-800">Categories</a></li>

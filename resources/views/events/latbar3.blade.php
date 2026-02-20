@@ -316,12 +316,26 @@
                                         <label for="email" class="form-label">EMAIL</label>
                                     </div>
                                 </div>
-                                <div class="form-input-group animate-fade-in delay-250 pb-5">
-                                    <select id="gender" v-model="form.gender" required class="form-input">
-                                        <option value="male">Laki-laki</option>
-                                        <option value="female">Perempuan</option>
-                                    </select>
-                                    <label for="gender" class="form-label">GENDER</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="form-input-group animate-fade-in delay-250">
+                                        <select id="gender" v-model="form.gender" required class="form-input">
+                                            <option value="male">Laki-laki</option>
+                                            <option value="female">Perempuan</option>
+                                        </select>
+                                        <label for="gender" class="form-label">GENDER</label>
+                                    </div>
+                                    <div class="form-input-group animate-fade-in delay-250">
+                                        <select id="jersey_size" v-model="form.jersey_size" required class="form-input">
+                                            <option value="">Pilih Ukuran Jersey</option>
+                                            <option value="XS">XS</option>
+                                            <option value="S">S</option>
+                                            <option value="M">M</option>
+                                            <option value="L">L</option>
+                                            <option value="XL">XL</option>
+                                            <option value="XXL">XXL</option>
+                                        </select>
+                                        <label for="jersey_size" class="form-label">UKURAN JERSEY</label>
+                                    </div>
                                 </div>
 
                                 <!--
@@ -618,7 +632,7 @@
     const { createApp, ref, computed, onMounted } = Vue;
     const app = createApp({
         setup() {
-            const form = ref({ name: '', email: '', phone: '', address: '', date_of_birth: '', id_card: '', ticket_quantity: 1, addons: [], gender: 'male', emergency_contact_name: '', emergency_contact_number: '' });
+                    const form = ref({ name: '', email: '', phone: '', address: '', date_of_birth: '', id_card: '', ticket_quantity: 1, addons: [], gender: 'male', jersey_size: '', emergency_contact_name: '', emergency_contact_number: '' });
             const isLoading = ref(false);
             const couponCode = ref('');
             const appliedCoupon = ref(null);
@@ -690,7 +704,7 @@
                     alert('Terjadi kesalahan');
                 }
             };
-            const processPayment = async () => {
+                    const processPayment = async () => {
                 isLoading.value = true;
                 try {
                     const participantsList = [];
@@ -702,10 +716,11 @@
                             phone: form.value.phone,
                             address: form.value.address || 'Malang',
                             date_of_birth: form.value.date_of_birth || '2000-01-01',
-                            id_card: (form.value.id_card || '0000000000') + i + Date.now().toString().slice(-4), // Generate unique ID
+                            id_card: (form.value.id_card || '0000000000') + i + Date.now().toString().slice(-4),
                             category_id: defaultCategoryId,
                             emergency_contact_name: form.value.emergency_contact_name || form.value.name,
                             emergency_contact_number: form.value.emergency_contact_number || form.value.phone,
+                            jersey_size: form.value.jersey_size || 'M',
                         });
                     }
 
