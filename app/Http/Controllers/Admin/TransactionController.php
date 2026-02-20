@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Marketplace\MarketplaceOrder;
+use App\Models\Order;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Wallet;
@@ -23,6 +25,8 @@ class TransactionController extends Controller
         $withdrawals = null;
         $topups = null;
         $transactions = null;
+        $programOrders = null;
+        $marketplaceOrders = null;
 
         if ($tab === 'topups') {
             $topups = WalletTopup::query()
@@ -56,6 +60,43 @@ class TransactionController extends Controller
                 ->latest()
                 ->paginate(30)
                 ->withQueryString();
+        } elseif ($tab === 'program_orders') {
+            $programOrders = Order::query()
+                ->with('user')
+                ->when($status !== '', fn ($query) => $query->where('payment_status', $status))
+                ->when($q !== '', function ($query) use ($q) {
+                    $query->whereHas('user', function ($userQuery) use ($q) {
+                        $userQuery
+                            ->where('name', 'like', "%{$q}%")
+                            ->orWhere('email', 'like', "%{$q}%")
+                            ->orWhere('username', 'like', "%{$q}%");
+                    })->orWhere('order_number', 'like', "%{$q}%");
+                })
+                ->latest()
+                ->paginate(20)
+                ->withQueryString();
+        } elseif ($tab === 'marketplace_orders') {
+            $marketplaceOrders = MarketplaceOrder::query()
+                ->with(['buyer', 'seller'])
+                ->when($status !== '', fn ($query) => $query->where('status', $status))
+                ->when($q !== '', function ($query) use ($q) {
+                    $query->where('invoice_number', 'like', "%{$q}%")
+                        ->orWhereHas('buyer', function ($buyerQuery) use ($q) {
+                            $buyerQuery
+                                ->where('name', 'like', "%{$q}%")
+                                ->orWhere('email', 'like', "%{$q}%")
+                                ->orWhere('username', 'like', "%{$q}%");
+                        })
+                        ->orWhereHas('seller', function ($sellerQuery) use ($q) {
+                            $sellerQuery
+                                ->where('name', 'like', "%{$q}%")
+                                ->orWhere('email', 'like', "%{$q}%")
+                                ->orWhere('username', 'like', "%{$q}%");
+                        });
+                })
+                ->latest()
+                ->paginate(20)
+                ->withQueryString();
         } else {
             $tab = 'withdrawals';
             $withdrawals = WalletWithdrawal::query()
@@ -86,6 +127,8 @@ class TransactionController extends Controller
             'withdrawals' => $withdrawals,
             'topups' => $topups,
             'transactions' => $transactions,
+            'programOrders' => $programOrders,
+            'marketplaceOrders' => $marketplaceOrders,
             'counts' => $counts,
         ]);
     }

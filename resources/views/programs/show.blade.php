@@ -252,7 +252,7 @@
                                         <form action="{{ route('marketplace.cart.add', $program->id) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-lg rounded-xl transition-all shadow-lg shadow-neon/20 mb-3">
-                                                ADD TO CART
+                                                ADD TO CART & CHECKOUT
                                             </button>
                                         </form>
                                     @else
@@ -330,7 +330,7 @@
                             @if(auth()->user()->role === 'runner')
                                 <form action="{{ route('marketplace.cart.add', $program->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="px-6 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20">BUY</button>
+                                    <button type="submit" class="px-6 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20">BUY & CHECKOUT</button>
                                 </form>
                             @else
                                 <span class="text-xs text-slate-500 font-bold px-3">Runner Only</span>

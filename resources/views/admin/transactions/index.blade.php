@@ -55,6 +55,12 @@
             <a href="{{ route('admin.transactions.index', ['tab' => 'ledger']) }}" class="px-4 py-2 rounded-xl border {{ $tab === 'ledger' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900/40 text-slate-200 border-slate-700 hover:border-slate-500' }} transition">
                 Ledger Wallet
             </a>
+            <a href="{{ route('admin.transactions.index', ['tab' => 'program_orders']) }}" class="px-4 py-2 rounded-xl border {{ $tab === 'program_orders' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900/40 text-slate-200 border-slate-700 hover:border-slate-500' }} transition">
+                Order Program
+            </a>
+            <a href="{{ route('admin.transactions.index', ['tab' => 'marketplace_orders']) }}" class="px-4 py-2 rounded-xl border {{ $tab === 'marketplace_orders' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900/40 text-slate-200 border-slate-700 hover:border-slate-500' }} transition">
+                Order Marketplace
+            </a>
         </div>
 
         <form action="{{ route('admin.transactions.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
@@ -70,7 +76,7 @@
                     <option value="success" {{ $status === 'success' ? 'selected' : '' }}>success</option>
                     <option value="failed" {{ $status === 'failed' ? 'selected' : '' }}>failed</option>
                     <option value="expired" {{ $status === 'expired' ? 'selected' : '' }}>expired</option>
-                @else
+                @elseif($tab === 'ledger')
                     <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>pending</option>
                     <option value="completed" {{ $status === 'completed' ? 'selected' : '' }}>completed</option>
                     <option value="failed" {{ $status === 'failed' ? 'selected' : '' }}>failed</option>
@@ -162,6 +168,87 @@
                 </table>
             </div>
             <div class="p-5">{{ $transactions?->links() }}</div>
+        @elseif($tab === 'program_orders')
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-slate-200">
+                    <thead class="bg-slate-900/50 text-slate-300">
+                        <tr>
+                            <th class="text-left px-5 py-4">Waktu</th>
+                            <th class="text-left px-5 py-4">User</th>
+                            <th class="text-left px-5 py-4">Order #</th>
+                            <th class="text-left px-5 py-4">Total</th>
+                            <th class="text-left px-5 py-4">Metode</th>
+                            <th class="text-left px-5 py-4">Status Pembayaran</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/60">
+                        @forelse($programOrders as $order)
+                            <tr class="hover:bg-slate-900/30 transition">
+                                <td class="px-5 py-4 whitespace-nowrap text-slate-300">{{ $order->created_at?->format('Y-m-d H:i') }}</td>
+                                <td class="px-5 py-4">
+                                    <div class="font-semibold text-white">{{ $order->user?->name ?? '-' }}</div>
+                                    <div class="text-xs text-slate-400">{{ $order->user?->email ?? '' }}</div>
+                                </td>
+                                <td class="px-5 py-4 text-slate-300">{{ $order->order_number }}</td>
+                                <td class="px-5 py-4 font-semibold">Rp {{ number_format((float) $order->total, 0, ',', '.') }}</td>
+                                <td class="px-5 py-4 text-slate-300">{{ $order->payment_method }}</td>
+                                <td class="px-5 py-4">
+                                    <span class="px-2 py-1 rounded text-xs font-semibold border {{ $order->payment_status === 'paid' ? 'bg-green-500/10 border-green-500/30 text-green-300' : ($order->payment_status === 'pending' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300' : 'bg-red-500/10 border-red-500/30 text-red-300') }}">
+                                        {{ $order->payment_status ?? '-' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-5 py-10 text-center text-slate-400">Tidak ada order program.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-5">{{ $programOrders?->links() }}</div>
+        @elseif($tab === 'marketplace_orders')
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-slate-200">
+                    <thead class="bg-slate-900/50 text-slate-300">
+                        <tr>
+                            <th class="text-left px-5 py-4">Waktu</th>
+                            <th class="text-left px-5 py-4">Buyer</th>
+                            <th class="text-left px-5 py-4">Seller</th>
+                            <th class="text-left px-5 py-4">Invoice</th>
+                            <th class="text-left px-5 py-4">Total</th>
+                            <th class="text-left px-5 py-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/60">
+                        @forelse($marketplaceOrders as $order)
+                            <tr class="hover:bg-slate-900/30 transition">
+                                <td class="px-5 py-4 whitespace-nowrap text-slate-300">{{ $order->created_at?->format('Y-m-d H:i') }}</td>
+                                <td class="px-5 py-4">
+                                    <div class="font-semibold text-white">{{ $order->buyer?->name ?? '-' }}</div>
+                                    <div class="text-xs text-slate-400">{{ $order->buyer?->email ?? '' }}</div>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <div class="font-semibold text-white">{{ $order->seller?->name ?? '-' }}</div>
+                                    <div class="text-xs text-slate-400">{{ $order->seller?->email ?? '' }}</div>
+                                </td>
+                                <td class="px-5 py-4 text-slate-300">{{ $order->invoice_number }}</td>
+                                <td class="px-5 py-4 font-semibold">Rp {{ number_format((float) $order->total_amount, 0, ',', '.') }}</td>
+                                <td class="px-5 py-4">
+                                    <span class="px-2 py-1 rounded text-xs font-semibold border {{ $order->status === 'paid' ? 'bg-green-500/10 border-green-500/30 text-green-300' : ($order->status === 'pending' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300' : 'bg-red-500/10 border-red-500/30 text-red-300') }}">
+                                        {{ $order->status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-5 py-10 text-center text-slate-400">Tidak ada order marketplace.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-5">{{ $marketplaceOrders?->links() }}</div>
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm text-slate-200">

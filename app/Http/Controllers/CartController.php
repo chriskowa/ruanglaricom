@@ -36,12 +36,10 @@ class CartController extends Controller
      */
     public function add(Request $request, Program $program)
     {
-        // Check if program is published and active
         if (! $program->is_published || ! $program->is_active) {
             return back()->withErrors(['error' => 'Program tidak tersedia.']);
         }
 
-        // Check if user already enrolled
         $user = Auth::user();
         $isEnrolled = $program->enrollments()
             ->where('runner_id', $user->id)
@@ -58,10 +56,10 @@ class CartController extends Controller
             ->first();
 
         if ($cartItem) {
-            return back()->with('info', 'Program sudah ada di keranjang.');
+            return redirect()->route('marketplace.checkout.index')
+                ->with('info', 'Program sudah ada di keranjang. Silakan lanjut ke checkout.');
         }
 
-        // Add to cart
         Cart::create([
             'user_id' => $user->id,
             'program_id' => $program->id,
@@ -69,7 +67,8 @@ class CartController extends Controller
             'price' => $program->price,
         ]);
 
-        return back()->with('success', 'Program berhasil ditambahkan ke keranjang!');
+        return redirect()->route('marketplace.checkout.index')
+            ->with('success', 'Program berhasil ditambahkan ke keranjang. Silakan selesaikan pembayaran.');
     }
 
     /**

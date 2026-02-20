@@ -813,7 +813,7 @@
                         <span class="text-neon font-bold tracking-widest uppercase text-sm mb-2 block">Latest Updates</span>
                         <h2 class="text-4xl font-black text-white">NEWS & <span class="text-stroke">ARTICLES</span></h2>
                     </div>
-                    <a href="{{ url('/#blog') }}" class="text-sm font-bold text-white hover:text-neon transition flex items-center gap-2 border-b border-transparent hover:border-neon pb-1">
+                    <a href="{{ url('/blog') }}" class="text-sm font-bold text-white hover:text-neon transition flex items-center gap-2 border-b border-transparent hover:border-neon pb-1">
                         Lihat Artikel Terbaru <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </a>
                 </div>

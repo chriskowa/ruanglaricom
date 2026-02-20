@@ -1285,17 +1285,34 @@
             document.getElementById('location_lng').value = lng;
             
             // Reverse geocoding (optional, simple fetch)
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-                .then(res => res.json())
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        console.error('Reverse geocoding failed', res.status, res.statusText);
+                        return null;
+                    }
+                    return res.json().catch(err => {
+                        console.error('Failed to parse reverse geocoding response', err);
+                        return null;
+                    });
+                })
                 .then(data => {
-                    if(data.display_name) {
+                    if (!data) return;
+                    if (data.display_name) {
                         document.getElementById('location_address').value = data.display_name;
-                        // Try to get a short name
-                        const name = data.name || data.address.building || data.address.suburb || '';
-                        if(name && !document.getElementById('location_name').value) {
+                        const addr = data.address || {};
+                        const name = data.name || addr.building || addr.suburb || '';
+                        if (name && !document.getElementById('location_name').value) {
                             document.getElementById('location_name').value = name;
                         }
                     }
+                })
+                .catch(err => {
+                    console.error('Reverse geocoding error', err);
                 });
         }
 
@@ -1315,17 +1332,34 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const query = this.value;
-                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data && data.length > 0) {
-                            const lat = parseFloat(data[0].lat);
-                            const lng = parseFloat(data[0].lon);
-                            map.setView([lat, lng], 16);
-                            marker.setLatLng([lat, lng]);
-                            updateLocation(lat, lng);
-                            document.getElementById('location_name').value = data[0].name || query;
+                fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(res => {
+                        if (!res.ok) {
+                            console.error('Search geocoding failed', res.status, res.statusText);
+                            return null;
                         }
+                        return res.json().catch(err => {
+                            console.error('Failed to parse search geocoding response', err);
+                            return null;
+                        });
+                    })
+                    .then(data => {
+                        if (!data || !data.length) return;
+                        const first = data[0];
+                        const lat = parseFloat(first.lat);
+                        const lng = parseFloat(first.lon);
+                        if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+                        map.setView([lat, lng], 16);
+                        marker.setLatLng([lat, lng]);
+                        updateLocation(lat, lng);
+                        document.getElementById('location_name').value = first.name || query;
+                    })
+                    .catch(err => {
+                        console.error('Search geocoding error', err);
                     });
             }
         });

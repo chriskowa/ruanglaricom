@@ -785,8 +785,10 @@ Route::middleware('auth')->group(function () {
         // Cart routes
         Route::get('/cart', [App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
 
-        // Checkout routes
+        // Checkout routes (Marketplace products: shipping + wallet/Midtrans)
         Route::post('/checkout/init', [App\Http\Controllers\Marketplace\CheckoutController::class, 'init'])->name('checkout.init');
+        Route::get('/checkout/{order}', [App\Http\Controllers\Marketplace\CheckoutController::class, 'show'])->name('checkout.show');
+        Route::post('/checkout/{order}', [App\Http\Controllers\Marketplace\CheckoutController::class, 'process'])->name('checkout.process');
         Route::get('/checkout/{order}/pay', [App\Http\Controllers\Marketplace\CheckoutController::class, 'pay'])->name('checkout.pay');
 
         // My Orders
@@ -800,9 +802,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/cart', [App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
         Route::get('/cart/count', [App\Http\Controllers\CartController::class, 'count'])->name('cart.count');
 
-        // Checkout routes
+        // Checkout routes (Program cart: wallet / Midtrans)
         Route::get('/checkout', [App\Http\Controllers\CheckoutController::class, 'index'])->name('checkout.index');
         Route::post('/checkout', [App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
+        Route::get('/checkout/program/{order}/pay', [App\Http\Controllers\CheckoutController::class, 'pay'])->name('checkout.program.pay');
 
         // Order routes
         Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');

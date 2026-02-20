@@ -12,6 +12,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class CheckoutController extends Controller
 {
@@ -87,7 +89,6 @@ class CheckoutController extends Controller
 
         DB::beginTransaction();
         try {
-            // Create order
             $order = Order::create([
                 'user_id' => $user->id,
                 'subtotal' => $subtotal,
@@ -99,7 +100,6 @@ class CheckoutController extends Controller
                 'payment_status' => 'pending',
             ]);
 
-            // Create order items
             foreach ($cartItems as $cartItem) {
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -111,24 +111,19 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            // Process payment
             if ($validated['payment_method'] === 'wallet') {
-                // Refresh wallet to get latest balance
                 $user->wallet->refresh();
 
-                // Check wallet balance
                 if ($user->wallet->balance < $total) {
                     DB::rollBack();
 
                     return back()->withErrors(['error' => 'Saldo wallet tidak cukup. Saldo Anda: Rp '.number_format($user->wallet->balance, 0, ',', '.').', Diperlukan: Rp '.number_format($total, 0, ',', '.')]);
                 }
 
-                // Deduct from wallet
                 $balanceBefore = $user->wallet->balance;
                 $user->wallet->decrement('balance', $total);
                 $balanceAfter = $user->wallet->fresh()->balance;
 
-                // Create wallet transaction
                 WalletTransaction::create([
                     'wallet_id' => $user->wallet->id,
                     'type' => 'withdraw',
@@ -142,22 +137,18 @@ class CheckoutController extends Controller
                     'processed_at' => now(),
                 ]);
 
-                // Mark order as paid and completed
                 $order->markAsPaid();
                 $order->markAsCompleted();
 
-                // Enroll user in programs (check if already enrolled)
                 foreach ($cartItems as $cartItem) {
                     $program = $cartItem->program;
 
-                    // Check if user already enrolled in this program
                     $existingEnrollment = ProgramEnrollment::where('program_id', $program->id)
                         ->where('runner_id', $user->id)
                         ->where('status', '!=', 'cancelled')
                         ->first();
 
                     if (! $existingEnrollment) {
-                        // Calculate end date
                         $endDate = Carbon::today()->addWeeks($program->duration_weeks ?? 12);
 
                         ProgramEnrollment::create([
@@ -169,12 +160,10 @@ class CheckoutController extends Controller
                             'payment_status' => 'paid',
                         ]);
 
-                        // Update program enrolled count
                         $program->increment('enrolled_count');
                     }
                 }
 
-                // Clear cart
                 Cart::where('user_id', $user->id)->delete();
 
                 DB::commit();
@@ -185,17 +174,13 @@ class CheckoutController extends Controller
                     'order_number' => $order->order_number,
                 ]);
 
-                // Redirect to invoice page
                 return redirect()->route('marketplace.orders.show', $order->id)
                     ->with('success', 'Pembelian berhasil! Program telah ditambahkan ke kalender Anda.');
-
-            } else {
-                // Midtrans payment (TODO: implement)
-                DB::rollBack();
-
-                return back()->withErrors(['error' => 'Pembayaran Midtrans belum tersedia.']);
             }
 
+            Cart::where('user_id', $user->id)->delete();
+
+            DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Checkout error: '.$e->getMessage(), [
@@ -208,5 +193,124 @@ class CheckoutController extends Controller
             return back()->with('error', 'Gagal memproses checkout: '.$e->getMessage())
                 ->withErrors(['error' => 'Gagal memproses checkout: '.$e->getMessage()]);
         }
+
+        if ($validated['payment_method'] === 'midtrans') {
+            try {
+                Config::$serverKey = config('midtrans.server_key');
+                Config::$isProduction = config('midtrans.is_production');
+                Config::$isSanitized = true;
+                Config::$is3ds = true;
+
+                $order->load('items.program');
+
+                $itemDetails = $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->program_id,
+                        'price' => (int) $item->price,
+                        'quantity' => (int) $item->quantity,
+                        'name' => substr($item->program_title, 0, 50),
+                    ];
+                })->values()->all();
+
+                $params = [
+                    'transaction_details' => [
+                        'order_id' => $order->order_number,
+                        'gross_amount' => (int) $order->total,
+                    ],
+                    'customer_details' => [
+                        'first_name' => $user->name,
+                        'email' => $user->email,
+                    ],
+                    'item_details' => $itemDetails,
+                ];
+
+                $snapToken = Snap::getSnapToken($params);
+
+                return redirect()->route('marketplace.checkout.program.pay', $order->id)
+                    ->with('snap_token', $snapToken);
+            } catch (\Exception $e) {
+                \Log::error('Midtrans token error: '.$e->getMessage(), [
+                    'user_id' => $user->id,
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                ]);
+
+                return redirect()->route('marketplace.orders.show', $order->id)
+                    ->with('error', 'Gagal menginisiasi pembayaran Midtrans: '.$e->getMessage());
+            }
+        }
+
+        return redirect()->route('marketplace.orders.show', $order->id)
+            ->with('error', 'Metode pembayaran tidak dikenal.');
+    }
+
+    public function pay(Order $order)
+    {
+        $user = Auth::user();
+
+        if ($order->user_id !== $user->id && (! $user || ! $user->isAdmin())) {
+            return redirect()->route('marketplace.orders.index')
+                ->with('error', 'Order ini bukan milik Anda.');
+        }
+
+        if ($order->payment_method !== 'midtrans') {
+            return redirect()->route('marketplace.orders.show', $order->id)
+                ->with('info', 'Order ini tidak menggunakan Midtrans.');
+        }
+
+        if ($order->payment_status === 'paid') {
+            return redirect()->route('marketplace.orders.show', $order->id)
+                ->with('info', 'Order ini sudah dibayar.');
+        }
+
+        $snapToken = session('snap_token');
+
+        if (! $snapToken) {
+            try {
+                Config::$serverKey = config('midtrans.server_key');
+                Config::$isProduction = config('midtrans.is_production');
+                Config::$isSanitized = true;
+                Config::$is3ds = true;
+
+                $order->load('items.program');
+
+                $itemDetails = $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->program_id,
+                        'price' => (int) $item->price,
+                        'quantity' => (int) $item->quantity,
+                        'name' => substr($item->program_title, 0, 50),
+                    ];
+                })->values()->all();
+
+                $params = [
+                    'transaction_details' => [
+                        'order_id' => $order->order_number,
+                        'gross_amount' => (int) $order->total,
+                    ],
+                    'customer_details' => [
+                        'first_name' => $user->name,
+                        'email' => $user->email,
+                    ],
+                    'item_details' => $itemDetails,
+                ];
+
+                $snapToken = Snap::getSnapToken($params);
+            } catch (\Exception $e) {
+                \Log::error('Midtrans token error (pay): '.$e->getMessage(), [
+                    'user_id' => $user->id,
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                ]);
+
+                return redirect()->route('marketplace.orders.show', $order->id)
+                    ->with('error', 'Gagal menginisiasi pembayaran Midtrans: '.$e->getMessage());
+            }
+        }
+
+        return view('checkout.pay', [
+            'order' => $order,
+            'snapToken' => $snapToken,
+        ]);
     }
 }

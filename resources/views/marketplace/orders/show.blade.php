@@ -96,6 +96,47 @@
                         <span class="font-black text-neon italic text-2xl">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
                     </div>
                 </div>
+
+                @if($order->shipping_name || $order->shipping_address)
+                    <div class="bg-slate-900 p-6 border-t border-slate-800">
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h3.586a1 1 0 01.707.293l2.414 2.414a1 1 0 001.414 0l2.414-2.414A1 1 0 0115.414 19H19a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z" /></svg>
+                            Shipping Details
+                        </h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Nama Penerima</span>
+                                <span class="text-white font-medium">{{ $order->shipping_name ?? '-' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">No. HP</span>
+                                <span class="text-white font-medium">{{ $order->shipping_phone ?? '-' }}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Alamat</span>
+                                <p class="text-white mt-1 text-sm">
+                                    {{ $order->shipping_address ?? '-' }}<br>
+                                    {{ $order->shipping_city ?? '' }}{{ $order->shipping_postal_code ? ', '.$order->shipping_postal_code : '' }}
+                                </p>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Kurir</span>
+                                <span class="text-white font-medium">
+                                    {{ $order->shipping_courier ? strtoupper($order->shipping_courier) : '-' }}
+                                    @if($order->shipping_cost !== null)
+                                        • Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}
+                                    @endif
+                                </span>
+                            </div>
+                            @if($order->shipping_note)
+                                <div>
+                                    <span class="text-slate-400 block">Catatan</span>
+                                    <p class="text-white mt-1 text-sm">{{ $order->shipping_note }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 
