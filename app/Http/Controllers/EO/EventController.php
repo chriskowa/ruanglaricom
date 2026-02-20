@@ -948,7 +948,7 @@ class EventController extends Controller
             ->whereRaw('bib_number REGEXP "^[0-9]+$"')
             ->max(DB::raw('CAST(bib_number AS UNSIGNED)'));
 
-        $nextBibNumber = $latestBib ? ($latestBib + 1) : null;
+        $nextBibNumber = $latestBib ? ($latestBib + 1) : 1;
 
         $coupons = \App\Models\Coupon::where('event_id', $event->id)
             ->where('is_active', true)
