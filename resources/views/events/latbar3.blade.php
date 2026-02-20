@@ -324,12 +324,12 @@
                                         </select>
                                         <label for="gender" class="form-label">GENDER</label>
                                     </div>
-                                    <div class="form-input-group animate-fade-in delay-250">
+                                    <div class="form-input-group animate-fade-in delay-250 hidden">
                                         <select id="jersey_size" v-model="form.jersey_size" required class="form-input">
                                             <option value="">Pilih Ukuran Jersey</option>
                                             <option value="XS">XS</option>
                                             <option value="S">S</option>
-                                            <option value="M">M</option>
+                                            <option value="M" selected>M</option>
                                             <option value="L">L</option>
                                             <option value="XL">XL</option>
                                             <option value="XXL">XXL</option>
