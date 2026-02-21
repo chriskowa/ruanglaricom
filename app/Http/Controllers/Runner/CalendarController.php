@@ -236,7 +236,7 @@ class CalendarController extends Controller
             ->get();
 
         foreach ($stravaActivities as $act) {
-            if (! $act->start_date) {
+            if (! $act->local_start_date) {
                 continue;
             }
 
@@ -246,7 +246,7 @@ class CalendarController extends Controller
             $events[] = [
                 'id' => 'strava_'.$act->strava_activity_id,
                 'title' => $emoji.($act->name ?: 'Strava Activity'),
-                'start' => $act->start_date->format('Y-m-d'),
+                'start' => $act->local_start_date->format('Y-m-d'),
                 'allDay' => true,
                 'editable' => false,
                 'backgroundColor' => '#1F2937',
@@ -1060,10 +1060,10 @@ class CalendarController extends Controller
             ->whereBetween('start_date', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
             ->whereIn('type', ['Run', 'VirtualRun', 'TrailRun', 'Treadmill', 'run', 'virtualrun', 'trailrun', 'treadmill'])
             ->orderBy('start_date')
-            ->get(['strava_activity_id', 'start_date', 'distance_m', 'type']);
+            ->get(['strava_activity_id', 'start_date', 'distance_m', 'type', 'raw']);
 
         foreach ($stravaActivities as $act) {
-            if (! $act->start_date) {
+            if (! $act->local_start_date) {
                 continue;
             }
 
@@ -1072,7 +1072,7 @@ class CalendarController extends Controller
                 continue;
             }
 
-            $weekKey = $act->start_date->format('o-W');
+            $weekKey = $act->local_start_date->format('o-W');
             if (! isset($weeks[$weekKey])) {
                 continue;
             }

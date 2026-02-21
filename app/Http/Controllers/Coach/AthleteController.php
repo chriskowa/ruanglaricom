@@ -249,7 +249,7 @@ class AthleteController extends Controller
             ->get();
 
         foreach ($stravaActivities as $act) {
-            if (! $act->start_date) {
+            if (! $act->local_start_date) {
                 continue;
             }
 
@@ -259,7 +259,7 @@ class AthleteController extends Controller
             $events[] = [
                 'id' => 'strava_'.$act->strava_activity_id,
                 'title' => $emoji.($act->name ?: 'Strava Activity'),
-                'start' => $act->start_date->format('Y-m-d'),
+                'start' => $act->local_start_date->format('Y-m-d'),
                 'allDay' => true,
                 'backgroundColor' => '#1F2937',
                 'borderColor' => '#FC4C02',
@@ -313,7 +313,7 @@ class AthleteController extends Controller
                 'strava_activity_id' => $activityId,
                 'name' => data_get($details, 'name'),
                 'type' => data_get($details, 'type'),
-                'start_date' => data_get($details, 'start_date'),
+                'start_date' => data_get($details, 'start_date_local') ?: data_get($details, 'start_date'),
                 'distance_m' => (int) round((float) data_get($details, 'distance', 0)),
                 'moving_time_s' => (int) data_get($details, 'moving_time', 0),
                 'elapsed_time_s' => (int) data_get($details, 'elapsed_time', 0),
@@ -467,7 +467,7 @@ class AthleteController extends Controller
                 'strava_activity_id' => $activityId,
                 'name' => data_get($details, 'name'),
                 'type' => data_get($details, 'type'),
-                'start_date' => data_get($details, 'start_date'),
+                'start_date' => data_get($details, 'start_date_local') ?: data_get($details, 'start_date'),
                 'distance_m' => (int) round((float) data_get($details, 'distance', 0)),
                 'moving_time_s' => (int) data_get($details, 'moving_time', 0),
                 'elapsed_time_s' => (int) data_get($details, 'elapsed_time', 0),

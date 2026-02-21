@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 class StravaActivity extends Model
 {
@@ -42,5 +43,19 @@ class StravaActivity extends Model
     public function getStravaUrlAttribute(): string
     {
         return 'https://www.strava.com/activities/'.$this->strava_activity_id;
+    }
+
+    public function getLocalStartDateAttribute(): ?Carbon
+    {
+        $raw = is_array($this->raw) ? $this->raw : [];
+        $local = data_get($raw, 'start_date_local') ?: data_get($raw, 'details.start_date_local');
+        if ($local) {
+            try {
+                return Carbon::parse($local)->setTimezone(config('app.timezone'));
+            } catch (\Throwable $e) {
+            }
+        }
+
+        return $this->start_date ? $this->start_date->copy()->setTimezone(config('app.timezone')) : null;
     }
 }

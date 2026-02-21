@@ -178,11 +178,11 @@ class StravaController extends Controller
                     }
                     $activityId = (string) $activityId;
 
-                    $startDate = data_get($a, 'start_date');
+                    $startDate = data_get($a, 'start_date_local') ?: data_get($a, 'start_date');
                     $start = null;
                     if ($startDate) {
                         try {
-                            $start = Carbon::parse($startDate);
+                            $start = Carbon::parse($startDate)->setTimezone(config('app.timezone'));
                         } catch (\Throwable $e) {
                             $warnings[] = 'Aktivitas '.$activityId.' punya start_date tidak valid, dilewati.';
                             $start = null;
@@ -198,7 +198,7 @@ class StravaController extends Controller
                         'strava_activity_id' => $activityId,
                         'name' => data_get($a, 'name'),
                         'type' => data_get($a, 'type'),
-                        'start_date' => $startDate,
+                        'start_date' => $start,
                         'distance_m' => (int) round((float) data_get($a, 'distance', 0)),
                         'moving_time_s' => (int) data_get($a, 'moving_time', 0),
                         'elapsed_time_s' => (int) data_get($a, 'elapsed_time', 0),
@@ -243,7 +243,7 @@ class StravaController extends Controller
 
                         return in_array($t, ['run', 'virtualrun', 'trailrun', 'treadmill']);
                     })
-                    ->groupBy(fn ($act) => $act->start_date?->format('Y-m-d'))
+                    ->groupBy(fn ($act) => $act->local_start_date?->format('Y-m-d'))
                     ->map(function ($group) {
                         return $group->sortByDesc('distance_m')->first();
                     });
@@ -339,7 +339,7 @@ class StravaController extends Controller
                             'strava_link' => $act->strava_url,
                             'notes' => $tracking->notes ?: 'Auto-linked dari Strava sync',
                             'status' => $newStatus,
-                            'completed_at' => $tracking->completed_at ?: $act->start_date,
+                            'completed_at' => $tracking->completed_at ?: ($act->local_start_date ?: $act->start_date),
                         ]);
 
                         $linked++;
