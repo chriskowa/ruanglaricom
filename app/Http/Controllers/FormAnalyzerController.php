@@ -15,6 +15,7 @@ use Symfony\Component\Process\Process;
 class FormAnalyzerController extends Controller
 {
     private const MAX_CONCURRENT = 5;
+    public const MAX_TRIES = 5;
 
     public function index()
     {
@@ -52,12 +53,12 @@ class FormAnalyzerController extends Controller
                 $sessionId = $request->session()->getId();
                 $usageKey = 'form_analyzer:usage:'.$ip.':'.$sessionId;
                 $usage = (int) Cache::get($usageKey, 0);
-                if ($usage >= 2) {
+                if ($usage >= self::MAX_TRIES) {
                     return response()->json([
                         'ok' => false,
                         'error' => 'Batas percobaan tercapai.',
                         'code' => 'limit_reached',
-                        'message' => 'Kamu sudah mencoba Form Analyzer 2x di perangkat ini. Dukung pengembangan RuangLari untuk akses tanpa batas.',
+                        'message' => 'Kamu sudah mencoba Form Analyzer '.self::MAX_TRIES.'x di perangkat ini. Dukung pengembangan RuangLari untuk akses tanpa batas.',
                     ], 429);
                 }
                 Cache::put($usageKey, $usage + 1, now()->addDay());

@@ -1587,7 +1587,7 @@
         const USAGE_KEY = 'rlfa_usage_count';
         const SUPPORT_KEY = 'rlfa_supporter';
         const RESULT_KEY = 'rlfa_last_result';
-        const MAX_TRIES = 2;
+        const MAX_TRIES = @json(\App\Http\Controllers\FormAnalyzerController::MAX_TRIES);
 
         const getUsageCount = () => {
             if (typeof window === 'undefined') return 0;
