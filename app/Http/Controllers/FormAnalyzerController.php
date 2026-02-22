@@ -159,12 +159,14 @@ class FormAnalyzerController extends Controller
                 'compression' => $compression,
             ];
 
-            [$score, $issues, $suggestions, $coachMessage, $positives, $formIssues, $strengthPlan, $recoveryPlan] =
+            [$score, $issues, $suggestions, $coachMessage, $positives, $formIssues, $strengthPlan, $recoveryPlan, $videoScore, $formScore] =
                 $this->makeFeedback($originalMeta, $meta['compression'], $compressionWarnings, $biomech);
 
             return response()->json([
                 'ok' => true,
                 'score' => $score,
+                'video_score' => $videoScore,
+                'form_score' => $formScore,
                 'meta' => $meta,
                 'issues' => $issues,
                 'suggestions' => $suggestions,
@@ -463,11 +465,11 @@ class FormAnalyzerController extends Controller
         $size = $meta['size_bytes'] ?? null;
         $isPortrait = $meta['is_portrait'] ?? null;
 
-        $score = 100;
+        $videoScore = 100;
 
         if ($duration) {
             if ($duration < 4) {
-                $score -= 25;
+                $videoScore -= 25;
                 $issues[] = [
                     'code' => 'duration_too_short',
                     'title' => 'Durasi terlalu pendek',
@@ -481,7 +483,7 @@ class FormAnalyzerController extends Controller
                     'severity' => 'info',
                 ];
             } elseif ($duration > 20) {
-                $score -= 15;
+                $videoScore -= 15;
                 $issues[] = [
                     'code' => 'duration_too_long',
                     'title' => 'Durasi terlalu panjang',
@@ -502,10 +504,10 @@ class FormAnalyzerController extends Controller
                     'severity' => 'good',
                 ];
             } else {
-                $score -= 5;
+                $videoScore -= 5;
             }
         } else {
-            $score -= 10;
+            $videoScore -= 10;
             $issues[] = [
                 'code' => 'duration_unknown',
                 'title' => 'Durasi tidak terbaca',
@@ -517,7 +519,7 @@ class FormAnalyzerController extends Controller
         if ($width && $height) {
             $minSide = min($width, $height);
             if ($minSide < 480) {
-                $score -= 25;
+                $videoScore -= 25;
                 $issues[] = [
                     'code' => 'resolution_low',
                     'title' => 'Resolusi terlalu rendah',
@@ -531,7 +533,7 @@ class FormAnalyzerController extends Controller
                     'severity' => 'info',
                 ];
             } elseif ($minSide < 720) {
-                $score -= 10;
+                $videoScore -= 10;
                 $issues[] = [
                     'code' => 'resolution_mid',
                     'title' => 'Resolusi cukup, tapi bisa lebih tajam',
@@ -548,7 +550,7 @@ class FormAnalyzerController extends Controller
             }
 
             if ($isPortrait === true) {
-                $score -= 10;
+                $videoScore -= 10;
                 $issues[] = [
                     'code' => 'portrait',
                     'title' => 'Orientasi portrait',
@@ -570,7 +572,7 @@ class FormAnalyzerController extends Controller
                 ];
             }
         } else {
-            $score -= 10;
+            $videoScore -= 10;
             $issues[] = [
                 'code' => 'resolution_unknown',
                 'title' => 'Resolusi tidak terbaca',
@@ -581,7 +583,7 @@ class FormAnalyzerController extends Controller
 
         if ($fps) {
             if ($fps < 24) {
-                $score -= 20;
+                $videoScore -= 20;
                 $issues[] = [
                     'code' => 'fps_low',
                     'title' => 'FPS rendah',
@@ -595,7 +597,7 @@ class FormAnalyzerController extends Controller
                     'severity' => 'info',
                 ];
             } elseif ($fps < 30) {
-                $score -= 8;
+                $videoScore -= 8;
                 $issues[] = [
                     'code' => 'fps_mid',
                     'title' => 'FPS cukup, tapi ideal 30fps',
@@ -611,7 +613,7 @@ class FormAnalyzerController extends Controller
                 ];
             }
         } else {
-            $score -= 6;
+            $videoScore -= 6;
             $issues[] = [
                 'code' => 'fps_unknown',
                 'title' => 'FPS tidak terbaca',
@@ -621,7 +623,7 @@ class FormAnalyzerController extends Controller
         }
 
         if ($size && $size > 70 * 1024 * 1024) {
-            $score -= 8;
+            $videoScore -= 8;
             $issues[] = [
                 'code' => 'size_large',
                 'title' => 'Ukuran file besar',
@@ -649,12 +651,70 @@ class FormAnalyzerController extends Controller
             ];
         }
 
-        $score = (int) max(0, min(100, round($score)));
+        $videoScore = (int) max(0, min(100, round($videoScore)));
+
+        $formScore = null;
 
         [$formIssues, $strengthPlan, $recoveryPlan, $formCoachLines, $formPositives] = $this->buildBiomechFeedback($biomech);
         foreach ($formPositives as $p) {
             $positives[] = $p;
         }
+
+        if (is_array($biomech) && (($biomech['samples'] ?? null) || ($biomech['source'] ?? null))) {
+            $formScoreVal = 100.0;
+
+            $over = $biomech['overstride_pct'] ?? null;
+            if (is_numeric($over)) {
+                if ($over >= 60) {
+                    $formScoreVal -= 35;
+                } elseif ($over >= 35) {
+                    $formScoreVal -= 20;
+                } elseif ($over >= 20) {
+                    $formScoreVal -= 10;
+                }
+            }
+
+            $arm = $biomech['arm_cross_pct'] ?? null;
+            if (is_numeric($arm)) {
+                if ($arm >= 60) {
+                    $formScoreVal -= 25;
+                } elseif ($arm >= 40) {
+                    $formScoreVal -= 15;
+                } elseif ($arm >= 25) {
+                    $formScoreVal -= 8;
+                }
+            }
+
+            $shin = $biomech['shin_angle_deg'] ?? null;
+            if (is_numeric($shin) && $shin >= 18) {
+                $formScoreVal -= 8;
+            }
+
+            $knee = $biomech['knee_flex_deg'] ?? null;
+            if (is_numeric($knee) && $knee < 20) {
+                $formScoreVal -= 10;
+            }
+
+            $trunk = $biomech['trunk_lean_deg'] ?? null;
+            if (is_numeric($trunk) && ($trunk > 18 || $trunk < -5)) {
+                $formScoreVal -= 6;
+            }
+
+            $vo = $biomech['vertical_oscillation'] ?? null;
+            if (is_numeric($vo) && $vo >= 0.012) {
+                $formScoreVal -= 6;
+            }
+
+            $conf = $biomech['confidence'] ?? null;
+            if (is_numeric($conf) && $conf < 0.5) {
+                $formScoreVal -= 8;
+            }
+
+            $formScoreVal = max(0, min(100, $formScoreVal));
+            $formScore = (int) round($formScoreVal);
+        }
+
+        $score = $formScore ?? $videoScore;
 
         $coachLines = [];
         $coachLines[] = 'Saya sudah analisis form lari kamu (landing, lever, push, pull, ayunan tangan, postur). Ini ringkasannya:';
@@ -663,13 +723,13 @@ class FormAnalyzerController extends Controller
         $coachLines[] = '2) Latih 2–3x/minggu sesuai rencana penguatan, lalu rekam ulang untuk cek progres.';
         $coachLines[] = '3) Kalau banyak status “missing”, rekam tampak samping, tubuh full terlihat, pencahayaan cukup (5–10 detik).';
         $coachLines[] = '';
-        if ($score >= 85) {
+        if ($videoScore >= 85) {
             $coachLines[] = '';
             $coachLines[] = 'Kualitas data sudah sangat layak. Hasil feedback akan lebih konsisten.';
-        } elseif ($score >= 70) {
+        } elseif ($videoScore >= 70) {
             $coachLines[] = '';
             $coachLines[] = 'Kualitas data cukup oke. Kalau mau hasil lebih presisi, perbaiki pencahayaan dan pastikan tubuh full terlihat.';
-        } elseif ($score >= 55) {
+        } elseif ($videoScore >= 55) {
             $coachLines[] = '';
             $coachLines[] = 'Ada beberapa hal yang perlu dibenahi supaya analisis tidak “melenceng”. Fokus perbaiki yang statusnya paling berat dulu.';
         } else {
@@ -688,7 +748,7 @@ class FormAnalyzerController extends Controller
         $issues = array_values($issues);
         $positives = array_values($positives);
 
-        return [$score, $issues, $suggestions, implode("\n", $coachLines), $positives, $formIssues, $strengthPlan, $recoveryPlan];
+        return [$score, $issues, $suggestions, implode("\n", $coachLines), $positives, $formIssues, $strengthPlan, $recoveryPlan, $videoScore, $formScore];
     }
 
     private function buildBiomechFeedback(?array $biomech): array

@@ -194,16 +194,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="mt-4 bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs text-slate-300">
-                                        <label class="flex items-center gap-2">
-                                            <input id="rlfa-mode-device" type="checkbox" class="rounded bg-slate-800 border-slate-600 text-neon focus:ring-0" checked>
-                                            <span class="font-semibold text-white">Mode hemat</span>
-                                            <span class="text-slate-400">(analisis form di perangkat, tidak upload video ke server)</span>
-                                        </label>
-                                        <div class="mt-2 text-[10px] text-slate-400 leading-relaxed">
-                                            Jika dimatikan, video akan diupload ke server (masuk antrian max 5 user) untuk cek metadata & optimasi ukuran jika tersedia.
-                                        </div>
-                                    </div>
+                                    <input id="rlfa-mode-device" type="hidden" value="1">
 
                                     <div id="rlfa-client-warnings" class="mt-4 hidden">
                                         <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-200 space-y-1"></div>
@@ -239,15 +230,28 @@
 
                             <div id="rlfa-state-results" class="absolute inset-0 bg-slate-950 hidden flex-col z-50 overflow-y-auto no-scrollbar">
                                 <div class="p-6 pb-2 sticky top-0 bg-slate-950/95 backdrop-blur z-20 border-b border-slate-800">
-                                    <div class="flex justify-between items-end mb-2">
-                                        <div>
-                                            <p class="text-xs text-slate-400 uppercase tracking-widest">Skor Kelayakan</p>
-                                            <h2 class="text-4xl font-black text-white italic">
-                                                <span id="rlfa-score">--</span><span class="text-lg text-slate-500 font-normal">/100</span>
-                                            </h2>
+                                    <div class="flex flex-col gap-3 mb-3">
+                                        <div class="flex justify-between items-end">
+                                            <div>
+                                                <p class="text-[10px] text-slate-400 uppercase tracking-widest">Skor Video (kualitas data)</p>
+                                                <h2 class="text-2xl font-black text-slate-200 italic">
+                                                    <span id="rlfa-video-score">--</span><span class="text-sm text-slate-500 font-normal">/100</span>
+                                                </h2>
+                                            </div>
+                                            <div id="rlfa-video-score-badge" class="bg-slate-800 text-slate-200 px-2 py-1 rounded text-[10px] font-bold border border-slate-700">
+                                                MENUNGGU
+                                            </div>
                                         </div>
-                                        <div id="rlfa-score-badge" class="bg-slate-800 text-slate-200 px-2 py-1 rounded text-xs font-bold border border-slate-700">
-                                            MENUNGGU
+                                        <div class="flex justify-between items-end">
+                                            <div>
+                                                <p class="text-[10px] text-slate-400 uppercase tracking-widest">Skor Form Lari</p>
+                                                <h2 class="text-3xl font-black text-white italic">
+                                                    <span id="rlfa-score">--</span><span class="text-lg text-slate-500 font-normal">/100</span>
+                                                </h2>
+                                            </div>
+                                            <div id="rlfa-score-badge" class="bg-slate-800 text-slate-200 px-2 py-1 rounded text-xs font-bold border border-slate-700">
+                                                MENUNGGU
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="mt-2 grid grid-cols-2 gap-2 text-[10px] text-slate-300">
@@ -1253,6 +1257,8 @@
 
         const scoreEl = document.getElementById('rlfa-score');
         const scoreBadge = document.getElementById('rlfa-score-badge');
+        const videoScoreEl = document.getElementById('rlfa-video-score');
+        const videoScoreBadge = document.getElementById('rlfa-video-score-badge');
         const metaDuration = document.getElementById('rlfa-meta-duration');
         const metaResolution = document.getElementById('rlfa-meta-resolution');
         const metaFps = document.getElementById('rlfa-meta-fps');
@@ -1712,7 +1718,7 @@
             syncAnalyzePhotosBtn();
         };
 
-        const scoreToBadge = (score) => {
+            const scoreToBadge = (score) => {
             if (score >= 85) return { text: 'SIAP ANALISIS', className: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' };
             if (score >= 70) return { text: 'CUKUP OK', className: 'bg-blue-500/20 text-blue-300 border-blue-500/30' };
             if (score >= 55) return { text: 'PERLU PERBAIKAN', className: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' };
@@ -1859,10 +1865,19 @@
                 }
             }
 
-            const score = Number(result.score) || 0;
-            scoreEl.textContent = String(score);
+            const formScore = Number(result.form_score ?? result.score) || 0;
+            const videoScore = Number(result.video_score) || 0;
 
-            const badge = scoreToBadge(score);
+            if (videoScoreEl && videoScoreBadge) {
+                videoScoreEl.textContent = videoScore ? String(videoScore) : '--';
+                const vBadge = scoreToBadge(videoScore);
+                videoScoreBadge.className = 'px-2 py-1 rounded text-[10px] font-bold border ' + vBadge.className;
+                videoScoreBadge.textContent = vBadge.text;
+            }
+
+            scoreEl.textContent = String(formScore);
+
+            const badge = scoreToBadge(formScore);
             scoreBadge.className = 'px-2 py-1 rounded text-xs font-bold border ' + badge.className;
             scoreBadge.textContent = badge.text;
 
