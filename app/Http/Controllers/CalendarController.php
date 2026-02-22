@@ -15,7 +15,14 @@ class CalendarController extends Controller
 {
     public function index()
     {
-        return view('calendar.index');
+        $stravaToken = null;
+        if (auth()->check()) {
+            $stravaToken = app(StravaApiService::class)->getValidAccessToken(auth()->user());
+        }
+
+        return view('calendar.index', [
+            'stravaToken' => $stravaToken,
+        ]);
     }
 
     public function getAiAnalysis(Request $request)

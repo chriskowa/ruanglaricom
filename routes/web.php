@@ -269,6 +269,10 @@ Route::middleware('signed')->get('/tools/race-master/certificates/public/{certif
 Route::get('/tools/calculator', [App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
 Route::get('/tools/form-analyzer', [App\Http\Controllers\FormAnalyzerController::class, 'index'])->name('tools.form-analyzer');
 Route::post('/tools/form-analyzer/analyze', [App\Http\Controllers\FormAnalyzerController::class, 'analyze'])->name('tools.form-analyzer.analyze');
+Route::post('/tools/form-analyzer/report', [App\Http\Controllers\FormAnalyzerController::class, 'report'])->name('tools.form-analyzer.report');
+Route::post('/tools/form-analyzer/support', [App\Http\Controllers\FormAnalyzerController::class, 'support'])
+    ->withoutMiddleware([\Illuminate\Routing\Middleware\ThrottleRequests::class])
+    ->name('tools.form-analyzer.support');
 Route::get('/tools/buat-rute-lari', function () {
     return view('tools.buat-rute-lari');
 })->name('tools.buat-rute-lari');
@@ -278,6 +282,13 @@ Route::get('/tools/qr-generator', function () {
 })->name('tools.qr-generator');
 
 Route::post('/tools/shortlink', [App\Http\Controllers\ShortLinkController::class, 'store'])->name('tools.shortlink.store');
+
+Route::get('/tools/shoe-analyzer', function () {
+    return view('tools.shoe-analyzer');
+})->name('tools.shoe-analyzer');
+
+Route::post('/api/tools/analyze-shoe', [App\Http\Controllers\Tools\ShoeAnalyzerController::class, 'analyze'])
+    ->name('tools.shoe-analyzer.analyze');
 Route::get('/s/{code}', [App\Http\Controllers\ShortLinkController::class, 'redirect'])->name('shortlink.redirect');
 Route::middleware('auth')->post('/tools/buat-rute-lari/strava-upload', [App\Http\Controllers\CalendarController::class, 'uploadRouteToStrava'])->name('tools.buat-rute-lari.strava-upload');
 Route::middleware('auth')->post('/tools/buat-rute-lari/strava-authorize-and-post', [App\Http\Controllers\CalendarController::class, 'authorizeAndPostRouteToStrava'])->name('tools.buat-rute-lari.strava-authorize-and-post');

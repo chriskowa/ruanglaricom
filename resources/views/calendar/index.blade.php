@@ -1292,6 +1292,7 @@
                     loading: true,
                     isStravaConnected: false,
                     isAuthenticated: {{ auth()->check() ? 'true' : 'false' }},
+                    serverStravaToken: @json($stravaToken ?? null),
                     calendarLoading: false,
                     calendarInstance: null,
                     // Data Containers
@@ -1665,10 +1666,14 @@
 
                 // Check Strava Token
                 if (this.isAuthenticated) {
-                    const token = localStorage.getItem('strava_access_token');
+                    const serverToken = this.serverStravaToken;
+                    const token = serverToken || localStorage.getItem('strava_access_token');
                     if (token) {
                         this.isStravaConnected = true;
                         this.apiConfig.stravaToken = token;
+                        if (serverToken) {
+                            localStorage.setItem('strava_access_token', serverToken);
+                        }
                     }
                 } else {
                     this.isStravaConnected = false;

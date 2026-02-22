@@ -25,8 +25,22 @@
         100% { top: 100%; opacity: 0; }
     }
     .animate-scan { animation: scan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes rlfa-tools-scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
 </style>
 @endpush
+
+@php
+    $featuredEvents = \App\Models\Event::query()
+        ->where('is_featured', true)
+        ->where('is_active', true)
+        ->where('status', 'published')
+        ->orderBy('start_at', 'asc')
+        ->limit(1)
+        ->get(['id','name','slug','start_at','location_name','hero_image','hero_image_url']);
+@endphp
 
 @section('content')
 <div class="relative overflow-hidden">
@@ -59,6 +73,37 @@
                     *Beta — hasil makin akurat jika video sesuai panduan
                 </div>
             </div>
+
+            @if(isset($featuredEvents) && $featuredEvents->count())
+                @php
+                    $event = $featuredEvents->first();
+                @endphp
+                <div class="mt-10 flex justify-center">
+                    <a href="{{ route('events.show', $event->slug) }}" class="group w-full max-w-xl bg-slate-950/70 border border-slate-800 rounded-2xl p-4 flex items-center gap-4 hover:border-neon/60 hover:bg-slate-900 transition">
+                        <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 flex-shrink-0">
+                            @if($event->hero_image_url)
+                                <img src="{{ $event->hero_image_url }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
+                            @elseif($event->hero_image)
+                                <img src="{{ asset('storage/'.$event->hero_image) }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-slate-500 text-xs">Event</div>
+                            @endif
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-neon mb-1">Featured Event</div>
+                            <div class="text-sm font-semibold text-white group-hover:text-neon transition">
+                                {{ $event->name }}
+                            </div>
+                            <div class="mt-1 text-xs text-slate-400">
+                                {{ optional($event->start_at)->format('d M Y') ?? 'Tanggal menyusul' }} • {{ $event->location_name ?? 'Lokasi menyusul' }}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <i class="fa-solid fa-arrow-right text-neon text-sm group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </a>
+                </div>
+            @endif
         </div>
     </section>
 
@@ -107,7 +152,12 @@
                     <div class="relative w-[340px] h-[680px] bg-slate-950 border-[8px] border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden ring-1 ring-slate-700 flex flex-col">
                         <div class="absolute top-0 w-full h-8 bg-black/50 z-50 flex justify-between items-center px-6">
                             <span class="text-[10px] font-bold text-white">RUANGLARI AI</span>
-                            <div class="flex gap-1"><div class="w-3 h-3 bg-green-500 rounded-full"></div></div>
+                            <div class="flex items-center gap-2">
+                                <div id="rlfa-supporter-badge" class="hidden text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/60">
+                                    Supporter mode
+                                </div>
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            </div>
                         </div>
 
                         <div id="rlfa-app" class="w-full h-full bg-slate-950 relative">
@@ -203,7 +253,7 @@
                             </div>
 
                             <div id="rlfa-state-scanning" class="absolute inset-0 bg-black hidden z-40">
-                                <img src="{{ asset('images/big/img2.jpg') }}" class="w-full h-full object-cover opacity-60 grayscale filter contrast-125" alt="Running Analysis">
+                                <img src="{{ asset('images/form-analyzer.webp') }}" class="w-full h-full object-cover opacity-60 grayscale filter contrast-125" alt="Running Analysis">
                                 <div class="absolute inset-0">
                                     <div class="absolute w-full h-[2px] bg-neon shadow-[0_0_20px_#ccff00] animate-scan z-50"></div>
                                     <div class="absolute top-[40%] left-[45%] w-3 h-3 bg-neon rounded-full shadow-[0_0_10px_#ccff00] animate-pulse"></div>
@@ -353,17 +403,17 @@
                                     </div>
 
                                     <div id="rlfa-formissues-wrap" class="space-y-3 hidden">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Analisis Form (Beta)</h4>
+                                            <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Analisis Form (Beta)</h4>
                                         <div id="rlfa-formissues" class="space-y-2"></div>
                                     </div>
 
                                     <div id="rlfa-formreport-wrap" class="space-y-3 hidden">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Laporan Form</h4>
+                                            <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Laporan Form (Beta)</h4>
                                         <div id="rlfa-formreport" class="space-y-3"></div>
                                     </div>
 
                                     <div id="rlfa-strength-wrap" class="space-y-3 hidden">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Solusi Penguatan</h4>
+                                            <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Solusi Penguatan</h4>
                                         <div id="rlfa-strength" class="space-y-2"></div>
                                     </div>
 
@@ -376,6 +426,12 @@
                                         <button id="rlfa-advanced-btn" type="button" class="w-full bg-neon text-dark font-bold py-3 rounded-xl text-sm hover:bg-white">
                                             Lihat Analisis Advance
                                         </button>
+                                        <button id="rlfa-download-pdf-btn" type="button" class="w-full bg-slate-900 text-slate-100 font-bold py-3 rounded-xl text-sm border border-slate-700 hover:bg-slate-800">
+                                            Download PDF Hasil Analisis
+                                        </button>
+                                        <button id="rlfa-download-image-btn" type="button" class="w-full bg-slate-900 text-slate-100 font-bold py-3 rounded-xl text-sm border border-slate-700 hover:bg-slate-800">
+                                            Download Image Hasil Analisis
+                                        </button>
                                         <button id="rlfa-retry-btn" type="button" class="w-full bg-white text-dark font-bold py-3 rounded-xl text-sm hover:bg-slate-200">
                                             Ulangi Analisis
                                         </button>
@@ -387,113 +443,326 @@
                             </div>
                         </div>
 
-                        <div id="rlfa-advanced-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/80 backdrop-blur p-4">
-                            <div class="w-full max-w-5xl max-h-[90vh] overflow-y-auto no-scrollbar bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl">
-                                <div class="sticky top-0 z-10 bg-slate-950/95 backdrop-blur border-b border-slate-800 p-4 flex items-center justify-between">
-                                    <div>
-                                        <div class="text-xs text-slate-400 uppercase tracking-widest">Laporan Advance</div>
-                                        <div class="text-white font-black text-lg">Analisis Form Lengkap</div>
-                                    </div>
-                                    <button id="rlfa-advanced-close" type="button" class="text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg px-3 py-2">Tutup</button>
-                                </div>
-                                <div class="p-5 space-y-6">
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                        <div class="space-y-3">
-                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Preview Analisis</div>
-                                            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                                                <img id="rlfa-advanced-preview" class="w-full h-auto object-cover" src="" alt="Preview Analisis">
-                                            </div>
-                                        </div>
-                                        <div class="space-y-3">
-                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ideal Form Guide</div>
-                                            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3">
-                                                <svg viewBox="0 0 220 320" class="w-full h-56" fill="none">
-                                                    <rect x="8" y="8" width="204" height="304" rx="16" stroke="#1f2937" stroke-width="2"/>
-                                                    <line x1="110" y1="40" x2="110" y2="120" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
-                                                    <line x1="110" y1="120" x2="140" y2="200" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
-                                                    <line x1="140" y1="200" x2="90" y2="260" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
-                                                    <circle cx="110" cy="30" r="10" fill="#ccff00"/>
-                                                    <circle cx="110" cy="120" r="5" fill="#ffffff"/>
-                                                    <circle cx="140" cy="200" r="5" fill="#ffffff"/>
-                                                    <circle cx="90" cy="260" r="5" fill="#60a5fa"/>
-                                                    <path d="M110 120 L150 120" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
-                                                    <path d="M140 200 L170 200" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
-                                                    <text x="118" y="110" fill="#ccff00" font-size="10" font-weight="700">Trunk 5–10°</text>
-                                                    <text x="148" y="190" fill="#ccff00" font-size="10" font-weight="700">Knee 30–45°</text>
-                                                    <text x="100" y="250" fill="#ccff00" font-size="10" font-weight="700">Shin 85–95°</text>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div id="rlfa-adv-snapshots-wrap" class="hidden">
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Snapshot Form Bermasalah</div>
-                                        <div id="rlfa-adv-snapshots" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-                                    </div>
-
-                                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
-                                            <div class="text-slate-400 uppercase tracking-widest">Trunk Lean</div>
-                                            <div class="text-white font-mono" id="rlfa-adv-trunk">--</div>
-                                        </div>
-                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
-                                            <div class="text-slate-400 uppercase tracking-widest">Knee Flex</div>
-                                            <div class="text-white font-mono" id="rlfa-adv-knee">--</div>
-                                        </div>
-                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
-                                            <div class="text-slate-400 uppercase tracking-widest">Shin Angle</div>
-                                            <div class="text-white font-mono" id="rlfa-adv-shin">--</div>
-                                        </div>
-                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
-                                            <div class="text-slate-400 uppercase tracking-widest">Arm Swing</div>
-                                            <div class="text-white font-mono" id="rlfa-adv-arm">--</div>
-                                        </div>
-                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
-                                            <div class="text-slate-400 uppercase tracking-widest">Overstride</div>
-                                            <div class="text-white font-mono" id="rlfa-adv-overstride">--</div>
-                                        </div>
-                                        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
-                                            <div class="text-slate-400 uppercase tracking-widest">Heel Strike</div>
-                                            <div class="text-white font-mono" id="rlfa-adv-heel">--</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                        <div>
-                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Analisis Ayunan & Postur</div>
-                                            <div id="rlfa-adv-swing" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
-                                        </div>
-                                        <div>
-                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Saran Penguatan</div>
-                                            <div id="rlfa-adv-strength" class="space-y-2"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                        <div>
-                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Hip & Core Stability</div>
-                                            <div id="rlfa-adv-hipcore" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
-                                        </div>
-                                        <div>
-                                            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Calf & Ankle Load</div>
-                                            <div id="rlfa-adv-calf" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Laporan Form Lengkap</div>
-                                        <div id="rlfa-adv-report" class="space-y-3"></div>
-                                    </div>
-
-                                    <div>
-                                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Preview Rekomendasi</div>
-                                        <div id="rlfa-adv-suggestions" class="space-y-2"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-600 rounded-full z-50"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="rlfa-advanced-modal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/80 backdrop-blur p-4">
+        <div class="w-full max-w-5xl max-h-[90vh] overflow-y-auto no-scrollbar bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl">
+            <div class="sticky top-0 z-20 bg-slate-950/95 backdrop-blur border-b border-slate-800 p-4 flex items-center justify-between">
+                <div>
+                    <div class="text-xs text-slate-400 uppercase tracking-widest">Laporan Advance</div>
+                    <div class="text-white font-black text-lg">Laporan Form (Beta)</div>
+                </div>
+                <button id="rlfa-advanced-close" type="button" class="text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg px-3 py-2">
+                    Tutup ✕
+                </button>
+            </div>
+            <div class="p-5 space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="space-y-3">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Preview Analisis</div>
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                            <img id="rlfa-advanced-preview" class="w-full h-auto object-cover" src="" alt="Preview Analisis">
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ideal Form Guide</div>
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3">
+                            <svg viewBox="0 0 220 320" class="w-full h-56" fill="none">
+                                <rect x="8" y="8" width="204" height="304" rx="16" stroke="#1f2937" stroke-width="2"/>
+                                <line x1="110" y1="40" x2="110" y2="120" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                <line x1="110" y1="120" x2="140" y2="200" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                <line x1="140" y1="200" x2="90" y2="260" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
+                                <circle cx="110" cy="30" r="10" fill="#ccff00"/>
+                                <circle cx="110" cy="120" r="5" fill="#ffffff"/>
+                                <circle cx="140" cy="200" r="5" fill="#ffffff"/>
+                                <circle cx="90" cy="260" r="5" fill="#60a5fa"/>
+                                <path d="M110 120 L150 120" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
+                                <path d="M140 200 L170 200" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
+                                <text x="118" y="110" fill="#ccff00" font-size="10" font-weight="700">Trunk 5–10°</text>
+                                <text x="148" y="190" fill="#ccff00" font-size="10" font-weight="700">Knee 30–45°</text>
+                                <text x="100" y="250" fill="#ccff00" font-size="10" font-weight="700">Shin 85–95°</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="rlfa-adv-snapshots-wrap" class="hidden">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Snapshot Form Bermasalah</div>
+                    <div id="rlfa-adv-snapshots" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                        <div class="text-slate-400 uppercase tracking-widest">Trunk Lean</div>
+                        <div class="text-white font-mono" id="rlfa-adv-trunk">--</div>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                        <div class="text-slate-400 uppercase tracking-widest">Knee Flex</div>
+                        <div class="text-white font-mono" id="rlfa-adv-knee">--</div>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                        <div class="text-slate-400 uppercase tracking-widest">Shin Angle</div>
+                        <div class="text-white font-mono" id="rlfa-adv-shin">--</div>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                        <div class="text-slate-400 uppercase tracking-widest">Arm Swing</div>
+                        <div class="text-white font-mono" id="rlfa-adv-arm">--</div>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                        <div class="text-slate-400 uppercase tracking-widest">Overstride</div>
+                        <div class="text-white font-mono" id="rlfa-adv-overstride">--</div>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-2">
+                        <div class="text-slate-400 uppercase tracking-widest">Heel Strike</div>
+                        <div class="text-white font-mono" id="rlfa-adv-heel">--</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Analisis Ayunan & Postur</div>
+                        <div id="rlfa-adv-swing" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Solusi Penguatan</div>
+                        <div id="rlfa-adv-strength" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Pemulihan & Pengobatan Awal</div>
+                    <div id="rlfa-adv-recovery" class="space-y-2"></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Hip & Core Stability</div>
+                        <div id="rlfa-adv-hipcore" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Calf & Ankle Load</div>
+                        <div id="rlfa-adv-calf" class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Laporan Form (Beta)</div>
+                    <div id="rlfa-adv-report" class="space-y-3"></div>
+                </div>
+
+                <div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Preview Rekomendasi</div>
+                    <div id="rlfa-adv-suggestions" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rlfa-qris-modal" class="fixed inset-0 z-[220] hidden flex items-center justify-center bg-black/80 backdrop-blur p-4">
+        <div class="w-full max-w-md bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl p-5">
+            <div class="flex items-start justify-between gap-3 mb-4">
+                <div>
+                    <div class="text-xs font-bold text-neon uppercase tracking-[0.2em]">Buy Me A Coffee</div>
+                    <div class="text-white font-black text-lg mt-1">Dukung RuangLari</div>
+                    <p class="text-xs text-slate-400 mt-2">
+                        Kamu sudah 2x coba Form Analyzer. Scan QRIS ini untuk dukung pengembangan fitur dan akses tanpa batas.
+                    </p>
+                </div>
+                <button id="rlfa-qris-close" type="button" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 flex items-center justify-center hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-center">
+                <img src="{{ asset('images/qris.png') }}" alt="QRIS RuangLari" class="w-56 h-56 object-contain">
+            </div>
+            <div class="mt-4 text-[11px] text-slate-500">
+                Setelah scan, kamu bisa tetap menutup jendela ini dan lanjut eksplor tools lain di RuangLari.
+            </div>
+            <form id="rlfa-qris-form" class="mt-4 space-y-2">
+                <div class="text-[11px] text-slate-400">
+                    Opsional: isi data singkat agar kami tahu siapa yang sudah mendukung. Setelah kirim, akses Form Analyzer di perangkat ini akan dibuka tanpa batas.
+                </div>
+                <div class="grid grid-cols-1 gap-2">
+                    <input id="rlfa-qris-name" type="text" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" placeholder="Nama (opsional)">
+                    <input id="rlfa-qris-email" type="email" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" placeholder="Email (opsional)">
+                    <textarea id="rlfa-qris-message" rows="2" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" placeholder="Pesan atau catatan (opsional)"></textarea>
+                </div>
+                <button type="submit" class="w-full mt-1 bg-neon text-dark font-bold py-2.5 rounded-lg text-xs hover:bg-white transition">
+                    Saya sudah donasi & kirim data
+                </button>
+                <div id="rlfa-qris-feedback" class="text-[11px] text-emerald-400 mt-1 hidden"></div>
+            </form>
+        </div>
+    </div>
+
+    <section class="py-16 border-t border-slate-800 bg-slate-950/60">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <p class="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">Other Tools</p>
+                    <h2 class="mt-2 text-2xl md:text-3xl font-bold text-white">Eksplor tools lain di RuangLari</h2>
+                    <p class="mt-2 text-sm text-slate-400 max-w-xl">
+                        Setelah analisis form lari, kamu bisa lanjut pakai tools lain untuk merencanakan race, buat rute, atau cek “nyawa” sepatu lari kamu.
+                    </p>
+                </div>
+            </div>
+
+            <div class="relative">
+                <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent pointer-events-none"></div>
+                <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-slate-950 via-slate-950/80 to-transparent pointer-events-none"></div>
+
+                <button
+                    id="rlfa-tools-prev"
+                    type="button"
+                    class="hidden md:flex absolute left-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-slate-900/90 border border-slate-700 text-slate-300 items-center justify-center hover:bg-slate-800 hover:text-white hover:border-neon/60 transition"
+                >
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <button
+                    id="rlfa-tools-next"
+                    type="button"
+                    class="hidden md:flex absolute right-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-slate-900/90 border border-slate-700 text-slate-300 items-center justify-center hover:bg-slate-800 hover:text-white hover:border-neon/60 transition"
+                >
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+
+                <div
+                    id="rlfa-tools-carousel"
+                    class="overflow-x-auto no-scrollbar"
+                >
+                    <div class="flex gap-4 py-4 min-w-max" data-rlfa-tools-track>
+                        <a href="{{ route('tools.pace-pro') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-blue-500/60 hover:bg-slate-900 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-gauge-high"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-blue-300 uppercase tracking-widest">Race Planning</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1">Pace Pro</h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Kalkulator strategi lomba: target waktu, split, dan pacing plan.
+                            </p>
+                            <span class="inline-flex items-center text-[11px] font-semibold text-blue-300 group-hover:translate-x-1 transition-transform">
+                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                            </span>
+                        </a>
+
+                        <a href="{{ route('tools.buat-rute-lari') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-emerald-500/60 hover:bg-slate-900 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-route"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">Route Builder</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1">Buat Rute Lari</h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Desain rute dengan jarak dan elevasi jelas, siap di-export ke GPS.
+                            </p>
+                            <span class="inline-flex items-center text-[11px] font-semibold text-emerald-300 group-hover:translate-x-1 transition-transform">
+                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                            </span>
+                        </a>
+
+                        <a href="{{ route('tools.race-master') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-indigo-500/60 hover:bg-slate-900 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-stopwatch"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Race Management</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1">Race Master</h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Kelola race komunitas: BIB, timing manual, dan leaderboard live.
+                            </p>
+                            <span class="inline-flex items-center text-[11px] font-semibold text-indigo-300 group-hover:translate-x-1 transition-transform">
+                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                            </span>
+                        </a>
+
+                        <a href="{{ route('calculator') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-amber-500/60 hover:bg-slate-900 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-calculator"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-amber-300 uppercase tracking-widest">Race Predictor</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1">Race Calculator</h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Prediksi waktu 5K–FM dari hasil lari terakhir dengan formula Riegel.
+                            </p>
+                            <span class="inline-flex items-center text-[11px] font-semibold text-amber-300 group-hover:translate-x-1 transition-transform">
+                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                            </span>
+                        </a>
+
+                        <a href="{{ route('tools.qr-generator') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-purple-500/60 hover:bg-slate-900 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-qrcode"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-purple-300 uppercase tracking-widest">QR Generator</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1">QR Generator</h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Buat QR untuk link race, komunitas, atau landing page event.
+                            </p>
+                            <span class="inline-flex items-center text-[11px] font-semibold text-purple-300 group-hover:translate-x-1 transition-transform">
+                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                            </span>
+                        </a>
+
+                        <a href="{{ route('tools.trackmaster') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-[#ccff00]/60 hover:bg-slate-900 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center">
+                                    <i class="fa-solid fa-person-running"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-[#ccff00] uppercase tracking-widest">Track Sessions</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1">TrackMaster Pro</h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Kelola sesi interval multi-atlet dengan pacing dan voice feedback.
+                            </p>
+                            <span class="inline-flex items-center text-[11px] font-semibold text-[#ccff00] group-hover:translate-x-1 transition-transform">
+                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                            </span>
+                        </a>
+
+                        <a href="{{ route('tools.form-analyzer') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-slate-500/60 hover:bg-slate-900 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-700/60 text-slate-200 flex items-center justify-center">
+                                    <i class="fa-solid fa-person-chalkboard"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Form Analyzer</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1">Form Analyzer</h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Analisis landing, postur, dan ayunan tangan dengan AI biomekanik.
+                            </p>
+                            <span class="inline-flex items-center text-[11px] font-semibold text-slate-300 group-hover:translate-x-1 transition-transform">
+                                Lihat lagi <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                            </span>
+                        </a>
+
+                        <a href="{{ route('tools.shoe-analyzer') }}" class="group w-64 shrink-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 hover:border-emerald-500/60 hover:bg-slate-900 transition-all duration-300">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center">
+                                    <i class="fa-solid fa-shoe-prints"></i>
+                                </div>
+                                <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">Shoe Analyzer</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1">TreadAI Shoe Analyzer</h3>
+                            <p class="text-xs text-slate-400 mb-3">
+                                Foto outsole → estimasi nyawa sepatu, risiko cedera, dan rekomendasi sepatu.
+                            </p>
+                            <span class="inline-flex items-center text-[11px] font-semibold text-emerald-300 group-hover:translate-x-1 transition-transform">
+                                Buka tool <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                            </span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1197,6 +1466,7 @@
 <script>
     (function () {
         const routeAnalyze = @json(route('tools.form-analyzer.analyze'));
+        const routeReport = @json(route('tools.form-analyzer.report'));
         const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
         const stateInstructions = document.getElementById('rlfa-state-instructions');
@@ -1299,7 +1569,383 @@
         const advStrength = document.getElementById('rlfa-adv-strength');
         const advReport = document.getElementById('rlfa-adv-report');
         const advSuggestions = document.getElementById('rlfa-adv-suggestions');
+        const advRecovery = document.getElementById('rlfa-adv-recovery');
+        const downloadPdfBtn = document.getElementById('rlfa-download-pdf-btn');
+        const downloadImageBtn = document.getElementById('rlfa-download-image-btn');
+        const qrisModal = document.getElementById('rlfa-qris-modal');
+        const qrisClose = document.getElementById('rlfa-qris-close');
+        const qrisForm = document.getElementById('rlfa-qris-form');
+        const qrisName = document.getElementById('rlfa-qris-name');
+        const qrisEmail = document.getElementById('rlfa-qris-email');
+        const qrisMessage = document.getElementById('rlfa-qris-message');
+        const qrisFeedback = document.getElementById('rlfa-qris-feedback');
+        const qrisSubmitBtn = qrisForm?.querySelector('button[type="submit"]');
+        let qrisSubmitting = false;
         let lastResult = null;
+
+        const isAdmin = @json(auth()->check() && auth()->user()->isAdmin());
+        const USAGE_KEY = 'rlfa_usage_count';
+        const SUPPORT_KEY = 'rlfa_supporter';
+        const RESULT_KEY = 'rlfa_last_result';
+        const MAX_TRIES = 2;
+
+        const getUsageCount = () => {
+            if (typeof window === 'undefined') return 0;
+            try {
+                const raw = window.localStorage.getItem(USAGE_KEY);
+                const n = raw ? Number(raw) : 0;
+                return Number.isFinite(n) && n > 0 ? n : 0;
+            } catch (e) {
+                return 0;
+            }
+        };
+
+        const isSupporter = () => {
+            if (typeof window === 'undefined') return false;
+            try {
+                return window.localStorage.getItem(SUPPORT_KEY) === '1';
+            } catch (e) {
+                return false;
+            }
+        };
+
+        const markSupporter = () => {
+            if (typeof window === 'undefined') return;
+            try {
+                window.localStorage.setItem(SUPPORT_KEY, '1');
+                const badge = document.getElementById('rlfa-supporter-badge');
+                if (badge) badge.classList.remove('hidden');
+            } catch (e) {}
+        };
+
+        const initSupporterBadge = () => {
+            if (isSupporter()) {
+                const badge = document.getElementById('rlfa-supporter-badge');
+                if (badge) badge.classList.remove('hidden');
+            }
+        };
+
+        const incrementUsageCount = () => {
+            if (typeof window === 'undefined') return;
+            try {
+                const cur = getUsageCount();
+                window.localStorage.setItem(USAGE_KEY, String(cur + 1));
+            } catch (e) {}
+        };
+        const resetUsageCount = () => {
+            if (typeof window === 'undefined') return;
+            try {
+                window.localStorage.setItem(USAGE_KEY, '0');
+            } catch (e) {}
+        };
+        const sanitizeResultForStorage = (value) => {
+            if (!value || typeof value !== 'object') return value;
+            if (Array.isArray(value)) return value.map(sanitizeResultForStorage);
+            const out = {};
+            Object.keys(value).forEach((k) => {
+                if (k === 'visualization' || k === 'snapshots') return;
+                out[k] = sanitizeResultForStorage(value[k]);
+            });
+            return out;
+        };
+        const saveLastResult = (result) => {
+            if (typeof window === 'undefined') return;
+            try {
+                const safeResult = sanitizeResultForStorage(result);
+                window.localStorage.setItem(RESULT_KEY, JSON.stringify({
+                    saved_at: Date.now(),
+                    result: safeResult,
+                }));
+            } catch (e) {}
+        };
+        const toText = (value) => {
+            if (value === null || value === undefined) return '';
+            if (Array.isArray(value)) return value.map(toText).join(' ');
+            if (typeof value === 'object') return Object.values(value).map(toText).join(' ');
+            return String(value);
+        };
+        const wrapText = (ctx, text, x, y, maxWidth, lineHeight, maxLines) => {
+            const words = String(text || '').split(/\s+/).filter(Boolean);
+            let line = '';
+            let lines = 0;
+            for (let i = 0; i < words.length; i++) {
+                const test = line ? line + ' ' + words[i] : words[i];
+                const w = ctx.measureText(test).width;
+                if (w > maxWidth && line) {
+                    ctx.fillText(line, x, y);
+                    y += lineHeight;
+                    lines += 1;
+                    line = words[i];
+                    if (maxLines && lines >= maxLines) return { y, lines };
+                } else {
+                    line = test;
+                }
+            }
+            if (line) {
+                ctx.fillText(line, x, y);
+                lines += 1;
+            }
+            return { y: y + lineHeight, lines };
+        };
+        const countLines = (ctx, text, maxWidth) => {
+            const words = String(text || '').split(/\s+/).filter(Boolean);
+            let line = '';
+            let lines = 0;
+            for (let i = 0; i < words.length; i++) {
+                const test = line ? line + ' ' + words[i] : words[i];
+                const w = ctx.measureText(test).width;
+                if (w > maxWidth && line) {
+                    lines += 1;
+                    line = words[i];
+                } else {
+                    line = test;
+                }
+            }
+            if (line) lines += 1;
+            return lines || 1;
+        };
+        const drawCard = (ctx, x, y, w, h, fill, stroke) => {
+            ctx.fillStyle = fill;
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = 1;
+            const r = 14;
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        };
+        const drawDivider = (ctx, x, y, w) => {
+            ctx.strokeStyle = '#1f2937';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + w, y);
+            ctx.stroke();
+        };
+        const downloadImageReport = () => {
+            if (!downloadImageBtn || !lastResult) return;
+            const canvas = document.createElement('canvas');
+            const width = 1240;
+            const height = 1754;
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.fillStyle = '#0b1220';
+            ctx.fillRect(0, 0, width, height);
+
+            const margin = 56;
+            const contentW = width - margin * 2;
+            let y = 56;
+
+            const heroH = 140;
+            const grad = ctx.createLinearGradient(0, y, 0, y + heroH);
+            grad.addColorStop(0, '#111827');
+            grad.addColorStop(1, '#0f172a');
+            drawCard(ctx, margin, y, contentW, heroH, grad, '#1f2937');
+            ctx.fillStyle = '#e5e7eb';
+            ctx.font = '700 28px Arial, sans-serif';
+            ctx.fillText('Form Analyzer Report', margin + 28, y + 48);
+            ctx.font = '400 14px Arial, sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('Ringkasan analisis form lari berbasis AI biomekanik', margin + 28, y + 72);
+            ctx.fillStyle = '#0b1220';
+            ctx.font = '700 12px Arial, sans-serif';
+            const badgeX = margin + 28;
+            const badgeY = y + 94;
+            drawCard(ctx, badgeX, badgeY, 120, 26, '#ccff00', '#ccff00');
+            ctx.fillStyle = '#0b1220';
+            ctx.fillText('AI POWERED', badgeX + 14, badgeY + 18);
+            drawCard(ctx, badgeX + 130, badgeY, 110, 26, '#38bdf8', '#38bdf8');
+            ctx.fillStyle = '#0b1220';
+            ctx.fillText('BETA', badgeX + 166, badgeY + 18);
+
+            const score = Number(lastResult.form_score ?? lastResult.score) || 0;
+            ctx.fillStyle = '#e5e7eb';
+            ctx.font = '700 40px Arial, sans-serif';
+            ctx.fillText(String(score), margin + contentW - 140, y + 60);
+            ctx.font = '400 12px Arial, sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('Form Score', margin + contentW - 140, y + 78);
+            const badge = scoreToBadge(score);
+            ctx.fillStyle = '#e5e7eb';
+            ctx.font = '600 14px Arial, sans-serif';
+            ctx.fillText(badge.text, margin + contentW - 200, y + 102);
+            y += heroH + 24;
+
+            const sectionGap = 18;
+            const ensureSpace = (blockH) => {
+                if (y + blockH <= height - margin) return true;
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '500 12px Arial, sans-serif';
+                ctx.fillText('Ringkasan dipotong agar tetap rapi di satu halaman.', margin, height - margin);
+                return false;
+            };
+            const drawListSection = (title, items, accent, maxItems = 8) => {
+                if (!items.length) return;
+                ctx.font = '500 13px Arial, sans-serif';
+                const list = items.slice(0, maxItems).map((item) => '• ' + toText(item));
+                const lines = list.reduce((acc, text) => acc + Math.min(2, countLines(ctx, text, contentW - 48)), 0);
+                const blockH = Math.max(110, 52 + lines * 18);
+                if (!ensureSpace(blockH)) return;
+                drawCard(ctx, margin, y, contentW, blockH, '#111827', '#1f2937');
+                ctx.fillStyle = accent;
+                ctx.font = '700 14px Arial, sans-serif';
+                ctx.fillText(title.toUpperCase(), margin + 24, y + 30);
+                ctx.fillStyle = '#e5e7eb';
+                ctx.font = '500 13px Arial, sans-serif';
+                let ty = y + 54;
+                list.forEach((text) => {
+                    const res = wrapText(ctx, text, margin + 24, ty, contentW - 48, 18, 2);
+                    ty = res.y + 4;
+                });
+                y += blockH + sectionGap;
+            };
+
+            drawListSection('Catatan Form Utama', Array.isArray(lastResult.form_issues) ? lastResult.form_issues : [], '#f97316', 8);
+
+            const formReport = Array.isArray(lastResult.form_report) ? lastResult.form_report : [];
+            if (formReport.length) {
+                const sections = formReport.slice(0, 3);
+                ctx.font = '600 13px Arial, sans-serif';
+                let lines = 0;
+                sections.forEach((section) => {
+                    lines += 1;
+                    const summary = toText(section?.summary || '');
+                    if (summary) lines += Math.min(2, countLines(ctx, summary, contentW - 48));
+                    const findings = Array.isArray(section?.findings) ? section.findings : [];
+                    if (findings.length) lines += Math.min(2, countLines(ctx, 'Temuan: ' + toText(findings[0]), contentW - 48));
+                    const actions = Array.isArray(section?.actions) ? section.actions : [];
+                    if (actions.length) lines += Math.min(2, countLines(ctx, 'Aksi: ' + toText(actions[0]), contentW - 48));
+                    lines += 1;
+                });
+                const blockH = Math.max(160, 56 + lines * 16);
+                if (ensureSpace(blockH)) {
+                    drawCard(ctx, margin, y, contentW, blockH, '#111827', '#1f2937');
+                    ctx.fillStyle = '#ccff00';
+                    ctx.font = '700 14px Arial, sans-serif';
+                    ctx.fillText('LAPORAN FORM DETAIL', margin + 24, y + 30);
+                    ctx.fillStyle = '#e5e7eb';
+                    ctx.font = '600 13px Arial, sans-serif';
+                    let ty = y + 56;
+                    sections.forEach((section) => {
+                        const title = toText(section?.title || 'Bagian Form');
+                        const status = toText(section?.status || 'ok').toUpperCase();
+                        ctx.fillStyle = '#e5e7eb';
+                        ctx.fillText(title, margin + 24, ty);
+                        ctx.fillStyle = '#94a3b8';
+                        ctx.fillText(status, margin + contentW - 120, ty);
+                        ty += 18;
+                        const summary = toText(section?.summary || '');
+                        if (summary) {
+                            ctx.fillStyle = '#94a3b8';
+                            const res = wrapText(ctx, summary, margin + 24, ty, contentW - 48, 16, 2);
+                            ty = res.y + 2;
+                        }
+                        const findings = Array.isArray(section?.findings) ? section.findings : [];
+                        if (findings.length) {
+                            ctx.fillStyle = '#94a3b8';
+                            const res = wrapText(ctx, 'Temuan: ' + toText(findings[0]), margin + 24, ty, contentW - 48, 16, 2);
+                            ty = res.y + 2;
+                        }
+                        const actions = Array.isArray(section?.actions) ? section.actions : [];
+                        if (actions.length) {
+                            ctx.fillStyle = '#94a3b8';
+                            const res = wrapText(ctx, 'Aksi: ' + toText(actions[0]), margin + 24, ty, contentW - 48, 16, 2);
+                            ty = res.y + 6;
+                        } else {
+                            ty += 6;
+                        }
+                    });
+                    y += blockH + sectionGap;
+                }
+            }
+
+            const strength = Array.isArray(lastResult.strength_plan) ? lastResult.strength_plan : [];
+            const recovery = Array.isArray(lastResult.recovery_plan) ? lastResult.recovery_plan : [];
+            if (strength.length || recovery.length) {
+                const colW = (contentW - 48) / 2;
+                ctx.font = '500 12px Arial, sans-serif';
+                const leftLines = strength.slice(0, 4).reduce((acc, item) => acc + Math.min(2, countLines(ctx, '• ' + toText(item), colW - 12)), 0);
+                const rightLines = recovery.slice(0, 4).reduce((acc, item) => acc + Math.min(2, countLines(ctx, '• ' + toText(item), colW - 12)), 0);
+                const blockH = Math.max(140, 54 + Math.max(leftLines, rightLines) * 16);
+                if (ensureSpace(blockH)) {
+                    drawCard(ctx, margin, y, contentW, blockH, '#111827', '#1f2937');
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.font = '700 13px Arial, sans-serif';
+                    ctx.fillText('Solusi Penguatan', margin + 24, y + 30);
+                    ctx.fillStyle = '#facc15';
+                    ctx.fillText('Pemulihan Awal', margin + 24 + colW, y + 30);
+                    ctx.fillStyle = '#e5e7eb';
+                    ctx.font = '500 12px Arial, sans-serif';
+                    let leftY = y + 54;
+                    strength.slice(0, 4).forEach((item) => {
+                        const res = wrapText(ctx, '• ' + toText(item), margin + 24, leftY, colW - 12, 16, 2);
+                        leftY = res.y + 2;
+                    });
+                    let rightY = y + 54;
+                    recovery.slice(0, 4).forEach((item) => {
+                        const res = wrapText(ctx, '• ' + toText(item), margin + 24 + colW, rightY, colW - 12, 16, 2);
+                        rightY = res.y + 2;
+                    });
+                    y += blockH + sectionGap;
+                }
+            }
+
+            const coach = toText(lastResult.coach_message || '');
+            if (coach) {
+                ctx.font = '500 13px Arial, sans-serif';
+                const lines = Math.min(3, countLines(ctx, coach, contentW - 48));
+                const blockH = Math.max(110, 58 + lines * 18);
+                if (ensureSpace(blockH)) {
+                    drawCard(ctx, margin, y, contentW, blockH, '#0f172a', '#1f2937');
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.font = '700 13px Arial, sans-serif';
+                    ctx.fillText('Catatan Pelatih', margin + 24, y + 30);
+                    ctx.fillStyle = '#e5e7eb';
+                    ctx.font = '500 13px Arial, sans-serif';
+                    wrapText(ctx, coach, margin + 24, y + 58, contentW - 48, 18, 3);
+                }
+            }
+
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'form-analyzer-report.png';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        };
+        const loadLastResult = () => {
+            if (typeof window === 'undefined') return null;
+            try {
+                const raw = window.localStorage.getItem(RESULT_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return parsed?.result || null;
+            } catch (e) {
+                return null;
+            }
+        };
+
+        const openQrisModal = () => {
+            if (!qrisModal) return;
+            qrisModal.classList.remove('hidden');
+        };
+
+        const closeQrisModal = () => {
+            if (!qrisModal) return;
+            qrisModal.classList.add('hidden');
+        };
 
         const formatBytes = (bytes) => {
             if (!Number.isFinite(bytes) || bytes <= 0) return '--';
@@ -1916,6 +2562,7 @@
             if (advStrength) advStrength.innerHTML = '';
             if (advReport) advReport.innerHTML = '';
             if (advSuggestions) advSuggestions.innerHTML = '';
+            if (advRecovery) advRecovery.innerHTML = '';
             if (advSwing) advSwing.textContent = '';
             if (advHipcore) advHipcore.textContent = '';
             if (advCalf) advCalf.textContent = '';
@@ -1969,6 +2616,9 @@
             if (recovery.length) {
                 recovery.forEach((x) => recoveryEl.appendChild(createChip(x)));
                 recoveryWrap.classList.remove('hidden');
+                if (advRecovery) {
+                    recovery.forEach((x) => advRecovery.appendChild(createChip(x)));
+                }
             }
 
             lastResult = result;
@@ -2020,6 +2670,7 @@
             if (advReport) advReportList.forEach((x) => advReport.appendChild(createReportCard(x)));
             const advSuggestionsList = Array.isArray(result.suggestions) ? result.suggestions : [];
             if (advSuggestions) advSuggestionsList.forEach((x) => advSuggestions.appendChild(createChip(x)));
+            saveLastResult(result);
         };
 
         const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -2079,7 +2730,7 @@
 
             const uploadVideo = (options.uploadVideoOverride !== undefined)
                 ? !!options.uploadVideoOverride
-                : (modeDevice ? !modeDevice.checked : true);
+                : false;
 
             if (uploadVideo && !file) {
                 throw { error: 'Video wajib diupload.' };
@@ -2169,6 +2820,11 @@
             const v = await validateClient(file);
             if (!v.ok) return;
 
+            if (!isAdmin && !isSupporter() && getUsageCount() >= MAX_TRIES) {
+                openQrisModal();
+                return;
+            }
+
             try {
                 showScanning();
                 scanText.textContent = 'ANALISIS FORM (DI PERANGKAT)...';
@@ -2218,10 +2874,14 @@
                 if (metrics && metrics.visualization) result.visualization = metrics.visualization;
                 renderResults(result);
                 showResults();
+                incrementUsageCount();
             } catch (e) {
                 const msg = e?.message || e?.error || 'Video gagal diproses. Coba lagi dengan durasi 5–10 detik dan ukuran lebih kecil.';
                 showInstructions();
                 pushWarning(msg);
+                if (e && e.code === 'limit_reached') {
+                    openQrisModal();
+                }
             } finally {
                 videoInput.value = '';
             }
@@ -2242,6 +2902,11 @@
             const ok = requiredPhotoPhases.every((p) => !!photoFiles[p]);
             if (!ok) {
                 pushWarning('Minimal 4 foto wajib diisi: Landing, Lever, Push, Pull.');
+                return;
+            }
+
+            if (!isAdmin && getUsageCount() >= MAX_TRIES) {
+                openQrisModal();
                 return;
             }
 
@@ -2266,10 +2931,56 @@
                 if (metrics && metrics.visualization) result.visualization = metrics.visualization;
                 renderResults(result);
                 showResults();
+                incrementUsageCount();
             } catch (e) {
                 const msg = e?.message || e?.error || 'Foto gagal diproses. Pastikan badan utuh terlihat dan pencahayaan cukup.';
                 showInstructions();
                 pushWarning(msg);
+                if (e && e.code === 'limit_reached') {
+                    openQrisModal();
+                }
+            }
+        };
+
+        const downloadPdf = async () => {
+            if (!downloadPdfBtn || !lastResult) return;
+            try {
+                const payload = {
+                    score: lastResult.form_score ?? lastResult.score ?? null,
+                    video_score: lastResult.video_score ?? null,
+                    meta: lastResult.meta ?? null,
+                    positives: lastResult.positives ?? [],
+                    issues: lastResult.issues ?? [],
+                    suggestions: lastResult.suggestions ?? [],
+                    form_issues: lastResult.form_issues ?? [],
+                    form_report: lastResult.form_report ?? [],
+                    strength_plan: lastResult.strength_plan ?? [],
+                    recovery_plan: lastResult.recovery_plan ?? [],
+                    coach_message: lastResult.coach_message ?? null,
+                };
+                const res = await fetch(routeReport, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/pdf',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ report: payload }),
+                });
+                if (!res.ok) {
+                    throw new Error('Gagal membuat PDF. Coba lagi beberapa saat.');
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'form-analyzer-report.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                pushWarning(e?.message || 'Gagal mengunduh PDF.');
             }
         };
 
@@ -2298,6 +3009,9 @@
         inputModeVideoBtn?.addEventListener('click', () => setInputMode('video'));
         inputModePhotosBtn?.addEventListener('click', () => setInputMode('photos'));
 
+        downloadPdfBtn?.addEventListener('click', downloadPdf);
+        downloadImageBtn?.addEventListener('click', downloadImageReport);
+
         Object.keys(photoButtons).forEach((phase) => {
             photoButtons[phase]?.addEventListener('click', () => {
                 resetWarnings();
@@ -2313,6 +3027,127 @@
         });
 
         setInputMode('video');
+
+        const carousel = document.getElementById('rlfa-tools-carousel');
+        const track = carousel?.querySelector('[data-rlfa-tools-track]');
+        const toolsPrev = document.getElementById('rlfa-tools-prev');
+        const toolsNext = document.getElementById('rlfa-tools-next');
+        if (carousel && track) {
+            let autoScrollId = null;
+            const startAutoScroll = () => {
+                if (autoScrollId) return;
+                autoScrollId = setInterval(() => {
+                    const maxScroll = track.scrollWidth - carousel.clientWidth;
+                    if (maxScroll <= 0) return;
+                    const next = carousel.scrollLeft + 0.5;
+                    carousel.scrollLeft = next >= maxScroll ? 0 : next;
+                }, 16);
+            };
+            const stopAutoScroll = () => {
+                if (autoScrollId) {
+                    clearInterval(autoScrollId);
+                    autoScrollId = null;
+                }
+            };
+            const scrollBy = (delta) => {
+                const maxScroll = track.scrollWidth - carousel.clientWidth;
+                if (maxScroll <= 0) return;
+                const next = Math.max(0, Math.min(maxScroll, carousel.scrollLeft + delta));
+                carousel.scrollLeft = next;
+            };
+            startAutoScroll();
+            carousel.addEventListener('pointerenter', stopAutoScroll);
+            carousel.addEventListener('pointerleave', startAutoScroll);
+            toolsPrev?.addEventListener('click', () => {
+                stopAutoScroll();
+                scrollBy(-Math.max(carousel.clientWidth * 0.8, 200));
+            });
+            toolsNext?.addEventListener('click', () => {
+                stopAutoScroll();
+                scrollBy(Math.max(carousel.clientWidth * 0.8, 200));
+            });
+        }
+
+        qrisClose?.addEventListener('click', closeQrisModal);
+        qrisModal?.addEventListener('click', (e) => {
+            if (e.target === qrisModal) closeQrisModal();
+        });
+
+        if (qrisForm) {
+            qrisForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (qrisSubmitting) return;
+                qrisSubmitting = true;
+                let shouldUnlock = true;
+                if (qrisSubmitBtn) {
+                    qrisSubmitBtn.disabled = true;
+                    qrisSubmitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+                }
+                if (qrisFeedback) {
+                    qrisFeedback.classList.add('hidden');
+                    qrisFeedback.classList.remove('text-red-400');
+                    qrisFeedback.classList.add('text-emerald-400');
+                    qrisFeedback.textContent = '';
+                }
+                const payload = {
+                    name: qrisName ? qrisName.value || null : null,
+                    email: qrisEmail ? qrisEmail.value || null : null,
+                    message: qrisMessage ? qrisMessage.value || null : null,
+                };
+                try {
+                    const res = await fetch(@json(route('tools.form-analyzer.support')), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(payload),
+                    });
+                    if (res.status === 429) {
+                        markSupporter();
+                        resetUsageCount();
+                        if (qrisFeedback) {
+                            qrisFeedback.textContent = 'Terima kasih sudah mendukung RuangLari. Akses Form Analyzer di perangkat ini sekarang tanpa batas.';
+                            qrisFeedback.classList.remove('hidden');
+                        }
+                        shouldUnlock = false;
+                        return;
+                    }
+                    if (!res.ok) {
+                        throw new Error('Gagal mengirim data dukungan. Coba lagi sebentar.');
+                    }
+                    markSupporter();
+                    resetUsageCount();
+                    if (qrisFeedback) {
+                        qrisFeedback.textContent = 'Terima kasih sudah mendukung RuangLari. Akses Form Analyzer di perangkat ini sekarang tanpa batas.';
+                        qrisFeedback.classList.remove('hidden');
+                    }
+                    shouldUnlock = false;
+                } catch (err) {
+                    if (qrisFeedback) {
+                        qrisFeedback.textContent = err?.message || 'Terjadi kesalahan saat mengirim data.';
+                        qrisFeedback.classList.remove('hidden');
+                        qrisFeedback.classList.remove('text-emerald-400');
+                        qrisFeedback.classList.add('text-red-400');
+                    }
+                } finally {
+                    if (qrisSubmitBtn && shouldUnlock) {
+                        qrisSubmitBtn.disabled = false;
+                        qrisSubmitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    qrisSubmitting = false;
+                }
+            });
+        }
+
+        initSupporterBadge();
+        const savedResult = loadLastResult();
+        if (savedResult) {
+            renderResults(savedResult);
+            showResults();
+        }
     })();
 </script>
 @endpush

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -41,6 +44,24 @@ class FormAnalyzerController extends Controller
             ], [
                 'metrics.max' => 'Data analisis (metrics) terlalu besar. Maksimal 20000 karakter. Coba ulang tanpa mengirim visualisasi atau gunakan resolusi lebih kecil.',
             ]);
+
+            $user = $request->user();
+            $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
+            if (! $isAdmin) {
+                $ip = $request->ip();
+                $sessionId = $request->session()->getId();
+                $usageKey = 'form_analyzer:usage:'.$ip.':'.$sessionId;
+                $usage = (int) Cache::get($usageKey, 0);
+                if ($usage >= 2) {
+                    return response()->json([
+                        'ok' => false,
+                        'error' => 'Batas percobaan tercapai.',
+                        'code' => 'limit_reached',
+                        'message' => 'Kamu sudah mencoba Form Analyzer 2x di perangkat ini. Dukung pengembangan RuangLari untuk akses tanpa batas.',
+                    ], 429);
+                }
+                Cache::put($usageKey, $usage + 1, now()->addDay());
+            }
 
             $uuid = (string) Str::uuid();
             $uploadVideo = filter_var($data['upload_video'] ?? false, FILTER_VALIDATE_BOOL);
@@ -198,6 +219,89 @@ class FormAnalyzerController extends Controller
             }
         }
     }
+
+    public function report(Request $request)
+    {
+        $data = $request->validate([
+            'report' => ['required', 'array'],
+        ]);
+
+        $report = $data['report'];
+        $score = $report['score'] ?? null;
+        $videoScore = $report['video_score'] ?? null;
+        $meta = $report['meta'] ?? [];
+        $display = $meta['display'] ?? [];
+        $compression = $meta['compression'] ?? [];
+
+        $positives = $report['positives'] ?? [];
+        $issues = $report['issues'] ?? [];
+        $suggestions = $report['suggestions'] ?? [];
+        $formIssues = $report['form_issues'] ?? [];
+        $formReport = $report['form_report'] ?? [];
+        $strengthPlan = $report['strength_plan'] ?? [];
+        $recoveryPlan = $report['recovery_plan'] ?? [];
+        $coachMessage = $report['coach_message'] ?? null;
+
+        $html = view('tools.form-analyzer-report', [
+            'score' => $score,
+            'videoScore' => $videoScore,
+            'meta' => $meta,
+            'display' => $display,
+            'compression' => $compression,
+            'positives' => $positives,
+            'issues' => $issues,
+            'suggestions' => $suggestions,
+            'formIssues' => $formIssues,
+            'formReport' => $formReport,
+            'strengthPlan' => $strengthPlan,
+            'recoveryPlan' => $recoveryPlan,
+            'coachMessage' => $coachMessage,
+        ])->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        $output = $dompdf->output();
+
+        return response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="form-analyzer-report.pdf"',
+        ]);
+    }
+
+    public function support(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['nullable', 'string', 'max:190'],
+            'email' => ['nullable', 'string', 'max:190'],
+            'message' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $user = $request->user();
+        $ip = $request->ip();
+        $sessionId = $request->session()->getId();
+        $usageKey = 'form_analyzer:usage:'.$ip.':'.$sessionId;
+        Cache::forget($usageKey);
+
+        Log::info('form_analyzer_support', [
+            'name' => $data['name'] ?? null,
+            'email' => $data['email'] ?? null,
+            'message' => $data['message'] ?? null,
+            'ip' => $ip,
+            'user_id' => $user ? $user->id : null,
+            'user_agent' => $request->userAgent(),
+            'at' => now()->toIso8601String(),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+        ]);
+    }
+
 
     private function acquireSlot(): array
     {
