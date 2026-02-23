@@ -24,8 +24,14 @@
 <div class="min-h-screen bg-dark pt-6">
     
     <div class="container mx-auto px-4 md:px-8 py-4">
-        <nav class="flex text-sm text-slate-400 font-mono" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <div class="flex items-center justify-between md:hidden">
+            <a href="{{ route('home') }}" class="inline-flex items-center text-xs text-slate-400 hover:text-neon transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span class="truncate max-w-[220px]">{{ $article->title }}</span>
+            </a>
+        </div>
+        <nav class="hidden md:flex text-sm text-slate-400 font-mono" aria-label="Breadcrumb">
+            <ol class="flex flex-wrap items-center gap-1 md:space-x-3">
                 <li class="inline-flex items-center">
                     <a href="{{ route('home') }}" class="inline-flex items-center hover:text-neon transition-colors">
                         <i class="fas fa-home mr-2"></i>
