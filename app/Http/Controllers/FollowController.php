@@ -45,6 +45,7 @@ class FollowController extends Controller
         }
 
         Auth::user()->following()->detach($user->id);
+        $user->decrement('followers_count');
 
         if (request()->wantsJson()) {
             return response()->json(['message' => 'Berhasil unfollow '.$user->name, 'status' => 'unfollowed']);

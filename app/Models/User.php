@@ -96,6 +96,7 @@ class User extends Authenticatable
             'audit_history' => 'array',
             'weekly_volume' => 'decimal:2',
             'weekly_km_target' => 'decimal:2',
+            'followers_count' => 'integer',
             'is_pacer' => 'boolean',
             'is_active' => 'boolean',
             'membership_expires_at' => 'datetime',
