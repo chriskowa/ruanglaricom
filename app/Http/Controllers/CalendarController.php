@@ -378,8 +378,6 @@ class CalendarController extends Controller
         return [
             'ok' => true,
             'message' => 'Upload dikirim ke Strava. Prosesnya bisa butuh beberapa saat.',
-            'distance_km' => $distanceKm,
-            'elapsed_time_s' => $elapsedSec,
             'upload' => $res->json(),
         ];
     }
