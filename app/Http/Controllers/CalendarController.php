@@ -336,24 +336,14 @@ class CalendarController extends Controller
         $activityType = strtolower((string) ($data['activity_type'] ?? 'run'));
         $paceSecPerKm = isset($data['pace_sec_per_km']) ? (int) $data['pace_sec_per_km'] : null;
 
-        $points = array_map(function ($p) {
+        $points = array_values(array_map(function ($p) {
             return [
                 'lat' => (float) $p['lat'],
                 'lng' => (float) $p['lng'],
             ];
-        }, $data['points'] ?? []);
+        }, $data['points'] ?? []));
 
-        $distanceKm = 0.0;
-        for ($i = 1; $i < count($points); $i++) {
-            $distanceKm += $this->haversineKm($points[$i - 1]['lat'], $points[$i - 1]['lng'], $points[$i]['lat'], $points[$i]['lng']);
-        }
-
-        $elapsedSec = null;
-        if ($paceSecPerKm && $distanceKm > 0) {
-            $elapsedSec = (int) max(1, round($distanceKm * $paceSecPerKm));
-        }
-
-        $gpx = $this->buildGpxFromPoints($name, $points, $elapsedSec, $startAt);
+        $gpx = $this->buildGpxFromPoints($name, $points, $paceSecPerKm, $startAt);
 
         $externalId = 'rl-route-'.$user->id.'-'.now()->format('YmdHis').'.gpx';
         $payload = [
@@ -394,22 +384,28 @@ class CalendarController extends Controller
         ];
     }
 
-    private function buildGpxFromPoints(string $name, array $points, ?int $elapsedSec, ?Carbon $startAt): string
+    private function buildGpxFromPoints(string $name, array $points, ?int $paceSecPerKm, ?Carbon $startAt): string
     {
         $startedAt = $startAt ? $startAt->copy() : now()->utc();
-        $totalPoints = count($points);
-        $step = null;
-        if ($elapsedSec && $totalPoints > 1) {
-            $step = $elapsedSec / ($totalPoints - 1);
-        }
-
+        $accumulatedSeconds = 0.0;
         $trkpts = '';
+        $lastLat = null;
+        $lastLng = null;
+
         foreach ($points as $idx => $p) {
-            $t = $startedAt;
-            if ($step !== null) {
-                $t = $startedAt->copy()->addSeconds((int) round($idx * $step));
+            $lat = (float) $p['lat'];
+            $lng = (float) $p['lng'];
+
+            if ($idx > 0 && $paceSecPerKm) {
+                $dist = $this->haversineKm($lastLat, $lastLng, $lat, $lng);
+                $accumulatedSeconds += ($dist * $paceSecPerKm);
             }
-            $trkpts .= '<trkpt lat="'.$this->fmtCoord($p['lat']).'" lon="'.$this->fmtCoord($p['lng']).'"><time>'.$t->toAtomString().'</time></trkpt>';
+
+            $t = $startedAt->copy()->addMilliseconds((int) ($accumulatedSeconds * 1000));
+            $trkpts .= '<trkpt lat="'.$this->fmtCoord($lat).'" lon="'.$this->fmtCoord($lng).'"><time>'.$t->toAtomString().'</time></trkpt>';
+            
+            $lastLat = $lat;
+            $lastLng = $lng;
         }
 
         $safeName = $this->escapeXml($name);

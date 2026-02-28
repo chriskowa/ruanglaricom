@@ -99,7 +99,7 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
-                                    <input id="rl-follow-road" type="checkbox" class="accent-neon">
+                                    <input id="rl-follow-road" type="checkbox" class="accent-neon" checked>
                                     Ikuti jalan (OSRM)
                                 </label>
                                 <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
@@ -563,7 +563,9 @@
                 if (els.colorFinish) els.colorFinish.value = style.finish;
                 if (els.arrowInterval) els.arrowInterval.value = String(style.arrowIntervalM);
                 if (els.arrowIntervalLabel) els.arrowIntervalLabel.textContent = String(style.arrowIntervalM) + 'm';
-                if (routeLine) routeLine.setStyle({ color: style.route });
+                if (typeof routeLayer !== 'undefined' && routeLayer) {
+                    routeLayer.setStyle({ color: style.route });
+                }
                 rebuildMarkers();
                 updateDirections();
             }
@@ -714,14 +716,10 @@
                 L.control.layers(baseLayers, null, { position: 'bottomright' }).addTo(map);
             }
 
-            var routeLine = L.polyline([], {
-                color: '#ccff00',
-                weight: 4,
-                opacity: 0.9,
-            }).addTo(map);
+            var routeLayer = L.featureGroup().addTo(map);
 
             var points = [];
-            var routePoints = [];
+            var routePoints = []; // Flattened array of {lat, lng} for stats/export
             var markers = [];
             var freehandActive = false;
             var directionLayer = L.layerGroup().addTo(map);
@@ -736,12 +734,11 @@
 
             function pushState() {
                 if (isUndoing) return;
+                // Store points with their modes and segments
                 var state = JSON.stringify(points);
-                // Jika historyIndex bukan di akhir, potong array
                 if (historyIndex < historyStack.length - 1) {
                     historyStack = historyStack.slice(0, historyIndex + 1);
                 }
-                // Push state baru jika berbeda dari sebelumnya
                 if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== state) {
                     historyStack.push(state);
                     historyIndex = historyStack.length - 1;
@@ -753,16 +750,107 @@
                 isUndoing = true;
                 try {
                     var loaded = JSON.parse(historyStack[idx]);
-                    points = loaded;
-                    updateRouteFromWaypoints();
-                    historyIndex = idx;
-                    setStatus(idx === 0 ? 'Awal' : 'History ' + (idx + 1));
-                } catch(e) {}
+                    // Migration: if loaded points don't have mode/segment, treat as legacy
+                    points = loaded.map(function(p, i) {
+                        if (typeof p.mode === 'undefined') {
+                            // Legacy point
+                            return {
+                                lat: p.lat,
+                                lng: p.lng,
+                                mode: (els.followRoad && els.followRoad.checked) ? 'osrm' : 'direct',
+                                segment: null // Will be calculated
+                            };
+                        }
+                        return p;
+                    });
+                    
+                    // Re-calculate segments for legacy or missing segments
+                    // We need to do this async if OSRM is needed, but loadState is sync.
+                    // For now, if segment is missing, we might default to direct or trigger async update.
+                    // To ensure "Undo" works immediately, we hope segments are in history.
+                    // If legacy (no segments in history), we must rebuild.
+                    
+                    // For legacy support, we might need to fetch OSRM if mode is OSRM and segment is null.
+                    // But that makes loadState async. 
+                    // Strategy: If segment missing, use direct line temporarily and fetch OSRM.
+                    
+                    processLoadedPoints().then(function() {
+                        rebuildLine();
+                        rebuildMarkers();
+                        updateStats();
+                        updateElevation();
+                        historyIndex = idx;
+                        setStatus(idx === 0 ? 'Awal' : 'History ' + (idx + 1));
+                    });
+
+                } catch(e) {
+                    console.error('LoadState Error:', e);
+                }
                 isUndoing = false;
             }
 
+            function processLoadedPoints() {
+                // Ensure all points have valid segments
+                // This mimics "updateRouteFromWaypoints" but per segment
+                var promises = [];
+                for (var i = 1; i < points.length; i++) {
+                    var prev = points[i-1];
+                    var curr = points[i];
+                    if (!curr.segment || curr.segment.length === 0) {
+                        if (curr.mode === 'osrm') {
+                            // Fetch OSRM
+                            (function(index, p1, p2) {
+                                promises.push(osrmRoute([p1, p2]).then(function(seg) {
+                                    points[index].segment = seg;
+                                }).catch(function() {
+                                    points[index].segment = [p1, p2]; // Fallback
+                                }));
+                            })(i, prev, curr);
+                        } else {
+                            curr.segment = [prev, curr];
+                        }
+                    }
+                }
+                return Promise.all(promises);
+            }
+
             function rebuildLine() {
-                routeLine.setLatLngs(toLatLngArray(routePoints));
+                routeLayer.clearLayers();
+                routePoints = [];
+                
+                if (points.length > 0) {
+                    routePoints.push({ lat: points[0].lat, lng: points[0].lng });
+                }
+
+                for (var i = 1; i < points.length; i++) {
+                    var seg = points[i].segment;
+                    if (!seg || seg.length < 2) {
+                        // Fallback if segment missing
+                        seg = [points[i-1], points[i]];
+                    }
+                    
+                    // Add to flat routePoints (skip first point of segment as it duplicates prev point)
+                    // OSRM usually returns [start, ..., end]. Start is same as prev point.
+                    for (var j = 1; j < seg.length; j++) {
+                        routePoints.push(seg[j]);
+                    }
+
+                    // Visual Style
+                    var color = getStyle().route;
+                    var dashArray = null;
+                    if (points[i].mode === 'direct') {
+                        // Dashed for manual
+                        dashArray = '10, 10'; 
+                    }
+
+                    L.polyline(seg, {
+                        color: color,
+                        weight: 4,
+                        opacity: 0.9,
+                        dashArray: dashArray
+                    }).addTo(routeLayer);
+                }
+                
                 updateDirections();
                 updateKmMarkers();
             }
@@ -776,54 +864,171 @@
                     if (idx === 0) icon = makeDotIcon(style.start, 'S');
                     if (idx === points.length - 1) icon = makeDotIcon(style.finish, 'F');
                     var m = L.marker([p.lat, p.lng], { draggable: true, icon: icon });
+                    
                     m.on('drag', function (ev) {
                         var ll = ev.target.getLatLng();
-                        points[idx] = { lat: ll.lat, lng: ll.lng };
-                        if (els.followRoad && els.followRoad.checked) {
-                            routePoints = points.slice();
-                        } else {
-                            routePoints = points.slice();
+                        points[idx].lat = ll.lat;
+                        points[idx].lng = ll.lng;
+                        
+                        // Update adjacent segments to direct lines during drag for performance
+                        if (idx > 0) {
+                            points[idx].segment = [points[idx-1], points[idx]];
                         }
+                        if (idx < points.length - 1) {
+                            points[idx+1].segment = [points[idx], points[idx+1]];
+                        }
+                        
                         rebuildLine();
                         updateStats();
                     });
+
                     m.on('dragend', function () {
-                        updateRouteFromWaypoints();
-                        pushState(); // Save state after drag
+                        // Recalculate OSRM if needed
+                        recalculateAdjacentSegments(idx).then(function() {
+                            rebuildLine();
+                            updateStats();
+                            updateElevation();
+                            pushState();
+                        });
                     });
+
                     m.on('click', function () {
-                        setStatus('Titik #' + (idx + 1));
+                        setStatus('Titik #' + (idx + 1) + ' (' + p.mode + ')');
                     });
                     
                     // Popup delete
                     var container = document.createElement('div');
-                    container.className = 'text-center p-1';
+                    container.className = 'text-center p-1 space-y-2';
+                    
+                    // Delete Button
                     var btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.className = 'px-3 py-1.5 bg-red-500 text-white rounded-lg font-bold text-[11px] hover:bg-red-600 transition shadow-lg shadow-red-500/20';
+                    btn.className = 'w-full px-3 py-1.5 bg-red-500 text-white rounded-lg font-bold text-[11px] hover:bg-red-600 transition shadow-lg shadow-red-500/20';
                     btn.textContent = 'Hapus Titik';
                     btn.onclick = function() {
                         map.closePopup();
                         removePoint(idx);
                     };
                     container.appendChild(btn);
-                    m.bindPopup(container, { minWidth: 100 });
+
+                    // Mode Toggle for this segment (if not start)
+                    if (idx > 0) {
+                        var btnMode = document.createElement('button');
+                        btnMode.type = 'button';
+                        btnMode.className = 'w-full px-3 py-1.5 bg-slate-700 text-white rounded-lg font-bold text-[11px] hover:bg-slate-600 transition';
+                        btnMode.textContent = p.mode === 'osrm' ? 'Ubah ke Manual' : 'Ubah ke OSRM';
+                        btnMode.onclick = function() {
+                            map.closePopup();
+                            togglePointMode(idx);
+                        };
+                        container.appendChild(btnMode);
+                    }
+
+                    m.bindPopup(container, { minWidth: 120 });
 
                     m.addTo(map);
                     markers.push(m);
                 });
             }
 
+            function recalculateAdjacentSegments(idx) {
+                var promises = [];
+                // Update segment leading TO this point
+                if (idx > 0 && points[idx].mode === 'osrm') {
+                    promises.push(osrmRoute([points[idx-1], points[idx]]).then(function(seg) {
+                        points[idx].segment = seg;
+                    }).catch(function() {
+                        points[idx].segment = [points[idx-1], points[idx]];
+                    }));
+                } else if (idx > 0) {
+                    points[idx].segment = [points[idx-1], points[idx]];
+                }
+
+                // Update segment leading FROM this point
+                if (idx < points.length - 1 && points[idx+1].mode === 'osrm') {
+                    promises.push(osrmRoute([points[idx], points[idx+1]]).then(function(seg) {
+                        points[idx+1].segment = seg;
+                    }).catch(function() {
+                        points[idx+1].segment = [points[idx], points[idx+1]];
+                    }));
+                } else if (idx < points.length - 1) {
+                    points[idx+1].segment = [points[idx], points[idx+1]];
+                }
+                
+                return Promise.all(promises);
+            }
+
+            function togglePointMode(idx) {
+                if (idx <= 0 || idx >= points.length) return;
+                var p = points[idx];
+                p.mode = p.mode === 'osrm' ? 'direct' : 'osrm';
+                setStatus('Mode titik #' + (idx+1) + ' diubah ke ' + p.mode);
+                recalculateAdjacentSegments(idx).then(function() {
+                    rebuildLine();
+                    rebuildMarkers(); // Rebuild markers to update popup text
+                    updateStats();
+                    updateElevation();
+                    pushState();
+                });
+            }
+
             function removePoint(idx) {
                 if (idx < 0 || idx >= points.length) return;
                 points.splice(idx, 1);
-                routePoints = points.slice();
+                
+                // If we removed a point, the point that was at idx+1 (now at idx) 
+                // needs to connect to idx-1.
+                if (idx > 0 && idx < points.length) {
+                    // Recalculate segment for points[idx] (which connects to points[idx-1])
+                    recalculateAdjacentSegments(idx).then(done);
+                } else {
+                    done();
+                }
+
+                function done() {
+                    rebuildLine();
+                    rebuildMarkers();
+                    updateStats();
+                    updateElevation();
+                    setStatus('Titik dihapus');
+                    pushState();
+                }
+            }
+
+            function addPoint(latlng) {
+                var mode = (els.followRoad && els.followRoad.checked) ? 'osrm' : 'direct';
+                var newPoint = { lat: latlng.lat, lng: latlng.lng, mode: mode, segment: [] };
+                
+                if (points.length > 0) {
+                    var prev = points[points.length - 1];
+                    // Initial direct line for instant feedback
+                    newPoint.segment = [prev, newPoint];
+                }
+
+                points.push(newPoint);
+                var idx = points.length - 1;
+                
                 rebuildLine();
                 rebuildMarkers();
                 updateStats();
-                updateRouteFromWaypoints();
-                setStatus('Titik dihapus');
-                pushState();
+                setStatus('Titik ditambahkan (' + points.length + ')');
+                
+                if (idx > 0 && mode === 'osrm') {
+                    setStatus('Routing...');
+                    recalculateAdjacentSegments(idx).then(function() {
+                        rebuildLine();
+                        updateStats();
+                        updateElevation();
+                        setStatus('Titik ditambahkan (OSRM)');
+                        pushState();
+                    }).catch(function() {
+                        setStatus('Routing gagal, gunakan garis lurus');
+                        pushState();
+                    });
+                } else {
+                    pushState();
+                    updateElevation();
+                }
             }
 
             function totalDistanceKm() {
@@ -847,16 +1052,7 @@
                 els.estTime.textContent = fmtHMS(est);
             }
 
-            function addPoint(latlng) {
-                points.push({ lat: latlng.lat, lng: latlng.lng });
-                routePoints = points.slice();
-                rebuildLine();
-                rebuildMarkers();
-                updateStats();
-                updateRouteFromWaypoints();
-                setStatus('Titik ditambahkan (' + points.length + ')');
-                pushState(); // Save state
-            }
+            // [Duplicate addPoint removed]
 
             function undo() {
                 if (historyIndex > 0) {
@@ -898,7 +1094,9 @@
 
             function fitRoute() {
                 if (routePoints.length < 2) return;
-                map.fitBounds(routeLine.getBounds().pad(0.18));
+                if (typeof routeLayer !== 'undefined' && routeLayer.getLayers().length > 0) {
+                    map.fitBounds(routeLayer.getBounds().pad(0.18));
+                }
             }
 
             function centerToUser() {
@@ -1025,19 +1223,29 @@
             }
 
             function loadEntry(entry) {
-                points = (entry.points || []).map(function (p) { return { lat: p.lat, lng: p.lng }; });
+                points = (entry.points || []).map(function (p) {
+                    return {
+                        lat: p.lat,
+                        lng: p.lng,
+                        mode: p.mode || (entry.snap ? 'osrm' : 'direct'),
+                        segment: p.segment || []
+                    };
+                });
                 els.name.value = entry.name || '';
                 els.paceMin.value = String(entry.paceMin ?? 6);
                 els.paceSec.value = String(entry.paceSec ?? 0);
                 if (els.followRoad && typeof entry.snap !== 'undefined') els.followRoad.checked = !!entry.snap;
                 if (els.showDirections && typeof entry.dir !== 'undefined') els.showDirections.checked = !!entry.dir;
-                routePoints = points.slice();
-                rebuildLine();
-                rebuildMarkers();
-                updateStats();
-                updateRouteFromWaypoints();
-                if (points.length >= 2) fitRoute();
-                setStatus('Dimuat');
+                
+                processLoadedPoints().then(function() {
+                    rebuildLine();
+                    rebuildMarkers();
+                    updateStats();
+                    updateElevation();
+                    if (points.length >= 2) fitRoute();
+                    setStatus('Dimuat');
+                    pushState();
+                });
             }
 
             function showLoadModal() {
@@ -1239,15 +1447,21 @@
                         return { lat: lat, lng: lng };
                     }).filter(Boolean);
                     if (parsed.length > 0) {
-                        points = parsed;
-                        routePoints = points.slice();
+                    var snap = qs.get('snap') === '1';
+                    points = parsed.map(function(p) {
+                        return { lat: p.lat, lng: p.lng, mode: snap ? 'osrm' : 'direct', segment: [] };
+                    });
+                    
+                    processLoadedPoints().then(function() {
                         rebuildLine();
                         rebuildMarkers();
                         updateStats();
-                        updateRouteFromWaypoints();
+                        updateElevation();
                         setStatus('Rute dari link');
                         setTimeout(fitRoute, 250);
-                    }
+                        pushState();
+                    });
+                }
                 }
                 var name = qs.get('name');
                 if (name) els.name.value = name;
@@ -1329,13 +1543,35 @@
                     }
                     routePoints = decimatePoints(parsed, 3000);
                     points = decimatePoints(routePoints, 60);
+
+                    // Reconstruct segments from routePoints to preserve geometry
+                    for (var i = 0; i < points.length; i++) {
+                        points[i].mode = 'direct';
+                        if (i > 0) {
+                            var startIdx = routePoints.indexOf(points[i-1]);
+                            var endIdx = routePoints.indexOf(points[i]);
+                            // Ensure we search forward from startIdx
+                            if (endIdx < startIdx) {
+                                endIdx = routePoints.indexOf(points[i], startIdx);
+                            }
+                            
+                            if (startIdx !== -1 && endIdx !== -1) {
+                                points[i].segment = routePoints.slice(startIdx, endIdx + 1);
+                            } else {
+                                points[i].segment = [points[i-1], points[i]];
+                            }
+                        } else {
+                            points[i].segment = [];
+                        }
+                    }
+
                     rebuildLine();
                     rebuildMarkers();
                     updateStats();
                     updateElevation();
                     setTimeout(fitRoute, 80);
-                    updateRouteFromWaypoints();
                     setStatus('GPX dimuat');
+                    pushState();
                 };
                 reader.onerror = function () {
                     showInfoModal('Import gagal', 'Gagal membaca file GPX.');
@@ -1391,50 +1627,7 @@
                     });
             }
 
-            function updateRouteFromWaypoints() {
-                if (!els.followRoad || !els.followRoad.checked) {
-                    routePoints = points.slice();
-                    rebuildLine();
-                    updateStats();
-                    updateElevation();
-                    return;
-                }
-                if (points.length < 2) {
-                    routePoints = points.slice();
-                    rebuildLine();
-                    updateStats();
-                    updateElevation();
-                    return;
-                }
-                if (points.length > 100) {
-                    routePoints = points.slice();
-                    rebuildLine();
-                    updateStats();
-                    updateElevation();
-                    setStatus('Terlalu banyak titik untuk routing');
-                    return;
-                }
-                routingSeq += 1;
-                var seq = routingSeq;
-                setStatus('Routing...');
-                osrmRoute(points.slice())
-                    .then(function (rp) {
-                        if (seq !== routingSeq) return;
-                        routePoints = rp;
-                        rebuildLine();
-                        updateStats();
-                        updateElevation();
-                        setStatus('Ikuti jalan aktif');
-                    })
-                    .catch(function () {
-                        if (seq !== routingSeq) return;
-                        routePoints = points.slice();
-                        rebuildLine();
-                        updateStats();
-                        updateElevation();
-                        setStatus('Routing gagal');
-                    });
-            }
+
 
             var elevTimer = null;
             var elevAbortController = null;
@@ -1765,7 +1958,8 @@
 
             if (els.followRoad) {
                 els.followRoad.addEventListener('change', function () {
-                    updateRouteFromWaypoints();
+                    // Hanya ubah mode untuk titik baru, jangan update rute yang sudah ada
+                    setStatus('Mode ' + (els.followRoad.checked ? 'OSRM' : 'Manual') + ' aktif');
                 });
             }
             if (els.showDirections) {
@@ -1854,8 +2048,12 @@
                 freehandPoints.push(e.latlng);
                 if (freehandPoints.length % 4 === 0) {
                     var ll = freehandPoints[freehandPoints.length - 1];
-                    points.push({ lat: ll.lat, lng: ll.lng });
-                    routePoints = points.slice();
+                    var newP = { lat: ll.lat, lng: ll.lng, mode: 'direct', segment: [] };
+                    if (points.length > 0) {
+                        var prev = points[points.length-1];
+                        newP.segment = [prev, newP];
+                    }
+                    points.push(newP);
                     rebuildLine();
                     updateStats();
                 }
@@ -1865,8 +2063,9 @@
                 map.dragging.enable();
                 rebuildMarkers();
                 updateStats();
-                updateRouteFromWaypoints();
+                updateElevation();
                 setStatus('Freehand selesai');
+                pushState();
             }
 
             map.on('click', function (e) {
@@ -1889,9 +2088,95 @@
             map.on('touchend', onFreehandEnd);
 
             updateStats();
-            routePoints = points.slice();
+            rebuildLine();
             applyFromQuery();
-            updateRouteFromWaypoints();
+
+            // --- TEST SUITE ---
+            window.runRouteTests = async function() {
+                console.log('Running Route Builder Tests...');
+                var passed = 0, failed = 0;
+                
+                function assert(cond, msg) {
+                    if (cond) {
+                        console.log('%c✅ PASS: ' + msg, 'color:green');
+                        passed++;
+                    } else {
+                        console.error('❌ FAIL: ' + msg);
+                        failed++;
+                    }
+                }
+                
+                function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+                async function testUndo() {
+                    console.group('Test Undo');
+                    clearAll();
+                    await wait(100);
+                    
+                    // Add 3 points
+                    addPoint({lat: -6.2, lng: 106.8});
+                    addPoint({lat: -6.21, lng: 106.81});
+                    addPoint({lat: -6.22, lng: 106.82});
+                    
+                    assert(points.length === 3, 'Added 3 points');
+                    
+                    undo();
+                    await wait(100);
+                    assert(points.length === 2, 'Undo removed 1 point');
+                    assert(markers.length === 2, 'Markers updated');
+                    
+                    redo();
+                    await wait(100);
+                    assert(points.length === 3, 'Redo restored point');
+                    
+                    console.groupEnd();
+                }
+
+                async function testModeSwitch() {
+                    console.group('Test Mode Switch');
+                    clearAll();
+                    addPoint({lat: -6.2, lng: 106.8});
+                    // Enable OSRM
+                    if (els.followRoad) els.followRoad.checked = true;
+                    addPoint({lat: -6.21, lng: 106.81}); // Should be OSRM
+                    
+                    await wait(500); // Wait for OSRM
+                    // Note: If OSRM fails (network), it might fallback to direct but mode stays osrm
+                    assert(points[1].mode === 'osrm', 'Point 1 mode is OSRM');
+                    
+                    // Toggle to Manual
+                    togglePointMode(1);
+                    await wait(500);
+                    assert(points[1].mode === 'direct', 'Point 1 mode toggled to direct');
+                    
+                    console.groupEnd();
+                }
+                
+                async function testPerformance() {
+                    console.group('Test Performance (50 points)');
+                    clearAll();
+                    var start = performance.now();
+                    for(var i=0; i<50; i++) {
+                        addPoint({lat: -6.2 + (i*0.001), lng: 106.8 + (i*0.001)});
+                    }
+                    var end = performance.now();
+                    assert(points.length === 50, 'Added 50 points');
+                    console.log('Time taken: ' + (end - start).toFixed(2) + 'ms');
+                    assert((end - start) < 3000, 'Performance OK (<3s)');
+                    console.groupEnd();
+                }
+
+                try {
+                    await testUndo();
+                    await testModeSwitch();
+                    await testPerformance();
+                    console.log(`Tests Completed. Passed: ${passed}, Failed: ${failed}`);
+                    alert(`Tests Completed.\nPassed: ${passed}\nFailed: ${failed}`);
+                } catch (e) {
+                    console.error('Test Suite Error:', e);
+                    alert('Test Suite Error: ' + e.message);
+                }
+            };
 
             // Export Image Logic
             els.exportImage = document.getElementById('rl-export-image');
