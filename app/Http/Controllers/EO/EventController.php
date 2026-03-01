@@ -900,6 +900,7 @@ class EventController extends Controller
                     'transaction_date' => $p->transaction->created_at ? $p->transaction->created_at->format('d M Y H:i') : '-',
                     'payment_method' => $p->transaction->payment_gateway ?? '-',
                     'coupon_code' => $p->transaction->coupon->code ?? null,
+                    'coupon_id' => $p->transaction->coupon_id ?? null,
                     'addons' => $p->addons,
                 ];
             });
@@ -1199,6 +1200,7 @@ class EventController extends Controller
             'bib_number' => 'nullable|string|max:20',
             'jersey_size' => 'nullable|string|max:10',
             'is_picked_up' => 'nullable|boolean',
+            'coupon_id' => 'nullable|exists:coupons,id',
         ]);
 
         // If is_picked_up is toggled, handle timestamp
@@ -1213,10 +1215,17 @@ class EventController extends Controller
             }
         }
 
+        // Update Coupon if present
+        if ($request->has('coupon_id') && $participant->transaction) {
+            $participant->transaction->update([
+                'coupon_id' => $validated['coupon_id']
+            ]);
+        }
+
         $participant->update($validated);
 
         // Refresh to get relationship data if needed (e.g. category name)
-        $participant->load('category');
+        $participant->load(['category', 'transaction.coupon']);
 
         return response()->json([
             'success' => true,
@@ -1240,6 +1249,8 @@ class EventController extends Controller
                 'is_picked_up' => $participant->is_picked_up,
                 'picked_up_at' => $participant->picked_up_at,
                 'picked_up_by' => $participant->picked_up_by,
+                'coupon_id' => $participant->transaction->coupon_id ?? null,
+                'coupon_code' => $participant->transaction->coupon->code ?? null,
             ],
         ]);
     }

@@ -879,7 +879,18 @@
                                 <div class="space-y-3">
                                     <div><div class="text-xs text-slate-500">Transaction Date</div><div class="text-white" id="dm_trx_date"></div></div>
                                     <div><div class="text-xs text-slate-500">Payment Method</div><div class="text-white uppercase" id="dm_payment_method"></div></div>
-                                    <div><div class="text-xs text-slate-500">Coupon</div><div class="text-white font-mono" id="dm_coupon"></div></div>
+                                    <div>
+                                        <div class="text-xs text-slate-500">Coupon</div>
+                                        <div class="view-mode text-white font-mono" id="dm_coupon"></div>
+                                        <select name="coupon_id" id="edit_coupon_id" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                            <option value="">-- No Coupon --</option>
+                                            @foreach($coupons as $coupon)
+                                                <option value="{{ $coupon->id }}">
+                                                    {{ $coupon->code }} ({{ $coupon->type == 'percent' ? (float)$coupon->value . '%' : 'Rp ' . number_format($coupon->value, 0, ',', '.') }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="space-y-3">
                                     <div><div class="text-xs text-slate-500">Status</div><div id="dm_payment_status"></div></div>
@@ -1015,6 +1026,7 @@
                     is_picked_up: p.is_picked_up,
                     picked_up_by: p.picked_up_by,
                     coupon_code: p.coupon_code,
+                    coupon_id: p.coupon_id,
                     addons: p.addons
                 }).replace(/'/g, "&#39;");
 
@@ -1405,6 +1417,8 @@
         setValue('edit_bib_number', d.bib_number);
         setValue('edit_jersey_size', d.jersey_size);
         
+        setValue('edit_coupon_id', d.coupon_id);
+        
         // Handle attendance badge update if needed or specific logic
         togglePickedByField();
     }
@@ -1461,7 +1475,8 @@
             is_picked_up: document.getElementById('edit_is_picked_up').value,
             race_category_id: document.getElementById('edit_race_category_id').value,
             bib_number: document.getElementById('edit_bib_number').value.trim(),
-            jersey_size: document.getElementById('edit_jersey_size').value.trim()
+            jersey_size: document.getElementById('edit_jersey_size').value.trim(),
+            coupon_id: document.getElementById('edit_coupon_id').value
         };
 
         // Client-side Validation
@@ -1524,7 +1539,9 @@
                         jersey_size: res.data.jersey_size,
                         age_group: res.data.age_group,
                         is_picked_up: res.data.is_picked_up,
-                        picked_up_by: res.data.picked_up_by
+                        picked_up_by: res.data.picked_up_by,
+                        coupon_id: res.data.coupon_id,
+                        coupon_code: res.data.coupon_code
                     });
                 }
 
@@ -1551,6 +1568,14 @@
                      attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span>';
                 } else {
                      attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
+                }
+                
+                // Update Coupon View
+                var couponEl = document.getElementById('dm_coupon');
+                if (res.data.coupon_code) {
+                    couponEl.innerHTML = '<span class="text-yellow-400 font-bold">' + res.data.coupon_code + '</span>';
+                } else {
+                    couponEl.textContent = '-';
                 }
 
                 // Show Success Message
@@ -1649,11 +1674,10 @@
         var couponEl = document.getElementById('dm_coupon');
         if (data.coupon_code) {
             couponEl.innerHTML = '<span class="text-yellow-400 font-bold">' + data.coupon_code + '</span>';
-            couponEl.parentElement.classList.remove('hidden');
         } else {
             couponEl.textContent = '-';
-            couponEl.parentElement.classList.add('hidden');
         }
+        couponEl.parentElement.classList.remove('hidden');
         
         // Payment Status Badge
         var status = data.payment_status;
