@@ -366,6 +366,7 @@
                             'payment_status' => $participant->transaction->payment_status ?? 'pending',
                             'is_picked_up' => $participant->is_picked_up,
                             'picked_up_by' => $participant->picked_up_by,
+                            'coupon_id' => $participant->transaction->coupon_id ?? null,
                             'coupon_code' => $participant->transaction->coupon->code ?? null,
                             'addons' => $participant->addons,
                         ]) }}">
