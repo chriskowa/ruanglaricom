@@ -289,77 +289,9 @@
                         @endif
                     </div>
 
-                    <!-- Twibbon Section -->
+                    
+
                     <div class="glass-dark p-6 md:p-8 shadow-2xl rounded-2xl animate-fade-in mb-8">
-                        <div class="flex items-center gap-2 mb-6">
-                            <div class="w-1.5 h-6 bg-sport-volt rounded-full"></div>
-                            <h3 class="text-white font-display text-xl uppercase">Twibbon Resmi</h3>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                            <div class="order-2 md:order-1">
-                                <div class="relative aspect-[4/5] w-full max-w-[400px] mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-                                    <canvas id="twibbonCanvas" class="w-full h-full object-contain"></canvas>
-                                    <div v-if="!twibbonUrl" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500 text-sm font-medium bg-black/40 backdrop-blur-sm">
-                                        <i class="fas fa-image text-3xl mb-2 opacity-50"></i>
-                                        <p>Twibbon belum tersedia</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="order-1 md:order-2 space-y-4">
-                                <p class="text-gray-300 text-sm leading-relaxed">
-                                    Dukung event ini dengan menggunakan Twibbon resmi! Isi data dirimu, upload fotomu, sesuaikan, dan download hasilnya.
-                                </p>
-                                
-                                <div class="space-y-3 mb-4">
-                                    <div class="form-input-group">
-                                        <input type="text" v-model="twibbonData.name" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
-                                        <label class="form-label text-xs">NAMA</label>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div class="form-input-group">
-                                            <input type="text" v-model="twibbonData.height" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
-                                            <label class="form-label text-xs">TB (CM)</label>
-                                        </div>
-                                        <div class="form-input-group">
-                                            <input type="text" v-model="twibbonData.weight" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
-                                            <label class="form-label text-xs">BB (KG)</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-input-group">
-                                        <input type="text" v-model="twibbonData.nickname" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
-                                        <label class="form-label text-xs">JULUKAN</label>
-                                    </div>
-                                    <div class="form-input-group">
-                                        <input type="text" v-model="twibbonData.region" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
-                                        <label class="form-label text-xs">ASAL WILAYAH</label>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-3">
-                                    <label class="block w-full cursor-pointer group">
-                                        <span class="sr-only">Upload Foto</span>
-                                        <input type="file" accept="image/*" @change="handleTwibbonUpload" :disabled="!twibbonUrl" class="block w-full text-sm text-gray-400
-                                            file:mr-4 file:py-2.5 file:px-4
-                                            file:rounded-full file:border-0
-                                            file:text-sm file:font-bold
-                                            file:bg-sport-volt file:text-black
-                                            hover:file:bg-white hover:file:text-black
-                                            disabled:opacity-50 disabled:cursor-not-allowed
-                                            transition-all
-                                        "/>
-                                    </label>
-                                    
-                                    <button type="button" @click="downloadTwibbon" :disabled="!twibbonUrl" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <i class="fas fa-download"></i>
-                                        <span>Download Twibbon</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="glass-dark p-6 md:p-8 shadow-2xl rounded-2xl animate-fade-in">
                         <div class="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
                             <div>
                                 <h2 class="text-3xl font-display uppercase text-white tracking-wide">Formulir Pendaftaran</h2>
@@ -557,6 +489,77 @@
                             </div>
                         </form>
                     </div>
+
+                    <!-- Twibbon Section -->
+                    <div class="glass-dark p-6 md:p-8 shadow-2xl rounded-2xl animate-fade-in mb-8">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-1.5 h-6 bg-sport-volt rounded-full"></div>
+                            <h3 class="text-white font-display text-xl uppercase">Twibbon Resmi</h3>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <div class="order-2 md:order-1">
+                                <div class="relative aspect-[4/5] w-full max-w-[400px] mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+                                    <canvas id="twibbonCanvas" class="w-full h-full object-contain"></canvas>
+                                    <div v-if="!twibbonUrl" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500 text-sm font-medium bg-black/40 backdrop-blur-sm">
+                                        <i class="fas fa-image text-3xl mb-2 opacity-50"></i>
+                                        <p>Twibbon belum tersedia</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-1 md:order-2 space-y-4">
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    Dukung event ini dengan menggunakan Twibbon resmi! Isi data dirimu, upload fotomu, sesuaikan, dan download hasilnya.
+                                </p>
+                                
+                                <div class="space-y-3 mb-4">
+                                    <div class="form-input-group">
+                                        <input type="text" v-model="twibbonData.name" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                        <label class="form-label text-xs">NAMA</label>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="form-input-group">
+                                            <input type="text" v-model="twibbonData.height" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                            <label class="form-label text-xs">TB (CM)</label>
+                                        </div>
+                                        <div class="form-input-group">
+                                            <input type="text" v-model="twibbonData.weight" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                            <label class="form-label text-xs">BB (KG)</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-input-group">
+                                        <input type="text" v-model="twibbonData.nickname" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                        <label class="form-label text-xs">JULUKAN</label>
+                                    </div>
+                                    <div class="form-input-group">
+                                        <input type="text" v-model="twibbonData.region" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                        <label class="form-label text-xs">ASAL WILAYAH</label>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <label class="block w-full cursor-pointer group">
+                                        <span class="sr-only">Upload Foto</span>
+                                        <input type="file" accept="image/*" @change="handleTwibbonUpload" :disabled="!twibbonUrl" class="block w-full text-sm text-gray-400
+                                            file:mr-4 file:py-2.5 file:px-4
+                                            file:rounded-full file:border-0
+                                            file:text-sm file:font-bold
+                                            file:bg-sport-volt file:text-black
+                                            hover:file:bg-white hover:file:text-black
+                                            disabled:opacity-50 disabled:cursor-not-allowed
+                                            transition-all
+                                        "/>
+                                    </label>
+                                    
+                                    <button type="button" @click="downloadTwibbon" :disabled="!twibbonUrl" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <i class="fas fa-download"></i>
+                                        <span>Download Twibbon</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="lg:col-span-5">
                     <!-- Simulasi Klasemen -->
