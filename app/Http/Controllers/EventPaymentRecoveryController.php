@@ -158,10 +158,40 @@ class EventPaymentRecoveryController extends Controller
 
         $mode = $tx->midtrans_mode ? (string) $tx->midtrans_mode : null;
         $result = $midtransService->checkTransactionStatus($tx->midtrans_order_id, $mode);
+        
         if (! ($result['success'] ?? false)) {
+            $msg = $result['message'] ?? 'Unknown error';
+            
+            // Log detailed error for debugging
+            \Log::error("Midtrans Status Check Failed", [
+                'transaction_id' => $tx->id,
+                'midtrans_order_id' => $tx->midtrans_order_id,
+                'mode' => $mode,
+                'server_key_prefix' => substr(config('midtrans.server_key'), 0, 6) . '...',
+                'error' => $msg
+            ]);
+
+            // If transaction doesn't exist at Midtrans (404), reset it so user can retry
+            if (str_contains($msg, '404') || str_contains($msg, "doesn't exist")) {
+                \Log::info("Resetting transaction {$tx->id} due to 404 at Midtrans");
+                $tx->update([
+                    'snap_token' => null, 
+                    'midtrans_order_id' => null,
+                    // Optional: reset mode to default if we suspect mode mismatch, 
+                    // but keeping it null/current is usually safer unless we force a new logic.
+                    // 'midtrans_mode' => null 
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sesi pembayaran tidak ditemukan atau kadaluarsa di sistem pembayaran. Silakan refresh dan coba bayar ulang.',
+                    'should_retry' => true
+                ], 404);
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => $result['message'] ?? 'Gagal mengecek status.',
+                'message' => $msg ?? 'Gagal mengecek status.',
             ], 400);
         }
 

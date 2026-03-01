@@ -2561,11 +2561,21 @@
                         credentials: 'same-origin',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         body: JSON.stringify({ event_id: {{ $event->id }}, coupon_code: code, total_amount: subtotal })
                     })
                     .then(async r => {
+                        // Check content type to avoid "Unexpected token <"
+                        const contentType = r.headers.get("content-type");
+                        if (!contentType || !contentType.includes("application/json")) {
+                            if (r.status === 404) {
+                                throw new Error('Kode kupon tidak ditemukan');
+                            }
+                            throw new Error('Terjadi kesalahan pada server (' + r.status + ')');
+                        }
+
                         const data = await r.json();
                         if (!r.ok) {
                             throw new Error(data.message || 'Terjadi kesalahan pada server');
