@@ -39,6 +39,7 @@ class Event extends Model
         'floating_image',
         'medal_image',
         'jersey_image',
+        'twibbon_image',
         'map_embed_url',
         'google_calendar_url',
         'registration_open_at',

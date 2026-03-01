@@ -90,14 +90,14 @@ class PublicEventController extends Controller
                 $participants = collect();
                 if ($event->show_participant_list) {
                     $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
-                        $q->where('event_id', $event->id)->where('payment_status', 'paid');
+                        $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
                     })
                         ->when($event->registration_open_at, function ($q) use ($event) {
                             $q->where('created_at', '>=', $event->registration_open_at);
                         })
                         ->orderBy('created_at', 'desc')
                         ->limit(50)
-                        ->get(['id', 'name']);
+                        ->get(['id', 'name', 'target_time']);
                 }
 
                 $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
@@ -150,14 +150,14 @@ class PublicEventController extends Controller
             $participants = collect();
             if ($event->show_participant_list) {
                 $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
-                    $q->where('event_id', $event->id)->where('payment_status', 'paid');
-                })
+                        $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
+                    })
                     ->when($event->registration_open_at, function ($q) use ($event) {
                         $q->where('created_at', '>=', $event->registration_open_at);
                     })
                     ->orderBy('created_at', 'desc')
                     ->limit(50)
-                    ->get(['id', 'name']);
+                    ->get(['id', 'name', 'target_time']);
             }
 
             $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;

@@ -761,6 +761,18 @@
                         </div>
                         <input type="hidden" name="logo_image" id="logo_image_input" value="{{ $event->logo_image }}">
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Twibbon Image (PNG) <span class="text-slate-500 text-xs">(Optional)</span></label>
+                        <div id="twibbon-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors">
+                            <div class="dz-message text-center py-8">
+                                <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <p class="text-sm text-slate-400">Click or Drag Twibbon (PNG)</p>
+                            </div>
+                        </div>
+                        <input type="hidden" name="twibbon_image" id="twibbon_image_input" value="{{ $event->twibbon_image }}">
+                        @error('twibbon_image') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                     
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Event Gallery (Multiple, Drag to Reorder)</label>
@@ -936,9 +948,10 @@
             params: {
                 folder: id.includes('hero') ? 'events/hero' : 
                        (id.includes('logo') ? 'events/logo' : 
+                       (id.includes('twibbon') ? 'events/twibbon' : 
                        (id.includes('gallery') ? 'events/gallery' : 
                        (id.includes('jersey') ? 'events/jersey' : 
-                       (id.includes('medal') ? 'events/medal' : 'events/sponsors'))))
+                       (id.includes('medal') ? 'events/medal' : 'events/sponsors')))))
             },
             success: function(file, response) {
                 if (response.success) {
@@ -1052,6 +1065,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         initDropzone('hero-dropzone', 'hero_image', 1, @json($event->hero_image ? [$event->hero_image] : []));
         initDropzone('logo-dropzone', 'logo_image', 1, @json($event->logo_image ? [$event->logo_image] : []));
+        initDropzone('twibbon-dropzone', 'twibbon_image', 1, @json($event->twibbon_image ? [$event->twibbon_image] : []));
         initDropzone('jersey-dropzone', 'jersey_image', 1, @json($event->jersey_image ? [$event->jersey_image] : []));
         initDropzone('medal-dropzone', 'medal_image', 1, @json($event->medal_image ? [$event->medal_image] : []));
         initDropzone('gallery-dropzone', 'gallery[]', 10, @json($event->gallery ?? []));

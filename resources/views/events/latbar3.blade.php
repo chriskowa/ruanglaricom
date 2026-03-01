@@ -56,7 +56,7 @@
                     },
                     colors: {
                         sport: {
-                            volt: '#CCFF00',   /* Hijau Stabilo / Nike Volt */
+                            volt: '#ff5100ff',   /* Hijau Stabilo / Nike Volt */
                             blue: '#0044FF',   /* Electric Blue */
                             dark: '#0a0a0a',
                             surface: '#121212'
@@ -275,9 +275,88 @@
                                     </div>
                                     @endif
                                 </div>
+                                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10">
+                                    <i class="fas fa-stopwatch text-sport-volt"></i>
+                                </div>
+                                <div class="w-full">
+                                    <h4 class="text-white font-bold">Time</h4>
+                                    @if($event->start_time)
+                                    <p class="text-gray-400 text-sm mt-1">{{ $event->start_time }}</p>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                         @endif
+                    </div>
+
+                    <!-- Twibbon Section -->
+                    <div class="glass-dark p-6 md:p-8 shadow-2xl rounded-2xl animate-fade-in mb-8">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-1.5 h-6 bg-sport-volt rounded-full"></div>
+                            <h3 class="text-white font-display text-xl uppercase">Twibbon Resmi</h3>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <div class="order-2 md:order-1">
+                                <div class="relative aspect-[4/5] w-full max-w-[400px] mx-auto bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+                                    <canvas id="twibbonCanvas" class="w-full h-full object-contain"></canvas>
+                                    <div v-if="!twibbonUrl" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500 text-sm font-medium bg-black/40 backdrop-blur-sm">
+                                        <i class="fas fa-image text-3xl mb-2 opacity-50"></i>
+                                        <p>Twibbon belum tersedia</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-1 md:order-2 space-y-4">
+                                <p class="text-gray-300 text-sm leading-relaxed">
+                                    Dukung event ini dengan menggunakan Twibbon resmi! Isi data dirimu, upload fotomu, sesuaikan, dan download hasilnya.
+                                </p>
+                                
+                                <div class="space-y-3 mb-4">
+                                    <div class="form-input-group">
+                                        <input type="text" v-model="twibbonData.name" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                        <label class="form-label text-xs">NAMA</label>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="form-input-group">
+                                            <input type="text" v-model="twibbonData.height" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                            <label class="form-label text-xs">TB (CM)</label>
+                                        </div>
+                                        <div class="form-input-group">
+                                            <input type="text" v-model="twibbonData.weight" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                            <label class="form-label text-xs">BB (KG)</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-input-group">
+                                        <input type="text" v-model="twibbonData.nickname" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                        <label class="form-label text-xs">JULUKAN</label>
+                                    </div>
+                                    <div class="form-input-group">
+                                        <input type="text" v-model="twibbonData.region" @input="redrawTwibbon" class="form-input text-sm" placeholder=" ">
+                                        <label class="form-label text-xs">ASAL WILAYAH</label>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <label class="block w-full cursor-pointer group">
+                                        <span class="sr-only">Upload Foto</span>
+                                        <input type="file" accept="image/*" @change="handleTwibbonUpload" :disabled="!twibbonUrl" class="block w-full text-sm text-gray-400
+                                            file:mr-4 file:py-2.5 file:px-4
+                                            file:rounded-full file:border-0
+                                            file:text-sm file:font-bold
+                                            file:bg-sport-volt file:text-black
+                                            hover:file:bg-white hover:file:text-black
+                                            disabled:opacity-50 disabled:cursor-not-allowed
+                                            transition-all
+                                        "/>
+                                    </label>
+                                    
+                                    <button type="button" @click="downloadTwibbon" :disabled="!twibbonUrl" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <i class="fas fa-download"></i>
+                                        <span>Download Twibbon</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="glass-dark p-6 md:p-8 shadow-2xl rounded-2xl animate-fade-in">
@@ -292,58 +371,84 @@
                         </div>
                         <form v-on:submit.prevent="processPayment" class="space-y-6">
                             
-                            <!-- Personal Info -->
-                            <div class="space-y-2">
-                                <div class="form-input-group animate-fade-in delay-100">
-                                    <input type="text" id="name" v-model="form.name" required class="form-input" placeholder=" ">
-                                    <label for="name" class="form-label">NAMA LENGKAP</label>
-                                </div>
-
-                                <!--
-                                <div class="form-input-group animate-fade-in delay-100">
-                                    <input type="text" id="id_card" v-model="form.id_card" required class="form-input" placeholder=" ">
-                                    <label for="id_card" class="form-label">NO. KTP / ID CARD</label>
-                                </div>
-                                -->
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="form-input-group animate-fade-in delay-200">
-                                        <input type="tel" id="phone" v-model="form.phone" required class="form-input" placeholder=" ">
-                                        <label for="phone" class="form-label">WHATSAPP</label>
+                            <!-- Personal Info Loop -->
+                            <div class="space-y-6">
+                                <div v-for="(participant, index) in form.participants" :key="index" class="relative p-6 border border-white/10 rounded-xl bg-white/5 animate-fade-in">
+                                    <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-1 h-4 bg-sport-volt rounded-full"></div>
+                                            <h4 class="text-sm font-bold text-gray-300 uppercase tracking-wider">Peserta @{{ index + 1 }}</h4>
+                                        </div>
+                                        <button v-if="index > 0" type="button" @click="removeParticipant(index)" class="text-red-500 hover:text-red-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
                                     </div>
-                                    <div class="form-input-group animate-fade-in delay-200">
-                                        <input type="email" id="email" v-model="form.email" required class="form-input" placeholder=" ">
-                                        <label for="email" class="form-label">EMAIL</label>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div class="form-input-group animate-fade-in delay-250">
-                                        <select id="gender" v-model="form.gender" required class="form-input">
-                                            <option value="male">Laki-laki</option>
-                                            <option value="female">Perempuan</option>
-                                        </select>
-                                        <label for="gender" class="form-label">GENDER</label>
-                                    </div>
-                                    <input type="hidden" id="jersey_size" v-model="form.jersey_size">
-                                </div>
 
-                                <!--
-                                <div class="form-input-group animate-fade-in delay-250">
-                                    <textarea id="address" v-model="form.address" required class="form-input" rows="2" placeholder=" "></textarea>
-                                    <label for="address" class="form-label">ALAMAT LENGKAP</label>
-                                </div>
+                                    <div class="space-y-2">
+                                        <div class="form-input-group">
+                                            <input type="text" :id="'name_'+index" v-model="participant.name" required class="form-input" placeholder=" ">
+                                            <label :for="'name_'+index" class="form-label">NAMA LENGKAP</label>
+                                        </div>
 
-                                <div class="form-input-group animate-fade-in delay-250">
-                                    <input type="date" id="dob" v-model="form.date_of_birth" required class="form-input" placeholder=" ">
-                                    <label for="dob" class="form-label">TANGGAL LAHIR</label>
-                                </div>
-                                -->
-                                
-                                <div class="form-input-group animate-fade-in delay-300">
-                                    <input type="number" id="ticket" v-model="form.ticket_quantity" min="1" required class="form-input" placeholder=" ">
-                                    <label for="ticket" class="form-label">JUMLAH TIKET</label>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="form-input-group">
+                                                <input type="tel" :id="'phone_'+index" v-model="participant.phone" required class="form-input" placeholder=" ">
+                                                <label :for="'phone_'+index" class="form-label">WHATSAPP</label>
+                                            </div>
+                                            <div class="form-input-group">
+                                                <input type="email" :id="'email_'+index" v-model="participant.email" required class="form-input" placeholder=" ">
+                                                <label :for="'email_'+index" class="form-label">EMAIL</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="form-input-group">
+                                                <input type="text" :id="'address_'+index" v-model="participant.address" required class="form-input" placeholder=" ">
+                                                <label :for="'address_'+index" class="form-label">ALAMAT</label>
+                                            </div>
+                                            <div class="form-input-group">
+                                                <label class="form-label mb-2 block relative z-10">TARGET WAKTU (JAM : MENIT : DETIK)</label>
+                                                <div class="grid grid-cols-3 gap-2">
+                                                    <div>
+                                                        <input type="number" min="0" max="23" placeholder="HH" class="form-input text-center" 
+                                                               v-model="participant.h" @input="updateTargetTime(index)">
+                                                    </div>
+                                                    <div>
+                                                        <input type="number" min="0" max="59" placeholder="MM" class="form-input text-center" 
+                                                               v-model="participant.m" @input="updateTargetTime(index)">
+                                                    </div>
+                                                    <div>
+                                                        <input type="number" min="0" max="59" placeholder="SS" class="form-input text-center" 
+                                                               v-model="participant.s" @input="updateTargetTime(index)">
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" v-model="participant.target_time">
+                                                <p class="text-[10px] text-gray-500 mt-1">Contoh: 00 : 50 : 00</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="form-input-group">
+                                                <select :id="'gender_'+index" v-model="participant.gender" required class="form-input">
+                                                    <option value="male">Laki-laki</option>
+                                                    <option value="female">Perempuan</option>
+                                                </select>
+                                                <label :for="'gender_'+index" class="form-label">GENDER</label>
+                                            </div>
+                                            <!-- Jersey Size hidden/default -->
+                                            <input type="hidden" v-model="participant.jersey_size">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Add Participant Button -->
+                            <button type="button" @click="addParticipant" class="w-full py-4 border border-dashed border-white/20 hover:border-sport-volt text-gray-400 hover:text-sport-volt rounded-xl transition-all duration-300 flex items-center justify-center gap-3 group animate-fade-in">
+                                <div class="w-8 h-8 rounded-full bg-white/5 group-hover:bg-sport-volt/10 flex items-center justify-center transition-colors">
+                                    <i class="fas fa-plus text-xs group-hover:text-sport-volt"></i>
+                                </div>
+                                <span class="font-bold uppercase tracking-wider text-sm">Tambah Peserta</span>
+                            </button>
 
                             <!-- Addons Section -->
                             <div v-if="availableAddons.length > 0" class="animate-fade-in delay-300">
@@ -454,7 +559,53 @@
                     </div>
                 </div>
                 <div class="lg:col-span-5">
-                    <div class="glass-dark p-6 md:p-8 h-full relative rounded-2xl">
+                    <!-- Simulasi Klasemen -->
+                    <div class="glass-dark p-6 md:p-8 mt-6 rounded-2xl animate-fade-in mb-8">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-1.5 h-6 bg-sport-volt rounded-full"></div>
+                            <h3 class="text-white font-display text-xl uppercase">Simulasi Klasemen</h3>
+                        </div>
+                        
+                        <div v-if="simulatedStandings.length > 0">
+                            <p class="text-xs text-gray-400 mb-4">Prediksi lawan berdasarkan selisih target waktu terkecil.</p>
+                            <div class="space-y-3">
+                                <div v-for="(match, index) in simulatedStandings" :key="index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center justify-between">
+                                    <!-- Runner 1 -->
+                                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600">
+                                            @{{ getInitials(match.p1.name) }}
+                                        </div>
+                                        <div class="min-w-0 overflow-hidden">
+                                            <div class="text-xs font-bold text-white truncate">@{{ match.p1.name }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">@{{ match.p1.target_time }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
+
+                                    <!-- Runner 2 -->
+                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0">
+                                        <div class="text-right min-w-0 overflow-hidden">
+                                            <div class="text-xs font-bold text-white truncate">@{{ match.p2.name }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">@{{ match.p2.target_time }}</div>
+                                        </div>
+                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600">
+                                            @{{ getInitials(match.p2.name) }}
+                                        </div>
+                                    </div>
+                                    <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
+                                        Menunggu Lawan
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-8 border border-dashed border-white/10 rounded-xl">
+                            <i class="fas fa-stopwatch text-3xl text-gray-600 mb-3"></i>
+                            <p class="text-gray-400 text-sm">Belum ada data target waktu peserta untuk simulasi.</p>
+                        </div>
+                    </div>
+                    <div class="glass-dark p-6 md:p-8 relative rounded-2xl">
+                        
                         <div class="flex items-center justify-between mb-5 md:mb-6">
                             <div>
                                 <h3 class="text-lg md:text-xl font-display uppercase text-white">Daftar Peserta</h3>
@@ -518,12 +669,11 @@
                             </div>
                         </div>
                     </div>
+                    
+                    
                 </div>
             </div>
             
-            @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
-                @include('events.partials.participants-table')
-            @endif
         </main>
         
 
@@ -621,7 +771,16 @@
     const { createApp, ref, computed, onMounted } = Vue;
     const app = createApp({
         setup() {
-                    const form = ref({ name: '', email: '', phone: '', address: '', date_of_birth: '', id_card: '', ticket_quantity: 1, addons: [], gender: 'male', jersey_size: 'M', emergency_contact_name: '', emergency_contact_number: '' });
+            const form = ref({ 
+                payment_method: 'midtrans', 
+                addons: [], 
+                participants: [{
+                    name: '', email: '', phone: '', gender: 'male', jersey_size: 'M', 
+                    address: '', target_time: '', h: '', m: '', s: '',
+                    date_of_birth: '2000-01-01', id_card: '', 
+                    emergency_contact_name: '', emergency_contact_number: ''
+                }]
+            });
             const isLoading = ref(false);
             const couponCode = ref('');
             const appliedCoupon = ref(null);
@@ -629,7 +788,11 @@
             const eventId = {{ $event->id }};
             
             // Defensives for array initialization
-            const participantsRaw = @json($participants->map(fn($p) => ['id' => $p->id, 'name' => $p->name]));
+            const participantsRaw = @json($participants->map(fn($p) => [
+                'id' => $p->id, 
+                'name' => $p->name, 
+                'target_time' => $p->target_time
+            ]));
             const participants = ref(Array.isArray(participantsRaw) ? participantsRaw : []);
             
             const categoriesRaw = @json($categoriesData);
@@ -648,10 +811,38 @@
                 if (index === -1) form.value.addons.push(addon);
                 else form.value.addons.splice(index, 1);
             };
+            
+            const addParticipant = () => {
+                const first = form.value.participants[0] || {};
+                form.value.participants.push({
+                    name: '', email: '', phone: '', gender: 'male', jersey_size: 'M', 
+                    address: '', target_time: '', h: '', m: '', s: '',
+                    date_of_birth: '2000-01-01', id_card: '', 
+                    emergency_contact_name: first.emergency_contact_name || '', 
+                    emergency_contact_number: first.emergency_contact_number || ''
+                });
+            };
+
+            const updateTargetTime = (index) => {
+                const p = form.value.participants[index];
+                if (!p) return;
+                const h = (p.h || '00').toString().padStart(2, '0');
+                const m = (p.m || '00').toString().padStart(2, '0');
+                const s = (p.s || '00').toString().padStart(2, '0');
+                p.target_time = `${h}:${m}:${s}`;
+            };
+            
+            const removeParticipant = (index) => {
+                if (form.value.participants.length > 1) {
+                    form.value.participants.splice(index, 1);
+                }
+            };
+
             const formattedTotal = computed(() => {
                 const addonsList = Array.isArray(form.value.addons) ? form.value.addons : [];
                 const addonsTotal = addonsList.reduce((sum, addon) => sum + (parseInt(addon.price) || 0), 0);
-                let total = (prices.base * (form.value.ticket_quantity || 1)) + (addonsTotal * (form.value.ticket_quantity || 1)) - (discountAmount.value || 0);
+                const qty = form.value.participants.length;
+                let total = (prices.base * qty) + (addonsTotal * qty) - (discountAmount.value || 0);
                 if (total < 0) total = 0;
                 return formatCurrency(total);
             });
@@ -676,7 +867,7 @@
                 if (!canManage) return;
                 if (!id) return;
                 if (!confirm('Hapus peserta ini?')) return;
-                const csrf = document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content');
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 try {
                     const lastSlash = deleteBaseUrl.lastIndexOf('/');
                     const base = lastSlash >= 0 ? deleteBaseUrl.slice(0, lastSlash) : deleteBaseUrl;
@@ -696,22 +887,16 @@
                     const processPayment = async () => {
                 isLoading.value = true;
                 try {
-                    const participantsList = [];
-                    for (let i = 0; i < form.value.ticket_quantity; i++) {
-                        participantsList.push({
-                            name: form.value.name,
-                            gender: form.value.gender || 'male',
-                            email: form.value.email,
-                            phone: form.value.phone,
-                            address: form.value.address || 'Malang',
-                            date_of_birth: form.value.date_of_birth || '2000-01-01',
-                            id_card: (form.value.id_card || '0000000000') + i + Date.now().toString().slice(-4),
-                            category_id: defaultCategoryId,
-                            emergency_contact_name: form.value.emergency_contact_name || form.value.name,
-                            emergency_contact_number: form.value.emergency_contact_number || form.value.phone,
-                            jersey_size: form.value.jersey_size || 'M',
-                        });
-                    }
+                    const participantsList = form.value.participants.map(p => ({
+                        ...p,
+                        address: p.address || 'Malang',
+                        date_of_birth: p.date_of_birth || '2000-01-01',
+                        id_card: (p.id_card || '0000000000') + Date.now().toString().slice(-4),
+                        category_id: defaultCategoryId,
+                        emergency_contact_name: p.emergency_contact_name || p.name,
+                        emergency_contact_number: p.emergency_contact_number || p.phone,
+                        jersey_size: p.jersey_size || 'M',
+                    }));
 
                     let recaptchaToken = '';
                     @if(env('RECAPTCHA_SITE_KEY'))
@@ -726,10 +911,12 @@
                         return;
                     }
                     @endif
+                    
+                    const pic = form.value.participants[0];
                     const payload = {
-                        pic_name: form.value.name,
-                        pic_email: form.value.email,
-                        pic_phone: form.value.phone,
+                        pic_name: pic.name,
+                        pic_email: pic.email,
+                        pic_phone: pic.phone,
                         payment_method: form.value.payment_method || 'midtrans',
                         addons: form.value.addons,
                         participants: participantsList,
@@ -740,7 +927,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                             'Accept': 'application/json'
                         },
                         body: JSON.stringify(payload)
@@ -783,8 +970,8 @@
                                 registration_id: data.registration_id,
                                 final_amount: data.final_amount,
                                 unique_code: data.unique_code,
-                                phone: phoneEl ? phoneEl.value : '',
-                                name: nameEl ? nameEl.value : '',
+                                phone: pic.phone,
+                                name: pic.name,
                             });
                             return;
                         }
@@ -801,7 +988,164 @@
                     }
                 }
             };
+            
+            // Twibbon
+            const uploadedImage = ref(null);
+            const currentTwibbonImg = ref(null);
+            const twibbonUrl = "{{ $event->twibbon_image ? asset('storage/'.$event->twibbon_image) : '' }}";
+            const twibbonData = ref({
+                name: '',
+                height: '',
+                weight: '',
+                nickname: '',
+                region: ''
+            });
+
+            const redrawTwibbon = () => {
+                drawTwibbon(currentTwibbonImg.value);
+            };
+            
+            const handleTwibbonUpload = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        currentTwibbonImg.value = img;
+                        uploadedImage.value = true;
+                        drawTwibbon(img);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+            
+            const drawTwibbon = (userImg) => {
+                const canvas = document.getElementById('twibbonCanvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                
+                const frame = new Image();
+                frame.crossOrigin = "anonymous";
+                frame.src = twibbonUrl;
+                
+                const render = () => {
+                    // Aspect ratio 4:5 (1080 x 1350)
+                    canvas.width = 1080;
+                    canvas.height = 1350;
+                    
+                    // 1. Draw user image (cover)
+                    if (userImg) {
+                        const scale = Math.max(canvas.width / userImg.width, canvas.height / userImg.height);
+                        const x = (canvas.width / 2) - (userImg.width / 2) * scale;
+                        const y = (canvas.height / 2) - (userImg.height / 2) * scale;
+                        ctx.drawImage(userImg, x, y, userImg.width * scale, userImg.height * scale);
+                    } else {
+                        // Placeholder background
+                        ctx.fillStyle = '#1a1a1a'; // Dark gray
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+                    
+                    // 2. Draw frame if loaded
+                    if (frame.complete && frame.naturalWidth !== 0) {
+                        ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+                    }
+
+                    // 3. Draw Text
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 8;
+                    ctx.lineJoin = 'round';
+                    
+                    const centerX = canvas.width / 2;
+                    // Position text at bottom area
+                    let currentY = canvas.height - 420; 
+
+                    const drawText = (text, fontSize) => {
+                        ctx.font = `900 ${fontSize}px "Impact", "Arial Black", sans-serif`;
+                        ctx.strokeText(text, centerX, currentY);
+                        ctx.fillText(text, centerX, currentY);
+                        currentY += (fontSize * 1.2);
+                    };
+
+                    if (twibbonData.value.name) {
+                        drawText(twibbonData.value.name.toUpperCase(), 100);
+                    }
+                    
+                    if (twibbonData.value.nickname) {
+                        drawText(`"${twibbonData.value.nickname.toUpperCase()}"`, 70);
+                    }
+
+                    let statsLine = [];
+                    if (twibbonData.value.height) statsLine.push(`TB: ${twibbonData.value.height} CM`);
+                    if (twibbonData.value.weight) statsLine.push(`BB: ${twibbonData.value.weight} KG`);
+                    
+                    if (statsLine.length > 0) {
+                        drawText(statsLine.join('  |  '), 60);
+                    }
+
+                    if (twibbonData.value.region) {
+                        drawText(twibbonData.value.region.toUpperCase(), 60);
+                    }
+                };
+
+                frame.onload = render;
+                frame.onerror = () => {
+                    console.error('Failed to load twibbon frame');
+                    render(); 
+                };
+
+                // If cached or already loaded
+                if (frame.complete) {
+                    render();
+                }
+            };
+            
+            const downloadTwibbon = () => {
+                 const canvas = document.getElementById('twibbonCanvas');
+                 if (!canvas) return;
+                 const link = document.createElement('a');
+                 link.download = 'twibbon-ruanglari-' + (twibbonData.value.name ? twibbonData.value.name.replace(/\s+/g, '-').toLowerCase() : 'download') + '.png';
+                 link.href = canvas.toDataURL('image/png');
+                 link.click();
+            };
+
+            const parseTime = (timeStr) => {
+                if (!timeStr) return 999999;
+                // Handle various formats like HH:MM:SS, HH:MM:SS.ms, MM:SS
+                const cleanStr = timeStr.split('.')[0]; // remove milliseconds if any
+                const parts = cleanStr.split(':').map(Number);
+                if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+                if (parts.length === 2) return parts[0] * 60 + parts[1];
+                return 999999;
+            };
+
+            const simulatedStandings = computed(() => {
+                const valid = participants.value.filter(p => {
+                    if(!p.target_time) return false;
+                    const val = parseTime(p.target_time);
+                    return val > 0 && val < 999999;
+                });
+                const sorted = [...valid].sort((a, b) => parseTime(a.target_time) - parseTime(b.target_time));
+                const pairs = [];
+                for (let i = 0; i < sorted.length; i += 2) {
+                    pairs.push({
+                        p1: sorted[i],
+                        p2: sorted[i+1] || null
+                    });
+                }
+                return pairs;
+            });
+
             onMounted(() => {
+                // Init Twibbon
+                if (twibbonUrl) {
+                     drawTwibbon(null);
+                }
+
                 form.value.payment_method = prices.base === 0 ? 'cod' : 'moota';
                 tick();
                 setInterval(tick, 1000);
@@ -812,7 +1156,7 @@
                     btn.addEventListener('click', async () => {
                         const addonsList = Array.isArray(form.value.addons) ? form.value.addons : [];
                         const addonsTotal = addonsList.reduce((sum, addon) => sum + (parseInt(addon.price) || 0), 0);
-                        const qty = (form.value.ticket_quantity || 1);
+                        const qty = form.value.participants.length;
                         const subtotal = (prices.base * qty) + (addonsTotal * qty);
                         const code = (codeEl.value || '').trim().toUpperCase();
                         if (!code) { alert('Masukkan kode kupon'); return; }
@@ -854,7 +1198,7 @@
                     });
                 }
             });
-            return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull };
+            return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings };
         }
     });
     
