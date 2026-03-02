@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\CommunityInvoice;
 use App\Models\CommunityRegistration;
+use App\Models\ParticipantSupport;
 use App\Models\Transaction;
 use App\Services\MootaService;
 use Illuminate\Http\Request;
@@ -80,6 +81,7 @@ class MootaWebhookController extends Controller
                             'payment_status' => 'paid',
                             'paid_at' => now(),
                             'payment_channel' => $channel,
+                            'moota_transaction_id' => $mutation['id'] ?? null,
                         ]);
 
                         $pic = is_array($transaction->pic_data) ? $transaction->pic_data : [];
@@ -106,7 +108,26 @@ class MootaWebhookController extends Controller
                     Log::error("Failed to update transaction {$transaction->id}: ".$e->getMessage());
                 }
             } else {
-                Log::warning("No pending transaction found for amount: {$amount}");
+                // Check ParticipantSupport if transaction not found
+                $support = ParticipantSupport::where('payment_method', 'moota')
+                    ->where('status', 'pending')
+                    ->where('nominal', $amount)
+                    ->first();
+
+                if ($support) {
+                    try {
+                        $support->update([
+                            'status' => 'paid',
+                            'moota_transaction_id' => $mutation['id'] ?? null,
+                            'payment_channel' => $mutation['bank_type'] ?? 'bank_transfer',
+                        ]);
+                        Log::info("Support {$support->id} marked as paid via Moota. Amount: {$amount}");
+                    } catch (\Exception $e) {
+                        Log::error("Failed to update support {$support->id}: ".$e->getMessage());
+                    }
+                } else {
+                    Log::warning("No pending transaction or support found for amount: {$amount}");
+                }
             }
         }
 

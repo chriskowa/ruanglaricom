@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\ProcessPaidEventTransaction;
+use App\Models\ParticipantSupport;
 use App\Models\Transaction;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
@@ -28,6 +29,40 @@ class EventTransactionWebhookController extends Controller
         $statusCode = $request->input('status_code');
         $grossAmount = $request->input('gross_amount');
         $signatureKey = $request->input('signature_key');
+
+        // Handle Participant Support Transactions
+        if (str_starts_with($orderId, 'SUPPORT-')) {
+            $support = ParticipantSupport::where('midtrans_order_id', $orderId)->first();
+
+            if (! $support) {
+                Log::warning('Event transaction webhook: Support not found', ['order_id' => $orderId]);
+                return response()->json(['success' => false, 'message' => 'Support not found'], 404);
+            }
+
+            // Verify signature using default server key (assuming support uses default config)
+            $serverKey = config('midtrans.is_production') ? config('midtrans.server_key') : config('midtrans.server_key_sandbox');
+            $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
+
+            if (! hash_equals($expectedSignature, (string) $signatureKey)) {
+                Log::warning('Event transaction webhook: Invalid support signature', ['order_id' => $orderId]);
+                return response()->json(['success' => false, 'message' => 'Invalid signature'], 401);
+            }
+
+            if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
+                if ($fraudStatus == 'accept') {
+                    $support->update(['status' => 'paid']);
+                    return response()->json(['success' => true, 'message' => 'Support paid']);
+                }
+            } elseif ($transactionStatus == 'pending') {
+                $support->update(['status' => 'pending']);
+                return response()->json(['success' => true, 'message' => 'Support pending']);
+            } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                $support->update(['status' => 'failed']);
+                return response()->json(['success' => false, 'message' => 'Support failed']);
+            }
+            
+            return response()->json(['success' => true, 'message' => 'Support status updated']);
+        }
 
         // Find transaction by order ID
         $transaction = Transaction::where('midtrans_order_id', $orderId)->first();

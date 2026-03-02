@@ -13,7 +13,10 @@
     
     <!-- Tailwind CSS (via CDN for simplicity, or use asset('css/app.css') if built) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @php($recaptchaSiteKey = env('RECAPTCHA_SITE_KEY_v3'))
+    @if($recaptchaSiteKey)
+        <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKey }}"></script>
+    @endif
     <script>
         tailwind.config = {
             theme: {
@@ -102,9 +105,7 @@
                     <a href="{{ route('password.request') }}" class="text-cyan-400 hover:text-cyan-300 transition-colors">Forgot Password?</a>
                 </div>
 
-                <div class="flex justify-center">
-                    <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
-                </div>
+                <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
 
                 <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.02]">
                     SIGN IN
@@ -143,5 +144,34 @@
         </div>
     </div>
 
+    <script>
+        const loginForm = document.querySelector('form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                @if($recaptchaSiteKey)
+                    e.preventDefault();
+                    
+                    if (typeof grecaptcha === 'undefined') {
+                        console.warn('reCAPTCHA not loaded.');
+                        loginForm.submit();
+                        return;
+                    }
+
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('{{ $recaptchaSiteKey }}', {action: 'login'})
+                        .then(function(token) {
+                            const el = document.getElementById('recaptchaToken');
+                            if (el) el.value = token;
+                            loginForm.submit();
+                        })
+                        .catch(function(err) {
+                            console.error('reCAPTCHA error:', err);
+                            loginForm.submit();
+                        });
+                    });
+                @endif
+            });
+        }
+    </script>
 </body>
 </html>

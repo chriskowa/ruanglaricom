@@ -113,8 +113,8 @@
             return new URL(normalizedPath, normalizedBase).toString();
         };
     </script>
-    @if(env('RECAPTCHA_SITE_KEY'))
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @if(env('RECAPTCHA_SITE_KEY_v3'))
+        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
     @endif
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1917,10 +1917,8 @@
                                 </div>
 
                                 @if(env('RECAPTCHA_SITE_KEY'))
-                                <div class="mb-6 flex justify-center relative z-10">
-                                    <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
-                                </div>
-                                @endif
+                                        <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
+                                    @endif
 
                                 <div class="flex justify-between items-end mb-8 relative z-10">
                                     <span class="text-slate-300 font-bold text-sm">TOTAL</span>
@@ -2716,21 +2714,7 @@
                 }
             };
 
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                // Client-side Validation
-                if (window.formValidator && !window.formValidator.validateAll()) {
-                    return;
-                }
-
-                if (typeof grecaptcha !== 'undefined') {
-                    const recaptchaResponse = grecaptcha.getResponse();
-                    if (!recaptchaResponse) {
-                        alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
-                        return;
-                    }
-                }
+            function processSubmission() {
                 const btn = document.getElementById('submitBtn');
                 const originalText = btn.innerHTML;
 
@@ -2767,9 +2751,6 @@
                     
                     // 4. Check Logical Success (200 OK but maybe success: false logic handled later, or non-200 HTTP status)
                     if (!response.ok) {
-                        // Reset reCAPTCHA on any error response
-                        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
-
                         // Handle Validation Errors (422)
                         if (response.status === 422 && data.errors && window.formValidator) {
                             let firstErrorField = null;
@@ -2905,9 +2886,6 @@
                     }
                 })
                 .catch(err => {
-                    // Reset reCAPTCHA on catch error
-                    if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
-
                     // If validation error was handled inline, just return
                     if (err.message === 'VALIDATION_ERROR_HANDLED') {
                         btn.disabled = false;
@@ -2955,6 +2933,44 @@
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 });
+            }
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Client-side Validation
+                if (window.formValidator && !window.formValidator.validateAll()) {
+                    return;
+                }
+
+                @if(env('RECAPTCHA_SITE_KEY_v3'))
+                    if (typeof grecaptcha === 'undefined') {
+                        console.warn('reCAPTCHA not loaded.');
+                        processSubmission();
+                        return;
+                    }
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', {action: 'event_register'})
+                        .then(function(token) {
+                            let el = document.getElementById('recaptchaToken');
+                            if (!el) {
+                                el = document.createElement('input');
+                                el.type = 'hidden';
+                                el.name = 'g-recaptcha-response';
+                                el.id = 'recaptchaToken';
+                                form.appendChild(el);
+                            }
+                            el.value = token;
+                            processSubmission();
+                        })
+                        .catch(function(err) {
+                            console.error('reCAPTCHA error:', err);
+                            processSubmission();
+                        });
+                    });
+                @else
+                    processSubmission();
+                @endif
             });
         })();
 

@@ -87,8 +87,8 @@
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-    @if(env('RECAPTCHA_SITE_KEY'))
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @if(env('RECAPTCHA_SITE_KEY_v3'))
+        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
     @endif
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -972,9 +972,7 @@
                                     @endif
 
                                     @if(env('RECAPTCHA_SITE_KEY'))
-                                        <div class="mb-6 flex justify-center">
-                                            <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
-                                        </div>
+                                        <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
                                     @endif
 
                                     <div class="flex justify-between items-end mb-6">
@@ -1504,10 +1502,12 @@
 
         // --- 5. Registration Form Logic (Preserved functionality with Tailwind classes) ---
         (function() {
-            // Validation: Unique Email Check
+            // Validation: Unique Email Check & ReCAPTCHA v3
             const registrationForm = document.getElementById('registrationForm');
             if (registrationForm) {
                 registrationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
                     const emails = [];
                     const emailInputs = document.querySelectorAll('input[type="email"][name^="participants"]');
                     let hasDuplicate = false;
@@ -1532,13 +1532,43 @@
                     });
 
                     if (hasDuplicate) {
-                        e.preventDefault();
                         alert('Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran.');
                         if (firstDuplicateInput) {
                             firstDuplicateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             firstDuplicateInput.focus();
                         }
+                        return;
                     }
+
+                    // ReCAPTCHA v3
+                    @if(env('RECAPTCHA_SITE_KEY_v3'))
+                        if (typeof grecaptcha === 'undefined') {
+                            console.warn('reCAPTCHA not loaded.');
+                            registrationForm.submit();
+                            return;
+                        }
+                        grecaptcha.ready(function() {
+                            grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', {action: 'event_register'})
+                            .then(function(token) {
+                                let el = document.getElementById('recaptchaToken');
+                                if (!el) {
+                                    el = document.createElement('input');
+                                    el.type = 'hidden';
+                                    el.name = 'g-recaptcha-response';
+                                    el.id = 'recaptchaToken';
+                                    registrationForm.appendChild(el);
+                                }
+                                el.value = token;
+                                registrationForm.submit();
+                            })
+                            .catch(function(err) {
+                                console.error('reCAPTCHA error:', err);
+                                registrationForm.submit();
+                            });
+                        });
+                    @else
+                        registrationForm.submit();
+                    @endif
                 });
             }
 

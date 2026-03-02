@@ -43,7 +43,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @if(env('RECAPTCHA_SITE_KEY_v3'))
+        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
+    @endif
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
     <script>
@@ -470,10 +472,8 @@
                                             @{{ formattedTotal }}
                                         </div>
                                     </div>
-                                    @if(env('RECAPTCHA_SITE_KEY'))
-                                    <div class="w-full md:w-auto">
-                                        <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
-                                    </div>
+                                    @if(env('RECAPTCHA_SITE_KEY_v3'))
+                                        <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
                                     @endif
                                     <button type="submit" :disabled="isLoading || isFull" 
                                             class="group relative w-full md:w-auto bg-white hover:bg-sport-volt text-black font-black py-4 px-10 text-base uppercase tracking-widest transition-all duration-300 rounded-xl overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(204,255,0,0.3)]">
@@ -562,6 +562,97 @@
 
                 </div>
                 <div class="lg:col-span-5">
+                    <div v-if="race.status !== 'idle' || canManage" class="glass-dark p-6 md:p-8 mb-6 rounded-2xl border border-sport-volt/30 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-20 pointer-events-none">
+                            <i class="fas fa-flag-checkered text-6xl text-sport-volt"></i>
+                        </div>
+                        <div class="flex items-center justify-between mb-6 border-b border-white/10 pb-4 relative z-10">
+                            <div>
+                                <h2 class="text-2xl font-display uppercase text-white tracking-wide">
+                                    <span v-if="race.status === 'idle'">Race</span>
+                                    <span v-else>@{{ race.race_name || 'Live Race' }}</span>
+                                </h2>
+                                <p class="text-xs text-sport-volt mt-1 font-mono uppercase tracking-widest flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full" :class="{'bg-gray-500': race.status === 'idle', 'bg-yellow-500': race.status === 'ready', 'bg-red-500 animate-pulse': race.status === 'running', 'bg-green-500': race.status === 'finished'}"></span>
+                                    Status: @{{ race.status }}
+                                </p>
+                            </div>
+                            <div v-if="race.status === 'running'" class="animate-pulse bg-red-600/20 border border-red-500/50 px-3 py-1 rounded-full">
+                                <span class="text-red-500 font-bold tracking-widest text-xs flex items-center gap-1"><i class="fas fa-circle text-[8px]"></i> LIVE</span>
+                            </div>
+                        </div>
+
+                        <div v-if="canManage" class="mb-6 p-4 bg-white/5 rounded-xl border border-white/10 relative z-10">
+                            <div class="flex justify-between items-center">
+                                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">EO</div>
+                                <button @click="showRaceAdmin = !showRaceAdmin" class="text-xs text-sport-volt hover:text-white"><i class="fas fa-cog"></i> Admin</button>
+                            </div>
+                            <div v-if="showRaceAdmin" class="mt-4 space-y-4">
+                                <div class="flex flex-wrap gap-2">
+                                    <button v-if="race.status === 'idle' || race.status === 'finished'" @click="showSetupModal = true" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold uppercase transition">
+                                        <i class="fas fa-plus mr-1"></i> Setup
+                                    </button>
+                                    <button v-if="race.status === 'ready'" @click="startRace" class="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs font-bold uppercase transition">
+                                        <i class="fas fa-play mr-1"></i> Start
+                                    </button>
+                                    <button v-if="race.status === 'running'" @click="finishRace" class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-bold uppercase transition">
+                                        <i class="fas fa-flag-checkered mr-1"></i> Finish
+                                    </button>
+                                    <button @click="resetRace" class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-xs font-bold uppercase transition">
+                                        <i class="fas fa-undo mr-1"></i> Reset
+                                    </button>
+                                </div>
+
+                                <div v-if="showSetupModal" class="p-4 bg-black/40 rounded-lg border border-white/10">
+                                    <h4 class="text-white font-bold text-sm mb-3">Pilih Peserta</h4>
+                                    <div class="max-h-40 overflow-y-auto grid grid-cols-1 gap-1 mb-4 pr-2">
+                                        <label v-for="p in participants" :key="p.id" class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded cursor-pointer transition">
+                                            <input type="checkbox" v-model="selectedForRace" :value="p.id" class="rounded border-gray-600 text-sport-volt focus:ring-sport-volt bg-transparent">
+                                            <span class="text-xs text-gray-300">@{{ p.name }}</span>
+                                        </label>
+                                    </div>
+                                    <div class="flex justify-end gap-2">
+                                        <button @click="showSetupModal = false" class="px-3 py-1 text-xs text-gray-400 hover:text-white">Batal</button>
+                                        <button @click="submitRaceSetup" class="px-3 py-1 bg-sport-volt hover:bg-[#b3e600] text-black text-xs font-bold rounded transition">Simpan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="race.participants && race.participants.length > 0" class="space-y-2 relative z-10">
+                            <div v-for="(p, idx) in race.participants" :key="p.id"
+                                 class="flex items-center justify-between p-3 rounded-lg border transition-all"
+                                 :class="{'bg-sport-volt/10 border-sport-volt shadow-[0_0_10px_rgba(204,255,0,0.1)]': p.rank === 1, 'bg-white/5 border-white/5': p.rank !== 1}">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-8 h-8 flex items-center justify-center font-display text-xl rounded-lg bg-black/30"
+                                         :class="{'text-sport-volt': p.rank === 1, 'text-gray-500': !p.rank}">
+                                        @{{ p.rank || (idx + 1) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-white text-sm truncate max-w-[160px]">@{{ p.name }}</div>
+                                        <div class="text-[10px] text-gray-400 font-mono">BIB: @{{ p.bib || '-' }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <div v-if="race.status === 'finished' || p.rank" class="text-right">
+                                        <div v-if="p.rank === 1" class="text-sport-volt font-bold text-[10px] uppercase tracking-wider"><i class="fas fa-trophy text-yellow-400 mr-1"></i> Winner</div>
+                                        <div v-if="p.result_time_ms" class="text-[10px] font-mono text-gray-300">@{{ formatMs(p.result_time_ms) }}</div>
+                                    </div>
+
+                                    <div v-if="canManage && (race.status === 'running' || race.status === 'finished') && showRaceAdmin" class="flex items-center">
+                                        <select @change="setWinner(p.participant_id, $event.target.value)" :value="p.rank || ''" class="bg-black/50 border border-white/20 text-white text-[10px] rounded px-1 py-1 focus:border-sport-volt outline-none">
+                                            <option value="">Rank</option>
+                                            <option v-for="n in race.participants.length" :value="n">#@{{ n }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else-if="race.status !== 'idle'" class="text-center py-8 text-gray-500 italic relative z-10">
+                            <p class="text-xs">Menunggu peserta race...</p>
+                        </div>
+                    </div>
                     <!-- Simulasi Klasemen -->
                     <div class="glass-dark p-6 md:p-8 mt-6 rounded-2xl animate-fade-in mb-8">
                         <div class="flex items-center gap-2 mb-6">
@@ -605,6 +696,14 @@
                         <div v-else class="text-center py-8 border border-dashed border-white/10 rounded-xl">
                             <i class="fas fa-stopwatch text-3xl text-gray-600 mb-3"></i>
                             <p class="text-gray-400 text-sm">Belum ada data target waktu peserta untuk simulasi.</p>
+                        </div>
+                        
+                        <div v-if="canManage" class="mt-6 border-t border-white/10 pt-6 text-center">
+                            <button @click="startRace" :disabled="race.status !== 'idle'" class="px-8 py-3 bg-sport-volt hover:bg-[#b3e600] text-black font-bold uppercase tracking-wider rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(204,255,0,0.3)] hover:shadow-[0_0_25px_rgba(204,255,0,0.5)] transform hover:-translate-y-0.5 flex items-center justify-center mx-auto gap-2">
+                                <i class="fas fa-flag-checkered text-lg"></i>
+                                <span>Start Race Simulation</span>
+                            </button>
+                            <p v-if="race.status !== 'idle'" class="text-xs text-yellow-500 mt-2 italic">Race sedang berjalan atau selesai</p>
                         </div>
                     </div>
                     <div class="glass-dark p-6 md:p-8 relative rounded-2xl">
@@ -652,24 +751,56 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="overflow-y-auto max-h-[500px] space-y-3 pr-1">
-                            <div v-for="(p, index) in participants" :key="p.id || index" class="flex items-center p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition">
-                                <div class="w-10 h-10 flex-shrink-0 bg-gray-800 text-sport-volt font-bold font-display text-lg flex items-center justify-center border border-gray-600 rounded-lg">
-                                    @{{ getInitials(p.name) }}
+                        <div class="space-y-3">
+                            <div v-for="(p, index) in paginatedParticipants" :key="p.id || index" @click="openSupportModal(p)" class="group relative flex flex-col p-4 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition cursor-pointer overflow-hidden">
+                                <!-- Neon Bar Background Effect -->
+                                <div class="absolute bottom-0 left-0 h-1 bg-sport-volt shadow-[0_0_10px_var(--neon)] transition-all duration-500" :style="{ width: getSupportPercentage(p.total_support) + '%' }"></div>
+                                
+                                <div class="flex items-center w-full">
+                                    <div class="w-12 h-12 flex-shrink-0 bg-gray-800 text-sport-volt font-bold font-display text-lg flex items-center justify-center border border-gray-600 rounded-lg group-hover:border-sport-volt group-hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition">
+                                        @{{ getInitials(p.name) }}
+                                    </div>
+                                    <div class="ml-4 flex-grow">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <div class="text-sm font-bold text-gray-200 group-hover:text-sport-volt transition">@{{ p.name }}</div>
+                                                <div class="text-[10px] text-gray-500 uppercase tracking-wider">Ready to Run</div>
+                                            </div>
+                                            @php
+                                                $canManage = auth()->check() && auth()->user()->isEventOrganizer() && $event->user_id === auth()->id();
+                                            @endphp
+                                            @if($canManage)
+                                            <div class="z-10">
+                                                <button @click.stop="deleteParticipant(p.id)" class="text-xs px-3 py-1 rounded bg-red-600 text-white hover:bg-red-500">Delete</button>
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-bold text-gray-200">@{{ p.name }}</div>
-                                    <div class="text-[10px] text-gray-500 uppercase tracking-wider">Ready to Run</div>
+                                
+                                <!-- Support Section -->
+                                <div class="mt-3 pt-3 border-t border-white/5 flex justify-between items-center w-full">
+                                    <div class="text-[10px] text-gray-400 uppercase tracking-wider">Dukungan Energi</div>
+                                    <div v-if="p.total_support > 0" class="text-right">
+                                        <div class="text-sm font-bold text-sport-volt shadow-neon">@{{ formatCurrency(p.total_support) }}</div>
+                                    </div>
+                                    <div v-else class="text-[10px] text-gray-500 italic">Belum ada dukungan</div>
                                 </div>
-                                @php
-                                    $canManage = auth()->check() && auth()->user()->isEventOrganizer() && $event->user_id === auth()->id();
-                                @endphp
-                                @if($canManage)
-                                <div class="ml-auto">
-                                    <button @click="deleteParticipant(p.id)" class="text-xs px-3 py-1 rounded bg-red-600 text-white hover:bg-red-500">Delete</button>
+                                <div v-if="p.total_support === 0" class="mt-2 text-center">
+                                    <span class="text-[10px] text-sport-volt uppercase tracking-wider font-bold group-hover:underline">Beri Dukungan Pertama!</span>
                                 </div>
-                                @endif
                             </div>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div v-if="totalPages > 1" class="flex justify-between items-center mt-6 pt-4 border-t border-white/10">
+                            <button @click="prevPage" :disabled="currentPage === 1" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 transition">
+                                <i class="fas fa-chevron-left mr-1"></i> Prev
+                            </button>
+                            <span class="text-xs text-gray-400">Page @{{ currentPage }} of @{{ totalPages }}</span>
+                            <button @click="nextPage" :disabled="currentPage === totalPages" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 transition">
+                                Next <i class="fas fa-chevron-right ml-1"></i>
+                            </button>
                         </div>
                     </div>
                     
@@ -715,6 +846,76 @@
             </div>
         </section>
         
+        <!-- Support Modal -->
+        <div v-if="supportModal.visible" class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeSupportModal"></div>
+            <div class="relative w-full max-w-md bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+                <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                    <div>
+                        <h3 class="text-xl font-display uppercase text-white">Beri Dukungan</h3>
+                        <p class="text-xs text-sport-volt uppercase tracking-wider">Untuk @{{ supportModal.participant?.name }}</p>
+                    </div>
+                    <button @click="closeSupportModal" class="text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <!-- Nominal Slider -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-gray-300">Nominal Dukungan</label>
+                        <div class="flex items-center gap-2 mb-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2">
+                            <span class="text-xl font-display text-gray-400">Rp</span>
+                            <input type="number" v-model.number="supportModal.form.nominal" min="10000" step="5000" class="bg-transparent border-none text-3xl font-display text-sport-volt w-full focus:ring-0 p-0 placeholder-gray-600" placeholder="0">
+                        </div>
+                        <input type="range" v-model.number="supportModal.form.nominal" min="10000" max="1000000" step="5000" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[var(--neon)]">
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            <button type="button" @click="supportModal.form.nominal = 10000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 10000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">10K</button>
+                            <button type="button" @click="supportModal.form.nominal = 20000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 20000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">20K</button>
+                            <button type="button" @click="supportModal.form.nominal = 50000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 50000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">50K</button>
+                            <button type="button" @click="supportModal.form.nominal = 100000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 100000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">100K</button>
+                        </div>
+                    </div>
+
+                    <!-- Supporter Details -->
+                    <div class="space-y-4">
+                        <div class="form-input-group">
+                            <input type="text" v-model="supportModal.form.supporter_name" class="form-input" placeholder=" " required>
+                            <label class="form-label">Nama Pendukung</label>
+                        </div>
+                        <div class="form-input-group">
+                            <input type="tel" v-model="supportModal.form.supporter_phone" class="form-input" placeholder=" " required>
+                            <label class="form-label">Nomor WhatsApp</label>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-gray-300">Metode Pembayaran</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="cursor-pointer relative">
+                                <input type="radio" v-model="supportModal.form.payment_method" value="midtrans" class="peer sr-only">
+                                <div class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 peer-checked:border-sport-volt peer-checked:bg-sport-volt/10 transition text-center">
+                                    <div class="text-sm font-bold text-white peer-checked:text-sport-volt">QRIS / E-Wallet</div>
+                                    <div class="text-[10px] text-gray-400 mt-1">Otomatis</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer relative">
+                                <input type="radio" v-model="supportModal.form.payment_method" value="moota" class="peer sr-only">
+                                <div class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 peer-checked:border-sport-volt peer-checked:bg-sport-volt/10 transition text-center">
+                                    <div class="text-sm font-bold text-white peer-checked:text-sport-volt">Transfer Bank</div>
+                                    <div class="text-[10px] text-gray-400 mt-1">Verifikasi Otomatis</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button @click="submitSupport" :disabled="isSubmittingSupport" class="w-full py-4 bg-sport-volt hover:bg-[#b3e600] text-black font-bold font-display text-xl uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(204,255,0,0.3)] hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span v-if="isSubmittingSupport"><i class="fas fa-spinner fa-spin mr-2"></i> Memproses...</span>
+                        <span v-else>Kirim Energi! <i class="fas fa-bolt ml-2"></i></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Featured Modal -->
         <div id="featuredModal" class="fixed inset-0 z-[120] hidden">
             <div class="absolute inset-0 bg-black/60" onclick="document.getElementById('featuredModal').classList.add('hidden')"></div>
@@ -750,6 +951,7 @@
         
         @include('layouts.components.pacerhub-footer')
     </div>
+    @include('events.partials.moota-payment-modal')
 
     <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
     @php
@@ -790,13 +992,232 @@
             const discountAmount = ref(0);
             const eventId = {{ $event->id }};
             
+            // Support Feature Logic
+            const supportModal = ref({
+                visible: false,
+                participant: null,
+                form: {
+                    nominal: 10000,
+                    supporter_name: '',
+                    supporter_phone: '',
+                    payment_method: 'midtrans'
+                }
+            });
+            const isSubmittingSupport = ref(false);
+            const race = ref({ status: 'idle', race_name: '', participants: [] });
+            const showRaceAdmin = ref(false);
+            const showSetupModal = ref(false);
+            const selectedForRace = ref([]);
+
+            const fetchRaceStatus = async () => {
+                try {
+                    const res = await fetch("{{ route('events.latbar-race.status', $event->slug) }}", { headers: { 'Accept': 'application/json' } });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && typeof data.status === 'string') {
+                            race.value = data;
+                        }
+                    }
+                } catch (e) {}
+            };
+
+            const postRaceAction = async (url, body = {}) => {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    throw new Error((data && data.message) || 'Gagal memproses');
+                }
+                return data;
+            };
+
+            const submitRaceSetup = async () => {
+                if (!Array.isArray(selectedForRace.value) || selectedForRace.value.length < 2) {
+                    alert('Pilih minimal 2 peserta');
+                    return;
+                }
+                try {
+                    await postRaceAction("{{ route('events.latbar-race.setup', $event->slug) }}", { participant_ids: selectedForRace.value });
+                    showSetupModal.value = false;
+                    await fetchRaceStatus();
+                } catch (e) {
+                    alert(e.message || 'Gagal setup race');
+                }
+            };
+
+            const startRace = async () => {
+                if (!confirm('Mulai race sekarang?')) return;
+                try {
+                    await postRaceAction("{{ route('events.latbar-race.start', $event->slug) }}");
+                    await fetchRaceStatus();
+                } catch (e) {
+                    alert(e.message || 'Gagal start race');
+                }
+            };
+
+            const finishRace = async () => {
+                if (!confirm('Selesaikan race sekarang?')) return;
+                try {
+                    await postRaceAction("{{ route('events.latbar-race.finish', $event->slug) }}");
+                    await fetchRaceStatus();
+                } catch (e) {
+                    alert(e.message || 'Gagal finish race');
+                }
+            };
+
+            const resetRace = async () => {
+                if (!confirm('Reset race?')) return;
+                try {
+                    await postRaceAction("{{ route('events.latbar-race.reset', $event->slug) }}");
+                    await fetchRaceStatus();
+                } catch (e) {
+                    alert(e.message || 'Gagal reset race');
+                }
+            };
+
+            const setWinner = async (participantId, rank) => {
+                const r = parseInt(rank, 10);
+                if (!participantId || !r) return;
+                try {
+                    await postRaceAction("{{ route('events.latbar-race.winner', $event->slug) }}", { participant_id: participantId, rank: r });
+                    await fetchRaceStatus();
+                } catch (e) {
+                    alert(e.message || 'Gagal set rank');
+                }
+            };
+
+            const formatMs = (ms) => {
+                if (ms === null || ms === undefined) return '-';
+                const value = Math.max(0, parseInt(ms, 10) || 0);
+                const cs = Math.floor((value % 1000) / 10);
+                const totalSeconds = Math.floor(value / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                return `${minutes}:${seconds.toString().padStart(2, '0')}.${cs.toString().padStart(2, '0')}`;
+            };
+
+            const openSupportModal = (p) => {
+                supportModal.value.participant = p;
+                supportModal.value.form = { 
+                    nominal: 10000, 
+                    supporter_name: '', 
+                    supporter_phone: '',
+                    payment_method: 'midtrans'
+                };
+                supportModal.value.visible = true;
+            };
+
+            const closeSupportModal = () => {
+                supportModal.value.visible = false;
+                supportModal.value.participant = null;
+            };
+
+            const submitSupport = async () => {
+                if (!supportModal.value.form.supporter_name || !supportModal.value.form.supporter_phone) {
+                    alert('Mohon lengkapi nama dan nomor WhatsApp');
+                    return;
+                }
+                
+                isSubmittingSupport.value = true;
+                try {
+                    const payload = {
+                        participant_id: supportModal.value.participant.id,
+                        ...supportModal.value.form
+                    };
+                    
+                    const res = await fetch("{{ route('events.support.store', $event->slug) }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        if (data.payment_method === 'midtrans' && data.snap_token) {
+                            closeSupportModal();
+                            window.snap.pay(data.snap_token, {
+                                onSuccess: function(result){
+                                    alert("Dukungan berhasil dikirim! Terima kasih atas energinya!");
+                                    window.location.reload();
+                                },
+                                onPending: function(result){
+                                    alert("Menunggu pembayaran dukungan!");
+                                    window.location.reload();
+                                },
+                                onError: function(result){
+                                    alert("Pembayaran dukungan gagal!");
+                                },
+                                onClose: function(){
+                                    alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                                }
+                            });
+                        } else if (data.payment_method === 'moota') {
+                            closeSupportModal();
+                            window.RuangLariMoota.open({
+                                transaction_id: data.support_id,
+                                type: 'support',
+                                final_amount: data.nominal,
+                                unique_code: data.unique_code,
+                                phone: supportModal.value.form.supporter_phone,
+                                name: supportModal.value.form.supporter_name,
+                                expiration: data.expires_at
+                            });
+                        }
+                    } else {
+                        alert(data.message || 'Gagal memproses dukungan');
+                    }
+                } catch (e) {
+                    alert('Terjadi kesalahan: ' + e.message);
+                } finally {
+                    isSubmittingSupport.value = false;
+                }
+            };
+
+            const getSupportPercentage = (amount) => {
+                if (!amount) return 0;
+                const max = 1000000; // Target visual max 1jt
+                return Math.min((Number(amount) / max) * 100, 100);
+            };
+            
             // Defensives for array initialization
-            const participantsRaw = @json($participants->map(fn($p) => [
-                'id' => $p->id, 
-                'name' => $p->name, 
-                'target_time' => $p->target_time
-            ]));
+            const participantsRaw = {!! json_encode($participants->map(function($p) {
+                return [
+                    'id' => $p->id, 
+                    'name' => $p->name, 
+                    'target_time' => $p->target_time,
+                    'total_support' => $p->total_support ?? 0
+                ];
+            })) !!};
             const participants = ref(Array.isArray(participantsRaw) ? participantsRaw : []);
+            
+            // Pagination
+            const currentPage = ref(1);
+            const perPage = ref(10);
+            
+            const paginatedParticipants = computed(() => {
+                const start = (currentPage.value - 1) * perPage.value;
+                const end = start + perPage.value;
+                return participants.value.slice(start, end);
+            });
+            
+            const totalPages = computed(() => Math.ceil(participants.value.length / perPage.value));
+            
+            const prevPage = () => {
+                if (currentPage.value > 1) currentPage.value--;
+            };
+            
+            const nextPage = () => {
+                if (currentPage.value < totalPages.value) currentPage.value++;
+            };
             
             const categoriesRaw = @json($categoriesData);
             const categories = Array.isArray(categoriesRaw) ? categoriesRaw : [];
@@ -902,16 +1323,24 @@
                     }));
 
                     let recaptchaToken = '';
-                    @if(env('RECAPTCHA_SITE_KEY'))
-                    if (window.grecaptcha && typeof grecaptcha.getResponse === 'function') {
-                        recaptchaToken = grecaptcha.getResponse();
-                    }
-                    @endif
-                    @if(env('RECAPTCHA_SECRET_KEY'))
-                    if (!recaptchaToken) {
-                        alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
-                        isLoading.value = false;
-                        return;
+                    @if(env('RECAPTCHA_SITE_KEY_v3'))
+                    if (typeof grecaptcha !== 'undefined') {
+                        try {
+                            recaptchaToken = await new Promise((resolve) => {
+                                grecaptcha.ready(() => {
+                                    grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', {action: 'event_register'})
+                                        .then(token => resolve(token))
+                                        .catch(err => {
+                                            console.error(err);
+                                            resolve('');
+                                        });
+                                });
+                            });
+                            const el = document.getElementById('recaptchaToken');
+                            if(el) el.value = recaptchaToken;
+                        } catch (e) {
+                            console.error("Recaptcha error", e);
+                        }
                     }
                     @endif
                     
@@ -986,9 +1415,6 @@
                     alert('Terjadi kesalahan: ' + e.message);
                 } finally {
                     isLoading.value = false;
-                    if (window.grecaptcha && typeof grecaptcha.reset === 'function') {
-                        grecaptcha.reset();
-                    }
                 }
             };
             
@@ -1149,6 +1575,16 @@
                      drawTwibbon(null);
                 }
 
+                fetchRaceStatus();
+                setInterval(fetchRaceStatus, 5000);
+
+                window.addEventListener('moota:success', (e) => {
+                    if (e.detail && e.detail.type === 'support') {
+                        alert('Terima kasih! Dukungan Anda telah kami terima.');
+                        window.location.reload();
+                    }
+                });
+
                 form.value.payment_method = prices.base === 0 ? 'cod' : 'moota';
                 tick();
                 setInterval(tick, 1000);
@@ -1201,7 +1637,7 @@
                     });
                 }
             });
-            return { form, isLoading, formattedTotal, processPayment, participants, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings };
+            return { form, isLoading, formattedTotal, processPayment, participants, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage };
         }
     });
     

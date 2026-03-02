@@ -87,8 +87,8 @@
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-    @if(env('RECAPTCHA_SITE_KEY'))
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @if(env('RECAPTCHA_SITE_KEY_v3'))
+        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
     @endif
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -621,10 +621,8 @@
                                 </div>
 
                                 @if(env('RECAPTCHA_SITE_KEY'))
-                                    <div class="mb-6 flex justify-center">
-                                        <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="light"></div>
-                                    </div>
-                                @endif
+                                        <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
+                                    @endif
 
                                 <button type="submit" id="submitBtn" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 hover:shadow-lg transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
                                     Lanjut Pembayaran
@@ -945,66 +943,89 @@
                     return;
                 }
 
-                if (typeof grecaptcha !== 'undefined') {
-                    const recaptchaResponse = grecaptcha.getResponse();
-                    if (!recaptchaResponse) {
-                        alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
-                        return;
-                    }
-                }
-
-                const btn = document.getElementById('submitBtn');
-                const originalText = btn.innerHTML;
-                
-                btn.innerHTML = 'Memproses...';
-                btn.disabled = true;
-                
-                const formData = new FormData(form);
-                fetch(form.action, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
-                    body: formData
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if(data.success && data.snap_token) {
-                        snap.pay(data.snap_token, {
-                            onSuccess: function(result){ window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
-                            onPending: function(result){ window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; },
-                            onError: function(result){ alert("Pembayaran gagal"); btn.disabled=false; btn.innerHTML=originalText; },
-                            onClose: function(){ btn.disabled=false; btn.innerHTML=originalText; }
-                        });
-                    } else if (data.success && (data.payment_gateway === 'moota' || data.redirect_url)) {
-                        if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
-                            btn.disabled = false;
-                            btn.innerHTML = originalText;
-
-                            window.RuangLariMoota.open({
-                                transaction_id: data.transaction_id,
-                                registration_id: data.registration_id,
-                                final_amount: data.final_amount,
-                                unique_code: data.unique_code,
-                                phone: document.getElementById('pic_phone') ? document.getElementById('pic_phone').value : '',
-                                name: document.querySelector('[name="pic_name"]') ? document.querySelector('[name="pic_name"]').value : '',
+                function processSubmission() {
+                    const btn = document.getElementById('submitBtn');
+                    const originalText = btn.innerHTML;
+                    
+                    btn.innerHTML = 'Memproses...';
+                    btn.disabled = true;
+                    
+                    const formData = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if(data.success && data.snap_token) {
+                            snap.pay(data.snap_token, {
+                                onSuccess: function(result){ window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
+                                onPending: function(result){ window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; },
+                                onError: function(result){ alert("Pembayaran gagal"); btn.disabled=false; btn.innerHTML=originalText; },
+                                onClose: function(){ btn.disabled=false; btn.innerHTML=originalText; }
                             });
-                        } else if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
+                        } else if (data.success && (data.payment_gateway === 'moota' || data.redirect_url)) {
+                            if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+    
+                                window.RuangLariMoota.open({
+                                    transaction_id: data.transaction_id,
+                                    registration_id: data.registration_id,
+                                    final_amount: data.final_amount,
+                                    unique_code: data.unique_code,
+                                    phone: document.getElementById('pic_phone') ? document.getElementById('pic_phone').value : '',
+                                    name: document.querySelector('[name="pic_name"]') ? document.querySelector('[name="pic_name"]').value : '',
+                                });
+                            } else if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            } else {
+                                alert('Registrasi berhasil, namun data pembayaran tidak lengkap.');
+                                btn.disabled=false; btn.innerHTML=originalText;
+                            }
+                        } else if(data.success) {
+                             window.location.href = `{{ route("events.show", $event->slug) }}?success=true`;
                         } else {
-                            alert('Registrasi berhasil, namun data pembayaran tidak lengkap.');
+                            alert(data.message || 'Terjadi kesalahan validasi.');
                             btn.disabled=false; btn.innerHTML=originalText;
                         }
-                    } else if(data.success) {
-                         window.location.href = `{{ route("events.show", $event->slug) }}?success=true`;
-                    } else {
-                        alert(data.message || 'Terjadi kesalahan validasi.');
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Gagal menghubungi server.');
                         btn.disabled=false; btn.innerHTML=originalText;
+                    });
+                }
+
+                @if(env('RECAPTCHA_SITE_KEY_v3'))
+                    if (typeof grecaptcha === 'undefined') {
+                        console.warn('reCAPTCHA not loaded.');
+                        processSubmission();
+                        return;
                     }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Gagal menghubungi server.');
-                    btn.disabled=false; btn.innerHTML=originalText;
-                });
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', {action: 'event_register'})
+                        .then(function(token) {
+                            let el = document.getElementById('recaptchaToken');
+                            if (!el) {
+                                el = document.createElement('input');
+                                el.type = 'hidden';
+                                el.name = 'g-recaptcha-response';
+                                el.id = 'recaptchaToken';
+                                form.appendChild(el);
+                            }
+                            el.value = token;
+                            processSubmission();
+                        })
+                        .catch(function(err) {
+                            console.error('reCAPTCHA error:', err);
+                            processSubmission();
+                        });
+                    });
+                @else
+                    processSubmission();
+                @endif
             });
         }
 

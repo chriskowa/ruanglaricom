@@ -392,6 +392,20 @@ Route::post('/event/{slug}/register', [App\Http\Controllers\EventRegistrationCon
 Route::post('/event/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
 Route::post('/event/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
 
+Route::post('/event/{slug}/support', [App\Http\Controllers\PublicEventController::class, 'storeSupport'])->name('events.support.store');
+
+Route::prefix('/event/{slug}/latbar-race')->group(function () {
+    Route::get('/status', [App\Http\Controllers\EO\LatbarRaceController::class, 'status'])->name('events.latbar-race.status');
+
+    Route::middleware('auth')->group(function () {
+        Route::post('/setup', [App\Http\Controllers\EO\LatbarRaceController::class, 'setup'])->name('events.latbar-race.setup');
+        Route::post('/start', [App\Http\Controllers\EO\LatbarRaceController::class, 'start'])->name('events.latbar-race.start');
+        Route::post('/finish', [App\Http\Controllers\EO\LatbarRaceController::class, 'finish'])->name('events.latbar-race.finish');
+        Route::post('/winner', [App\Http\Controllers\EO\LatbarRaceController::class, 'setWinner'])->name('events.latbar-race.winner');
+        Route::post('/reset', [App\Http\Controllers\EO\LatbarRaceController::class, 'reset'])->name('events.latbar-race.reset');
+    });
+});
+
 Route::post('/api/events/{slug}/payments/pending', [App\Http\Controllers\EventPaymentRecoveryController::class, 'pending'])->middleware('throttle:20,1')->name('api.events.payments.pending');
 Route::get('/api/events/{slug}/payments/{transaction}/status', [App\Http\Controllers\EventPaymentRecoveryController::class, 'status'])->middleware('throttle:30,1')->name('api.events.payments.status');
 Route::post('/api/events/{slug}/payments/{transaction}/resume', [App\Http\Controllers\EventPaymentRecoveryController::class, 'resume'])->middleware('throttle:20,1')->name('api.events.payments.resume');

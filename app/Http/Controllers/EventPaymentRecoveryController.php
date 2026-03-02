@@ -88,7 +88,37 @@ class EventPaymentRecoveryController extends Controller
 
     public function status(Request $request, string $slug, string $transaction, MidtransService $midtransService)
     {
-        \Log::info("Payment Status Check: Slug={$slug}, TransactionID={$transaction}, Phone={$request->input('phone')}");
+        \Log::info("Payment Status Check: Slug={$slug}, TransactionID={$transaction}, Phone={$request->input('phone')}, Type={$request->input('type')}");
+
+        // Handle Support Transaction
+        if ($request->input('type') === 'support') {
+            $support = \App\Models\ParticipantSupport::find($transaction);
+            
+            if (!$support) {
+                return response()->json(['success' => false, 'message' => 'Data dukungan tidak ditemukan.'], 404);
+            }
+
+            $validated = $request->validate([
+                'phone' => 'required|string|min:6|max:32',
+            ]);
+
+            $normalizedInput = $this->normalizePhone($validated['phone']);
+            $normalizedSupport = $this->normalizePhone($support->supporter_phone);
+
+            if ($normalizedInput !== $normalizedSupport) {
+                return response()->json(['success' => false, 'message' => 'Data tidak cocok.'], 403);
+            }
+
+            return response()->json([
+                'success' => true,
+                'transaction' => [
+                    'id' => $support->id,
+                    'payment_status' => $support->status,
+                    'payment_gateway' => $support->payment_method,
+                    'final_amount' => $support->nominal,
+                ]
+            ]);
+        }
 
         $event = Event::query()->where('slug', $slug)->first();
         if (! $event) {

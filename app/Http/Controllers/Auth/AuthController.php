@@ -26,18 +26,30 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $recaptchaSecret = env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY');
+
         $request->validate([
             'email' => 'required|string',
             'password' => 'required',
-            'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
+            'g-recaptcha-response' => [$recaptchaSecret ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($recaptchaSecret, $request) {
+                if (! $recaptchaSecret) {
+                    return;
+                }
+
+                if (! $value) {
+                    $fail('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+
+                    return;
+                }
+
                 $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'secret' => $recaptchaSecret,
                     'response' => $value,
-                    'remoteip' => request()->ip(),
+                    'remoteip' => $request->ip(),
                 ]);
 
-                if (! $response->json('success')) {
-                    $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                if (! $response->json('success') || ($response->json('score') !== null && $response->json('score') < 0.5)) {
+                    $fail('Verifikasi reCAPTCHA gagal atau terdeteksi sebagai bot.');
                 }
             }],
         ]);
@@ -150,8 +162,8 @@ class AuthController extends Controller
                     'remoteip' => request()->ip(),
                 ]);
 
-                if (! $response->json('success')) {
-                    $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                if (! $response->json('success') || ($response->json('score') !== null && $response->json('score') < 0.5)) {
+                    $fail('Verifikasi reCAPTCHA gagal atau terdeteksi sebagai bot.');
                 }
             }],
         ]);

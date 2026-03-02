@@ -87,8 +87,8 @@
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-    @if(env('RECAPTCHA_SITE_KEY'))
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @if(env('RECAPTCHA_SITE_KEY_v3'))
+        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
     @endif
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -668,11 +668,7 @@
                                             @endif
                                         </div>
 
-                                        @if(env('RECAPTCHA_SITE_KEY'))
-                                            <div class="mb-6 flex justify-center">
-                                                <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
-                                            </div>
-                                        @endif
+                                        <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
 
                                         <button type="submit" id="submitBtn" class="w-full py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-2xl transition-all shadow-glow flex justify-center items-center gap-2 group">
                                             <span>Bayar Sekarang</span>
@@ -1068,77 +1064,97 @@
 
                 e.preventDefault();
 
-                if (typeof grecaptcha !== 'undefined') {
-                    const recaptchaResponse = grecaptcha.getResponse();
-                    if (!recaptchaResponse) {
-                        alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
-                        return;
-                    }
-                }
-
                 const btn = document.getElementById('submitBtn');
                 const originalText = btn ? btn.innerHTML : '';
-                if (btn) {
-                    btn.innerHTML = 'Memproses...';
-                    btn.disabled = true;
-                }
-
-                const formData = new FormData(form);
-                fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: formData
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success && data.snap_token) {
-                        snap.pay(data.snap_token, {
-                            onSuccess: function () { window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
-                            onPending: function () { window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; },
-                            onError: function () { alert('Pembayaran gagal'); if (btn) { btn.disabled = false; btn.innerHTML = originalText; } },
-                            onClose: function () { if (btn) { btn.disabled = false; btn.innerHTML = originalText; } }
-                        });
-                        return;
+                
+                const processSubmission = () => {
+                    if (btn) {
+                        btn.innerHTML = 'Memproses...';
+                        btn.disabled = true;
                     }
 
-                    if (data.success && (data.payment_gateway === 'moota' || data.redirect_url)) {
-                        if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
-                            if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
-                            const phoneEl = form.querySelector('[name="pic_phone"]');
-                            const nameEl = form.querySelector('[name="pic_name"]');
-                            window.RuangLariMoota.open({
-                                transaction_id: data.transaction_id,
-                                registration_id: data.registration_id,
-                                final_amount: data.final_amount,
-                                unique_code: data.unique_code,
-                                phone: phoneEl ? phoneEl.value : '',
-                                name: nameEl ? nameEl.value : '',
+                    const formData = new FormData(form);
+                    const tokenEl = document.getElementById('recaptchaToken');
+                    if(tokenEl) formData.set('g-recaptcha-response', tokenEl.value);
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success && data.snap_token) {
+                            snap.pay(data.snap_token, {
+                                onSuccess: function () { window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
+                                onPending: function () { window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; },
+                                onError: function () { alert('Pembayaran gagal'); if (btn) { btn.disabled = false; btn.innerHTML = originalText; } },
+                                onClose: function () { if (btn) { btn.disabled = false; btn.innerHTML = originalText; } }
                             });
                             return;
                         }
 
-                        if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
+                        if (data.success && (data.payment_gateway === 'moota' || data.redirect_url)) {
+                            if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
+                                if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                                const phoneEl = form.querySelector('[name="pic_phone"]');
+                                const nameEl = form.querySelector('[name="pic_name"]');
+                                window.RuangLariMoota.open({
+                                    transaction_id: data.transaction_id,
+                                    registration_id: data.registration_id,
+                                    final_amount: data.final_amount,
+                                    unique_code: data.unique_code,
+                                    phone: phoneEl ? phoneEl.value : '',
+                                    name: nameEl ? nameEl.value : '',
+                                });
+                                return;
+                            }
+
+                            if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                                return;
+                            }
+                        }
+
+                        if (data.success) {
+                            window.location.href = `{{ route("events.show", $event->slug) }}?success=true`;
                             return;
                         }
-                    }
 
-                    if (data.success) {
-                        window.location.href = `{{ route("events.show", $event->slug) }}?success=true`;
+                        alert(data.message || 'Terjadi kesalahan.');
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Gagal menghubungi server.');
+                        if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
+                    });
+                };
+
+                @if(env('RECAPTCHA_SITE_KEY_v3'))
+                    if (typeof grecaptcha === 'undefined') {
+                        console.warn('reCAPTCHA not loaded.');
+                        processSubmission();
                         return;
                     }
-
-                    alert(data.message || 'Terjadi kesalahan.');
-                    if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Gagal menghubungi server.');
-                    if (btn) { btn.disabled = false; btn.innerHTML = originalText; }
-                });
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', {action: 'event_register'})
+                        .then(function(token) {
+                            const el = document.getElementById('recaptchaToken');
+                            if (el) el.value = token;
+                            processSubmission();
+                        })
+                        .catch(function(err) {
+                            console.error('reCAPTCHA error:', err);
+                            processSubmission();
+                        });
+                    });
+                @else
+                    processSubmission();
+                @endif
             });
         })();
     </script>

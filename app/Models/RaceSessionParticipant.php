@@ -16,6 +16,7 @@ class RaceSessionParticipant extends Model
         'name',
         'predicted_time_ms',
         'result_time_ms',
+        'rank',
         'finished_at',
         'created_at',
     ];

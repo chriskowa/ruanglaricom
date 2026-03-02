@@ -160,6 +160,7 @@
                 elStatusHelp.textContent = 'Pembayaran terkonfirmasi. Silakan cek email untuk e-voucher.';
                 current.lastStatus = 'paid';
                 stopPolling();
+                window.dispatchEvent(new CustomEvent('moota:success', { detail: { transactionId: current.transactionId, type: current.type } }));
                 return;
             }
 
@@ -228,7 +229,7 @@
             }
 
             current.attempt += 1;
-            const url = statusUrlTemplate.replace('__TX__', encodeURIComponent(String(current.transactionId))) + '?phone=' + encodeURIComponent(String(current.phone));
+            const url = statusUrlTemplate.replace('__TX__', encodeURIComponent(String(current.transactionId))) + '?phone=' + encodeURIComponent(String(current.phone)) + '&type=' + encodeURIComponent(String(current.type || 'transaction'));
 
             fetch(url, { headers: { 'Accept': 'application/json' } })
                 .then(function (r) {
@@ -275,6 +276,7 @@
             current.phone = phone;
             current.name = name;
             current.finalAmount = finalAmount;
+            current.type = payload && payload.type ? payload.type : 'transaction'; // Default to transaction
             current.startedAt = Date.now();
             current.attempt = 0;
             current.lastStatus = null;

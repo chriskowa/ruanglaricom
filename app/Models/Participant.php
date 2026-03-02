@@ -56,6 +56,11 @@ class Participant extends Model
         return $this->belongsTo(RaceCategory::class, 'race_category_id');
     }
 
+    public function supports(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ParticipantSupport::class);
+    }
+
     /**
      * Calculate age group based on event start date
      */

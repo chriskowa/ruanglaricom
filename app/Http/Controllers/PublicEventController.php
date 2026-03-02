@@ -3,16 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\ParticipantSupport;
 use App\Services\EventCacheService;
+use App\Services\MootaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class PublicEventController extends Controller
 {
+    protected $mootaService;
     protected $cacheService;
 
-    public function __construct(EventCacheService $cacheService)
+    public function __construct(MootaService $mootaService, EventCacheService $cacheService)
     {
+        $this->mootaService = $mootaService;
         $this->cacheService = $cacheService;
     }
 
@@ -89,7 +96,10 @@ class PublicEventController extends Controller
             if ($event->hardcoded === 'latbarkamis') {
                 $participants = collect();
                 if ($event->show_participant_list) {
-                    $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                    $participants = \App\Models\Participant::withSum(['supports as total_support' => function($q) {
+                            $q->where('status', 'paid');
+                        }], 'nominal')
+                        ->whereHas('transaction', function ($q) use ($event) {
                         $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
                     })
                         ->when($event->registration_open_at, function ($q) use ($event) {
@@ -97,9 +107,20 @@ class PublicEventController extends Controller
                         })
                         ->orderBy('created_at', 'desc')
                         ->limit(50)
-                        ->get(['id', 'name', 'target_time']);
+                        ->get();
                 }
-
+                $participants = \App\Models\Participant::withSum(['supports as total_support' => function($q) {
+                        $q->where('status', 'paid');
+                    }], 'nominal')
+                    ->whereHas('transaction', function ($q) use ($event) {
+                        $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
+                    })
+                    ->when($event->registration_open_at, function ($q) use ($event) {
+                        $q->where('created_at', '>=', $event->registration_open_at);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->limit(50)
+                    ->get();
                 $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
                 $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
                 $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
@@ -149,7 +170,10 @@ class PublicEventController extends Controller
         if ($event->hardcoded === 'latbarkamis') {
             $participants = collect();
             if ($event->show_participant_list) {
-                $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+                $participants = \App\Models\Participant::withSum(['supports as total_support' => function($q) {
+                        $q->where('status', 'paid');
+                    }], 'nominal')
+                    ->whereHas('transaction', function ($q) use ($event) {
                         $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
                     })
                     ->when($event->registration_open_at, function ($q) use ($event) {
@@ -157,9 +181,20 @@ class PublicEventController extends Controller
                     })
                     ->orderBy('created_at', 'desc')
                     ->limit(50)
-                    ->get(['id', 'name', 'target_time']);
+                    ->get();
             }
-
+            $participants = \App\Models\Participant::withSum(['supports as total_support' => function($q) {
+                    $q->where('status', 'paid');
+                }], 'nominal')
+                ->whereHas('transaction', function ($q) use ($event) {
+                    $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
+                })
+                ->when($event->registration_open_at, function ($q) use ($event) {
+                    $q->where('created_at', '>=', $event->registration_open_at);
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(50)
+                ->get();
             $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
             $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
             $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
@@ -291,5 +326,140 @@ class PublicEventController extends Controller
         });
 
         return response()->json($participants);
+    }
+
+    public function storeSupport(Request $request, $slug)
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+
+        $request->validate([
+            'participant_id' => 'required|exists:participants,id',
+            'supporter_name' => 'required|string|max:255',
+            'supporter_phone' => 'required|string|max:20',
+            'nominal' => 'required|numeric|min:10000',
+            'payment_method' => 'required|in:midtrans,moota',
+        ]);
+
+        // Create initial support record
+        $support = ParticipantSupport::create([
+            'participant_id' => $request->participant_id,
+            'supporter_name' => $request->supporter_name,
+            'supporter_phone' => $request->supporter_phone,
+            'nominal' => $request->nominal,
+            'payment_method' => $request->payment_method,
+            'status' => 'pending',
+        ]);
+
+        if ($request->payment_method === 'moota') {
+            try {
+                // Generate unique code checking both tables
+                $uniqueCode = 0;
+                $finalAmount = $support->nominal;
+                
+                // Try up to 50 times
+                for ($i = 0; $i < 50; $i++) {
+                    $code = rand(1, 999);
+                    $checkAmount = $support->nominal + $code;
+                    
+                    // Check Transaction table
+                    $existsInTransactions = \App\Models\Transaction::where('payment_gateway', 'moota')
+                        ->where('payment_status', 'pending')
+                        ->where('final_amount', $checkAmount)
+                        ->where('created_at', '>=', now()->subHours(24))
+                        ->exists();
+                        
+                    // Check ParticipantSupport table
+                    $existsInSupports = ParticipantSupport::where('payment_method', 'moota')
+                        ->where('status', 'pending')
+                        ->where('nominal', $checkAmount) // nominal in DB stores the FINAL amount for Moota? 
+                                                        // Wait, if I update nominal, I lose the original donation amount?
+                                                        // Better to store unique_code separately or update nominal?
+                                                        // Usually nominal is the final amount.
+                        ->where('created_at', '>=', now()->subHours(24))
+                        ->exists();
+
+                    if (!$existsInTransactions && !$existsInSupports) {
+                        $uniqueCode = $code;
+                        $finalAmount = $checkAmount;
+                        break;
+                    }
+                }
+
+                if ($uniqueCode === 0) {
+                    throw new \Exception('Gagal membuat kode unik pembayaran. Silakan coba lagi.');
+                }
+
+                $support->unique_code = $uniqueCode;
+                $support->nominal = $finalAmount; // Update nominal to include unique code
+                $support->expires_at = now()->addHours(24);
+                $support->save();
+
+                return response()->json([
+                    'success' => true,
+                    'payment_method' => 'moota',
+                    'support_id' => $support->id,
+                    'nominal' => $finalAmount,
+                    'unique_code' => $uniqueCode,
+                    'expires_at' => $support->expires_at,
+                    'bank_accounts' => config('moota.bank_accounts')
+                ]);
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+        }
+
+        // Midtrans Logic
+        $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+
+        // Configure Midtrans
+        Config::$serverKey = $midtransDemoMode ? config('midtrans.server_key_sandbox') : config('midtrans.server_key');
+        Config::$isProduction = ! $midtransDemoMode;
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        $orderId = 'SUPPORT-' . $support->id . '-' . time();
+        $support->midtrans_order_id = $orderId;
+        $support->save();
+
+        $params = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => (int) $support->nominal,
+            ],
+            'customer_details' => [
+                'first_name' => $support->supporter_name,
+                'phone' => $support->supporter_phone,
+            ],
+            'item_details' => [
+                [
+                    'id' => 'SUPPORT-' . $support->participant_id,
+                    'price' => (int) $support->nominal,
+                    'quantity' => 1,
+                    'name' => 'Dukungan untuk ' . $support->participant->name,
+                ]
+            ]
+        ];
+
+        try {
+            $snapToken = Snap::getSnapToken($params);
+            $support->snap_token = $snapToken;
+            $support->save();
+
+            return response()->json([
+                'success' => true,
+                'payment_method' => 'midtrans',
+                'snap_token' => $snapToken,
+                'support_id' => $support->id
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

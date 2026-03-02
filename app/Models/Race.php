@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 class Race extends Model
 {
     protected $fillable = [
+        'event_id',
         'name',
         'logo_path',
         'created_by',
@@ -36,6 +37,11 @@ class Race extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
     }
 
     public function sessions(): HasMany
