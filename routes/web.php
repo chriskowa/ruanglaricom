@@ -283,8 +283,8 @@ Route::get('/realistic-running-program', function () {
     return view('programs.design');
 })->name('programs.realistic');
 
-Route::middleware('signed')->get('/reports/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])->name('report.show');
-Route::middleware('signed')->post('/reports/{event}/participants/{participant}', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipant'])->name('report.participant.update');
+Route::get('/reports/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])->name('report.show');
+Route::post('/reports/{event}/participants/{participant}', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipant'])->name('report.participant.update');
 
 Route::get('/coach-ladder-program', function () {
     return view('coach.hub');

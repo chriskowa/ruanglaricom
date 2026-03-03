@@ -157,9 +157,16 @@
                                 <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Approved</span>
                                     <span class="text-right md:text-left">
-                                        <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold {{ $p->isApproved ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' }}">
-                                            {{ $p->isApproved ? 'Yes' : 'No' }}
-                                        </span>
+                                        <div class="flex items-center gap-2">
+                                            <label class="cursor-pointer inline-flex items-center gap-1">
+                                                <input type="radio" name="isApproved_{{ $p->id }}" value="1" @checked($p->isApproved) onchange="updateStatus({{ $p->id }}, 1)" class="w-4 h-4 text-green-500 bg-slate-800 border-slate-600 focus:ring-green-500 focus:ring-2">
+                                                <span class="text-xs text-green-400 font-bold">Yes</span>
+                                            </label>
+                                            <label class="cursor-pointer inline-flex items-center gap-1">
+                                                <input type="radio" name="isApproved_{{ $p->id }}" value="0" @checked(! $p->isApproved) onchange="updateStatus({{ $p->id }}, 0)" class="w-4 h-4 text-red-500 bg-slate-800 border-slate-600 focus:ring-red-500 focus:ring-2">
+                                                <span class="text-xs text-red-400 font-bold">No</span>
+                                            </label>
+                                        </div>
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
@@ -291,9 +298,40 @@
 
 @push('scripts')
 <script>
-    const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";
+        const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";
+        const csrfTokenVal = "{{ csrf_token() }}";
 
-    function openEditModal(p) {
+        async function updateStatus(participantId, value) {
+            try {
+                const url = updateUrlBase.replace(':id', participantId);
+                const formData = new FormData();
+                formData.append('_token', csrfTokenVal);
+                formData.append('isApproved', value);
+                
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                });
+                
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw new Error(data.message || 'Gagal update status');
+                }
+                
+                // Show toast or notification if needed
+                // console.log('Status updated');
+            } catch (e) {
+                alert(e.message || 'Terjadi kesalahan saat update status');
+                // Revert radio button if failed? 
+                // For now just alert
+            }
+        }
+
+        function openEditModal(p) {
         const modal = document.getElementById('edit-modal');
         const form = document.getElementById('edit-form');
         
@@ -383,9 +421,18 @@
                 tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td></tr>`;
             } else {
                 tbody.innerHTML = rows.map((p) => {
-                    const approvedBadge = p.isApproved 
-                        ? '<span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-green-500/20 text-green-400">Yes</span>'
-                        : '<span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-red-500/20 text-red-400">No</span>';
+                    const approvedBadge = `
+                        <div class="flex items-center gap-2">
+                            <label class="cursor-pointer inline-flex items-center gap-1">
+                                <input type="radio" name="isApproved_${p.id}" value="1" ${p.isApproved ? 'checked' : ''} onchange="updateStatus(${p.id}, 1)" class="w-4 h-4 text-green-500 bg-slate-800 border-slate-600 focus:ring-green-500 focus:ring-2">
+                                <span class="text-xs text-green-400 font-bold">Yes</span>
+                            </label>
+                            <label class="cursor-pointer inline-flex items-center gap-1">
+                                <input type="radio" name="isApproved_${p.id}" value="0" ${!p.isApproved ? 'checked' : ''} onchange="updateStatus(${p.id}, 0)" class="w-4 h-4 text-red-500 bg-slate-800 border-slate-600 focus:ring-red-500 focus:ring-2">
+                                <span class="text-xs text-red-400 font-bold">No</span>
+                            </label>
+                        </div>
+                    `;
 
                     // Escape JSON for onclick to avoid syntax errors with quotes
                     const jsonP = JSON.stringify(p).replace(/"/g, '&quot;');

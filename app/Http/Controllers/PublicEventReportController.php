@@ -15,6 +15,17 @@ class PublicEventReportController extends Controller
 {
     public function show(Request $request, EventReportService $reportService, $event)
     {
+        $sessionKey = 'report_access_' . $event;
+
+        // Check if request has valid signature
+        if ($request->hasValidSignature()) {
+            session([$sessionKey => true]);
+        } 
+        // If no valid signature, check session
+        elseif (! session($sessionKey)) {
+            abort(403, 'Invalid signature or session expired.');
+        }
+
         $eventModel = Event::query()
             ->whereKey($event)
             ->where('is_active', true)
@@ -170,6 +181,11 @@ class PublicEventReportController extends Controller
 
     public function updateParticipant(Request $request, $event, $participantId)
     {
+        // Check session access
+        if (! session('report_access_' . $event)) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $eventModel = Event::query()
             ->whereKey($event)
             ->firstOrFail();
@@ -199,13 +215,10 @@ class PublicEventReportController extends Controller
         }
 
         $participant->save();
-        
-        // Clear cache
-        // Assuming the show method uses keys that start with public_event_report_EVENTID_
-        // But since md5 is used, we can't delete specific keys.
-        // However, we can use tags if cache driver supports it, or just let it expire (30s).
-        // Or we can try to clear by prefix if using redis.
-        // For simplicity, we rely on the short TTL (30s).
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Peserta berhasil diperbarui.']);
+        }
         
         return back()->with('success', 'Peserta berhasil diperbarui.');
     }
