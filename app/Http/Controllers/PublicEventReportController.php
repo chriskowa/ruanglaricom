@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class PublicEventReportController extends Controller
 {
@@ -17,12 +18,32 @@ class PublicEventReportController extends Controller
     {
         $sessionKey = 'report_access_' . $event;
 
-        // Check if request has valid signature
+        // 1. Check strict signature (validates full URL)
         if ($request->hasValidSignature()) {
             session([$sessionKey => true]);
         } 
-        // If no valid signature, check session
-        elseif (! session($sessionKey)) {
+        // 2. Check lenient signature (validates base URL without extra params)
+        elseif ($request->has('signature')) {
+            $queryParams = $request->query();
+            $allowedParams = ['signature', 'expires'];
+            $filteredParams = array_intersect_key($queryParams, array_flip($allowedParams));
+            
+            // Reconstruct the URL properly
+            $checkUrl = $request->url();
+            if (!empty($filteredParams)) {
+                $checkUrl .= '?' . http_build_query($filteredParams);
+            }
+            
+            // Create a temporary request to validate the signature
+            $tempRequest = Request::create($checkUrl);
+            
+            if ($tempRequest->hasValidSignature()) {
+                session([$sessionKey => true]);
+            }
+        }
+
+        // 3. Final session check
+        if (! session($sessionKey)) {
             abort(403, 'Invalid signature or session expired.');
         }
 

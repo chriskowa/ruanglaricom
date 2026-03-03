@@ -157,16 +157,16 @@
                                 <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Approved</span>
                                     <span class="text-right md:text-left">
-                                        <div class="flex items-center gap-2">
-                                            <label class="cursor-pointer inline-flex items-center gap-1">
-                                                <input type="radio" name="isApproved_{{ $p->id }}" value="1" @checked($p->isApproved) onchange="updateStatus({{ $p->id }}, 1)" class="w-4 h-4 text-green-500 bg-slate-800 border-slate-600 focus:ring-green-500 focus:ring-2">
-                                                <span class="text-xs text-green-400 font-bold">Yes</span>
-                                            </label>
-                                            <label class="cursor-pointer inline-flex items-center gap-1">
-                                                <input type="radio" name="isApproved_{{ $p->id }}" value="0" @checked(! $p->isApproved) onchange="updateStatus({{ $p->id }}, 0)" class="w-4 h-4 text-red-500 bg-slate-800 border-slate-600 focus:ring-red-500 focus:ring-2">
-                                                <span class="text-xs text-red-400 font-bold">No</span>
-                                            </label>
-                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" 
+                                                onchange="handleToggle({{ $p->id }}, this)" 
+                                                class="sr-only peer" 
+                                                @checked($p->isApproved)>
+                                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neon"></div>
+                                            <span id="status-label-{{ $p->id }}" class="ml-2 text-xs font-bold {{ $p->isApproved ? 'text-neon' : 'text-slate-400' }}">
+                                                {{ $p->isApproved ? 'Yes' : 'No' }}
+                                            </span>
+                                        </label>
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
@@ -301,7 +301,7 @@
         const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";
         const csrfTokenVal = "{{ csrf_token() }}";
 
-        async function updateStatus(participantId, value) {
+        async function updateStatus(participantId, value, checkboxEl) {
             try {
                 const url = updateUrlBase.replace(':id', participantId);
                 const formData = new FormData();
@@ -322,13 +322,29 @@
                     throw new Error(data.message || 'Gagal update status');
                 }
                 
-                // Show toast or notification if needed
-                // console.log('Status updated');
+                // Success - Toast or console
             } catch (e) {
                 alert(e.message || 'Terjadi kesalahan saat update status');
-                // Revert radio button if failed? 
-                // For now just alert
+                // Revert checkbox state if failed
+                if (checkboxEl) {
+                    checkboxEl.checked = !checkboxEl.checked;
+                    toggleLabel(participantId, checkboxEl.checked);
+                }
             }
+        }
+
+        function toggleLabel(id, isChecked) {
+            const label = document.getElementById('status-label-' + id);
+            if (label) {
+                label.innerText = isChecked ? 'Yes' : 'No';
+                label.className = isChecked ? 'ml-2 text-xs font-bold text-neon' : 'ml-2 text-xs font-bold text-slate-400';
+            }
+        }
+
+        function handleToggle(id, el) {
+            const isChecked = el.checked;
+            toggleLabel(id, isChecked);
+            updateStatus(id, isChecked ? 1 : 0, el);
         }
 
         function openEditModal(p) {
@@ -422,16 +438,16 @@
             } else {
                 tbody.innerHTML = rows.map((p) => {
                     const approvedBadge = `
-                        <div class="flex items-center gap-2">
-                            <label class="cursor-pointer inline-flex items-center gap-1">
-                                <input type="radio" name="isApproved_${p.id}" value="1" ${p.isApproved ? 'checked' : ''} onchange="updateStatus(${p.id}, 1)" class="w-4 h-4 text-green-500 bg-slate-800 border-slate-600 focus:ring-green-500 focus:ring-2">
-                                <span class="text-xs text-green-400 font-bold">Yes</span>
-                            </label>
-                            <label class="cursor-pointer inline-flex items-center gap-1">
-                                <input type="radio" name="isApproved_${p.id}" value="0" ${!p.isApproved ? 'checked' : ''} onchange="updateStatus(${p.id}, 0)" class="w-4 h-4 text-red-500 bg-slate-800 border-slate-600 focus:ring-red-500 focus:ring-2">
-                                <span class="text-xs text-red-400 font-bold">No</span>
-                            </label>
-                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" 
+                                onchange="handleToggle(${p.id}, this)" 
+                                class="sr-only peer" 
+                                ${p.isApproved ? 'checked' : ''}>
+                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neon"></div>
+                            <span id="status-label-${p.id}" class="ml-2 text-xs font-bold ${p.isApproved ? 'text-neon' : 'text-slate-400'}">
+                                ${p.isApproved ? 'Yes' : 'No'}
+                            </span>
+                        </label>
                     `;
 
                     // Escape JSON for onclick to avoid syntax errors with quotes
