@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
+use Illuminate\Support\Facades\Storage;
+
 class StoreRegistrationAction
 {
     protected $cacheService;
@@ -62,6 +64,8 @@ class StoreRegistrationAction
             $request->merge(['participants' => $participants]);
         }
 
+        $recaptchaSecret = env('RECAPTCHA_SECRET_KEY_v3') ?? env('RECAPTCHA_SECRET_KEY');
+
         // Validate input
         $rules = [
             'pic_name' => 'required|string|max:255',
@@ -95,9 +99,9 @@ class StoreRegistrationAction
             'participants.*.addons' => 'nullable|array',
             'participants.*.addons.*.name' => 'nullable|string',
             'participants.*.addons.*.selected' => 'nullable',
-            'g-recaptcha-response' => [env('RECAPTCHA_SECRET_KEY') ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($request) {
-                $secret = env('RECAPTCHA_SECRET_KEY');
-                if (! $secret) {
+            'participants.*.photo' => 'nullable|string', // Base64
+            'g-recaptcha-response' => [$recaptchaSecret ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($request, $recaptchaSecret) {
+                if (! $recaptchaSecret) {
                     return;
                 }
 
@@ -108,13 +112,22 @@ class StoreRegistrationAction
                 }
 
                 $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                    'secret' => $secret,
+                    'secret' => $recaptchaSecret,
                     'response' => $value,
                     'remoteip' => $request->ip(),
                 ]);
 
-                if (! $response->json('success')) {
+                $body = $response->json();
+
+                if (! ($body['success'] ?? false)) {
                     $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                    return;
+                }
+
+                if (env('RECAPTCHA_SECRET_KEY_v3') && isset($body['score'])) {
+                    if ($body['score'] < 0.5) {
+                        $fail('Verifikasi reCAPTCHA gagal (skor rendah). Silakan coba lagi.');
+                    }
                 }
             }],
         ];
@@ -427,6 +440,23 @@ class StoreRegistrationAction
                 $categoryId = $participantData['category_id'];
                 $priceType = $categoryPriceInfo[$categoryId]['type'] ?? 'regular';
 
+                // Handle Photo Upload (Base64)
+                $photoPath = null;
+                if (!empty($participantData['photo'])) {
+                     $image = $participantData['photo'];
+                     if (preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
+                        $image = substr($image, strpos($image, ',') + 1);
+                        $type = strtolower($type[1]); // jpg, png, gif
+
+                        if (in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                            $image = str_replace(' ', '+', $image);
+                            $imageName = 'participant_' . time() . '_' . Str::random(10) . '.' . $type;
+                            Storage::disk('public')->put('participants/' . $imageName, base64_decode($image));
+                            $photoPath = 'participants/' . $imageName;
+                        }
+                     }
+                }
+
                 // Create participant
                 Participant::create([
                     'transaction_id' => $transaction->id,
@@ -442,6 +472,7 @@ class StoreRegistrationAction
                     'date_of_birth' => $participantData['date_of_birth'] ?? null,
                     'target_time' => $participantData['target_time'] ?? null,
                     'jersey_size' => $participantData['jersey_size'] ?? null,
+                    'photo' => $photoPath,
                     'addons' => $participantsWithAddons[$pIndex] ?? [],
                     'status' => 'pending',
                     'price_type' => $priceType,

@@ -372,6 +372,31 @@
                                             <!-- Jersey Size hidden/default -->
                                             <input type="hidden" v-model="participant.jersey_size">
                                         </div>
+
+                                        <!-- Photo Input -->
+                                        <div class="form-input-group mt-4 p-4 bg-white/5 border border-white/10 rounded-xl">
+                                            <label class="block text-sm font-bold text-gray-300 mb-3 flex items-center gap-2">
+                                                <i class="fas fa-camera text-sport-volt"></i> FOTO PESERTA
+                                            </label>
+                                            <div class="flex flex-col sm:flex-row items-start gap-4">
+                                                <div v-if="participant.photo" class="w-24 h-24 rounded-xl overflow-hidden border border-sport-volt shadow-[0_0_10px_rgba(204,255,0,0.2)] flex-shrink-0 relative group">
+                                                    <img :src="participant.photo" class="w-full h-full object-cover">
+                                                    <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer" @click="participant.photo = ''">
+                                                        <i class="fas fa-trash text-red-500"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow w-full">
+                                                    <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-600 border-dashed rounded-xl cursor-pointer bg-gray-800 hover:bg-gray-700 hover:border-sport-volt transition group">
+                                                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                                            <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 group-hover:text-sport-volt mb-2 transition"></i>
+                                                            <p class="text-xs text-gray-400 group-hover:text-gray-300"><span class="font-semibold">Klik untuk upload</span> atau drag and drop</p>
+                                                            <p class="text-[10px] text-gray-500 mt-1">Maks. 5MB (JPG/PNG)</p>
+                                                        </div>
+                                                        <input type="file" @change="(e) => handlePhotoUpload(e, index)" accept="image/*" class="hidden" />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -757,9 +782,10 @@
                                 <div class="absolute bottom-0 left-0 h-1 bg-sport-volt shadow-[0_0_10px_var(--neon)] transition-all duration-500" :style="{ width: getSupportPercentage(p.total_support) + '%' }"></div>
                                 
                                 <div class="flex items-center w-full">
-                                    <div class="w-12 h-12 flex-shrink-0 bg-gray-800 text-sport-volt font-bold font-display text-lg flex items-center justify-center border border-gray-600 rounded-lg group-hover:border-sport-volt group-hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition">
-                                        @{{ getInitials(p.name) }}
-                                    </div>
+                                    <div class="w-12 h-12 flex-shrink-0 bg-gray-800 text-sport-volt font-bold font-display text-lg flex items-center justify-center border border-gray-600 rounded-lg group-hover:border-sport-volt group-hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition overflow-hidden relative">
+                                    <img v-if="p.photo" :src="'/storage/' + p.photo" class="w-full h-full object-cover absolute inset-0 z-10" @@error="$event.target.style.display='none'">
+                                    <span class="z-0">@{{ getInitials(p.name) }}</span>
+                                </div>
                                     <div class="ml-4 flex-grow">
                                         <div class="flex justify-between items-start">
                                             <div>
@@ -851,9 +877,18 @@
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeSupportModal"></div>
             <div class="relative w-full max-w-md bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
                 <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <div>
-                        <h3 class="text-xl font-display uppercase text-white">Beri Dukungan</h3>
-                        <p class="text-xs text-sport-volt uppercase tracking-wider">Untuk @{{ supportModal.participant?.name }}</p>
+                    <div class="flex items-center gap-4">
+                        <div v-if="supportModal.participant?.photo" class="w-16 h-16 rounded-xl overflow-hidden border border-sport-volt shadow-[0_0_15px_rgba(204,255,0,0.3)] bg-gray-800 shrink-0">
+                            <img :src="'/storage/' + supportModal.participant.photo" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-display uppercase text-white leading-none mb-1">Beri Dukungan</h3>
+                            <p class="text-xs text-sport-volt uppercase tracking-wider mb-2">Untuk @{{ supportModal.participant?.name }}</p>
+                            <div v-if="supportModal.participant?.target_time" class="inline-flex items-center gap-2 px-2 py-1 bg-black/40 rounded border border-white/10">
+                                <i class="fas fa-stopwatch text-sport-volt text-[10px]"></i>
+                                <span class="text-[10px] text-gray-300 font-mono tracking-wider">Target: <span class="text-white font-bold">@{{ supportModal.participant.target_time }}</span></span>
+                            </div>
+                        </div>
                     </div>
                     <button @click="closeSupportModal" class="text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
                 </div>
@@ -864,10 +899,11 @@
                         <label class="block text-sm font-bold text-gray-300">Nominal Dukungan</label>
                         <div class="flex items-center gap-2 mb-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2">
                             <span class="text-xl font-display text-gray-400">Rp</span>
-                            <input type="number" v-model.number="supportModal.form.nominal" min="10000" step="5000" class="bg-transparent border-none text-3xl font-display text-sport-volt w-full focus:ring-0 p-0 placeholder-gray-600" placeholder="0">
+                            <input type="number" v-model.number="supportModal.form.nominal" min="5000" step="5000" class="bg-transparent border-none text-3xl font-display text-sport-volt w-full focus:ring-0 p-0 placeholder-gray-600" placeholder="0">
                         </div>
-                        <input type="range" v-model.number="supportModal.form.nominal" min="10000" max="1000000" step="5000" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[var(--neon)]">
+                        <input type="range" v-model.number="supportModal.form.nominal" min="5000" max="1000000" step="5000" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[var(--neon)]">
                         <div class="flex flex-wrap gap-2 mt-2">
+                            <button type="button" @click="supportModal.form.nominal = 5000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 5000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">5K</button>
                             <button type="button" @click="supportModal.form.nominal = 10000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 10000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">10K</button>
                             <button type="button" @click="supportModal.form.nominal = 20000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 20000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">20K</button>
                             <button type="button" @click="supportModal.form.nominal = 50000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 50000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">50K</button>
@@ -983,7 +1019,7 @@
                     name: '', email: '', phone: '', gender: 'male', jersey_size: 'M', 
                     address: '', target_time: '', h: '', m: '', s: '',
                     date_of_birth: '2000-01-01', id_card: '', 
-                    emergency_contact_name: '', emergency_contact_number: ''
+                    emergency_contact_name: '', emergency_contact_number: '', photo: ''
                 }]
             });
             const isLoading = ref(false);
@@ -997,7 +1033,7 @@
                 visible: false,
                 participant: null,
                 form: {
-                    nominal: 10000,
+                    nominal: 5000,
                     supporter_name: '',
                     supporter_phone: '',
                     payment_method: 'midtrans'
@@ -1194,7 +1230,8 @@
                     'id' => $p->id, 
                     'name' => $p->name, 
                     'target_time' => $p->target_time,
-                    'total_support' => $p->total_support ?? 0
+                    'total_support' => $p->total_support ?? 0,
+                    'photo' => $p->photo
                 ];
             })) !!};
             const participants = ref(Array.isArray(participantsRaw) ? participantsRaw : []);
@@ -1243,7 +1280,7 @@
                     address: '', target_time: '', h: '', m: '', s: '',
                     date_of_birth: '2000-01-01', id_card: '', 
                     emergency_contact_name: first.emergency_contact_name || '', 
-                    emergency_contact_number: first.emergency_contact_number || ''
+                    emergency_contact_number: first.emergency_contact_number || '', photo: ''
                 });
             };
 
@@ -1308,7 +1345,24 @@
                     alert('Terjadi kesalahan');
                 }
             };
-                    const processPayment = async () => {
+        
+            const handlePhotoUpload = async (event, index) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ukuran foto maksimal 5MB');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    form.value.participants[index].photo = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+
+            const processPayment = async () => {
                 isLoading.value = true;
                 try {
                     const participantsList = form.value.participants.map(p => ({
@@ -1331,16 +1385,30 @@
                                     grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', {action: 'event_register'})
                                         .then(token => resolve(token))
                                         .catch(err => {
-                                            console.error(err);
+                                            console.error('reCAPTCHA error:', err);
                                             resolve('');
                                         });
                                 });
                             });
                             const el = document.getElementById('recaptchaToken');
                             if(el) el.value = recaptchaToken;
+
+                            if (!recaptchaToken) {
+                                alert('Gagal memuat validasi keamanan (reCAPTCHA). Silakan periksa koneksi internet Anda dan refresh halaman.');
+                                isLoading.value = false;
+                                return;
+                            }
                         } catch (e) {
                             console.error("Recaptcha error", e);
+                            alert('Terjadi kesalahan validasi keamanan. Silakan coba lagi.');
+                            isLoading.value = false;
+                            return;
                         }
+                    } else {
+                        console.warn('reCAPTCHA script not loaded');
+                        alert('Komponen keamanan belum dimuat. Silakan refresh halaman.');
+                        isLoading.value = false;
+                        return;
                     }
                     @endif
                     
@@ -1637,7 +1705,7 @@
                     });
                 }
             });
-            return { form, isLoading, formattedTotal, processPayment, participants, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage };
+            return { form, isLoading, formattedTotal, processPayment, participants, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage };
         }
     });
     

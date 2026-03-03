@@ -863,6 +863,12 @@
                                     </div>
                                     <!-- Age Group -->
                                     <div><div class="text-xs text-slate-500">Age Group</div><div class="text-white" id="dm_age_group"></div></div>
+                                    <!-- Target Time -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Target Time</div>
+                                        <div class="view-mode text-white font-mono" id="dm_target_time"></div>
+                                        <input type="text" name="target_time" id="edit_target_time" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none font-mono" placeholder="HH:MM:SS">
+                                    </div>
                                 </div>
 
                                 <h4 class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3 mt-6">PIC Info</h4>
@@ -1015,15 +1021,18 @@
                     postal_code: p.postal_code,
                     category: p.category,
                     race_category_id: p.race_category_id,
+                    target_time: p.target_time,
                     bib_number: p.bib_number,
                     age_group: p.age_group,
                     jersey_size: p.jersey_size,
                     pic_name: p.pic_name,
                     pic_phone: p.pic_phone,
                     pic_email: p.pic_email,
+                    transaction_id: p.transaction_id,
                     transaction_date: p.transaction_date,
                     payment_method: p.payment_method,
                     payment_status: p.payment_status,
+                    payment_update_url: p.payment_update_url,
                     is_picked_up: p.is_picked_up,
                     picked_up_by: p.picked_up_by,
                     coupon_code: p.coupon_code,
@@ -1032,6 +1041,9 @@
                 }).replace(/'/g, "&#39;");
 
                 html += '<tr class="hover:bg-slate-800/50 transition-colors cursor-pointer" onclick="if(!event.target.closest(\'button\') && !event.target.closest(\'a\') && !event.target.closest(\'.no-click\')) openDetailModalFromRow(this)" data-json=\''+ dataJson +'\'>'+
+                    '<td class="px-6 py-4" onclick="event.stopPropagation()">'+
+                        '<input type="checkbox" class="participant-checkbox rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" value="'+ p.id +'">'+
+                    '</td>'+
                     '<td class="px-6 py-4"><div class="font-medium text-white">'+ p.name +'</div><div class="text-xs text-slate-500 mb-1">'+ genderLabel +' • Reg: '+ regDate +'</div><div class="text-xs text-slate-400">'+ (p.email || '') +'</div><div class="text-xs text-slate-400">'+ (p.phone || '') +'</div></td>'+
                     '<td class="px-6 py-4 text-white font-mono text-xs">'+ (p.id_card || '-') +'</td>'+
                     '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
@@ -1417,7 +1429,8 @@
         
         setValue('edit_bib_number', d.bib_number);
         setValue('edit_jersey_size', d.jersey_size);
-        
+        setValue('edit_target_time', d.target_time);
+
         setValue('edit_coupon_id', d.coupon_id);
         
         // Handle attendance badge update if needed or specific logic
@@ -1477,6 +1490,7 @@
             race_category_id: document.getElementById('edit_race_category_id').value,
             bib_number: document.getElementById('edit_bib_number').value.trim(),
             jersey_size: document.getElementById('edit_jersey_size').value.trim(),
+            target_time: document.getElementById('edit_target_time').value.trim(),
             coupon_id: document.getElementById('edit_coupon_id').value
         };
 
@@ -1538,6 +1552,7 @@
                         category: res.data.category_name,
                         bib_number: res.data.bib_number,
                         jersey_size: res.data.jersey_size,
+                        target_time: res.data.target_time,
                         age_group: res.data.age_group,
                         is_picked_up: res.data.is_picked_up,
                         picked_up_by: res.data.picked_up_by,
@@ -1561,6 +1576,7 @@
                 document.getElementById('dm_category').textContent = res.data.category_name;
                 document.getElementById('dm_bib').textContent = res.data.bib_number || '-';
                 document.getElementById('dm_jersey').textContent = res.data.jersey_size || '-';
+                document.getElementById('dm_target_time').textContent = res.data.target_time || '-';
                 document.getElementById('dm_age_group').textContent = res.data.age_group || '-';
                 
                 // Update Attendance Badge
@@ -1659,6 +1675,7 @@
         document.getElementById('dm_bib').textContent = data.bib_number || '-';
         
         document.getElementById('dm_jersey').textContent = data.jersey_size || '-';
+        document.getElementById('dm_target_time').textContent = data.target_time || '-';
         
         // Populate Inputs (Initial)
         populateEditForm();
@@ -1937,9 +1954,9 @@
 
     // Bulk Actions
     const selectAllCheckbox = document.getElementById('selectAll');
-    const participantCheckboxes = document.querySelectorAll('.participant-checkbox');
     const bulkToolbar = document.getElementById('bulkActionToolbar');
     const selectedCountSpan = document.getElementById('selectedCount');
+    const tableBody = document.getElementById('participantsTableBody');
 
     function updateBulkToolbar() {
         const selected = document.querySelectorAll('.participant-checkbox:checked');
@@ -1958,19 +1975,44 @@
     if (selectAllCheckbox) {
         selectAllCheckbox.addEventListener('change', function() {
             const checked = this.checked;
-            participantCheckboxes.forEach(cb => {
+            // Query current checkboxes
+            const currentCheckboxes = document.querySelectorAll('.participant-checkbox');
+            currentCheckboxes.forEach(cb => {
                 cb.checked = checked;
             });
             updateBulkToolbar();
         });
     }
 
+    // Event Delegation for Checkboxes
+    if (tableBody) {
+        tableBody.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('participant-checkbox')) {
+                updateBulkToolbar();
+            }
+        });
+        
+        // Stop propagation for checkbox clicks
+        tableBody.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('participant-checkbox')) {
+                e.stopPropagation();
+            }
+        });
+    }
+
+    // Initial binding for server-side rendered rows (optional if delegation covers it, 
+    // but delegation handles bubbling 'change' events which works for checkboxes)
+    
+    // Legacy static binding (can be removed if delegation works, but keeping for safety if moved outside tableBody)
+    /* 
+    const participantCheckboxes = document.querySelectorAll('.participant-checkbox');
     participantCheckboxes.forEach(cb => {
         cb.addEventListener('change', updateBulkToolbar);
         cb.addEventListener('click', function(e) {
             e.stopPropagation();
         });
     });
+    */
 
     window.bulkDelete = function() {
         const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);

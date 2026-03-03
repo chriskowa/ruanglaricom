@@ -336,7 +336,7 @@ class PublicEventController extends Controller
             'participant_id' => 'required|exists:participants,id',
             'supporter_name' => 'required|string|max:255',
             'supporter_phone' => 'required|string|max:20',
-            'nominal' => 'required|numeric|min:10000',
+            'nominal' => 'required|numeric|min:5000',
             'payment_method' => 'required|in:midtrans,moota',
         ]);
 

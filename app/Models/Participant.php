@@ -26,6 +26,7 @@ class Participant extends Model
         'target_time',
         'bib_number',
         'jersey_size',
+        'photo',
         'addons',
         'status',
         'is_picked_up',

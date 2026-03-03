@@ -1079,6 +1079,7 @@ class EventController extends Controller
                 'jersey_size' => $p->jersey_size,
                 'created_at' => $p->created_at ? $p->created_at->format('Y-m-d H:i:s') : null,
                 'payment_status' => $p->transaction->payment_status ?? 'pending',
+                'payment_update_url' => route('eo.events.participants.payment-update', ['event' => $event->slug, 'participant' => $p->id]),
                 'payment_method' => $p->transaction->payment_channel ?? $p->transaction->payment_gateway ?? '-',
                 'transaction_id' => $p->transaction->id,
                 'transaction_date' => $p->transaction->created_at ? $p->transaction->created_at->format('Y-m-d H:i:s') : '-',
@@ -1201,6 +1202,7 @@ class EventController extends Controller
             'jersey_size' => 'nullable|string|max:10',
             'is_picked_up' => 'nullable|boolean',
             'coupon_id' => 'nullable|exists:coupons,id',
+            'target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],
         ]);
 
         // If is_picked_up is toggled, handle timestamp
@@ -1243,6 +1245,7 @@ class EventController extends Controller
                 'postal_code' => $participant->postal_code,
                 'race_category_id' => $participant->race_category_id,
                 'category_name' => $participant->category->name ?? '-',
+                'target_time' => $participant->target_time,
                 'bib_number' => $participant->bib_number,
                 'jersey_size' => $participant->jersey_size,
                 'age_group' => $participant->getAgeGroup($event->start_at),
