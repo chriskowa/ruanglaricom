@@ -48,6 +48,9 @@ class LatbarRaceController extends Controller
             }
 
             $participants = $race->participants()
+                ->whereHas('participant', function ($q) {
+                    $q->where('isApproved', 1);
+                })
                 ->select(['id', 'participant_id', 'name', 'bib_number', 'rank', 'finished_at', 'result_time_ms'])
                 ->orderByRaw('CASE WHEN `rank` IS NULL THEN 1 ELSE 0 END ASC')
                 ->orderBy('rank', 'asc')

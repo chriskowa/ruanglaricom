@@ -9,6 +9,7 @@ use App\Services\EventReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PublicEventReportController extends Controller
 {
@@ -59,6 +60,9 @@ class PublicEventReportController extends Controller
                     'participants.name',
                     'participants.email',
                     'participants.created_at',
+                    'participants.target_time',
+                    'participants.isApproved',
+                    'participants.photo',
                     'transactions.payment_status',
                     DB::raw('COALESCE(coupons.code, "") as coupon_code'),
                 ]);
@@ -162,5 +166,47 @@ class PublicEventReportController extends Controller
                 'filters' => $filters,
             ])
             ->header('X-Robots-Tag', $noIndexHeader);
+    }
+
+    public function updateParticipant(Request $request, $event, $participantId)
+    {
+        $eventModel = Event::query()
+            ->whereKey($event)
+            ->firstOrFail();
+
+        $participant = Participant::whereHas('transaction', function ($q) use ($eventModel) {
+            $q->where('event_id', $eventModel->id);
+        })->findOrFail($participantId);
+
+        $validated = $request->validate([
+            'isApproved' => ['required', 'boolean'],
+            'target_time' => ['nullable', 'string', 'max:50'],
+            'photo' => ['nullable', 'image', 'max:5120'], // Max 5MB
+        ]);
+
+        $participant->isApproved = (bool) $validated['isApproved'];
+        
+        if ($request->has('target_time')) {
+            $participant->target_time = $validated['target_time'];
+        }
+
+        if ($request->hasFile('photo')) {
+            if ($participant->photo && Storage::disk('public')->exists($participant->photo)) {
+                Storage::disk('public')->delete($participant->photo);
+            }
+            $path = $request->file('photo')->store('participants', 'public');
+            $participant->photo = $path;
+        }
+
+        $participant->save();
+        
+        // Clear cache
+        // Assuming the show method uses keys that start with public_event_report_EVENTID_
+        // But since md5 is used, we can't delete specific keys.
+        // However, we can use tags if cache driver supports it, or just let it expire (30s).
+        // Or we can try to clear by prefix if using redis.
+        // For simplicity, we rely on the short TTL (30s).
+        
+        return back()->with('success', 'Peserta berhasil diperbarui.');
     }
 }

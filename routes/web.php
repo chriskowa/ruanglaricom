@@ -284,6 +284,7 @@ Route::get('/realistic-running-program', function () {
 })->name('programs.realistic');
 
 Route::middleware('signed')->get('/reports/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])->name('report.show');
+Route::middleware('signed')->post('/reports/{event}/participants/{participant}', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipant'])->name('report.participant.update');
 
 Route::get('/coach-ladder-program', function () {
     return view('coach.hub');

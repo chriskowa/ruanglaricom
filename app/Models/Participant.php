@@ -33,9 +33,11 @@ class Participant extends Model
         'picked_up_at',
         'picked_up_by',
         'price_type',
+        'isApproved',
     ];
 
     protected $casts = [
+        'isApproved' => 'boolean',
         'is_picked_up' => 'boolean',
         'picked_up_at' => 'datetime',
         'addons' => 'array',
