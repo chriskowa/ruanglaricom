@@ -743,18 +743,10 @@
                             </div>
                         </div>
                         @php
-                            $codCount = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','cod'); })
-                                ->when($event->registration_open_at, function($q) use ($event) { $q->where('created_at', '>=', $event->registration_open_at); })
-                                ->count();
-                            $paidCount = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','paid'); })
-                                ->when($event->registration_open_at, function($q) use ($event) { $q->where('created_at', '>=', $event->registration_open_at); })
-                                ->count();
-                            $codNames = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','cod'); })
-                                ->when($event->registration_open_at, function($q) use ($event) { $q->where('created_at', '>=', $event->registration_open_at); })
-                                ->orderBy('created_at','desc')->limit(10)->get(['name']);
-                            $paidNames = \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status','paid'); })
-                                ->when($event->registration_open_at, function($q) use ($event) { $q->where('created_at', '>=', $event->registration_open_at); })
-                                ->orderBy('created_at','desc')->limit(10)->get(['name']);
+                            $codCount = $stats['codCount'] ?? 0;
+                            $paidCount = $stats['paidCount'] ?? 0;
+                            $codNames = $stats['codNames'] ?? [];
+                            $paidNames = $stats['paidNames'] ?? [];
                         @endphp
                         <div class="grid grid-cols-2 gap-3 mb-6">
                             <div class="p-3 bg-white/5 border border-white/10 rounded-xl">
@@ -783,7 +775,7 @@
                                 
                                 <div class="flex items-center w-full">
                                     <div class="w-12 h-12 flex-shrink-0 bg-gray-800 text-sport-volt font-bold font-display text-lg flex items-center justify-center border border-gray-600 rounded-lg group-hover:border-sport-volt group-hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition overflow-hidden relative">
-                                    <img v-if="p.photo" :src="'/storage/' + p.photo" class="w-full h-full object-cover absolute inset-0 z-10" @@error="$event.target.style.display='none'">
+                                    <img v-if="p.photo" :src="'/storage/' + p.photo" loading="lazy" class="w-full h-full object-cover absolute inset-0 z-10" @@error="$event.target.style.display='none'">
                                     <span class="z-0">@{{ getInitials(p.name) }}</span>
                                 </div>
                                     <div class="ml-4 flex-grow">
@@ -1444,6 +1436,11 @@
                         return;
                     }
                     if ((form.value.payment_method || 'midtrans') === 'midtrans' && data.snap_token) {
+                        if (typeof window.snap === 'undefined') {
+                            alert('Sistem pembayaran belum siap (Snap.js belum termuat). Silakan refresh halaman.');
+                            window.location.reload();
+                            return;
+                        }
                         window.snap.pay(data.snap_token, {
                             onSuccess: function(result){
                                 alert("Pembayaran berhasil!");

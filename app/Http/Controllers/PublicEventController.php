@@ -7,6 +7,7 @@ use App\Models\ParticipantSupport;
 use App\Services\EventCacheService;
 use App\Services\MootaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Midtrans\Config;
@@ -94,33 +95,8 @@ class PublicEventController extends Controller
                     ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
             })->exists();
             if ($event->hardcoded === 'latbarkamis') {
-                $participants = collect();
-                if ($event->show_participant_list) {
-                    $participants = \App\Models\Participant::withSum(['supports as total_support' => function($q) {
-                            $q->where('status', 'paid');
-                        }], 'nominal')
-                        ->whereHas('transaction', function ($q) use ($event) {
-                        $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
-                    })
-                        ->when($event->registration_open_at, function ($q) use ($event) {
-                            $q->where('created_at', '>=', $event->registration_open_at);
-                        })
-                        ->orderBy('created_at', 'desc')
-                        ->limit(50)
-                        ->get();
-                }
-                $participants = \App\Models\Participant::withSum(['supports as total_support' => function($q) {
-                        $q->where('status', 'paid');
-                    }], 'nominal')
-                    ->whereHas('transaction', function ($q) use ($event) {
-                        $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
-                    })
-                    ->when($event->registration_open_at, function ($q) use ($event) {
-                        $q->where('created_at', '>=', $event->registration_open_at);
-                    })
-                    ->orderBy('created_at', 'desc')
-                    ->limit(50)
-                    ->get();
+                $participants = $this->getLatbarParticipants($event);
+                $stats = $this->getLatbarStats($event);
                 $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
                 $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
                 $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
@@ -129,6 +105,7 @@ class PublicEventController extends Controller
                     'event' => $event,
                     'categories' => $categories,
                     'participants' => $participants,
+                    'stats' => $stats,
                     'hasPaidParticipants' => $hasPaidParticipants,
                     'midtransUrl' => $midtransUrl,
                     'midtransClientKey' => $midtransClientKey,
@@ -168,46 +145,22 @@ class PublicEventController extends Controller
         })->exists();
 
         if ($event->hardcoded === 'latbarkamis') {
-            $participants = collect();
-            if ($event->show_participant_list) {
-                $participants = \App\Models\Participant::withSum(['supports as total_support' => function($q) {
-                        $q->where('status', 'paid');
-                    }], 'nominal')
-                    ->whereHas('transaction', function ($q) use ($event) {
-                        $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
-                    })
-                    ->when($event->registration_open_at, function ($q) use ($event) {
-                        $q->where('created_at', '>=', $event->registration_open_at);
-                    })
-                    ->orderBy('created_at', 'desc')
-                    ->limit(50)
-                    ->get();
-            }
-            $participants = \App\Models\Participant::withSum(['supports as total_support' => function($q) {
-                    $q->where('status', 'paid');
-                }], 'nominal')
-                ->whereHas('transaction', function ($q) use ($event) {
-                    $q->where('event_id', $event->id)->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
-                })
-                ->when($event->registration_open_at, function ($q) use ($event) {
-                    $q->where('created_at', '>=', $event->registration_open_at);
-                })
-                ->orderBy('created_at', 'desc')
-                ->limit(50)
-                ->get();
-            $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-            $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
-            $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+                $participants = $this->getLatbarParticipants($event);
+                $stats = $this->getLatbarStats($event);
+                $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+                $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+                $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
 
-            return view('events.latbar3', [
-                'event' => $event,
-                'categories' => $categories,
-                'participants' => $participants,
-                'hasPaidParticipants' => $hasPaidParticipants,
-                'midtransUrl' => $midtransUrl,
-                'midtransClientKey' => $midtransClientKey,
-            ]);
-        }
+                return view('events.latbar3', [
+                    'event' => $event,
+                    'categories' => $categories,
+                    'participants' => $participants,
+                    'stats' => $stats,
+                    'hasPaidParticipants' => $hasPaidParticipants,
+                    'midtransUrl' => $midtransUrl,
+                    'midtransClientKey' => $midtransClientKey,
+                ]);
+            }
 
         return view('events.show', [
             'event' => $event,
@@ -229,6 +182,8 @@ class PublicEventController extends Controller
         if ($rawDescription === '') {
             $rawDescription = $baseTitle.$locationPart;
         }
+
+
 
         $description = preg_replace('/\s+/', ' ', $rawDescription);
         $description = Str::limit(trim((string) $description), 160);
@@ -461,5 +416,53 @@ class PublicEventController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Get participants for Latbar event with caching
+     */
+    private function getLatbarParticipants(Event $event)
+    {
+        // Cache for 60 seconds to reduce DB load on high traffic
+        // Using a short cache time because new registrations need to appear relatively quickly
+        return Cache::remember('event_participants_' . $event->id, 60, function () use ($event) {
+            return \App\Models\Participant::withSum(['supports as total_support' => function($q) {
+                    $q->where('status', 'paid');
+                }], 'nominal')
+                ->whereHas('transaction', function ($q) use ($event) {
+                    $q->where('event_id', $event->id)
+                      ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
+                })
+                ->when($event->registration_open_at, function ($q) use ($event) {
+                    $q->where('created_at', '>=', $event->registration_open_at);
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(50)
+                ->get();
+        });
+    }
+
+    private function getLatbarStats(Event $event)
+    {
+        $baseQuery = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id);
+        })->when($event->registration_open_at, function ($q) use ($event) {
+            $q->where('created_at', '>=', $event->registration_open_at);
+        });
+
+        $codQuery = (clone $baseQuery)->whereHas('transaction', function ($q) {
+            $q->where('payment_status', 'cod');
+        });
+
+        $paidQuery = (clone $baseQuery)->whereHas('transaction', function ($q) {
+            $q->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+        });
+
+        return [
+            'codCount' => $codQuery->clone()->count(),
+            'paidCount' => $paidQuery->clone()->count(),
+            'codNames' => $codQuery->clone()->orderBy('created_at', 'desc')->limit(10)->get(['name']),
+            'paidNames' => $paidQuery->clone()->orderBy('created_at', 'desc')->limit(10)->get(['name']),
+        ];
     }
 }

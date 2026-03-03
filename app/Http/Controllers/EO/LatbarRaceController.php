@@ -10,65 +10,78 @@ use App\Models\RaceSession;
 use App\Models\RaceSessionParticipant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class LatbarRaceController extends Controller
 {
     public function status($slug)
     {
-        $event = Event::where('slug', $slug)->firstOrFail();
+        $data = Cache::remember('race_status_' . $slug, 2, function () use ($slug) {
+            $event = Event::where('slug', $slug)->first();
+            
+            if (!$event) {
+                return null;
+            }
 
-        $race = Race::where('event_id', $event->id)->first();
-        if (! $race) {
-            return response()->json([
-                'status' => 'idle',
-                'message' => 'Race belum disiapkan',
-            ]);
-        }
-
-        $session = $race->sessions()->orderByDesc('id')->first();
-        if (! $session) {
-            return response()->json([
-                'status' => 'idle',
-                'race_name' => $race->name,
-                'participants' => [],
-            ]);
-        }
-
-        $state = 'ready';
-        if ($session->started_at && ! $session->ended_at) {
-            $state = 'running';
-        } elseif ($session->ended_at) {
-            $state = 'finished';
-        }
-
-        $participants = $race->participants()
-            ->select(['id', 'participant_id', 'name', 'bib_number', 'rank', 'finished_at', 'result_time_ms'])
-            ->orderByRaw('CASE WHEN `rank` IS NULL THEN 1 ELSE 0 END ASC')
-            ->orderBy('rank', 'asc')
-            ->orderByRaw('CAST(bib_number AS UNSIGNED) ASC')
-            ->orderBy('bib_number')
-            ->get()
-            ->map(function (RaceSessionParticipant $p) {
+            $race = Race::where('event_id', $event->id)->first();
+            if (! $race) {
                 return [
-                    'id' => $p->id,
-                    'participant_id' => $p->participant_id,
-                    'name' => $p->name,
-                    'bib' => $p->bib_number,
-                    'rank' => $p->rank,
-                    'finished_at' => optional($p->finished_at)->toISOString(),
-                    'result_time_ms' => $p->result_time_ms,
+                    'status' => 'idle',
+                    'message' => 'Race belum disiapkan',
                 ];
-            })
-            ->values();
+            }
 
-        return response()->json([
-            'status' => $state,
-            'race_name' => $race->name,
-            'session_id' => $session->id,
-            'started_at' => optional($session->started_at)->toISOString(),
-            'ended_at' => optional($session->ended_at)->toISOString(),
-            'participants' => $participants,
-        ]);
+            $session = $race->sessions()->orderByDesc('id')->first();
+            if (! $session) {
+                return [
+                    'status' => 'idle',
+                    'race_name' => $race->name,
+                    'participants' => [],
+                ];
+            }
+
+            $state = 'ready';
+            if ($session->started_at && ! $session->ended_at) {
+                $state = 'running';
+            } elseif ($session->ended_at) {
+                $state = 'finished';
+            }
+
+            $participants = $race->participants()
+                ->select(['id', 'participant_id', 'name', 'bib_number', 'rank', 'finished_at', 'result_time_ms'])
+                ->orderByRaw('CASE WHEN `rank` IS NULL THEN 1 ELSE 0 END ASC')
+                ->orderBy('rank', 'asc')
+                ->orderByRaw('CAST(bib_number AS UNSIGNED) ASC')
+                ->orderBy('bib_number')
+                ->get()
+                ->map(function (RaceSessionParticipant $p) {
+                    return [
+                        'id' => $p->id,
+                        'participant_id' => $p->participant_id,
+                        'name' => $p->name,
+                        'bib' => $p->bib_number,
+                        'rank' => $p->rank,
+                        'finished_at' => optional($p->finished_at)->toISOString(),
+                        'result_time_ms' => $p->result_time_ms,
+                    ];
+                })
+                ->values();
+
+            return [
+                'status' => $state,
+                'race_name' => $race->name,
+                'session_id' => $session->id,
+                'started_at' => optional($session->started_at)->toISOString(),
+                'ended_at' => optional($session->ended_at)->toISOString(),
+                'participants' => $participants,
+            ];
+        });
+
+        if (!$data) {
+            abort(404);
+        }
+
+        return response()->json($data);
     }
 
     public function setup(Request $request, $slug)
