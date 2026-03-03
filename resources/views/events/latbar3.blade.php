@@ -690,9 +690,10 @@
                             <div class="space-y-3">
                                 <div v-for="(match, index) in simulatedStandings" :key="index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center justify-between">
                                     <!-- Runner 1 -->
-                                    <div class="flex items-center gap-2 flex-1 min-w-0">
-                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600">
-                                            @{{ getInitials(match.p1.name) }}
+                                    <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click="openDetailModal(match.p1)">
+                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                            <img v-if="match.p1.photo" :src="'/storage/' + match.p1.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <span v-else>@{{ getInitials(match.p1.name) }}</span>
                                         </div>
                                         <div class="min-w-0 overflow-hidden">
                                             <div class="text-xs font-bold text-white truncate">@{{ match.p1.name }}</div>
@@ -703,13 +704,14 @@
                                     <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
 
                                     <!-- Runner 2 -->
-                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0">
+                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click="openDetailModal(match.p2)">
                                         <div class="text-right min-w-0 overflow-hidden">
                                             <div class="text-xs font-bold text-white truncate">@{{ match.p2.name }}</div>
                                             <div class="text-[10px] text-gray-400 font-mono">@{{ match.p2.target_time }}</div>
                                         </div>
-                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600">
-                                            @{{ getInitials(match.p2.name) }}
+                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                            <img v-if="match.p2.photo" :src="'/storage/' + match.p2.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <span v-else>@{{ getInitials(match.p2.name) }}</span>
                                         </div>
                                     </div>
                                     <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
@@ -870,7 +872,7 @@
             <div class="relative w-full max-w-md bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
                 <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                     <div class="flex items-center gap-4">
-                        <div v-if="supportModal.participant?.photo" class="w-16 h-16 rounded-xl overflow-hidden border border-sport-volt shadow-[0_0_15px_rgba(204,255,0,0.3)] bg-gray-800 shrink-0">
+                        <div v-if="supportModal.participant?.photo" class="w-16 h-16 rounded-xl overflow-hidden border border-sport-volt shadow-[0_0_15px_rgba(204,255,0,0.3)] bg-gray-800 shrink-0 cursor-pointer hover:opacity-80 transition" @click="openLightbox('/storage/' + supportModal.participant.photo)">
                             <img :src="'/storage/' + supportModal.participant.photo" class="w-full h-full object-cover">
                         </div>
                         <div>
@@ -940,6 +942,70 @@
                         <span v-if="isSubmittingSupport"><i class="fas fa-spinner fa-spin mr-2"></i> Memproses...</span>
                         <span v-else>Kirim Energi! <i class="fas fa-bolt ml-2"></i></span>
                     </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Lightbox -->
+        <div v-if="lightbox.visible" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md p-4" @click="lightbox.visible = false">
+            <div class="relative max-w-4xl max-h-screen w-full flex items-center justify-center">
+                <img :src="lightbox.src" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-white/10">
+                <button class="absolute top-4 right-4 text-white hover:text-sport-volt transition bg-black/50 rounded-full p-2"><i class="fas fa-times text-2xl"></i></button>
+            </div>
+        </div>
+
+        <!-- Participant Detail Modal -->
+        <div v-if="detailModal.visible" class="fixed inset-0 z-[150] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="detailModal.visible = false"></div>
+            <div class="relative w-full max-w-2xl bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in flex flex-col md:flex-row">
+                <!-- Photo Section (Left) -->
+                <div class="w-full md:w-1/2 bg-gray-900 relative min-h-[300px] md:min-h-0">
+                     <img v-if="detailModal.participant?.photo" :src="'/storage/' + detailModal.participant.photo" class="absolute inset-0 w-full h-full object-cover">
+                     <div v-else class="absolute inset-0 flex items-center justify-center bg-gray-800 text-gray-600">
+                        <i class="fas fa-user text-6xl"></i>
+                     </div>
+                     <!-- Close button mobile -->
+                     <button @click="detailModal.visible = false" class="md:hidden absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full z-10"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <!-- Info Section (Right) -->
+                <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center bg-gradient-to-br from-white/5 to-transparent relative">
+                     <button @click="detailModal.visible = false" class="hidden md:block absolute top-4 right-4 text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+                     
+                     <div class="mb-6">
+                        <div class="text-sport-volt font-display text-lg uppercase tracking-wider mb-1">Participant Profile</div>
+                        <h3 class="text-3xl font-bold text-white leading-tight">@{{ detailModal.participant?.name }}</h3>
+                     </div>
+
+                     <div class="space-y-4">
+                        <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                            <div class="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-sport-volt">
+                                <i class="fas fa-stopwatch text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-gray-400 uppercase tracking-widest">Target Waktu</div>
+                                <div class="text-xl font-mono font-bold text-white">@{{ detailModal.participant?.target_time }}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                            <div class="w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-sport-volt">
+                                <i class="fas fa-map-marker-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-gray-400 uppercase tracking-widest">Asal / Alamat</div>
+                                <div class="text-sm font-bold text-white">@{{ detailModal.participant?.address || '-' }}</div>
+                            </div>
+                        </div>
+                     </div>
+                     
+                     <div class="mt-8 pt-6 border-t border-white/10">
+                        <button @click="openSupportModal(detailModal.participant); detailModal.visible = false" class="w-full py-3 bg-white/10 hover:bg-sport-volt hover:text-black text-white font-bold rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2 group">
+                            <i class="fas fa-bolt group-hover:animate-pulse"></i>
+                            <span>Beri Dukungan</span>
+                        </button>
+                     </div>
                 </div>
             </div>
         </div>
@@ -1217,17 +1283,35 @@
             };
             
             // Defensives for array initialization
-            const participantsRaw = {!! json_encode($participants->map(function($p) {
+            const participantsRaw = {!! json_encode($participants->unique('email')->values()->map(function($p) {
                 return [
                     'id' => $p->id, 
                     'name' => $p->name, 
+                    'email' => $p->email,
                     'target_time' => $p->target_time,
                     'total_support' => $p->total_support ?? 0,
-                    'photo' => $p->photo
+                    'photo' => $p->photo,
+                    'address' => $p->address
                 ];
             })) !!};
             const participants = ref(Array.isArray(participantsRaw) ? participantsRaw : []);
+
+            // Lightbox & Detail Modal
+            const lightbox = ref({ visible: false, src: '' });
+            const detailModal = ref({ visible: false, participant: null });
+
+            const openLightbox = (src) => {
+                if(src) {
+                    lightbox.value.src = src;
+                    lightbox.value.visible = true;
+                }
+            };
             
+            const openDetailModal = (p) => {
+                detailModal.value.participant = p;
+                detailModal.value.visible = true;
+            };
+
             // Pagination
             const currentPage = ref(1);
             const perPage = ref(10);
@@ -1702,7 +1786,7 @@
                     });
                 }
             });
-            return { form, isLoading, formattedTotal, processPayment, participants, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage };
+            return { form, isLoading, formattedTotal, processPayment, participants, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal };
         }
     });
     
