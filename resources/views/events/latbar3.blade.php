@@ -733,7 +733,7 @@
                             <p v-if="race.status !== 'idle'" class="text-xs text-yellow-500 mt-2 italic">Race sedang berjalan atau selesai</p>
                         </div>
                     </div>
-                    <div class="glass-dark p-6 md:p-8 relative rounded-2xl">
+                    <div v-if="false" class="glass-dark p-6 md:p-8 relative rounded-2xl">
                         
                         <div class="flex items-center justify-between mb-5 md:mb-6">
                             <div>
@@ -825,6 +825,103 @@
                     </div>
                     
                     
+                </div>
+                <div class="lg:col-span-12">
+                    <div class="glass-dark p-6 md:p-8 relative rounded-2xl">
+                        <div class="flex items-center justify-between mb-5 md:mb-6">
+                            <div>
+                                <h3 class="text-lg md:text-xl font-display uppercase text-white">Daftar Peserta</h3>
+                                <p class="text-xs text-gray-400">Approved: @{{ approvedParticipants.length }} • Not Approved: @{{ notApprovedParticipants.length }}</p>
+                            </div>
+                            <div class="bg-gray-800 p-2 rounded-lg">
+                                <svg class="w-6 h-6 text-sport-volt" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 0 014 0z"></path></svg>
+                            </div>
+                        </div>
+
+                        @php
+                            $codCount = $stats['codCount'] ?? 0;
+                            $paidCount = $stats['paidCount'] ?? 0;
+                        @endphp
+
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            <div class="lg:col-span-1 space-y-3">
+                                <div class="p-4 bg-white/5 border border-white/10 rounded-xl">
+                                    <div class="text-xs text-gray-400 uppercase tracking-wider">COD Terdaftar</div>
+                                    <div class="text-3xl font-display text-sport-volt">{{ $codCount }}</div>
+                                </div>
+                                <div class="p-4 bg-white/5 border border-white/10 rounded-xl">
+                                    <div class="text-xs text-gray-400 uppercase tracking-wider">Paid</div>
+                                    <div class="text-3xl font-display text-sport-volt">{{ $paidCount }}</div>
+                                </div>
+                            </div>
+
+                            <div class="lg:col-span-3">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <button type="button" @click="setParticipantsTab('approved')"
+                                            class="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition"
+                                            :class="participantsTab === 'approved' ? 'bg-sport-volt text-black border-sport-volt' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'">
+                                        Approved (@{{ approvedParticipants.length }})
+                                    </button>
+                                    <button type="button" @click="setParticipantsTab('not_approved')"
+                                            class="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition"
+                                            :class="participantsTab === 'not_approved' ? 'bg-sport-volt text-black border-sport-volt' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'">
+                                        Not Approved (@{{ notApprovedParticipants.length }})
+                                    </button>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <div v-for="(p, index) in paginatedParticipants" :key="p.id || index" @click="openSupportModal(p)" class="group relative flex flex-col p-4 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition cursor-pointer overflow-hidden">
+                                        <div class="absolute bottom-0 left-0 h-1 bg-sport-volt shadow-[0_0_10px_var(--neon)] transition-all duration-500" :style="{ width: getSupportPercentage(p.total_support) + '%' }"></div>
+
+                                        <div class="flex items-center w-full">
+                                            <div class="w-12 h-12 flex-shrink-0 bg-gray-800 text-sport-volt font-bold font-display text-lg flex items-center justify-center border border-gray-600 rounded-lg group-hover:border-sport-volt group-hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition overflow-hidden relative">
+                                            <img v-if="p.photo" :src="'/storage/' + p.photo" loading="lazy" class="w-full h-full object-cover absolute inset-0 z-10" @@error="$event.target.style.display='none'">
+                                            <span class="z-0">@{{ getInitials(p.name) }}</span>
+                                        </div>
+                                            <div class="ml-4 flex-grow min-w-0">
+                                                <div class="flex justify-between items-start gap-4">
+                                                    <div class="min-w-0">
+                                                        <div class="text-sm font-bold text-gray-200 group-hover:text-sport-volt transition truncate">@{{ p.name }}</div>
+                                                        <div class="text-[10px] text-gray-500 uppercase tracking-wider" v-if="p.isApproved">Approved</div>
+                                                        <div class="text-[10px] text-gray-500 uppercase tracking-wider" v-else>Not Approved</div>
+                                                    </div>
+                                                    @php
+                                                        $canManage = auth()->check() && auth()->user()->isEventOrganizer() && $event->user_id === auth()->id();
+                                                    @endphp
+                                                    @if($canManage)
+                                                    <div class="z-10 flex-shrink-0">
+                                                        <button @click.stop="deleteParticipant(p.id)" class="text-xs px-3 py-1 rounded bg-red-600 text-white hover:bg-red-500">Delete</button>
+                                                    </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 pt-3 border-t border-white/5 flex justify-between items-center w-full">
+                                            <div class="text-[10px] text-gray-400 uppercase tracking-wider">Dukungan Energi</div>
+                                            <div v-if="p.total_support > 0" class="text-right">
+                                                <div class="text-sm font-bold text-sport-volt shadow-neon">@{{ formatCurrency(p.total_support) }}</div>
+                                            </div>
+                                            <div v-else class="text-[10px] text-gray-500 italic">Belum ada dukungan</div>
+                                        </div>
+                                        <div v-if="p.total_support === 0" class="mt-2 text-center">
+                                            <span class="text-[10px] text-sport-volt uppercase tracking-wider font-bold group-hover:underline">Beri Dukungan Pertama!</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-if="totalPages > 1" class="flex justify-between items-center mt-6 pt-4 border-t border-white/10">
+                                    <button @click="prevPage" :disabled="currentPage === 1" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 transition">
+                                        <i class="fas fa-chevron-left mr-1"></i> Prev
+                                    </button>
+                                    <span class="text-xs text-gray-400">Page @{{ currentPage }} of @{{ totalPages }}</span>
+                                    <button @click="nextPage" :disabled="currentPage === totalPages" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 transition">
+                                        Next <i class="fas fa-chevron-right ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1291,7 +1388,8 @@
                     'target_time' => $p->target_time,
                     'total_support' => $p->total_support ?? 0,
                     'photo' => $p->photo,
-                    'address' => $p->address
+                    'address' => $p->address,
+                    'isApproved' => (bool) ($p->isApproved ?? false),
                 ];
             })) !!};
             const participants = ref(Array.isArray(participantsRaw) ? participantsRaw : []);
@@ -1313,21 +1411,31 @@
             };
 
             // Pagination
+            const participantsTab = ref('approved');
+            const approvedParticipants = computed(() => participants.value.filter(p => !!p.isApproved));
+            const notApprovedParticipants = computed(() => participants.value.filter(p => !p.isApproved));
+            const filteredParticipants = computed(() => participantsTab.value === 'approved' ? approvedParticipants.value : notApprovedParticipants.value);
+
             const currentPage = ref(1);
             const perPage = ref(10);
-            
+
+            const setParticipantsTab = (tab) => {
+                participantsTab.value = tab;
+                currentPage.value = 1;
+            };
+
             const paginatedParticipants = computed(() => {
                 const start = (currentPage.value - 1) * perPage.value;
                 const end = start + perPage.value;
-                return participants.value.slice(start, end);
+                return filteredParticipants.value.slice(start, end);
             });
-            
-            const totalPages = computed(() => Math.ceil(participants.value.length / perPage.value));
-            
+
+            const totalPages = computed(() => Math.max(1, Math.ceil(filteredParticipants.value.length / perPage.value)));
+
             const prevPage = () => {
                 if (currentPage.value > 1) currentPage.value--;
             };
-            
+
             const nextPage = () => {
                 if (currentPage.value < totalPages.value) currentPage.value++;
             };
@@ -1786,7 +1894,7 @@
                     });
                 }
             });
-            return { form, isLoading, formattedTotal, processPayment, participants, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal };
+            return { form, isLoading, formattedTotal, processPayment, participants, participantsTab, approvedParticipants, notApprovedParticipants, filteredParticipants, setParticipantsTab, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal };
         }
     });
     

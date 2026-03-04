@@ -16,9 +16,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class StoreRegistrationAction
 {
@@ -121,6 +120,7 @@ class StoreRegistrationAction
 
                 if (! ($body['success'] ?? false)) {
                     $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+
                     return;
                 }
 
@@ -180,34 +180,53 @@ class StoreRegistrationAction
             $picEmail = strtolower($validated['pic_email']);
             $picUser = User::where('email', $picEmail)->first();
             if (! $picUser) {
-                $picPassword = Str::random(10);
-                $picUser = User::create([
-                    'name' => $validated['pic_name'],
-                    'email' => $picEmail,
-                    'phone' => $validated['pic_phone'],
-                    'password' => $picPassword,
-                    'role' => 'runner',
-                    'is_active' => true,
-                ]);
-                Cache::put('new_user_password:'.$picEmail, $picPassword, now()->addHours(6));
-                $createdUsers[$picEmail] = true;
+                try {
+                    $picPassword = Str::random(10);
+                    $picUser = User::create([
+                        'name' => $validated['pic_name'],
+                        'email' => $picEmail,
+                        'phone' => $validated['pic_phone'],
+                        'password' => $picPassword,
+                        'role' => 'runner',
+                        'is_active' => true,
+                    ]);
+                    Cache::put('new_user_password:'.$picEmail, $picPassword, now()->addHours(6));
+                    $createdUsers[$picEmail] = true;
+                } catch (\Illuminate\Database\QueryException $e) {
+                    $driverCode = $e->errorInfo[1] ?? null;
+                    if ((int) $driverCode === 1062) {
+                        Log::warning('PIC user creation skipped due to duplicate email', ['email' => $picEmail]);
+                        $picUser = User::where('email', $picEmail)->first();
+                    } else {
+                        throw $e;
+                    }
+                }
             }
             // Create or get participant users
             foreach ($validated['participants'] as $participant) {
                 $email = strtolower($participant['email']);
                 $user = User::where('email', $email)->first();
                 if (! $user) {
-                    $password = Str::random(10);
-                    User::create([
-                        'name' => $participant['name'],
-                        'email' => $email,
-                        'phone' => $participant['phone'],
-                        'password' => $password,
-                        'role' => 'runner',
-                        'is_active' => true,
-                    ]);
-                    Cache::put('new_user_password:'.$email, $password, now()->addHours(6));
-                    $createdUsers[$email] = true;
+                    try {
+                        $password = Str::random(10);
+                        User::create([
+                            'name' => $participant['name'],
+                            'email' => $email,
+                            'phone' => $participant['phone'],
+                            'password' => $password,
+                            'role' => 'runner',
+                            'is_active' => true,
+                        ]);
+                        Cache::put('new_user_password:'.$email, $password, now()->addHours(6));
+                        $createdUsers[$email] = true;
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        $driverCode = $e->errorInfo[1] ?? null;
+                        if ((int) $driverCode === 1062) {
+                            Log::warning('Participant user creation skipped due to duplicate email', ['email' => $email]);
+                        } else {
+                            throw $e;
+                        }
+                    }
                 }
             }
         }
@@ -442,19 +461,19 @@ class StoreRegistrationAction
 
                 // Handle Photo Upload (Base64)
                 $photoPath = null;
-                if (!empty($participantData['photo'])) {
-                     $image = $participantData['photo'];
-                     if (preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
+                if (! empty($participantData['photo'])) {
+                    $image = $participantData['photo'];
+                    if (preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
                         $image = substr($image, strpos($image, ',') + 1);
                         $type = strtolower($type[1]); // jpg, png, gif
 
                         if (in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
                             $image = str_replace(' ', '+', $image);
-                            $imageName = 'participant_' . time() . '_' . Str::random(10) . '.' . $type;
-                            Storage::disk('public')->put('participants/' . $imageName, base64_decode($image));
-                            $photoPath = 'participants/' . $imageName;
+                            $imageName = 'participant_'.time().'_'.Str::random(10).'.'.$type;
+                            Storage::disk('public')->put('participants/'.$imageName, base64_decode($image));
+                            $photoPath = 'participants/'.$imageName;
                         }
-                     }
+                    }
                 }
 
                 // Create participant
