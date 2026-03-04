@@ -129,6 +129,26 @@
 
             <!-- Sidebar -->
             <div class="space-y-6">
+                <!-- Template Event -->
+                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Template Event</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">Pilih Template</label>
+                            <select name="template" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                                <option value="paolo-fest" {{ old('template') == 'paolo-fest' ? 'selected' : '' }}>Paolo Fest (Default)</option>
+                                <option value="golden-run" {{ old('template') == 'golden-run' ? 'selected' : '' }}>Golden Run</option>
+                                <option value="latbar" {{ old('template') == 'latbar' ? 'selected' : '' }}>Latbar</option>
+                                <option value="light-clean" {{ old('template') == 'light-clean' ? 'selected' : '' }}>Light Clean</option>
+                                <option value="modern-dark" {{ old('template') == 'modern-dark' ? 'selected' : '' }}>Modern Dark</option>
+                                <option value="paolo-fest-dark" {{ old('template') == 'paolo-fest-dark' ? 'selected' : '' }}>Paolo Fest Dark</option>
+                                <option value="professional-city-run" {{ old('template') == 'professional-city-run' ? 'selected' : '' }}>Professional City Run</option>
+                                <option value="simple-minimal" {{ old('template') == 'simple-minimal' ? 'selected' : '' }}>Simple Minimal</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Publish -->
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Publish</h3>

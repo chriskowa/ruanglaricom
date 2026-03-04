@@ -8,6 +8,8 @@
     @include('events.themes.paolo-fest')
 @elseif($event->template === 'paolo-fest-dark')
     @include('events.themes.paolo-fest-dark')
+@elseif($event->template === 'golden-run')
+    @include('events.themes.golden-run')
 @else
     @include('events.themes.modern-dark')
 @endif
