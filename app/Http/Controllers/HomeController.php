@@ -56,7 +56,7 @@ class HomeController extends Controller
             Cache::forever('home.leaderboard.last', $leaderboard);
             Cache::forever('home.leaderboard.last_at', now()->toISOString());
         }
-
+/*
         $topStats = Cache::remember('home.top_stats', 3600, function () {
             // OPTIMIZATION: Use role index (added in migration)
             // Use followers_count column for sorting (indexed) instead of withCount subquery
@@ -87,16 +87,16 @@ class HomeController extends Controller
                 'totalUsers' => $totalUsers,
             ];
         });
-
+*/
         return view('home.index', [
             'homepageContent' => $homepageContent,
             'featuredEvent' => $featuredEvent,
             'leaderboard' => $leaderboard,
-            'topRunner' => $topStats['runner'],
-            'topPacer' => $topStats['pacer'],
-            'topCoach' => $topStats['coach'],
-            'topCoachData' => $topStats['coachData'],
-            'totalUsers' => $topStats['totalUsers'] ?? 0,
+            //'topRunner' => $topStats['runner'],
+            //'topPacer' => $topStats['pacer'],
+            //'topCoach' => $topStats['coach'],
+            //'topCoachData' => $topStats['coachData'],
+            //'totalUsers' => $topStats['totalUsers'] ?? 0,
         ]);
     }
 }

@@ -83,7 +83,7 @@
                                 <div class="flex text-yellow-400 text-xs mb-1">
                                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                                 </div>
-                                <p class="text-sm text-slate-400"><span class="text-white font-bold">{{ number_format($totalUsers ?? 0) }}</span> Pelari Bergabung</p>
+                                <p class="text-sm text-slate-400"><span class="text-white font-bold">7700+</span> Pelari Bergabung</p>
                             </div>
                         </div>
                     </div>
@@ -579,8 +579,8 @@
         </section>
 
         <!-- COMMUNITY / HALL OF FAME -->
-        <section id="community" class="py-24 bg-slate-900/50 relative">
-            <!-- Skewed Background -->
+        <!--<section id="community" class="py-24 bg-slate-900/50 relative">
+            
             <div class="absolute inset-0 transform -skew-y-2 bg-slate-900 z-0 origin-top-left scale-110"></div>
             
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -592,7 +592,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Top Runner -->
+                    
                     <div class="group relative" data-aos="fade-up" data-aos-delay="100">
                         <div class="absolute inset-0 bg-neon/20 blur-xl opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
                         <div class="relative bg-card border border-slate-700 rounded-3xl overflow-hidden hover:-translate-y-2 transition duration-300 h-full flex flex-col">
@@ -638,7 +638,7 @@
                         </div>
                     </div>
 
-                    <!-- Top Pacer -->
+                    
                     <div class="group relative" data-aos="fade-up" data-aos-delay="200">
                         <div class="absolute inset-0 bg-blue-500/20 blur-xl opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
                         <div class="relative bg-card border border-slate-700 rounded-3xl overflow-hidden hover:-translate-y-2 transition duration-300 h-full flex flex-col">
@@ -684,7 +684,7 @@
                         </div>
                     </div>
 
-                    <!-- Top Coach -->
+                    
                     <div class="group relative" data-aos="fade-up" data-aos-delay="300">
                         <div class="absolute inset-0 bg-purple-500/20 blur-xl opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
                         <div class="relative bg-card border border-slate-700 rounded-3xl overflow-hidden hover:-translate-y-2 transition duration-300 h-full flex flex-col">
@@ -731,7 +731,7 @@
                     </div>
                 </div>
             </div>
-        </section>!-->
+        </section>-->
 
         <!-- PRICING SECTION -->
         <section id="pricing" class="py-32 relative hidden">
