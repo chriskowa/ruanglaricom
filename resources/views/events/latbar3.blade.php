@@ -807,7 +807,7 @@
                                     <div v-else class="text-[10px] text-gray-500 italic">Belum ada dukungan</div>
                                 </div>
                                 <div v-if="p.total_support === 0" class="mt-2 text-center">
-                                    <span class="text-[10px] text-sport-volt uppercase tracking-wider font-bold group-hover:underline">Beri Dukungan Pertama!</span>
+                                    <button type="button" @click.stop="openSupportModal(p)" class="text-[10px] text-sport-volt uppercase tracking-wider font-bold group-hover:underline bg-transparent border-none p-0 cursor-pointer">Beri Dukungan Pertama!</button>
                                 </div>
                             </div>
                         </div>
@@ -905,7 +905,7 @@
                                             <div v-else class="text-[10px] text-gray-500 italic">Belum ada dukungan</div>
                                         </div>
                                         <div v-if="p.total_support === 0" class="mt-2 text-center">
-                                            <span class="text-[10px] text-sport-volt uppercase tracking-wider font-bold group-hover:underline">Beri Dukungan Pertama!</span>
+                                            <button type="button" @click.stop="openSupportModal(p)" class="text-[10px] text-sport-volt uppercase tracking-wider font-bold group-hover:underline bg-transparent border-none p-0 cursor-pointer">Beri Dukungan Pertama!</button>
                                         </div>
                                     </div>
                                 </div>
@@ -964,7 +964,7 @@
         </section>
         
         <!-- Support Modal -->
-        <div v-if="supportModal.visible" class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+        <div v-if="supportModal.visible" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeSupportModal"></div>
             <div class="relative w-full max-w-md bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
                 <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
@@ -1292,6 +1292,8 @@
             };
 
             const openSupportModal = (p) => {
+                console.log('Opening support modal', p);
+                if (!p) return;
                 supportModal.value.participant = p;
                 supportModal.value.form = { 
                     nominal: 10000, 
