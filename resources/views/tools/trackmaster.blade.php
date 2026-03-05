@@ -88,6 +88,21 @@
 
 <div id="app" v-cloak class="flex-grow flex flex-col h-screen max-w-5xl mx-auto w-full relative">
 
+    <nav class="glass px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-black">TRACK<span class="text-neon-green">MASTER</span></span>
+            <span class="hidden sm:inline text-[10px] text-slate-500 font-bold">PRO COACHING TOOLS</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button @click="view = 'setup'" :class="view==='setup' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Setup</button>
+            <button @click="view = 'track'" :class="view==='track' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Track</button>
+            <button @click="view = 'summary'" :class="view==='summary' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Summary</button>
+            <button @click="toggleTheme" class="w-9 h-9 rounded-full flex items-center justify-center border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">
+                <i class="fa-solid" :class="theme==='dark' ? 'fa-moon' : 'fa-sun'"></i>
+            </button>
+        </div>
+    </nav>
+
     <section v-if="view === 'setup'" class="flex-grow flex flex-col justify-center p-6 overflow-y-auto">
         <div class="glass p-8 rounded-3xl shadow-2xl w-full max-w-lg mx-auto border-t-4 border-neon-green">
             <h1 class="text-3xl font-black text-white mb-1 tracking-tighter">TRACK<span class="text-neon-green">MASTER</span></h1>
@@ -120,13 +135,11 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Target (detik)</label>
-                        <input v-model.number="program.targetTime" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-white" placeholder="80">
-                        <div class="text-center text-[10px] text-neon-green mt-1 font-mono">@{{ calculatePace(program.targetTime, program.distance) }} /km</div>
-                    </div>
-                    <div>
                         <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Rest (detik)</label>
                         <input v-model.number="program.restTime" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-white" placeholder="60">
+                    </div>
+                    <div class="flex items-end">
+                        <div class="text-[10px] text-slate-400">Target dibuat per atlet di bawah</div>
                     </div>
                 </div>
 
@@ -138,14 +151,13 @@
                     <div class="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scroll">
                         <div v-for="(a, i) in setupAthletes" :key="i" class="flex gap-2 items-center bg-slate-800/50 p-2 rounded-xl border border-slate-700">
                             <input v-model="a.name" class="bg-transparent w-full text-sm text-white font-mono outline-none placeholder-slate-600" placeholder="Nama Atlet...">
-                            
-                            <!-- Readiness Selector -->
+                            <input v-model.number="a.target" type="number" class="neon-input w-20 rounded-lg p-2 text-center font-mono text-xs text-white" placeholder="80">
+                            <div class="text-[10px] text-neon-green font-mono w-16 text-center">@{{ calculatePace(a.target||0, program.distance) }}</div>
                             <div class="flex bg-slate-900 rounded-lg p-1 gap-1 shrink-0">
                                 <button @click="a.readiness = 'green'" :class="a.readiness === 'green' ? 'bg-green-500 scale-110' : 'bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
                                 <button @click="a.readiness = 'yellow'" :class="a.readiness === 'yellow' ? 'bg-yellow-500 scale-110' : 'bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
                                 <button @click="a.readiness = 'red'" :class="a.readiness === 'red' ? 'bg-red-500 scale-110' : 'bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
                             </div>
-
                             <button @click="removeSetupAthlete(i)" class="text-slate-600 hover:text-red-500 px-1"><i class="fa-solid fa-trash text-xs"></i></button>
                         </div>
                     </div>
@@ -174,7 +186,7 @@
                     </div>
                     <div class="hidden sm:block leading-tight">
                         <div class="text-[10px] font-bold text-slate-500 uppercase">Elapsed Time</div>
-                        <div class="text-xs text-slate-300 font-mono">@{{ program.reps }}x@{{ program.distance }}m @ @{{ program.targetTime }}s</div>
+                        <div class="text-xs text-slate-300 font-mono">@{{ program.reps }}x@{{ program.distance }}m · Target per-atlet</div>
                         <div class="flex gap-2 mt-1">
                             <span v-if="program.weather === 'sunny'" class="text-yellow-500 text-[10px]"><i class="fa-solid fa-sun"></i> Panas</span>
                             <span v-if="program.weather === 'cloudy'" class="text-slate-400 text-[10px]"><i class="fa-solid fa-cloud"></i> Berawan</span>
@@ -205,6 +217,11 @@
         </header>
 
         <div class="p-3 sm:p-4 overflow-y-auto shrink-0 max-h-[40vh]">
+            <div v-if="!hasStarted" class="max-w-4xl mx-auto mb-3 flex justify-center">
+                <button @click="startTimerNow" class="px-6 py-3 rounded-xl bg-neon-green text-slate-900 font-black text-sm hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                    START
+                </button>
+            </div>
             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-4xl mx-auto">
                 <div v-for="(a, idx) in athletes" :key="idx" @click="handleBalloon(idx)"
                     :class="getBalloonClass(a)"
@@ -393,11 +410,11 @@
             // State
             const view = ref('setup');
             const hasSavedData = ref(false);
-            const setupAthletes = ref([{name: '', readiness: 'green'}]);
+            const setupAthletes = ref([{name: '', readiness: 'green', target: 80}]);
             const activeTagLog = ref(null);
             
             const program = reactive({ 
-                reps: 8, distance: 400, targetTime: 80, restTime: 60,
+                reps: 8, distance: 400, restTime: 60,
                 weather: 'cloudy', workoutType: 'race'
             });
             
@@ -407,6 +424,8 @@
             const athleteAnalysis = ref([]);
             const elapsedTime = ref(0);
             const isPaused = ref(false);
+            const hasStarted = ref(false);
+            const theme = ref('dark');
             const ttsEnabled = ref(true);
             let timerInterval = null;
             let lastTime = 0;
@@ -419,7 +438,7 @@
 
             // -- CORE LOGIC --
 
-            const addSetupAthlete = () => setupAthletes.value.push({name: '', readiness: 'green'});
+            const addSetupAthlete = () => setupAthletes.value.push({name: '', readiness: 'green', target: 80});
             const removeSetupAthlete = (i) => setupAthletes.value.splice(i, 1);
 
             const startSession = () => {
@@ -429,6 +448,7 @@
                 athletes.value = valid.map(n => ({
                     name: n.name, 
                     readiness: n.readiness,
+                    target: n.target || 0,
                     status: 'active', currentRep: 0,
                     lapStart: 0, restCountdown: 0
                 }));
@@ -436,8 +456,7 @@
                 logs.value = [];
                 elapsedTime.value = 0;
                 view.value = 'track';
-                runTimer();
-                speak(`Sesi dimulai. Cuaca ${program.weather}. Mode ${program.workoutType}`);
+                hasStarted.value = false;
                 saveState();
             };
 
@@ -474,11 +493,13 @@
             };
 
             const togglePause = () => {
+                if (!hasStarted.value) return;
                 isPaused.value = !isPaused.value;
                 speak(isPaused.value ? "Pause" : "Resume");
             };
 
             const handleBalloon = (idx) => {
+                if (!hasStarted.value) return;
                 if (isPaused.value) return;
                 const a = athletes.value[idx];
 
@@ -486,7 +507,7 @@
                     // Record Lap
                     a.currentRep++;
                     const lapTime = elapsedTime.value - a.lapStart;
-                    const diff = lapTime - program.targetTime;
+                    const diff = lapTime - (a.target || 0);
                     
                     // Warning Logic
                     let warning = false;
@@ -624,12 +645,14 @@
                         logs.value = d.logs;
                         elapsedTime.value = d.time;
                         view.value = 'track';
+                        hasStarted.value = true;
                         runTimer();
                     }
                     if (d.athletes && d.athletes.length > 0) {
                         setupAthletes.value = d.athletes.map(a => ({
                             name: a.name, 
-                            readiness: a.readiness || 'green'
+                            readiness: a.readiness || 'green',
+                            target: a.target || 80
                         }));
                     }
                 }
@@ -680,6 +703,8 @@
                 athleteAnalysis.value.forEach(a => {
                     const ctx = document.getElementById('chart_' + a.safeName);
                     if(ctx) {
+                        const ath = athletes.value.find(x => x.name === a.name);
+                        const targetVal = ath && ath.target ? ath.target : 0;
                         new Chart(ctx, {
                             type: 'line',
                             data: {
@@ -695,7 +720,7 @@
                                     fill: true
                                 }, {
                                     label: 'Target',
-                                    data: Array(a.times.length).fill(program.targetTime),
+                                    data: Array(a.times.length).fill(targetVal),
                                     borderColor: '#f43f5e',
                                     borderWidth: 1,
                                     borderDash: [5, 5],
@@ -729,17 +754,54 @@
                 });
             };
 
+            const toggleTheme = () => {
+                theme.value = theme.value === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('tm_theme', theme.value);
+                if (theme.value === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.body.style.backgroundColor = '#0f172a';
+                    document.body.style.color = '#e2e8f0';
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.body.style.backgroundColor = '#f8fafc';
+                    document.body.style.color = '#111827';
+                }
+            };
+
+            const applyInitialTheme = () => {
+                const saved = localStorage.getItem('tm_theme');
+                if (saved === 'light' || saved === 'dark') theme.value = saved;
+                if (theme.value === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.body.style.backgroundColor = '#0f172a';
+                    document.body.style.color = '#e2e8f0';
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.body.style.backgroundColor = '#f8fafc';
+                    document.body.style.color = '#111827';
+                }
+            };
+
+            const startTimerNow = () => {
+                athletes.value.forEach(a => { a.lapStart = elapsedTime.value; });
+                hasStarted.value = true;
+                runTimer();
+                speak(`Sesi dimulai. Cuaca ${program.weather}. Mode ${program.workoutType}`);
+            };
+
             onMounted(() => {
+                applyInitialTheme();
                 if (localStorage.getItem('tm_pro_v2')) hasSavedData.value = true;
             });
 
             return {
                 view, program, setupAthletes, athletes, logs, elapsedTime, isPaused, ttsEnabled,
+                hasStarted, theme,
                 showModal, showTapper, modalData, hasSavedData, tapperSpm, athleteAnalysis, activeTagLog,
                 startSession, togglePause, handleBalloon, finishSession, toggleTTS, resetSession,
                 openModal, saveModal, toggleTapper, recordTap, loadLastSession,
                 formatTime, calculatePace, calculateAvg, getBalloonClass, getDeltaClass, downloadCSV, exportImage,
-                addSetupAthlete, removeSetupAthlete, addTag
+                addSetupAthlete, removeSetupAthlete, addTag, toggleTheme, startTimerNow
             };
         }
     }).mount('#app');
