@@ -196,6 +196,13 @@
                                         <button id="rlfa-inputmode-video" type="button" class="px-3 py-2 rounded-xl border border-neon/40 bg-neon/10 text-neon font-bold text-xs">Mode Video</button>
                                         <button id="rlfa-inputmode-photos" type="button" class="px-3 py-2 rounded-xl border border-slate-700 bg-slate-900/40 text-slate-300 font-bold text-xs hover:text-white">Mode 5 Foto</button>
                                     </div>
+                                    <div class="mt-2">
+                                        <button id="rlfa-expert-btn" type="button" class="w-full px-3 py-2 rounded-xl border border-yellow-500/40 bg-yellow-500/10 text-yellow-300 font-bold text-xs hover:text-white hover:border-yellow-400 transition flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-crown text-yellow-400/80"></i>
+                                            <span>Fitur Expert / Advance</span>
+                                        </button>
+                                        <div id="rlfa-expert-status" class="text-[10px] text-slate-400 mt-1 hidden"></div>
+                                    </div>
 
                                     <div id="rlfa-photo-slots" class="mt-4 hidden space-y-2">
                                         <div class="grid grid-cols-2 gap-2">
@@ -600,6 +607,41 @@
         </div>
     </div>
 
+    <div id="rlfa-expert-modal" class="fixed inset-0 z-[230] hidden items-center justify-center bg-black/80 backdrop-blur p-4">
+        <div class="w-full max-w-md bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+            <div class="flex items-start justify-between gap-3 p-5 border-b border-slate-800">
+                <div>
+                    <div class="text-xs font-bold text-yellow-400 uppercase tracking-[0.2em]">Expert / Advance</div>
+                    <div class="text-white font-black text-lg mt-1">Aktifkan Expert Mode</div>
+                    <p class="text-xs text-slate-400 mt-2">Pembayaran sekali untuk akses permanen fitur Expert.</p>
+                </div>
+                <button id="rlfa-expert-close" type="button" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 flex items-center justify-center hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <form id="rlfa-expert-form" class="p-5 space-y-3">
+                <input type="hidden" name="feature_slug" value="motion-capture-expert">
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Nama Lengkap</label>
+                    <input id="rlfa-expert-name" name="name" type="text" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" placeholder="Nama lengkap" value="{{ auth()->user()->name ?? '' }}">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Email</label>
+                    <input id="rlfa-expert-email" name="email" type="email" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" placeholder="Email aktif" value="{{ auth()->user()->email ?? '' }}">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">No HP</label>
+                    <input id="rlfa-expert-phone" name="phone" type="tel" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" placeholder="Nomor HP/WhatsApp" value="{{ auth()->user()->phone ?? '' }}">
+                </div>
+                <div class="text-xs text-slate-500">Harga: Rp 25.000 (sekali bayar)</div>
+                <button id="rlfa-expert-submit" type="submit" class="w-full mt-1 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-black font-bold py-3 rounded-xl transition">
+                    Bayar Sekarang
+                </button>
+                <div id="rlfa-expert-feedback" class="text-[11px] text-emerald-400 mt-1 hidden"></div>
+            </form>
+        </div>
+    </div>
+
     <section class="py-16 border-t border-slate-800 bg-slate-950/60">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-6">
@@ -772,6 +814,12 @@
 @endsection
 
 @push('scripts')
+@php
+    $snapUrl = config('midtrans.is_production')
+        ? 'https://app.midtrans.com/snap/snap.js'
+        : 'https://app.sandbox.midtrans.com/snap/snap.js';
+@endphp
+<script src="{{ $snapUrl }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
 <script type="module">
     import { FilesetResolver, PoseLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
@@ -999,7 +1047,8 @@
             posture: { min: 4 },
         };
 
-        const maxSamples = clamp(Math.floor(duration * 6), 30, 90);
+        const expertMode = !!window.RLFA_EXPERT_MODE;
+        const maxSamples = clamp(Math.floor(duration * (expertMode ? 10 : 6)), 30, expertMode ? 150 : 90);
         const start = clamp(0.4, 0, Math.max(0, duration - 0.4));
         const end = clamp(duration - 0.4, 0, duration);
         const step = maxSamples > 1 ? (end - start) / (maxSamples - 1) : 0;
@@ -1467,7 +1516,10 @@
     (function () {
         const routeAnalyze = @json(route('tools.form-analyzer.analyze'));
         const routeReport = @json(route('tools.form-analyzer.report'));
+        const routePaidCheckout = @json(route('tools.paid-feature.checkout'));
+        const routePaidConfirm = @json(route('tools.paid-feature.confirm'));
         const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const hasPaidFeature = @json($hasPaidFeature ?? false);
 
         const stateInstructions = document.getElementById('rlfa-state-instructions');
         const stateScanning = document.getElementById('rlfa-state-scanning');
@@ -1580,7 +1632,19 @@
         const qrisMessage = document.getElementById('rlfa-qris-message');
         const qrisFeedback = document.getElementById('rlfa-qris-feedback');
         const qrisSubmitBtn = qrisForm?.querySelector('button[type="submit"]');
+        const expertBtn = document.getElementById('rlfa-expert-btn');
+        const expertStatus = document.getElementById('rlfa-expert-status');
+        const expertModal = document.getElementById('rlfa-expert-modal');
+        const expertClose = document.getElementById('rlfa-expert-close');
+        const expertForm = document.getElementById('rlfa-expert-form');
+        const expertName = document.getElementById('rlfa-expert-name');
+        const expertEmail = document.getElementById('rlfa-expert-email');
+        const expertPhone = document.getElementById('rlfa-expert-phone');
+        const expertSubmit = document.getElementById('rlfa-expert-submit');
+        const expertFeedback = document.getElementById('rlfa-expert-feedback');
         let qrisSubmitting = false;
+        let expertSubmitting = false;
+        let expertEnabled = false;
         let lastResult = null;
 
         const isAdmin = @json(auth()->check() && auth()->user()->isAdmin());
@@ -1947,6 +2011,65 @@
             qrisModal.classList.add('hidden');
         };
 
+        let expertAccess = hasPaidFeature;
+
+        const openExpertModal = () => {
+            if (!expertModal) return;
+            expertModal.classList.remove('hidden');
+            expertModal.classList.add('flex');
+        };
+
+        const closeExpertModal = () => {
+            if (!expertModal) return;
+            expertModal.classList.add('hidden');
+            expertModal.classList.remove('flex');
+        };
+
+        const updateExpertLabel = () => {
+            if (!expertBtn) return;
+            const label = expertBtn.querySelector('span');
+            if (!label) return;
+            if (!expertAccess) {
+                label.textContent = 'Upgrade Expert / Advance';
+                return;
+            }
+            label.textContent = expertEnabled ? 'Expert Mode Aktif' : 'Aktifkan Expert Mode';
+        };
+
+        const updateExpertStatus = () => {
+            if (!expertStatus) return;
+            expertStatus.classList.remove('hidden');
+            if (!expertAccess) {
+                expertStatus.textContent = 'Sekali bayar untuk akses permanen Expert Mode.';
+                return;
+            }
+            expertStatus.textContent = expertEnabled ? 'Expert Mode aktif untuk analisis lebih detail.' : 'Expert Mode siap diaktifkan.';
+        };
+
+        const setExpertEnabled = (value) => {
+            expertEnabled = !!value;
+            window.RLFA_EXPERT_MODE = expertEnabled;
+            updateExpertLabel();
+            updateExpertStatus();
+        };
+
+        const confirmPaidFeature = async (orderId) => {
+            const res = await fetch(routePaidConfirm, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ order_id: orderId }),
+            });
+            if (!res.ok) {
+                throw new Error('Gagal memverifikasi pembayaran.');
+            }
+            return res.json();
+        };
+
         const formatBytes = (bytes) => {
             if (!Number.isFinite(bytes) || bytes <= 0) return '--';
             const units = ['B','KB','MB','GB'];
@@ -2196,6 +2319,10 @@
 
         const openAdvanced = () => {
             if (!advancedModal) return;
+            if (!expertEnabled) {
+                openExpertModal();
+                return;
+            }
             advancedModal.classList.remove('hidden');
             advancedModal.classList.add('flex');
         };
@@ -2820,7 +2947,7 @@
             const v = await validateClient(file);
             if (!v.ok) return;
 
-            if (!isAdmin && !isSupporter() && getUsageCount() >= MAX_TRIES) {
+            if (!isAdmin && !expertAccess && !isSupporter() && getUsageCount() >= MAX_TRIES) {
                 openQrisModal();
                 return;
             }
@@ -2905,7 +3032,7 @@
                 return;
             }
 
-            if (!isAdmin && getUsageCount() >= MAX_TRIES) {
+            if (!isAdmin && !expertAccess && getUsageCount() >= MAX_TRIES) {
                 openQrisModal();
                 return;
             }
@@ -3141,6 +3268,137 @@
                 }
             });
         }
+
+        expertClose?.addEventListener('click', closeExpertModal);
+        expertModal?.addEventListener('click', (e) => {
+            if (e.target === expertModal) closeExpertModal();
+        });
+
+        if (expertBtn) {
+            expertBtn.addEventListener('click', () => {
+                if (!expertAccess) {
+                    openExpertModal();
+                    return;
+                }
+                setExpertEnabled(!expertEnabled);
+            });
+        }
+
+        if (expertForm) {
+            expertForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (expertSubmitting) return;
+                expertSubmitting = true;
+                if (expertSubmit) {
+                    expertSubmit.disabled = true;
+                    expertSubmit.classList.add('opacity-60', 'cursor-not-allowed');
+                }
+                if (expertFeedback) {
+                    expertFeedback.classList.add('hidden');
+                    expertFeedback.classList.remove('text-red-400');
+                    expertFeedback.classList.add('text-emerald-400');
+                    expertFeedback.textContent = '';
+                }
+                const payload = {
+                    feature_slug: 'motion-capture-expert',
+                    name: expertName ? expertName.value : '',
+                    email: expertEmail ? expertEmail.value : '',
+                    phone: expertPhone ? expertPhone.value : '',
+                };
+                try {
+                    const res = await fetch(routePaidCheckout, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(payload),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        throw new Error(data?.message || 'Gagal memproses pembayaran.');
+                    }
+
+                    if (data.status === 'already_paid' || data.status === 'success') {
+                        expertAccess = true;
+                        setExpertEnabled(true);
+                        closeExpertModal();
+                        if (expertFeedback) {
+                            expertFeedback.textContent = 'Expert Mode aktif.';
+                            expertFeedback.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    if (!data.snap_token) {
+                        throw new Error('Token pembayaran tidak tersedia.');
+                    }
+
+                    if (!window.snap || typeof window.snap.pay !== 'function') {
+                        throw new Error('Payment gateway belum siap.');
+                    }
+
+                    window.snap.pay(data.snap_token, {
+                        onSuccess: async () => {
+                            try {
+                                const confirm = await confirmPaidFeature(data.order_id);
+                                if (confirm.status === 'paid') {
+                                    expertAccess = true;
+                                    setExpertEnabled(true);
+                                    closeExpertModal();
+                                }
+                            } catch (err) {}
+                        },
+                        onPending: async () => {
+                            try {
+                                const confirm = await confirmPaidFeature(data.order_id);
+                                if (confirm.status === 'paid') {
+                                    expertAccess = true;
+                                    setExpertEnabled(true);
+                                    closeExpertModal();
+                                } else if (expertFeedback) {
+                                    expertFeedback.textContent = 'Pembayaran masih pending. Selesaikan pembayaran di Midtrans.';
+                                    expertFeedback.classList.remove('hidden');
+                                }
+                            } catch (err) {
+                                if (expertFeedback) {
+                                    expertFeedback.textContent = 'Pembayaran pending. Silakan cek kembali.';
+                                    expertFeedback.classList.remove('hidden');
+                                }
+                            }
+                        },
+                        onError: () => {
+                            if (expertFeedback) {
+                                expertFeedback.textContent = 'Pembayaran gagal. Coba lagi.';
+                                expertFeedback.classList.remove('hidden');
+                                expertFeedback.classList.remove('text-emerald-400');
+                                expertFeedback.classList.add('text-red-400');
+                            }
+                        },
+                        onClose: () => {},
+                    });
+                } catch (err) {
+                    if (expertFeedback) {
+                        expertFeedback.textContent = err?.message || 'Terjadi kesalahan saat memproses pembayaran.';
+                        expertFeedback.classList.remove('hidden');
+                        expertFeedback.classList.remove('text-emerald-400');
+                        expertFeedback.classList.add('text-red-400');
+                    }
+                } finally {
+                    if (expertSubmit) {
+                        expertSubmit.disabled = false;
+                        expertSubmit.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                    expertSubmitting = false;
+                }
+            });
+        }
+
+        updateExpertLabel();
+        updateExpertStatus();
+        window.RLFA_EXPERT_MODE = false;
 
         initSupporterBadge();
         const savedResult = loadLastResult();

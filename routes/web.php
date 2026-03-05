@@ -190,6 +190,10 @@ Route::post('/tools/form-analyzer/report', [App\Http\Controllers\FormAnalyzerCon
 Route::post('/tools/form-analyzer/support', [App\Http\Controllers\FormAnalyzerController::class, 'support'])
     ->withoutMiddleware([\Illuminate\Routing\Middleware\ThrottleRequests::class])
     ->name('tools.form-analyzer.support');
+Route::post('/tools/paid-feature/checkout', [App\Http\Controllers\PaidFeatureController::class, 'checkout'])
+    ->name('tools.paid-feature.checkout');
+Route::post('/tools/paid-feature/confirm', [App\Http\Controllers\PaidFeatureController::class, 'confirm'])
+    ->name('tools.paid-feature.confirm');
 Route::get('/tools/buat-rute-lari', function () {
     return view('tools.buat-rute-lari');
 })->name('tools.buat-rute-lari');

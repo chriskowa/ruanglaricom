@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use App\Models\PaidFeature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +20,20 @@ class FormAnalyzerController extends Controller
 
     public function index()
     {
-        return view('tools.form-analyzer');
+        $hasPaidFeature = false;
+        $user = auth()->user();
+        if ($user) {
+            $hasPaidFeature = PaidFeature::query()
+                ->where('user_id', $user->id)
+                ->where('feature_slug', 'motion-capture-expert')
+                ->where('status', 'paid')
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })
+                ->exists();
+        }
+
+        return view('tools.form-analyzer', compact('hasPaidFeature'));
     }
 
     public function analyze(Request $request)
@@ -48,7 +62,18 @@ class FormAnalyzerController extends Controller
 
             $user = $request->user();
             $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
-            if (! $isAdmin) {
+            $hasPaidFeature = false;
+            if ($user) {
+                $hasPaidFeature = PaidFeature::query()
+                    ->where('user_id', $user->id)
+                    ->where('feature_slug', 'motion-capture-expert')
+                    ->where('status', 'paid')
+                    ->where(function ($query) {
+                        $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                    })
+                    ->exists();
+            }
+            if (! $isAdmin && ! $hasPaidFeature) {
                 $ip = $request->ip();
                 $sessionId = $request->session()->getId();
                 $usageKey = 'form_analyzer:usage:'.$ip.':'.$sessionId;
