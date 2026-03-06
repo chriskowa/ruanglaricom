@@ -210,8 +210,7 @@ return [
 
     ],*/
     'redis' => [
-
-        'client' => env('REDIS_CLIENT', 'predis'),
+        'client' => env('REDIS_CLIENT', 'phpredis'),
 
         'default' => [
             'scheme' => env('REDIS_SCHEME', 'unix'),
@@ -224,11 +223,13 @@ return [
             'path' => env('REDIS_PATH'),
             'database' => env('REDIS_CACHE_DB', 1),
         ],
+
         'queue' => [
             'scheme' => env('REDIS_SCHEME', 'unix'),
             'path' => env('REDIS_PATH'),
             'database' => 2,
         ],
     ],
+
 
 ];
