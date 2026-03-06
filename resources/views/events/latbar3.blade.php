@@ -238,6 +238,8 @@
                  alt="{{ $event->name }}"
                  class="absolute inset-0 w-full h-full object-cover"
                  loading="eager"
+                 decoding="async"
+                 sizes="100vw"
                  fetchpriority="high">
             <div class="absolute inset-0 bg-gradient-to-t from-[var(--dark)] via-[var(--dark)]/70 to-transparent"></div>
             <div class="relative z-10 text-center px-4 w-full max-w-5xl mx-auto mt-12 pb-20 mb:pt-[120px]">
@@ -422,7 +424,7 @@
                                             </label>
                                             <div class="flex flex-col sm:flex-row items-start gap-4">
                                                 <div v-if="participant.photo" class="w-24 h-24 rounded-xl overflow-hidden border border-sport-volt shadow-[0_0_10px_rgba(204,255,0,0.2)] flex-shrink-0 relative group">
-                                                    <img :src="participant.photo" class="w-full h-full object-cover">
+                                                    <img :src="participant.photo" loading="lazy" decoding="async" class="w-full h-full object-cover">
                                                     <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer" @click="participant.photo = ''">
                                                         <i class="fas fa-trash text-red-500"></i>
                                                     </div>
@@ -756,7 +758,7 @@
                                 <div v-for="(match, index) in currentRoundMatches" :key="'round-' + activeRoundIndex + '-match-' + index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-2">
                                     <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
                                         <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
                                             <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
                                         </div>
                                         <div class="min-w-0 overflow-hidden">
@@ -777,7 +779,7 @@
                                             </div>
                                         </div>
                                         <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
                                             <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
                                         </div>
                                     </div>
@@ -867,7 +869,7 @@
                                 
                                 <div class="flex items-center w-full">
                                     <div class="w-12 h-12 flex-shrink-0 bg-gray-800 text-sport-volt font-bold font-display text-lg flex items-center justify-center border border-gray-600 rounded-lg group-hover:border-sport-volt group-hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition overflow-hidden relative">
-                                    <img v-if="p.photo" :src="'/storage/' + p.photo" loading="lazy" class="w-full h-full object-cover absolute inset-0 z-10" @@error="$event.target.style.display='none'">
+                                    <img v-if="p.photo" :src="'/storage/' + p.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0 z-10" @@error="$event.target.style.display='none'">
                                     <span class="z-0">@{{ getInitials(p.name) }}</span>
                                 </div>
                                     <div class="ml-4 flex-grow">
@@ -965,7 +967,7 @@
 
                                         <div class="flex items-center w-full">
                                             <div class="w-12 h-12 flex-shrink-0 bg-gray-800 text-sport-volt font-bold font-display text-lg flex items-center justify-center border border-gray-600 rounded-lg group-hover:border-sport-volt group-hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition overflow-hidden relative">
-                                            <img v-if="p.photo" :src="'/storage/' + p.photo" loading="lazy" class="w-full h-full object-cover absolute inset-0 z-10" @@error="$event.target.style.display='none'">
+                                            <img v-if="p.photo" :src="'/storage/' + p.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0 z-10" @@error="$event.target.style.display='none'">
                                             <span class="z-0">@{{ getInitials(p.name) }}</span>
                                         </div>
                                             <div class="ml-4 flex-grow min-w-0">
@@ -1037,7 +1039,7 @@
                         @endphp
                         <a href="{{ route('events.show', $fe->slug) }}" class="group block rounded-xl overflow-hidden border border-white/10 bg-white/5 hover:bg-white/10 transition">
                             <div class="aspect-video bg-black/20 relative">
-                                <img src="{{ $img }}" alt="{{ $fe->name }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition">
+                                <img src="{{ $img }}" alt="{{ $fe->name }}" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
                             </div>
                             <div class="p-4">
@@ -1068,7 +1070,7 @@
                                 $img = $fe->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
                             @endphp
                             <div class="rounded-xl overflow-hidden border border-white/10 bg-white/5">
-                                <img src="{{ $img }}" alt="{{ $fe->name }}" class="w-full h-40 object-cover">
+                                <img src="{{ $img }}" alt="{{ $fe->name }}" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-40 object-cover">
                                 <div class="p-4">
                                     <div class="text-[10px] text-gray-400 uppercase tracking-widest">{{ optional($fe->start_at)->format('d M Y') }}</div>
                                     <div class="text-white font-bold">{{ $fe->name }}</div>
@@ -1088,7 +1090,7 @@
 
         <div v-if="lightbox.visible" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md p-4" @click="lightbox.visible = false">
             <div class="relative max-w-4xl max-h-screen w-full flex items-center justify-center">
-                <img :src="lightbox.src" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-white/10">
+                <img :src="lightbox.src" loading="lazy" decoding="async" fetchpriority="low" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-white/10">
                 <button class="absolute top-4 right-4 text-white hover:text-sport-volt transition bg-black/50 rounded-full p-2"><i class="fas fa-times text-2xl"></i></button>
             </div>
         </div>
@@ -1097,7 +1099,7 @@
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="detailModal.visible = false"></div>
             <div class="relative w-full max-w-2xl bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in flex flex-col md:flex-row">
                 <div class="w-full md:w-1/2 bg-gray-900 relative min-h-[300px] md:min-h-0">
-                     <img v-if="detailModal.participant?.photo" :src="'/storage/' + detailModal.participant.photo" class="absolute inset-0 w-full h-full object-cover">
+                     <img v-if="detailModal.participant?.photo" :src="'/storage/' + detailModal.participant.photo" loading="lazy" decoding="async" fetchpriority="low" class="absolute inset-0 w-full h-full object-cover">
                      <div v-else class="absolute inset-0 flex items-center justify-center bg-gray-800 text-gray-600">
                         <i class="fas fa-user text-6xl"></i>
                      </div>
@@ -1151,7 +1153,7 @@
                 <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                     <div class="flex items-center gap-4">
                         <div v-if="supportModal.participant?.photo" class="w-16 h-16 rounded-xl overflow-hidden border border-sport-volt shadow-[0_0_15px_rgba(204,255,0,0.3)] bg-gray-800 shrink-0 cursor-pointer hover:opacity-80 transition" @click="openLightbox('/storage/' + supportModal.participant.photo)">
-                            <img :src="'/storage/' + supportModal.participant.photo" class="w-full h-full object-cover">
+                            <img :src="'/storage/' + supportModal.participant.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <h3 class="text-xl font-display uppercase text-white leading-none mb-1">Beri Dukungan</h3>
@@ -1243,7 +1245,7 @@
                         <div class="p-4 rounded-xl border border-white/10 bg-white/5">
                             <div class="flex items-center gap-3 mb-3">
                                 <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                    <img v-if="simulation.match?.p1?.photo" :src="'/storage/' + simulation.match.p1.photo" class="w-full h-full object-cover absolute inset-0">
+                                    <img v-if="simulation.match?.p1?.photo" :src="'/storage/' + simulation.match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
                                     <span v-else>@{{ getInitials(simulation.match?.p1?.name || '') }}</span>
                                 </div>
                                 <div class="min-w-0">
@@ -1261,7 +1263,7 @@
                         <div class="p-4 rounded-xl border border-white/10 bg-white/5">
                             <div class="flex items-center gap-3 mb-3">
                                 <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                    <img v-if="simulation.match?.p2?.photo" :src="'/storage/' + simulation.match.p2.photo" class="w-full h-full object-cover absolute inset-0">
+                                    <img v-if="simulation.match?.p2?.photo" :src="'/storage/' + simulation.match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
                                     <span v-else>@{{ getInitials(simulation.match?.p2?.name || '') }}</span>
                                 </div>
                                 <div class="min-w-0">
@@ -1320,7 +1322,7 @@
                                 <div v-for="(match, matchIndex) in round" :key="'match-' + roundIndex + '-' + matchIndex" class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
                                     <div class="flex items-center gap-2">
                                         <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
                                             <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
                                         </div>
                                         <div class="min-w-0">
@@ -1335,7 +1337,7 @@
                                             <div class="text-[9px] text-gray-400 font-mono">@{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}</div>
                                         </div>
                                         <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
                                             <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
                                         </div>
                                     </div>
