@@ -408,6 +408,7 @@ Route::prefix('/event/{slug}/latbar-race')->group(function () {
         Route::post('/finish', [App\Http\Controllers\EO\LatbarRaceController::class, 'finish'])->name('events.latbar-race.finish');
         Route::post('/winner', [App\Http\Controllers\EO\LatbarRaceController::class, 'setWinner'])->name('events.latbar-race.winner');
         Route::post('/reset', [App\Http\Controllers\EO\LatbarRaceController::class, 'reset'])->name('events.latbar-race.reset');
+        Route::post('/target-time', [App\Http\Controllers\EO\LatbarRaceController::class, 'updateTargetTime'])->name('events.latbar-race.target-time');
     });
 });
 

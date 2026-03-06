@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Participant extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'transaction_id',
         'event_package_id',
@@ -34,6 +37,7 @@ class Participant extends Model
         'picked_up_by',
         'price_type',
         'isApproved',
+        'result_time_ms',
     ];
 
     protected $casts = [

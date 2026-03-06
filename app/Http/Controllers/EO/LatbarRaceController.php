@@ -9,17 +9,17 @@ use App\Models\Race;
 use App\Models\RaceSession;
 use App\Models\RaceSessionParticipant;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class LatbarRaceController extends Controller
 {
     public function status($slug)
     {
-        $data = Cache::remember('race_status_' . $slug, 2, function () use ($slug) {
+        $data = Cache::remember('race_status_'.$slug, 2, function () use ($slug) {
             $event = Event::where('slug', $slug)->first();
-            
-            if (!$event) {
+
+            if (! $event) {
                 return null;
             }
 
@@ -80,7 +80,7 @@ class LatbarRaceController extends Controller
             ];
         });
 
-        if (!$data) {
+        if (! $data) {
             abort(404);
         }
 
@@ -197,6 +197,45 @@ class LatbarRaceController extends Controller
             'rank' => $payload['rank'],
             'finished_at' => now(),
         ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function updateTargetTime(Request $request, $slug)
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+        if (! auth()->check() || $event->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $payload = $request->validate([
+            'participant_id' => ['required', 'integer', 'exists:participants,id'],
+            'target_time' => ['required', 'string', 'regex:/^\d{2}:\d{2}:\d{2}$/'],
+            'result_time_ms' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $participant = Participant::with(['transaction', 'category'])->findOrFail($payload['participant_id']);
+
+        $belongsToEvent = false;
+        if ($participant->transaction && $participant->transaction->event_id == $event->id) {
+            $belongsToEvent = true;
+        } elseif ($participant->category && $participant->category->event_id == $event->id) {
+            $belongsToEvent = true;
+        }
+
+        if (! $belongsToEvent) {
+            abort(404);
+        }
+
+        $update = [
+            'target_time' => $payload['target_time'],
+        ];
+
+        if ($request->has('result_time_ms') && $payload['result_time_ms'] !== null) {
+            $update['result_time_ms'] = $payload['result_time_ms'];
+        }
+
+        $participant->update($update);
 
         return response()->json(['success' => true]);
     }

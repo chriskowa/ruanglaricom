@@ -86,6 +86,36 @@
         .text-sport-volt{color:var(--neon)}
         .bg-sport-volt{background-color:var(--neon)}
         
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: var(--neon);
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .preloader-hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
         /* Modern Inputs */
         .form-input-group {
             position: relative;
@@ -184,6 +214,13 @@
     <style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:JetBrains Mono, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.-right-10{right:-2.5rem}.-right-6{right:-1.5rem}.-top-10{top:-2.5rem}.bottom-0{bottom:0px}.bottom-4{bottom:1rem}.bottom-8{bottom:2rem}.bottom-\[-10\%\]{bottom:-10%}.left-0{left:0px}.left-1\/2{left:50%}.left-4{left:1rem}.left-8{left:2rem}.left-\[-10\%\]{left:-10%}.right-0{right:0px}.right-\[-10\%\]{right:-10%}.top-0{top:0px}.top-1\/2{top:50%}.top-20{top:5rem}.top-4{top:1rem}.top-\[-10\%\]{top:-10%}.-right-1{right:-0.25rem}.-top-1{top:-0.25rem}.bottom-20{bottom:5rem}.bottom-5{bottom:1.25rem}.right-6{right:1.5rem}.z-0{z-index:0}.z-10{z-index:10}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}.order-1{order:1}.order-2{order:2}.col-span-1{grid-column:span 1 / span 1}.col-span-3{grid-column:span 3 / span 3}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-10{margin-bottom:2.5rem}.mb-12{margin-bottom:3rem}.mb-16{margin-bottom:4rem}.mb-2{margin-bottom:0.5rem}.mb-20{margin-bottom:5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mb-auto{margin-bottom:auto}.ml-1{margin-left:0.25rem}.mt-1{margin-top:0.25rem}.mt-12{margin-top:3rem}.mt-2{margin-top:0.5rem}.mt-auto{margin-top:auto}.line-clamp-1{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1}.line-clamp-2{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.aspect-video{aspect-ratio:16 / 9}.h-10{height:2.5rem}.h-12{height:3rem}.h-2{height:0.5rem}.h-20{height:5rem}.h-24{height:6rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-64{height:16rem}.h-8{height:2rem}.h-96{height:24rem}.h-\[500px\]{height:500px}.h-\[600px\]{height:600px}.h-full{height:100%}.h-px{height:1px}.h-14{height:3.5rem}.max-h-\[80vh\]{max-height:80vh}.max-h-64{max-height:16rem}.max-h-80{max-height:20rem}.min-h-screen{min-height:100vh}.w-10{width:2.5rem}.w-12{width:3rem}.w-2{width:0.5rem}.w-24{width:6rem}.w-4{width:1rem}.w-48{width:12rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-64{width:16rem}.w-96{width:24rem}.w-\[500px\]{width:500px}.w-\[600px\]{width:600px}.w-auto{width:auto}.w-full{width:100%}.w-14{width:3.5rem}.w-8{width:2rem}.w-80{width:20rem}.max-w-2xl{max-width:42rem}.max-w-5xl{max-width:64rem}.max-w-7xl{max-width:80rem}.max-w-lg{max-width:32rem}.flex-1{flex:1 1 0%}.flex-shrink-0{flex-shrink:0}.flex-grow{flex-grow:1}.origin-top-left{transform-origin:top left}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-x-1\/2{--tw-translate-x:50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-y-1\/2{--tw-translate-y:50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.rotate-12{--tw-rotate:12deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.rotate-3{--tw-rotate:3deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-rotate-45{--tw-rotate:-45deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-skew-y-2{--tw-skew-y:-2deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-105{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse-slow{animation:pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite}@keyframes spin{to{transform:rotate(360deg)}}.animate-spin{animation:spin 1s linear infinite}.select-none{-webkit-user-select:none;user-select:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-end{align-items:flex-end}.items-center{align-items:center}.items-baseline{align-items:baseline}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-12{gap:3rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.-space-x-4 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(-1rem * var(--tw-space-x-reverse));margin-left:calc(-1rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.divide-y > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.divide-slate-800 > :not([hidden]) ~ :not([hidden]){--tw-divide-opacity:1;border-color:rgb(30 41 59 / var(--tw-divide-opacity, 1))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.overflow-x-hidden{overflow-x:hidden}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-\[2\.5rem\]{border-radius:2.5rem}.rounded-\[3rem\]{border-radius:3rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.rounded-b-2xl{border-bottom-right-radius:1rem;border-bottom-left-radius:1rem}.border{border-width:1px}.border-4{border-width:4px}.border-8{border-width:8px}.border-y{border-top-width:1px;border-bottom-width:1px}.border-b{border-bottom-width:1px}.border-l{border-left-width:1px}.border-t{border-top-width:1px}.border-r{border-right-width:1px}.border-dark{--tw-border-opacity:1;border-color:rgb(15 23 42 / var(--tw-border-opacity, 1))}.border-neon{--tw-border-opacity:1;border-color:rgb(204 255 0 / var(--tw-border-opacity, 1))}.border-neon\/20{border-color:rgb(204 255 0 / 0.2)}.border-slate-600{--tw-border-opacity:1;border-color:rgb(71 85 105 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-slate-800\/50{border-color:rgb(30 41 59 / 0.5)}.border-slate-900{--tw-border-opacity:1;border-color:rgb(15 23 42 / var(--tw-border-opacity, 1))}.border-transparent{border-color:transparent}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/50{border-color:rgb(255 255 255 / 0.5)}.border-t-neon{--tw-border-opacity:1;border-top-color:rgb(204 255 0 / var(--tw-border-opacity, 1))}.bg-dark{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-\[\#fc4c02\]{--tw-bg-opacity:1;background-color:rgb(252 76 2 / var(--tw-bg-opacity, 1))}.bg-black\/10{background-color:rgb(0 0 0 / 0.1)}.bg-blue-500{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.bg-blue-500\/20{background-color:rgb(59 130 246 / 0.2)}.bg-blue-600\/10{background-color:rgb(37 99 235 / 0.1)}.bg-blue-600\/5{background-color:rgb(37 99 235 / 0.05)}.bg-card{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-dark\/80{background-color:rgb(15 23 42 / 0.8)}.bg-dark\/90{background-color:rgb(15 23 42 / 0.9)}.bg-neon{--tw-bg-opacity:1;background-color:rgb(204 255 0 / var(--tw-bg-opacity, 1))}.bg-neon\/10{background-color:rgb(204 255 0 / 0.1)}.bg-neon\/20{background-color:rgb(204 255 0 / 0.2)}.bg-neon\/5{background-color:rgb(204 255 0 / 0.05)}.bg-purple-500\/20{background-color:rgb(168 85 247 / 0.2)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-800\/50{background-color:rgb(30 41 59 / 0.5)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/30{background-color:rgb(15 23 42 / 0.3)}.bg-slate-900\/50{background-color:rgb(15 23 42 / 0.5)}.bg-slate-900\/60{background-color:rgb(15 23 42 / 0.6)}.bg-slate-900\/95{background-color:rgb(15 23 42 / 0.95)}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/20{background-color:rgb(255 255 255 / 0.2)}.bg-red-500{--tw-bg-opacity:1;background-color:rgb(239 68 68 / var(--tw-bg-opacity, 1))}.bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.bg-black\/20{background-color:rgb(0 0 0 / 0.2)}.bg-\[radial-gradient\(ellipse_at_top\2c _var\(--tw-gradient-stops\)\)\]{background-image:radial-gradient(ellipse at top, var(--tw-gradient-stops))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-t{background-image:linear-gradient(to top, var(--tw-gradient-stops))}.from-dark{--tw-gradient-from:#0f172a var(--tw-gradient-from-position);--tw-gradient-to:rgb(15 23 42 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-dark\/80{--tw-gradient-from:rgb(15 23 42 / 0.8) var(--tw-gradient-from-position);--tw-gradient-to:rgb(15 23 42 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-neon{--tw-gradient-from:#ccff00 var(--tw-gradient-from-position);--tw-gradient-to:rgb(204 255 0 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-slate-800{--tw-gradient-from:#1e293b var(--tw-gradient-from-position);--tw-gradient-to:rgb(30 41 59 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-transparent{--tw-gradient-from:transparent var(--tw-gradient-from-position);--tw-gradient-to:rgb(0 0 0 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-white{--tw-gradient-from:#fff var(--tw-gradient-from-position);--tw-gradient-to:rgb(255 255 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-neon\/5{--tw-gradient-from:rgb(204 255 0 / 0.05) var(--tw-gradient-from-position);--tw-gradient-to:rgb(204 255 0 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-dark{--tw-gradient-to:rgb(15 23 42 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #0f172a var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-green-400{--tw-gradient-to:rgb(74 222 128 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #4ade80 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-lime-500{--tw-gradient-to:rgb(132 204 22 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #84cc16 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-neon\/50{--tw-gradient-to:rgb(204 255 0 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), rgb(204 255 0 / 0.5) var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-transparent{--tw-gradient-to:rgb(0 0 0 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), transparent var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-black{--tw-gradient-to:#000 var(--tw-gradient-to-position)}.to-emerald-500{--tw-gradient-to:#10b981 var(--tw-gradient-to-position)}.to-emerald-600{--tw-gradient-to:#059669 var(--tw-gradient-to-position)}.to-green-400{--tw-gradient-to:#4ade80 var(--tw-gradient-to-position)}.to-slate-500{--tw-gradient-to:#64748b var(--tw-gradient-to-position)}.to-transparent{--tw-gradient-to:transparent var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.object-cover{object-fit:cover}.object-top{object-position:top}.p-1{padding:0.25rem}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.p-0{padding:0px}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-8{padding-left:2rem;padding-right:2rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-20{padding-top:5rem;padding-bottom:5rem}.py-24{padding-top:6rem;padding-bottom:6rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-32{padding-top:8rem;padding-bottom:8rem}.py-4{padding-top:1rem;padding-bottom:1rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.pb-1{padding-bottom:0.25rem}.pb-10{padding-bottom:2.5rem}.pl-1{padding-left:0.25rem}.pl-2{padding-left:0.5rem}.pl-4{padding-left:1rem}.pr-2{padding-right:0.5rem}.pr-8{padding-right:2rem}.pt-16{padding-top:4rem}.pt-2{padding-top:0.5rem}.pt-20{padding-top:5rem}.pt-8{padding-top:2rem}.pt-4{padding-top:1rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-sans{font-family:Inter, sans-serif}.font-mono{font-family:JetBrains Mono, monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-5xl{font-size:3rem;line-height:1}.text-\[10px\]{font-size:10px}.text-\[200px\]{font-size:200px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-light{font-weight:300}.font-medium{font-weight:500}.font-normal{font-weight:400}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-\[0\.2em\]{letter-spacing:0.2em}.tracking-tight{letter-spacing:-0.025em}.tracking-tighter{letter-spacing:-0.05em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-\[\#fc4c02\]{--tw-text-opacity:1;color:rgb(252 76 2 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-dark{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-dark\/80{color:rgb(15 23 42 / 0.8)}.text-green-600{--tw-text-opacity:1;color:rgb(22 163 74 / var(--tw-text-opacity, 1))}.text-neon{--tw-text-opacity:1;color:rgb(204 255 0 / var(--tw-text-opacity, 1))}.text-primary{--tw-text-opacity:1;color:rgb(204 255 0 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800\/30{color:rgb(30 41 59 / 0.3)}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-yellow-400{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.text-green-400{--tw-text-opacity:1;color:rgb(74 222 128 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.placeholder-slate-500::placeholder{--tw-placeholder-opacity:1;color:rgb(100 116 139 / var(--tw-placeholder-opacity, 1))}.placeholder-slate-600::placeholder{--tw-placeholder-opacity:1;color:rgb(71 85 105 / var(--tw-placeholder-opacity, 1))}.opacity-0{opacity:0}.opacity-50{opacity:0.5}.opacity-75{opacity:0.75}.opacity-80{opacity:0.8}.opacity-90{opacity:0.9}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_30px_rgba\(204\2c 255\2c 0\2c 0\.3\)\]{--tw-shadow:0 0 30px rgba(204,255,0,0.3);--tw-shadow-colored:0 0 30px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_40px_rgba\(204\2c 255\2c 0\2c 0\.6\)\]{--tw-shadow:0 0 40px rgba(204,255,0,0.6);--tw-shadow-colored:0 0 40px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_20px_100px_-20px_rgba\(204\2c 255\2c 0\2c 0\.3\)\]{--tw-shadow:0 20px 100px -20px rgba(204,255,0,0.3);--tw-shadow-colored:0 20px 100px -20px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-orange-500\/20{--tw-shadow-color:rgb(249 115 22 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.shadow-neon\/30{--tw-shadow-color:rgb(204 255 0 / 0.3);--tw-shadow:var(--tw-shadow-colored)}.outline-none{outline:2px solid transparent;outline-offset:2px}.blur-3xl{--tw-blur:blur(64px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[100px\]{--tw-blur:blur(100px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[120px\]{--tw-blur:blur(120px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[150px\]{--tw-blur:blur(150px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-xl{--tw-blur:blur(24px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.grayscale{--tw-grayscale:grayscale(100%);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.invert{--tw-invert:invert(100%);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-xl{--tw-backdrop-blur:blur(24px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-1000{transition-duration:1000ms}.duration-300{transition-duration:300ms}.duration-500{transition-duration:500ms}.duration-700{transition-duration:700ms}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:-translate-y-2:hover{--tw-translate-y:-0.5rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:translate-x-1:hover{--tw-translate-x:0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:rotate-0:hover{--tw-rotate:0deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:scale-105:hover{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:scale-110:hover{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:scale-\[1\.02\]:hover{--tw-scale-x:1.02;--tw-scale-y:1.02;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-blue-500:hover{--tw-border-opacity:1;border-color:rgb(59 130 246 / var(--tw-border-opacity, 1))}.hover\:border-neon:hover{--tw-border-opacity:1;border-color:rgb(204 255 0 / var(--tw-border-opacity, 1))}.hover\:border-slate-500:hover{--tw-border-opacity:1;border-color:rgb(100 116 139 / var(--tw-border-opacity, 1))}.hover\:border-white:hover{--tw-border-opacity:1;border-color:rgb(255 255 255 / var(--tw-border-opacity, 1))}.hover\:border-white\/30:hover{border-color:rgb(255 255 255 / 0.3)}.hover\:border-neon\/50:hover{border-color:rgb(204 255 0 / 0.5)}.hover\:border-slate-600:hover{--tw-border-opacity:1;border-color:rgb(71 85 105 / var(--tw-border-opacity, 1))}.hover\:bg-\[\#e34402\]:hover{--tw-bg-opacity:1;background-color:rgb(227 68 2 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-lime-400:hover{--tw-bg-opacity:1;background-color:rgb(163 230 53 / var(--tw-bg-opacity, 1))}.hover\:bg-neon:hover{--tw-bg-opacity:1;background-color:rgb(204 255 0 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-white:hover{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.hover\:text-dark:hover{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.hover\:text-neon:hover{--tw-text-opacity:1;color:rgb(204 255 0 / var(--tw-text-opacity, 1))}.hover\:text-slate-900:hover{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:underline:hover{-webkit-text-decoration-line:underline;text-decoration-line:underline}.hover\:shadow-lg:hover{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.hover\:shadow-neon\/20:hover{--tw-shadow-color:rgb(204 255 0 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.hover\:grayscale-0:hover{--tw-grayscale:grayscale(0);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.focus\:border-neon:focus{--tw-border-opacity:1;border-color:rgb(204 255 0 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-1:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-neon:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(204 255 0 / var(--tw-ring-opacity, 1))}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:translate-x-1{--tw-translate-x:0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:rotate-0{--tw-rotate:0deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes bounce{0%, 100%{transform:translateY(-25%);animation-timing-function:cubic-bezier(0.8,0,1,1)}50%{transform:none;animation-timing-function:cubic-bezier(0,0,0.2,1)}}.group:hover .group-hover\:animate-bounce{animation:bounce 1s infinite}.group:hover .group-hover\:border-neon\/30{border-color:rgb(204 255 0 / 0.3)}.group:hover .group-hover\:bg-neon{--tw-bg-opacity:1;background-color:rgb(204 255 0 / var(--tw-bg-opacity, 1))}.group:hover .group-hover\:bg-transparent{background-color:transparent}.group:hover .group-hover\:text-dark{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-neon{--tw-text-opacity:1;color:rgb(204 255 0 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:opacity-100{opacity:1}.group:hover .group-hover\:grayscale-0{--tw-grayscale:grayscale(0);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}@media (min-width: 360px){.xs\:gap-1{gap:0.25rem}.xs\:text-xl{font-size:1.25rem;line-height:1.75rem}}@media (min-width: 640px){.sm\:flex-row{flex-direction:row}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}}@media (min-width: 768px){.md\:-right-12{right:-3rem}.md\:order-1{order:1}.md\:order-2{order:2}.md\:col-span-1{grid-column:span 1 / span 1}.md\:mx-0{margin-left:0px;margin-right:0px}.md\:block{display:block}.md\:flex{display:flex}.md\:hidden{display:none}.md\:h-10{height:2.5rem}.md\:h-32{height:8rem}.md\:h-8{height:2rem}.md\:w-32{width:8rem}.md\:w-96{width:24rem}.md\:w-16{width:4rem}.md\:-translate-y-4{--tw-translate-y:-1rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:justify-start{justify-content:flex-start}.md\:justify-between{justify-content:space-between}.md\:gap-12{gap:3rem}.md\:gap-20{gap:5rem}.md\:p-20{padding:5rem}.md\:pt-0{padding-top:0px}.md\:text-left{text-align:left}.md\:text-2xl{font-size:1.5rem;line-height:2rem}.md\:text-5xl{font-size:3rem;line-height:1}.md\:text-6xl{font-size:3.75rem;line-height:1}.md\:text-7xl{font-size:4.5rem;line-height:1}.md\:text-sm{font-size:0.875rem;line-height:1.25rem}.md\:text-xl{font-size:1.25rem;line-height:1.75rem}.md\:text-4xl{font-size:2.25rem;line-height:2.5rem}}@media (min-width: 1024px){.lg\:col-span-2{grid-column:span 2 / span 2}.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:px-8{padding-left:2rem;padding-right:2rem}.lg\:text-8xl{font-size:6rem;line-height:1}}</style>
 </head>
 <body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="flex flex-col items-center gap-4">
+            <div class="spinner"></div>
+            <div class="text-xs font-mono text-gray-500 animate-pulse tracking-widest">LOADING...</div>
+        </div>
+    </div>
     @php
         $featuredEvents = \App\Models\Event::query()
             ->where('is_featured', true)
@@ -320,25 +357,29 @@
 
                                     <div class="space-y-2">
                                         <div class="form-input-group">
-                                            <input type="text" :id="'name_'+index" v-model="participant.name" required class="form-input" placeholder=" ">
-                                            <label :for="'name_'+index" class="form-label">NAMA LENGKAP</label>
+                                            <input type="text" :id="'name_'+index" v-model="participant.name" class="form-input" :class="{'border-red-500': errors[`name_${index}`]}" placeholder=" ">
+                                            <label :for="'name_'+index" class="form-label" :class="{'text-red-500': errors[`name_${index}`]}">NAMA LENGKAP</label>
+                                            <span v-if="errors[`name_${index}`]" class="text-xs text-red-500 mt-1 block">@{{ errors[`name_${index}`] }}</span>
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div class="form-input-group">
-                                                <input type="tel" :id="'phone_'+index" v-model="participant.phone" required class="form-input" placeholder=" ">
-                                                <label :for="'phone_'+index" class="form-label">WHATSAPP</label>
+                                                <input type="tel" :id="'phone_'+index" v-model="participant.phone" class="form-input" :class="{'border-red-500': errors[`phone_${index}`]}" placeholder=" ">
+                                                <label :for="'phone_'+index" class="form-label" :class="{'text-red-500': errors[`phone_${index}`]}">WHATSAPP</label>
+                                                <span v-if="errors[`phone_${index}`]" class="text-xs text-red-500 mt-1 block">@{{ errors[`phone_${index}`] }}</span>
                                             </div>
                                             <div class="form-input-group">
-                                                <input type="email" :id="'email_'+index" v-model="participant.email" required class="form-input" placeholder=" ">
-                                                <label :for="'email_'+index" class="form-label">EMAIL</label>
+                                                <input type="email" :id="'email_'+index" v-model="participant.email" class="form-input" :class="{'border-red-500': errors[`email_${index}`]}" placeholder=" ">
+                                                <label :for="'email_'+index" class="form-label" :class="{'text-red-500': errors[`email_${index}`]}">EMAIL</label>
+                                                <span v-if="errors[`email_${index}`]" class="text-xs text-red-500 mt-1 block">@{{ errors[`email_${index}`] }}</span>
                                             </div>
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div class="form-input-group">
-                                                <input type="text" :id="'address_'+index" v-model="participant.address" required class="form-input" placeholder=" ">
-                                                <label :for="'address_'+index" class="form-label">ALAMAT</label>
+                                                <input type="text" :id="'address_'+index" v-model="participant.address" class="form-input" :class="{'border-red-500': errors[`address_${index}`]}" placeholder=" ">
+                                                <label :for="'address_'+index" class="form-label" :class="{'text-red-500': errors[`address_${index}`]}">ALAMAT</label>
+                                                <span v-if="errors[`address_${index}`]" class="text-xs text-red-500 mt-1 block">@{{ errors[`address_${index}`] }}</span>
                                             </div>
                                             <div class="form-input-group">
                                                 <label class="form-label mb-2 block relative z-10">TARGET WAKTU (JAM : MENIT : DETIK)</label>
@@ -363,11 +404,12 @@
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div class="form-input-group">
-                                                <select :id="'gender_'+index" v-model="participant.gender" required class="form-input">
+                                                <select :id="'gender_'+index" v-model="participant.gender" class="form-input" :class="{'border-red-500': errors[`gender_${index}`]}">
                                                     <option value="male">Laki-laki</option>
                                                     <option value="female">Perempuan</option>
                                                 </select>
-                                                <label :for="'gender_'+index" class="form-label">GENDER</label>
+                                                <label :for="'gender_'+index" class="form-label" :class="{'text-red-500': errors[`gender_${index}`]}">GENDER</label>
+                                                <span v-if="errors[`gender_${index}`]" class="text-xs text-red-500 mt-1 block">@{{ errors[`gender_${index}`] }}</span>
                                             </div>
                                             <!-- Jersey Size hidden/default -->
                                             <input type="hidden" v-model="participant.jersey_size">
@@ -486,6 +528,12 @@
                                     <button type="button" id="applyCouponBtn" class="px-4 py-2 rounded-lg bg-sport-volt text-black font-bold">Pakai</button>
                                 </div>
                                 <div id="couponMessage" class="mt-2 text-xs font-medium"></div>
+                            </div>
+
+                            <!-- Global Error Message -->
+                            <div v-if="globalError" class="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl flex items-start gap-3 animate-fade-in">
+                                <i class="fas fa-exclamation-circle text-red-500 mt-0.5"></i>
+                                <span class="text-sm text-red-200">@{{ globalError }}</span>
                             </div>
 
                             <!-- Total & Action -->
@@ -685,37 +733,71 @@
                             <h3 class="text-white font-display text-xl uppercase">Simulasi Klasemen</h3>
                         </div>
                         
-                        <div v-if="simulatedStandings.length > 0">
-                            <p class="text-xs text-gray-400 mb-4">Prediksi lawan berdasarkan selisih target waktu terkecil.</p>
+                        <div v-if="bracketRounds.length > 0">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="text-[11px] text-gray-400 font-mono">
+                                    Sesi @{{ activeRoundIndex + 1 }} / @{{ bracketRounds.length }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="prevRound" :disabled="activeRoundIndex === 0" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Prev
+                                    </button>
+                                    <button type="button" @click="nextRound" :disabled="activeRoundIndex >= bracketRounds.length - 1 || !isCurrentRoundComplete" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Lanjut
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-gray-400 mb-4">
+                                Jalankan simulasi per match. Setelah semua match di sesi selesai, lanjut ke sesi berikutnya (pemenang akan bertanding).
+                            </p>
+
                             <div class="space-y-3">
-                                <div v-for="(match, index) in simulatedStandings" :key="index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center justify-between">
-                                    <!-- Runner 1 -->
-                                    <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click="openDetailModal(match.p1)">
+                                <div v-for="(match, index) in currentRoundMatches" :key="'round-' + activeRoundIndex + '-match-' + index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-2">
+                                    <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
                                         <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p1.photo" :src="'/storage/' + match.p1.photo" class="w-full h-full object-cover absolute inset-0">
-                                            <span v-else>@{{ getInitials(match.p1.name) }}</span>
+                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
                                         </div>
                                         <div class="min-w-0 overflow-hidden">
-                                            <div class="text-xs font-bold text-white truncate">@{{ match.p1.name }}</div>
-                                            <div class="text-[10px] text-gray-400 font-mono">@{{ match.p1.target_time }}</div>
+                                            <div class="text-xs font-bold text-white truncate">@{{ match.p1?.name || '-' }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">
+                                                @{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}
+                                            </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
 
-                                    <!-- Runner 2 -->
-                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click="openDetailModal(match.p2)">
+                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p2)">
                                         <div class="text-right min-w-0 overflow-hidden">
-                                            <div class="text-xs font-bold text-white truncate">@{{ match.p2.name }}</div>
-                                            <div class="text-[10px] text-gray-400 font-mono">@{{ match.p2.target_time }}</div>
+                                            <div class="text-xs font-bold text-white truncate">@{{ match.p2?.name || '-' }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">
+                                                @{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}
+                                            </div>
                                         </div>
                                         <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p2.photo" :src="'/storage/' + match.p2.photo" class="w-full h-full object-cover absolute inset-0">
-                                            <span v-else>@{{ getInitials(match.p2.name) }}</span>
+                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
                                         </div>
                                     </div>
                                     <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
                                         Menunggu Lawan
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <div v-if="match.winner" class="text-[10px] font-bold text-sport-volt uppercase tracking-wider whitespace-nowrap">
+                                            Winner: @{{ match.winner.name }}
+                                        </div>
+
+                                        <div v-if="canManage" class="flex items-center">
+                                            <button v-if="!isSimulationMatch(match)" type="button" @click.stop="startSimulation(match, activeRoundIndex, index)" :disabled="!match.p1 || !match.p2" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                                Start
+                                            </button>
+                                            <button v-else type="button" @click.stop="openSimulation(match)" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition">
+                                                Kontrol
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -726,11 +808,19 @@
                         </div>
                         
                         <div v-if="canManage" class="mt-6 border-t border-white/10 pt-6 text-center">
-                            <button @click="startRace" :disabled="race.status !== 'idle'" class="px-8 py-3 bg-sport-volt hover:bg-[#b3e600] text-black font-bold uppercase tracking-wider rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(204,255,0,0.3)] hover:shadow-[0_0_25px_rgba(204,255,0,0.5)] transform hover:-translate-y-0.5 flex items-center justify-center mx-auto gap-2">
-                                <i class="fas fa-flag-checkered text-lg"></i>
-                                <span>Start Race Simulation</span>
+                            <p class="text-xs text-gray-400">Gunakan tombol Start di setiap pasangan untuk memulai simulasi.</p>
+                        </div>
+                    </div>
+                    <div class="glass-dark p-6 md:p-8 mt-6 rounded-2xl animate-fade-in mb-8">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-1.5 h-6 bg-sport-volt rounded-full"></div>
+                            <h3 class="text-white font-display text-xl uppercase">Bagan Klasemen</h3>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 text-center">
+                            <p class="text-xs text-gray-400">Lihat bagan lengkap untuk urutan menuju podium 1-3.</p>
+                            <button type="button" @click="openBracketModal" class="px-4 py-2 text-xs font-bold rounded-lg border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition">
+                                Buka Bagan
                             </button>
-                            <p v-if="race.status !== 'idle'" class="text-xs text-yellow-500 mt-2 italic">Race sedang berjalan atau selesai</p>
                         </div>
                     </div>
                     <div v-if="false" class="glass-dark p-6 md:p-8 relative rounded-2xl">
@@ -963,7 +1053,39 @@
             </div>
         </section>
         
-        <!-- Lightbox -->
+        <!-- Featured Modal -->
+        <div id="featuredModal" class="fixed inset-0 z-[120] hidden">
+            <div class="absolute inset-0 bg-black/60" onclick="document.getElementById('featuredModal').classList.add('hidden')"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="glass-dark border border-white/10 rounded-2xl w-full max-w-4xl">
+                    <div class="flex items-center justify-between p-4 border-b border-white/10">
+                        <h4 class="text-white font-display text-lg">Event Unggulan</h4>
+                        <button type="button" class="text-gray-400 hover:text-white" onclick="document.getElementById('featuredModal').classList.add('hidden')">✕</button>
+                    </div>
+                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach($featuredEvents as $fe)
+                            @php
+                                $img = $fe->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
+                            @endphp
+                            <div class="rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                                <img src="{{ $img }}" alt="{{ $fe->name }}" class="w-full h-40 object-cover">
+                                <div class="p-4">
+                                    <div class="text-[10px] text-gray-400 uppercase tracking-widest">{{ optional($fe->start_at)->format('d M Y') }}</div>
+                                    <div class="text-white font-bold">{{ $fe->name }}</div>
+                                    @if($fe->location_name)
+                                    <div class="text-[11px] text-gray-500 mt-1"><i class="fas fa-map-marker-alt"></i> {{ $fe->location_name }}</div>
+                                    @endif
+                                    <a href="{{ route('events.show', $fe->slug) }}" class="mt-3 inline-block px-3 py-1.5 rounded-lg bg-sport-volt text-black font-bold text-xs">Lihat Event</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+        @endisset
+
         <div v-if="lightbox.visible" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md p-4" @click="lightbox.visible = false">
             <div class="relative max-w-4xl max-h-screen w-full flex items-center justify-center">
                 <img :src="lightbox.src" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-white/10">
@@ -971,21 +1093,17 @@
             </div>
         </div>
 
-        <!-- Participant Detail Modal -->
         <div v-if="detailModal.visible" class="fixed inset-0 z-[150] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="detailModal.visible = false"></div>
             <div class="relative w-full max-w-2xl bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in flex flex-col md:flex-row">
-                <!-- Photo Section (Left) -->
                 <div class="w-full md:w-1/2 bg-gray-900 relative min-h-[300px] md:min-h-0">
                      <img v-if="detailModal.participant?.photo" :src="'/storage/' + detailModal.participant.photo" class="absolute inset-0 w-full h-full object-cover">
                      <div v-else class="absolute inset-0 flex items-center justify-center bg-gray-800 text-gray-600">
                         <i class="fas fa-user text-6xl"></i>
                      </div>
-                     <!-- Close button mobile -->
                      <button @click="detailModal.visible = false" class="md:hidden absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full z-10"><i class="fas fa-times"></i></button>
                 </div>
                 
-                <!-- Info Section (Right) -->
                 <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center bg-gradient-to-br from-white/5 to-transparent relative">
                      <button @click="detailModal.visible = false" class="hidden md:block absolute top-4 right-4 text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
                      
@@ -1025,39 +1143,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Featured Modal -->
-        <div id="featuredModal" class="fixed inset-0 z-[120] hidden">
-            <div class="absolute inset-0 bg-black/60" onclick="document.getElementById('featuredModal').classList.add('hidden')"></div>
-            <div class="absolute inset-0 flex items-center justify-center p-4">
-                <div class="glass-dark border border-white/10 rounded-2xl w-full max-w-4xl">
-                    <div class="flex items-center justify-between p-4 border-b border-white/10">
-                        <h4 class="text-white font-display text-lg">Event Unggulan</h4>
-                        <button type="button" class="text-gray-400 hover:text-white" onclick="document.getElementById('featuredModal').classList.add('hidden')">✕</button>
-                    </div>
-                    <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        @foreach($featuredEvents as $fe)
-                            @php
-                                $img = $fe->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
-                            @endphp
-                            <div class="rounded-xl overflow-hidden border border-white/10 bg-white/5">
-                                <img src="{{ $img }}" alt="{{ $fe->name }}" class="w-full h-40 object-cover">
-                                <div class="p-4">
-                                    <div class="text-[10px] text-gray-400 uppercase tracking-widest">{{ optional($fe->start_at)->format('d M Y') }}</div>
-                                    <div class="text-white font-bold">{{ $fe->name }}</div>
-                                    @if($fe->location_name)
-                                    <div class="text-[11px] text-gray-500 mt-1"><i class="fas fa-map-marker-alt"></i> {{ $fe->location_name }}</div>
-                                    @endif
-                                    <a href="{{ route('events.show', $fe->slug) }}" class="mt-3 inline-block px-3 py-1.5 rounded-lg bg-sport-volt text-black font-bold text-xs">Lihat Event</a>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-        @endisset
 
         <!-- Support Modal -->
         <div v-if="supportModal.visible" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -1135,6 +1220,165 @@
                 </div>
             </div>
         </div>
+
+        <div v-if="simulation.visible" class="fixed inset-0 z-[170] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeSimulation"></div>
+            <div class="relative w-full max-w-2xl bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                <div class="p-5 border-b border-white/10 flex items-center justify-between bg-white/5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-black/40 flex items-center justify-center text-sport-volt">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 uppercase tracking-wider">Race Simulation</div>
+                            <div class="text-white font-bold text-sm">
+                                @{{ simulation.match?.p1?.name }} <span class="text-sport-volt">vs</span> @{{ simulation.match?.p2?.name }}
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="closeSimulation" class="text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl border border-white/10 bg-white/5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                    <img v-if="simulation.match?.p1?.photo" :src="'/storage/' + simulation.match.p1.photo" class="w-full h-full object-cover absolute inset-0">
+                                    <span v-else>@{{ getInitials(simulation.match?.p1?.name || '') }}</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-sm font-bold text-white truncate">@{{ simulation.match?.p1?.name }}</div>
+                                    <div class="text-[10px] text-gray-400 font-mono">
+                                        @{{ simulation.match?.p1?.result_time_ms ? formatMs(simulation.match.p1.result_time_ms) : (simulation.match?.p1?.target_time || '-') }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-mono text-sport-volt mb-3">@{{ formatMs(simulation.timers.p1) }}</div>
+                            <button type="button" @click="stopRunner('p1')" :disabled="simulation.finished.p1 || simulation.saving.p1 || !simulation.running" class="w-full py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 hover:bg-white/10 transition text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                @{{ simulation.saving.p1 ? 'Menyimpan...' : (simulation.finished.p1 ? 'Selesai' : 'Stop Runner 1') }}
+                            </button>
+                        </div>
+                        <div class="p-4 rounded-xl border border-white/10 bg-white/5">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                    <img v-if="simulation.match?.p2?.photo" :src="'/storage/' + simulation.match.p2.photo" class="w-full h-full object-cover absolute inset-0">
+                                    <span v-else>@{{ getInitials(simulation.match?.p2?.name || '') }}</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-sm font-bold text-white truncate">@{{ simulation.match?.p2?.name }}</div>
+                                    <div class="text-[10px] text-gray-400 font-mono">
+                                        @{{ simulation.match?.p2?.result_time_ms ? formatMs(simulation.match.p2.result_time_ms) : (simulation.match?.p2?.target_time || '-') }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-mono text-sport-volt mb-3">@{{ formatMs(simulation.timers.p2) }}</div>
+                            <button type="button" @click="stopRunner('p2')" :disabled="simulation.finished.p2 || simulation.saving.p2 || !simulation.running" class="w-full py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 hover:bg-white/10 transition text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                @{{ simulation.saving.p2 ? 'Menyimpan...' : (simulation.finished.p2 ? 'Selesai' : 'Stop Runner 2') }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="simulation.finished.p1 && simulation.finished.p2" class="p-4 rounded-xl border border-sport-volt/30 bg-sport-volt/10">
+                        <div class="text-[10px] uppercase tracking-widest text-gray-300 mb-1">Pemenang</div>
+                        <div class="text-lg font-bold text-white">@{{ simulationWinner?.name || '-' }}</div>
+                        <div class="text-[11px] text-gray-300 font-mono">
+                            Waktu: @{{ simulationWinner?.result_time_ms ? formatMs(simulationWinner.result_time_ms) : '-' }}
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 justify-end pt-2">
+                        <button type="button" @click="resetSimulation" :disabled="simulation.running || simulation.saving.p1 || simulation.saving.p2" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border border-white/10 hover:bg-white/10 transition text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="bracketModal.visible" class="fixed inset-0 z-[165] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeBracketModal"></div>
+            <div class="relative w-full max-w-7xl max-h-[90vh] bg-[#111315] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                <div class="p-5 border-b border-white/10 flex-shrink-0 flex items-center justify-between bg-white/5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-black/40 flex items-center justify-center text-sport-volt">
+                            <i class="fas fa-sitemap"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 uppercase tracking-wider">Bagan Klasemen</div>
+                            <div class="text-white font-bold text-sm">Urutan menuju podium 1-3</div>
+                        </div>
+                    </div>
+                    <button @click="closeBracketModal" class="text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <div class="p-5 overflow-auto">
+                    <div v-if="bracketRounds.length > 0" class="min-w-[800px] md:min-w-0">
+                        <div class="grid grid-cols-6 gap-4">
+                            <div v-for="(round, roundIndex) in bracketRounds" :key="'round-' + roundIndex" class="space-y-3">
+                                <div class="text-[10px] uppercase tracking-wider text-gray-400">
+                                    @{{ roundIndex === 0 ? 'Babak Awal' : (roundIndex === bracketRounds.length - 1 ? 'Final' : 'Semifinal') }}
+                                </div>
+                                <div v-for="(match, matchIndex) in round" :key="'match-' + roundIndex + '-' + matchIndex" class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="text-[11px] text-white truncate">@{{ match.p1?.name || '-' }}</div>
+                                            <div class="text-[9px] text-gray-400 font-mono">@{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-[9px] text-gray-500 uppercase tracking-wider text-center">vs</div>
+                                    <div class="flex items-center gap-2 justify-end">
+                                        <div class="min-w-0 text-right">
+                                            <div class="text-[11px] text-white truncate">@{{ match.p2?.name || '-' }}</div>
+                                            <div class="text-[9px] text-gray-400 font-mono">@{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}</div>
+                                        </div>
+                                        <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" class="w-full h-full object-cover absolute inset-0">
+                                            <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-[9px] text-sport-volt text-center font-bold">
+                                        @{{ match.winner?.name ? ('Menang: ' + match.winner.name) : 'Menunggu' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3 md:col-span-2">
+                                <div class="text-[10px] uppercase tracking-wider text-gray-400">Podium</div>
+                                <div class="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-7 h-7 rounded-full bg-sport-volt text-black text-xs font-bold flex items-center justify-center">1</div>
+                                        <div class="min-w-0">
+                                            <div class="text-sm text-white font-bold truncate">@{{ podium.first?.name || '-' }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">@{{ podium.first?.result_time_ms ? formatMs(podium.first.result_time_ms) : (podium.first?.target_time || '-') }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-7 h-7 rounded-full bg-gray-500 text-black text-xs font-bold flex items-center justify-center">2</div>
+                                        <div class="min-w-0">
+                                            <div class="text-sm text-white font-bold truncate">@{{ podium.second?.name || '-' }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">@{{ podium.second?.result_time_ms ? formatMs(podium.second.result_time_ms) : (podium.second?.target_time || '-') }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-7 h-7 rounded-full bg-amber-600 text-black text-xs font-bold flex items-center justify-center">3</div>
+                                        <div class="min-w-0">
+                                            <div class="text-sm text-white font-bold truncate">@{{ podium.third?.name || '-' }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">@{{ podium.third?.result_time_ms ? formatMs(podium.third.result_time_ms) : (podium.third?.target_time || '-') }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center py-8 border border-dashed border-white/10 rounded-xl">
+                        <i class="fas fa-sitemap text-3xl text-gray-600 mb-3"></i>
+                        <p class="text-gray-400 text-sm">Bagan klasemen muncul setelah ada target waktu peserta.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         @include('layouts.components.pacerhub-footer')
     </div>
@@ -1174,6 +1418,8 @@
                 }]
             });
             const isLoading = ref(false);
+            const errors = ref({});
+            const globalError = ref('');
             const couponCode = ref('');
             const appliedCoupon = ref(null);
             const discountAmount = ref(0);
@@ -1383,6 +1629,7 @@
                     'name' => $p->name, 
                     'email' => $p->email,
                     'target_time' => $p->target_time,
+                    'result_time_ms' => $p->result_time_ms,
                     'total_support' => $p->total_support ?? 0,
                     'photo' => $p->photo,
                     'address' => $p->address,
@@ -1394,6 +1641,7 @@
             // Lightbox & Detail Modal
             const lightbox = ref({ visible: false, src: '' });
             const detailModal = ref({ visible: false, participant: null });
+            const bracketModal = ref({ visible: false });
 
             const openLightbox = (src) => {
                 if(src) {
@@ -1405,6 +1653,14 @@
             const openDetailModal = (p) => {
                 detailModal.value.participant = p;
                 detailModal.value.visible = true;
+            };
+
+            const openBracketModal = () => {
+                bracketModal.value.visible = true;
+            };
+
+            const closeBracketModal = () => {
+                bracketModal.value.visible = false;
             };
 
             // Pagination
@@ -1544,6 +1800,37 @@
             };
 
             const processPayment = async () => {
+                if (isLoading.value) return;
+                
+                // Reset errors
+                errors.value = {};
+                globalError.value = '';
+
+                // Client-side Validation
+                let hasError = false;
+                
+                // Validate Participants
+                form.value.participants.forEach((p, index) => {
+                    if (!p.name) { errors.value[`name_${index}`] = 'Nama wajib diisi'; hasError = true; }
+                    if (!p.phone) { errors.value[`phone_${index}`] = 'WhatsApp wajib diisi'; hasError = true; }
+                    if (!p.email) { 
+                        errors.value[`email_${index}`] = 'Email wajib diisi'; hasError = true; 
+                    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) {
+                        errors.value[`email_${index}`] = 'Format email tidak valid'; hasError = true;
+                    }
+                    if (!p.address) { errors.value[`address_${index}`] = 'Alamat wajib diisi'; hasError = true; }
+                    if (!p.gender) { errors.value[`gender_${index}`] = 'Gender wajib dipilih'; hasError = true; }
+                });
+
+                if (hasError) {
+                    globalError.value = 'Mohon lengkapi data formulir yang ditandai merah.';
+                    setTimeout(() => {
+                        const firstError = document.querySelector('.border-red-500');
+                        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                    return;
+                }
+
                 isLoading.value = true;
                 try {
                     const participantsList = form.value.participants.map(p => ({
@@ -1575,19 +1862,19 @@
                             if(el) el.value = recaptchaToken;
 
                             if (!recaptchaToken) {
-                                alert('Gagal memuat validasi keamanan (reCAPTCHA). Silakan periksa koneksi internet Anda dan refresh halaman.');
+                                globalError.value = 'Gagal memuat validasi keamanan (reCAPTCHA). Silakan periksa koneksi internet Anda dan refresh halaman.';
                                 isLoading.value = false;
                                 return;
                             }
                         } catch (e) {
                             console.error("Recaptcha error", e);
-                            alert('Terjadi kesalahan validasi keamanan. Silakan coba lagi.');
+                            globalError.value = 'Terjadi kesalahan validasi keamanan. Silakan coba lagi.';
                             isLoading.value = false;
                             return;
                         }
                     } else {
                         console.warn('reCAPTCHA script not loaded');
-                        alert('Komponen keamanan belum dimuat. Silakan refresh halaman.');
+                        globalError.value = 'Komponen keamanan belum dimuat. Silakan refresh halaman.';
                         isLoading.value = false;
                         return;
                     }
@@ -1615,42 +1902,37 @@
                     });
 
                     if (res.status === 429) {
-                        alert('Terlalu banyak permintaan. Mohon tunggu beberapa saat sebelum mencoba lagi.');
+                        globalError.value = 'Terlalu banyak permintaan. Mohon tunggu beberapa saat sebelum mencoba lagi.';
                         return;
                     }
 
                     const data = await res.json();
                     if (!res.ok || !data.success) {
-                        alert(data.message || 'Registrasi gagal');
+                        globalError.value = data.message || 'Registrasi gagal';
                         return;
                     }
                     if ((form.value.payment_method || 'midtrans') === 'midtrans' && data.snap_token) {
                         if (typeof window.snap === 'undefined') {
-                            alert('Sistem pembayaran belum siap (Snap.js belum termuat). Silakan refresh halaman.');
+                            globalError.value = 'Sistem pembayaran belum siap (Snap.js belum termuat). Silakan refresh halaman.';
                             window.location.reload();
                             return;
                         }
                         window.snap.pay(data.snap_token, {
                             onSuccess: function(result){
-                                alert("Pembayaran berhasil!");
                                 window.location.reload();
                             },
                             onPending: function(result){
-                                alert("Menunggu pembayaran!");
                                 window.location.reload();
                             },
                             onError: function(result){
-                                alert("Pembayaran gagal!");
-                                window.location.reload();
+                                globalError.value = "Pembayaran gagal! Silakan coba lagi.";
                             },
                             onClose: function(){
-                                alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                                globalError.value = 'Anda menutup popup tanpa menyelesaikan pembayaran';
                             }
                         });
                     } else if (form.value.payment_method === 'moota') {
                         if (data.redirect_url) {
-                            const nameEl = document.getElementById('name');
-                            const phoneEl = document.getElementById('phone');
                             window.RuangLariMoota.open({
                                 transaction_id: data.transaction_id,
                                 registration_id: data.registration_id,
@@ -1662,11 +1944,10 @@
                             return;
                         }
                     } else {
-                        alert('Registrasi COD berhasil. Silakan lakukan pembayaran di lokasi.');
                         window.location.reload();
                     }
                 } catch (e) {
-                    alert('Terjadi kesalahan: ' + e.message);
+                    globalError.value = 'Terjadi kesalahan: ' + e.message;
                 } finally {
                     isLoading.value = false;
                 }
@@ -1806,24 +2087,262 @@
                 return 999999;
             };
 
-            const simulatedStandings = computed(() => {
+            const updateLocalTargetTime = (id, timeStr, resultTimeMs = null) => {
+                const idx = participants.value.findIndex(p => p.id === id);
+                if (idx >= 0) {
+                    participants.value[idx].target_time = timeStr;
+                    if (resultTimeMs !== null) {
+                        participants.value[idx].result_time_ms = resultTimeMs;
+                    }
+                }
+            };
+
+            const simulatedOrder = computed(() => {
                 const valid = participants.value.filter(p => {
                     if(!p.target_time) return false;
                     const val = parseTime(p.target_time);
                     return val > 0 && val < 999999;
                 });
-                const sorted = [...valid].sort((a, b) => parseTime(a.target_time) - parseTime(b.target_time));
-                const pairs = [];
-                for (let i = 0; i < sorted.length; i += 2) {
-                    pairs.push({
-                        p1: sorted[i],
-                        p2: sorted[i+1] || null
-                    });
-                }
-                return pairs;
+                return [...valid].sort((a, b) => parseTime(a.target_time) - parseTime(b.target_time));
             });
 
+            const activeRoundIndex = ref(0);
+
+            const currentRoundMatches = computed(() => {
+                return bracketRounds.value[activeRoundIndex.value] || [];
+            });
+
+            const isCurrentRoundComplete = computed(() => {
+                const matches = currentRoundMatches.value;
+                if (!matches.length) return false;
+                return matches.every(m => {
+                    if (!m) return true;
+                    if (!m.p1 && !m.p2) return true;
+                    return !!m.winner;
+                });
+            });
+
+            const nextRound = () => {
+                // if (!isCurrentRoundComplete.value) return; 
+                if (activeRoundIndex.value >= bracketRounds.value.length - 1) return;
+                activeRoundIndex.value += 1;
+            };
+
+            const prevRound = () => {
+                if (activeRoundIndex.value <= 0) return;
+                activeRoundIndex.value -= 1;
+            };
+
+            const pickWinner = (a, b) => {
+                if (!a && !b) return null;
+                if (a && !b) return a;
+                if (!a && b) return b;
+                
+                const resA = a.result_time_ms ? parseInt(a.result_time_ms) : null;
+                const resB = b.result_time_ms ? parseInt(b.result_time_ms) : null;
+
+                if (resA !== null && resB !== null) {
+                    return resA <= resB ? a : b;
+                }
+                if (resA !== null) return a;
+                if (resB !== null) return b;
+
+                return null;
+            };
+
+            const bracketRounds = computed(() => {
+                const players = simulatedOrder.value;
+                if (!players.length) return [];
+                
+                let size = 1;
+                while (size < players.length) size *= 2;
+                const filled = [...players];
+                while (filled.length < size) filled.push(null);
+                
+                const rounds = [];
+                let currentRound = [];
+                
+                for (let i = 0; i < filled.length; i += 2) {
+                    const p1 = filled[i];
+                    const p2 = filled[i+1];
+                    currentRound.push({
+                        p1: p1,
+                        p2: p2,
+                        winner: pickWinner(p1, p2)
+                    });
+                }
+                rounds.push(currentRound);
+
+                while (currentRound.length > 1) {
+                    const nextRound = [];
+                    for (let i = 0; i < currentRound.length; i += 2) {
+                        const matchA = currentRound[i];
+                        const matchB = currentRound[i+1];
+                        
+                        const p1 = matchA?.winner || null;
+                        const p2 = matchB?.winner || null;
+
+                        nextRound.push({
+                            p1: p1,
+                            p2: p2,
+                            winner: pickWinner(p1, p2)
+                        });
+                    }
+                    rounds.push(nextRound);
+                    currentRound = nextRound;
+                }
+                return rounds;
+            });
+
+            const podium = computed(() => {
+                const finished = participants.value.filter(p => p.result_time_ms > 0);
+                const sorted = finished.sort((a, b) => parseInt(a.result_time_ms) - parseInt(b.result_time_ms));
+                
+                return {
+                    first: sorted[0] || null,
+                    second: sorted[1] || null,
+                    third: sorted[2] || null
+                };
+            });
+
+            const simulation = ref({
+                visible: false,
+                match: null,
+                roundIndex: 0,
+                matchIndex: 0,
+                running: false,
+                startedAt: null,
+                timers: { p1: 0, p2: 0 },
+                finished: { p1: false, p2: false },
+                saving: { p1: false, p2: false }
+            });
+
+            const simulationWinner = computed(() => {
+                const m = simulation.value.match;
+                if (!m) return null;
+                // If both finished, use pickWinner logic
+                if (simulation.value.finished.p1 && simulation.value.finished.p2) {
+                     return pickWinner(m.p1, m.p2);
+                }
+                return null;
+            });
+            
+            let simulationInterval = null;
+
+            const isSimulationMatch = (match) => {
+                if (!simulation.value.match || !match) return false;
+                const a1 = simulation.value.match.p1?.id;
+                const a2 = simulation.value.match.p2?.id;
+                const b1 = match.p1?.id;
+                const b2 = match.p2?.id;
+                return a1 === b1 && a2 === b2;
+            };
+
+            const openSimulation = (match) => {
+                if (isSimulationMatch(match)) {
+                    simulation.value.visible = true;
+                }
+            };
+
+            const startSimulation = (match, roundIndex = 0, matchIndex = 0) => {
+                if (!match || !match.p1 || !match.p2) return;
+                if (simulationInterval) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = null;
+                }
+                simulation.value.match = match;
+                simulation.value.roundIndex = roundIndex;
+                simulation.value.matchIndex = matchIndex;
+                simulation.value.visible = true;
+                simulation.value.running = true;
+                simulation.value.startedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                simulation.value.timers = { p1: 0, p2: 0 };
+                simulation.value.finished = { p1: false, p2: false };
+                simulation.value.saving = { p1: false, p2: false };
+
+                simulationInterval = setInterval(() => {
+                    if (!simulation.value.running) return;
+                    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                    const elapsed = now - simulation.value.startedAt;
+                    if (!simulation.value.finished.p1) simulation.value.timers.p1 = elapsed;
+                    if (!simulation.value.finished.p2) simulation.value.timers.p2 = elapsed;
+                    if (simulation.value.finished.p1 && simulation.value.finished.p2) {
+                        simulation.value.running = false;
+                        clearInterval(simulationInterval);
+                        simulationInterval = null;
+                    }
+                }, 50);
+            };
+
+            const stopRunner = async (key) => {
+                if (!simulation.value.running || simulation.value.finished[key] || simulation.value.saving[key]) return;
+                const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                const elapsed = now - simulation.value.startedAt;
+                simulation.value.timers[key] = elapsed;
+                simulation.value.saving[key] = true;
+                try {
+                    const runner = simulation.value.match?.[key];
+                    if (!runner?.id) return;
+                    const timeStr = msToHms(simulation.value.timers[key]);
+                    const resultTimeMs = Math.round(simulation.value.timers[key]);
+                    
+                    await postRaceAction("{{ route('events.latbar-race.target-time', $event->slug) }}", { 
+                        participant_id: runner.id, 
+                        target_time: timeStr,
+                        result_time_ms: resultTimeMs 
+                    });
+                    
+                    updateLocalTargetTime(runner.id, timeStr, resultTimeMs);
+                    simulation.value.match[key].target_time = timeStr;
+                    simulation.value.finished[key] = true;
+                } catch (e) {
+                    alert(e.message || 'Gagal menyimpan target time');
+                } finally {
+                    simulation.value.saving[key] = false;
+                }
+                if (simulation.value.finished.p1 && simulation.value.finished.p2) {
+                    simulation.value.running = false;
+                    if (simulationInterval) {
+                        clearInterval(simulationInterval);
+                        simulationInterval = null;
+                    }
+                }
+            };
+
+            const resetSimulation = () => {
+                if (simulationInterval) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = null;
+                }
+                simulation.value.running = false;
+                simulation.value.startedAt = null;
+                simulation.value.timers = { p1: 0, p2: 0 };
+                simulation.value.finished = { p1: false, p2: false };
+                simulation.value.saving = { p1: false, p2: false };
+            };
+
+            const closeSimulation = () => {
+                simulation.value.visible = false;
+            };
+
+            const msToHms = (ms) => {
+                const totalSeconds = Math.max(0, Math.round(ms / 1000));
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            };
+
+
+
+
             onMounted(() => {
+                // Hide Preloader
+                setTimeout(() => {
+                    const preloader = document.getElementById('preloader');
+                    if(preloader) preloader.classList.add('preloader-hidden');
+                }, 800);
+
                 // Init Twibbon
                 if (twibbonUrl) {
                      drawTwibbon(null);
@@ -1891,7 +2410,7 @@
                     });
                 }
             });
-            return { form, isLoading, formattedTotal, processPayment, participants, participantsTab, approvedParticipants, notApprovedParticipants, filteredParticipants, setParticipantsTab, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, simulatedStandings, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal };
+            return { form, isLoading, errors, globalError, formattedTotal, processPayment, participants, participantsTab, approvedParticipants, notApprovedParticipants, filteredParticipants, setParticipantsTab, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, activeRoundIndex, currentRoundMatches, isCurrentRoundComplete, nextRound, prevRound, bracketRounds, podium, bracketModal, openBracketModal, closeBracketModal, simulation, simulationWinner, isSimulationMatch, startSimulation, openSimulation, stopRunner, resetSimulation, closeSimulation, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal };
         }
     });
     

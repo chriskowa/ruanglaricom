@@ -19,8 +19,12 @@ return new class extends Migration
             }
         });
 
-        // Add index on role safely
-        $indexExists = collect(DB::select("SHOW INDEXES FROM users"))->pluck('Key_name')->contains('users_role_index');
+        $driver = DB::getDriverName();
+        if ($driver === 'sqlite') {
+            $indexExists = collect(DB::select("PRAGMA index_list('users')"))->pluck('name')->contains('users_role_index');
+        } else {
+            $indexExists = collect(DB::select("SHOW INDEXES FROM users"))->pluck('Key_name')->contains('users_role_index');
+        }
 
         if (! $indexExists) {
             Schema::table('users', function (Blueprint $table) {
@@ -28,8 +32,9 @@ return new class extends Migration
             });
         }
 
-        // Backfill followers_count
-        DB::statement('UPDATE users SET followers_count = (SELECT COUNT(*) FROM follows WHERE following_id = users.id)');
+        if (Schema::hasTable('follows')) {
+            DB::statement('UPDATE users SET followers_count = (SELECT COUNT(*) FROM follows WHERE following_id = users.id)');
+        }
     }
 
     /**
