@@ -963,87 +963,6 @@
             </div>
         </section>
         
-        <!-- Support Modal -->
-        <div v-if="supportModal.visible" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeSupportModal"></div>
-            <div class="relative w-full max-w-md bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
-                <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <div class="flex items-center gap-4">
-                        <div v-if="supportModal.participant?.photo" class="w-16 h-16 rounded-xl overflow-hidden border border-sport-volt shadow-[0_0_15px_rgba(204,255,0,0.3)] bg-gray-800 shrink-0 cursor-pointer hover:opacity-80 transition" @click="openLightbox('/storage/' + supportModal.participant.photo)">
-                            <img :src="'/storage/' + supportModal.participant.photo" class="w-full h-full object-cover">
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-display uppercase text-white leading-none mb-1">Beri Dukungan</h3>
-                            <p class="text-xs text-sport-volt uppercase tracking-wider mb-2">Untuk @{{ supportModal.participant?.name }}</p>
-                            <div v-if="supportModal.participant?.target_time" class="inline-flex items-center gap-2 px-2 py-1 bg-black/40 rounded border border-white/10">
-                                <i class="fas fa-stopwatch text-sport-volt text-[10px]"></i>
-                                <span class="text-[10px] text-gray-300 font-mono tracking-wider">Target: <span class="text-white font-bold">@{{ supportModal.participant.target_time }}</span></span>
-                            </div>
-                        </div>
-                    </div>
-                    <button @click="closeSupportModal" class="text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
-                </div>
-                
-                <div class="p-6 space-y-6">
-                    <!-- Nominal Slider -->
-                    <div class="space-y-3">
-                        <label class="block text-sm font-bold text-gray-300">Nominal Dukungan</label>
-                        <div class="flex items-center gap-2 mb-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2">
-                            <span class="text-xl font-display text-gray-400">Rp</span>
-                            <input type="number" v-model.number="supportModal.form.nominal" min="5000" step="5000" class="bg-transparent border-none text-3xl font-display text-sport-volt w-full focus:ring-0 p-0 placeholder-gray-600" placeholder="0">
-                        </div>
-                        <input type="range" v-model.number="supportModal.form.nominal" min="5000" max="1000000" step="5000" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[var(--neon)]">
-                        <div class="flex flex-wrap gap-2 mt-2">
-                            <button type="button" @click="supportModal.form.nominal = 5000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 5000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">5K</button>
-                            <button type="button" @click="supportModal.form.nominal = 10000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 10000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">10K</button>
-                            <button type="button" @click="supportModal.form.nominal = 20000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 20000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">20K</button>
-                            <button type="button" @click="supportModal.form.nominal = 50000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 50000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">50K</button>
-                            <button type="button" @click="supportModal.form.nominal = 100000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 100000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">100K</button>
-                        </div>
-                    </div>
-
-                    <!-- Supporter Details -->
-                    <div class="space-y-4">
-                        <div class="form-input-group">
-                            <input type="text" v-model="supportModal.form.supporter_name" class="form-input" placeholder=" " required>
-                            <label class="form-label">Nama Pendukung</label>
-                        </div>
-                        <div class="form-input-group">
-                            <input type="tel" v-model="supportModal.form.supporter_phone" class="form-input" placeholder=" " required>
-                            <label class="form-label">Nomor WhatsApp</label>
-                        </div>
-                    </div>
-
-                    <!-- Payment Method -->
-                    <div class="space-y-3">
-                        <label class="block text-sm font-bold text-gray-300">Metode Pembayaran</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="cursor-pointer relative">
-                                <input type="radio" v-model="supportModal.form.payment_method" value="midtrans" class="peer sr-only">
-                                <div class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 peer-checked:border-sport-volt peer-checked:bg-sport-volt/10 transition text-center">
-                                    <div class="text-sm font-bold text-white peer-checked:text-sport-volt">QRIS / E-Wallet</div>
-                                    <div class="text-[10px] text-gray-400 mt-1">Otomatis</div>
-                                </div>
-                            </label>
-                            <label class="cursor-pointer relative">
-                                <input type="radio" v-model="supportModal.form.payment_method" value="moota" class="peer sr-only">
-                                <div class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 peer-checked:border-sport-volt peer-checked:bg-sport-volt/10 transition text-center">
-                                    <div class="text-sm font-bold text-white peer-checked:text-sport-volt">Transfer Bank</div>
-                                    <div class="text-[10px] text-gray-400 mt-1">Verifikasi Otomatis</div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <button @click="submitSupport" :disabled="isSubmittingSupport" class="w-full py-4 bg-sport-volt hover:bg-[#b3e600] text-black font-bold font-display text-xl uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(204,255,0,0.3)] hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span v-if="isSubmittingSupport"><i class="fas fa-spinner fa-spin mr-2"></i> Memproses...</span>
-                        <span v-else>Kirim Energi! <i class="fas fa-bolt ml-2"></i></span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
         <!-- Lightbox -->
         <div v-if="lightbox.visible" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md p-4" @click="lightbox.visible = false">
             <div class="relative max-w-4xl max-h-screen w-full flex items-center justify-center">
@@ -1139,6 +1058,83 @@
         </div>
         @endif
         @endisset
+
+        <!-- Support Modal -->
+        <div v-if="supportModal.visible" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeSupportModal"></div>
+            <div class="relative w-full max-w-md bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+                <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                    <div class="flex items-center gap-4">
+                        <div v-if="supportModal.participant?.photo" class="w-16 h-16 rounded-xl overflow-hidden border border-sport-volt shadow-[0_0_15px_rgba(204,255,0,0.3)] bg-gray-800 shrink-0 cursor-pointer hover:opacity-80 transition" @click="openLightbox('/storage/' + supportModal.participant.photo)">
+                            <img :src="'/storage/' + supportModal.participant.photo" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-display uppercase text-white leading-none mb-1">Beri Dukungan</h3>
+                            <p class="text-xs text-sport-volt uppercase tracking-wider mb-2">Untuk @{{ supportModal.participant?.name }}</p>
+                            <div v-if="supportModal.participant?.target_time" class="inline-flex items-center gap-2 px-2 py-1 bg-black/40 rounded border border-white/10">
+                                <i class="fas fa-stopwatch text-sport-volt text-[10px]"></i>
+                                <span class="text-[10px] text-gray-300 font-mono tracking-wider">Target: <span class="text-white font-bold">@{{ supportModal.participant.target_time }}</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <button @click="closeSupportModal" class="text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-gray-300">Nominal Dukungan</label>
+                        <div class="flex items-center gap-2 mb-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2">
+                            <span class="text-xl font-display text-gray-400">Rp</span>
+                            <input type="number" v-model.number="supportModal.form.nominal" min="5000" step="5000" class="bg-transparent border-none text-3xl font-display text-sport-volt w-full focus:ring-0 p-0 placeholder-gray-600" placeholder="0">
+                        </div>
+                        <input type="range" v-model.number="supportModal.form.nominal" min="5000" max="1000000" step="5000" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[var(--neon)]">
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            <button type="button" @click="supportModal.form.nominal = 5000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 5000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">5K</button>
+                            <button type="button" @click="supportModal.form.nominal = 10000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 10000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">10K</button>
+                            <button type="button" @click="supportModal.form.nominal = 20000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 20000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">20K</button>
+                            <button type="button" @click="supportModal.form.nominal = 50000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 50000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">50K</button>
+                            <button type="button" @click="supportModal.form.nominal = 100000" class="px-3 py-1 text-xs font-bold rounded border border-white/10 hover:bg-white/10 transition" :class="supportModal.form.nominal === 100000 ? 'bg-sport-volt text-black border-sport-volt' : 'text-gray-400'">100K</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="form-input-group">
+                            <input type="text" v-model="supportModal.form.supporter_name" class="form-input" placeholder=" " required>
+                            <label class="form-label">Nama Pendukung</label>
+                        </div>
+                        <div class="form-input-group">
+                            <input type="tel" v-model="supportModal.form.supporter_phone" class="form-input" placeholder=" " required>
+                            <label class="form-label">Nomor WhatsApp</label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-gray-300">Metode Pembayaran</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="cursor-pointer relative">
+                                <input type="radio" v-model="supportModal.form.payment_method" value="midtrans" class="peer sr-only">
+                                <div class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 peer-checked:border-sport-volt peer-checked:bg-sport-volt/10 transition text-center">
+                                    <div class="text-sm font-bold text-white peer-checked:text-sport-volt">QRIS / E-Wallet</div>
+                                    <div class="text-[10px] text-gray-400 mt-1">Otomatis</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer relative">
+                                <input type="radio" v-model="supportModal.form.payment_method" value="moota" class="peer sr-only">
+                                <div class="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 peer-checked:border-sport-volt peer-checked:bg-sport-volt/10 transition text-center">
+                                    <div class="text-sm font-bold text-white peer-checked:text-sport-volt">Transfer Bank</div>
+                                    <div class="text-[10px] text-gray-400 mt-1">Verifikasi Otomatis</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button @click="submitSupport" :disabled="isSubmittingSupport" class="w-full py-4 bg-sport-volt hover:bg-[#b3e600] text-black font-bold font-display text-xl uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(204,255,0,0.3)] hover:shadow-[0_0_30px_rgba(204,255,0,0.5)] transition transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span v-if="isSubmittingSupport"><i class="fas fa-spinner fa-spin mr-2"></i> Memproses...</span>
+                        <span v-else>Kirim Energi! <i class="fas fa-bolt ml-2"></i></span>
+                    </button>
+                </div>
+            </div>
+        </div>
         
         @include('layouts.components.pacerhub-footer')
     </div>
@@ -1292,7 +1288,6 @@
             };
 
             const openSupportModal = (p) => {
-                console.log('Opening support modal', p);
                 if (!p) return;
                 supportModal.value.participant = p;
                 supportModal.value.form = { 
