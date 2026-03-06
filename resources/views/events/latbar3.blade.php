@@ -730,87 +730,105 @@
                     </div>
                     <!-- Simulasi Klasemen -->
                     <div class="glass-dark p-6 md:p-8 mt-6 rounded-2xl animate-fade-in mb-8">
-                        <div class="flex items-center gap-2 mb-6">
-                            <div class="w-1.5 h-6 bg-sport-volt rounded-full"></div>
-                            <h3 class="text-white font-display text-xl uppercase">Simulasi Klasemen</h3>
-                        </div>
-                        
-                        <div v-if="bracketRounds.length > 0">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="text-[11px] text-gray-400 font-mono">
-                                    Sesi @{{ activeRoundIndex + 1 }} / @{{ bracketRounds.length }}
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button type="button" @click="prevRound" :disabled="activeRoundIndex === 0" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Prev
-                                    </button>
-                                    <button type="button" @click="nextRound" :disabled="activeRoundIndex >= bracketRounds.length - 1 || !isCurrentRoundComplete" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Lanjut
-                                    </button>
-                                </div>
+                        <div class="flex items-center justify-between gap-3 mb-6">
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-6 bg-sport-volt rounded-full"></div>
+                                <h3 class="text-white font-display text-xl uppercase">Simulasi Klasemen</h3>
                             </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="toggleSimulationInline" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-gray-200">
+                                    @{{ showSimulationInline ? 'Sembunyikan' : 'Lihat' }}
+                                </button>
+                                <button v-if="canManage" type="button" @click="openJudgePanel('rank')" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition">
+                                    Panel Juri
+                                </button>
+                            </div>
+                        </div>
 
-                            <p class="text-xs text-gray-400 mb-4">
-                                Jalankan simulasi per match. Setelah semua match di sesi selesai, lanjut ke sesi berikutnya (pemenang akan bertanding).
-                            </p>
-
-                            <div class="space-y-3">
-                                <div v-for="(match, index) in currentRoundMatches" :key="'round-' + activeRoundIndex + '-match-' + index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-2">
-                                    <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
-                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
-                                            <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
-                                        </div>
-                                        <div class="min-w-0 overflow-hidden">
-                                            <div class="text-xs font-bold text-white truncate">@{{ match.p1?.name || '-' }}</div>
-                                            <div class="text-[10px] text-gray-400 font-mono">
-                                                @{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}
-                                            </div>
-                                        </div>
+                        <div v-if="showSimulationInline">
+                            <div v-if="bracketRounds.length > 0">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="text-[11px] text-gray-400 font-mono">
+                                        Sesi @{{ activeRoundIndex + 1 }} / @{{ bracketRounds.length }}
                                     </div>
-
-                                    <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
-
-                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p2)">
-                                        <div class="text-right min-w-0 overflow-hidden">
-                                            <div class="text-xs font-bold text-white truncate">@{{ match.p2?.name || '-' }}</div>
-                                            <div class="text-[10px] text-gray-400 font-mono">
-                                                @{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}
-                                            </div>
-                                        </div>
-                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
-                                            <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
-                                        </div>
-                                    </div>
-                                    <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
-                                        Menunggu Lawan
-                                    </div>
-
                                     <div class="flex items-center gap-2">
-                                        <div v-if="match.winner" class="text-[10px] font-bold text-sport-volt uppercase tracking-wider whitespace-nowrap">
-                                            Winner: @{{ match.winner.name }}
+                                        <button type="button" @click="prevRound" :disabled="activeRoundIndex === 0" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            Prev
+                                        </button>
+                                        <button type="button" @click="nextRound" :disabled="activeRoundIndex >= bracketRounds.length - 1 || !isCurrentRoundComplete" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                            Lanjut
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <p class="text-xs text-gray-400 mb-4">
+                                    Jalankan simulasi per match. Setelah semua match di sesi selesai, lanjut ke sesi berikutnya (pemenang akan bertanding).
+                                </p>
+
+                            <div v-if="currentRoundByeCount > 0" class="mb-3 text-[10px] text-gray-500">
+                                BYE otomatis: @{{ currentRoundByeCount }} match (tidak perlu dijalankan)
+                            </div>
+                            <div class="space-y-3">
+                                    <div v-for="(match, index) in currentRoundMatchesDisplay" :key="'round-' + activeRoundIndex + '-match-' + index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-2">
+                                        <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
+                                            <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
+                                                <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
+                                            </div>
+                                            <div class="min-w-0 overflow-hidden">
+                                                <div class="text-xs font-bold text-white truncate">@{{ match.p1?.name || '-' }}</div>
+                                                <div class="text-[10px] text-gray-400 font-mono">
+                                                    @{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <div v-if="canManage" class="flex items-center">
-                                            <button v-if="!isSimulationMatch(match)" type="button" @click.stop="startSimulation(match, activeRoundIndex, index)" :disabled="!match.p1 || !match.p2" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-white disabled:opacity-50 disabled:cursor-not-allowed">
-                                                Start
-                                            </button>
-                                            <button v-else type="button" @click.stop="openSimulation(match)" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition">
-                                                Kontrol
-                                            </button>
+                                        <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
+
+                                        <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p2)">
+                                            <div class="text-right min-w-0 overflow-hidden">
+                                                <div class="text-xs font-bold text-white truncate">@{{ match.p2?.name || '-' }}</div>
+                                                <div class="text-[10px] text-gray-400 font-mono">
+                                                    @{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}
+                                                </div>
+                                            </div>
+                                            <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
+                                                <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
+                                            </div>
+                                        </div>
+                                        <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
+                                            Menunggu Lawan
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <div v-if="match.winner" class="text-[10px] font-bold text-sport-volt uppercase tracking-wider whitespace-nowrap">
+                                                Winner: @{{ match.winner.name }}
+                                            </div>
+
+                                            <div v-if="canManage" class="flex items-center">
+                                                <button v-if="!isSimulationMatch(match)" type="button" @click.stop="startSimulation(match, activeRoundIndex, index)" :disabled="!match.p1 || !match.p2" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    Start
+                                                </button>
+                                                <button v-else type="button" @click.stop="openSimulation(match)" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition">
+                                                    Kontrol
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <div v-else class="text-center py-8 border border-dashed border-white/10 rounded-xl">
+                                <i class="fas fa-stopwatch text-3xl text-gray-600 mb-3"></i>
+                                <p class="text-gray-400 text-sm">Belum ada data target waktu peserta untuk simulasi.</p>
+                            </div>
+
+                            <div v-if="canManage" class="mt-6 border-t border-white/10 pt-6 text-center">
+                                <p class="text-xs text-gray-400">Gunakan tombol Start di setiap pasangan untuk memulai simulasi.</p>
+                            </div>
                         </div>
-                        <div v-else class="text-center py-8 border border-dashed border-white/10 rounded-xl">
-                            <i class="fas fa-stopwatch text-3xl text-gray-600 mb-3"></i>
-                            <p class="text-gray-400 text-sm">Belum ada data target waktu peserta untuk simulasi.</p>
-                        </div>
-                        
-                        <div v-if="canManage" class="mt-6 border-t border-white/10 pt-6 text-center">
-                            <p class="text-xs text-gray-400">Gunakan tombol Start di setiap pasangan untuk memulai simulasi.</p>
+                        <div v-else class="text-xs text-gray-500">
+                            Simulasi dipindahkan ke panel/modal agar halaman tidak terlalu panjang.
                         </div>
                     </div>
                     <div class="glass-dark p-6 md:p-8 mt-6 rounded-2xl animate-fade-in mb-8">
@@ -1088,7 +1106,7 @@
         @endif
         @endisset
 
-        <div v-if="lightbox.visible" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md p-4" @click="lightbox.visible = false">
+        <div v-if="lightbox.visible" class="fixed inset-0 z-[20000] flex items-center justify-center bg-black/90 backdrop-blur-md p-4" @click="lightbox.visible = false">
             <div class="relative max-w-4xl max-h-screen w-full flex items-center justify-center">
                 <img :src="lightbox.src" loading="lazy" decoding="async" fetchpriority="low" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl border border-white/10">
                 <button class="absolute top-4 right-4 text-white hover:text-sport-volt transition bg-black/50 rounded-full p-2"><i class="fas fa-times text-2xl"></i></button>
@@ -1297,6 +1315,152 @@
             </div>
         </div>
 
+        <button v-if="canManage" type="button" @click="openJudgePanel('rank')" class="fixed bottom-5 right-5 z-[160] px-4 py-3 rounded-xl bg-sport-volt text-black font-bold text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(204,255,0,0.25)] hover:shadow-[0_0_28px_rgba(204,255,0,0.4)] transition">
+            <i class="fas fa-gavel mr-2"></i> Panel Juri
+        </button>
+
+        <div v-if="judgePanel.visible" class="fixed inset-0 z-[175] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeJudgePanel"></div>
+            <div class="relative w-full max-w-6xl max-h-[90vh] bg-[#111315] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                <div class="p-5 border-b border-white/10 flex-shrink-0 flex items-center justify-between bg-white/5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-black/40 flex items-center justify-center text-sport-volt">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 uppercase tracking-wider">Panel Juri</div>
+                            <div class="text-white font-bold text-sm">Klasemen & simulasi</div>
+                        </div>
+                    </div>
+                    <button @click="closeJudgePanel" class="text-gray-400 hover:text-white transition"><i class="fas fa-times text-xl"></i></button>
+                </div>
+
+                <div class="p-5 pb-4 flex-shrink-0 grid grid-cols-1 lg:grid-cols-3 gap-3">
+                    <div class="lg:col-span-2 flex items-center gap-2">
+                        <button type="button" @click="judgePanel.tab = 'rank'" class="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition"
+                                :class="judgePanel.tab === 'rank' ? 'bg-sport-volt text-black border-sport-volt' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'">
+                            Klasemen (@{{ (race.participants && race.participants.length) ? race.participants.length : 0 }})
+                        </button>
+                        <button type="button" @click="judgePanel.tab = 'simulation'" class="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition"
+                                :class="judgePanel.tab === 'simulation' ? 'bg-sport-volt text-black border-sport-volt' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'">
+                            Simulasi
+                        </button>
+                        <div class="ml-auto text-[10px] text-gray-400 font-mono">
+                            Status: <span class="text-gray-200">@{{ race.status || '-' }}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" v-model="judgePanel.search" placeholder="Cari nama / BIB" class="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm focus:border-sport-volt outline-none">
+                        <button type="button" @click="judgePanel.search = ''" class="px-3 py-2 text-xs font-bold rounded-lg border border-white/10 hover:bg-white/10 transition text-gray-200">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-5 pt-0 overflow-auto">
+                    <div v-if="judgePanel.tab === 'rank'">
+                        <div v-if="judgeParticipants.length > 0" class="space-y-2">
+                            <div v-for="p in judgeParticipants" :key="p.participant_id || p.id || p.name" class="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-black/30 flex items-center justify-center font-display text-lg"
+                                     :class="p.rank === 1 ? 'text-sport-volt border border-sport-volt/30' : 'text-gray-400 border border-white/10'">
+                                    @{{ p.rank || '-' }}
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-sm font-bold text-white truncate">@{{ p.name || '-' }}</div>
+                                    <div class="text-[10px] text-gray-400 font-mono">
+                                        BIB: @{{ p.bib || '-' }} • @{{ p.result_time_ms ? formatMs(p.result_time_ms) : '-' }}
+                                    </div>
+                                </div>
+                                <div v-if="race.status === 'running' || race.status === 'finished'" class="flex items-center gap-2">
+                                    <select @change="setWinner(p.participant_id, $event.target.value)" :value="p.rank || ''" class="bg-black/50 border border-white/20 text-white text-xs rounded px-2 py-2 focus:border-sport-volt outline-none">
+                                        <option value="">Rank</option>
+                                        <option v-for="n in (race.participants && race.participants.length ? race.participants.length : 0)" :value="n">#@{{ n }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-10 border border-dashed border-white/10 rounded-xl text-gray-500 text-sm">
+                            Tidak ada peserta untuk ditampilkan.
+                        </div>
+                    </div>
+
+                    <div v-else>
+                        <div v-if="bracketRounds.length > 0">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="text-[11px] text-gray-400 font-mono">
+                                    Sesi @{{ activeRoundIndex + 1 }} / @{{ bracketRounds.length }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="prevRound" :disabled="activeRoundIndex === 0" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Prev
+                                    </button>
+                                    <button type="button" @click="nextRound" :disabled="activeRoundIndex >= bracketRounds.length - 1 || !isCurrentRoundComplete" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Lanjut
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div v-if="currentRoundByeCount > 0" class="mb-3 text-[10px] text-gray-500">
+                                BYE otomatis: @{{ currentRoundByeCount }} match (tidak perlu dijalankan)
+                            </div>
+                            <div class="space-y-3">
+                                <div v-for="(match, index) in currentRoundMatchesDisplay" :key="'judge-round-' + activeRoundIndex + '-match-' + index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-2">
+                                    <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
+                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
+                                            <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
+                                        </div>
+                                        <div class="min-w-0 overflow-hidden">
+                                            <div class="text-xs font-bold text-white truncate">@{{ match.p1?.name || '-' }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">
+                                                @{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
+
+                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p2)">
+                                        <div class="text-right min-w-0 overflow-hidden">
+                                            <div class="text-xs font-bold text-white truncate">@{{ match.p2?.name || '-' }}</div>
+                                            <div class="text-[10px] text-gray-400 font-mono">
+                                                @{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}
+                                            </div>
+                                        </div>
+                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
+                                            <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
+                                        </div>
+                                    </div>
+                                    <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
+                                        Menunggu Lawan
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <div v-if="match.winner" class="text-[10px] font-bold text-sport-volt uppercase tracking-wider whitespace-nowrap">
+                                            Winner: @{{ match.winner.name }}
+                                        </div>
+
+                                        <div v-if="canManage" class="flex items-center">
+                                            <button v-if="!isSimulationMatch(match)" type="button" @click.stop="startSimulation(match, activeRoundIndex, index)" :disabled="!match.p1 || !match.p2" class="px-3 py-1 text-[10px] font-bold rounded border border-white/10 hover:bg-white/10 transition text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                                Start
+                                            </button>
+                                            <button v-else type="button" @click.stop="openSimulation(match)" class="px-3 py-1 text-[10px] font-bold rounded border border-sport-volt/40 bg-sport-volt/10 text-sport-volt hover:bg-sport-volt/20 transition">
+                                                Kontrol
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-10 border border-dashed border-white/10 rounded-xl text-gray-500 text-sm">
+                            Belum ada data target waktu peserta untuk simulasi.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div v-if="bracketModal.visible" class="fixed inset-0 z-[165] flex items-center justify-center p-4">
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="closeBracketModal"></div>
             <div class="relative w-full max-w-7xl max-h-[90vh] bg-[#111315] border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
@@ -1443,6 +1607,34 @@
             const showRaceAdmin = ref(false);
             const showSetupModal = ref(false);
             const selectedForRace = ref([]);
+            const showSimulationInline = ref(false);
+            const toggleSimulationInline = () => { showSimulationInline.value = !showSimulationInline.value; };
+            const judgePanel = ref({ visible: false, tab: 'rank', search: '' });
+            const openJudgePanel = (tab = 'rank') => { judgePanel.value.visible = true; judgePanel.value.tab = tab; };
+            const closeJudgePanel = () => { judgePanel.value.visible = false; };
+            const judgeParticipants = computed(() => {
+                const list = Array.isArray(race.value?.participants) ? race.value.participants : [];
+                const q = (judgePanel.value?.search || '').toString().toLowerCase().trim();
+                const filtered = q
+                    ? list.filter(p => {
+                        const name = (p?.name || '').toString().toLowerCase();
+                        const bib = (p?.bib || '').toString().toLowerCase();
+                        return name.includes(q) || bib.includes(q);
+                    })
+                    : list;
+
+                return filtered.slice().sort((a, b) => {
+                    const ar = (a?.rank ? Number(a.rank) : 999999);
+                    const br = (b?.rank ? Number(b.rank) : 999999);
+                    if (ar !== br) return ar - br;
+
+                    const at = (a?.result_time_ms !== null && a?.result_time_ms !== undefined) ? Number(a.result_time_ms) : 999999999;
+                    const bt = (b?.result_time_ms !== null && b?.result_time_ms !== undefined) ? Number(b.result_time_ms) : 999999999;
+                    if (at !== bt) return at - bt;
+
+                    return (a?.name || '').toString().localeCompare((b?.name || '').toString());
+                });
+            });
 
             const fetchRaceStatus = async () => {
                 try {
@@ -1625,7 +1817,7 @@
             };
             
             // Defensives for array initialization
-            const participantsRaw = {!! json_encode($participants->unique('email')->values()->map(function($p) {
+            const participantsRaw = {!! json_encode($participants->values()->map(function($p) {
                 return [
                     'id' => $p->id, 
                     'name' => $p->name, 
@@ -2114,12 +2306,31 @@
                 return bracketRounds.value[activeRoundIndex.value] || [];
             });
 
+            const currentRoundByeCount = computed(() => {
+                const matches = currentRoundMatches.value;
+                return matches.reduce((acc, m) => {
+                    if (!m) return acc;
+                    const hasP1 = !!m.p1;
+                    const hasP2 = !!m.p2;
+                    if ((hasP1 && !hasP2) || (!hasP1 && hasP2)) return acc + 1;
+                    return acc;
+                }, 0);
+            });
+
+            const currentRoundMatchesDisplay = computed(() => {
+                const matches = currentRoundMatches.value;
+                return matches.filter(m => m && m.p1 && m.p2);
+            });
+
             const isCurrentRoundComplete = computed(() => {
                 const matches = currentRoundMatches.value;
                 if (!matches.length) return false;
-                return matches.every(m => {
-                    if (!m) return true;
-                    if (!m.p1 && !m.p2) return true;
+                const meaningful = matches.filter(m => m && (m.p1 || m.p2));
+                if (!meaningful.length) return false;
+                return meaningful.every(m => {
+                    const hasP1 = !!m.p1;
+                    const hasP2 = !!m.p2;
+                    if ((hasP1 && !hasP2) || (!hasP1 && hasP2)) return true;
                     return !!m.winner;
                 });
             });
@@ -2412,7 +2623,7 @@
                     });
                 }
             });
-            return { form, isLoading, errors, globalError, formattedTotal, processPayment, participants, participantsTab, approvedParticipants, notApprovedParticipants, filteredParticipants, setParticipantsTab, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, activeRoundIndex, currentRoundMatches, isCurrentRoundComplete, nextRound, prevRound, bracketRounds, podium, bracketModal, openBracketModal, closeBracketModal, simulation, simulationWinner, isSimulationMatch, startSimulation, openSimulation, stopRunner, resetSimulation, closeSimulation, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal };
+            return { form, isLoading, errors, globalError, formattedTotal, processPayment, participants, participantsTab, approvedParticipants, notApprovedParticipants, filteredParticipants, setParticipantsTab, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, activeRoundIndex, currentRoundMatches, currentRoundMatchesDisplay, currentRoundByeCount, isCurrentRoundComplete, nextRound, prevRound, bracketRounds, podium, bracketModal, openBracketModal, closeBracketModal, simulation, simulationWinner, isSimulationMatch, startSimulation, openSimulation, stopRunner, resetSimulation, closeSimulation, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal, showSimulationInline, toggleSimulationInline, judgePanel, openJudgePanel, closeJudgePanel, judgeParticipants };
         }
     });
     

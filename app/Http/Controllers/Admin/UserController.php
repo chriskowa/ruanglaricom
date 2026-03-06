@@ -8,8 +8,10 @@ use App\Models\ProgramEnrollment;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -331,5 +333,55 @@ class UserController extends Controller
         Auth::login($user);
 
         return redirect()->route('home')->with('success', "You are now logged in as {$user->name}");
+    }
+
+    /**
+     * Remove the specified user from storage.
+     */
+    public function destroy(Request $request, User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        if ($user->isAdmin() && User::query()->where('role', 'admin')->count() <= 1) {
+            return back()->with('error', 'You cannot delete the last admin account.');
+        }
+
+        try {
+            DB::transaction(function () use ($user) {
+                $paths = collect([$user->avatar, $user->banner])
+                    ->filter()
+                    ->map(fn ($p) => preg_replace('/^(\/)?storage\//', '', (string) $p))
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                foreach ($paths as $path) {
+                    if (Storage::disk('public')->exists($path)) {
+                        Storage::disk('public')->delete($path);
+                    }
+                }
+
+                $user->delete();
+            });
+        } catch (QueryException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus user karena masih digunakan data lain.',
+                ], 409);
+            }
+
+            return back()->with('error', 'Gagal menghapus user karena masih digunakan data lain.');
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+            ]);
+        }
+
+        return back()->with('success', 'User deleted successfully.');
     }
 }

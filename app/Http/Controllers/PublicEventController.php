@@ -429,6 +429,17 @@ class PublicEventController extends Controller
             return \App\Models\Participant::withSum(['supports as total_support' => function($q) {
                     $q->where('status', 'paid');
                 }], 'nominal')
+                ->select([
+                    'id',
+                    'name',
+                    'email',
+                    'target_time',
+                    'result_time_ms',
+                    'photo',
+                    'address',
+                    'isApproved',
+                    'created_at',
+                ])
                 ->whereHas('transaction', function ($q) use ($event) {
                     $q->where('event_id', $event->id)
                       ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'pending', 'cod']);
@@ -437,7 +448,6 @@ class PublicEventController extends Controller
                     $q->where('created_at', '>=', $event->registration_open_at);
                 })
                 ->orderBy('created_at', 'desc')
-                ->limit(50)
                 ->get();
         });
     }
