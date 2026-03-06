@@ -171,24 +171,6 @@
                         @endforeach
                     </div>
                 </div>
-
-                <div class="bg-card/50 border border-slate-700/60 rounded-3xl p-6">
-                    <h3 class="font-bold">Saran</h3>
-                    <ul class="mt-4 space-y-3 text-sm text-slate-300">
-                        <li class="flex items-start gap-3">
-                            <span class="mt-1 w-2 h-2 rounded-full bg-neon"></span>
-                            Tambahkan tag & filter multi-kategori untuk navigasi yang lebih cepat.
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="mt-1 w-2 h-2 rounded-full bg-neon"></span>
-                            Tampilkan estimasi waktu baca dan share link yang benar (WA/Twitter/FB).
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="mt-1 w-2 h-2 rounded-full bg-neon"></span>
-                            Buat halaman author dan “Topik populer minggu ini”.
-                        </li>
-                    </ul>
-                </div>
             </aside>
         </div>
     </div>
