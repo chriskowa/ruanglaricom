@@ -1483,7 +1483,8 @@
                                 <div class="text-[10px] uppercase tracking-wider text-gray-400">
                                     @{{ roundIndex === 0 ? 'Babak Awal' : (roundIndex === bracketRounds.length - 1 ? 'Final' : 'Semifinal') }}
                                 </div>
-                                <div v-for="(match, matchIndex) in round" :key="'match-' + roundIndex + '-' + matchIndex" class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+                                <div v-for="(match, matchIndex) in round" :key="'match-' + roundIndex + '-' + matchIndex">
+                                    <div v-if="match.p1 || match.p2" class="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
                                     <div class="flex items-center gap-2">
                                         <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[9px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
                                             <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
@@ -1494,8 +1495,11 @@
                                             <div class="text-[9px] text-gray-400 font-mono">@{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}</div>
                                         </div>
                                     </div>
-                                    <div class="text-[9px] text-gray-500 uppercase tracking-wider text-center">vs</div>
-                                    <div class="flex items-center gap-2 justify-end">
+                                    
+                                    <div v-if="match.p1 && match.p2" class="text-[9px] text-gray-500 uppercase tracking-wider text-center">vs</div>
+                                    <div v-else class="text-[9px] text-sport-volt uppercase tracking-wider text-center font-bold">BYE (Lolos)</div>
+
+                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end">
                                         <div class="min-w-0 text-right">
                                             <div class="text-[11px] text-white truncate">@{{ match.p2?.name || '-' }}</div>
                                             <div class="text-[9px] text-gray-400 font-mono">@{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}</div>
@@ -1505,8 +1509,10 @@
                                             <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
                                         </div>
                                     </div>
-                                    <div class="text-[9px] text-sport-volt text-center font-bold">
+                                    
+                                    <div class="text-[9px] text-sport-volt text-center font-bold border-t border-white/5 pt-2 mt-2">
                                         @{{ match.winner?.name ? ('Menang: ' + match.winner.name) : 'Menunggu' }}
+                                    </div>
                                     </div>
                                 </div>
                             </div>
