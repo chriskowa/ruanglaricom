@@ -746,6 +746,40 @@
                         </div>
 
                         <div v-if="showSimulationInline">
+                            <!-- Controls for Mode and Matching Type -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-white/5 p-4 rounded-xl border border-white/10">
+                                <div>
+                                    <label class="text-[10px] text-gray-400 uppercase font-bold mb-2 block">Mode Pertandingan</label>
+                                    <div class="flex gap-2">
+                                        <button type="button" @click="simulationMode = '1v1'" 
+                                            class="flex-1 py-2 text-xs font-bold rounded-lg border transition"
+                                            :class="simulationMode === '1v1' ? 'bg-sport-volt text-black border-sport-volt' : 'bg-black/40 text-gray-400 border-white/10 hover:bg-white/5'">
+                                            1 VS 1
+                                        </button>
+                                        <button type="button" @click="simulationMode = '4way'" 
+                                            class="flex-1 py-2 text-xs font-bold rounded-lg border transition"
+                                            :class="simulationMode === '4way' ? 'bg-sport-volt text-black border-sport-volt' : 'bg-black/40 text-gray-400 border-white/10 hover:bg-white/5'">
+                                            4 Pelari
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-gray-400 uppercase font-bold mb-2 block">Tipe Pembagian</label>
+                                    <div class="flex gap-2">
+                                        <button type="button" @click="matchingType = 'closest'" 
+                                            class="flex-1 py-2 text-xs font-bold rounded-lg border transition"
+                                            :class="matchingType === 'closest' ? 'bg-sport-volt text-black border-sport-volt' : 'bg-black/40 text-gray-400 border-white/10 hover:bg-white/5'">
+                                            Waktu Dekat
+                                        </button>
+                                        <button type="button" @click="matchingType = 'seeded'" 
+                                            class="flex-1 py-2 text-xs font-bold rounded-lg border transition"
+                                            :class="matchingType === 'seeded' ? 'bg-sport-volt text-black border-sport-volt' : 'bg-black/40 text-gray-400 border-white/10 hover:bg-white/5'">
+                                            Cepat vs Lambat
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div v-if="bracketRounds.length > 0">
                                 <div class="flex items-center justify-between mb-4">
                                     <div class="text-[11px] text-gray-400 font-mono">
@@ -765,44 +799,66 @@
                                     Jalankan simulasi per match. Setelah semua match di sesi selesai, lanjut ke sesi berikutnya (pemenang akan bertanding).
                                 </p>
 
-                            <div v-if="currentRoundByeCount > 0" class="mb-3 text-[10px] text-gray-500">
+                            <div v-if="currentRoundByeCount > 0 && simulationMode === '1v1'" class="mb-3 text-[10px] text-gray-500">
                                 BYE otomatis: @{{ currentRoundByeCount }} match (tidak perlu dijalankan)
                             </div>
                             <div class="space-y-3">
-                                    <div v-for="(match, index) in currentRoundMatchesDisplay" :key="'round-' + activeRoundIndex + '-match-' + index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-2">
-                                        <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
-                                            <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                                <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
-                                                <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
-                                            </div>
-                                            <div class="min-w-0 overflow-hidden">
-                                                <div class="text-xs font-bold text-white truncate">@{{ match.p1?.name || '-' }}</div>
-                                                <div class="text-[10px] text-gray-400 font-mono">
-                                                    @{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}
+                                    <div v-for="(match, index) in currentRoundMatchesDisplay" :key="'round-' + activeRoundIndex + '-match-' + index" 
+                                        class="bg-white/5 border border-white/10 p-3 rounded-xl flex flex-col gap-3">
+                                        
+                                        <!-- 1v1 Display -->
+                                        <div v-if="!match.is4way" class="flex items-center gap-2">
+                                            <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
+                                                <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                    <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
+                                                    <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
+                                                </div>
+                                                <div class="min-w-0 overflow-hidden">
+                                                    <div class="text-xs font-bold text-white truncate">@{{ match.p1?.name || '-' }}</div>
+                                                    <div class="text-[10px] text-gray-400 font-mono">
+                                                        @{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
+                                            <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
 
-                                        <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p2)">
-                                            <div class="text-right min-w-0 overflow-hidden">
-                                                <div class="text-xs font-bold text-white truncate">@{{ match.p2?.name || '-' }}</div>
-                                                <div class="text-[10px] text-gray-400 font-mono">
-                                                    @{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}
+                                            <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p2)">
+                                                <div class="text-right min-w-0 overflow-hidden">
+                                                    <div class="text-xs font-bold text-white truncate">@{{ match.p2?.name || '-' }}</div>
+                                                    <div class="text-[10px] text-gray-400 font-mono">
+                                                        @{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}
+                                                    </div>
+                                                </div>
+                                                <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                    <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
+                                                    <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
                                                 </div>
                                             </div>
-                                            <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                                <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
-                                                <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
+                                            <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
+                                                Menunggu Lawan
                                             </div>
                                         </div>
-                                        <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
-                                            Menunggu Lawan
+
+                                        <!-- 4-Way Display -->
+                                        <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                            <template v-for="p in [match.p1, match.p2, match.p3, match.p4]" :key="p?.id">
+                                                <div v-if="p" class="flex items-center gap-2 p-2 rounded bg-black/20 border border-white/5">
+                                                    <div class="w-6 h-6 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[8px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                        <img v-if="p.photo" :src="'/storage/' + p.photo" class="w-full h-full object-cover absolute inset-0">
+                                                        <span v-else>@{{ getInitials(p.name) }}</span>
+                                                    </div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="text-[10px] font-bold text-white truncate">@{{ p.name }}</div>
+                                                        <div class="text-[8px] text-gray-400 font-mono">@{{ p.target_time }}</div>
+                                                    </div>
+                                                </div>
+                                            </template>
                                         </div>
 
-                                        <div class="flex items-center gap-2">
-                                            <div v-if="match.winner" class="text-[10px] font-bold text-sport-volt uppercase tracking-wider whitespace-nowrap">
+                                        <!-- Action Buttons -->
+                                        <div v-if="!match.is4way" class="flex items-center justify-end gap-2 border-t border-white/5 pt-2">
+                                            <div v-if="match.winner" class="text-[10px] font-bold text-sport-volt uppercase tracking-wider whitespace-nowrap mr-auto">
                                                 Winner: @{{ match.winner.name }}
                                             </div>
 
@@ -814,6 +870,9 @@
                                                     Kontrol
                                                 </button>
                                             </div>
+                                        </div>
+                                        <div v-else class="text-[10px] text-gray-500 italic text-center border-t border-white/5 pt-2">
+                                            Preview pembagian grup 4 pelari
                                         </div>
                                     </div>
                                 </div>
@@ -1400,44 +1459,66 @@
                                 </div>
                             </div>
 
-                            <div v-if="currentRoundByeCount > 0" class="mb-3 text-[10px] text-gray-500">
+                            <div v-if="currentRoundByeCount > 0 && simulationMode === '1v1'" class="mb-3 text-[10px] text-gray-500">
                                 BYE otomatis: @{{ currentRoundByeCount }} match (tidak perlu dijalankan)
                             </div>
                             <div class="space-y-3">
-                                <div v-for="(match, index) in currentRoundMatchesDisplay" :key="'judge-round-' + activeRoundIndex + '-match-' + index" class="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-2">
-                                    <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
-                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
-                                            <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
-                                        </div>
-                                        <div class="min-w-0 overflow-hidden">
-                                            <div class="text-xs font-bold text-white truncate">@{{ match.p1?.name || '-' }}</div>
-                                            <div class="text-[10px] text-gray-400 font-mono">
-                                                @{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}
+                                <div v-for="(match, index) in currentRoundMatchesDisplay" :key="'judge-round-' + activeRoundIndex + '-match-' + index" 
+                                    class="bg-white/5 border border-white/10 p-3 rounded-xl flex flex-col gap-3">
+                                    
+                                    <!-- 1v1 Display -->
+                                    <div v-if="!match.is4way" class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p1)">
+                                            <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                <img v-if="match.p1?.photo" :src="'/storage/' + match.p1.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
+                                                <span v-else>@{{ getInitials(match.p1?.name || '') }}</span>
+                                            </div>
+                                            <div class="min-w-0 overflow-hidden">
+                                                <div class="text-xs font-bold text-white truncate">@{{ match.p1?.name || '-' }}</div>
+                                                <div class="text-[10px] text-gray-400 font-mono">
+                                                    @{{ match.p1?.result_time_ms ? formatMs(match.p1.result_time_ms) : (match.p1?.target_time || '-') }}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
+                                        <div class="px-2 text-sport-volt font-display italic text-sm">VS</div>
 
-                                    <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p2)">
-                                        <div class="text-right min-w-0 overflow-hidden">
-                                            <div class="text-xs font-bold text-white truncate">@{{ match.p2?.name || '-' }}</div>
-                                            <div class="text-[10px] text-gray-400 font-mono">
-                                                @{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}
+                                        <div v-if="match.p2" class="flex items-center gap-2 justify-end flex-1 min-w-0 cursor-pointer hover:bg-white/5 p-1 rounded transition" @click.stop="openDetailModal(match.p2)">
+                                            <div class="text-right min-w-0 overflow-hidden">
+                                                <div class="text-xs font-bold text-white truncate">@{{ match.p2?.name || '-' }}</div>
+                                                <div class="text-[10px] text-gray-400 font-mono">
+                                                    @{{ match.p2?.result_time_ms ? formatMs(match.p2.result_time_ms) : (match.p2?.target_time || '-') }}
+                                                </div>
+                                            </div>
+                                            <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
+                                                <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
                                             </div>
                                         </div>
-                                        <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
-                                            <img v-if="match.p2?.photo" :src="'/storage/' + match.p2.photo" loading="lazy" decoding="async" fetchpriority="low" class="w-full h-full object-cover absolute inset-0">
-                                            <span v-else>@{{ getInitials(match.p2?.name || '') }}</span>
+                                        <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
+                                            Menunggu Lawan
                                         </div>
                                     </div>
-                                    <div v-else class="text-[10px] text-gray-500 italic flex-1 text-right">
-                                        Menunggu Lawan
+
+                                    <!-- 4-Way Display -->
+                                    <div v-else class="grid grid-cols-2 gap-3">
+                                        <template v-for="p in [match.p1, match.p2, match.p3, match.p4]" :key="p?.id">
+                                            <div v-if="p" class="flex items-center gap-2 p-2 rounded bg-black/20 border border-white/5">
+                                                <div class="w-6 h-6 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[8px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                    <img v-if="p.photo" :src="'/storage/' + p.photo" class="w-full h-full object-cover absolute inset-0">
+                                                    <span v-else>@{{ getInitials(p.name) }}</span>
+                                                </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="text-[10px] font-bold text-white truncate">@{{ p.name }}</div>
+                                                    <div class="text-[8px] text-gray-400 font-mono">@{{ p.target_time }}</div>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
 
-                                    <div class="flex items-center gap-2">
-                                        <div v-if="match.winner" class="text-[10px] font-bold text-sport-volt uppercase tracking-wider whitespace-nowrap">
+                                    <!-- Action Buttons -->
+                                    <div v-if="!match.is4way" class="flex items-center justify-end gap-2 border-t border-white/5 pt-2">
+                                        <div v-if="match.winner" class="text-[10px] font-bold text-sport-volt uppercase tracking-wider whitespace-nowrap mr-auto">
                                             Winner: @{{ match.winner.name }}
                                         </div>
 
@@ -1450,8 +1531,10 @@
                                             </button>
                                         </div>
                                     </div>
+                                    <div v-else class="text-[10px] text-gray-500 italic text-center border-t border-white/5 pt-2">
+                                        Preview pembagian grup 4 pelari
+                                    </div>
                                 </div>
-                            </div>
                         </div>
                         <div v-else class="text-center py-10 border border-dashed border-white/10 rounded-xl text-gray-500 text-sm">
                             Belum ada data target waktu peserta untuk simulasi.
@@ -1478,7 +1561,8 @@
                 </div>
                 <div class="p-5 overflow-auto">
                     <div v-if="bracketRounds.length > 0" class="min-w-[800px] md:min-w-0">
-                        <div class="grid grid-cols-6 gap-4">
+                        <!-- 1v1 Bracket View -->
+                        <div v-if="simulationMode === '1v1'" class="grid grid-cols-6 gap-4">
                             <div v-for="(round, roundIndex) in bracketRounds" :key="'round-' + roundIndex" class="space-y-3">
                                 <div class="text-[10px] uppercase tracking-wider text-gray-400">
                                     @{{ roundIndex === 0 ? 'Babak Awal' : (roundIndex === bracketRounds.length - 1 ? 'Final' : 'Semifinal') }}
@@ -1543,6 +1627,29 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- 4-Way Preview View -->
+                        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div v-for="(match, index) in bracketRounds[0]" :key="'way4-' + index" class="bg-white/5 border border-white/10 rounded-xl p-4">
+                                <div class="text-[10px] uppercase tracking-wider text-gray-500 mb-3 font-bold border-b border-white/5 pb-2">
+                                    Grup @{{ index + 1 }}
+                                </div>
+                                <div class="space-y-3">
+                                    <template v-for="p in [match.p1, match.p2, match.p3, match.p4]" :key="p?.id">
+                                        <div v-if="p" class="flex items-center gap-3 p-2 rounded bg-black/20 border border-white/5">
+                                            <div class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-[10px] font-bold text-sport-volt border border-gray-600 overflow-hidden relative">
+                                                <img v-if="p.photo" :src="'/storage/' + p.photo" class="w-full h-full object-cover absolute inset-0">
+                                                <span v-else>@{{ getInitials(p.name) }}</span>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-xs font-bold text-white truncate">@{{ p.name }}</div>
+                                                <div class="text-[10px] text-gray-400 font-mono">Target: @{{ p.target_time }}</div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div v-else class="text-center py-8 border border-dashed border-white/10 rounded-xl">
                         <i class="fas fa-sitemap text-3xl text-gray-600 mb-3"></i>
@@ -1576,7 +1683,7 @@
         }
     @endphp
     <script>
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, computed, onMounted, watch } = Vue;
     const app = createApp({
         setup() {
             const form = ref({ 
@@ -1614,6 +1721,8 @@
             const showSetupModal = ref(false);
             const selectedForRace = ref([]);
             const showSimulationInline = ref(false);
+            const simulationMode = ref('1v1'); // '1v1' or '4way'
+            const matchingType = ref('closest'); // 'closest' (dekat) or 'seeded' (cepat vs lambat)
             const toggleSimulationInline = () => { showSimulationInline.value = !showSimulationInline.value; };
             const judgePanel = ref({ visible: false, tab: 'rank', search: '' });
             const openJudgePanel = (tab = 'rank') => { judgePanel.value.visible = true; judgePanel.value.tab = tab; };
@@ -2325,6 +2434,7 @@
 
             const currentRoundMatchesDisplay = computed(() => {
                 const matches = currentRoundMatches.value;
+                if (simulationMode.value === '4way') return matches;
                 return matches.filter(m => m && m.p1 && m.p2);
             });
 
@@ -2370,12 +2480,55 @@
             };
 
             const bracketRounds = computed(() => {
-                const players = simulatedOrder.value;
+                const players = [...simulatedOrder.value];
                 if (!players.length) return [];
                 
+                if (simulationMode.value === '4way') {
+                    // Logic for 4-way grouping (Preview only)
+                    let ordered = players;
+                    if (matchingType.value === 'seeded') {
+                        // Cepat vs Lambat for 4-way: [1, last, 2, last-1], etc.
+                        ordered = [];
+                        let left = 0, right = players.length - 1;
+                        while (left <= right) {
+                            ordered.push(players[left++]);
+                            if (left <= right) ordered.push(players[right--]);
+                            if (left <= right) ordered.push(players[left++]);
+                            if (left <= right) ordered.push(players[right--]);
+                        }
+                    }
+                    
+                    const matches = [];
+                    for (let i = 0; i < ordered.length; i += 4) {
+                        matches.push({
+                            p1: ordered[i] || null,
+                            p2: ordered[i+1] || null,
+                            p3: ordered[i+2] || null,
+                            p4: ordered[i+3] || null,
+                            is4way: true
+                        });
+                    }
+                    return [matches]; // Only one round for preview
+                }
+
+                // Logic for 1v1 (Standard Bracket)
                 let size = 1;
                 while (size < players.length) size *= 2;
-                const filled = [...players];
+                
+                let orderedPlayers = [];
+                if (matchingType.value === 'seeded') {
+                    // Tournament Seeding: [1, last, 2, last-1...]
+                    let left = 0, right = players.length - 1;
+                    while (left <= right) {
+                        orderedPlayers.push(players[left++]);
+                        if (left <= right) orderedPlayers.push(players[right--]);
+                    }
+                } else {
+                    // Closest: [1, 2, 3, 4...]
+                    orderedPlayers = players;
+                }
+
+                const filled = [...orderedPlayers];
                 while (filled.length < size) filled.push(null);
                 
                 const rounds = [];
@@ -2629,7 +2782,11 @@
                     });
                 }
             });
-            return { form, isLoading, errors, globalError, formattedTotal, processPayment, participants, participantsTab, approvedParticipants, notApprovedParticipants, filteredParticipants, setParticipantsTab, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, activeRoundIndex, currentRoundMatches, currentRoundMatchesDisplay, currentRoundByeCount, isCurrentRoundComplete, nextRound, prevRound, bracketRounds, podium, bracketModal, openBracketModal, closeBracketModal, simulation, simulationWinner, isSimulationMatch, startSimulation, openSimulation, stopRunner, resetSimulation, closeSimulation, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal, showSimulationInline, toggleSimulationInline, judgePanel, openJudgePanel, closeJudgePanel, judgeParticipants };
+            watch([simulationMode, matchingType], () => {
+                activeRoundIndex.value = 0;
+            });
+
+            return { form, isLoading, errors, globalError, formattedTotal, processPayment, participants, participantsTab, approvedParticipants, notApprovedParticipants, filteredParticipants, setParticipantsTab, paginatedParticipants, currentPage, totalPages, prevPage, nextPage, scrollToForm, getInitials, countdown, deleteParticipant, availableAddons, formatCurrency, isAddonSelected, toggleAddon, prices, isFull, addParticipant, updateTargetTime, removeParticipant, handleTwibbonUpload, handlePhotoUpload, downloadTwibbon, twibbonUrl, uploadedImage, twibbonData, redrawTwibbon, activeRoundIndex, currentRoundMatches, currentRoundMatchesDisplay, currentRoundByeCount, isCurrentRoundComplete, nextRound, prevRound, bracketRounds, podium, bracketModal, openBracketModal, closeBracketModal, simulation, simulationWinner, isSimulationMatch, startSimulation, openSimulation, stopRunner, resetSimulation, closeSimulation, supportModal, openSupportModal, closeSupportModal, submitSupport, getSupportPercentage, isSubmittingSupport, race, showRaceAdmin, showSetupModal, selectedForRace, submitRaceSetup, startRace, finishRace, resetRace, setWinner, formatMs, canManage, lightbox, openLightbox, detailModal, openDetailModal, showSimulationInline, toggleSimulationInline, simulationMode, matchingType, judgePanel, openJudgePanel, closeJudgePanel, judgeParticipants };
         }
     });
     
