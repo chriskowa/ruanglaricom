@@ -94,22 +94,31 @@
 
 <div id="app" v-cloak class="flex-grow flex flex-col h-screen max-w-5xl mx-auto w-full relative">
 
-    <nav class="glass px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-        <div class="flex items-center gap-3">
-            <span class="text-xl font-black text-slate-800 dark:text-white">TRACK<span class="text-emerald-500">MASTER</span></span>
-            <span class="hidden sm:inline text-[10px] text-slate-500 dark:text-slate-500 font-bold">PRO COACHING TOOLS</span>
-        </div>
-        <div class="flex items-center gap-2">
-            <button @click="view = 'setup'" :class="view==='setup' ? 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Setup</button>
-            <button @click="view = 'track'" :class="view==='track' ? 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Track</button>
-            <button @click="view = 'summary'" :class="view==='summary' ? 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Summary</button>
-            <button @click="toggleTheme" class="w-9 h-9 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 transition">
-                <i class="fa-solid" :class="theme==='dark' ? 'fa-moon' : 'fa-sun'"></i>
-            </button>
+    <nav class="glass px-3 py-3 sticky top-0 z-30 border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-4xl mx-auto space-y-3">
+            <!-- Row 1: Logo & Tools Link -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('tools.index') }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-emerald-500 transition">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </a>
+                    <span class="text-lg font-black text-slate-800 dark:text-white tracking-tighter">TRACK<span class="text-emerald-500">MASTER</span></span>
+                </div>
+                <button @click="toggleTheme" class="w-8 h-8 rounded-lg flex items-center justify-center border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400">
+                    <i class="fa-solid" :class="theme==='dark' ? 'fa-moon' : 'fa-sun'"></i>
+                </button>
+            </div>
+            
+            <!-- Row 2: Menu Navigation -->
+            <div class="grid grid-cols-3 gap-2">
+                <button @click="view = 'setup'" :class="view==='setup' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-500'" class="py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">Setup</button>
+                <button @click="view = 'track'" :class="view==='track' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-500'" class="py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">Track</button>
+                <button @click="view = 'summary'" :class="view==='summary' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-500'" class="py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">Summary</button>
+            </div>
         </div>
     </nav>
 
-    <section v-if="view === 'setup'" class="flex-grow flex flex-col justify-center p-6 overflow-y-auto">
+    <section v-if="view === 'setup'" class="pt-[180px] flex-grow flex flex-col justify-center p-6 overflow-y-auto">
         <div class="glass p-8 rounded-3xl shadow-2xl w-full max-w-lg mx-auto border-t-4 border-emerald-500">
             <h1 class="text-3xl font-black text-slate-800 dark:text-white mb-1 tracking-tighter">TRACK<span class="text-emerald-500">MASTER</span></h1>
             <p class="text-xs text-cyan-500 dark:text-neon-blue font-mono tracking-widest mb-6">PRO COACHING TOOLS v2.1</p>
@@ -131,21 +140,11 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Repetisi</label>
-                        <input v-model.number="program.reps" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-slate-800 dark:text-white" placeholder="10">
+                        <input v-model.number="program.reps" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-slate-800 dark:text-slate-100" placeholder="10">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Jarak (m)</label>
-                        <input v-model.number="program.distance" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-slate-800 dark:text-white" placeholder="400">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Rest (detik)</label>
-                        <input v-model.number="program.restTime" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-slate-800 dark:text-white" placeholder="60">
-                    </div>
-                    <div class="flex items-end">
-                        <div class="text-[10px] text-slate-400 dark:text-slate-400">Target dibuat per atlet di bawah</div>
+                        <input v-model.number="program.distance" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-slate-800 dark:text-slate-100" placeholder="400">
                     </div>
                 </div>
 
@@ -164,17 +163,21 @@
                             </div>
 
                             <!-- Controls: Grid approach -->
-                            <div class="grid grid-cols-3 gap-3 items-end">
+                            <div class="grid grid-cols-4 gap-2 items-end">
                                 <div>
-                                    <label class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 block">Target (s)</label>
-                                    <input v-model.number="a.target" type="number" class="w-full bg-slate-50 dark:bg-slate-900 text-sm text-slate-800 dark:text-white font-mono p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center" placeholder="80">
+                                    <label class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 block">Tgt (s)</label>
+                                    <input v-model.number="a.target" type="number" class="w-full bg-slate-50 dark:bg-slate-900 text-sm text-slate-800 dark:text-white font-mono p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-center" placeholder="80">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 block">Rest (s)</label>
+                                    <input v-model.number="a.rest" type="number" class="w-full bg-slate-50 dark:bg-slate-900 text-sm text-slate-800 dark:text-white font-mono p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-center" placeholder="60">
                                 </div>
                                 <div class="text-center pb-2">
                                     <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1">Pace</div>
-                                    <div class="text-xs font-mono text-emerald-500 font-bold">@{{ calculatePace(a.target||0, program.distance) }}</div>
+                                    <div class="text-[10px] font-mono text-emerald-500 font-bold">@{{ calculatePace(a.target||0, program.distance) }}</div>
                                 </div>
                                 <div class="text-right pb-1">
-                                    <button @click="removeSetupAthlete(i)" class="bg-red-50 dark:bg-red-500/10 text-red-500 p-3 rounded-xl hover:bg-red-100 transition-colors">
+                                    <button @click="removeSetupAthlete(i)" class="bg-red-50 dark:bg-red-500/10 text-red-500 p-2.5 rounded-xl hover:bg-red-100 transition-colors">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -272,7 +275,7 @@
                     <!-- Content Area -->
                     <div class="text-center pt-1">
                         <div v-if="a.status === 'active'">
-                            <div class="text-2xl sm:text-3xl font-black font-mono text-slate-800 dark:text-white leading-none">@{{ a.currentRep + 1 }}</div>
+                            <div class="text-2xl sm:text-3xl font-mono text-slate-800 text-white leading-none">@{{ a.currentRep + 1 }}</div>
                             <div class="text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-0.5">Rep</div>
                         </div>
 
@@ -449,11 +452,11 @@
             // State
             const view = ref('setup');
             const hasSavedData = ref(false);
-            const setupAthletes = ref([{name: '', readiness: 'green', target: 80}]);
+            const setupAthletes = ref([{name: '', readiness: 'green', target: 80, rest: 60}]);
             const activeTagLog = ref(null);
             
             const program = reactive({ 
-                reps: 8, distance: 400, restTime: 60,
+                reps: 8, distance: 400,
                 weather: 'cloudy', workoutType: 'race'
             });
             
@@ -477,7 +480,7 @@
 
             // -- CORE LOGIC --
 
-            const addSetupAthlete = () => setupAthletes.value.push({name: '', readiness: 'green', target: 80});
+            const addSetupAthlete = () => setupAthletes.value.push({name: '', readiness: 'green', target: 80, rest: 60});
             const removeSetupAthlete = (i) => setupAthletes.value.splice(i, 1);
 
             const startSession = () => {
@@ -488,6 +491,7 @@
                     name: n.name, 
                     readiness: n.readiness,
                     target: n.target || 0,
+                    restTime: n.rest || 0,
                     status: 'active', currentRep: 0,
                     lapStart: 0, restCountdown: 0
                 }));
@@ -574,7 +578,7 @@
                         speak(`${a.name} selesai`);
                     } else {
                         a.status = 'resting';
-                        a.restCountdown = program.restTime;
+                        a.restCountdown = a.restTime || 0;
                     }
                     saveState();
                 } 
@@ -691,7 +695,8 @@
                         setupAthletes.value = d.athletes.map(a => ({
                             name: a.name, 
                             readiness: a.readiness || 'green',
-                            target: a.target || 80
+                            target: a.target || 80,
+                            rest: a.restTime || 60
                         }));
                     }
                 }
