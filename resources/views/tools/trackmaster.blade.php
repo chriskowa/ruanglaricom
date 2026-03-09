@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -66,22 +66,28 @@
     </script>
 
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; touch-action: manipulation; }
+        body { background-color: #f1f5f9; color: #1e293b; touch-action: manipulation; }
+        .dark body { background-color: #0f172a; color: #e2e8f0; }
         [v-cloak] { display: none; }
         
         /* Glassmorphism & Neon Effects */
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-        .neon-input { background: #0f172a; border: 1px solid #334155; transition: 0.3s; }
+        .glass { background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.05); }
+        .dark .glass { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.05); }
+        .neon-input { background: #ffffff; border: 1px solid #cbd5e1; transition: 0.3s; }
+        .dark .neon-input { background: #0f172a; border: 1px solid #334155; }
         .neon-input:focus { border-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); outline: none; }
         
         /* Balloon States */
-        .b-active { border: 2px solid #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); color: #10b981; }
+        .b-active { border: 2px solid #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); color: #10b981; background: #fff; }
+        .dark .b-active { background: transparent; }
         .b-resting { border: 2px solid #eab308; background: rgba(234, 179, 8, 0.05); color: #eab308; }
-        .b-finished { border: 2px solid #64748b; background: #0f172a; color: #64748b; opacity: 0.8; }
+        .b-finished { border: 2px solid #94a3b8; background: #f8fafc; color: #94a3b8; opacity: 0.8; }
+        .dark .b-finished { background: #0f172a; }
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col overflow-hidden">
@@ -90,85 +96,85 @@
 
     <nav class="glass px-4 py-3 flex items-center justify-between sticky top-0 z-30">
         <div class="flex items-center gap-3">
-            <span class="text-xl font-black">TRACK<span class="text-neon-green">MASTER</span></span>
-            <span class="hidden sm:inline text-[10px] text-slate-500 font-bold">PRO COACHING TOOLS</span>
+            <span class="text-xl font-black text-slate-800 dark:text-white">TRACK<span class="text-emerald-500">MASTER</span></span>
+            <span class="hidden sm:inline text-[10px] text-slate-500 dark:text-slate-500 font-bold">PRO COACHING TOOLS</span>
         </div>
         <div class="flex items-center gap-2">
-            <button @click="view = 'setup'" :class="view==='setup' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Setup</button>
-            <button @click="view = 'track'" :class="view==='track' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Track</button>
-            <button @click="view = 'summary'" :class="view==='summary' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Summary</button>
-            <button @click="toggleTheme" class="w-9 h-9 rounded-full flex items-center justify-center border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">
+            <button @click="view = 'setup'" :class="view==='setup' ? 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Setup</button>
+            <button @click="view = 'track'" :class="view==='track' ? 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Track</button>
+            <button @click="view = 'summary'" :class="view==='summary' ? 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'" class="px-3 py-1 rounded-lg text-xs font-bold">Summary</button>
+            <button @click="toggleTheme" class="w-9 h-9 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 transition">
                 <i class="fa-solid" :class="theme==='dark' ? 'fa-moon' : 'fa-sun'"></i>
             </button>
         </div>
     </nav>
 
     <section v-if="view === 'setup'" class="flex-grow flex flex-col justify-center p-6 overflow-y-auto">
-        <div class="glass p-8 rounded-3xl shadow-2xl w-full max-w-lg mx-auto border-t-4 border-neon-green">
-            <h1 class="text-3xl font-black text-white mb-1 tracking-tighter">TRACK<span class="text-neon-green">MASTER</span></h1>
-            <p class="text-xs text-neon-blue font-mono tracking-widest mb-6">PRO COACHING TOOLS v2.1</p>
+        <div class="glass p-8 rounded-3xl shadow-2xl w-full max-w-lg mx-auto border-t-4 border-emerald-500">
+            <h1 class="text-3xl font-black text-slate-800 dark:text-white mb-1 tracking-tighter">TRACK<span class="text-emerald-500">MASTER</span></h1>
+            <p class="text-xs text-cyan-500 dark:text-neon-blue font-mono tracking-widest mb-6">PRO COACHING TOOLS v2.1</p>
 
             <div class="space-y-5">
                 <!-- Context Toggles -->
                 <div class="flex gap-4">
-                    <div class="flex-1 bg-slate-800 p-1 rounded-xl flex text-[10px] font-bold">
-                        <button @click="program.weather = 'sunny'" :class="program.weather === 'sunny' ? 'bg-yellow-500 text-black' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2"><i class="fa-solid fa-sun text-lg"></i></button>
-                        <button @click="program.weather = 'cloudy'" :class="program.weather === 'cloudy' ? 'bg-slate-500 text-white' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2"><i class="fa-solid fa-cloud text-lg"></i></button>
-                        <button @click="program.weather = 'rainy'" :class="program.weather === 'rainy' ? 'bg-blue-500 text-white' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2"><i class="fa-solid fa-cloud-showers-heavy text-lg"></i></button>
+                    <div class="flex-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex text-[10px] font-bold">
+                        <button @click="program.weather = 'sunny'" :class="program.weather === 'sunny' ? 'bg-yellow-400 text-black' : 'text-slate-400 dark:text-slate-500'" class="flex-1 rounded-lg transition py-2"><i class="fa-solid fa-sun text-lg"></i></button>
+                        <button @click="program.weather = 'cloudy'" :class="program.weather === 'cloudy' ? 'bg-slate-400 text-white' : 'text-slate-400 dark:text-slate-500'" class="flex-1 rounded-lg transition py-2"><i class="fa-solid fa-cloud text-lg"></i></button>
+                        <button @click="program.weather = 'rainy'" :class="program.weather === 'rainy' ? 'bg-blue-500 text-white' : 'text-slate-400 dark:text-slate-500'" class="flex-1 rounded-lg transition py-2"><i class="fa-solid fa-cloud-showers-heavy text-lg"></i></button>
                     </div>
-                    <div class="flex-1 bg-slate-800 p-1 rounded-xl flex text-[10px] font-bold">
-                        <button @click="program.workoutType = 'race'" :class="program.workoutType === 'race' ? 'bg-neon-red text-white' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2">INTERVAL</button>
-                        <button @click="program.workoutType = 'easy'" :class="program.workoutType === 'easy' ? 'bg-neon-green text-black' : 'text-slate-500'" class="flex-1 rounded-lg transition py-2">EASY</button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Repetisi</label>
-                        <input v-model.number="program.reps" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-white" placeholder="10">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Jarak (m)</label>
-                        <input v-model.number="program.distance" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-white" placeholder="400">
+                    <div class="flex-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex text-[10px] font-bold">
+                        <button @click="program.workoutType = 'race'" :class="program.workoutType === 'race' ? 'bg-red-500 text-white' : 'text-slate-400 dark:text-slate-500'" class="flex-1 rounded-lg transition py-2">INTERVAL</button>
+                        <button @click="program.workoutType = 'easy'" :class="program.workoutType === 'easy' ? 'bg-emerald-500 text-black' : 'text-slate-400 dark:text-slate-500'" class="flex-1 rounded-lg transition py-2">EASY</button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Rest (detik)</label>
-                        <input v-model.number="program.restTime" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-white" placeholder="60">
+                        <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Repetisi</label>
+                        <input v-model.number="program.reps" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-slate-800 dark:text-white" placeholder="10">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Jarak (m)</label>
+                        <input v-model.number="program.distance" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-slate-800 dark:text-white" placeholder="400">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Rest (detik)</label>
+                        <input v-model.number="program.restTime" type="number" class="neon-input w-full rounded-xl p-3 text-center font-mono text-lg text-slate-800 dark:text-white" placeholder="60">
                     </div>
                     <div class="flex items-end">
-                        <div class="text-[10px] text-slate-400">Target dibuat per atlet di bawah</div>
+                        <div class="text-[10px] text-slate-400 dark:text-slate-400">Target dibuat per atlet di bawah</div>
                     </div>
                 </div>
 
                 <div>
                     <div class="flex justify-between items-center mb-2">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase block">Daftar Atlet & Readiness</label>
-                        <button @click="addSetupAthlete" class="text-neon-green text-xs font-bold hover:text-emerald-400"><i class="fa-solid fa-plus-circle"></i> ADD</button>
+                        <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">Daftar Atlet & Readiness</label>
+                        <button @click="addSetupAthlete" class="text-emerald-500 hover:text-emerald-400"><i class="fa-solid fa-plus-circle"></i> ADD</button>
                     </div>
                     <div class="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scroll">
-                        <div v-for="(a, i) in setupAthletes" :key="i" class="flex gap-2 items-center bg-slate-800/50 p-2 rounded-xl border border-slate-700">
-                            <input v-model="a.name" class="bg-transparent w-full text-sm text-white font-mono outline-none placeholder-slate-600" placeholder="Nama Atlet...">
-                            <input v-model.number="a.target" type="number" class="neon-input w-20 rounded-lg p-2 text-center font-mono text-xs text-white" placeholder="80">
-                            <div class="text-[10px] text-neon-green font-mono w-16 text-center">@{{ calculatePace(a.target||0, program.distance) }}</div>
-                            <div class="flex bg-slate-900 rounded-lg p-1 gap-1 shrink-0">
-                                <button @click="a.readiness = 'green'" :class="a.readiness === 'green' ? 'bg-green-500 scale-110' : 'bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
-                                <button @click="a.readiness = 'yellow'" :class="a.readiness === 'yellow' ? 'bg-yellow-500 scale-110' : 'bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
-                                <button @click="a.readiness = 'red'" :class="a.readiness === 'red' ? 'bg-red-500 scale-110' : 'bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
+                        <div v-for="(a, i) in setupAthletes" :key="i" class="flex gap-2 items-center bg-slate-100 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <input v-model="a.name" class="bg-transparent w-full text-sm text-slate-800 dark:text-white font-mono outline-none placeholder-slate-400 dark:placeholder-slate-600" placeholder="Nama Atlet...">
+                            <input v-model.number="a.target" type="number" class="neon-input w-20 rounded-lg p-2 text-center font-mono text-xs text-slate-800 dark:text-white" placeholder="80">
+                            <div class="text-[10px] text-emerald-500 dark:text-neon-green font-mono w-16 text-center">@{{ calculatePace(a.target||0, program.distance) }}</div>
+                            <div class="flex bg-slate-200 dark:bg-slate-900 rounded-lg p-1 gap-1 shrink-0">
+                                <button @click="a.readiness = 'green'" :class="a.readiness === 'green' ? 'bg-green-500 scale-110' : 'bg-slate-300 dark:bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
+                                <button @click="a.readiness = 'yellow'" :class="a.readiness === 'yellow' ? 'bg-yellow-500 scale-110' : 'bg-slate-300 dark:bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
+                                <button @click="a.readiness = 'red'" :class="a.readiness === 'red' ? 'bg-red-500 scale-110' : 'bg-slate-300 dark:bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
                             </div>
-                            <button @click="removeSetupAthlete(i)" class="text-slate-600 hover:text-red-500 px-1"><i class="fa-solid fa-trash text-xs"></i></button>
+                            <button @click="removeSetupAthlete(i)" class="text-slate-400 hover:text-red-500 px-1"><i class="fa-solid fa-trash text-xs"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <button @click="startSession" class="w-full bg-neon-green hover:bg-emerald-400 text-slate-900 font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition transform active:scale-95 flex items-center justify-center gap-2">
+                <button @click="startSession" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition transform active:scale-95 flex items-center justify-center gap-2">
                     START SESSION <i class="fa-solid fa-play"></i>
                 </button>
                 
                 <div v-if="hasSavedData" class="text-center">
-                    <button @click="loadLastSession" class="text-xs text-slate-500 hover:text-white underline decoration-dashed">Lanjutkan sesi sebelumnya</button>
+                    <button @click="loadLastSession" class="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white underline decoration-dashed">Lanjutkan sesi sebelumnya</button>
                 </div>
             </div>
         </div>
@@ -179,32 +185,32 @@
         <header class="p-3 sm:p-4 glass z-20 shrink-0">
             <div class="flex justify-between items-center max-w-4xl mx-auto">
                 <div class="flex items-center gap-3">
-                    <div class="bg-black/50 px-3 py-2 rounded-lg border border-slate-700 w-32 sm:w-40 text-center">
-                        <div class="text-3xl sm:text-4xl font-black font-mono tracking-tighter text-white" :class="{'text-yellow-400 animate-pulse': isPaused}">
+                    <div class="bg-white dark:bg-black/50 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 w-32 sm:w-40 text-center">
+                        <div class="text-3xl sm:text-4xl font-black font-mono tracking-tighter text-slate-800 dark:text-white" :class="{'text-yellow-500 dark:text-yellow-400 animate-pulse': isPaused}">
                             @{{ formatTime(elapsedTime) }}
                         </div>
                     </div>
                     <div class="hidden sm:block leading-tight">
-                        <div class="text-[10px] font-bold text-slate-500 uppercase">Elapsed Time</div>
-                        <div class="text-xs text-slate-300 font-mono">@{{ program.reps }}x@{{ program.distance }}m · Target per-atlet</div>
+                        <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Elapsed Time</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-300 font-mono">@{{ program.reps }}x@{{ program.distance }}m · Target per-atlet</div>
                         <div class="flex gap-2 mt-1">
                             <span v-if="program.weather === 'sunny'" class="text-yellow-500 text-[10px]"><i class="fa-solid fa-sun"></i> Panas</span>
                             <span v-if="program.weather === 'cloudy'" class="text-slate-400 text-[10px]"><i class="fa-solid fa-cloud"></i> Berawan</span>
                             <span v-if="program.weather === 'rainy'" class="text-blue-400 text-[10px]"><i class="fa-solid fa-cloud-showers-heavy"></i> Hujan</span>
-                            <span class="text-slate-600 text-[10px]">|</span>
-                            <span class="text-[10px] font-bold uppercase" :class="program.workoutType === 'race' ? 'text-neon-red' : 'text-neon-green'">@{{ program.workoutType }}</span>
+                            <span class="text-slate-300 dark:text-slate-600 text-[10px]">|</span>
+                            <span class="text-[10px] font-bold uppercase" :class="program.workoutType === 'race' ? 'text-red-500 dark:text-neon-red' : 'text-emerald-500 dark:text-neon-green'">@{{ program.workoutType }}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex gap-2">
                     <button @click="toggleTTS" class="w-10 h-10 rounded-full flex items-center justify-center border transition" 
-                        :class="ttsEnabled ? 'bg-neon-blue/20 border-neon-blue text-neon-blue' : 'bg-slate-800 border-slate-700 text-slate-600'">
+                        :class="ttsEnabled ? 'bg-cyan-500/20 border-cyan-500 text-cyan-500 dark:bg-neon-blue/20 dark:border-neon-blue dark:text-neon-blue' : 'bg-slate-200 border-slate-300 text-slate-400 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-600'">
                         <i class="fa-solid" :class="ttsEnabled ? 'fa-volume-high' : 'fa-volume-xmark'"></i>
                     </button>
                     
                     <button @click="togglePause" class="h-10 px-4 rounded-full font-bold text-xs uppercase flex items-center gap-2 border transition"
-                        :class="isPaused ? 'bg-neon-green/10 border-neon-green text-neon-green' : 'bg-yellow-500/10 border-yellow-500 text-yellow-500'">
+                        :class="isPaused ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500 dark:bg-neon-green/10 dark:border-neon-green dark:text-neon-green' : 'bg-yellow-500/10 border-yellow-500 text-yellow-500'">
                         <i class="fa-solid" :class="isPaused ? 'fa-play' : 'fa-pause'"></i>
                         <span class="hidden sm:inline">@{{ isPaused ? 'RESUME' : 'PAUSE' }}</span>
                     </button>
@@ -225,7 +231,7 @@
             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-4xl mx-auto">
                 <div v-for="(a, idx) in athletes" :key="idx" @click="handleBalloon(idx)"
                     :class="getBalloonClass(a)"
-                    class="aspect-square rounded-2xl flex flex-col items-center justify-center relative cursor-pointer transition-transform active:scale-95 select-none bg-slate-800">
+                    class="aspect-square rounded-2xl flex flex-col items-center justify-center relative cursor-pointer transition-transform active:scale-95 select-none bg-slate-100 dark:bg-slate-800">
                     
                     <!-- Readiness Indicator -->
                     <div class="absolute top-2 right-2 w-2 h-2 rounded-full shadow-[0_0_5px_currentColor]"
@@ -234,34 +240,34 @@
 
                     <div v-if="isPaused" class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center rounded-2xl"><i class="fa-solid fa-pause text-white/30 text-2xl"></i></div>
 
-                    <div class="text-xs font-bold uppercase truncate px-2 w-full text-center">@{{ a.name }}</div>
+                    <div class="text-[10px] sm:text-xs font-bold uppercase truncate px-2 w-full text-center text-slate-800 dark:text-white">@{{ a.name }}</div>
                     
                     <div v-if="a.status === 'active'" class="text-center mt-1">
-                        <span class="text-2xl sm:text-3xl font-black font-mono">@{{ a.currentRep + 1 }}</span>
-                        <span class="text-[10px] text-slate-500 font-bold block -mt-1">/@{{ program.reps }}</span>
+                        <span class="text-2xl sm:text-3xl font-black font-mono text-slate-800 dark:text-white">@{{ a.currentRep + 1 }}</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold block -mt-1">/@{{ program.reps }}</span>
                     </div>
 
                     <div v-else-if="a.status === 'resting'" class="text-center mt-1">
-                        <span class="text-2xl sm:text-3xl font-black font-mono">@{{ Math.ceil(a.restCountdown) }}</span>
-                        <span class="text-[9px] uppercase tracking-widest block -mt-1 opacity-70">REST</span>
+                        <span class="text-2xl sm:text-3xl font-black font-mono text-slate-800 dark:text-white">@{{ Math.ceil(a.restCountdown) }}</span>
+                        <span class="text-[9px] uppercase tracking-widest block -mt-1 text-slate-500 opacity-70">REST</span>
                     </div>
 
                     <div v-else class="text-center mt-1">
-                        <i class="fa-solid fa-check text-2xl"></i>
-                        <span class="text-[9px] block mt-1">DONE</span>
+                        <i class="fa-solid fa-check text-2xl text-slate-500"></i>
+                        <span class="text-[9px] block mt-1 text-slate-500">DONE</span>
                     </div>
 
-                    <div class="absolute bottom-0 left-0 h-1 bg-white/10 w-full rounded-b-2xl overflow-hidden">
+                    <div class="absolute bottom-0 left-0 h-1 bg-slate-200 dark:bg-white/10 w-full rounded-b-2xl overflow-hidden">
                         <div class="h-full bg-current transition-all duration-500" :style="{width: ((a.currentRep/program.reps)*100) + '%'}"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex-grow glass border-t border-slate-700/50 flex flex-col overflow-hidden relative">
+        <div class="flex-grow glass border-t border-slate-200 dark:border-slate-700/50 flex flex-col overflow-hidden relative">
             <div class="overflow-auto flex-grow p-0" @click="activeTagLog = null">
                 <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead class="bg-slate-800/90 text-[10px] uppercase text-slate-400 font-bold sticky top-0 z-10 backdrop-blur">
+                    <thead class="bg-slate-100 dark:bg-slate-800/90 text-[10px] uppercase text-slate-500 dark:text-slate-400 font-bold sticky top-0 z-10 backdrop-blur">
                         <tr>
                             <th class="p-3">#</th>
                             <th class="p-3">Atlet</th>
@@ -271,37 +277,37 @@
                             <th class="p-3 text-center">Info</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-700/50">
-                        <tr v-for="log in logs.slice().reverse()" :key="log.id" class="hover:bg-slate-800/50 transition-colors">
-                            <td class="p-3 font-mono text-slate-500 text-xs">@{{ log.rep }}</td>
-                            <td class="p-3 font-bold text-white flex items-center gap-2">
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700/50">
+                        <tr v-for="log in logs.slice().reverse()" :key="log.id" class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td class="p-3 font-mono text-slate-500 dark:text-slate-500 text-xs">@{{ log.rep }}</td>
+                            <td class="p-3 font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                 @{{ log.name }}
-                                <span v-if="log.rpe" class="w-2 h-2 rounded-full bg-neon-purple"></span>
+                                <span v-if="log.rpe" class="w-2 h-2 rounded-full bg-purple-500 dark:bg-neon-purple"></span>
                                 <i v-if="log.notes && log.notes.includes('WARNING')" class="fa-solid fa-triangle-exclamation text-red-500 animate-pulse text-xs"></i>
                             </td>
-                            <td class="p-3 text-right font-mono text-neon-green">@{{ log.time.toFixed(2) }}</td>
-                            <td class="p-3 text-right font-mono text-slate-400 text-xs hidden sm:table-cell">@{{ log.pace }}</td>
+                            <td class="p-3 text-right font-mono text-emerald-500 dark:text-neon-green">@{{ log.time.toFixed(2) }}</td>
+                            <td class="p-3 text-right font-mono text-slate-500 dark:text-slate-400 text-xs hidden sm:table-cell">@{{ log.pace }}</td>
                             <td class="p-3 text-right font-mono font-bold text-xs" :class="getDeltaClass(log.diff)">
                                 @{{ log.diff > 0 ? '+' : '' }}@{{ log.diff.toFixed(2) }}
                             </td>
                             <td class="p-3 text-center relative">
                                 <div class="flex items-center justify-center gap-3">
-                                    <button @click.stop="openModal(log)" class="text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i></button>
-                                    <button @click.stop="activeTagLog = (activeTagLog === log.id ? null : log.id)" class="bg-slate-700 hover:bg-neon-blue text-white text-[10px] px-2 py-0.5 rounded font-bold transition">[+]</button>
+                                    <button @click.stop="openModal(log)" class="text-slate-400 hover:text-slate-800 dark:hover:text-white"><i class="fa-solid fa-pen"></i></button>
+                                    <button @click.stop="activeTagLog = (activeTagLog === log.id ? null : log.id)" class="bg-slate-300 hover:bg-cyan-500 text-slate-800 dark:bg-slate-700 dark:hover:bg-neon-blue dark:text-white text-[10px] px-2 py-0.5 rounded font-bold transition">[+]</button>
                                 </div>
                                 
                                 <!-- Quick Tags Popover -->
-                                <div v-if="activeTagLog === log.id" class="absolute right-10 top-1/2 -translate-y-1/2 bg-slate-900 border border-slate-700 p-2 rounded-xl shadow-2xl z-50 flex flex-col gap-1 w-32 animate-[fadeIn_0.2s]" @click.stop>
+                                <div v-if="activeTagLog === log.id" class="absolute right-10 top-1/2 -translate-y-1/2 bg-white border border-slate-300 p-2 rounded-xl shadow-2xl z-50 flex flex-col gap-1 w-32 animate-[fadeIn_0.2s]" @click.stop>
                                     <div class="text-[9px] text-slate-500 uppercase font-bold mb-1 text-left px-1">Quick Tag</div>
-                                    <button @click="addTag(log, 'Overstride')" class="bg-slate-800 hover:bg-neon-red/20 hover:text-neon-red text-left px-2 py-1.5 rounded text-[10px] text-slate-300 transition">Overstride</button>
-                                    <button @click="addTag(log, 'Good Form')" class="bg-slate-800 hover:bg-neon-green/20 hover:text-neon-green text-left px-2 py-1.5 rounded text-[10px] text-slate-300 transition">Good Form</button>
-                                    <button @click="addTag(log, 'Tegang')" class="bg-slate-800 hover:bg-yellow-500/20 hover:text-yellow-500 text-left px-2 py-1.5 rounded text-[10px] text-slate-300 transition">Tegang</button>
+                                    <button @click="addTag(log, 'Overstride')" class="bg-slate-100 hover:bg-red-500/20 hover:text-red-500 text-left px-2 py-1.5 rounded text-[10px] text-slate-700 transition">Overstride</button>
+                                    <button @click="addTag(log, 'Good Form')" class="bg-slate-100 hover:bg-emerald-500/20 hover:text-emerald-500 text-left px-2 py-1.5 rounded text-[10px] text-slate-700 transition">Good Form</button>
+                                    <button @click="addTag(log, 'Tegang')" class="bg-slate-100 hover:bg-yellow-500/20 hover:text-yellow-500 text-left px-2 py-1.5 rounded text-[10px] text-slate-700 transition">Tegang</button>
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div v-if="logs.length === 0" class="flex flex-col items-center justify-center py-10 text-slate-600">
+                <div v-if="logs.length === 0" class="flex flex-col items-center justify-center py-10 text-slate-400">
                     <p class="text-xs uppercase tracking-widest">Belum ada data</p>
                 </div>
             </div>
@@ -309,29 +315,29 @@
     </section>
 
     <section v-if="view === 'summary'" class="flex-grow flex flex-col p-6 animate-[fadeIn_0.5s] overflow-y-auto">
-        <div id="summary-capture" class="glass p-8 rounded-3xl shadow-2xl max-w-2xl mx-auto text-center border border-slate-700 bg-slate-900/90">
-                <i class="fa-solid fa-trophy text-5xl text-yellow-400 mb-4 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
-                <h2 class="text-2xl font-bold text-white mb-1">Sesi Selesai!</h2>
-                <p class="text-slate-400 text-xs uppercase mb-8">@{{ new Date().toLocaleString() }}</p>
+        <div id="summary-capture" class="glass p-8 rounded-3xl shadow-2xl max-w-2xl mx-auto text-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/90">
+                <i class="fa-solid fa-trophy text-5xl text-yellow-500 dark:text-yellow-400 mb-4 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-1">Sesi Selesai!</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-xs uppercase mb-8">@{{ new Date().toLocaleString() }}</p>
 
                 <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div class="bg-slate-800 p-4 rounded-xl">
-                        <div class="text-[10px] text-slate-400 uppercase">Total Lap</div>
-                        <div class="text-2xl font-mono font-bold text-white">@{{ logs.length }}</div>
+                    <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-xl">
+                        <div class="text-[10px] text-slate-400 dark:text-slate-400 uppercase">Total Lap</div>
+                        <div class="text-2xl font-mono font-bold text-slate-800 dark:text-white">@{{ logs.length }}</div>
                     </div>
-                    <div class="bg-slate-800 p-4 rounded-xl">
-                        <div class="text-[10px] text-slate-400 uppercase">Avg Time</div>
-                        <div class="text-2xl font-mono font-bold text-neon-green">@{{ calculateAvg() }}s</div>
+                    <div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-xl">
+                        <div class="text-[10px] text-slate-400 dark:text-slate-400 uppercase">Avg Time</div>
+                        <div class="text-2xl font-mono font-bold text-emerald-500 dark:text-neon-green">@{{ calculateAvg() }}s</div>
                     </div>
                 </div>
 
                 <div class="text-left space-y-6 mb-8">
-                    <div v-for="a in athleteAnalysis" :key="a.name" class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                        <h3 class="font-bold text-lg text-white mb-1 flex justify-between">
+                    <div v-for="a in athleteAnalysis" :key="a.name" class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-1 flex justify-between">
                             @{{ a.name }}
-                            <span class="text-xs font-mono text-neon-green self-center">Avg: @{{ a.avg }}s</span>
+                            <span class="text-xs font-mono text-emerald-500 dark:text-neon-green self-center">Avg: @{{ a.avg }}s</span>
                         </h3>
-                        <p class="text-xs text-slate-400 italic mb-3">"@{{ a.feedback }}"</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 italic mb-3">"@{{ a.feedback }}"</p>
                         <div class="h-40 w-full relative">
                             <canvas :id="'chart_' + a.safeName"></canvas>
                         </div>
@@ -339,13 +345,13 @@
                 </div>
 
             <div class="flex gap-3 flex-wrap" data-html2canvas-ignore>
-                <button @click="exportImage" class="flex-1 bg-neon-blue hover:bg-cyan-600 text-white font-bold py-3 rounded-xl transition whitespace-nowrap">
+                <button @click="exportImage" class="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-xl transition whitespace-nowrap">
                     <i class="fa-solid fa-image mr-1"></i> IMG
                 </button>
-                <button @click="downloadCSV" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition whitespace-nowrap">
+                <button @click="downloadCSV" class="flex-1 bg-slate-400 hover:bg-slate-500 text-white font-bold py-3 rounded-xl transition whitespace-nowrap">
                     <i class="fa-solid fa-download mr-1"></i> CSV
                 </button>
-                <button @click="resetSession" class="flex-1 bg-neon-green hover:bg-emerald-400 text-slate-900 font-bold py-3 rounded-xl transition whitespace-nowrap">
+                <button @click="resetSession" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-3 rounded-xl transition whitespace-nowrap">
                     <i class="fa-solid fa-rotate-right mr-1"></i> Baru
                 </button>
             </div>
@@ -353,50 +359,50 @@
     </section>
 
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/80 backdrop-blur-sm" @click.self="showModal = false">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-[slideUp_0.3s]">
+        <div class="bg-white border border-slate-200 w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-[slideUp_0.3s] dark:bg-slate-900 dark:border-slate-700">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h3 class="font-bold text-white text-lg">@{{ modalData.name }}</h3>
-                    <p class="text-xs text-slate-400 font-mono">Rep #@{{ modalData.rep }} | @{{ modalData.time.toFixed(2) }}s</p>
+                    <h3 class="font-bold text-slate-800 dark:text-white text-lg">@{{ modalData.name }}</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">Rep #@{{ modalData.rep }} | @{{ modalData.time.toFixed(2) }}s</p>
                 </div>
-                <button @click="showModal = false" class="bg-slate-800 w-8 h-8 rounded-full text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+                <button @click="showModal = false" class="bg-slate-200 w-8 h-8 rounded-full text-slate-500 dark:bg-slate-800 dark:text-slate-400"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div class="mb-5">
-                <label class="text-[10px] uppercase font-bold text-slate-400 mb-2 block">RPE (Usaha 1-10)</label>
+                <label class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-2 block">RPE (Usaha 1-10)</label>
                 <div class="flex justify-between gap-1">
                     <button v-for="n in 10" :key="n" @click="modalData.rpe = n"
-                        :class="modalData.rpe === n ? 'bg-gradient-to-t from-neon-green to-emerald-400 text-black scale-110' : 'bg-slate-800 text-slate-500'"
+                        :class="modalData.rpe === n ? 'bg-gradient-to-t from-emerald-500 to-emerald-400 text-black scale-110' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-500'"
                         class="w-8 h-10 rounded font-bold text-xs transition-all">@{{ n }}</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-5">
                 <div>
-                    <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block">Heart Rate</label>
+                    <label class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1 block">Heart Rate</label>
                     <div class="relative">
                         <i class="fa-solid fa-heart absolute left-3 top-3 text-red-500 text-xs"></i>
-                        <input v-model="modalData.hr" type="number" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-8 text-white focus:border-neon-green outline-none">
+                        <input v-model="modalData.hr" type="number" class="w-full bg-slate-200 border border-slate-300 rounded-lg py-2 pl-8 text-slate-800 focus:border-emerald-500 outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:border-neon-green">
                     </div>
                 </div>
                 <div>
-                    <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 block">Cadence (SPM)</label>
+                    <label class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1 block">Cadence (SPM)</label>
                     <div class="relative flex gap-2">
-                        <input v-model="modalData.cadence" type="number" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-2 pl-2 text-center text-white focus:border-neon-green outline-none">
-                        <button @click="toggleTapper" class="bg-slate-700 px-3 rounded-lg text-neon-blue hover:bg-slate-600"><i class="fa-solid fa-drum"></i></button>
+                        <input v-model="modalData.cadence" type="number" class="w-full bg-slate-200 border border-slate-300 rounded-lg py-2 pl-2 text-center text-slate-800 focus:border-emerald-500 outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:border-neon-green">
+                        <button @click="toggleTapper" class="bg-slate-300 px-3 rounded-lg text-cyan-500 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-neon-blue"><i class="fa-solid fa-drum"></i></button>
                     </div>
                 </div>
             </div>
 
-            <div v-if="showTapper" class="mb-5 bg-slate-800/50 p-4 rounded-xl border border-dashed border-slate-600 text-center">
-                <p class="text-[10px] text-slate-400 mb-2">Tap tombol mengikuti langkah kaki</p>
-                <button @click="recordTap" class="w-full h-14 bg-slate-700 hover:bg-slate-600 active:bg-neon-green active:text-black rounded-lg font-bold text-slate-300 transition-colors">TAP HERE</button>
-                <p class="mt-2 font-mono text-neon-green text-lg">@{{ tapperSpm }} <span class="text-xs text-slate-500">SPM</span></p>
+            <div v-if="showTapper" class="mb-5 bg-slate-100/50 p-4 rounded-xl border border-dashed border-slate-300 text-center dark:bg-slate-800/50 dark:border-slate-600">
+                <p class="text-[10px] text-slate-400 dark:text-slate-400 mb-2">Tap tombol mengikuti langkah kaki</p>
+                <button @click="recordTap" class="w-full h-14 bg-slate-300 hover:bg-slate-400 active:bg-emerald-500 active:text-black rounded-lg font-bold text-slate-800 transition-colors dark:bg-slate-700 dark:hover:bg-slate-600 dark:active:bg-neon-green dark:active:text-black">TAP HERE</button>
+                <p class="mt-2 font-mono text-emerald-500 dark:text-neon-green text-lg">@{{ tapperSpm }} <span class="text-xs text-slate-500">SPM</span></p>
             </div>
 
-            <textarea v-model="modalData.notes" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-neon-green outline-none mb-4 h-20" placeholder="Catatan teknis..."></textarea>
+            <textarea v-model="modalData.notes" class="w-full bg-slate-200 border border-slate-300 rounded-lg p-3 text-sm text-slate-800 focus:border-emerald-500 outline-none mb-4 h-20 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:border-neon-green" placeholder="Catatan teknis..."></textarea>
             
-            <button @click="saveModal" class="w-full bg-neon-green hover:bg-emerald-400 text-black font-bold py-3 rounded-xl transition">SIMPAN DATA</button>
+            <button @click="saveModal" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3 rounded-xl transition">SIMPAN DATA</button>
         </div>
     </div>
 
@@ -425,7 +431,7 @@
             const elapsedTime = ref(0);
             const isPaused = ref(false);
             const hasStarted = ref(false);
-            const theme = ref('dark');
+            const theme = ref('light');
             const ttsEnabled = ref(true);
             let timerInterval = null;
             let lastTime = 0;
