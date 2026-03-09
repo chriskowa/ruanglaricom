@@ -285,7 +285,7 @@
                                 </div>
                             </div>
 
-                            <div id="rlfa-state-results" class="absolute inset-0 bg-slate-950 hidden flex-col z-50 overflow-y-auto no-scrollbar">
+                            <div id="rlfa-state-results" class="absolute inset-0 bg-slate-950 hidden flex-col z-50 overflow-y-auto">
                                 <div class="p-6 pb-2 sticky top-0 bg-slate-950/95 backdrop-blur z-20 border-b border-slate-800">
                                     <div class="flex flex-col gap-3 mb-3">
                                         <div class="flex justify-between items-end">
@@ -644,7 +644,7 @@
                     <label class="block text-[11px] font-semibold text-slate-400 mb-1">No HP</label>
                     <input id="rlfa-expert-phone" name="phone" type="tel" required class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" placeholder="Nomor HP/WhatsApp" value="{{ auth()->user()->phone ?? '' }}">
                 </div>
-                <div class="text-xs text-slate-500">Harga: Rp 25.000 (sekali bayar)</div>
+                <div class="text-xs text-slate-500">Harga: Rp 5.000 (sekali bayar)</div>
                 <button id="rlfa-expert-submit" type="submit" class="w-full mt-1 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-black font-bold py-3 rounded-xl transition">
                     Bayar Sekarang
                 </button>
@@ -1187,6 +1187,9 @@
             });
 
             const r = landmarker.detectForVideo(video, Math.round(t * 1000));
+            // Small yield to browser for UI/scroll responsiveness
+            await new Promise(r => setTimeout(r, 0));
+            
             const lm = r?.landmarks?.[0];
             if (!lm || !Array.isArray(lm)) {
                 if (onProgress) onProgress({ phase: 'pose', done: i + 1, total: maxSamples, coverage: { ...counts } });
@@ -1469,56 +1472,37 @@
 
         URL.revokeObjectURL(url);
 
-        // Generate animated GIF from collected frames
-        let gifUrl = null;
-        
-        // Ensure gifshot is ready, wait up to 3 seconds if needed
-        if (!window.gifshot) {
-            console.warn('gifshot not ready, waiting...');
-            for (let retry = 0; retry < 30 && !window.gifshot; retry++) {
-                await new Promise(r => setTimeout(r, 100));
-            }
-        }
-
-        if (!window.gifshot) {
-            const scriptTag = document.getElementById('gifshot-script');
-            const scriptSrc = scriptTag ? scriptTag.src : 'unknown';
-            console.error('Library gifshot.js belum dimuat atau gagal dimuat. Src: ' + scriptSrc);
-            if (window.pushWarning) window.pushWarning('Gagal memuat modul animasi GIF (Path: ' + scriptSrc + '). Coba refresh halaman.');
-        }
-        
-        if (gifFrames.length >= 2 && window.gifshot) {
-            console.log('Generating GIF with ' + gifFrames.length + ' frames...');
-            if (onProgress) onProgress({ phase: 'gif', done: 0, total: gifFrames.length });
-            gifUrl = await new Promise((resolve) => {
-                try {
-                    window.gifshot.createGIF({
-                        images: gifFrames,
-                        gifWidth: gifW,
-                        gifHeight: gifH,
-                        interval: 0.12,
-                        numWorkers: 2,
-                        sample: 10,
-                        progressCallback: (p) => {
-                            if (onProgress) onProgress({ phase: 'gif', progress: p });
-                        },
-                    }, (obj) => {
-                        if (obj.error) {
-                            console.error('GIF generation error:', obj.error, obj.errorCode, obj.errorMsg);
-                            if (window.pushWarning) window.pushWarning('Gagal membuat animasi GIF: ' + obj.errorMsg);
-                        } else {
-                            console.log('GIF successfully generated, length:', obj.image?.length);
-                        }
-                        resolve(!obj.error && obj.image ? obj.image : null);
-                    });
-                } catch (e) {
-                    console.error('GIF generate promise error:', e);
-                    resolve(null);
+        // Define GIF task for background processing
+        const generateGifTask = async () => {
+            if (gifFrames.length >= 2 && window.gifshot) {
+                console.log('Generating GIF in background with ' + gifFrames.length + ' frames...');
+                // Ensure gifshot is ready
+                if (!window.gifshot) {
+                    for (let retry = 0; retry < 30 && !window.gifshot; retry++) {
+                        await new Promise(r => setTimeout(r, 100));
+                    }
                 }
-            });
-        } else {
-            console.warn('GIF skipped: frames=' + gifFrames.length + ', gifshot=' + !!window.gifshot);
-        }
+                if (!window.gifshot) return null;
+
+                return await new Promise((resolve) => {
+                    try {
+                        window.gifshot.createGIF({
+                            images: gifFrames,
+                            gifWidth: gifW,
+                            gifHeight: gifH,
+                            interval: 0.12,
+                            numWorkers: 2,
+                            sample: 10,
+                        }, (obj) => {
+                            resolve(!obj.error && obj.image ? obj.image : null);
+                        });
+                    } catch (e) {
+                        resolve(null);
+                    }
+                });
+            }
+            return null;
+        };
 
         const coverage = Object.keys(CATEGORY_REQUIREMENTS).reduce((acc, k) => {
             const min = CATEGORY_REQUIREMENTS[k].min;
@@ -1550,7 +1534,7 @@
             coverage_missing: coverageMissing,
             visualization: visualization,
             snapshots: snapshots,
-            gif_url: gifUrl,
+            generateGif: generateGifTask,
         };
     };
 
@@ -2592,6 +2576,7 @@
             stateResults.classList.remove('flex');
             stateScanning.classList.add('hidden');
             stateInstructions.classList.remove('hidden');
+            if (videoInput) videoInput.value = '';
         };
 
         const showScanning = () => {
@@ -2606,14 +2591,9 @@
             stateResults.classList.remove('hidden');
             stateResults.classList.add('flex');
             stateResults.scrollTop = 0;
+            
+            // Just center the app area, don't force a jumpy scroll inside the container immediately
             document.getElementById('rlfa-app').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setTimeout(() => {
-                if (visualizationWrap && visualizationImg && !visualizationWrap.classList.contains('hidden') && visualizationImg.src) {
-                    visualizationImg.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    stateResults.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-            }, 150);
         };
 
         const resetWarnings = () => {
@@ -3264,20 +3244,36 @@
 
                 const result = await analyze(file, v.meta, metrics);
                 if (metrics) result.client_metrics = metrics;
-                if (metrics && metrics.gif_url) result.gif_url = metrics.gif_url;
                 if (metrics && metrics.visualization) result.visualization = metrics.visualization;
+                
                 renderResults(result);
                 showResults();
                 incrementUsageCount();
+
+                // Lazy load the GIF in background after showing results
+                if (metrics && typeof metrics.generateGif === 'function') {
+                    console.log('Lazy loading GIF...');
+                    metrics.generateGif().then(gifUrl => {
+                        if (gifUrl && visualizationImg) {
+                            console.log('GIF ready, updating visualization');
+                            lastResult.gif_url = gifUrl;
+                            if (visualizationMode === 'gif') {
+                                visualizationImg.src = gifUrl;
+                            }
+                        }
+                    });
+                }
             } catch (e) {
                 const msg = e?.message || e?.error || 'Video gagal diproses. Coba lagi dengan durasi 5–10 detik dan ukuran lebih kecil.';
                 showInstructions();
+                resetWarnings();
+                resetPhotoState();
                 pushWarning(msg);
                 if (e && e.code === 'limit_reached') {
                     openQrisModal();
                 }
             } finally {
-                videoInput.value = '';
+                if (videoInput) videoInput.value = '';
             }
         };
 

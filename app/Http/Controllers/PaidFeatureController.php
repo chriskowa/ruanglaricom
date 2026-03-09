@@ -17,7 +17,7 @@ class PaidFeatureController extends Controller
     private const CATALOG = [
         'motion-capture-expert' => [
             'name' => 'Expert Form Analyzer',
-            'price' => 25000,
+            'price' => 5000,
         ],
     ];
 
