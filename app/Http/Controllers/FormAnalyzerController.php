@@ -148,18 +148,18 @@ class FormAnalyzerController extends Controller
                 $probeOriginal = $this->probeVideo($originalAbs);
                 $originalMeta = $this->buildMeta($probeOriginal, $data, $originalSize);
 
-                if ($originalMeta['duration_seconds'] && ($originalMeta['duration_seconds'] < 2 || $originalMeta['duration_seconds'] > 60)) {
+                if ($originalMeta['duration_seconds'] && $originalMeta['duration_seconds'] > 60) {
                     return response()->json([
                         'ok' => false,
-                        'error' => 'Durasi video tidak sesuai.',
-                        'message' => 'Gunakan video 2–60 detik. Rekomendasi terbaik: 5–10 detik.',
+                        'error' => 'Durasi video terlalu panjang.',
+                        'message' => 'Gunakan video maksimal 60 detik.',
                     ], 422);
                 }
-                if ($originalMeta['width'] && $originalMeta['height'] && min($originalMeta['width'], $originalMeta['height']) < 240) {
+                if ($originalMeta['width'] && $originalMeta['height'] && min($originalMeta['width'], $originalMeta['height']) < 120) {
                     return response()->json([
                         'ok' => false,
                         'error' => 'Resolusi video terlalu rendah.',
-                        'message' => 'Minimal 240p. Rekomendasi terbaik: 720p agar lutut & ankle terbaca jelas.',
+                        'message' => 'Video terlalu kecil untuk diproses.',
                     ], 422);
                 }
 
@@ -391,6 +391,7 @@ class FormAnalyzerController extends Controller
             'trunk_lean_deg' => $num('trunk_lean_deg'),
             'arm_cross_pct' => $num('arm_cross_pct'),
             'cadence_spm' => $num('cadence_spm'),
+            'elbow_angle_deg' => $num('elbow_angle_deg'),
             'vertical_oscillation' => $num('vertical_oscillation'),
             'asymmetry' => $num('asymmetry'),
         ];

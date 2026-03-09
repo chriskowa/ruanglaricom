@@ -152,19 +152,43 @@
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">Daftar Atlet & Readiness</label>
-                        <button @click="addSetupAthlete" class="text-emerald-500 hover:text-emerald-400"><i class="fa-solid fa-plus-circle"></i> ADD</button>
+                        <button @click="addSetupAthlete" class="text-emerald-500 hover:text-emerald-400 text-xs font-black tracking-tighter"><i class="fa-solid fa-plus-circle"></i> TAMBAH ATLET</button>
                     </div>
-                    <div class="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scroll">
-                        <div v-for="(a, i) in setupAthletes" :key="i" class="flex gap-2 items-center bg-slate-100 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
-                            <input v-model="a.name" class="bg-transparent w-full text-sm text-slate-800 dark:text-white font-mono outline-none placeholder-slate-400 dark:placeholder-slate-600" placeholder="Nama Atlet...">
-                            <input v-model.number="a.target" type="number" class="neon-input w-20 rounded-lg p-2 text-center font-mono text-xs text-slate-800 dark:text-white" placeholder="80">
-                            <div class="text-[10px] text-emerald-500 dark:text-neon-green font-mono w-16 text-center">@{{ calculatePace(a.target||0, program.distance) }}</div>
-                            <div class="flex bg-slate-200 dark:bg-slate-900 rounded-lg p-1 gap-1 shrink-0">
-                                <button @click="a.readiness = 'green'" :class="a.readiness === 'green' ? 'bg-green-500 scale-110' : 'bg-slate-300 dark:bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
-                                <button @click="a.readiness = 'yellow'" :class="a.readiness === 'yellow' ? 'bg-yellow-500 scale-110' : 'bg-slate-300 dark:bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
-                                <button @click="a.readiness = 'red'" :class="a.readiness === 'red' ? 'bg-red-500 scale-110' : 'bg-slate-300 dark:bg-slate-700 opacity-50'" class="w-5 h-5 rounded-full transition"></button>
+                    <div class="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scroll">
+                        <div v-for="(a, i) in setupAthletes" :key="i" class="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm relative group animate-[fadeIn_0.3s]">
+                            
+                            <!-- Field Nama: Block approach -->
+                            <div class="mb-3">
+                                <label class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 block">Nama Atlet</label>
+                                <input v-model="a.name" class="w-full bg-slate-50 dark:bg-slate-900 text-sm text-slate-800 dark:text-white font-mono p-3 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-emerald-500 transition-colors" placeholder="Masukkan nama...">
                             </div>
-                            <button @click="removeSetupAthlete(i)" class="text-slate-400 hover:text-red-500 px-1"><i class="fa-solid fa-trash text-xs"></i></button>
+
+                            <!-- Controls: Grid approach -->
+                            <div class="grid grid-cols-3 gap-3 items-end">
+                                <div>
+                                    <label class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1 block">Target (s)</label>
+                                    <input v-model.number="a.target" type="number" class="w-full bg-slate-50 dark:bg-slate-900 text-sm text-slate-800 dark:text-white font-mono p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center" placeholder="80">
+                                </div>
+                                <div class="text-center pb-2">
+                                    <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1">Pace</div>
+                                    <div class="text-xs font-mono text-emerald-500 font-bold">@{{ calculatePace(a.target||0, program.distance) }}</div>
+                                </div>
+                                <div class="text-right pb-1">
+                                    <button @click="removeSetupAthlete(i)" class="bg-red-50 dark:bg-red-500/10 text-red-500 p-3 rounded-xl hover:bg-red-100 transition-colors">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Readiness: Block + Grid -->
+                            <div class="mt-4 border-t border-slate-100 dark:border-slate-700 pt-3">
+                                <label class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-2 block text-center sm:text-left">Kesiapan (Readiness)</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button @click="a.readiness = 'green'" :class="a.readiness === 'green' ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'" class="py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wider">Siap</button>
+                                    <button @click="a.readiness = 'yellow'" :class="a.readiness === 'yellow' ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/20' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'" class="py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wider">Lelah</button>
+                                    <button @click="a.readiness = 'red'" :class="a.readiness === 'red' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'" class="py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wider">Cedera</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -231,7 +255,7 @@
             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-4xl mx-auto">
                 <div v-for="(a, idx) in athletes" :key="idx" @click="handleBalloon(idx)"
                     :class="getBalloonClass(a)"
-                    class="aspect-square rounded-2xl flex flex-col items-center justify-center relative cursor-pointer transition-transform active:scale-95 select-none bg-slate-100 dark:bg-slate-800">
+                    class="aspect-square rounded-2xl relative cursor-pointer transition-transform active:scale-95 select-none bg-white dark:bg-slate-800 p-2 overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
                     
                     <!-- Readiness Indicator -->
                     <div class="absolute top-2 right-2 w-2 h-2 rounded-full shadow-[0_0_5px_currentColor]"
@@ -240,25 +264,32 @@
 
                     <div v-if="isPaused" class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center rounded-2xl"><i class="fa-solid fa-pause text-white/30 text-2xl"></i></div>
 
-                    <div class="text-[10px] sm:text-xs font-bold uppercase truncate px-2 w-full text-center text-slate-800 dark:text-white">@{{ a.name }}</div>
+                    <!-- Nama Atlet: Block approach at the top -->
+                    <div class="text-[9px] sm:text-[10px] font-black uppercase truncate w-full text-center text-slate-500 dark:text-slate-400 mb-1">
+                        @{{ a.name }}
+                    </div>
                     
-                    <div v-if="a.status === 'active'" class="text-center mt-1">
-                        <span class="text-2xl sm:text-3xl font-black font-mono text-slate-800 dark:text-white">@{{ a.currentRep + 1 }}</span>
-                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold block -mt-1">/@{{ program.reps }}</span>
+                    <!-- Content Area -->
+                    <div class="text-center pt-1">
+                        <div v-if="a.status === 'active'">
+                            <div class="text-2xl sm:text-3xl font-black font-mono text-slate-800 dark:text-white leading-none">@{{ a.currentRep + 1 }}</div>
+                            <div class="text-[8px] text-slate-400 dark:text-slate-500 font-bold uppercase mt-0.5">Rep</div>
+                        </div>
+
+                        <div v-else-if="a.status === 'resting'">
+                            <div class="text-2xl sm:text-3xl font-black font-mono text-yellow-500 leading-none">@{{ Math.ceil(a.restCountdown) }}</div>
+                            <div class="text-[8px] text-yellow-500 font-bold uppercase mt-0.5">Rest</div>
+                        </div>
+
+                        <div v-else>
+                            <i class="fa-solid fa-check-double text-2xl text-emerald-500"></i>
+                            <div class="text-[8px] text-emerald-500 font-bold uppercase mt-0.5">Done</div>
+                        </div>
                     </div>
 
-                    <div v-else-if="a.status === 'resting'" class="text-center mt-1">
-                        <span class="text-2xl sm:text-3xl font-black font-mono text-slate-800 dark:text-white">@{{ Math.ceil(a.restCountdown) }}</span>
-                        <span class="text-[9px] uppercase tracking-widest block -mt-1 text-slate-500 opacity-70">REST</span>
-                    </div>
-
-                    <div v-else class="text-center mt-1">
-                        <i class="fa-solid fa-check text-2xl text-slate-500"></i>
-                        <span class="text-[9px] block mt-1 text-slate-500">DONE</span>
-                    </div>
-
-                    <div class="absolute bottom-0 left-0 h-1 bg-slate-200 dark:bg-white/10 w-full rounded-b-2xl overflow-hidden">
-                        <div class="h-full bg-current transition-all duration-500" :style="{width: ((a.currentRep/program.reps)*100) + '%'}"></div>
+                    <!-- Progress Bar at the bottom -->
+                    <div class="absolute bottom-0 left-0 h-1.5 bg-slate-100 dark:bg-slate-900 w-full">
+                        <div class="h-full bg-emerald-500 transition-all duration-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" :style="{width: ((a.currentRep/program.reps)*100) + '%'}"></div>
                     </div>
                 </div>
             </div>
@@ -280,10 +311,12 @@
                     <tbody class="divide-y divide-slate-200 dark:divide-slate-700/50">
                         <tr v-for="log in logs.slice().reverse()" :key="log.id" class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                             <td class="p-3 font-mono text-slate-500 dark:text-slate-500 text-xs">@{{ log.rep }}</td>
-                            <td class="p-3 font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                @{{ log.name }}
-                                <span v-if="log.rpe" class="w-2 h-2 rounded-full bg-purple-500 dark:bg-neon-purple"></span>
-                                <i v-if="log.notes && log.notes.includes('WARNING')" class="fa-solid fa-triangle-exclamation text-red-500 animate-pulse text-xs"></i>
+                            <td class="p-3 font-bold text-slate-800 dark:text-white">
+                                <div class="inline-block align-middle">
+                                    @{{ log.name }}
+                                    <span v-if="log.rpe" class="inline-block w-2 h-2 rounded-full bg-purple-500 dark:bg-neon-purple ml-1"></span>
+                                    <i v-if="log.notes && log.notes.includes('WARNING')" class="fa-solid fa-triangle-exclamation text-red-500 animate-pulse text-xs ml-1"></i>
+                                </div>
                             </td>
                             <td class="p-3 text-right font-mono text-emerald-500 dark:text-neon-green">@{{ log.time.toFixed(2) }}</td>
                             <td class="p-3 text-right font-mono text-slate-500 dark:text-slate-400 text-xs hidden sm:table-cell">@{{ log.pace }}</td>

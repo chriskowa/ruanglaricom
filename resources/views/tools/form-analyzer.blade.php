@@ -333,10 +333,17 @@
 
                                 <div class="p-5 space-y-4 pb-20">
                                     <div id="rlfa-visualization-wrap" class="hidden mb-6">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Visualisasi</h4>
+                                            <div class="flex bg-slate-900 border border-slate-700 rounded-lg p-1 overflow-hidden">
+                                                <button id="rlfa-vis-toggle-gif" type="button" class="px-3 py-1 text-[10px] font-bold rounded bg-neon text-dark transition-colors">GIF Gerak</button>
+                                                <button id="rlfa-vis-toggle-photo" type="button" class="px-3 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition-colors">Statis</button>
+                                            </div>
+                                        </div>
                                         <div class="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-black">
-                                            <img id="rlfa-visualization-img" class="w-full h-auto object-cover opacity-90" src="" alt="Analysis Visualization">
-                                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-4">
-                                                <p class="text-neon text-[10px] font-bold tracking-widest uppercase">Biomechanics Visualization</p>
+                                            <img id="rlfa-visualization-img" class="w-full h-auto object-cover" src="" alt="Analysis Visualization">
+                                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-4 flex items-center justify-between pointer-events-none">
+                                                <p id="rlfa-vis-label" class="text-neon text-[10px] font-bold tracking-widest uppercase">Biomechanics Visualization</p>
                                             </div>
                                         </div>
                                     </div>
@@ -432,6 +439,10 @@
                                     <div class="pt-4 space-y-2">
                                         <button id="rlfa-advanced-btn" type="button" class="w-full bg-neon text-dark font-bold py-3 rounded-xl text-sm hover:bg-white">
                                             Lihat Analisis Advance
+                                        </button>
+                                        <button id="rlfa-download-gif-btn" type="button" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-xl text-sm hover:from-emerald-500 hover:to-teal-500 transition flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-film"></i>
+                                            Download GIF Skeleton
                                         </button>
                                         <button id="rlfa-download-pdf-btn" type="button" class="w-full bg-slate-900 text-slate-100 font-bold py-3 rounded-xl text-sm border border-slate-700 hover:bg-slate-800">
                                             Download PDF Hasil Analisis
@@ -814,6 +825,18 @@
 @endsection
 
 @push('scripts')
+<script id="gifshot-script" src="{{ asset('js/gifshot.js') }}?v={{ time() }}" onload="console.log('gifshot.js loaded successfully')" onerror="console.error('gifshot.js failed to load from local asset')"></script>
+<script>
+    // Fallback if local file fails or is missing (e.g. during development/CDN preference)
+    if (typeof window.gifshot === 'undefined') {
+        console.warn('gifshot.js not found locally, trying CDN...');
+        const script = document.createElement('script');
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.4.5/gifshot.min.js";
+        script.onload = () => console.log('gifshot.js loaded from CDN');
+        script.onerror = () => console.error('gifshot.js failed to load from CDN');
+        document.head.appendChild(script);
+    }
+</script>
 @php
     $snapUrl = config('midtrans.is_production')
         ? 'https://app.midtrans.com/snap/snap.js'
@@ -845,7 +868,7 @@
             const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
             return await PoseLandmarker.createFromOptions(vision, {
                 baseOptions: {
-                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
                 },
                 runningMode: "VIDEO",
                 numPoses: 1,
@@ -863,7 +886,7 @@
             const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
             return await PoseLandmarker.createFromOptions(vision, {
                 baseOptions: {
-                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task",
                 },
                 runningMode: "IMAGE",
                 numPoses: 1,
@@ -875,73 +898,92 @@
         return landmarkerImagePromise;
     };
 
-    const drawBiomechanics = (video, landmarks, width, height) => {
+    // Helper: draw color-coded skeleton on an existing canvas context
+    const drawSkeletonOnCtx = (ctx, lm, w, h, metrics) => {
+        if (!lm) return;
+        const lVis = (lm[27]?.visibility ?? 0) + (lm[25]?.visibility ?? 0);
+        const rVis = (lm[28]?.visibility ?? 0) + (lm[26]?.visibility ?? 0);
+        const isLeft = lVis >= rVis;
+        const s = isLeft ? [11,13,15,23,25,27,29,31] : [12,14,16,24,26,28,30,32];
+        const pt = (idx) => { const p = lm[idx]; return p ? { x: p.x * w, y: p.y * h } : null; };
+        const shoulder = pt(s[0]), elbow = pt(s[1]), wrist = pt(s[2]);
+        const hip = pt(s[3]), knee = pt(s[4]), ankle = pt(s[5]), foot = pt(s[7]);
+
+        const segColor = (val, iLow, iHigh, wLow, wHigh) => {
+            if (!Number.isFinite(val)) return '#94a3b8';
+            if (val < iLow || val > iHigh) return '#ef4444';
+            if (val < wLow || val > wHigh) return '#f59e0b';
+            return '#4ade80';
+        };
+        const kCol = segColor(metrics?.knee_flex_deg, 25, 60, 28, 55);
+        const sCol = segColor(metrics?.shin_angle_deg, 4, 22, 6, 18);
+        const tCol = segColor(metrics?.trunk_lean_deg, 3, 13, 5, 11);
+
+        const line = (a, b, col, lw = 3) => {
+            if (!a || !b) return;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.stroke();
+        };
+        const dot = (p, col, r = 5) => {
+            if (!p) return;
+            ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = col; ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1; ctx.stroke();
+        };
+        const label = (p, txt, ox, oy) => {
+            if (!p) return;
+            ctx.font = `bold ${Math.max(11, Math.floor(w * 0.042))}px monospace`;
+            ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
+            ctx.fillText(txt, p.x + ox, p.y + oy); ctx.shadowBlur = 0;
+        };
+
+        // Ground reference line
+        if (ankle) {
+            ctx.beginPath(); ctx.moveTo(0, ankle.y + 6); ctx.lineTo(w, ankle.y + 6);
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
+            ctx.setLineDash([4, 8]); ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        line(shoulder, hip, tCol, 4);
+        line(hip, knee, kCol, 4);
+        line(knee, ankle, sCol, 4);
+        line(ankle, foot, '#94a3b8', 2);
+        line(shoulder, elbow, '#60a5fa', 3);
+        line(elbow, wrist, '#60a5fa', 3);
+        [shoulder, hip, knee, ankle].forEach(p => dot(p, '#ffffff'));
+        [elbow, wrist].forEach(p => dot(p, '#60a5fa', 4));
+
+        if (knee && hip && ankle) {
+            const kA = angle(hip, knee, ankle);
+            const flex = kA ? (180 - kA).toFixed(0) : '--';
+            label(knee, `${flex}°`, 8, -8);
+        }
+        if (knee && ankle) {
+            const sv = { x: ankle.x - knee.x, y: ankle.y - knee.y };
+            const sm = Math.hypot(sv.x, sv.y);
+            const sAng = sm > 0 ? toDeg(Math.acos(clamp(Math.abs(sv.y) / sm, 0, 1))).toFixed(0) : '--';
+            label(ankle, `${sAng}°`, 8, 14);
+        }
+        if (metrics?.cadence_spm && Number.isFinite(metrics.cadence_spm)) {
+            const cadColor = metrics.cadence_spm >= 170 && metrics.cadence_spm <= 185 ? '#4ade80' : '#f59e0b';
+            ctx.font = `bold ${Math.max(10, Math.floor(w * 0.038))}px monospace`;
+            ctx.fillStyle = 'rgba(0,0,0,0.65)';
+            ctx.fillRect(4, 4, Math.floor(w * 0.38), Math.floor(w * 0.09));
+            ctx.fillStyle = cadColor; ctx.shadowColor = '#000'; ctx.shadowBlur = 3;
+            ctx.fillText(`${Math.round(metrics.cadence_spm)} SPM`, 8, Math.floor(w * 0.076));
+            ctx.shadowBlur = 0;
+        }
+    };
+
+    const drawBiomechanics = (video, landmarks, width, height, metrics) => {
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, width, height);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
         ctx.fillRect(0, 0, width, height);
-        if (!landmarks) return canvas.toDataURL('image/jpeg', 0.8);
-        const drawLine = (start, end, color = '#ccff00', width = 3) => {
-            if (!start || !end) return;
-            ctx.beginPath();
-            ctx.moveTo(start.x * width, start.y * height);
-            ctx.lineTo(end.x * width, end.y * height);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = width;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-        };
-        const drawPoint = (pt, color = '#ffffff', radius = 4) => {
-            if (!pt) return;
-            ctx.beginPath();
-            ctx.arc(pt.x * width, pt.y * height, radius, 0, 2 * Math.PI);
-            ctx.fillStyle = color;
-            ctx.fill();
-        };
-        const drawAngle = (center, text) => {
-            if (!center) return;
-            ctx.font = 'bold 16px monospace';
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = '#000000';
-            ctx.shadowBlur = 4;
-            ctx.fillText(text, (center.x * width) + 10, (center.y * height) - 10);
-        };
-        const L = {
-            leftShoulder: 11, rightShoulder: 12, leftHip: 23, rightHip: 24,
-            leftKnee: 25, rightKnee: 26, leftAnkle: 27, rightAnkle: 28,
-            leftFootIndex: 31, rightFootIndex: 32
-        };
-        const lVis = (landmarks[L.leftAnkle]?.visibility ?? 0) + (landmarks[L.leftKnee]?.visibility ?? 0);
-        const rVis = (landmarks[L.rightAnkle]?.visibility ?? 0) + (landmarks[L.rightKnee]?.visibility ?? 0);
-        const isLeft = lVis > rVis;
-        const hip = landmarks[isLeft ? L.leftHip : L.rightHip];
-        const knee = landmarks[isLeft ? L.leftKnee : L.rightKnee];
-        const ankle = landmarks[isLeft ? L.leftAnkle : L.rightAnkle];
-        const shoulder = landmarks[isLeft ? L.leftShoulder : L.rightShoulder];
-        const foot = landmarks[isLeft ? L.leftFootIndex : L.rightFootIndex];
-        drawLine(shoulder, hip, '#ccff00');
-        drawLine(hip, knee, '#ccff00');
-        drawLine(knee, ankle, '#ccff00');
-        drawLine(ankle, foot, '#ccff00');
-        drawPoint(shoulder);
-        drawPoint(hip);
-        drawPoint(knee);
-        drawPoint(ankle);
-        drawPoint(foot);
-        if (hip && knee && ankle) {
-             const kAngle = angle(hip, knee, ankle);
-             const flex = kAngle ? (180 - kAngle).toFixed(0) : '--';
-             drawAngle(knee, `${flex}°`);
-        }
-        if (knee && ankle) {
-             const dx = Math.abs(knee.x - ankle.x);
-             const dy = Math.abs(knee.y - ankle.y);
-             const ang = (dy > 0) ? toDeg(Math.atan2(dx, dy)).toFixed(0) : '--';
-             drawAngle(ankle, `${ang}°`);
-        }
+        drawSkeletonOnCtx(ctx, landmarks, width, height, metrics);
         return canvas.toDataURL('image/jpeg', 0.85);
     };
 
@@ -1061,6 +1103,8 @@
         const L = {
             leftShoulder: 11,
             rightShoulder: 12,
+            leftElbow: 13,
+            rightElbow: 14,
             leftWrist: 15,
             rightWrist: 16,
             leftHip: 23,
@@ -1074,6 +1118,24 @@
             leftFootIndex: 31,
             rightFootIndex: 32,
         };
+
+        // GIF frame collection
+        const GIF_TARGET_FRAMES = 15;
+        const gifW = Math.min(360, width);
+        const gifH = Math.round(gifW * (height / width)) || gifW;
+        const gifFrames = [];
+        const gifInterval = Math.max(1, Math.floor(maxSamples / GIF_TARGET_FRAMES));
+        console.log('GIF config: maxSamples=' + maxSamples + ', targetFrames=' + GIF_TARGET_FRAMES + ', interval=' + gifInterval);
+        const fCanvas = document.createElement('canvas');
+        fCanvas.width = gifW; fCanvas.height = gifH;
+        const fCtx = fCanvas.getContext('2d', { willReadFrequently: true });
+
+        // Cadence tracking
+        let prevFootContact = false;
+        const footStrikeTimes = [];
+
+        // Running elbow angle accumulator
+        const elbowAngles = [];
 
         const pickSide = (lm) => {
             const lv = lm[L.leftAnkle]?.visibility ?? 0;
@@ -1178,9 +1240,10 @@
             const kAngle = angle(hip, knee, ankle);
             const kneeFlex = kAngle ? (180 - kAngle) : null;
 
-            const shinDx = Math.abs(knee.x - ankle.x);
-            const shinDy = Math.abs(knee.y - ankle.y);
-            const shinAng = (shinDy > 0) ? toDeg(Math.atan2(shinDx, shinDy)) : null;
+            // Fixed shin angle: angle from vertical (ground reference)
+            const shinVec = { x: ankle.x - knee.x, y: ankle.y - knee.y };
+            const shinMag = Math.hypot(shinVec.x, shinVec.y);
+            const shinAng = shinMag > 0 ? toDeg(Math.acos(clamp(Math.abs(shinVec.y) / shinMag, 0, 1))) : null;
 
             const trunkDx = midX - hip.x;
             const trunkDy = ((lShoulder.y + rShoulder.y) / 2 - hip.y);
@@ -1197,6 +1260,19 @@
             const footContact = footY > (runningMaxFootY - 0.035);
             const wristOk = (lWrist && (lWrist.v ?? 0) >= 0.5 && inFrame(lWrist)) || (rWrist && (rWrist.v ?? 0) >= 0.5 && inFrame(rWrist));
 
+            // Cadence: detect foot contact rising edge
+            if (footContact && !prevFootContact) footStrikeTimes.push(t);
+            prevFootContact = footContact;
+
+            // Elbow angle (arm quality)
+            const sideElbow = getPt(lm, side === 'left' ? L.leftElbow : L.rightElbow);
+            const sideWrist = getPt(lm, side === 'left' ? L.leftWrist : L.rightWrist);
+            const sideShoulder = getPt(lm, side === 'left' ? L.leftShoulder : L.rightShoulder);
+            if (sideShoulder && sideElbow && sideWrist && (sideElbow.v ?? 0) >= 0.4) {
+                const eA = angle(sideShoulder, sideElbow, sideWrist);
+                if (eA !== null && Number.isFinite(eA)) elbowAngles.push(eA);
+            }
+
             const categories = [];
             if (footContact && ankleHipDx > 0.06) categories.push('landing');
             if (footContact && ankleHipDx >= 0.03 && ankleHipDx <= 0.09 && kneeFlex !== null && kneeFlex >= 22 && kneeFlex <= 60) categories.push('lever');
@@ -1206,6 +1282,34 @@
             if (trunkAng !== null && Number.isFinite(trunkAng)) categories.push('posture');
 
             const qScore = qBase.score;
+
+            // Collect GIF frames at regular intervals and key phase frames
+            if (gifFrames.length < GIF_TARGET_FRAMES && (i % gifInterval === 0 || categories.some(c => ['landing','lever','push','pull'].includes(c)))) {
+                try {
+                    const approxCadence = footStrikeTimes.length >= 2 && t > start
+                        ? ((footStrikeTimes.length / (t - start)) * 60) : null;
+                    
+                    // Small delay to ensure frame is painted
+                    await new Promise(r => setTimeout(r, 10));
+                    
+                    fCtx.drawImage(video, 0, 0, gifW, gifH);
+                    fCtx.fillStyle = 'rgba(0,0,0,0.3)';
+                    fCtx.fillRect(0, 0, gifW, gifH);
+                    drawSkeletonOnCtx(fCtx, lm, gifW, gifH, {
+                        knee_flex_deg: kneeFlex,
+                        shin_angle_deg: shinAng,
+                        trunk_lean_deg: trunkAng,
+                        cadence_spm: approxCadence,
+                    });
+                    const frameData = fCanvas.toDataURL('image/jpeg', 0.65);
+                    if (frameData && frameData.length > 500) {
+                        gifFrames.push(frameData);
+                    }
+                } catch (e) {
+                    console.warn('GIF frame capture failed:', e);
+                }
+            }
+
             frames.push({
                 t,
                 footY,
@@ -1277,6 +1381,16 @@
 
         let visualization = null;
         let snapshots = [];
+
+        // Aggregate final metrics for color-coding in visualization
+        const finalMetrics = {
+            knee_flex_deg: avg(contact.map((f) => f.kneeFlex)),
+            shin_angle_deg: avg(contact.map((f) => f.shinAng)),
+            trunk_lean_deg: avg(frames.map((f) => f.trunkAng)),
+            cadence_spm: footStrikeTimes.length >= 2
+                ? Math.round((footStrikeTimes.length / Math.max(0.01, end - start)) * 60) : null,
+        };
+
         try {
             const pickBest = () => {
                 const landing = best.landing?.landmarks ? best.landing : null;
@@ -1285,6 +1399,9 @@
                 if (landing) return landing;
                 if (posture) return posture;
                 if (lever) return lever;
+                // Fallback to the first available contact frame or just the first frame
+                if (contact.length > 0 && contact[0].landmarks) return contact[0];
+                if (frames.length > 0 && frames[0].landmarks) return frames[0];
                 return null;
             };
             const bf = pickBest();
@@ -1294,7 +1411,7 @@
                     const handler = () => { video.removeEventListener('seeked', handler); resolve(); };
                     video.addEventListener('seeked', handler);
                 });
-                visualization = drawBiomechanics(video, bf.landmarks, width, height);
+                visualization = drawBiomechanics(video, bf.landmarks, width, height, finalMetrics);
             }
         } catch (e) {
             console.error(e);
@@ -1310,7 +1427,7 @@
             const phaseOrder = ['landing', 'lever', 'push', 'pull'];
             const used = new Set();
             for (const phase of phaseOrder) {
-                if (snapshots.length >= 3) break;
+                if (snapshots.length >= 4) break;
                 const bf = best[phase];
                 if (!bf || !bf.landmarks || !Number.isFinite(bf.t) || used.has(bf.t)) continue;
                 used.add(bf.t);
@@ -1319,9 +1436,31 @@
                     const handler = () => { video.removeEventListener('seeked', handler); resolve(); };
                     video.addEventListener('seeked', handler);
                 });
-                const img = drawBiomechanics(video, bf.landmarks, width, height);
+                const img = drawBiomechanics(video, bf.landmarks, width, height, finalMetrics);
                 if (img) {
                     snapshots.push({ phase, label: phaseLabel[phase] || phase, image: img });
+                }
+            }
+
+            // Fallback: if we didn't get 4 snapshots from exact phases, fill the rest from contact frames
+            if (snapshots.length < 4 && frames.length > 0) {
+                const pool = contact.length > 4 ? contact : frames;
+                const needed = 4 - snapshots.length;
+                const step = Math.max(1, Math.floor(pool.length / needed));
+                
+                for (let i = 0; i < pool.length && snapshots.length < 4; i += step) {
+                    const bf = pool[i];
+                    if (!bf || !bf.landmarks || !Number.isFinite(bf.t) || used.has(bf.t)) continue;
+                    used.add(bf.t);
+                    video.currentTime = bf.t;
+                    await new Promise((resolve) => {
+                        const handler = () => { video.removeEventListener('seeked', handler); resolve(); };
+                        video.addEventListener('seeked', handler);
+                    });
+                    const img = drawBiomechanics(video, bf.landmarks, width, height, finalMetrics);
+                    if (img) {
+                        snapshots.push({ phase: 'snapshot', label: 'FRAME SELEKSI', image: img });
+                    }
                 }
             }
         } catch (e) {
@@ -1329,6 +1468,57 @@
         }
 
         URL.revokeObjectURL(url);
+
+        // Generate animated GIF from collected frames
+        let gifUrl = null;
+        
+        // Ensure gifshot is ready, wait up to 3 seconds if needed
+        if (!window.gifshot) {
+            console.warn('gifshot not ready, waiting...');
+            for (let retry = 0; retry < 30 && !window.gifshot; retry++) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+        }
+
+        if (!window.gifshot) {
+            const scriptTag = document.getElementById('gifshot-script');
+            const scriptSrc = scriptTag ? scriptTag.src : 'unknown';
+            console.error('Library gifshot.js belum dimuat atau gagal dimuat. Src: ' + scriptSrc);
+            if (window.pushWarning) window.pushWarning('Gagal memuat modul animasi GIF (Path: ' + scriptSrc + '). Coba refresh halaman.');
+        }
+        
+        if (gifFrames.length >= 2 && window.gifshot) {
+            console.log('Generating GIF with ' + gifFrames.length + ' frames...');
+            if (onProgress) onProgress({ phase: 'gif', done: 0, total: gifFrames.length });
+            gifUrl = await new Promise((resolve) => {
+                try {
+                    window.gifshot.createGIF({
+                        images: gifFrames,
+                        gifWidth: gifW,
+                        gifHeight: gifH,
+                        interval: 0.12,
+                        numWorkers: 2,
+                        sample: 10,
+                        progressCallback: (p) => {
+                            if (onProgress) onProgress({ phase: 'gif', progress: p });
+                        },
+                    }, (obj) => {
+                        if (obj.error) {
+                            console.error('GIF generation error:', obj.error, obj.errorCode, obj.errorMsg);
+                            if (window.pushWarning) window.pushWarning('Gagal membuat animasi GIF: ' + obj.errorMsg);
+                        } else {
+                            console.log('GIF successfully generated, length:', obj.image?.length);
+                        }
+                        resolve(!obj.error && obj.image ? obj.image : null);
+                    });
+                } catch (e) {
+                    console.error('GIF generate promise error:', e);
+                    resolve(null);
+                }
+            });
+        } else {
+            console.warn('GIF skipped: frames=' + gifFrames.length + ', gifshot=' + !!window.gifshot);
+        }
 
         const coverage = Object.keys(CATEGORY_REQUIREMENTS).reduce((acc, k) => {
             const min = CATEGORY_REQUIREMENTS[k].min;
@@ -1352,12 +1542,15 @@
             knee_flex_deg: Number.isFinite(kneeFlex) ? Number(kneeFlex.toFixed(1)) : null,
             trunk_lean_deg: Number.isFinite(trunkAng) ? Number(trunkAng.toFixed(1)) : null,
             arm_cross_pct: Number.isFinite(armCrossPct) ? Number(armCrossPct.toFixed(1)) : null,
+            cadence_spm: finalMetrics.cadence_spm,
+            elbow_angle_deg: elbowAngles.length ? Number(avg(elbowAngles).toFixed(1)) : null,
             vertical_oscillation: Number.isFinite(verticalOsc) ? Number(verticalOsc.toFixed(4)) : null,
             trunk_std_deg: Number.isFinite(trunkStd) ? Number(trunkStd.toFixed(2)) : null,
             coverage: coverage,
             coverage_missing: coverageMissing,
             visualization: visualization,
             snapshots: snapshots,
+            gif_url: gifUrl,
         };
     };
 
@@ -1491,7 +1684,14 @@
         const heelStrikePct = landing?.heel_strike === null ? null : (landing.heel_strike ? 100 : 0);
 
         const confAvg = avg(Object.values(results).map((r) => r?.confidence));
-        const visualization = landing?.visualization || lever?.visualization || push?.visualization || pull?.visualization || front?.visualization || null;
+        
+        // Pick the best visualization (prioritize side profile phases)
+        const visualization = lever?.visualization || 
+                              landing?.visualization || 
+                              push?.visualization || 
+                              pull?.visualization || 
+                              front?.visualization || 
+                              null;
 
         return {
             source: 'photos',
@@ -1511,6 +1711,11 @@
     };
 
     window.RLFormAnalyzerPose = { analyzeVideoFile, analyzePhotoSet };
+
+    // Preload pose model in background after page loads
+    if (typeof window !== 'undefined') {
+        window.addEventListener('load', () => setTimeout(() => getLandmarker().catch(() => {}), 800));
+    }
 </script>
 <script>
     (function () {
@@ -1603,6 +1808,9 @@
         const recoveryEl = document.getElementById('rlfa-recovery');
         const visualizationWrap = document.getElementById('rlfa-visualization-wrap');
         const visualizationImg = document.getElementById('rlfa-visualization-img');
+        const visToggleGif = document.getElementById('rlfa-vis-toggle-gif');
+        const visTogglePhoto = document.getElementById('rlfa-vis-toggle-photo');
+        const visLabel = document.getElementById('rlfa-vis-label');
         const advancedBtn = document.getElementById('rlfa-advanced-btn');
         const advancedModal = document.getElementById('rlfa-advanced-modal');
         const advancedClose = document.getElementById('rlfa-advanced-close');
@@ -1646,6 +1854,8 @@
         let expertSubmitting = false;
         let expertEnabled = false;
         let lastResult = null;
+        let currentVisGif = null;
+        let currentVisPhoto = null;
 
         const isAdmin = @json(auth()->check() && auth()->user()->isAdmin());
         const USAGE_KEY = 'rlfa_usage_count';
@@ -2319,7 +2529,7 @@
 
         const openAdvanced = () => {
             if (!advancedModal) return;
-            if (!expertEnabled) {
+            if (!expertEnabled && !isAdmin) {
                 openExpertModal();
                 return;
             }
@@ -2419,6 +2629,7 @@
             p.textContent = message;
             clientWarningsBox.appendChild(p);
         };
+        window.pushWarning = pushWarning;
 
         const setInputMode = (mode) => {
             inputMode = mode === 'photos' ? 'photos' : 'video';
@@ -2615,26 +2826,74 @@
                 };
             });
 
-            if (meta.duration && (meta.duration < 4 || meta.duration > 25)) {
-                pushWarning(`Durasi ${formatDuration(meta.duration)}. Rekomendasi 5–10 detik, maksimal 20 detik.`);
-            }
-            if (meta.width && meta.height) {
-                const isPortrait = meta.height > meta.width;
-                if (isPortrait) pushWarning('Video portrait diperbolehkan. Pastikan seluruh tubuh masuk frame dan lutut/ankle terlihat jelas.');
-                if (Math.max(meta.width, meta.height) < 720) pushWarning('Resolusi cukup rendah. Usahakan minimal 720p agar lutut & ankle terbaca jelas.');
+            // Warn only for truly oversized or very short videos
+            if (meta.duration && meta.duration > 35) {
+                pushWarning(`Durasi ${formatDuration(meta.duration)}. Rekomendasi 5–10 detik.`);
             }
 
             return { ok: true, meta };
         };
 
+        const setVisualizationMode = (mode) => {
+            if (mode === 'gif' && currentVisGif) {
+                if (visualizationImg) {
+                    visualizationImg.src = currentVisGif;
+                    visualizationImg.title = 'Animasi GIF Skeleton Gerak';
+                }
+                if (visLabel) visLabel.textContent = 'Animasi Gerak';
+                if (visToggleGif) visToggleGif.className = 'px-3 py-1 text-[10px] font-bold rounded bg-neon text-dark transition-colors';
+                if (visTogglePhoto) visTogglePhoto.className = 'px-3 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition-colors cursor-pointer';
+            } else if (mode === 'photo' && currentVisPhoto) {
+                if (visualizationImg) {
+                    visualizationImg.src = currentVisPhoto;
+                    visualizationImg.title = 'Visualisasi Pose Statis';
+                }
+                if (visLabel) visLabel.textContent = 'Pose Terbaik (Statis)';
+                if (visTogglePhoto) visTogglePhoto.className = 'px-3 py-1 text-[10px] font-bold rounded bg-neon text-dark transition-colors';
+                if (visToggleGif) visToggleGif.className = 'px-3 py-1 text-[10px] font-bold rounded text-slate-400 hover:text-white transition-colors cursor-pointer';
+            }
+        };
+
         const renderResults = (result) => {
+            console.log('Rendering results, gif_url exists:', !!result.gif_url);
+            currentVisGif = result.gif_url || null;
+            currentVisPhoto = result.visualization || null;
             if (visualizationWrap && visualizationImg) {
-                if (result.visualization) {
-                    visualizationImg.src = result.visualization;
+                if (currentVisGif || currentVisPhoto) {
                     visualizationWrap.classList.remove('hidden');
+                    if (currentVisGif) setVisualizationMode('gif');
+                    else setVisualizationMode('photo');
+                    
+                    if (visToggleGif && visTogglePhoto) {
+                        const toggleContainer = visToggleGif.parentElement;
+                        if (currentVisGif && currentVisPhoto) {
+                            toggleContainer.classList.remove('hidden');
+                            toggleContainer.classList.add('flex');
+                        } else {
+                            toggleContainer.classList.remove('flex');
+                            toggleContainer.classList.add('hidden');
+                        }
+                    }
                 } else {
                     visualizationWrap.classList.add('hidden');
                     visualizationImg.src = '';
+                }
+            }
+            // GIF download button
+            const downloadGifBtn = document.getElementById('rlfa-download-gif-btn');
+            if (downloadGifBtn) {
+                if (currentVisGif) {
+                    downloadGifBtn.classList.remove('hidden');
+                    downloadGifBtn.onclick = () => {
+                        const a = document.createElement('a');
+                        a.href = currentVisGif;
+                        a.download = 'skeleton-animasi.gif';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    };
+                } else {
+                    downloadGifBtn.classList.add('hidden');
                 }
             }
 
@@ -2809,7 +3068,7 @@
             if (Array.isArray(value)) return value.map(stripLargeMetricFields);
             const out = {};
             Object.keys(value).forEach((k) => {
-                if (k === 'visualization' || k === 'snapshots') return;
+                if (k === 'visualization' || k === 'snapshots' || k === 'gif_url') return;
                 out[k] = stripLargeMetricFields(value[k]);
             });
             return out;
@@ -2979,7 +3238,14 @@
                                 return `${label} ${x.count}/${x.min}${ok ? '✓' : ''}`;
                             }).filter(Boolean).join(' • ');
                         };
-                        metrics = await window.RLFormAnalyzerPose.analyzeVideoFile(file, ({ done, total, coverage, note }) => {
+                        metrics = await window.RLFormAnalyzerPose.analyzeVideoFile(file, ({ phase, done, total, coverage, note }) => {
+                            if (phase === 'gif') {
+                                scanText.textContent = 'MEMBUAT GIF SKELETON...';
+                                scanSubtext.textContent = 'Merender animasi rangka gerak.';
+                                scanMetric1.textContent = '✦';
+                                scanMetric2.textContent = 'GIF';
+                                return;
+                            }
                             const pct = total ? Math.round((done / total) * 100) : 0;
                             scanMetric1.textContent = pct + '%';
                             if (coverage) {
@@ -2998,6 +3264,7 @@
 
                 const result = await analyze(file, v.meta, metrics);
                 if (metrics) result.client_metrics = metrics;
+                if (metrics && metrics.gif_url) result.gif_url = metrics.gif_url;
                 if (metrics && metrics.visualization) result.visualization = metrics.visualization;
                 renderResults(result);
                 showResults();
@@ -3135,6 +3402,9 @@
 
         inputModeVideoBtn?.addEventListener('click', () => setInputMode('video'));
         inputModePhotosBtn?.addEventListener('click', () => setInputMode('photos'));
+
+        visToggleGif?.addEventListener('click', () => setVisualizationMode('gif'));
+        visTogglePhoto?.addEventListener('click', () => setVisualizationMode('photo'));
 
         downloadPdfBtn?.addEventListener('click', downloadPdf);
         downloadImageBtn?.addEventListener('click', downloadImageReport);
