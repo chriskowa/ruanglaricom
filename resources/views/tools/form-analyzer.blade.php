@@ -1708,7 +1708,7 @@
         const routePaidCheckout = @json(route('tools.paid-feature.checkout'));
         const routePaidConfirm = @json(route('tools.paid-feature.confirm'));
         const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        const hasPaidFeature = @json($hasPaidFeature ?? false);
+        const hasPaidFeature = true; // Buka fitur Expert untuk semua orang
 
         const stateInstructions = document.getElementById('rlfa-state-instructions');
         const stateScanning = document.getElementById('rlfa-state-scanning');
@@ -1836,7 +1836,8 @@
         const expertFeedback = document.getElementById('rlfa-expert-feedback');
         let qrisSubmitting = false;
         let expertSubmitting = false;
-        let expertEnabled = false;
+        let expertEnabled = true; // Langsung aktifkan fitur Expert untuk semua orang
+        window.RLFA_EXPERT_MODE = true; // Langsung aktifkan fitur Expert untuk semua orang
         let lastResult = null;
         let currentVisGif = null;
         let currentVisPhoto = null;
@@ -2205,7 +2206,7 @@
             qrisModal.classList.add('hidden');
         };
 
-        let expertAccess = hasPaidFeature;
+        let expertAccess = true; // Langsung beri akses Expert untuk semua orang
 
         const openExpertModal = () => {
             if (!expertModal) return;
@@ -3664,7 +3665,7 @@
 
         updateExpertLabel();
         updateExpertStatus();
-        window.RLFA_EXPERT_MODE = false;
+        window.RLFA_EXPERT_MODE = true; // Langsung aktifkan fitur Expert untuk semua orang
 
         initSupporterBadge();
         const savedResult = loadLastResult();
