@@ -1841,6 +1841,7 @@
         let lastResult = null;
         let currentVisGif = null;
         let currentVisPhoto = null;
+        let currentVisualizationMode = 'gif';
 
         const isAdmin = @json(auth()->check() && auth()->user()->isAdmin());
         const USAGE_KEY = 'rlfa_usage_count';
@@ -2816,6 +2817,7 @@
         };
 
         const setVisualizationMode = (mode) => {
+            currentVisualizationMode = mode;
             if (mode === 'gif' && currentVisGif) {
                 if (visualizationImg) {
                     visualizationImg.src = currentVisGif;
@@ -2842,8 +2844,13 @@
             if (visualizationWrap && visualizationImg) {
                 if (currentVisGif || currentVisPhoto) {
                     visualizationWrap.classList.remove('hidden');
-                    if (currentVisGif) setVisualizationMode('gif');
-                    else setVisualizationMode('photo');
+                    if (currentVisGif && currentVisPhoto) {
+                        setVisualizationMode(currentVisualizationMode === 'photo' ? 'photo' : 'gif');
+                    } else if (currentVisGif) {
+                        setVisualizationMode('gif');
+                    } else {
+                        setVisualizationMode('photo');
+                    }
                     
                     if (visToggleGif && visTogglePhoto) {
                         const toggleContainer = visToggleGif.parentElement;
@@ -3243,7 +3250,7 @@
                     }
                 }
 
-                const result = await analyze(file, v.meta, metrics);
+                const result = await analyze(file, v.meta, metrics, { uploadVideoOverride: !metrics });
                 if (metrics) result.client_metrics = metrics;
                 if (metrics && metrics.visualization) result.visualization = metrics.visualization;
                 
@@ -3254,13 +3261,41 @@
                 // Lazy load the GIF in background after showing results
                 if (metrics && typeof metrics.generateGif === 'function') {
                     console.log('Lazy loading GIF...');
+                    if (visToggleGif) {
+                        visToggleGif.textContent = 'Merender...';
+                        visToggleGif.classList.add('animate-pulse');
+                    }
                     metrics.generateGif().then(gifUrl => {
-                        if (gifUrl && visualizationImg) {
-                            console.log('GIF ready, updating visualization');
-                            lastResult.gif_url = gifUrl;
-                            if (visualizationMode === 'gif') {
-                                visualizationImg.src = gifUrl;
+                        if (visToggleGif) {
+                            visToggleGif.textContent = 'GIF Gerak';
+                            visToggleGif.classList.remove('animate-pulse');
+                        }
+                        if (!gifUrl) return;
+                        console.log('GIF ready, updating visualization');
+                        currentVisGif = gifUrl;
+                        if (lastResult) lastResult.gif_url = gifUrl;
+                        if (visualizationWrap) visualizationWrap.classList.remove('hidden');
+                        if (visToggleGif && visTogglePhoto) {
+                            const toggleContainer = visToggleGif.parentElement;
+                            if (toggleContainer) {
+                                toggleContainer.classList.remove('hidden');
+                                toggleContainer.classList.add('flex');
                             }
+                        }
+                        if (!currentVisPhoto || currentVisualizationMode === 'gif') {
+                            setVisualizationMode('gif');
+                        }
+                        const downloadGifBtn = document.getElementById('rlfa-download-gif-btn');
+                        if (downloadGifBtn) {
+                            downloadGifBtn.classList.remove('hidden');
+                            downloadGifBtn.onclick = () => {
+                                const a = document.createElement('a');
+                                a.href = gifUrl;
+                                a.download = 'skeleton-animasi.gif';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            };
                         }
                     });
                 }
@@ -3378,6 +3413,7 @@
         uploadBtn?.addEventListener('click', () => {
             resetWarnings();
             if (inputMode === 'video') {
+                if (videoInput) videoInput.value = '';
                 videoInput?.click();
                 return;
             }
