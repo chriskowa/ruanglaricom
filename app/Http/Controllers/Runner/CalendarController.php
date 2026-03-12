@@ -933,9 +933,12 @@ class CalendarController extends Controller
                     'end_date' => null,
                 ]);
             }
+
+            // Also delete all custom workouts
+            CustomWorkout::where('runner_id', $user->id)->delete();
         });
 
-        return response()->json(['success' => true, 'message' => 'All active plans have been reset to Program Bag.']);
+        return response()->json(['success' => true, 'message' => 'All active plans and custom workouts have been reset.']);
     }
 
     /**

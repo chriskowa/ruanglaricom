@@ -1471,6 +1471,55 @@ createApp({
         const syncLoading = ref(false);
         const isSyncingStrava = ref(false);
         const detail = reactive({});
+        
+        const resetDetail = () => {
+            // Basic Info
+            detailTitle.value = '';
+            detail.date = null;
+            detail.date_formatted = null;
+            detail.type = 'run';
+            detail.distance = null;
+            detail.duration = null;
+            detail.difficulty = null;
+            detail.program_difficulty = null;
+            detail.description = null;
+            detail.status = 'pending';
+            detail.source = null;
+            detail.workout_id = null;
+            detail.enrollment_id = null;
+            detail.session_day = null;
+            detail.workout_structure = null;
+            detail.strength = null;
+
+            // Tracking / Results
+            detail.target_pace = null;
+            detail.recommended_pace = null;
+            detail.coach_feedback = null;
+            detail.coach_rating = null;
+            detail.strava_link = null;
+            detail.notes = null;
+            detail.actual_pace = null;
+            detail.actual_duration = null;
+            detail.actual_distance = null;
+
+            // Strava Data
+            detail.strava_metrics = null;
+            detail.strava_splits = [];
+            detail.strava_laps = [];
+            detail.strava_streams = null;
+            detail.strava_zone_analysis = null;
+            detail.strava_zone_effect = null;
+            detail.strava_zone_suggestion = null;
+
+            // AI / Expert
+            detail.analysis = null;
+            detail.suggestion = null;
+            
+            stravaDetailsLoading.value = false;
+            stravaDetailsError.value = '';
+            stravaLinkInput.value = '';
+            notesInput.value = '';
+        };
         const detailTitle = ref('');
         const stravaLinkInput = ref('');
         const notesInput = ref('');
@@ -2127,7 +2176,7 @@ createApp({
 
 
         const resetPlanList = async () => {
-            if(!confirm('Are you sure? This will STOP all active programs and move them back to your Program Bag. All progress will be reset.')) return;
+            if(!confirm('Apakah Anda yakin? Ini akan MENGHENTIKAN semua program aktif dan menghapus semua custom workout. Semua progress akan direset.')) return;
             
             try {
                 const res = await fetch(`{{ route('runner.calendar.reset-plan-list') }}`, {
@@ -2912,21 +2961,19 @@ createApp({
         };
 
         const showEventDetail = (info) => {
+            resetDetail();
+            
             showVdotModal.value = false;
             showFormModal.value = false;
             showRaceModal.value = false;
+            
             const props = info.event.extendedProps || {};
-            stravaDetailsLoading.value = false;
-            stravaDetailsError.value = '';
-            detail.strava_metrics = null;
-            detail.strava_splits = [];
-            detail.strava_laps = [];
-            detail.actual_pace = null;
-            if (props.type === 'program_session') {
+            const type = props.type || null;
+
+            if (type === 'program_session') {
                 const s = props.session || {};
                 detailTitle.value = props.program_title || 'Program Session';
                 detail.date = info.event.startStr;
-                detail.date_formatted = null;
                 detail.type = s.type || 'run';
                 detail.distance = s.distance || null;
                 detail.duration = s.duration || null;
@@ -2936,22 +2983,14 @@ createApp({
                 detail.enrollment_id = props.enrollment_id;
                 detail.session_day = s.day;
                 detail.target_pace = props.target_pace || null;
+                detail.strength = s.strength || null;
+                detail.source = 'program';
                 
-                // Hide target pace for non-running activities
                 if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
                     detail.target_pace = null;
                 }
-
                 detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance);
-                
-                // Fetch tracking data if available in session object or need separate call
-                // Assuming session object might have tracking info if passed from backend
-                // But fullcalendar events usually minimal. 
-                // We might need to check tracking status from extendedProps if available
-                
-                stravaLinkInput.value = '';
-                notesInput.value = '';
-            } else if (props.type === 'custom_workout') {
+            } else if (type === 'custom_workout') {
                 const w = props.workout || {};
                 detailTitle.value = w.type === 'race' ? (w.workout_structure?.race_name || 'Race Event') : 'Custom Workout';
                 detail.date = info.event.startStr;
@@ -2963,26 +3002,22 @@ createApp({
                 detail.status = w.status || 'pending';
                 detail.workout_id = w.id || props.workout_id || null;
                 detail.workout_structure = w.workout_structure || null;
+                detail.strength = w.strength || w.workout_structure?.strength || null;
                 detail.source = 'custom';
                 
-                // Hide target pace for non-running activities
                 if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
                     detail.target_pace = null;
                 }
-
                 detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance);
-            } else if (props.type === 'strava_activity') {
+            } else if (type === 'strava_activity') {
                 detailTitle.value = 'Strava Activity';
                 detail.date = info.event.startStr;
                 detail.type = props.activity_type || 'run';
                 detail.distance = props.distance_km || null;
                 detail.duration = props.moving_time_s ? Math.round(props.moving_time_s / 60) + ' min' : null;
-                detail.difficulty = null;
-                detail.description = props.name || null;
                 detail.status = 'imported';
                 detail.source = 'strava';
-                detail.target_pace = null;
-                detail.recommended_pace = null;
+                detail.description = props.name || null;
 
                 stravaLinkInput.value = props.strava_url || '';
                 notesInput.value = 'Imported from Strava sync';
@@ -2990,7 +3025,16 @@ createApp({
                 if (props.strava_activity_id) {
                     loadStravaDetails(props.strava_activity_id);
                 }
+            } else {
+                // Fallback for "empty" or unknown types
+                detail.type = props.activity_type || type || 'run';
+                detail.date = info.event.startStr;
+                detailTitle.value = info.event.title || 'Workout Event';
+                detail.description = props.description || null;
+                detail.workout_id = props.workout_id || null;
+                detail.source = props.workout_id ? 'custom' : (props.enrollment_id ? 'program' : null);
             }
+            
             showDetailModal.value = true;
         };
 
@@ -3050,6 +3094,13 @@ createApp({
         };
 
         const deleteCustomWorkout = async (workoutId) => {
+            if (!workoutId) {
+                alert('ID workout tidak ditemukan. Tidak dapat menghapus.');
+                return;
+            }
+
+            if (!confirm('Hapus aktivitas kustom ini?')) return;
+            
             try {
                 const res = await fetch(`{{ url('/runner/calendar/custom-workout') }}/${workoutId}`, {
                     method: 'POST',
@@ -3057,12 +3108,18 @@ createApp({
                     body: JSON.stringify({ _method:'DELETE' })
                 });
                 const data = await res.json();
-                if (data.success) {
+                if (data.success || data.ok) {
                     showDetailModal.value = false;
                     if (calendar) calendar.refetchEvents();
-                    await loadPlans();
+                    if (typeof loadPlans === 'function') await loadPlans();
+                    if (typeof fetchPlans === 'function') await fetchPlans();
+                } else {
+                    alert(data.error || 'Gagal menghapus aktivitas');
                 }
-            } catch {}
+            } catch (e) {
+                console.error(e);
+                alert('Terjadi kesalahan saat menghapus');
+            }
         };
 
         const updateSessionStatus = async (plan, status, stravaLink = null, notes = null, rpe = null, feeling = null) => {
@@ -3209,7 +3266,8 @@ createApp({
             stravaDetailsLoading, stravaDetailsError, formatSeconds, displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass,
             showRescheduleModal, rescheduleTarget, rescheduleForm, rescheduleLoading, openRescheduleModal, submitReschedule,
             showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans,
-            showApplyModal, applyForm, applyLoading, applyTarget, submitApply
+            showApplyModal, applyForm, applyLoading, applyTarget, submitApply,
+            countExercises, parseStrengthExercises
         };
     }
 
