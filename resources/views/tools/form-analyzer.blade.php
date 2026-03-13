@@ -44,9 +44,9 @@
 
 @section('content')
 <div class="relative overflow-hidden">
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none opacity-40">
-        <div class="absolute top-20 left-10 w-96 h-96 bg-neon rounded-full mix-blend-multiply filter blur-[120px] animate-pulse-slow"></div>
-        <div class="absolute bottom-20 right-10 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-[120px] opacity-70"></div>
+    <div class="absolute inset-0 z-0 pointer-events-none">
+        <img src="https://ruanglari.com/storage/blog/media/kP2oNYsx0wEzCGJMQYKN1xxUBW3oaUMTCfydDSig.webp" class="w-full h-full object-cover opacity-20" alt="Hero Background">
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950/40 to-slate-950 opacity-80"></div>
     </div>
 
     <section class="relative pt-20 pb-16 lg:pt-28 lg:pb-24">
@@ -260,7 +260,7 @@
                             </div>
 
                             <div id="rlfa-state-scanning" class="absolute inset-0 bg-black hidden z-40">
-                                <img src="{{ asset('images/form-analyzer.webp') }}" class="w-full h-full object-cover opacity-60 grayscale filter contrast-125" alt="Running Analysis">
+                                <img src="{{ asset('https://res.cloudinary.com/dslfarxct/image/upload/v1773393886/619384805_18054239606396080_5509173628491964013_n_krmlav.webp') }}" class="w-full h-full object-cover opacity-60 grayscale filter contrast-125" alt="Running Analysis">
                                 <div class="absolute inset-0">
                                     <div class="absolute w-full h-[2px] bg-neon shadow-[0_0_20px_#ccff00] animate-scan z-50"></div>
                                     <div class="absolute top-[40%] left-[45%] w-3 h-3 bg-neon rounded-full shadow-[0_0_10px_#ccff00] animate-pulse"></div>
