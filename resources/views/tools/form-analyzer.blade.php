@@ -2277,7 +2277,7 @@
             qrisModal.classList.add('hidden');
         };
 
-        let expertAccess = true; // Langsung beri akses Expert untuk semua orang
+        let expertAccess = @json($hasPaidFeature);
 
         const openExpertModal = () => {
             if (!expertModal) return;
@@ -3845,7 +3845,7 @@
 
         updateExpertLabel();
         updateExpertStatus();
-        window.RLFA_EXPERT_MODE = true; // Langsung aktifkan fitur Expert untuk semua orang
+        window.RLFA_EXPERT_MODE = expertAccess; // Sesuaikan dengan akses asli
 
         initSupporterBadge();
         const savedResult = loadLastResult();

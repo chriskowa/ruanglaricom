@@ -20,9 +20,9 @@ class FormAnalyzerController extends Controller
 
     public function index()
     {
-        $hasPaidFeature = true;
         $user = auth()->user();
-        /*
+        $hasPaidFeature = false;
+        
         if ($user) {
             $hasPaidFeature = PaidFeature::query()
                 ->where('user_id', $user->id)
@@ -33,7 +33,6 @@ class FormAnalyzerController extends Controller
                 })
                 ->exists();
         }
-        */
 
         return view('tools.form-analyzer', compact('hasPaidFeature'));
     }
@@ -64,9 +63,19 @@ class FormAnalyzerController extends Controller
 
             $user = $request->user();
             $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
-            $hasPaidFeature = true; // Buka fitur Expert untuk semua orang (sementara)
+            
+            $hasPaidFeature = false;
+            if ($user) {
+                $hasPaidFeature = PaidFeature::query()
+                    ->where('user_id', $user->id)
+                    ->where('feature_slug', 'motion-capture-expert')
+                    ->where('status', 'paid')
+                    ->where(function ($query) {
+                        $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                    })
+                    ->exists();
+            }
 
-            // Logika limit tetap ada tapi dilewati jika hasPaidFeature = true
             if (! $isAdmin && ! $hasPaidFeature) {
                 $ip = $request->ip();
                 $sessionId = $request->session()->getId();
