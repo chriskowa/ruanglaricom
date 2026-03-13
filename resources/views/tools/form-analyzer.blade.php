@@ -438,7 +438,7 @@
 
                                     <div class="pt-4 space-y-2">
                                         <button id="rlfa-advanced-btn" type="button" class="w-full bg-neon text-dark font-bold py-3 rounded-xl text-sm hover:bg-white">
-                                            Lihat Analisis Advance
+                                            Lihat Analisis Lari
                                         </button>
                                         <button id="rlfa-download-gif-btn" type="button" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-xl text-sm hover:from-emerald-500 hover:to-teal-500 transition flex items-center justify-center gap-2">
                                             <i class="fa-solid fa-film"></i>
@@ -480,38 +480,60 @@
                 </button>
             </div>
             <div class="p-5 space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div class="space-y-3">
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Preview Analisis</div>
-                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
-                            <img id="rlfa-advanced-preview" class="w-full h-auto object-cover" src="" alt="Preview Analisis">
-                        </div>
+                <div class="space-y-3">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Preview Analisis</div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+                        <img id="rlfa-advanced-preview" class="w-full h-auto max-h-[300px] object-contain mx-auto" src="" alt="Preview Analisis">
                     </div>
-                    <div class="space-y-3">
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ideal Form Guide</div>
-                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3">
-                            <svg viewBox="0 0 220 320" class="w-full h-56" fill="none">
-                                <rect x="8" y="8" width="204" height="304" rx="16" stroke="#1f2937" stroke-width="2"/>
-                                <line x1="110" y1="40" x2="110" y2="120" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
-                                <line x1="110" y1="120" x2="140" y2="200" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
-                                <line x1="140" y1="200" x2="90" y2="260" stroke="#ccff00" stroke-width="4" stroke-linecap="round"/>
-                                <circle cx="110" cy="30" r="10" fill="#ccff00"/>
-                                <circle cx="110" cy="120" r="5" fill="#ffffff"/>
-                                <circle cx="140" cy="200" r="5" fill="#ffffff"/>
-                                <circle cx="90" cy="260" r="5" fill="#60a5fa"/>
-                                <path d="M110 120 L150 120" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
-                                <path d="M140 200 L170 200" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4 4"/>
-                                <text x="118" y="110" fill="#ccff00" font-size="10" font-weight="700">Trunk 5–10°</text>
-                                <text x="148" y="190" fill="#ccff00" font-size="10" font-weight="700">Knee 30–45°</text>
-                                <text x="100" y="250" fill="#ccff00" font-size="10" font-weight="700">Shin 85–95°</text>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ideal Form Guide</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <!-- Landing Guide -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 flex flex-col items-center">
+                            <div class="text-[10px] font-bold text-neon uppercase mb-2">1. Landing</div>
+                            <svg viewBox="0 0 100 140" class="w-full h-32" fill="none">
+                                <line x1="50" y1="20" x2="50" y2="60" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <line x1="50" y1="60" x2="65" y2="100" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <line x1="65" y1="100" x2="65" y2="130" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="50" cy="15" r="5" fill="#ccff00"/>
+                                <text x="5" y="125" fill="#60a5fa" font-size="8" font-weight="700">Shin 90°</text>
+                                <path d="M65 100 L45 100" stroke="#60a5fa" stroke-width="1" stroke-dasharray="2 2"/>
                             </svg>
+                            <div class="text-[9px] text-slate-400 text-center mt-1">Landing di bawah pusat gravitasi</div>
+                        </div>
+                        <!-- Lever Guide -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 flex flex-col items-center">
+                            <div class="text-[10px] font-bold text-neon uppercase mb-2">2. Lever</div>
+                            <svg viewBox="0 0 100 140" class="w-full h-32" fill="none">
+                                <line x1="45" y1="20" x2="50" y2="60" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <line x1="50" y1="60" x2="70" y2="90" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <line x1="70" y1="90" x2="45" y2="130" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="45" cy="15" r="5" fill="#ccff00"/>
+                                <text x="5" y="40" fill="#60a5fa" font-size="8" font-weight="700">Trunk 7°</text>
+                                <text x="75" y="95" fill="#60a5fa" font-size="8" font-weight="700">Knee 40°</text>
+                            </svg>
+                            <div class="text-[9px] text-slate-400 text-center mt-1">Stabilitas core & bending lutut</div>
+                        </div>
+                        <!-- Push Guide -->
+                        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 flex flex-col items-center">
+                            <div class="text-[10px] font-bold text-neon uppercase mb-2">3. Push</div>
+                            <svg viewBox="0 0 100 140" class="w-full h-32" fill="none">
+                                <line x1="60" y1="20" x2="50" y2="60" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <line x1="50" y1="60" x2="20" y2="100" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <line x1="20" y1="100" x2="10" y2="135" stroke="#ccff00" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="60" cy="15" r="5" fill="#ccff00"/>
+                                <text x="30" y="130" fill="#60a5fa" font-size="8" font-weight="700">Full Ext.</text>
+                            </svg>
+                            <div class="text-[9px] text-slate-400 text-center mt-1">Ekstensi pinggul & dorongan kuat</div>
                         </div>
                     </div>
                 </div>
 
                 <div id="rlfa-adv-snapshots-wrap" class="hidden">
                     <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Snapshot Form Bermasalah</div>
-                    <div id="rlfa-adv-snapshots" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                    <div id="rlfa-adv-snapshots" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
@@ -1701,6 +1723,54 @@
         window.addEventListener('load', () => setTimeout(() => getLandmarker().catch(() => {}), 800));
     }
 </script>
+
+<div id="rlfa-lightbox" class="fixed inset-0 bg-black/90 z-[9999] hidden items-center justify-center p-4 sm:p-8 backdrop-blur-sm transition-opacity duration-300">
+    <div class="relative w-full h-full flex items-center justify-center">
+        <img id="rlfa-lightbox-img" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" src="">
+        <button id="rlfa-lightbox-close" class="absolute top-4 right-4 text-white/80 hover:text-white text-4xl font-bold transition-colors z-50 drop-shadow-lg">&times;</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const lightbox = document.getElementById('rlfa-lightbox');
+        const lightboxImg = document.getElementById('rlfa-lightbox-img');
+        const lightboxClose = document.getElementById('rlfa-lightbox-close');
+
+        window.openLightbox = (src) => {
+            if (!lightbox || !lightboxImg) return;
+            lightboxImg.src = src;
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        };
+
+        const closeLightbox = () => {
+            if (!lightbox) return;
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+            if (lightboxImg) setTimeout(() => lightboxImg.src = '', 300);
+            document.body.style.overflow = ''; // Restore scrolling
+        };
+
+        if (lightbox) lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox || e.target.closest('.relative') === lightbox.firstElementChild) closeLightbox();
+        });
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightbox && !lightbox.classList.contains('hidden')) {
+                closeLightbox();
+            }
+        });
+
+        if (lightboxClose) lightboxClose.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeLightbox();
+        });
+    })();
+</script>
+
 <script>
     (function () {
         const routeAnalyze = @json(route('tools.form-analyzer.analyze'));
@@ -2370,11 +2440,11 @@
         const buildIssueFlags = (metrics) => {
             if (!metrics) return {};
             return {
-                overstride: Number.isFinite(metrics.overstride_pct) && metrics.overstride_pct >= 20,
-                heel: Number.isFinite(metrics.heel_strike_pct) && metrics.heel_strike_pct >= 50,
-                trunk: Number.isFinite(metrics.trunk_lean_deg) && (metrics.trunk_lean_deg < 3 || metrics.trunk_lean_deg > 12),
-                knee: Number.isFinite(metrics.knee_flex_deg) && (metrics.knee_flex_deg < 25 || metrics.knee_flex_deg > 60),
-                shin: Number.isFinite(metrics.shin_angle_deg) && (metrics.shin_angle_deg < 80 || metrics.shin_angle_deg > 100),
+                overstride: Number.isFinite(metrics.overstride_pct) && metrics.overstride_pct >= 15,
+                heel: Number.isFinite(metrics.heel_strike_pct) && metrics.heel_strike_pct >= 40,
+                trunk: Number.isFinite(metrics.trunk_lean_deg) && (metrics.trunk_lean_deg < 4 || metrics.trunk_lean_deg > 11),
+                knee: Number.isFinite(metrics.knee_flex_deg) && (metrics.knee_flex_deg < 28 || metrics.knee_flex_deg > 55),
+                shin: Number.isFinite(metrics.shin_angle_deg) && (metrics.shin_angle_deg < 82 || metrics.shin_angle_deg > 98),
                 arm: Number.isFinite(metrics.arm_cross_pct) && metrics.arm_cross_pct >= 10,
             };
         };
@@ -2397,16 +2467,31 @@
 
         const createSnapshotCard = (snap) => {
             const wrap = document.createElement('div');
-            wrap.className = 'bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden';
+            wrap.className = 'relative group bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-neon/20 transition-all duration-300';
+            
             const img = document.createElement('img');
             img.src = snap.image;
             img.alt = snap.label || 'Snapshot';
-            img.className = 'w-full h-40 object-cover';
+            img.className = 'w-full h-auto object-cover aspect-[3/4] transition-transform duration-500 group-hover:scale-105';
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center';
+            overlay.innerHTML = '<i class="fa-solid fa-magnifying-glass-plus text-white text-3xl drop-shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300"></i>';
+
+            const labelContainer = document.createElement('div');
+            labelContainer.className = 'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 pt-8';
+            
             const label = document.createElement('div');
-            label.className = 'px-3 py-2 text-xs font-bold text-slate-300 uppercase tracking-widest';
+            label.className = 'text-xs font-bold text-white uppercase tracking-widest drop-shadow-md';
             label.textContent = snap.label || snap.phase || 'Snapshot';
+            
+            labelContainer.appendChild(label);
             wrap.appendChild(img);
-            wrap.appendChild(label);
+            wrap.appendChild(overlay);
+            wrap.appendChild(labelContainer);
+            
+            wrap.addEventListener('click', () => window.openLightbox(snap.image));
+            
             return wrap;
         };
 
@@ -2443,8 +2528,8 @@
                 ]
             });
 
-            const calfStatus = (Number.isFinite(heel) && heel >= 60) || (Number.isFinite(shin) && (shin < 80 || shin > 100)) ? 'issue'
-                : (Number.isFinite(heel) && heel >= 35) ? 'warn' : 'ok';
+            const calfStatus = (Number.isFinite(heel) && heel >= 40) || (Number.isFinite(shin) && (shin < 82 || shin > 98)) ? 'issue'
+                : (Number.isFinite(heel) && heel >= 20) ? 'warn' : 'ok';
             sections.push({
                 title: 'Calf & Ankle Load',
                 status: calfStatus,
@@ -2464,8 +2549,8 @@
                 ]
             });
 
-            const strideStatus = (Number.isFinite(over) && over >= 40) ? 'issue'
-                : (Number.isFinite(over) && over >= 20) ? 'warn' : 'ok';
+            const strideStatus = (Number.isFinite(over) && over >= 30) ? 'issue'
+                : (Number.isFinite(over) && over >= 15) ? 'warn' : 'ok';
             sections.push({
                 title: 'Stride Efficiency',
                 status: strideStatus,
