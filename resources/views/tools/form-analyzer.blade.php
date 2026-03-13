@@ -2658,12 +2658,71 @@
             });
         }
 
+        const resetAnalysisState = () => {
+            // Reset internal state
+            lastResult = null;
+            currentVisGif = null;
+            currentVisPhoto = null;
+            currentVisualizationMode = 'gif';
+            if (window.speechSynthesis && window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+
+            // Reset UI elements
+            if (coachMessageEl) coachMessageEl.innerHTML = '';
+            if (scoreGauge) scoreGauge.style.setProperty('--score', 0);
+            if (scoreText) scoreText.textContent = 'N/A';
+            if (videoScoreEl) videoScoreEl.textContent = 'N/A';
+            if (positivesEl) positivesEl.innerHTML = '';
+            if (issuesEl) issuesEl.innerHTML = '';
+            if (suggestionsEl) suggestionsEl.innerHTML = '';
+            if (recoveryEl) recoveryEl.innerHTML = '';
+            if (recoveryWrap) recoveryWrap.classList.add('hidden');
+            if (ttsBtn) ttsBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> BACA';
+            if (downloadGifBtn) downloadGifBtn.classList.add('hidden');
+            if (visToggleWrap) visToggleWrap.classList.add('hidden');
+            if (visualizationImg) visualizationImg.removeAttribute('src');
+
+            // Reset Advanced Report
+            if (advSnapshots) advSnapshots.innerHTML = '';
+            if (advSnapshotsWrap) advSnapshotsWrap.classList.add('hidden');
+            if (advStrength) advStrength.innerHTML = '';
+            if (advReport) advReport.innerHTML = '';
+            if (advTrunk) advTrunk.textContent = '--';
+            if (advKnee) advKnee.textContent = '--';
+            if (advShin) advShin.textContent = '--';
+            if (advArm) advArm.textContent = '--';
+            if (advOverstride) advOverstride.textContent = '--';
+            if (advHeel) advHeel.textContent = '--';
+            if (advSwing) advSwing.textContent = '';
+            if (advHipcore) advHipcore.textContent = '';
+            if (advCalf) advCalf.textContent = '';
+            if (advancedPreview) advancedPreview.removeAttribute('src');
+
+            // Reset file inputs
+            if (videoInput) {
+                videoInput.value = '';
+                // Force reset for mobile browsers
+                videoInput.type = 'text';
+                videoInput.type = 'file';
+            }
+            Object.values(photoInputs).forEach(input => { if (input) input.value = ''; });
+            requiredPhotoPhases.forEach(p => clearPhotoPreview(p));
+
+            // Clear local storage
+            try {
+                localStorage.removeItem(RESULT_KEY);
+            } catch (e) {}
+
+            resetWarnings();
+        };
+
         const showInstructions = () => {
             stateResults.classList.add('hidden');
             stateResults.classList.remove('flex');
             stateScanning.classList.add('hidden');
             stateInstructions.classList.remove('hidden');
-            if (videoInput) videoInput.value = '';
+            resetAnalysisState();
         };
 
         const showScanning = () => {
