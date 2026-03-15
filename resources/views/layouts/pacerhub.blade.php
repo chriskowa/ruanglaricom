@@ -396,7 +396,7 @@
                         row.className = 'flex '+(own?'justify-end':'justify-start');
                         var bubble = document.createElement('div');
                         bubble.className = 'max-w-[70%] px-3 py-2 rounded-xl text-sm '+(own?'bg-neon text-dark':'bg-slate-800 text-white');
-                        bubble.innerHTML = m.message.replace(/\n/g,'<br>')+'<div class="text-[10px] mt-1 '+(own?'text-black/70':'text-slate-400')+'">'+formatTime(m.created_at)+'</div>';
+                        bubble.innerHTML = m.message.replace(/\n/g,'<br>')+'<div class="text-[10px] mt-1 '+(own?'text-white/70':'text-slate-400')+'">'+formatTime(m.created_at)+'</div>';
                         row.appendChild(bubble);
                         msgBody.appendChild(row);
                     });

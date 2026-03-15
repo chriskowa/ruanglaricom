@@ -6,7 +6,7 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css">
 <style>
-.glass-panel{background:rgba(15,23,42,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
+.glass-panel{background:rgba(15,23,42,.8);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
 .fc .fc-toolbar-title{font-size: medium;font-weight:800;color:#e2e8f0}
 #loader[data-hidden="1"] { pointer-events: none !important; }
 #ph-sidebar-backdrop.hidden { display: none !important; }
@@ -154,7 +154,20 @@
 @endpush
 
 @section('content')
-<main id="runner-calendar-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans" v-cloak>
+<div id="runner-calendar-app" v-cloak>
+    <!-- Notification Toast -->
+    <transition name="fade">
+        <div v-if="notification" class="fixed top-24 right-4 z-[5000] max-w-sm w-full">
+            <div :class="notification.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : 'bg-green-500/90 border-green-400 text-white'" 
+                 class="p-4 rounded-2xl border backdrop-blur-md shadow-2xl flex items-start gap-3">
+                <span class="text-lg">@{{ notification.type === 'error' ? '⚠️' : '✅' }}</span>
+                <div class="flex-1 text-sm font-bold">@{{ notification.message }}</div>
+                <button @click="notification = null" class="text-white/70 hover:text-white">✕</button>
+            </div>
+        </div>
+    </transition>
+
+    <main class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans">
     <div class="max-w-7xl mx-auto pt-10">
         <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-8">
             <div>
@@ -418,149 +431,136 @@
                 </div>
 
                 <!-- Global Unlock Banner -->
-                <div v-if="hasUnpaidGenerator" class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-cyan-900/40 via-blue-900/40 to-indigo-900/40 border border-cyan-500/30 flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top duration-700">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center text-2xl animate-pulse">
-                            🔓
+                <div v-if="hasUnpaidGenerator" class="mb-8 p-6 rounded-3xl bg-slate-900/80 border border-cyan-500/30 backdrop-blur-xl shadow-2xl shadow-cyan-500/5 overflow-hidden relative group">
+                    <!-- Background Accent -->
+                    <div class="absolute -right-20 -top-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all duration-700"></div>
+                    
+                    <div class="relative z-10 flex flex-col xl:flex-row gap-8 items-center">
+                        <!-- Icon & Info -->
+                        <div class="flex items-center gap-5 flex-1">
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center text-3xl shadow-inner border border-cyan-500/20 animate-pulse">
+                                🔓
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-black text-white italic tracking-tight uppercase">Buka Program Lengkap!</h4>
+                                <p class="text-sm text-slate-400 leading-relaxed max-w-md">Dukung kami dengan donasi sukarela untuk membuka <span class="text-cyan-400 font-bold">Minggu @{{ firstLockedWeek }} sampai akhir program</span>.</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="text-white font-bold">Buka Program Latihan Lengkap!</h4>
-                            <p class="text-xs text-slate-400">Dukung kami dengan donasi sukarela untuk membuka Minggu @{{ firstLockedWeek }} sampai akhir program.</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="px-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <label class="text-xs font-mono text-cyan-400 uppercase tracking-widest">Nominal Donasi</label>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-slate-500 font-bold">Rp</span>
-                                    <input type="number" v-model="donationAmount" min="10000" step="5000" 
-                                           class="w-32 bg-slate-800 text-xl font-black text-white px-3 py-2 rounded-xl border border-slate-700 shadow-inner outline-none focus:border-cyan-500 transition-all text-right">
+
+                        <!-- Controls Area -->
+                        <div class="flex flex-col md:flex-row gap-6 items-center w-full xl:w-auto bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50">
+                            <!-- Donation Slider -->
+                            <div class="w-full md:w-64 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">Donasi</label>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-slate-500 text-xs font-bold">Rp</span>
+                                        <input type="number" v-model="donationAmount" min="10000" step="5000" 
+                                               class="w-20 bg-transparent text-sm font-black text-white focus:outline-none text-right">
+                                    </div>
                                 </div>
+                                <input v-model="donationAmount" type="range" min="10000" max="250000" step="5000" 
+                                       class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500">
                             </div>
-                            <input v-model="donationAmount" type="range" min="10000" max="250000" step="5000" 
-                                   class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400 transition-all mb-2">
-                            <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-tighter">
-                                <span>Min 10rb</span>
-                                <span>Max 250rb</span>
+
+                            <!-- Divider -->
+                            <div class="hidden md:block w-px h-10 bg-slate-700"></div>
+
+                            <!-- Promo Code -->
+                            <div class="w-full md:w-56 space-y-2">
+                                <div class="relative">
+                                    <input v-model="promoCode" type="text" placeholder="Kode Promo (No HP)" 
+                                           class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                           :class="{'border-green-500/50': promoApplied, 'border-red-500/50': promoError}">
+                                    <button v-if="!promoApplied && promoCode" @click="applyPromo" :disabled="checkingPromo"
+                                            class="absolute right-1.5 top-1.5 px-2 py-1 bg-cyan-500 text-slate-900 text-[10px] font-black rounded-lg hover:bg-cyan-400 transition-all">
+                                        @{{ checkingPromo ? '...' : 'APPLY' }}
+                                    </button>
+                                    <span v-if="promoApplied" class="absolute right-3 top-2.5 text-green-400">✓</span>
+                                </div>
+                                <p v-if="promoError" class="text-[9px] text-red-400">@{{ promoError }}</p>
                             </div>
+
+                            <!-- Action Button -->
+                            <button @click="handleUnlockAction" :disabled="donationLoading || checkingPromo" 
+                                    class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-black rounded-xl shadow-lg shadow-cyan-500/20 hover:scale-105 active:scale-95 transition-all text-sm whitespace-nowrap uppercase tracking-tighter">
+                                <span v-if="!donationLoading">@{{ promoApplied ? 'Unlock Gratis' : 'Unlock Now' }}</span>
+                                <span v-else class="animate-spin">⌛</span>
+                            </button>
                         </div>
-                        <button @click="payDonation(unpaidEnrollmentId, donationAmount)" :disabled="donationLoading" class="px-6 py-3 bg-cyan-500 text-slate-900 font-black rounded-xl shadow-neon-cyan hover:bg-cyan-400 transition-all text-sm whitespace-nowrap">
-                            @{{ donationLoading ? 'MEMPROSES...' : 'UNLOCK FULL PROGRAM' }}
-                        </button>
                     </div>
                 </div>
 
                 <div class="glass-panel rounded-2xl p-4 md:p-6">
                     <div id="calendar"></div>
                 </div>
-
-                <div class="glass-panel rounded-2xl p-4 md:p-6">
-                    <div class="flex flex-col sm:flex-row items-end justify-between mb-4 gap-4">
-                        <div>
-                            <h3 class="text-white font-bold text-lg">Plan List</h3>
-                            <p class="text-xs text-slate-500">Workout plans from your active programs</p>
-                        </div>
-                        <div class="flex gap-2 overflow-x-auto w-full sm:w-auto pb-1">
-                            <button :class="[filter==='unfinished'?'bg-neon text-dark':'bg-slate-800 text-slate-300']" class="px-3 py-1 rounded-lg border border-slate-700 text-xs font-bold whitespace-nowrap" @click="setFilter('unfinished')">Unfinished</button>
-                            <button :class="[filter==='in_progress'?'bg-neon text-dark':'bg-slate-800 text-slate-300']" class="px-3 py-1 rounded-lg border border-slate-700 text-xs font-bold whitespace-nowrap" @click="setFilter('in_progress')">In Progress</button>
-                            <button :class="[filter==='finished'?'bg-neon text-dark':'bg-slate-800 text-slate-300']" class="px-3 py-1 rounded-lg border border-slate-700 text-xs font-bold whitespace-nowrap" @click="setFilter('finished')">Finished</button>
-                            <button :class="[filter==='all'?'bg-neon text-dark':'bg-slate-800 text-slate-300']" class="px-3 py-1 rounded-lg border border-slate-700 text-xs font-bold whitespace-nowrap" @click="setFilter('all')">All</button>
-                        </div>
-                    </div>
-                    <div class="flex justify-end mb-4">
-                        <button class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1" @click="resetPlanList">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Reset Plan List
-                        </button>
-                    </div>
-
-                    <div v-if="plansLoading" class="p-6 text-center text-slate-400">Loading plans...</div>
-                    <div v-else-if="plans.length === 0" class="p-6 text-center text-slate-400">No workout plans</div>
-                    <div v-else class="space-y-4">
-                        <div v-for="plan in displayedPlans" :key="plan.id || plan.date+plan.enrollment_id" 
-                             class="p-4 rounded-2xl border flex flex-col gap-3 relative overflow-hidden group hover:border-slate-600 transition"
-                             :class="plan.is_locked ? 'bg-slate-900/60 border-slate-800 opacity-80' : 'bg-slate-800/40 border-slate-700'">
-                            
-                            <!-- Status Indicator Strip -->
-                            <div class="absolute left-0 top-0 bottom-0 w-1" :class="plan.is_locked ? 'bg-slate-700' : (plan.status==='completed'?'bg-green-500':(plan.status==='started'?'bg-blue-500':'bg-slate-600'))"></div>
-                            
-                            <!-- Locked Overlay Icon -->
-                            <div v-if="plan.is_locked" class="absolute top-2 right-2 text-slate-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                            </div>
-
-                            <div class="pl-3 flex flex-col gap-3">
-                                <!-- Top: Date & Description -->
-                                <div class="w-full">
-                                     <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-[11px] font-bold uppercase tracking-wider" :class="plan.is_locked ? 'text-slate-600' : 'text-neon'">@{{ dayName(plan.date) }}, @{{ plan.date_formatted ? plan.date_formatted.split(' ')[1] : '' }}</span>
-                                        <span v-if="plan.day_number" class="text-[10px] text-slate-500 font-mono">Day @{{ plan.day_number }}</span>
-                                        <span v-if="!plan.is_locked && plan.status!=='pending'" class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" :class="statusClass(plan.status)">
-                                            @{{ statusText(plan.status) }}
-                                        </span>
-                                        <span v-if="plan.is_locked" class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700">LOCKED</span>
-                                     </div>
-                                     <h4 class="font-bold text-lg leading-tight transition" 
-                                         :class="plan.is_locked ? 'text-slate-500' : 'text-white cursor-pointer hover:text-neon'"
-                                         @click="showPlanDetail(plan)">
-                                        @{{ plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session') }}
-                                     </h4>
-                                </div>
-
-                                <!-- Middle: Type & Stats -->
-                                <div class="flex flex-col gap-1">
-                                    <div class="flex items-center gap-2">
-                                         <span class="px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider border"
-                                               :class="plan.is_locked ? 'bg-slate-800 text-slate-600 border-slate-700' : 'bg-slate-700 text-slate-300 border-slate-600'">
-                                            @{{ plan.type === 'custom_workout' ? (plan.activity_type || 'Custom') : (plan.type || 'Workout') }}
-                                        </span>
-                                         <span class="text-sm font-mono" :class="plan.is_locked ? 'text-slate-600' : 'text-slate-300'">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
-                                    </div>
-                                     <div class="text-xs" :class="plan.is_locked ? 'text-slate-700' : 'text-slate-400'">
-                                        @{{ plan.program_title || 'Custom Workout' }}
-                                    </div>
-                                </div>
-                                
-                                <!-- Bottom: Actions -->
-                                <div class="pt-3 mt-1 border-t border-slate-700/50">
-                                    <button v-if="plan.is_locked" class="w-full px-4 py-3 rounded-xl bg-slate-800/50 text-slate-500 text-sm font-bold border border-slate-700 flex items-center justify-center gap-2 hover:bg-slate-800 transition" @click.stop="showPlanDetail(plan)">
-                                        <span>🔒</span> Unlock Program
-                                    </button>
-                                    <button v-else-if="plan.status==='pending'" class="w-full px-4 py-3 rounded-xl bg-neon text-dark text-sm font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-2" @click.stop="updateSessionStatus(plan,'started')">
-                                        <span>▶</span> Start Activity
-                                    </button>
-                                    <button v-else-if="plan.status==='started'" class="w-full px-4 py-3 rounded-xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2" @click.stop="showPlanDetail(plan)">
-                                        <span>✓</span> Finish Activity
-                                    </button>
-                                    <button v-else-if="plan.status==='completed'" class="w-full px-4 py-3 rounded-xl bg-slate-700/50 text-slate-400 text-sm cursor-default border border-slate-700 flex items-center justify-center gap-2" @click.stop="showPlanDetail(plan)">
-                                        <span>👁</span> View Details
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="pt-2">
-                            <div class="flex items-center justify-between text-xs text-slate-400 mb-3" v-if="plans.length > 0">
-                                <div>Showing @{{ displayedPlans.length }} of @{{ plans.length }} plans</div>
-                                <div v-if="!canLoadMore" class="text-green-400 font-bold">All loaded</div>
-                            </div>
-                            <button 
-                                v-if="canLoadMore" 
-                                class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-bold hover:bg-slate-700 transition"
-                                @click="loadMorePlans">
-                                Load More
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="space-y-6">
+                <!-- Plan List moved to sidebar for better UX -->
+                <div class="glass-panel rounded-2xl p-4 md:p-6">
+                    <div class="flex flex-col sm:flex-row items-end justify-between mb-4 gap-4">
+                        <div>
+                            <h3 class="text-white font-bold text-lg tracking-tight italic uppercase">Plan List</h3>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Workout Schedule</p>
+                        </div>
+                        <div class="flex gap-1 overflow-x-auto w-full sm:w-auto pb-1 no-scrollbar">
+                            <button v-for="f in ['unfinished', 'all']" :key="f" 
+                                    :class="[filter===f?'bg-neon text-dark':'bg-slate-800 text-slate-400']" 
+                                    class="px-2 py-1 rounded-lg border border-slate-700 text-[10px] font-black uppercase transition-all" 
+                                    @click="setFilter(f)">@{{ f }}</button>
+                        </div>
+                    </div>
+                    
+                    <div v-if="plansLoading" class="p-6 text-center text-slate-400">
+                        <div class="animate-spin inline-block w-5 h-5 border-2 border-neon border-t-transparent rounded-full mb-2"></div>
+                        <p class="text-[10px] uppercase font-mono">Loading plans...</p>
+                    </div>
+                    <div v-else-if="plans.length === 0" class="p-6 text-center text-slate-500 text-xs italic">No workout plans found.</div>
+                    <div v-else class="space-y-3">
+                        <div v-for="plan in displayedPlans" :key="plan.id || plan.date+plan.enrollment_id" 
+                             class="p-3 rounded-xl border flex flex-col gap-2 relative overflow-hidden group hover:border-slate-600 transition-all duration-300"
+                             :class="plan.is_locked ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-800/40 border-slate-700'">
+                            
+                            <div class="flex justify-between items-start">
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] font-black uppercase tracking-widest" :class="plan.is_locked ? 'text-slate-600' : 'text-neon'">@{{ dayName(plan.date) }}</span>
+                                    <span class="text-[10px] text-slate-500 font-mono">@{{ formatDate(plan.date) }}</span>
+                                </div>
+                                <span v-if="plan.is_locked" class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-800 text-slate-600 border border-slate-700 uppercase">Locked</span>
+                                <span v-else-if="plan.status!=='pending'" class="text-[9px] font-black px-1.5 py-0.5 rounded uppercase" :class="statusClass(plan.status)">@{{ statusText(plan.status) }}</span>
+                            </div>
+
+                            <h4 class="font-bold text-sm leading-tight transition" 
+                                :class="plan.is_locked ? 'text-slate-600' : 'text-white cursor-pointer hover:text-neon'"
+                                @click="showPlanDetail(plan)">
+                                @{{ plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session') }}
+                            </h4>
+
+                            <div class="flex items-center gap-2">
+                                <span class="px-1.5 py-0.5 rounded text-[8px] uppercase font-black tracking-wider border"
+                                      :class="plan.is_locked ? 'bg-slate-800 text-slate-700 border-slate-700' : 'bg-slate-700 text-slate-300 border-slate-600'">
+                                    @{{ plan.type === 'custom_workout' ? (plan.activity_type || 'Custom') : (plan.type || 'Workout') }}
+                                </span>
+                                <span class="text-[10px] font-mono" :class="plan.is_locked ? 'text-slate-700' : 'text-slate-400'">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
+                            </div>
+
+                            <button v-if="plan.is_locked" class="w-full mt-1 py-2 rounded-lg bg-slate-800/50 text-slate-600 text-[10px] font-black border border-slate-700 flex items-center justify-center gap-2 hover:bg-slate-800 transition" @click.stop="showPlanDetail(plan)">
+                                🔒 UNLOCK
+                            </button>
+                            <button v-else-if="plan.status==='pending'" class="w-full mt-1 py-2 rounded-lg bg-neon text-dark text-[10px] font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-2" @click.stop="updateSessionStatus(plan,'started')">
+                                ▶ START
+                            </button>
+                        </div>
+                        
+                        <button v-if="canLoadMore" 
+                                class="w-full py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-slate-400 text-[10px] font-black hover:bg-slate-700 transition uppercase tracking-widest"
+                                @click="loadMorePlans">
+                            Load More (@{{ plans.length - displayedPlans.length }} left)
+                        </button>
+                    </div>
+                </div>
+
                 <div class="glass-panel rounded-2xl p-4 md:p-6">
                     <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Active Programs</h3>
                     <div class="space-y-3" v-if="enrollments.length > 0">
@@ -745,7 +745,7 @@
                     <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 mb-8 text-left space-y-4">
                         <p class="text-slate-300 text-sm leading-relaxed">
                             Program lari periodisasi ini dirancang khusus untuk Anda. Dukung pengembangan 
-                            <span class="text-cyan-400 font-bold">RuangLari</span> dengan donasi sukarela untuk membuka seluruh jadwal latihan (Minggu 2 sampai selesai).
+                            <span class="text-brand font-bold">RuangLari</span> dengan donasi sukarela untuk membuka seluruh jadwal latihan (Minggu 2 sampai selesai).
                         </p>
                         
                         <ul class="space-y-2">
@@ -773,16 +773,34 @@
                             </div>
                             <input v-model="donationAmount" type="range" min="10000" max="250000" step="5000" 
                                    class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400 transition-all mb-2">
-                            <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-tighter">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-tighter mb-4">
                                 <span>Min 10rb</span>
                                 <span>Max 250rb</span>
                             </div>
+
+                            <!-- Promo Code Section -->
+                            <div class="relative">
+                                <input v-model="promoCode" type="text" placeholder="Punya Kode Promo? (No HP Event)" 
+                                       class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:border-neon focus:outline-none transition-colors"
+                                       :class="{'border-green-500': promoApplied, 'border-red-500': promoError}">
+                                <button v-if="!promoApplied && promoCode" @click="applyPromo" :disabled="checkingPromo"
+                                        class="absolute right-2 top-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold rounded-lg transition-colors">
+                                    @{{ checkingPromo ? 'Checking...' : 'APPLY' }}
+                                </button>
+                                <span v-if="promoApplied" class="absolute right-3 top-3 text-green-400 text-lg">✓</span>
+                            </div>
+                            <p v-if="promoError" class="text-xs text-red-400 mt-1 ml-1">@{{ promoError }}</p>
+                            <p v-if="promoApplied" class="text-xs text-green-400 mt-1 ml-1">Kode valid! Program akan di-unlock gratis.</p>
                         </div>
 
-                        <button @click="payDonation(detail.enrollment_id, donationAmount)" :disabled="donationLoading" 
+                        <button @click="handleUnlockAction" :disabled="donationLoading || checkingPromo" 
                                 class="w-full py-5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-black rounded-2xl shadow-xl shadow-cyan-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-1">
-                            <span v-if="!donationLoading" class="text-lg">🔓 UNLOCK FULL PROGRAM</span>
-                            <span v-if="!donationLoading" class="text-[10px] opacity-80 uppercase tracking-widest font-bold">Support RuangLari Development</span>
+                            <span v-if="!donationLoading" class="text-lg">
+                                @{{ promoApplied ? '🔓 UNLOCK GRATIS' : '🔓 UNLOCK FULL PROGRAM' }}
+                            </span>
+                            <span v-if="!donationLoading" class="text-[10px] opacity-80 uppercase tracking-widest font-bold">
+                                @{{ promoApplied ? 'Free Access via Event Participant' : 'Support RuangLari Development' }}
+                            </span>
                             <span v-else class="flex items-center gap-2">
                                 <svg class="animate-spin h-5 w-5 text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -791,7 +809,7 @@
                                 MEMPROSES...
                             </span>
                         </button>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Secured by Midtrans</p>
+                        <p v-if="!promoApplied" class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Secured by Midtrans</p>
                     </div>
                 </div>
                 
@@ -802,35 +820,35 @@
                         <span class="text-[11px] text-slate-400">@{{ statusText(detail.status) }}</span>
                         <button class="text-slate-400 hover:text-white ml-2" @click="closeDetail">×</button>
                     </div>
-                    <div class="flex flex-col items-center text-center mt-2">
-                        <div class="mb-2">
-                            <span class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-300 uppercase tracking-wide">@{{ activityLabel(detail.type) }}</span>
+                        <div class="flex flex-col items-center text-center mt-2">
+                            <div class="mb-2">
+                                <span class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-300 uppercase tracking-wide">@{{ activityLabel(detail.type) }}</span>
+                            </div>
+                            <div :class="['text-5xl md:text-6xl font-black leading-none tracking-tight', detail.distance ? 'text-[#FC4C02]' : 'text-white']">@{{ primaryMetricValue }}</div>
+                            <div class="text-slate-500 text-xs mt-1">@{{ primaryMetricUnit }}</div>
                         </div>
-                        <div :class="['text-5xl md:text-6xl font-black leading-none tracking-tight', detail.distance ? 'text-[#FC4C02]' : 'text-white']">@{{ primaryMetricValue }}</div>
-                        <div class="text-slate-500 text-xs mt-1">@{{ primaryMetricUnit }}</div>
                     </div>
-                </div>
-                <div>
-                    <div class="text-center text-white font-bold mb-2">@{{ detailTitle }}</div>
-                    <div class="text-center text-[12px] text-slate-400 mb-4">@{{ detail.date_formatted || formatDate(detail.date) }}</div>
+                    <div>
+                        <div class="text-center text-white font-bold mb-2">@{{ detailTitle }}</div>
+                        <div class="text-center text-[12px] text-slate-400 mb-4">@{{ detail.date_formatted || formatDate(detail.date) }}</div>
 
-                    <div class="grid grid-cols-3 gap-2 mb-4">
-                        <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
-                            <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><path d="M4 12h16M8 16h8M10 8h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                            <div class="text-[11px] text-slate-400">Pace</div>
-                            <div class="text-neon font-black text-sm">@{{ displayPace || '-' }}</div>
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                                <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><path d="M4 12h16M8 16h8M10 8h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                <div class="text-[11px] text-slate-400">Pace</div>
+                                <div class="text-brand font-black text-sm">@{{ displayPace || '-' }}</div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                                <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                <div class="text-[11px] text-slate-400">Time</div>
+                                <div class="text-white font-bold text-sm">@{{ detail.duration || '-' }}</div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+                                <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><path d="M12 3l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 19.5l1.5-6L3 9.5 9 9l3-6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                                <div class="text-[11px] text-slate-400">Difficulty</div>
+                                <div class="text-white font-bold text-sm">@{{ (detail.program_difficulty || detail.difficulty || '').toUpperCase() || '-' }}</div>
+                            </div>
                         </div>
-                        <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
-                            <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                            <div class="text-[11px] text-slate-400">Time</div>
-                            <div class="text-white font-bold text-sm">@{{ detail.duration || '-' }}</div>
-                        </div>
-                        <div class="flex flex-col items-center justify-center rounded-xl bg-slate-800/60 border border-slate-700 p-3">
-                            <svg class="w-5 h-5 text-slate-400 mb-1" viewBox="0 0 24 24" fill="none"><path d="M12 3l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 19.5l1.5-6L3 9.5 9 9l3-6z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-                            <div class="text-[11px] text-slate-400">Difficulty</div>
-                            <div class="text-white font-bold text-sm">@{{ (detail.program_difficulty || detail.difficulty || '').toUpperCase() || '-' }}</div>
-                        </div>
-                    </div>
 
                     <div v-if="stravaDetailsLoading" class="mb-4 bg-slate-900/40 border border-slate-700/60 rounded-xl p-3 text-xs text-slate-300">
                         Fetching Strava details…
@@ -1556,7 +1574,7 @@
         </div>
 
     </div>
-</main>
+</div>
 @endsection
 @push('scripts')
 @include('layouts.components.advanced-builder-utils')
@@ -1584,6 +1602,15 @@ createApp({
         const plans = ref([]);
         const pageSize = 10;
         const visibleCount = ref(pageSize);
+        const notification = ref(null);
+
+        const showNotification = (message, type = 'success') => {
+            notification.value = { message, type };
+            setTimeout(() => {
+                notification.value = null;
+            }, 5000);
+        };
+
         const displayedPlans = computed(() => plans.value.slice(0, visibleCount.value));
         const canLoadMore = computed(() => visibleCount.value < plans.value.length);
         const loadMorePlans = () => {
@@ -1630,6 +1657,71 @@ createApp({
         const detail = reactive({});
         const donationLoading = ref(false);
         const donationAmount = ref(25000);
+
+        // Promo Code State
+        const promoCode = ref('');
+        const promoApplied = ref(false);
+        const promoError = ref('');
+        const checkingPromo = ref(false);
+
+        const applyPromo = async () => {
+            if (!promoCode.value) return;
+            checkingPromo.value = true;
+            promoError.value = '';
+            try {
+                const res = await fetch(`{{ route('api.programs.verify-promo') }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: promoCode.value })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    promoApplied.value = true;
+                    showNotification('Kode valid! Program akan di-unlock gratis.');
+                } else {
+                    promoError.value = data.message || 'Kode promo tidak valid';
+                    showNotification(promoError.value, 'error');
+                }
+            } catch (e) {
+                promoError.value = 'Gagal verifikasi kode promo';
+                showNotification(promoError.value, 'error');
+            } finally {
+                checkingPromo.value = false;
+            }
+        };
+
+        const handleUnlockAction = async () => {
+            const enrollmentId = detail.session?.is_locked ? detail.enrollment_id : unpaidEnrollmentId.value;
+            if (!enrollmentId) return;
+
+            if (promoApplied.value) {
+                await unlockWithPromo(enrollmentId);
+            } else {
+                await payDonation(enrollmentId, donationAmount.value);
+            }
+        };
+
+        const unlockWithPromo = async (enrollmentId) => {
+            donationLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('api.programs.unlock-promo') }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enrollment_id: enrollmentId, code: promoCode.value })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Program berhasil di-unlock!');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showNotification(data.message || 'Gagal unlock program', 'error');
+                }
+            } catch (e) {
+                showNotification('Terjadi kesalahan sistem', 'error');
+            } finally {
+                donationLoading.value = false;
+            }
+        };
 
         const payDonation = async (enrollmentId, amount = 25000) => {
             if (!enrollmentId) return;
@@ -3463,7 +3555,9 @@ createApp({
             showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans,
             showApplyModal, applyForm, applyLoading, applyTarget, submitApply,
             countExercises, parseStrengthExercises, payDonation, donationLoading, donationAmount,
-            hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek
+            hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek,
+            promoCode, promoApplied, promoError, checkingPromo, applyPromo, handleUnlockAction,
+            notification, showNotification
         };
     }
 

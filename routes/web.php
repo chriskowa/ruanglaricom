@@ -292,6 +292,8 @@ Route::post('/api/programs/store-pending', [SelfGeneratedProgramController::clas
 Route::middleware('auth')->group(function() {
     Route::post('/api/programs/save', [SelfGeneratedProgramController::class, 'saveToCalendar'])->name('generator.save');
     Route::post('/api/programs/pay', [SelfGeneratedProgramController::class, 'createPayment'])->name('api.programs.pay');
+    Route::post('/api/programs/verify-promo', [SelfGeneratedProgramController::class, 'verifyPromoCode'])->name('api.programs.verify-promo');
+    Route::post('/api/programs/unlock-promo', [SelfGeneratedProgramController::class, 'unlockWithPromo'])->name('api.programs.unlock-promo');
 });
 
 Route::get('/reports/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])->name('report.show');

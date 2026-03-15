@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Midtrans\Snap;
 
+use App\Models\Participant;
+use App\Models\UsedPromoCode; // Assuming we will create this or use a simple check
+
 class SelfGeneratedProgramController extends Controller
 {
     protected $danielsService;
@@ -129,38 +132,46 @@ class SelfGeneratedProgramController extends Controller
             'pb_time' => 'required|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
             'target_distance' => 'required|in:5k,10k,21k,42k',
             'target_date' => 'required|date|after_or_equal:today',
+            'goal_time' => 'required|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
             'weekly_mileage' => 'required|numeric|min:5|max:200',
             'frequency' => 'required|integer|min:3|max:7',
         ], [
-            'pb_time.regex' => 'Format waktu PB harus HH:MM:SS atau MM:SS (contoh: 00:45:00 atau 25:30).',
+            'pb_time.regex' => 'Format waktu PB harus HH:MM:SS atau MM:SS.',
+            'goal_time.regex' => 'Format waktu Goal harus HH:MM:SS atau MM:SS.',
             'target_date.after_or_equal' => 'Tanggal race harus hari ini atau di masa depan.',
         ]);
 
         try {
-            $vdot = $this->danielsService->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
-            $paces = $this->danielsService->calculateTrainingPaces($vdot);
+            $currentVdot = $this->danielsService->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
+            $targetVdot = $this->danielsService->calculateVDOT($validated['goal_time'], $validated['target_distance']);
+            
+            // Limit the improvement to a realistic level (max +3.0 VDOT points)
+            $safeTargetVdot = min($targetVdot, $currentVdot + 3.0);
             
             // Generate sessions based on distance and duration
             $targetDate = Carbon::parse($validated['target_date']);
             $weeksUntilRace = max(8, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
             
-            $programData = $this->danielsService->generateProgramFromVDOT($vdot, [
-                'goal_distance' => $validated['target_distance'],
+            $programData = $this->buildPeriodizedProgram([
+                'target_distance' => $validated['target_distance'],
                 'weekly_mileage' => $validated['weekly_mileage'],
-                'training_frequency' => $validated['frequency'],
-                'duration_weeks' => $weeksUntilRace
+                'frequency' => $validated['frequency'],
+                'weeks' => $weeksUntilRace,
+                'initial_vdot' => $currentVdot,
+                'target_vdot' => $safeTargetVdot
             ]);
 
             return response()->json([
                 'success' => true,
-                'vdot' => round($vdot, 1),
-                'paces' => $paces,
+                'vdot' => round($currentVdot, 1),
+                'paces' => $this->danielsService->calculateTrainingPaces($currentVdot),
                 'weeks' => $weeksUntilRace,
                 'sessions' => $programData['sessions'],
                 'summary' => [
                     'total_weeks' => $weeksUntilRace,
                     'target' => strtoupper($validated['target_distance']),
-                    'vdot' => round($vdot, 1)
+                    'vdot' => round($currentVdot, 1),
+                    'target_vdot' => round($safeTargetVdot, 1)
                 ]
             ]);
 
@@ -168,6 +179,81 @@ class SelfGeneratedProgramController extends Controller
             Log::error('Generator Error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Gagal generate program.'], 500);
         }
+    }
+
+    /**
+     * AJAX: Verify if a phone number is a valid promo code (event participant)
+     */
+    public function verifyPromoCode(Request $request)
+    {
+        $code = $request->code;
+        if (!$code) return response()->json(['success' => false, 'message' => 'Kode promo wajib diisi']);
+
+        // 1. Check if phone exists in paid participants of active events
+        $participant = Participant::where('phone', $code)
+            ->whereHas('transaction', function($q) {
+                $q->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+            })
+            ->first();
+
+        if (!$participant) {
+            return response()->json(['success' => false, 'message' => 'Nomor HP tidak terdaftar sebagai peserta event aktif']);
+        }
+
+        // 2. Check if this code (phone) has been used before for generator
+        $isUsed = ProgramEnrollment::where('promo_code_used', $code)
+            ->where('payment_status', 'paid')
+            ->exists();
+
+        if ($isUsed) {
+            return response()->json(['success' => false, 'message' => 'Kode promo ini sudah pernah digunakan']);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * AJAX: Unlock program using promo code
+     */
+    public function unlockWithPromo(Request $request)
+    {
+        $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+            'code' => 'required|string'
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::findOrFail($request->enrollment_id);
+        
+        if ($enrollment->runner_id !== $user->id) abort(403);
+
+        // Re-verify logic (security)
+        $participant = Participant::where('phone', $request->code)
+            ->whereHas('transaction', function($q) {
+                $q->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+            })
+            ->first();
+
+        if (!$participant) {
+            return response()->json(['success' => false, 'message' => 'Verifikasi gagal']);
+        }
+
+        $isUsed = ProgramEnrollment::where('promo_code_used', $request->code)
+            ->where('payment_status', 'paid')
+            ->exists();
+
+        if ($isUsed) {
+            return response()->json(['success' => false, 'message' => 'Kode sudah digunakan']);
+        }
+
+        // Process Unlock
+        $enrollment->update([
+            'payment_status' => 'paid',
+            'promo_code_used' => $request->code,
+            'payment_method' => 'promo_code'
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -324,25 +410,37 @@ class SelfGeneratedProgramController extends Controller
     private function buildPeriodizedProgram(array $config)
     {
         $weeks = $config['weeks'];
-        $paces = $config['paces'];
         $frequency = $config['frequency'];
         $mileage = $config['weekly_mileage'];
+        $initialVdot = $config['initial_vdot'];
+        $targetVdot = $config['target_vdot'];
         
         $sessions = [];
         $dayCount = 1;
 
-        // Simplified Periodization: 
-        // 25% Base, 25% Strength, 40% Speed, 10% Taper
+        // Phases: 25% Base, 25% Strength, 40% Speed, 10% Taper
         $p1 = (int)($weeks * 0.25);
         $p2 = (int)($weeks * 0.25);
         $p3 = (int)($weeks * 0.40);
-        $p4 = $weeks - $p1 - $p2 - $p3;
 
         for ($w = 1; $w <= $weeks; $w++) {
             $phase = 'Base';
-            if ($w > $p1) $phase = 'Strength';
-            if ($w > ($p1 + $p2)) $phase = 'Speed';
-            if ($w > ($p1 + $p2 + $p3)) $phase = 'Taper';
+            $currentVdot = $initialVdot;
+
+            if ($w > $p1) {
+                $phase = 'Strength';
+                $currentVdot = $initialVdot + (($targetVdot - $initialVdot) * 0.3);
+            }
+            if ($w > ($p1 + $p2)) {
+                $phase = 'Speed';
+                $currentVdot = $initialVdot + (($targetVdot - $initialVdot) * 0.7);
+            }
+            if ($w > ($p1 + $p2 + $p3)) {
+                $phase = 'Taper';
+                $currentVdot = $targetVdot;
+            }
+
+            $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
 
             // Weekly Mileage Adjustment
             $currentMileage = $mileage;
@@ -394,7 +492,8 @@ class SelfGeneratedProgramController extends Controller
             'summary' => [
                 'total_weeks' => $weeks,
                 'target' => strtoupper($config['target_distance']),
-                'vdot' => round($config['vdot'], 1)
+                'vdot' => round($initialVdot, 1),
+                'target_vdot' => round($targetVdot, 1)
             ]
         ];
     }
