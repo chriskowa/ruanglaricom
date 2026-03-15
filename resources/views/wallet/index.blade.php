@@ -3,9 +3,6 @@
 @section('title', 'Wallet')
 
 @php
-    $snapUrl = config('midtrans.is_production')
-        ? 'https://app.midtrans.com/snap/snap.js'
-        : 'https://app.sandbox.midtrans.com/snap/snap.js';
     $snapCssUrl = config('midtrans.is_production')
         ? 'https://app.midtrans.com/snap/snap.css'
         : 'https://app.sandbox.midtrans.com/snap/snap.css';
@@ -196,7 +193,7 @@
 @endsection
 
 @push('scripts')
-<script type="text/javascript" src="{{ $snapUrl }}" data-client-key="{{ $snapClientKey }}"></script>
+<script type="text/javascript" src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ $snapClientKey }}"></script>
 <script>
     document.querySelectorAll('.quick-topup').forEach(btn => {
         btn.addEventListener('click', () => {

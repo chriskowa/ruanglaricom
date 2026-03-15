@@ -165,8 +165,8 @@
                 
                 @guest
                 <div class="flex items-center gap-3 xs:gap-2">
-                    <a href="{{ route('login') }}" class="text-sm font-bold text-slate-300 hover:text-white transition-colors">Login</a>
-                    <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-bold bg-neon text-dark rounded-xl hover:bg-lime-400 hover:shadow-lg hover:shadow-neon/20 transition-all transform hover:-translate-y-0.5">Register</a>
+                    <button onclick="openLoginModal()" class="text-sm font-bold text-slate-300 hover:text-white transition-colors">Login</button>
+                    <button onclick="openRegisterModal()" class="px-4 py-2 text-sm font-bold bg-neon text-dark rounded-xl hover:bg-lime-400 hover:shadow-lg hover:shadow-neon/20 transition-all transform hover:-translate-y-0.5">Register</button>
                 </div>
                 @endguest
                 

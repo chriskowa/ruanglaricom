@@ -51,13 +51,7 @@
     </div>
 </div>
 
-@php
-    $snapUrl = config('midtrans.is_production') 
-        ? 'https://app.midtrans.com/snap/snap.js' 
-        : 'https://app.sandbox.midtrans.com/snap/snap.js';
-@endphp
-
-<script src="{{ $snapUrl }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
+<script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
 <script type="text/javascript">
     document.getElementById('pay-button').onclick = function () {
         snap.pay(@json($snapToken), {

@@ -86,6 +86,12 @@
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
+    @php($recaptchaSiteKeyV3 = env('RECAPTCHA_SITE_KEY_v3'))
+    @if($recaptchaSiteKeyV3)
+        <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKeyV3 }}"></script>
+    @endif
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
@@ -166,6 +172,11 @@
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(1) !important;
         }
+
+        [x-cloak] { display: none !important; }
+
+        /* Hide reCAPTCHA v3 badge */
+        .grecaptcha-badge { visibility: hidden !important; }
     </style>
     @stack('styles')
 </head>
@@ -198,6 +209,9 @@
 
     </div>
 
+    @include('layouts.components.auth-modal')
+
+    @auth
     @if(!isset($hideChat) || !$hideChat)
     <button id="chatbox-toggle" class="fixed bottom-5 right-6 z-50 w-14 h-14 rounded-full bg-neon text-dark font-black shadow-lg shadow-neon/30 flex items-center justify-center hover:bg-lime-400 transition">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-7 8l4-4h8a4 4 0 004-4V6a4 4 0 00-4-4H7a4 4 0 00-4 4v10a4 4 0 004 4z"/></svg>
@@ -233,6 +247,7 @@
         </div>
     </div>
     @endif
+    @endauth
 
     @stack('scripts')
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>

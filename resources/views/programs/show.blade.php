@@ -262,9 +262,9 @@
                                     @endif
                                 @endauth
                                 @guest
-                                    <a href="{{ route('login') }}" class="block w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-lg rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 text-center">
+                                    <button onclick="openLoginModal()" class="w-full py-4 bg-neon hover:bg-white hover:text-dark text-dark font-black text-lg rounded-xl transition-all shadow-lg shadow-neon/20 mb-3 text-center uppercase">
                                         LOGIN TO JOIN
-                                    </a>
+                                    </button>
                                 @endguest
                             @endif
                         @endif
@@ -337,7 +337,7 @@
                             @endif
                         @endauth
                         @guest
-                            <a href="{{ route('login') }}" class="px-6 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20">LOGIN</a>
+                            <button onclick="openLoginModal()" class="px-6 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-lg shadow-neon/20">LOGIN</button>
                         @endguest
                     @endif
                 @endif

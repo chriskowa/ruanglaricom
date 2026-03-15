@@ -5,7 +5,11 @@ namespace App\Http\Controllers\Marketplace;
 use App\Http\Controllers\Controller;
 use App\Models\Marketplace\MarketplaceOrder;
 use App\Models\Order;
+use App\Models\Notification;
 use App\Models\ProgramEnrollment;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
+use App\Services\PlatformWalletService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -78,6 +82,9 @@ class WebhookController extends Controller
                             ]);
 
                             $program->increment('enrolled_count');
+
+                            // Distribute funds to Coach and Platform
+                            $this->distributeProgramFunds($programOrder, $item, $program);
                         }
                     }
                 });
@@ -90,5 +97,77 @@ class WebhookController extends Controller
         }
 
         return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Distribute funds to Coach wallet and Platform wallet
+     */
+    protected function distributeProgramFunds($order, $item, $program)
+    {
+        $coach = $program->coach;
+        if (!$coach) return;
+
+        $platformWalletService = app(PlatformWalletService::class);
+        $feePercent = $platformWalletService->getPlatformFeePercent();
+        
+        $totalPrice = (float) $item->price;
+        $platformFee = $totalPrice * ($feePercent / 100);
+        $coachAmount = $totalPrice - $platformFee;
+
+        // 1. Credit Coach Wallet
+        $coachWallet = Wallet::firstOrCreate(
+            ['user_id' => $coach->id],
+            ['balance' => 0, 'locked_balance' => 0]
+        );
+
+        $coachBefore = (float) $coachWallet->balance;
+        $coachWallet->increment('balance', $coachAmount);
+        $coachAfter = (float) $coachWallet->balance;
+
+        $coachWallet->transactions()->create([
+            'type' => 'deposit',
+            'amount' => $coachAmount,
+            'balance_before' => $coachBefore,
+            'balance_after' => $coachAfter,
+            'status' => 'completed',
+            'description' => 'Pendapatan program: ' . $program->title . ' (Order #' . $order->order_number . ')',
+            'reference_type' => ProgramEnrollment::class,
+            'reference_id' => $program->id, // Enrollment ID is better if available, but program ID is fallback
+            'processed_at' => now(),
+        ]);
+
+        // 2. Credit Platform Wallet (Fee)
+        if ($platformFee > 0) {
+            $platformWallet = $platformWalletService->getPlatformWallet();
+            $platformBefore = (float) $platformWallet->balance;
+            $platformWallet->increment('balance', $platformFee);
+            $platformAfter = (float) $platformWallet->balance;
+
+            $platformWallet->transactions()->create([
+                'type' => 'fee',
+                'amount' => $platformFee,
+                'balance_before' => $platformBefore,
+                'balance_after' => $platformAfter,
+                'status' => 'completed',
+                'description' => 'Platform fee program: ' . $program->title . ' (Order #' . $order->order_number . ')',
+                'reference_type' => ProgramEnrollment::class,
+                'reference_id' => $program->id,
+                'processed_at' => now(),
+            ]);
+        }
+
+        // Notify Coach
+        try {
+            Notification::create([
+                'user_id' => $coach->id,
+                'type' => 'program_sale',
+                'title' => 'Pendapatan Baru Masuk',
+                'message' => 'Anda menerima Rp ' . number_format($coachAmount, 0, ',', '.') . ' dari penjualan program: ' . $program->title,
+                'reference_type' => ProgramEnrollment::class,
+                'reference_id' => $program->id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Webhook notification error: ' . $e->getMessage());
+        }
     }
 }
