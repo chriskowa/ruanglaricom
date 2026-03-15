@@ -77,13 +77,7 @@
                     </div>
                 </div>
                 <input type="hidden" name="role" value="runner">
-
-                @php($recaptchaSiteKeyV2 = env('RECAPTCHA_SITE_KEY'))
-                @if($recaptchaSiteKeyV2)
-                    <div class="flex justify-center my-4 scale-90 origin-center">
-                        <div class="g-recaptcha" data-sitekey="{{ $recaptchaSiteKeyV2 }}" data-theme="dark"></div>
-                    </div>
-                @endif
+                <input type="hidden" name="g-recaptcha-response" value="">
 
                 <button type="submit" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                     <span x-show="!loading">CREATE ACCOUNT</span>
@@ -137,7 +131,7 @@
                 this.errorMessage = '';
                 const form = e.target;
 
-                const recaptchaKeyV3 = '{{ env('RECAPTCHA_SITE_KEY_v3') }}';
+                const recaptchaKeyV3 = '{{ env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY') }}';
                 if (recaptchaKeyV3 && typeof grecaptcha !== 'undefined' && typeof grecaptcha.execute === 'function') {
                     try {
                         const token = await new Promise((resolve, reject) => {
@@ -182,7 +176,26 @@
             async submitRegister(e) {
                 this.loading = true;
                 this.errorMessage = '';
-                const formData = new FormData(e.target);
+                const form = e.target;
+
+                const recaptchaKeyV3 = '{{ env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY') }}';
+                if (recaptchaKeyV3 && typeof grecaptcha !== 'undefined' && typeof grecaptcha.execute === 'function') {
+                    try {
+                        const token = await new Promise((resolve, reject) => {
+                            grecaptcha.ready(() => {
+                                grecaptcha.execute(recaptchaKeyV3, {action: 'register'})
+                                    .then(resolve)
+                                    .catch(reject);
+                            });
+                        });
+                        const input = form.querySelector('input[name="g-recaptcha-response"]');
+                        if (input) input.value = token;
+                    } catch (err) {
+                        console.error('reCAPTCHA v3 error:', err);
+                    }
+                }
+
+                const formData = new FormData(form);
                 
                 try {
                     const res = await fetch('{{ route('register') }}', {
@@ -208,11 +221,6 @@
                     this.errorMessage = 'Terjadi kesalahan sistem. Silakan coba lagi.';
                 } finally {
                     this.loading = false;
-                    if (typeof grecaptcha !== 'undefined' && typeof grecaptcha.reset === 'function') {
-                        try {
-                            grecaptcha.reset();
-                        } catch (e) {}
-                    }
                 }
             }
         };

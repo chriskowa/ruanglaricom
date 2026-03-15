@@ -193,7 +193,6 @@
 @endsection
 
 @push('scripts')
-<script type="text/javascript" src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ $snapClientKey }}"></script>
 <script>
     document.querySelectorAll('.quick-topup').forEach(btn => {
         btn.addEventListener('click', () => {

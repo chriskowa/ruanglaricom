@@ -119,14 +119,16 @@ class StoreRegistrationAction
                 $body = $response->json();
 
                 if (! ($body['success'] ?? false)) {
-                    $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                    $errorCodes = isset($body['error-codes']) ? implode(', ', $body['error-codes']) : 'no-codes';
+                    Log::error('reCAPTCHA verification failed in StoreRegistrationAction', ['body' => $body]);
+                    $fail('Verifikasi reCAPTCHA gagal ('. $errorCodes .'). Silakan coba lagi.');
 
                     return;
                 }
 
                 if (env('RECAPTCHA_SECRET_KEY_v3') && isset($body['score'])) {
-                    if ($body['score'] < 0.5) {
-                        $fail('Verifikasi reCAPTCHA gagal (skor rendah). Silakan coba lagi.');
+                    if ($body['score'] < 0.1) {
+                        $fail('Verifikasi keamanan gagal (skor sangat rendah).');
                     }
                 }
             }],

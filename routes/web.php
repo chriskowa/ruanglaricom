@@ -283,9 +283,16 @@ Route::get('/image-proxy', function (Illuminate\Http\Request $request) {
     }
 })->name('image.proxy');
 
-Route::get('/realistic-running-program', function () {
-    return view('programs.design');
-})->name('programs.realistic');
+use App\Http\Controllers\SelfGeneratedProgramController;
+
+// Running Program Generator V2
+Route::get('/realistic-running-program', [SelfGeneratedProgramController::class, 'index'])->name('programs.realistic');
+Route::post('/api/programs/generate', [SelfGeneratedProgramController::class, 'generate'])->name('generator.generate');
+Route::post('/api/programs/store-pending', [SelfGeneratedProgramController::class, 'storePending'])->name('generator.store-pending');
+Route::middleware('auth')->group(function() {
+    Route::post('/api/programs/save', [SelfGeneratedProgramController::class, 'saveToCalendar'])->name('generator.save');
+    Route::post('/api/programs/pay', [SelfGeneratedProgramController::class, 'createPayment'])->name('api.programs.pay');
+});
 
 Route::get('/reports/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])->name('report.show');
 Route::post('/reports/{event}/participants/{participant}', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipant'])->name('report.participant.update');
@@ -908,6 +915,10 @@ Route::post('/midtrans/webhook', function (\Illuminate\Http\Request $request) {
 
     if (str_starts_with($orderId, 'MEMBERSHIP-')) {
         return app(\App\Http\Controllers\MembershipWebhookController::class)->handle($request);
+    }
+
+    if (str_starts_with($orderId, 'GEN-DONATE-')) {
+        return app(\App\Http\Controllers\SelfGeneratedProgramController::class)->webhook($request);
     }
 
     return app(\App\Http\Controllers\Marketplace\WebhookController::class)->handle($request);

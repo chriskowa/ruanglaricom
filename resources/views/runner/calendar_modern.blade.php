@@ -18,6 +18,26 @@
 .fc-event.difficulty-moderate{border-left:4px solid #FF9800}
 .fc-event.difficulty-hard{border-left:4px solid #F44336}
 
+/* Locked session styling */
+.fc-event.locked-session {
+    opacity: 0.7;
+    filter: grayscale(0.5);
+    cursor: pointer;
+    border-style: dashed !important;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 10px, transparent 10px, transparent 20px);
+}
+.fc-event.locked-session:hover {
+    opacity: 1;
+    filter: grayscale(0);
+    transform: translateY(-1px);
+}
+.fc-event.locked-session .fc-event-title {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 /* Workout Type Color Coding */
 /*.fc-event.workout-easy_run{border-left:4px solid #22c55e;background:linear-gradient(90deg, rgba(34,197,94,0.08) 0%, rgba(30,41,59,1) 100%)}
 .fc-event.workout-tempo{border-left:4px solid #f59e0b;background:linear-gradient(90deg, rgba(245,158,11,0.08) 0%, rgba(30,41,59,1) 100%)}
@@ -25,7 +45,6 @@
 .fc-event.workout-long_run{border-left:4px solid #eab308;background:linear-gradient(90deg, rgba(234,179,8,0.08) 0%, rgba(30,41,59,1) 100%)}
 .fc-event.workout-recovery{border-left:4px solid #06b6d4;background:linear-gradient(90deg, rgba(6,182,212,0.08) 0%, rgba(30,41,59,1) 100%)}
 .fc-event.workout-rest{border-left:4px solid #64748b;background:linear-gradient(90deg, rgba(100,116,139,0.08) 0%, rgba(30,41,59,1) 100%)}*/
-/* Workout Type Color Coding (Solid Background) */
 /* Workout Type Color Coding (Solid + Font White for Easy & Strength) */
 .fc-event.workout-easy_run {
   border-left: 4px solid #4CAF50; /* Hijau segar */
@@ -398,6 +417,40 @@
                     </div>
                 </div>
 
+                <!-- Global Unlock Banner -->
+                <div v-if="hasUnpaidGenerator" class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-cyan-900/40 via-blue-900/40 to-indigo-900/40 border border-cyan-500/30 flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top duration-700">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center text-2xl animate-pulse">
+                            🔓
+                        </div>
+                        <div>
+                            <h4 class="text-white font-bold">Buka Program Latihan Lengkap!</h4>
+                            <p class="text-xs text-slate-400">Dukung kami dengan donasi sukarela untuk membuka Minggu @{{ firstLockedWeek }} sampai akhir program.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="px-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <label class="text-xs font-mono text-cyan-400 uppercase tracking-widest">Nominal Donasi</label>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-500 font-bold">Rp</span>
+                                    <input type="number" v-model="donationAmount" min="10000" step="5000" 
+                                           class="w-32 bg-slate-800 text-xl font-black text-white px-3 py-2 rounded-xl border border-slate-700 shadow-inner outline-none focus:border-cyan-500 transition-all text-right">
+                                </div>
+                            </div>
+                            <input v-model="donationAmount" type="range" min="10000" max="250000" step="5000" 
+                                   class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400 transition-all mb-2">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-tighter">
+                                <span>Min 10rb</span>
+                                <span>Max 250rb</span>
+                            </div>
+                        </div>
+                        <button @click="payDonation(unpaidEnrollmentId, donationAmount)" :disabled="donationLoading" class="px-6 py-3 bg-cyan-500 text-slate-900 font-black rounded-xl shadow-neon-cyan hover:bg-cyan-400 transition-all text-sm whitespace-nowrap">
+                            @{{ donationLoading ? 'MEMPROSES...' : 'UNLOCK FULL PROGRAM' }}
+                        </button>
+                    </div>
+                </div>
+
                 <div class="glass-panel rounded-2xl p-4 md:p-6">
                     <div id="calendar"></div>
                 </div>
@@ -427,21 +480,34 @@
                     <div v-if="plansLoading" class="p-6 text-center text-slate-400">Loading plans...</div>
                     <div v-else-if="plans.length === 0" class="p-6 text-center text-slate-400">No workout plans</div>
                     <div v-else class="space-y-4">
-                        <div v-for="plan in displayedPlans" :key="plan.id || plan.date+plan.enrollment_id" class="p-4 rounded-2xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3 relative overflow-hidden group hover:border-slate-600 transition">
-                            <!-- Status Indicator Strip -->
-                            <div class="absolute left-0 top-0 bottom-0 w-1" :class="plan.status==='completed'?'bg-green-500':(plan.status==='started'?'bg-blue-500':'bg-slate-600')"></div>
+                        <div v-for="plan in displayedPlans" :key="plan.id || plan.date+plan.enrollment_id" 
+                             class="p-4 rounded-2xl border flex flex-col gap-3 relative overflow-hidden group hover:border-slate-600 transition"
+                             :class="plan.is_locked ? 'bg-slate-900/60 border-slate-800 opacity-80' : 'bg-slate-800/40 border-slate-700'">
                             
+                            <!-- Status Indicator Strip -->
+                            <div class="absolute left-0 top-0 bottom-0 w-1" :class="plan.is_locked ? 'bg-slate-700' : (plan.status==='completed'?'bg-green-500':(plan.status==='started'?'bg-blue-500':'bg-slate-600'))"></div>
+                            
+                            <!-- Locked Overlay Icon -->
+                            <div v-if="plan.is_locked" class="absolute top-2 right-2 text-slate-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+
                             <div class="pl-3 flex flex-col gap-3">
                                 <!-- Top: Date & Description -->
                                 <div class="w-full">
                                      <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-[11px] text-neon font-bold uppercase tracking-wider">@{{ dayName(plan.date) }}, @{{ plan.date_formatted ? plan.date_formatted.split(' ')[1] : '' }}</span>
+                                        <span class="text-[11px] font-bold uppercase tracking-wider" :class="plan.is_locked ? 'text-slate-600' : 'text-neon'">@{{ dayName(plan.date) }}, @{{ plan.date_formatted ? plan.date_formatted.split(' ')[1] : '' }}</span>
                                         <span v-if="plan.day_number" class="text-[10px] text-slate-500 font-mono">Day @{{ plan.day_number }}</span>
-                                        <span v-if="plan.status!=='pending'" class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" :class="statusClass(plan.status)">
+                                        <span v-if="!plan.is_locked && plan.status!=='pending'" class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" :class="statusClass(plan.status)">
                                             @{{ statusText(plan.status) }}
                                         </span>
+                                        <span v-if="plan.is_locked" class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700">LOCKED</span>
                                      </div>
-                                     <h4 class="text-white font-bold text-lg leading-tight cursor-pointer hover:text-neon transition" @click="showPlanDetail(plan)">
+                                     <h4 class="font-bold text-lg leading-tight transition" 
+                                         :class="plan.is_locked ? 'text-slate-500' : 'text-white cursor-pointer hover:text-neon'"
+                                         @click="showPlanDetail(plan)">
                                         @{{ plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session') }}
                                      </h4>
                                 </div>
@@ -449,25 +515,29 @@
                                 <!-- Middle: Type & Stats -->
                                 <div class="flex flex-col gap-1">
                                     <div class="flex items-center gap-2">
-                                         <span class="px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider bg-slate-700 text-slate-300 border border-slate-600">
+                                         <span class="px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider border"
+                                               :class="plan.is_locked ? 'bg-slate-800 text-slate-600 border-slate-700' : 'bg-slate-700 text-slate-300 border-slate-600'">
                                             @{{ plan.type === 'custom_workout' ? (plan.activity_type || 'Custom') : (plan.type || 'Workout') }}
                                         </span>
-                                         <span class="text-slate-300 text-sm font-mono">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
+                                         <span class="text-sm font-mono" :class="plan.is_locked ? 'text-slate-600' : 'text-slate-300'">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
                                     </div>
-                                     <div class="text-xs text-slate-400">
+                                     <div class="text-xs" :class="plan.is_locked ? 'text-slate-700' : 'text-slate-400'">
                                         @{{ plan.program_title || 'Custom Workout' }}
                                     </div>
                                 </div>
                                 
                                 <!-- Bottom: Actions -->
                                 <div class="pt-3 mt-1 border-t border-slate-700/50">
-                                    <button v-if="plan.status==='pending'" class="w-full px-4 py-3 rounded-xl bg-neon text-dark text-sm font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-2" @click.stop="updateSessionStatus(plan,'started')">
+                                    <button v-if="plan.is_locked" class="w-full px-4 py-3 rounded-xl bg-slate-800/50 text-slate-500 text-sm font-bold border border-slate-700 flex items-center justify-center gap-2 hover:bg-slate-800 transition" @click.stop="showPlanDetail(plan)">
+                                        <span>🔒</span> Unlock Program
+                                    </button>
+                                    <button v-else-if="plan.status==='pending'" class="w-full px-4 py-3 rounded-xl bg-neon text-dark text-sm font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-2" @click.stop="updateSessionStatus(plan,'started')">
                                         <span>▶</span> Start Activity
                                     </button>
-                                    <button v-if="plan.status==='started'" class="w-full px-4 py-3 rounded-xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2" @click.stop="showPlanDetail(plan)">
+                                    <button v-else-if="plan.status==='started'" class="w-full px-4 py-3 rounded-xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2" @click.stop="showPlanDetail(plan)">
                                         <span>✓</span> Finish Activity
                                     </button>
-                                    <button v-if="plan.status==='completed'" class="w-full px-4 py-3 rounded-xl bg-slate-700/50 text-slate-400 text-sm cursor-default border border-slate-700 flex items-center justify-center gap-2" @click.stop="showPlanDetail(plan)">
+                                    <button v-else-if="plan.status==='completed'" class="w-full px-4 py-3 rounded-xl bg-slate-700/50 text-slate-400 text-sm cursor-default border border-slate-700 flex items-center justify-center gap-2" @click.stop="showPlanDetail(plan)">
                                         <span>👁</span> View Details
                                     </button>
                                 </div>
@@ -663,7 +733,70 @@
 
                 <!-- STANDARD RUNNING/OTHER UI (Existing) -->
                 <div v-else class="p-6">
-                <div class="relative mb-4">
+                <!-- Locked Session UI -->
+                <div v-if="detail.session?.is_locked" class="text-center py-10 px-4">
+                    <div class="relative inline-block mb-6">
+                        <div class="text-7xl animate-bounce">🔒</div>
+                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold text-white">!</div>
+                    </div>
+                    
+                    <h3 class="text-2xl font-black text-white mb-3 tracking-tight uppercase">Program Terkunci</h3>
+                    
+                    <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 mb-8 text-left space-y-4">
+                        <p class="text-slate-300 text-sm leading-relaxed">
+                            Program lari periodisasi ini dirancang khusus untuk Anda. Dukung pengembangan 
+                            <span class="text-cyan-400 font-bold">RuangLari</span> dengan donasi sukarela untuk membuka seluruh jadwal latihan (Minggu 2 sampai selesai).
+                        </p>
+                        
+                        <ul class="space-y-2">
+                            <li class="flex items-center gap-2 text-xs text-slate-400">
+                                <span class="text-green-400">✓</span> Akses penuh ke fase Peak & Taper
+                            </li>
+                            <li class="flex items-center gap-2 text-xs text-slate-400">
+                                <span class="text-green-400">✓</span> Target pace yang dipersonalisasi
+                            </li>
+                            <li class="flex items-center gap-2 text-xs text-slate-400">
+                                <span class="text-green-400">✓</span> Sinkronisasi otomatis ke Strava
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="px-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <label class="text-xs font-mono text-cyan-400 uppercase tracking-widest">Nominal Donasi</label>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-500 font-bold">Rp</span>
+                                    <input type="number" v-model="donationAmount" min="10000" step="5000" 
+                                           class="w-32 bg-slate-800 text-xl font-black text-white px-3 py-2 rounded-xl border border-slate-700 shadow-inner outline-none focus:border-cyan-500 transition-all text-right">
+                                </div>
+                            </div>
+                            <input v-model="donationAmount" type="range" min="10000" max="250000" step="5000" 
+                                   class="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400 transition-all mb-2">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono uppercase tracking-tighter">
+                                <span>Min 10rb</span>
+                                <span>Max 250rb</span>
+                            </div>
+                        </div>
+
+                        <button @click="payDonation(detail.enrollment_id, donationAmount)" :disabled="donationLoading" 
+                                class="w-full py-5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-black rounded-2xl shadow-xl shadow-cyan-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-1">
+                            <span v-if="!donationLoading" class="text-lg">🔓 UNLOCK FULL PROGRAM</span>
+                            <span v-if="!donationLoading" class="text-[10px] opacity-80 uppercase tracking-widest font-bold">Support RuangLari Development</span>
+                            <span v-else class="flex items-center gap-2">
+                                <svg class="animate-spin h-5 w-5 text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                MEMPROSES...
+                            </span>
+                        </button>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Secured by Midtrans</p>
+                    </div>
+                </div>
+                
+                <div v-else>
+                    <div class="relative mb-4">
                     <div class="absolute right-0 top-0 flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full" :class="statusDotClass(detail.status)"></span>
                         <span class="text-[11px] text-slate-400">@{{ statusText(detail.status) }}</span>
@@ -920,6 +1053,7 @@
                         </div>
                         <div class="font-bold text-white text-sm">@{{ detail.notes }}</div>
                     </div>
+                </div>
                 </div>
 
                 <!-- Coach Feedback Display -->
@@ -1461,16 +1595,74 @@ createApp({
             return Math.max(...weeklyVolume.value.map(w => Math.max(w.planned, w.actual))) * 1.1; // Add 10% headroom
         });
         const plansLoading = ref(false);
-        const enrollments = ref(@json($enrollments));
         const programBag = ref(@json($programBag));
         const cancelledPrograms = ref(@json($cancelledPrograms ?? []));
         const bagTab = ref('available');
         const profileTab = ref('training');
         const trainingProfile = ref(@json($trainingProfile ?? []));
+        const enrollments = ref(@json($enrollments ?? []));
+
+        const hasUnpaidGenerator = computed(() => {
+            return enrollments.value.some(en => 
+                en.program?.is_self_generated && en.payment_status !== 'paid'
+            );
+        });
+
+        const unpaidEnrollmentId = computed(() => {
+            const en = enrollments.value.find(en => 
+                en.program?.is_self_generated && en.payment_status !== 'paid'
+            );
+            return en ? en.id : null;
+        });
+
+        const firstLockedWeek = computed(() => {
+            const en = enrollments.value.find(en => 
+                en.program?.is_self_generated && en.payment_status !== 'paid'
+            );
+            if (!en || !en.program) return 2;
+            const totalWeeks = en.program.duration_weeks || 12;
+            return Math.floor(totalWeeks / 2) + 1;
+        });
+
         const showDetailModal = ref(false);
         const syncLoading = ref(false);
         const isSyncingStrava = ref(false);
         const detail = reactive({});
+        const donationLoading = ref(false);
+        const donationAmount = ref(25000);
+
+        const payDonation = async (enrollmentId, amount = 25000) => {
+            if (!enrollmentId) return;
+            donationLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('api.programs.pay') }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enrollment_id: enrollmentId, amount: amount })
+                });
+                const data = await res.json();
+                if (data.success && data.snap_token) {
+                    window.snap.pay(data.snap_token, {
+                        onSuccess: (result) => {
+                            alert('Donasi berhasil! Program akan segera di-unlock.');
+                            window.location.reload();
+                        },
+                        onPending: (result) => {
+                            alert('Menunggu pembayaran.');
+                        },
+                        onError: (result) => {
+                            alert('Terjadi kesalahan pembayaran.');
+                        }
+                    });
+                } else {
+                    alert(data.message || 'Gagal membuat transaksi.');
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan sistem.');
+            } finally {
+                donationLoading.value = false;
+            }
+        };
         
         const resetDetail = () => {
             // Basic Info
@@ -1514,6 +1706,7 @@ createApp({
             // AI / Expert
             detail.analysis = null;
             detail.suggestion = null;
+            detail.session = null;
             
             stravaDetailsLoading.value = false;
             stravaDetailsError.value = '';
@@ -2972,6 +3165,7 @@ createApp({
 
             if (type === 'program_session') {
                 const s = props.session || {};
+                detail.session = s;
                 detailTitle.value = props.program_title || 'Program Session';
                 detail.date = info.event.startStr;
                 detail.type = s.type || 'run';
@@ -3039,6 +3233,7 @@ createApp({
         };
 
         const showPlanDetail = (plan) => {
+            detail.session = plan.session || null;
             detailTitle.value = plan.program_title || 'Program Session';
             detail.date_formatted = plan.date_formatted || null;
             detail.type = plan.activity_type || plan.type; // Use activity_type for custom workouts if available
@@ -3267,7 +3462,8 @@ createApp({
             showRescheduleModal, rescheduleTarget, rescheduleForm, rescheduleLoading, openRescheduleModal, submitReschedule,
             showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans,
             showApplyModal, applyForm, applyLoading, applyTarget, submitApply,
-            countExercises, parseStrengthExercises
+            countExercises, parseStrengthExercises, payDonation, donationLoading, donationAmount,
+            hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek
         };
     }
 

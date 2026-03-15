@@ -48,8 +48,18 @@ class AuthController extends Controller
                     'remoteip' => $request->ip(),
                 ]);
 
-                if (! $response->json('success') || ($response->json('score') !== null && $response->json('score') < 0.5)) {
-                    $fail('Verifikasi reCAPTCHA gagal atau terdeteksi sebagai bot.');
+                $body = $response->json();
+
+                if (! ($body['success'] ?? false)) {
+                    $errorCodes = isset($body['error-codes']) ? implode(', ', $body['error-codes']) : 'no-codes';
+                    Log::error('reCAPTCHA verification failed', ['body' => $body]);
+                    $fail('Verifikasi reCAPTCHA gagal ('. $errorCodes .'). Silakan coba lagi.');
+
+                    return;
+                }
+
+                if (isset($body['score']) && $body['score'] < 0.3) {
+                    $fail('Verifikasi keamanan gagal (terdeteksi sebagai bot).');
                 }
             }],
         ]);
@@ -148,6 +158,8 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $recaptchaSecret = env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -155,15 +167,39 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:coach,runner,eo', // Admin tidak bisa didaftar via form
             'package_tier' => 'nullable|required_if:role,eo|exists:packages,slug',
-            'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
+            'g-recaptcha-response' => [$recaptchaSecret ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($recaptchaSecret) {
+                if (! $recaptchaSecret) {
+                    return;
+                }
+
+                if (! $value) {
+                    $fail('Silakan verifikasi reCAPTCHA terlebih dahulu.');
+
+                    return;
+                }
+
                 $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'secret' => $recaptchaSecret,
                     'response' => $value,
                     'remoteip' => request()->ip(),
                 ]);
 
-                if (! $response->json('success') || ($response->json('score') !== null && $response->json('score') < 0.5)) {
-                    $fail('Verifikasi reCAPTCHA gagal atau terdeteksi sebagai bot.');
+                $body = $response->json();
+                
+                // Debug log (remove later)
+                Log::info('reCAPTCHA v3 register response:', ['body' => $body, 'ip' => request()->ip()]);
+
+                if (! ($body['success'] ?? false)) {
+                    $errorCodes = isset($body['error-codes']) ? implode(', ', $body['error-codes']) : 'no-codes';
+                    Log::error('reCAPTCHA registration failed', ['body' => $body]);
+                    $fail('Verifikasi reCAPTCHA gagal ('. $errorCodes .'). Silakan coba lagi.');
+
+                    return;
+                }
+
+                // Check score for v3
+                if (isset($body['score']) && $body['score'] < 0.1) {
+                    $fail('Verifikasi keamanan gagal (skor sangat rendah).');
                 }
             }],
         ]);

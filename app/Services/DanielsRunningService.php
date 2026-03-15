@@ -296,6 +296,7 @@ class DanielsRunningService
                 if ($w <= $daysPerWeek) {
                     $sessions[] = [
                         'day' => $day++,
+                        'week' => $week,
                         'type' => 'easy_run',
                         'distance' => round($kmPerDay, 1),
                         'duration' => $this->timeFromPace($kmPerDay, $paces['E']),
@@ -304,6 +305,7 @@ class DanielsRunningService
                 } else {
                     $sessions[] = [
                         'day' => $day++,
+                        'week' => $week,
                         'type' => 'rest',
                         'description' => 'Rest day',
                     ];
@@ -312,61 +314,64 @@ class DanielsRunningService
         }
 
         // Phase 2: Early Quality (Introduce speed work)
-        for ($week = 1; $week <= $phase2Weeks; $week++) {
+        for ($w2 = 1; $w2 <= $phase2Weeks; $w2++) {
+            $week = $phase1Weeks + $w2;
             $weeklyKm = $weeklyMileage * 1.1;
 
-            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy run'];
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
 
             if ($goalDistance == '5k' || $goalDistance == '10k') {
                 // More R pace for shorter distances
-                $sessions[] = ['day' => $day++, 'type' => 'repetition', 'distance' => 5, 'duration' => $this->timeFromPace(5, $paces['R']), 'description' => 'Repetition: 8x 200m with recovery'];
+                $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'repetition', 'distance' => 5, 'duration' => $this->timeFromPace(5, $paces['R']), 'description' => 'Repetition: 8x 200m with recovery'];
             } else {
-                $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['E']), 'description' => 'Easy run'];
+                $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['E']), 'description' => 'Easy run'];
             }
 
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
-            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy run'];
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
-            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.45, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.45, $paces['E']), 'description' => 'Long easy run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.45, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.45, $paces['E']), 'description' => 'Long easy run'];
         }
 
         // Phase 3: Quality (Specific training)
-        for ($week = 1; $week <= $phase3Weeks; $week++) {
+        for ($w3 = 1; $w3 <= $phase3Weeks; $w3++) {
+            $week = $phase1Weeks + $phase2Weeks + $w3;
             $weeklyKm = $weeklyMileage * 1.15;
 
-            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['E']), 'description' => 'Easy run'];
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['E']), 'description' => 'Easy run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
 
             if ($goalDistance == '5k' || $goalDistance == '10k') {
                 // Interval focus for short distances
-                $sessions[] = ['day' => $day++, 'type' => 'interval', 'distance' => 8, 'duration' => $this->timeFromPace(8, $paces['I']), 'description' => 'Interval: 5x 1000m at I pace'];
+                $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'interval', 'distance' => 8, 'duration' => $this->timeFromPace(8, $paces['I']), 'description' => 'Interval: 5x 1000m at I pace'];
             } else {
                 // Threshold focus for long distances
-                $sessions[] = ['day' => $day++, 'type' => 'tempo', 'distance' => 10, 'duration' => $this->timeFromPace(10, $paces['T']), 'description' => 'Tempo run: 20 min at T pace'];
+                $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'tempo', 'distance' => 10, 'duration' => $this->timeFromPace(10, $paces['T']), 'description' => 'Tempo run: 20 min at T pace'];
             }
 
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
-            $sessions[] = ['day' => $day++, 'type' => 'tempo', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['T']), 'description' => 'Tempo run'];
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
-            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.5, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.5, $paces['E']), 'description' => 'Long run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'tempo', 'distance' => round($weeklyKm * 0.15, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.15, $paces['T']), 'description' => 'Tempo run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.5, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.5, $paces['E']), 'description' => 'Long run'];
         }
 
         // Phase 4: Tapering
-        for ($week = 1; $week <= $phase4Weeks; $week++) {
-            $weeklyKm = $weeklyMileage * (1 - ($week * 0.2)); // Reduce volume
+        for ($w4 = 1; $w4 <= $phase4Weeks; $w4++) {
+            $week = $phase1Weeks + $phase2Weeks + $phase3Weeks + $w4;
+            $weeklyKm = $weeklyMileage * (1 - ($w4 * 0.2)); // Reduce volume
 
-            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy run'];
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
-            $sessions[] = ['day' => $day++, 'type' => 'tempo', 'distance' => round($weeklyKm * 0.3, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.3, $paces['T']), 'description' => 'Tempo run'];
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
-            $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy run'];
-            $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'tempo', 'distance' => round($weeklyKm * 0.3, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.3, $paces['T']), 'description' => 'Tempo run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.2, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.2, $paces['E']), 'description' => 'Easy run'];
+            $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Rest day'];
 
-            if ($week < $phase4Weeks) {
-                $sessions[] = ['day' => $day++, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.3, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.3, $paces['E']), 'description' => 'Long run practice'];
+            if ($w4 < $phase4Weeks) {
+                $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'easy_run', 'distance' => round($weeklyKm * 0.3, 1), 'duration' => $this->timeFromPace($weeklyKm * 0.3, $paces['E']), 'description' => 'Long run practice'];
             } else {
-                $sessions[] = ['day' => $day++, 'type' => 'rest', 'description' => 'Race day - Good luck!'];
+                $sessions[] = ['day' => $day++, 'week' => $week, 'type' => 'rest', 'description' => 'Race day - Good luck!'];
             }
         }
 
@@ -411,6 +416,7 @@ class DanielsRunningService
 
         // --- Helper to add session ---
         $addSession = function ($type, $dist, $desc) use (&$sessions, &$dayCounter, $paces) {
+            $week = (int) ceil($dayCounter / 7);
             $paceType = 'E';
             if ($type == 'interval') {
                 $paceType = 'I';
@@ -434,6 +440,7 @@ class DanielsRunningService
 
             $sessions[] = [
                 'day' => $dayCounter++,
+                'week' => $week,
                 'type' => $type,
                 'distance' => round($dist, 2),
                 'duration' => $this->timeFromPace($dist, $mainPace),
@@ -442,7 +449,15 @@ class DanielsRunningService
         };
 
         $addRest = function () use (&$sessions, &$dayCounter) {
-            $sessions[] = ['day' => $dayCounter++, 'type' => 'rest', 'distance' => 0, 'duration' => '00:00:00', 'description' => 'Rest Day. Recover for the next session.'];
+            $week = (int) ceil($dayCounter / 7);
+            $sessions[] = [
+                'day' => $dayCounter++, 
+                'week' => $week,
+                'type' => 'rest', 
+                'distance' => 0, 
+                'duration' => '00:00:00', 
+                'description' => 'Rest Day. Recover for the next session.'
+            ];
         };
 
         // --- Phase 1: Foundation (Aerobic Base) ---

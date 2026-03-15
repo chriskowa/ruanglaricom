@@ -101,6 +101,7 @@ class CalendarController extends Controller
 
             $totalWeeks = $program->duration_weeks ?? 12;
             $difficulty = $program->difficulty ?? 'beginner';
+            $isUnpaidGenerator = ($program->is_self_generated ?? false) && ($enrollment->payment_status !== 'paid');
 
             foreach ($sessions as $index => $session) {
                 if (! isset($session['day']) || ! is_numeric($session['day'])) {
@@ -141,6 +142,17 @@ class CalendarController extends Controller
 
                 $sessionType = $session['type'] ?? 'Run';
                 $paceInfo = $this->getPaceForSessionType($sessionType, $paces);
+
+                $freeWeeks = max(1, floor($totalWeeks / 2));
+                $currentWeek = $session['week'] ?? floor(((int) $session['day'] - 1) / 7) + 1;
+                $isLocked = $isUnpaidGenerator && ($currentWeek > $freeWeeks);
+
+                // If it's a self-generated program and it's locked, don't show it in the calendar grid
+                // This keeps the grid clean. Users can still see and unlock from the Plan List sidebar or top banner.
+                if ($isLocked) {
+                    continue;
+                }
+
                 $title = $sessionType.($paceInfo ? " ({$paceInfo})" : '');
 
                 $events[] = [
@@ -148,15 +160,21 @@ class CalendarController extends Controller
                     'title' => $title,
                     'start' => $sessionDate->format('Y-m-d'),
                     'allDay' => true,
-                    'backgroundColor' => $colors['background'],
-                    'borderColor' => $colors['border'],
-                    'textColor' => $colors['text'],
+                    'backgroundColor' => $isLocked ? '#334155' : $colors['background'],
+                    'borderColor' => $isLocked ? '#475569' : $colors['border'],
+                    'textColor' => $isLocked ? '#FFFFFF' : $colors['text'],
+                    'classNames' => $isLocked ? ['locked-session'] : ['workout-'.strtolower(str_replace(' ', '_', $sessionType))],
                     'extendedProps' => [
                         'type' => 'program_session',
                         'program_id' => $program->id,
                         'program_title' => $program->title,
                         'enrollment_id' => $enrollment->id,
-                        'session' => $session,
+                        'session' => $isLocked ? [
+                            'type' => 'locked',
+                            'description' => 'Dukung pengembangan RuangLari dengan donasi untuk membuka seluruh jadwal program lari Anda.',
+                            'is_locked' => true,
+                            'enrollment_id' => $enrollment->id,
+                        ] : $session,
                         'difficulty' => $difficulty,
                         'phase' => $phase,
                         'target_pace' => $paceInfo,
@@ -195,6 +213,7 @@ class CalendarController extends Controller
                 'backgroundColor' => $colors['background'],
                 'borderColor' => $colors['border'],
                 'textColor' => $colors['text'],
+                'classNames' => ['workout-'.strtolower(str_replace(' ', '_', $workout->type ?? 'run'))],
                 'extendedProps' => [
                     'type' => 'custom_workout',
                     'workout_id' => $workout->id,
@@ -437,6 +456,14 @@ class CalendarController extends Controller
                         $description = ($description ? $description."\n" : '').'Target Pace: '.$paceInfo;
                     }
 
+                    $isUnpaidGenerator = ($program->is_self_generated ?? false) && ($enrollment->payment_status !== 'paid');
+                    
+                    // Logic: 1/2 duration is free
+                    $totalWeeks = $program->duration_weeks ?? 12;
+                    $freeWeeks = max(1, floor($totalWeeks / 2));
+                    $currentWeek = $session['week'] ?? floor(((int) $session['day'] - 1) / 7) + 1;
+                    $isLocked = $isUnpaidGenerator && ($currentWeek > $freeWeeks);
+
                     $plan = [
                         'id' => $tracking ? $tracking->id : null,
                         'tracking_id' => $tracking ? $tracking->id : null,
@@ -463,6 +490,8 @@ class CalendarController extends Controller
                         'coach_rating' => $tracking ? $tracking->coach_rating : null,
                         'phase' => $this->getTrainingPhase($session['day'], $program->duration_weeks ?? 12),
                         'target_pace' => $paceInfo,
+                        'is_locked' => $isLocked,
+                        'session' => $session,
                     ];
                     $plansByDate[$plan['date']] = $plan;
                 }

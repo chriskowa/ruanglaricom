@@ -99,6 +99,8 @@
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/duration.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+    <script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" 
+            data-client-key="{{ config('midtrans.is_production') ? config('midtrans.client_key') : config('midtrans.client_key_sandbox') }}"></script>
     <script>
         dayjs.extend(window.dayjs_plugin_duration);
         dayjs.extend(window.dayjs_plugin_relativeTime);
