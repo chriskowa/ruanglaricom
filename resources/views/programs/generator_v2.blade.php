@@ -129,7 +129,7 @@
         </div>
     </transition>
 
-    <main class="relative z-10 max-w-5xl mx-auto">
+    <main class="relative z-10 max-w-7xl mx-auto">
         <transition name="fade" mode="out-in">
             
             <!-- Step 0: Hero / Start -->
