@@ -299,27 +299,6 @@
 
                         <!-- Training Load Section -->
                         <div class="space-y-6">
-                            <!-- Reference ID Section -->
-                            <div class="space-y-3">
-                                <label class="flex items-center gap-3 cursor-pointer group">
-                                    <div class="relative flex items-center">
-                                        <input v-model="form.has_reference" type="checkbox" class="peer h-5 w-5 appearance-none rounded border border-slate-700 bg-slate-900 checked:border-brand-500 checked:bg-brand-500 transition-all cursor-pointer">
-                                        <svg class="absolute h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none left-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                    </div>
-                                    <span class="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">Punya ID Referensi?</span>
-                                </label>
-                                
-                                <transition name="fade">
-                                    <div v-if="form.has_reference" class="space-y-2">
-                                        <label class="label-text">ID Referensi (Opsional)</label>
-                                        <input v-model="form.reference_id" type="text" placeholder="Masukkan ID Referensi Anda" class="input-field font-bold">
-                                        <p class="text-[10px] text-slate-500 italic">Gunakan ID Referensi jika Anda mendapatkan rekomendasi dari pelatih atau teman.</p>
-                                    </div>
-                                </transition>
-                            </div>
-
                             <div>
                                 <div class="flex justify-between items-center mb-2">
                                     <label class="label-text">Mileage Mingguan (Km)</label>
@@ -338,6 +317,23 @@
                                             class="w-full py-3 rounded-xl font-bold text-sm transition-all border">
                                         @{{ f }}
                                     </button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="label-text">Level Pelari</label>
+                                    <select v-model="form.runner_level" class="input-field cursor-pointer">
+                                        <option value="beginner">Pemula</option>
+                                        <option value="intermediate">Menengah</option>
+                                        <option value="advanced">Mahir</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="label-text">Hari Long Run</label>
+                                    <select v-model="form.long_run_day" class="input-field cursor-pointer">
+                                        <option value="saturday">Sabtu</option>
+                                        <option value="sunday">Minggu</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -480,8 +476,8 @@
                 frequency: 4,
                 gender: 'male',
                 age: 25,
-                has_reference: false,
-                reference_id: ''
+                runner_level: 'intermediate',
+                long_run_day: 'sunday'
             });
 
             const showNotification = (message, type = 'success') => {
@@ -491,45 +487,117 @@
                 }, 5000);
             };
 
+            const distanceKm = {
+                '5k': 5,
+                '10k': 10,
+                '21k': 21.0975,
+                '42k': 42.195
+            };
+
+            const distanceMeters = {
+                '5k': 5000,
+                '10k': 10000,
+                '21k': 21097.5,
+                '42k': 42195
+            };
+
+            const getRatioForDistance = (distanceKey, vdot) => {
+                const ratios = {
+                    '5k': 0.957,
+                    '10k': 0.915,
+                    '21k': 0.865,
+                    '42k': 0.815
+                };
+                const base = ratios[distanceKey] ?? 0.957;
+                return base + (vdot - 50) * 0.0005;
+            };
+
+            const vvo2FromVDOT = (vdot) => {
+                const a = 0.000104;
+                const b = 0.182258;
+                const c = -4.6 - vdot;
+                return (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+            };
+
+            const calculateVDOTFromPerformance = (distanceKey, totalSeconds) => {
+                if (!totalSeconds || totalSeconds < 600) return 0;
+                const distMeters = distanceMeters[distanceKey];
+                if (!distMeters) return 0;
+                const velocityMin = (distMeters / totalSeconds) * 60;
+                let vdot = 50;
+                for (let i = 0; i < 5; i++) {
+                    const ratio = Math.max(0.01, getRatioForDistance(distanceKey, vdot));
+                    const vvo2max = velocityMin / ratio;
+                    const newVdot = -4.6 + 0.182258 * vvo2max + 0.000104 * vvo2max * vvo2max;
+                    if (Math.abs(newVdot - vdot) < 0.01) {
+                        vdot = newVdot;
+                        break;
+                    }
+                    vdot = newVdot;
+                }
+                return Math.max(10, Math.min(85, Number(vdot.toFixed(4))));
+            };
+
+            const predictRaceTimeSeconds = (vdot, distanceKey) => {
+                if (!vdot || vdot <= 0) return 0;
+                const distMeters = distanceMeters[distanceKey];
+                if (!distMeters) return 0;
+                const vvo2max = vvo2FromVDOT(vdot);
+                const ratio = getRatioForDistance(distanceKey, vdot);
+                const velocity = vvo2max * ratio;
+                if (!velocity || velocity <= 0) return 0;
+                return Math.round((distMeters / velocity) * 60);
+            };
+
+            const weeksUntilRace = computed(() => {
+                if (!form.target_date) return 12;
+                const target = new Date(form.target_date);
+                if (Number.isNaN(target.getTime())) return 12;
+                const diffDays = Math.ceil((target.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                const weeks = Math.ceil(diffDays / 7);
+                return Math.min(24, Math.max(8, weeks || 12));
+            });
+
             const current_vdot = computed(() => {
-                const dists = { '5k': 5, '10k': 10, '21k': 21.1, '42k': 42.2 };
                 const t = (pb_hours.value * 3600) + (pb_minutes.value * 60) + pb_seconds.value;
-                if (t < 600) return 0;
-                const d = dists[form.pb_distance];
-                const v = (d * 1000) / (t / 60); // m/min
-                return -4.6 + 0.182258 * v + 0.000104 * v * v;
+                return calculateVDOTFromPerformance(form.pb_distance, t);
             });
 
             const target_vdot = computed(() => {
-                const dists = { '5k': 5, '10k': 10, '21k': 21.1, '42k': 42.2 };
                 const t = (goal_hours.value * 3600) + (goal_minutes.value * 60) + goal_seconds.value;
-                if (t < 600) return 0;
-                const d = dists[form.target_distance];
-                const v = (d * 1000) / (t / 60); // m/min
-                return -4.6 + 0.182258 * v + 0.000104 * v * v;
+                return calculateVDOTFromPerformance(form.target_distance, t);
             });
 
-            // Math to convert VDOT back to Time
-            const predictTime = (vdot, distance_km) => {
-                if (!vdot || vdot <= 0) return 0;
-                const a = 0.000104;
-                const b = 0.182258;
-                const c = -(4.6 + vdot);
-                const v = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a); // m/min
-                const totalMinutes = (distance_km * 1000) / v;
-                return totalMinutes * 60; // seconds
-            };
+            const recommendedImprovementPercent = computed(() => {
+                const base = {
+                    '5k': 0.06,
+                    '10k': 0.05,
+                    '21k': 0.04,
+                    '42k': 0.03
+                };
+                const levelFactor = {
+                    'beginner': 0.85,
+                    'intermediate': 1,
+                    'advanced': 1.1
+                };
+                const basePct = base[form.target_distance] ?? 0.04;
+                const scale = Math.min(1.2, Math.max(0.4, weeksUntilRace.value / 16));
+                const pct = basePct * scale * (levelFactor[form.runner_level] ?? 1);
+                return Math.min(0.08, Math.max(0.015, pct));
+            });
+
+            const recommendedTargetVdot = computed(() => {
+                const cv = current_vdot.value;
+                if (!cv || cv <= 0) return 0;
+                const target = cv * (1 + recommendedImprovementPercent.value);
+                return Math.min(target, cv + 3.0);
+            });
 
             const suggestGoalTime = () => {
                 const cv = current_vdot.value;
                 if (!cv || cv <= 0) return;
-
-                // A realistic improvement is ~1.5 VDOT points
-                const realisticVdot = cv + 1.5;
-                const dists = { '5k': 5, '10k': 10, '21k': 21.1, '42k': 42.2 };
-                const targetKm = dists[form.target_distance];
-                const predictedSeconds = predictTime(realisticVdot, targetKm);
-
+                const targetVdot = recommendedTargetVdot.value;
+                const predictedSeconds = predictRaceTimeSeconds(targetVdot, form.target_distance);
                 if (predictedSeconds > 0) {
                     goal_hours.value = Math.floor(predictedSeconds / 3600);
                     goal_minutes.value = Math.floor((predictedSeconds % 3600) / 60);
@@ -538,7 +606,7 @@
             };
 
             // Auto-suggest when PB or Target Distance changes
-            watch([pb_hours, pb_minutes, pb_seconds, () => form.pb_distance, () => form.target_distance], () => {
+            watch([pb_hours, pb_minutes, pb_seconds, () => form.pb_distance, () => form.target_distance, () => form.target_date, () => form.runner_level], () => {
                 suggestGoalTime();
                 recommendMileage();
             });
@@ -547,17 +615,35 @@
                 const cv = current_vdot.value;
                 const tv = target_vdot.value;
                 if (!cv || !tv) return null;
-
                 const diff = tv - cv;
-                if (diff < 0) return { label: 'Mudah', color: 'bg-green-900/20 text-green-400 border-green-500/30', description: 'Target ini berada di bawah performa terbaik Anda saat ini.' };
-                if (diff < 1.5) return { label: 'Realistis', color: 'bg-blue-900/20 text-blue-400 border-blue-500/30', description: 'Target yang bagus! Bisa dicapai dengan latihan konsisten.' };
-                if (diff < 3.0) return { label: 'Ambisius', color: 'bg-orange-900/20 text-orange-400 border-orange-500/30', description: 'Cukup menantang. Memerlukan disiplin tinggi dalam latihan.' };
-                return { label: 'Sangat Ambisius', color: 'bg-red-900/20 text-red-400 border-red-500/30', description: 'Target sangat berat. Kami akan menyesuaikan pace latihan agar tetap aman.' };
+                const diffPercent = diff / cv;
+                const rec = recommendedImprovementPercent.value;
+                const diffLabel = Math.max(0, diffPercent) * 100;
+                const recLabel = rec * 100;
+
+                if (diff < 0) {
+                    return { label: 'Mudah', color: 'bg-green-900/20 text-green-400 border-green-500/30', description: 'Target ini berada di bawah performa terbaik Anda saat ini.' };
+                }
+                if (diffPercent <= rec * 1.1) {
+                    return { label: 'Realistis', color: 'bg-blue-900/20 text-blue-400 border-blue-500/30', description: `Target ini setara peningkatan sekitar ${diffLabel.toFixed(1)}% dari VDOT Anda. Rentang realistis saat ini ~${recLabel.toFixed(1)}%.` };
+                }
+                if (diffPercent <= rec * 1.6) {
+                    return { label: 'Ambisius', color: 'bg-orange-900/20 text-orange-400 border-orange-500/30', description: `Peningkatan sekitar ${diffLabel.toFixed(1)}% tergolong menantang untuk jarak ${form.target_distance.toUpperCase()}.` };
+                }
+                return { label: 'Sangat Ambisius', color: 'bg-red-900/20 text-red-400 border-red-500/30', description: `Peningkatan sekitar ${diffLabel.toFixed(1)}% terlalu agresif untuk target ${form.target_distance.toUpperCase()}.` };
             });
 
             const idealMileage = computed(() => {
                 const map = { '5k': 30, '10k': 45, '21k': 65, '42k': 85 };
-                return map[form.target_distance] || 30;
+                const levelFactor = {
+                    'beginner': 0.9,
+                    'intermediate': 1,
+                    'advanced': 1.1
+                };
+                const base = map[form.target_distance] || 30;
+                const adjusted = base * (levelFactor[form.runner_level] ?? 1);
+                const rounded = Math.round(adjusted / 5) * 5;
+                return Math.min(120, Math.max(15, rounded));
             });
 
             const recommendMileage = () => {
@@ -718,12 +804,19 @@
                 return colors[type] || 'text-slate-400';
             };
 
-            const formatPace = (pace) => pace ? pace + ' /km' : '-';
+            const formatPace = (pace) => {
+                if (!pace || pace <= 0) return '-';
+                const totalSeconds = Math.round(pace * 60);
+                const m = Math.floor(totalSeconds / 60);
+                const s = totalSeconds % 60;
+                return `${m}:${String(s).padStart(2, '0')} /km`;
+            };
 
             const getSessionClass = (type) => {
                 const classes = {
                     'easy_run': 'bg-green-900/20 border-green-500/20',
                     'long_run': 'bg-blue-900/20 border-blue-500/20',
+                    'marathon': 'bg-blue-900/20 border-blue-500/20',
                     'threshold': 'bg-orange-900/20 border-orange-500/20',
                     'interval': 'bg-red-900/20 border-red-500/20',
                     'repetition': 'bg-purple-900/20 border-purple-500/20',
@@ -737,6 +830,7 @@
                     'easy_run': '🍃',
                     'rest': '🧘',
                     'long_run': '🔋',
+                    'marathon': '🏁',
                     'threshold': '🔥',
                     'interval': '⚡',
                     'repetition': '🚀'

@@ -71,15 +71,7 @@
                             <a href="#" class="hover:text-white transition">Privacy Policy</a>
                             <a href="#" class="hover:text-white transition">Terms of Service</a>
                             <a href="#" class="hover:text-white transition">Cookie Policy</a>
-                        </div>
-                        <a href="https://id.seedbacklink.com/" target="_blank" rel="noopener noreferrer" class="block w-20 md:w-24">
-                            <img
-                                title="Seedbacklink"
-                                src="https://id.seedbacklink.com/wp-content/uploads/2023/11/Badge-Seedbacklink_Artboard-1-webp-version.webp"
-                                alt="Seedbacklink"
-                                class="w-full h-auto opacity-80 hover:opacity-100 transition"
-                            >
-                        </a>
+                        </div>                        
                     </div>
                 </div>
             </div>
