@@ -421,6 +421,18 @@
                                         <div id="rlfa-formissues" class="space-y-2"></div>
                                     </div>
 
+                                    <div id="rlfa-leg-wrap" class="space-y-3 hidden">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Deteksi Kaki X/O</h4>
+                                        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3">
+                                            <div class="flex items-center justify-between">
+                                                <span id="rlfa-leg-label" class="text-sm font-bold text-white">--</span>
+                                                <span id="rlfa-leg-badge" class="px-2 py-1 rounded text-[10px] font-bold border">--</span>
+                                            </div>
+                                            <p id="rlfa-leg-desc" class="text-xs text-slate-300 leading-relaxed"></p>
+                                            <div id="rlfa-leg-solutions" class="space-y-2"></div>
+                                        </div>
+                                    </div>
+
                                     <div id="rlfa-formreport-wrap" class="space-y-3 hidden">
                                             <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Laporan Form (Beta)</h4>
                                         <div id="rlfa-formreport" class="space-y-3"></div>
@@ -1554,7 +1566,7 @@
         };
     };
 
-    const analyzeImageFile = async (file) => {
+    const analyzeImageFile = async (file, phase) => {
         const landmarker = await getLandmarkerImage();
         const img = await createImageBitmap(file);
         const r = landmarker.detect(img);
@@ -1581,6 +1593,35 @@
         };
 
         const getPt = (arr, idx) => arr?.[idx] ? { x: arr[idx].x, y: arr[idx].y, v: arr[idx].visibility ?? 0 } : null;
+        const buildLegAlignment = () => {
+            if (phase !== 'front') return null;
+            const lHip = getPt(lm, L.leftHip);
+            const rHip = getPt(lm, L.rightHip);
+            const lKnee = getPt(lm, L.leftKnee);
+            const rKnee = getPt(lm, L.rightKnee);
+            const lAnkle = getPt(lm, L.leftAnkle);
+            const rAnkle = getPt(lm, L.rightAnkle);
+            const ok = [lHip, rHip, lKnee, rKnee, lAnkle, rAnkle].every((p) => p && (p.v ?? 0) >= 0.4);
+            if (!ok) return { type: 'unknown', severity: 'missing' };
+            const midX = (lHip.x + rHip.x) / 2;
+            const leftKneeDist = Math.abs(lKnee.x - midX);
+            const leftAnkleDist = Math.abs(lAnkle.x - midX);
+            const rightKneeDist = Math.abs(rKnee.x - midX);
+            const rightAnkleDist = Math.abs(rAnkle.x - midX);
+            const diffLeft = Number((leftAnkleDist - leftKneeDist).toFixed(4));
+            const diffRight = Number((rightAnkleDist - rightKneeDist).toFixed(4));
+            const threshold = 0.012;
+            const classify = (diff) => diff > threshold ? 'valgus' : diff < -threshold ? 'varus' : 'neutral';
+            const leftType = classify(diffLeft);
+            const rightType = classify(diffRight);
+            let type = 'normal';
+            if (leftType === 'valgus' && rightType === 'valgus') type = 'x';
+            else if (leftType === 'varus' && rightType === 'varus') type = 'o';
+            else if (leftType === 'neutral' && rightType === 'neutral') type = 'normal';
+            else type = 'mixed';
+            const severity = type === 'normal' ? 'ok' : type === 'mixed' ? 'warn' : 'issue';
+            return { type, severity, left: leftType, right: rightType, diff_left: diffLeft, diff_right: diffRight };
+        };
         const pickSide = (arr) => {
             const lv = arr?.[L.leftAnkle]?.visibility ?? 0;
             const rv = arr?.[L.rightAnkle]?.visibility ?? 0;
@@ -1631,6 +1672,7 @@
         }
 
         const visualization = drawBiomechanicsImage(img, lm, width, height);
+        const legAlignment = buildLegAlignment();
         try { img.close(); } catch (e) {}
 
         return {
@@ -1644,6 +1686,7 @@
             overstride: overstride,
             heel_strike: heelStrike,
             arm_cross_pct: Number.isFinite(armCross) ? Number(armCross.toFixed(1)) : null,
+            leg_alignment: legAlignment,
             visualization,
         };
     };
@@ -1657,7 +1700,7 @@
         for (const p of phases) {
             const f = filesByPhase?.[p];
             if (!f) continue;
-            const r = await analyzeImageFile(f);
+            const r = await analyzeImageFile(f, p);
             results[p] = r;
             done += 1;
             if (onProgress) onProgress({ phase: 'pose', done, total: Math.max(1, total) });
@@ -1706,6 +1749,7 @@
             arm_cross_pct: pickNum(front?.arm_cross_pct) ? Number(front.arm_cross_pct.toFixed(1)) : null,
             vertical_oscillation: null,
             trunk_std_deg: null,
+            leg_alignment: front?.leg_alignment ?? null,
             visualization: visualization,
         };
     };
@@ -1848,6 +1892,11 @@
         const positivesEl = document.getElementById('rlfa-positives');
         const formIssuesWrap = document.getElementById('rlfa-formissues-wrap');
         const formIssuesEl = document.getElementById('rlfa-formissues');
+        const legWrap = document.getElementById('rlfa-leg-wrap');
+        const legLabelEl = document.getElementById('rlfa-leg-label');
+        const legBadgeEl = document.getElementById('rlfa-leg-badge');
+        const legDescEl = document.getElementById('rlfa-leg-desc');
+        const legSolutionsEl = document.getElementById('rlfa-leg-solutions');
         const formReportWrap = document.getElementById('rlfa-formreport-wrap');
         const formReportEl = document.getElementById('rlfa-formreport');
         const strengthWrap = document.getElementById('rlfa-strength-wrap');
@@ -2429,6 +2478,65 @@
                 if (osc >= 0.014) parts.push('Osilasi vertikal tinggi, beban calf meningkat pada tiap langkah.');
             }
             return parts.length ? parts.join(' ') : 'Data calf/ankle tidak cukup untuk analisis detail.';
+        };
+
+        const buildLegAlignmentInsight = (alignment) => {
+            if (!alignment || alignment.type === 'unknown') {
+                return {
+                    label: 'Belum terdeteksi',
+                    badgeText: 'BUTUH FOTO DEPAN',
+                    badgeClass: 'bg-slate-500/15 text-slate-300 border-slate-500/30',
+                    description: 'Unggah foto tampak depan agar deteksi kaki X/O lebih akurat.',
+                    solutions: []
+                };
+            }
+            if (alignment.type === 'normal') {
+                return {
+                    label: 'Normal',
+                    badgeText: 'NORMAL',
+                    badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+                    description: 'Garis lutut dan pergelangan relatif sejajar dari tampak depan.',
+                    solutions: [
+                        { title: 'Pertahankan stabilitas', message: 'Lanjutkan latihan hip stability dan kontrol knee tracking.', severity: 'good' }
+                    ]
+                };
+            }
+            if (alignment.type === 'x') {
+                return {
+                    label: 'Kaki X (valgus)',
+                    badgeText: 'PERLU KOREKSI',
+                    badgeClass: 'bg-red-500/15 text-red-300 border-red-500/30',
+                    description: 'Lutut cenderung masuk ke garis tengah saat berdiri/landing.',
+                    solutions: [
+                        { title: 'Aktivasi glute med', message: 'Lakukan side steps, clamshell, dan single-leg squat dengan kontrol lutut.', severity: 'high' },
+                        { title: 'Stabilitas hip', message: 'Tambahkan hip bridge dan single-leg balance 2–3x/minggu.', severity: 'medium' },
+                        { title: 'Cue teknik', message: 'Fokus lutut mengarah ke jari kaki saat mendarat.', severity: 'medium' }
+                    ]
+                };
+            }
+            if (alignment.type === 'o') {
+                return {
+                    label: 'Kaki O (varus)',
+                    badgeText: 'PERLU KOREKSI',
+                    badgeClass: 'bg-red-500/15 text-red-300 border-red-500/30',
+                    description: 'Lutut cenderung keluar dari garis tengah saat berdiri/landing.',
+                    solutions: [
+                        { title: 'Kontrol adductor', message: 'Latihan adductor squeeze, lateral lunges ringan, dan side plank.', severity: 'high' },
+                        { title: 'Mobilitas ankle/hip', message: 'Fokus pada mobility ankle dan hip internal rotation.', severity: 'medium' },
+                        { title: 'Cue teknik', message: 'Pastikan kaki mendarat stabil dan lutut tetap mengarah ke depan.', severity: 'medium' }
+                    ]
+                };
+            }
+            return {
+                label: 'Asimetri kaki',
+                badgeText: 'PERLU PERHATIAN',
+                badgeClass: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30',
+                description: 'Kaki kiri dan kanan menunjukkan pola berbeda saat tampak depan.',
+                solutions: [
+                    { title: 'Latihan unilateral', message: 'Single-leg squat dan step-down untuk menyeimbangkan sisi dominan.', severity: 'medium' },
+                    { title: 'Kontrol landing', message: 'Perhatikan alignment lutut-kaki pada sisi yang lemah.', severity: 'medium' }
+                ]
+            };
         };
 
         const buildIssueFlags = (metrics) => {
@@ -3112,6 +3220,12 @@
                 formIssuesWrap.classList.remove('hidden');
             }
 
+            if (legSolutionsEl) legSolutionsEl.innerHTML = '';
+            if (legWrap) legWrap.classList.add('hidden');
+            if (legLabelEl) legLabelEl.textContent = '--';
+            if (legBadgeEl) legBadgeEl.textContent = '--';
+            if (legDescEl) legDescEl.textContent = '';
+
             const formReport = Array.isArray(result.form_report) ? result.form_report : [];
             if (formReportEl && formReportWrap && formReport.length) {
                 formReport.forEach((s) => formReportEl.appendChild(createReportCard(s)));
@@ -3131,6 +3245,19 @@
                 if (advRecovery) {
                     recovery.forEach((x) => advRecovery.appendChild(createChip(x)));
                 }
+            }
+
+            if (legWrap && legLabelEl && legBadgeEl && legDescEl && legSolutionsEl) {
+                const legAlignment = metrics?.leg_alignment || metrics?.phases?.front?.leg_alignment || null;
+                const legInsight = buildLegAlignmentInsight(legAlignment);
+                legLabelEl.textContent = legInsight.label;
+                legBadgeEl.textContent = legInsight.badgeText;
+                legBadgeEl.className = `px-2 py-1 rounded text-[10px] font-bold border ${legInsight.badgeClass}`;
+                legDescEl.textContent = legInsight.description || '';
+                if (Array.isArray(legInsight.solutions)) {
+                    legInsight.solutions.forEach((x) => legSolutionsEl.appendChild(createChip(x)));
+                }
+                legWrap.classList.remove('hidden');
             }
 
             lastResult = result;
