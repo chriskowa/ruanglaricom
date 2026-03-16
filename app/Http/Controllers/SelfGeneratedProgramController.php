@@ -163,15 +163,17 @@ class SelfGeneratedProgramController extends Controller
 
             return response()->json([
                 'success' => true,
-                'vdot' => round($currentVdot, 1),
-                'paces' => $this->danielsService->calculateTrainingPaces($currentVdot),
-                'weeks' => $weeksUntilRace,
-                'sessions' => $programData['sessions'],
-                'summary' => [
-                    'total_weeks' => $weeksUntilRace,
-                    'target' => strtoupper($validated['target_distance']),
+                'data' => [
                     'vdot' => round($currentVdot, 1),
-                    'target_vdot' => round($safeTargetVdot, 1)
+                    'paces' => $this->danielsService->calculateTrainingPaces($currentVdot),
+                    'weeks' => $weeksUntilRace,
+                    'sessions' => $programData['sessions'],
+                    'summary' => [
+                        'total_weeks' => $weeksUntilRace,
+                        'target' => strtoupper($validated['target_distance']),
+                        'vdot' => round($currentVdot, 1),
+                        'target_vdot' => round($safeTargetVdot, 1)
+                    ]
                 ]
             ]);
 
@@ -262,19 +264,18 @@ class SelfGeneratedProgramController extends Controller
     public function saveToCalendar(Request $request)
     {
         $user = auth()->user();
-        $data = $request->validate([
-            'title' => 'required|string',
-            'target_distance' => 'required|string',
-            'target_date' => 'required|date',
-            'program_json' => 'required|array',
-            'vdot' => 'required|numeric',
-            'paces' => 'required|array',
+        $validated = $request->validate([
+            'form' => 'required|array',
+            'result' => 'required|array',
         ]);
+
+        $form = $validated['form'];
+        $result = $validated['result'];
 
         DB::beginTransaction();
         try {
-            $targetDate = Carbon::parse($data['target_date']);
-            $sessions = $data['program_json']['sessions'] ?? [];
+            $targetDate = Carbon::parse($form['target_date']);
+            $sessions = $result['sessions'] ?? [];
             $totalDays = count($sessions);
             $durationWeeks = (int) ceil($totalDays / 7);
             
@@ -284,19 +285,22 @@ class SelfGeneratedProgramController extends Controller
             // Create a virtual program record
             $program = Program::create([
                 'coach_id' => $user->id,
-                'title' => $data['title'],
+                'title' => "AI " . strtoupper($form['target_distance']) . " Plan (" . $result['vdot'] . ")",
                 'slug' => 'gen-' . Str::random(10),
-                'description' => "AI Generated Program for " . strtoupper($data['target_distance']),
-                'distance_target' => $data['target_distance'],
+                'description' => "AI Generated Program for " . strtoupper($form['target_distance']),
+                'distance_target' => $form['target_distance'],
                 'duration_weeks' => $durationWeeks,
-                'program_json' => $data['program_json'],
+                'program_json' => [
+                    'sessions' => $result['sessions'],
+                    'summary' => $result['summary'] ?? []
+                ],
                 'is_self_generated' => true,
                 'is_active' => true,
                 'is_published' => false,
                 'price' => 0, 
-                'generated_vdot' => $data['vdot'],
+                'generated_vdot' => $result['vdot'],
                 'daniels_params' => [
-                    'training_paces' => $data['paces']
+                    'training_paces' => $result['paces']
                 ]
             ]);
 

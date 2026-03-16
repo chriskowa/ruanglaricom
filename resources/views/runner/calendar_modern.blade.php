@@ -222,34 +222,88 @@
             </div>
         </div>
 
-        <!-- Weekly Volume Chart -->
-        <div class="glass-panel rounded-2xl p-6 mb-8" v-if="weeklyVolume.length > 0">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-white font-bold text-lg">Weekly Volume Analysis</h3>
-                <div class="flex gap-4 text-xs">
-                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-slate-700 rounded-sm"></div> <span class="text-slate-400">Planned</span></div>
-                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-neon rounded-sm"></div> <span class="text-slate-400">Actual (Plan + Strava)</span></div>
+        <!-- Weekly Volume Chart (Hidden per request) -->
+        <div class="hidden glass-panel rounded-2xl p-6 mb-8" v-if="weeklyVolume.length > 0">
+            <!-- content hidden -->
+        </div>
+
+        <!-- Programs Row (Active & Bag) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <!-- Active Programs -->
+            <div class="glass-panel rounded-2xl p-4 md:p-6">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Active Programs
+                </h3>
+                <div class="space-y-3" v-if="enrollments.length > 0">
+                    <div v-for="en in enrollments" :key="en.id" class="p-4 rounded-xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3">
+                        <div>
+                            <div class="text-white font-bold">@{{ en.program.title }}</div>
+                            <div class="text-[11px] text-slate-500 font-mono">Start: @{{ formatDate(en.start_date) }} • End: @{{ formatDate(en.end_date) }}</div>
+                            <div v-if="en.program && en.program.coach" class="mt-2 flex items-center gap-3">
+                                <img :src="en.program.coach.avatar ? (assetStorage + '/' + en.program.coach.avatar) : assetProfile" class="w-8 h-8 rounded-full border border-slate-600" :alt="en.program.coach.name">
+                                <div class="flex-1">
+                                    <div class="text-slate-300 text-sm">@{{ en.program.coach.name }}</div>
+                                    <div class="flex gap-2 mt-1">
+                                        <a :href="runnerUrl + '/' + (en.program.coach.username || en.program.coach.id)" class="text-xs px-2 py-1 rounded bg-slate-700 text-white hover:bg-slate-600">Profile</a>
+                                        <a :href="chatUrl + '/' + en.program.coach.id" @click.prevent="chatCoach(en.program.coach)" class="text-xs px-2 py-1 rounded bg-neon text-dark font-black hover:bg-neon/90">Chat Coach</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 rounded-lg bg-blue-600/20 text-blue-500 border border-blue-600/30 text-xs w-full hover:bg-blue-600/30 transition" @click="openRescheduleModal(en)">Reschedule</button>
+                            <button class="px-3 py-1 rounded-lg bg-yellow-600/20 text-yellow-500 border border-yellow-600/30 text-xs w-full hover:bg-yellow-600/30 transition" @click="resetPlan(en.id)">Reset to Bag</button>
+                            <button class="px-3 py-1 rounded-lg bg-red-600/20 text-red-500 border border-red-600/30 text-xs w-full hover:bg-red-600/30 transition" @click="deleteEnrollment(en.id)">Delete</button>
+                        </div>
+                    </div>
                 </div>
+                <div v-else class="text-slate-400 text-sm py-4 border border-dashed border-slate-700 rounded-xl text-center italic">No active programs.</div>
             </div>
-            
-            <div class="h-40 flex items-end gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <div v-for="week in weeklyVolume" :key="week.full_date" class="flex-1 min-w-[30px] flex flex-col items-center gap-2 group relative">
-                    <!-- Tooltip -->
-                    <div class="absolute bottom-full mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded border border-slate-700 opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10 pointer-events-none shadow-xl">
-                        <div class="font-bold text-neon">Week of @{{ week.week_label }}</div>
-                        <div>Plan: <span class="font-mono">@{{ week.planned.toFixed(1) }}</span> km</div>
-                        <div>Act: <span class="font-mono">@{{ week.actual.toFixed(1) }}</span> km</div>
-                        <div class="text-slate-400">• Plan done: <span class="font-mono">@{{ (week.actual_plan || 0).toFixed(1) }}</span> km</div>
-                        <div class="text-slate-400">• Strava extra: <span class="font-mono">@{{ (week.actual_strava_unplanned || 0).toFixed(1) }}</span> km</div>
+
+            <!-- Program Bag -->
+            <div class="glass-panel rounded-2xl p-4 md:p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Program Bag</h3>
+                    <!-- Tabs for Bag -->
+                    <div class="flex gap-1">
+                        <button class="text-[9px] font-bold px-2 py-1 rounded-lg transition" 
+                            :class="bagTab === 'available' ? 'bg-neon text-dark' : 'text-slate-500 hover:text-white'"
+                            @click="bagTab = 'available'">Available</button>
+                        <button class="text-[9px] font-bold px-2 py-1 rounded-lg transition" 
+                            :class="bagTab === 'cancelled' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'"
+                            @click="bagTab = 'cancelled'">History</button>
                     </div>
-                    
-                    <div class="w-full flex items-end justify-center h-full relative">
-                        <!-- Planned Bar (Background) -->
-                        <div class="w-1.5 md:w-3 bg-slate-700 rounded-t-sm absolute bottom-0 transition-all duration-500" :style="{height: (maxVolume > 0 ? (week.planned / maxVolume * 100) : 0) + '%'}"></div>
-                        <!-- Actual Bar (Foreground) -->
-                        <div class="w-1.5 md:w-3 bg-neon rounded-t-sm absolute bottom-0 z-10 opacity-80 transition-all duration-500" :style="{height: (maxVolume > 0 ? (week.actual / maxVolume * 100) : 0) + '%'}"></div>
+                </div>
+
+                <!-- Available Programs -->
+                <div v-if="bagTab === 'available'">
+                    <div class="space-y-3" v-if="programBag.length > 0">
+                        <div v-for="bg in programBag" :key="bg.id" class="p-4 rounded-xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3">
+                            <div>
+                                <div class="text-white font-bold">@{{ bg.program.title }}</div>
+                                <div class="text-[11px] text-slate-500 font-mono">Purchased: @{{ formatDate(bg.created_at) }}</div>
+                            </div>
+                            <button class="px-3 py-2 rounded-lg bg-neon text-dark font-black text-xs w-full hover:bg-neon/90 transition" @click="applyProgram(bg.id)">Apply to Calendar</button>
+                        </div>
                     </div>
-                    <div class="text-[9px] md:text-[10px] text-slate-500 font-mono rotate-0 md:rotate-0 whitespace-nowrap overflow-hidden text-ellipsis w-full text-center">@{{ week.week_label }}</div>
+                    <div v-else class="text-slate-400 text-sm py-4 border border-dashed border-slate-700 rounded-xl text-center italic">
+                        Your bag is empty. <a href="{{ route('programs.index') }}" class="text-neon hover:underline">Browse Programs</a>
+                    </div>
+                </div>
+
+                <!-- Cancelled/History Programs -->
+                <div v-if="bagTab === 'cancelled'">
+                    <div class="space-y-3" v-if="cancelledPrograms.length > 0">
+                        <div v-for="bg in cancelledPrograms" :key="bg.id" class="p-4 rounded-xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3 opacity-75">
+                            <div>
+                                <div class="text-slate-300 font-bold">@{{ bg.program.title }}</div>
+                                <div class="text-[11px] text-slate-500 font-mono">Cancelled: @{{ formatDate(bg.updated_at) }}</div>
+                            </div>
+                            <button class="px-3 py-2 rounded-lg bg-slate-700 text-white font-bold text-xs w-full hover:bg-slate-600 transition" @click="restoreProgram(bg.id)">Restore to Bag</button>
+                        </div>
+                    </div>
+                    <div v-else class="text-slate-400 text-sm py-4 border border-dashed border-slate-700 rounded-xl text-center italic">No history history.</div>
                 </div>
             </div>
         </div>
@@ -431,26 +485,26 @@
                 </div>
 
                 <!-- Global Unlock Banner -->
-                <div v-if="hasUnpaidGenerator" class="mb-8 p-6 rounded-3xl bg-slate-900/80 border border-cyan-500/30 backdrop-blur-xl shadow-2xl shadow-cyan-500/5 overflow-hidden relative group">
+                <div v-if="hasUnpaidGenerator" class="mb-8 p-6 rounded-3xl bg-slate-900/80 border border-cyan-500/30 backdrop-blur-xl shadow-2xl overflow-hidden relative group">
                     <!-- Background Accent -->
                     <div class="absolute -right-20 -top-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all duration-700"></div>
                     
-                    <div class="relative z-10 flex flex-col xl:flex-row gap-8 items-center">
+                    <div class="relative z-10 flex flex-col lg:flex-row gap-6 items-center">
                         <!-- Icon & Info -->
-                        <div class="flex items-center gap-5 flex-1">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center text-3xl shadow-inner border border-cyan-500/20 animate-pulse">
+                        <div class="flex items-center gap-5 w-full lg:w-auto">
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center text-3xl shadow-inner border border-cyan-500/20 flex-shrink-0">
                                 🔓
                             </div>
-                            <div>
-                                <h4 class="text-xl font-black text-white italic tracking-tight uppercase">Buka Program Lengkap!</h4>
-                                <p class="text-sm text-slate-400 leading-relaxed max-w-md">Dukung kami dengan donasi sukarela untuk membuka <span class="text-cyan-400 font-bold">Minggu @{{ firstLockedWeek }} sampai akhir program</span>.</p>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-lg md:text-xl font-black text-white italic tracking-tight uppercase leading-tight">Buka Program Lengkap!</h4>
+                                <p class="text-xs md:text-sm text-slate-400 leading-relaxed mt-1">Dukung kami dengan donasi untuk membuka <span class="text-cyan-400 font-bold">Minggu @{{ firstLockedWeek }} sampai akhir program</span>.</p>
                             </div>
                         </div>
 
                         <!-- Controls Area -->
-                        <div class="flex flex-col md:flex-row gap-6 items-center w-full xl:w-auto bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50">
+                        <div class="flex flex-col md:flex-row gap-4 items-center w-full lg:flex-1 bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
                             <!-- Donation Slider -->
-                            <div class="w-full md:w-64 space-y-3">
+                            <div class="w-full md:flex-1 space-y-2">
                                 <div class="flex justify-between items-center">
                                     <label class="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">Donasi</label>
                                     <div class="flex items-center gap-1">
@@ -464,13 +518,13 @@
                             </div>
 
                             <!-- Divider -->
-                            <div class="hidden md:block w-px h-10 bg-slate-700"></div>
+                            <div class="hidden md:block w-px h-10 bg-slate-700/50"></div>
 
                             <!-- Promo Code -->
-                            <div class="w-full md:w-56 space-y-2">
+                            <div class="w-full md:w-48">
                                 <div class="relative">
-                                    <input v-model="promoCode" type="text" placeholder="Kode Promo (No HP)" 
-                                           class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
+                                    <input v-model="promoCode" type="text" placeholder="Promo (No HP)" 
+                                           class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
                                            :class="{'border-green-500/50': promoApplied, 'border-red-500/50': promoError}">
                                     <button v-if="!promoApplied && promoCode" @click="applyPromo" :disabled="checkingPromo"
                                             class="absolute right-1.5 top-1.5 px-2 py-1 bg-cyan-500 text-slate-900 text-[10px] font-black rounded-lg hover:bg-cyan-400 transition-all">
@@ -478,14 +532,13 @@
                                     </button>
                                     <span v-if="promoApplied" class="absolute right-3 top-2.5 text-green-400">✓</span>
                                 </div>
-                                <p v-if="promoError" class="text-[9px] text-red-400">@{{ promoError }}</p>
                             </div>
 
                             <!-- Action Button -->
                             <button @click="handleUnlockAction" :disabled="donationLoading || checkingPromo" 
-                                    class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-black rounded-xl shadow-lg shadow-cyan-500/20 hover:scale-105 active:scale-95 transition-all text-sm whitespace-nowrap uppercase tracking-tighter">
+                                    class="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all text-sm whitespace-normal md:whitespace-nowrap uppercase">
                                 <span v-if="!donationLoading">@{{ promoApplied ? 'Unlock Gratis' : 'Unlock Now' }}</span>
-                                <span v-else class="animate-spin">⌛</span>
+                                <span v-else class="animate-spin inline-block w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full"></span>
                             </button>
                         </div>
                     </div>
@@ -558,86 +611,6 @@
                                 @click="loadMorePlans">
                             Load More (@{{ plans.length - displayedPlans.length }} left)
                         </button>
-                    </div>
-                </div>
-
-                <div class="glass-panel rounded-2xl p-4 md:p-6">
-                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Active Programs</h3>
-                    <div class="space-y-3" v-if="enrollments.length > 0">
-                        <div v-for="en in enrollments" :key="en.id" class="p-4 rounded-xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3">
-                            <div>
-                                <div class="text-white font-bold">@{{ en.program.title }}</div>
-                                <div class="text-[11px] text-slate-500 font-mono">Start: @{{ formatDate(en.start_date) }} • End: @{{ formatDate(en.end_date) }}</div>
-                                <div v-if="en.program && en.program.coach" class="mt-2 flex items-center gap-3">
-                                    <img :src="en.program.coach.avatar ? (assetStorage + '/' + en.program.coach.avatar) : assetProfile" class="w-8 h-8 rounded-full border border-slate-600" :alt="en.program.coach.name">
-                                    <div class="flex-1">
-                                        <div class="text-slate-300 text-sm">@{{ en.program.coach.name }}</div>
-                                        <div class="flex gap-2 mt-1">
-                                            <a :href="runnerUrl + '/' + (en.program.coach.username || en.program.coach.id)" class="text-xs px-2 py-1 rounded bg-slate-700 text-white hover:bg-slate-600">Profile</a>
-                                            <a :href="chatUrl + '/' + en.program.coach.id" @click.prevent="chatCoach(en.program.coach)" class="text-xs px-2 py-1 rounded bg-neon text-dark font-black hover:bg-neon/90">Chat Coach</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button class="px-3 py-1 rounded-lg bg-blue-600/20 text-blue-500 border border-blue-600/30 text-xs w-full hover:bg-blue-600/30 transition" @click="openRescheduleModal(en)">Reschedule</button>
-                                <button class="px-3 py-1 rounded-lg bg-yellow-600/20 text-yellow-500 border border-yellow-600/30 text-xs w-full hover:bg-yellow-600/30 transition" @click="resetPlan(en.id)">Reset to Bag</button>
-                                <button class="px-3 py-1 rounded-lg bg-red-600/20 text-red-500 border border-red-600/30 text-xs w-full hover:bg-red-600/30 transition" @click="deleteEnrollment(en.id)">Delete</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-else class="text-slate-400 text-sm">No active programs.</div>
-                </div>
-
-                <div class="glass-panel rounded-2xl p-4 md:p-6">
-                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Program Bag</h3>
-                    
-                    <!-- Tabs for Bag -->
-                    <div class="flex gap-2 mb-4 border-b border-slate-700 pb-2">
-                        <button 
-                            class="text-xs font-bold px-3 py-1 rounded-lg transition" 
-                            :class="bagTab === 'available' ? 'bg-neon text-dark' : 'text-slate-400 hover:text-white'"
-                            @click="bagTab = 'available'">
-                            Available
-                        </button>
-                        <button 
-                            class="text-xs font-bold px-3 py-1 rounded-lg transition" 
-                            :class="bagTab === 'cancelled' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'"
-                            @click="bagTab = 'cancelled'">
-                            History / Cancelled
-                        </button>
-                    </div>
-
-                    <!-- Available Programs -->
-                    <div v-if="bagTab === 'available'">
-                        <div class="space-y-3" v-if="programBag.length > 0">
-                            <div v-for="bg in programBag" :key="bg.id" class="p-4 rounded-xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3">
-                                <div>
-                                    <div class="text-white font-bold">@{{ bg.program.title }}</div>
-                                    <div class="text-[11px] text-slate-500 font-mono">Purchased: @{{ formatDate(bg.created_at) }}</div>
-                                </div>
-                                <button class="px-3 py-2 rounded-lg bg-neon text-dark font-black text-xs w-full hover:bg-neon/90 transition" @click="applyProgram(bg.id)">Apply to Calendar</button>
-                            </div>
-                        </div>
-                        <div v-else class="text-slate-400 text-sm">
-                            Your bag is empty. <a href="{{ route('programs.index') }}" class="text-neon hover:underline">Browse Programs</a>
-                        </div>
-                    </div>
-
-                    <!-- Cancelled/History Programs -->
-                    <div v-if="bagTab === 'cancelled'">
-                        <div class="space-y-3" v-if="cancelledPrograms.length > 0">
-                            <div v-for="bg in cancelledPrograms" :key="bg.id" class="p-4 rounded-xl bg-slate-800/40 border border-slate-700 flex flex-col gap-3 opacity-75">
-                                <div>
-                                    <div class="text-slate-300 font-bold">@{{ bg.program.title }}</div>
-                                    <div class="text-[11px] text-slate-500 font-mono">Cancelled: @{{ formatDate(bg.updated_at) }}</div>
-                                </div>
-                                <button class="px-3 py-2 rounded-lg bg-slate-700 text-white font-bold text-xs w-full hover:bg-slate-600 transition" @click="restoreProgram(bg.id)">Restore to Bag</button>
-                            </div>
-                        </div>
-                        <div v-else class="text-slate-400 text-sm">
-                            No cancelled programs history.
-                        </div>
                     </div>
                 </div>
             </div>

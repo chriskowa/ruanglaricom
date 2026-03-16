@@ -300,7 +300,7 @@
                         <div class="card-dark p-8 rounded-3xl border-t-4 border-t-brand-500">
                             <div class="text-center mb-6">
                                 <div class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Estimated VDOT Score</div>
-                                <div class="text-6xl font-black text-white tracking-tighter">@{{ result.vdot }}</div>
+                                <div class="text-6xl font-black text-white tracking-tighter">@{{ result?.vdot }}</div>
                             </div>
                             
                             <div class="space-y-2 py-4 border-y border-slate-700/50 mb-6">
@@ -310,7 +310,7 @@
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-slate-400">Durasi Program</span>
-                                    <span class="font-bold text-white">@{{ result.weeks }} Minggu</span>
+                                    <span class="font-bold text-white">@{{ result?.weeks }} Minggu</span>
                                 </div>
                             </div>
 
@@ -327,7 +327,7 @@
                         <div class="card-dark p-8 rounded-3xl">
                             <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Training Paces (min/km)</h3>
                             <div class="space-y-4">
-                                <div v-for="(pace, type) in result.paces" :key="type" class="flex justify-between items-center p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                                <div v-for="(pace, type) in (result?.paces || {})" :key="type" class="flex justify-between items-center p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/50">
                                     <span class="font-bold text-xs uppercase" :class="getPaceColor(type)">@{{ getPaceLabel(type) }}</span>
                                     <span class="font-mono font-bold text-white">@{{ formatPace(pace) }}</span>
                                 </div>
@@ -368,7 +368,7 @@
                                 <div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-500 border border-slate-700">🔒</div>
                                 <h4 class="text-white font-bold mb-2">Sisa Program Terkunci</h4>
                                 <p class="text-slate-400 text-sm mb-6 leading-relaxed">
-                                    Minggu @{{ freeWeeksCount + 1 }} sampai @{{ result.weeks }} akan di-unlock secara otomatis setelah Anda menyimpannya ke kalender.
+                                    Minggu @{{ freeWeeksCount + 1 }} sampai @{{ result?.weeks || '-' }} akan di-unlock secara otomatis setelah Anda menyimpannya ke kalender.
                                 </p>
                                 <button @click="saveAndOpenCalendar" class="text-brand-400 font-black text-xs uppercase tracking-widest hover:text-brand-300 transition-colors">Simpan Sekarang →</button>
                             </div>
