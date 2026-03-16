@@ -1,8 +1,41 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Realistic Running Program Generator')
+@section('title', 'Generator Program Lari & Running Program Generator | Ruang Lari')
 
-@push('styles')
+@section('meta_title', 'Generator Program Lari & Running Program Generator | Ruang Lari')
+@section('meta_description', 'Hasilkan program latihan lari 5K, 10K, Half Marathon, dan Full Marathon yang dipersonalisasi secara gratis. Gunakan algoritma Jack Daniels\' VDOT untuk target waktu lari yang realistis dan ilmiah.')
+@section('meta_keywords', 'generator program lari, running program generator, training plan lari, program latihan marathon, kalkulator vdot, rencana latihan lari gratis, jack daniels running formula, pacerhub, ruang lari')
+
+@section('og_image', 'https://ruanglari.com/storage/blog/media/kP2oNYsx0wEzCGJMQYKN1xxUBW3oaUMTCfydDSig.webp')
+
+@push('head')
+@verbatim
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Generator Program Lari Ruang Lari",
+  "alternateName": "Running Program Generator",
+  "url": "https://ruanglari.com/realistic-running-program",
+  "description": "Platform pembuat program latihan lari otomatis berdasarkan tingkat kebugaran Anda menggunakan metode VDOT Jack Daniels.",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "IDR"
+  },
+  "featureList": [
+    "Personalisasi Program Lari 5K - Full Marathon",
+    "Kalkulator VDOT Jack Daniels",
+    "Prediksi Target Waktu Lari Realistis",
+    "Sinkronisasi Kalender Latihan"
+  ]
+}
+</script>
+@endverbatim
+@endpush
+@push('styles')       
     <script>
         // Extending existing Tailwind config from pacerhub layout
         tailwind.config.theme.extend = {
@@ -133,22 +166,31 @@
         <transition name="fade" mode="out-in">
             
             <!-- Step 0: Hero / Start -->
-            <div v-if="step === 0" key="hero" class="text-center py-16">
-                <div class="inline-block mb-6 px-4 py-1.5 rounded-full bg-brand-500/10 text-brand-400 text-xs font-bold tracking-wide uppercase border border-brand-500/20">
-                    Scientific Training Framework
+            <div v-if="step === 0" key="hero" class="relative text-center py-24 md:py-32 rounded-3xl overflow-hidden mb-12">
+                <!-- Background & Overlay -->
+                <div class="absolute inset-0 z-0">
+                    <img src="https://ruanglari.com/storage/blog/media/kP2oNYsx0wEzCGJMQYKN1xxUBW3oaUMTCfydDSig.webp" 
+                         class="w-full h-full object-cover" alt="Hero Background">
+                    <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-[2px]"></div>
                 </div>
-                <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-6 text-white leading-tight">
-                    Program Latihan <br> <span class="text-brand-500 italic">Lari Realistis</span>
-                </h1>
-                <p class="text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                    Hasilkan program latihan lari 5K hingga Full Marathon yang dipersonalisasi menggunakan algoritma 
-                    <span class="text-white font-bold">Jack Daniels' VDOT</span> yang telah teruji secara ilmiah.
-                </p>
-                
-                <div class="flex flex-col md:flex-row gap-4 justify-center">
-                    <button @click="step = 1" class="px-10 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold text-lg rounded-xl transition-all shadow-lg shadow-brand-500/20 hover:scale-[1.02] active:scale-[0.98]">
-                        Buat Program Saya
-                    </button>
+
+                <div class="relative z-10 px-6">
+                    <div class="inline-block mb-6 px-4 py-1.5 rounded-full bg-brand-500/20 text-brand-400 text-xs font-bold tracking-wide uppercase border border-brand-500/30 backdrop-blur-md">
+                        Scientific Training Framework
+                    </div>
+                    <h1 class="text-4xl md:text-7xl font-black tracking-tight mb-6 text-white leading-tight">
+                        Generator <span class="text-brand-500 italic">Program Lari</span> <br> Secara Realistis
+                    </h1>
+                    <p class="text-base md:text-xl text-slate-200 max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-lg">
+                        Running Program Generator otomatis untuk 5K hingga Full Marathon yang dipersonalisasi menggunakan algoritma 
+                        <span class="text-white font-bold">Jack Daniels' VDOT</span> yang teruji secara ilmiah.
+                    </p>
+                    
+                    <div class="flex flex-col md:flex-row gap-4 justify-center">
+                        <button @click="step = 1" class="px-10 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold text-lg rounded-xl transition-all shadow-xl shadow-brand-500/30 hover:scale-[1.02] active:scale-[0.98]">
+                            Buat Program Saya
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -166,13 +208,16 @@
                         <!-- PB Section -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-2">
-                                <label class="label-text">Jarak Parameter Test / PB (1 Bulan Terakhir)</label>
-                                <select v-model="form.pb_distance" class="input-field cursor-pointer">
-                                    <option value="5k">5 Kilometer</option>
-                                    <option value="10k">10 Kilometer</option>
-                                    <option value="21k">Half Marathon</option>
-                                    <option value="42k">Full Marathon</option>
-                                </select>
+                                <label class="label-text">Parameter Test/PB</label>
+                                <div class="flex flex-col gap-1">
+                                    <select v-model="form.pb_distance" class="input-field cursor-pointer">
+                                        <option value="5k">5 Kilometer</option>
+                                        <option value="10k">10 Kilometer</option>
+                                        <option value="21k">Half Marathon</option>
+                                        <option value="42k">Full Marathon</option>
+                                    </select>
+                                    <span class="text-[9px] opacity-0 font-bold uppercase tracking-widest select-none">Spacer</span>
+                                </div>
                             </div>
                             <div class="space-y-2">
                                 <label class="label-text">Waktu Parameter Test / PB</label>
@@ -254,6 +299,27 @@
 
                         <!-- Training Load Section -->
                         <div class="space-y-6">
+                            <!-- Reference ID Section -->
+                            <div class="space-y-3">
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <div class="relative flex items-center">
+                                        <input v-model="form.has_reference" type="checkbox" class="peer h-5 w-5 appearance-none rounded border border-slate-700 bg-slate-900 checked:border-brand-500 checked:bg-brand-500 transition-all cursor-pointer">
+                                        <svg class="absolute h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none left-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">Punya ID Referensi?</span>
+                                </label>
+                                
+                                <transition name="fade">
+                                    <div v-if="form.has_reference" class="space-y-2">
+                                        <label class="label-text">ID Referensi (Opsional)</label>
+                                        <input v-model="form.reference_id" type="text" placeholder="Masukkan ID Referensi Anda" class="input-field font-bold">
+                                        <p class="text-[10px] text-slate-500 italic">Gunakan ID Referensi jika Anda mendapatkan rekomendasi dari pelatih atau teman.</p>
+                                    </div>
+                                </transition>
+                            </div>
+
                             <div>
                                 <div class="flex justify-between items-center mb-2">
                                     <label class="label-text">Mileage Mingguan (Km)</label>
@@ -413,7 +479,9 @@
                 weekly_mileage: 30,
                 frequency: 4,
                 gender: 'male',
-                age: 25
+                age: 25,
+                has_reference: false,
+                reference_id: ''
             });
 
             const showNotification = (message, type = 'success') => {
@@ -472,6 +540,7 @@
             // Auto-suggest when PB or Target Distance changes
             watch([pb_hours, pb_minutes, pb_seconds, () => form.pb_distance, () => form.target_distance], () => {
                 suggestGoalTime();
+                recommendMileage();
             });
 
             const realism = computed(() => {
