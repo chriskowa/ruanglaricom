@@ -1876,7 +1876,16 @@
                                             <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                                            <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required>                                            
+                                            <div class="space-y-2">
+                                                <div class="flex items-center justify-between">
+                                                    <label class="text-sm font-semibold text-slate-300">No. ID (KTP/SIM)</label>
+                                                    <button type="button" class="scan-ktp-btn text-[10px] font-bold text-brand-400 border border-brand-400 px-3 py-1.5 rounded-full hover:bg-brand-500/10 transition">
+                                                        Scan KTP
+                                                    </button>
+                                                </div>
+                                                <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required>
+                                                <p class="text-[11px] text-slate-400">Gunakan foto jelas agar nama, NIK, tanggal lahir, dan alamat terisi otomatis.</p>
+                                            </div>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
                                             <textarea name="participants[0][address]" placeholder="Alamat Peserta" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required maxlength="500" rows="3"></textarea>
@@ -2064,6 +2073,56 @@
                         </div>
                     </div>
                 </form>
+
+                <div id="ktpScanModal" class="fixed inset-0 z-[300] hidden items-center justify-center">
+                    <div id="ktpScanOverlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+                    <div class="relative w-full max-w-5xl bg-slate-950 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Scan KTP / Identitas</div>
+                                <h3 class="text-lg font-bold text-white">Isi Otomatis Data Peserta</h3>
+                            </div>
+                            <button type="button" id="ktpScanClose" class="text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg px-3 py-2">✕</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div class="relative bg-black rounded-2xl overflow-hidden border border-slate-800">
+                                    <video id="ktpVideo" class="w-full h-56 object-cover hidden" autoplay playsinline></video>
+                                    <img id="ktpPreview" class="w-full h-56 object-cover hidden" alt="Preview KTP">
+                                    <canvas id="ktpCanvas" class="hidden"></canvas>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" id="ktpOpenCamera" class="px-4 py-2 rounded-lg bg-brand-500/20 text-brand-300 border border-brand-500/30 text-xs font-bold hover:bg-brand-500/30 transition">Buka Kamera</button>
+                                    <button type="button" id="ktpCapture" class="px-4 py-2 rounded-lg bg-slate-900 text-slate-200 border border-slate-700 text-xs font-bold hover:bg-slate-800 transition">Ambil Foto</button>
+                                    <label class="px-4 py-2 rounded-lg bg-slate-900 text-slate-200 border border-slate-700 text-xs font-bold hover:bg-slate-800 transition cursor-pointer">
+                                        Upload Foto
+                                        <input type="file" id="ktpUpload" accept="image/*" class="hidden">
+                                    </label>
+                                    <button type="button" id="ktpRunOcr" class="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition">Scan OCR</button>
+                                </div>
+                                <div id="ktpOcrStatus" class="text-xs text-slate-400"></div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Panduan Foto</div>
+                                <ul class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                                    <li>Letakkan kartu di permukaan datar dan terang.</li>
+                                    <li>Hindari pantulan cahaya dan bayangan tajam.</li>
+                                    <li>Pastikan seluruh kartu masuk frame dan fokus.</li>
+                                    <li>Foto tampak depan, teks terbaca jelas.</li>
+                                </ul>
+                                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
+                                    <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Hasil OCR</div>
+                                    <div class="text-xs text-slate-300 flex justify-between"><span>Nama</span><span id="ktpFieldName" class="font-mono text-white">--</span></div>
+                                    <div class="text-xs text-slate-300 flex justify-between"><span>No. ID</span><span id="ktpFieldNik" class="font-mono text-white">--</span></div>
+                                    <div class="text-xs text-slate-300 flex justify-between"><span>Tanggal Lahir</span><span id="ktpFieldDob" class="font-mono text-white">--</span></div>
+                                    <div class="text-xs text-slate-300">Alamat</div>
+                                    <div id="ktpFieldAddress" class="text-xs text-white font-mono whitespace-pre-line">--</div>
+                                </div>
+                                <button type="button" id="ktpApply" class="w-full px-4 py-3 rounded-xl bg-brand-500 text-black font-bold hover:bg-brand-400 transition">Gunakan Hasil</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             @endif
         </div>
     </section>
@@ -2180,6 +2239,7 @@
      crossorigin=""></script>
     <!-- Leaflet GPX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <script>
         // Initialize Maps
@@ -2602,6 +2662,420 @@
                     hidden.value = `${h}:${m}:${s}`;
                 }
             }
+
+            const ktpModal = document.getElementById('ktpScanModal');
+            const ktpOverlay = document.getElementById('ktpScanOverlay');
+            const ktpClose = document.getElementById('ktpScanClose');
+            const ktpVideo = document.getElementById('ktpVideo');
+            const ktpPreview = document.getElementById('ktpPreview');
+            const ktpCanvas = document.getElementById('ktpCanvas');
+            const ktpOpenCamera = document.getElementById('ktpOpenCamera');
+            const ktpCapture = document.getElementById('ktpCapture');
+            const ktpUpload = document.getElementById('ktpUpload');
+            const ktpRunOcr = document.getElementById('ktpRunOcr');
+            const ktpApply = document.getElementById('ktpApply');
+            const ktpStatus = document.getElementById('ktpOcrStatus');
+            const ktpFieldName = document.getElementById('ktpFieldName');
+            const ktpFieldNik = document.getElementById('ktpFieldNik');
+            const ktpFieldDob = document.getElementById('ktpFieldDob');
+            const ktpFieldAddress = document.getElementById('ktpFieldAddress');
+
+            let ktpStream = null;
+            let ktpImageData = null;
+            let ktpResult = null;
+            let activeParticipant = null;
+
+            const setKtpStatus = (msg, isError = false) => {
+                if (!ktpStatus) return;
+                ktpStatus.textContent = msg || '';
+                ktpStatus.className = `text-xs ${isError ? 'text-red-400' : 'text-slate-400'}`;
+            };
+
+            const resetKtpPreview = () => {
+                if (ktpPreview) {
+                    ktpPreview.src = '';
+                    ktpPreview.classList.add('hidden');
+                }
+                if (ktpVideo) ktpVideo.classList.add('hidden');
+                ktpImageData = null;
+                ktpResult = null;
+                if (ktpFieldName) ktpFieldName.textContent = '--';
+                if (ktpFieldNik) ktpFieldNik.textContent = '--';
+                if (ktpFieldDob) ktpFieldDob.textContent = '--';
+                if (ktpFieldAddress) ktpFieldAddress.textContent = '--';
+                setKtpStatus('');
+            };
+
+            const stopKtpCamera = () => {
+                if (ktpStream) {
+                    ktpStream.getTracks().forEach((t) => t.stop());
+                    ktpStream = null;
+                }
+            };
+
+            const openKtpModal = (participantItem) => {
+                activeParticipant = participantItem;
+                resetKtpPreview();
+                if (ktpModal) {
+                    ktpModal.classList.remove('hidden');
+                    ktpModal.classList.add('flex');
+                    document.body.classList.add('overflow-hidden');
+                }
+            };
+
+            const closeKtpModal = () => {
+                stopKtpCamera();
+                if (ktpModal) {
+                    ktpModal.classList.add('hidden');
+                    ktpModal.classList.remove('flex');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            };
+
+            const startKtpCamera = async () => {
+                if (!ktpVideo) return;
+                stopKtpCamera();
+                try {
+                    ktpStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    ktpVideo.srcObject = ktpStream;
+                    ktpVideo.classList.remove('hidden');
+                    if (ktpPreview) ktpPreview.classList.add('hidden');
+                    setKtpStatus('Kamera aktif. Posisikan kartu lalu ambil foto.');
+                } catch (e) {
+                    setKtpStatus('Tidak bisa mengakses kamera. Gunakan upload foto.', true);
+                }
+            };
+
+            const setKtpPreview = (src) => {
+                if (!ktpPreview) return;
+                ktpPreview.src = src;
+                ktpPreview.classList.remove('hidden');
+                if (ktpVideo) ktpVideo.classList.add('hidden');
+                ktpImageData = src;
+            };
+
+            const captureKtpPhoto = () => {
+                if (!ktpVideo || !ktpCanvas) return;
+                if (!ktpStream) {
+                    setKtpStatus('Kamera belum aktif.', true);
+                    return;
+                }
+                const w = ktpVideo.videoWidth || 1280;
+                const h = ktpVideo.videoHeight || 720;
+                ktpCanvas.width = w;
+                ktpCanvas.height = h;
+                const ctx = ktpCanvas.getContext('2d');
+                ctx.drawImage(ktpVideo, 0, 0, w, h);
+                const dataUrl = ktpCanvas.toDataURL('image/jpeg', 0.9);
+                setKtpPreview(dataUrl);
+                stopKtpCamera();
+                setKtpStatus('Foto tersimpan. Jalankan OCR untuk membaca data.');
+            };
+
+            let ktpWorker = null;
+            const getKtpWorker = async () => {
+                if (ktpWorker) return ktpWorker;
+                if (!window.Tesseract?.createWorker) return null;
+                ktpWorker = await window.Tesseract.createWorker('ind+eng');
+                await ktpWorker.setParameters({
+                    tessedit_pageseg_mode: '6'
+                });
+                return ktpWorker;
+            };
+
+            const loadImage = (src) => new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
+            });
+
+            const createCanvas = (w, h) => {
+                const c = document.createElement('canvas');
+                c.width = w;
+                c.height = h;
+                return c;
+            };
+
+            const drawToCanvas = (img, maxWidth = 1600) => {
+                const scale = Math.min(1, maxWidth / img.width);
+                const w = Math.round(img.width * scale);
+                const h = Math.round(img.height * scale);
+                const c = createCanvas(w, h);
+                const ctx = c.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                return c;
+            };
+
+            const applyKernel = (src, kernel, divisor = 1) => {
+                const { width, height } = src;
+                const ctx = src.getContext('2d');
+                const img = ctx.getImageData(0, 0, width, height);
+                const out = ctx.createImageData(width, height);
+                const data = img.data;
+                const dst = out.data;
+                const k = kernel;
+                for (let y = 1; y < height - 1; y++) {
+                    for (let x = 1; x < width - 1; x++) {
+                        let r = 0, g = 0, b = 0;
+                        let i = 0;
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                const idx = ((y + ky) * width + (x + kx)) * 4;
+                                r += data[idx] * k[i];
+                                g += data[idx + 1] * k[i];
+                                b += data[idx + 2] * k[i];
+                                i++;
+                            }
+                        }
+                        const o = (y * width + x) * 4;
+                        dst[o] = Math.min(255, Math.max(0, r / divisor));
+                        dst[o + 1] = Math.min(255, Math.max(0, g / divisor));
+                        dst[o + 2] = Math.min(255, Math.max(0, b / divisor));
+                        dst[o + 3] = 255;
+                    }
+                }
+                ctx.putImageData(out, 0, 0);
+                return src;
+            };
+
+            const preprocessCanvas = (base, mode = 'clean') => {
+                const c = createCanvas(base.width, base.height);
+                const ctx = c.getContext('2d');
+                ctx.drawImage(base, 0, 0);
+                const img = ctx.getImageData(0, 0, c.width, c.height);
+                const data = img.data;
+                let sum = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    const v = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+                    data[i] = data[i + 1] = data[i + 2] = v;
+                    sum += v;
+                }
+                const mean = sum / (data.length / 4);
+                const contrast = mode === 'clean' ? 1.35 : 1.15;
+                const threshold = mode === 'threshold' ? Math.max(100, Math.min(190, mean + 10)) : null;
+                for (let i = 0; i < data.length; i += 4) {
+                    let v = data[i];
+                    v = (v - 128) * contrast + 128;
+                    if (threshold !== null) {
+                        v = v > threshold ? 255 : 0;
+                    }
+                    data[i] = data[i + 1] = data[i + 2] = Math.min(255, Math.max(0, v));
+                }
+                ctx.putImageData(img, 0, 0);
+                if (mode === 'clean') {
+                    applyKernel(c, [0, -1, 0, -1, 5, -1, 0, -1, 0], 1);
+                }
+                return c;
+            };
+
+            const blurScore = (canvas) => {
+                const ctx = canvas.getContext('2d');
+                const { width, height } = canvas;
+                const img = ctx.getImageData(0, 0, width, height).data;
+                const lap = [];
+                let sum = 0;
+                let sumSq = 0;
+                for (let y = 1; y < height - 1; y++) {
+                    for (let x = 1; x < width - 1; x++) {
+                        const idx = (y * width + x) * 4;
+                        const v = img[idx];
+                        const up = img[((y - 1) * width + x) * 4];
+                        const down = img[((y + 1) * width + x) * 4];
+                        const left = img[(y * width + (x - 1)) * 4];
+                        const right = img[(y * width + (x + 1)) * 4];
+                        const lapVal = (4 * v - up - down - left - right);
+                        lap.push(lapVal);
+                        sum += lapVal;
+                        sumSq += lapVal * lapVal;
+                    }
+                }
+                const n = lap.length || 1;
+                const mean = sum / n;
+                const variance = sumSq / n - mean * mean;
+                return variance;
+            };
+
+            const normalizeDate = (raw) => {
+                if (!raw) return '';
+                const m = raw.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
+                if (!m) return '';
+                return `${m[3]}-${m[2]}-${m[1]}`;
+            };
+
+            const parseKtpText = (text) => {
+                const clean = (text || '').replace(/\r/g, '');
+                const lines = clean.split('\n').map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+                const joinedDigits = clean.replace(/\D/g, '');
+                const nik = (joinedDigits.match(/\d{16}/) || [])[0] || '';
+                const findLineIndex = (regex) => lines.findIndex((l) => regex.test(l));
+                const extractAfterLabel = (line, regex) => line.replace(regex, '').replace(/[:\-]/g, ' ').replace(/\s+/g, ' ').trim();
+
+                let name = '';
+                const nameIdx = findLineIndex(/nama/i);
+                if (nameIdx >= 0) {
+                    const inline = extractAfterLabel(lines[nameIdx], /nama/i);
+                    name = inline || (lines[nameIdx + 1] || '');
+                }
+
+                let dob = '';
+                let dobRaw = '';
+                for (const line of lines) {
+                    const match = line.match(/(\d{2}[\/\-.]\d{2}[\/\-.]\d{4})/);
+                    if (match) {
+                        dobRaw = match[1];
+                        break;
+                    }
+                }
+                dob = normalizeDate(dobRaw);
+
+                let address = '';
+                const addrIdx = findLineIndex(/alamat/i);
+                if (addrIdx >= 0) {
+                    const stopRegex = /(rt\/rw|rw\/rt|kel|desa|kec|kab|prov|gol|agama|status|pekerjaan|warga|berlaku)/i;
+                    const addrLines = [];
+                    const first = extractAfterLabel(lines[addrIdx], /alamat/i);
+                    if (first) addrLines.push(first);
+                    for (let i = addrIdx + 1; i < lines.length; i++) {
+                        if (stopRegex.test(lines[i])) break;
+                        addrLines.push(lines[i]);
+                        if (addrLines.join(' ').length > 160) break;
+                    }
+                    address = addrLines.join(' ');
+                }
+
+                return { nik, name, dob, address };
+            };
+
+            const updateKtpFields = (data) => {
+                if (!data) return;
+                if (ktpFieldName) ktpFieldName.textContent = data.name || '--';
+                if (ktpFieldNik) ktpFieldNik.textContent = data.nik || '--';
+                if (ktpFieldDob) ktpFieldDob.textContent = data.dob || '--';
+                if (ktpFieldAddress) ktpFieldAddress.textContent = data.address || '--';
+            };
+
+            const runKtpOcr = async () => {
+                if (!ktpImageData) {
+                    setKtpStatus('Pilih foto KTP terlebih dahulu.', true);
+                    return;
+                }
+                if (!window.Tesseract) {
+                    setKtpStatus('OCR belum siap. Coba beberapa saat lagi.', true);
+                    return;
+                }
+                try {
+                    setKtpStatus('Menyiapkan gambar...');
+                    const img = await loadImage(ktpImageData);
+                    const baseCanvas = drawToCanvas(img, 1600);
+                    const cleanCanvas = preprocessCanvas(baseCanvas, 'clean');
+                    const thresholdCanvas = preprocessCanvas(baseCanvas, 'threshold');
+                    const focusScore = blurScore(cleanCanvas);
+                    if (focusScore < 120) {
+                        setKtpStatus('Foto terlihat blur. Coba ulang dengan pencahayaan lebih baik.', true);
+                    } else {
+                        setKtpStatus('Memproses OCR...');
+                    }
+                    const worker = await getKtpWorker();
+                    let textMain = '';
+                    let textAlt = '';
+                    let digitsOnly = '';
+                    if (worker) {
+                        const main = await worker.recognize(cleanCanvas);
+                        textMain = main?.data?.text || '';
+                        const alt = await worker.recognize(thresholdCanvas);
+                        textAlt = alt?.data?.text || '';
+                        await worker.setParameters({
+                            tessedit_char_whitelist: '0123456789',
+                            tessedit_pageseg_mode: '6'
+                        });
+                        const digitRes = await worker.recognize(thresholdCanvas);
+                        digitsOnly = digitRes?.data?.text || '';
+                        await worker.setParameters({
+                            tessedit_char_whitelist: '',
+                            tessedit_pageseg_mode: '6'
+                        });
+                    } else {
+                        const main = await window.Tesseract.recognize(cleanCanvas, 'ind+eng');
+                        textMain = main?.data?.text || '';
+                        const alt = await window.Tesseract.recognize(thresholdCanvas, 'ind+eng');
+                        textAlt = alt?.data?.text || '';
+                        const digitRes = await window.Tesseract.recognize(thresholdCanvas, 'eng');
+                        digitsOnly = digitRes?.data?.text || '';
+                    }
+                    const text = textAlt.length > textMain.length ? textAlt : textMain;
+                    const parsedMain = parseKtpText(text);
+                    const parsedDigits = parseKtpText(digitsOnly);
+                    ktpResult = {
+                        name: parsedMain.name,
+                        address: parsedMain.address,
+                        dob: parsedMain.dob,
+                        nik: parsedDigits.nik || parsedMain.nik
+                    };
+                    updateKtpFields(ktpResult);
+                    setKtpStatus('OCR selesai. Periksa hasil sebelum digunakan.');
+                } catch (e) {
+                    setKtpStatus('OCR gagal. Coba foto lebih jelas.', true);
+                }
+            };
+
+            const applyKtpResult = () => {
+                if (!activeParticipant || !ktpResult) {
+                    setKtpStatus('Belum ada hasil OCR.', true);
+                    return;
+                }
+                const nameInput = activeParticipant.querySelector('input[name*="[name]"]');
+                const nikInput = activeParticipant.querySelector('input[name*="[id_card]"]');
+                const dobInput = activeParticipant.querySelector('input[name*="[date_of_birth]"]');
+                const addressInput = activeParticipant.querySelector('textarea[name*="[address]"]');
+                if (ktpResult.name && nameInput) {
+                    nameInput.value = ktpResult.name;
+                    nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (ktpResult.nik && nikInput) {
+                    nikInput.value = ktpResult.nik;
+                    nikInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (ktpResult.dob && dobInput) {
+                    dobInput.value = ktpResult.dob;
+                    dobInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (ktpResult.address && addressInput) {
+                    addressInput.value = ktpResult.address;
+                    addressInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                closeKtpModal();
+            };
+
+            if (participantsWrapper) {
+                participantsWrapper.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.scan-ktp-btn');
+                    if (!btn) return;
+                    const item = btn.closest('.participant-item');
+                    if (item) openKtpModal(item);
+                });
+            }
+            if (ktpOverlay) ktpOverlay.addEventListener('click', closeKtpModal);
+            if (ktpClose) ktpClose.addEventListener('click', closeKtpModal);
+            if (ktpOpenCamera) ktpOpenCamera.addEventListener('click', startKtpCamera);
+            if (ktpCapture) ktpCapture.addEventListener('click', captureKtpPhoto);
+            if (ktpUpload) {
+                ktpUpload.addEventListener('change', (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        setKtpPreview(reader.result);
+                        setKtpStatus('Foto siap. Jalankan OCR untuk membaca data.');
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            if (ktpRunOcr) ktpRunOcr.addEventListener('click', runKtpOcr);
+            if (ktpApply) ktpApply.addEventListener('click', applyKtpResult);
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && ktpModal && !ktpModal.classList.contains('hidden')) closeKtpModal();
+            });
 
             // 5. Form Submission Validation (Duplicate NIK Check)
             form.addEventListener('submit', function(e) {
