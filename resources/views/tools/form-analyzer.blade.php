@@ -3247,6 +3247,7 @@
                 }
             }
 
+            const metrics = result?.client_metrics || null;
             if (legWrap && legLabelEl && legBadgeEl && legDescEl && legSolutionsEl) {
                 const legAlignment = metrics?.leg_alignment || metrics?.phases?.front?.leg_alignment || null;
                 const legInsight = buildLegAlignmentInsight(legAlignment);
@@ -3261,7 +3262,6 @@
             }
 
             lastResult = result;
-            const metrics = result?.client_metrics || null;
             const snapshots = buildSnapshotsFromMetrics(metrics);
             if (advancedPreview) {
                 if (result.visualization) {
