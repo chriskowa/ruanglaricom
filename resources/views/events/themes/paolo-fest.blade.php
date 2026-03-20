@@ -98,8 +98,21 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/paolo/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/paolo/favicon-16x16.png') }}">
 
-    <!-- Versi Apple Touch -->
+    <!-- Google Analytics (Lite) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
+    </script>
+
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/paolo/apple-touch-icon.png') }}">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
@@ -1701,8 +1714,14 @@
                             <div id="participantsWrapper" class="space-y-6">
                                 <div class="participant-item bg-slate-50 border border-slate-200 p-6 rounded-2xl relative" data-index="0">
                                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex flex-wrap items-center gap-2">
                                             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider participant-title">Peserta #1</span>
+                                            
+                                            <!-- Scan KTP Button -->
+                                            <button type="button" class="scan-ktp-btn text-[10px] bg-slate-900 text-white hover:bg-black transition-all duration-300 px-2 py-0.5 rounded flex items-center gap-1 border border-white/10">
+                                                <i class="fas fa-camera"></i> Scan KTP
+                                            </button>
+
                                             <button type="button" class="copy-pic-btn text-[10px] bg-brand-600 text-white hover:bg-brand-700 hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all duration-300 px-2 py-0.5 rounded transition" onclick="copyFromPic(this)">
                                                 Isi Dengan Data PIC
                                             </button>
@@ -1762,14 +1781,23 @@
                                             <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                                            <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>                                            
+                                            <div class="space-y-2">
+                                                <div class="flex items-center justify-between">
+                                                    <label class="text-sm font-semibold text-slate-700">No. ID (KTP/SIM)</label>
+                                                    <button type="button" class="scan-ktp-btn text-[10px] font-bold text-brand-600 border border-brand-600 px-3 py-1.5 rounded-full hover:bg-brand-50 transition">
+                                                        Scan KTP
+                                                    </button>
+                                                </div>
+                                                <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                                <p class="text-[11px] text-slate-500">Gunakan foto jelas agar nama, NIK, tanggal lahir, dan alamat terisi otomatis.</p>
+                                            </div>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
                                             <textarea name="participants[0][address]" placeholder="Alamat Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required maxlength="500" rows="3"></textarea>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">                                            
                                             <em class="md:col-span-1">Tanggal lahir</em>
-                                            <input type="date" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="w-full md:col-span-3 bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                            <input type="text" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="dob-picker w-full md:col-span-3 bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
@@ -1950,6 +1978,57 @@
                         </div>
                     </div>
                 </form>
+
+                <div id="ktpScanModal" class="fixed inset-0 z-[300] hidden items-center justify-center">
+                    <div id="ktpScanOverlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                    <div class="relative w-full max-w-5xl bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Scan KTP / Identitas</div>
+                                <h3 class="text-lg font-bold text-slate-900">Isi Otomatis Data Peserta</h3>
+                            </div>
+                            <button type="button" id="ktpScanClose" class="text-slate-500 hover:text-slate-900 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2">✕</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div class="relative bg-slate-900 rounded-2xl overflow-hidden border border-slate-200">
+                                    <video id="ktpVideo" class="w-full h-56 object-cover hidden" autoplay playsinline></video>
+                                    <img id="ktpPreview" class="w-full h-56 object-cover hidden" alt="Preview KTP">
+                                    <canvas id="ktpCanvas" class="hidden"></canvas>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" id="ktpOpenCamera" class="px-4 py-2 rounded-lg bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold hover:bg-brand-100 transition">Buka Kamera</button>
+                                    <button type="button" id="ktpCapture" class="px-4 py-2 rounded-lg bg-slate-900 text-white border border-slate-900 text-xs font-bold hover:bg-slate-800 transition">Ambil Foto</button>
+                                    <label class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold hover:bg-slate-200 transition cursor-pointer">
+                                        Upload Foto
+                                        <input type="file" id="ktpUpload" accept="image/*" class="hidden">
+                                    </label>
+                                    <button type="button" id="ktpRunOcr" class="px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold hover:bg-emerald-100 transition">Scan OCR</button>
+                                </div>
+                                <div id="ktpOcrStatus" class="text-xs text-slate-500"></div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Panduan Foto</div>
+                                <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                                    <li>Letakkan kartu di permukaan datar dan terang.</li>
+                                    <li>Hindari pantulan cahaya dan bayangan tajam.</li>
+                                    <li>Pastikan seluruh kartu masuk frame dan fokus.</li>
+                                    <li>Foto tampak depan, teks terbaca jelas.</li>
+                                </ul>
+                                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                                    <div class="text-xs font-bold text-slate-500 uppercase tracking-widest">Hasil OCR</div>
+                                    <div class="text-xs text-slate-700 flex justify-between"><span>Nama</span><span id="ktpFieldName" class="font-mono text-slate-900">--</span></div>
+                                    <div class="text-xs text-slate-700 flex justify-between"><span>No. ID</span><span id="ktpFieldNik" class="font-mono text-slate-900">--</span></div>
+                                    <div class="text-xs text-slate-700 flex justify-between"><span>Jenis Kelamin</span><span id="ktpFieldGender" class="font-mono text-slate-900">--</span></div>
+                                    <div class="text-xs text-slate-700 flex justify-between"><span>Tanggal Lahir</span><span id="ktpFieldDob" class="font-mono text-slate-900">--</span></div>
+                                    <div class="text-xs text-slate-700">Alamat</div>
+                                    <div id="ktpFieldAddress" class="text-xs text-slate-900 font-mono whitespace-pre-line">--</div>
+                                </div>
+                                <button type="button" id="ktpApply" class="w-full px-4 py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition">Gunakan Hasil</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             @endif
         </div>
     </section>
@@ -2260,6 +2339,13 @@
             mobileBtn.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
             });
+            
+            // Hide menu when any link inside mobileMenu is clicked
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
         }
 
         // E. Form Logic (Add Participant & Price Calculation)
@@ -2280,6 +2366,37 @@
 
             // Template for cloning (Take the first item)
             const template = participantsWrapper.querySelector('.participant-item').cloneNode(true);
+
+            const initDobPicker = (input) => {
+                if (!input || !window.flatpickr) return;
+                if (input._flatpickr) return;
+                window.flatpickr(input, {
+                    dateFormat: 'm/d/Y',
+                    altInput: true,
+                    altFormat: 'm/d/Y',
+                    maxDate: 'today',
+                    disableMobile: true
+                });
+            };
+
+            const setDobValue = (input, value) => {
+                if (!input || !value) return;
+                let finalValue = value;
+                // Convert YYYY-MM-DD to mm/dd/yyyy if necessary
+                if (value.includes('-')) {
+                    const [y, m, d] = value.split('-');
+                    finalValue = `${m}/${d}/${y}`;
+                }
+                if (input._flatpickr) {
+                    input._flatpickr.setDate(finalValue, true, 'm/d/Y'); 
+                } else {
+                    input.value = finalValue;
+                }
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+
+            participantsWrapper.querySelectorAll('.dob-picker').forEach(initDobPicker);
 
             function resetCoupon() {
                 if (appliedCoupon || discountAmount > 0) {
@@ -2420,6 +2537,10 @@
                 participantsWrapper.appendChild(newItem);
                 attachListeners(newItem); // Re-attach change events
                 
+                // Initialize Flatpickr for the new dob input
+                const newDob = newItem.querySelector('.dob-picker');
+                if (newDob) initDobPicker(newDob);
+                
                 // Scroll to the new participant form with a slight delay to ensure DOM update
                 setTimeout(() => {
                     newItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2473,6 +2594,8 @@
                         }
                     }
                 });
+
+                context.querySelectorAll('.dob-picker').forEach(initDobPicker);
             }
 
             function updateTargetTime(el) {
@@ -2488,6 +2611,519 @@
                     hidden.value = `${h}:${m}:${s}`;
                 }
             }
+
+            const ktpModal = document.getElementById('ktpScanModal');
+            const ktpOverlay = document.getElementById('ktpScanOverlay');
+            const ktpClose = document.getElementById('ktpScanClose');
+            const ktpVideo = document.getElementById('ktpVideo');
+            const ktpPreview = document.getElementById('ktpPreview');
+            const ktpCanvas = document.getElementById('ktpCanvas');
+            const ktpOpenCamera = document.getElementById('ktpOpenCamera');
+            const ktpCapture = document.getElementById('ktpCapture');
+            const ktpUpload = document.getElementById('ktpUpload');
+            const ktpRunOcr = document.getElementById('ktpRunOcr');
+            const ktpApply = document.getElementById('ktpApply');
+            const ktpStatus = document.getElementById('ktpOcrStatus');
+            const ktpFieldName = document.getElementById('ktpFieldName');
+            const ktpFieldNik = document.getElementById('ktpFieldNik');
+            const ktpFieldGender = document.getElementById('ktpFieldGender');
+            const ktpFieldDob = document.getElementById('ktpFieldDob');
+            const ktpFieldAddress = document.getElementById('ktpFieldAddress');
+
+            let ktpStream = null;
+            let ktpImageData = null;
+            let ktpResult = null;
+            let activeParticipant = null;
+
+            const setKtpStatus = (msg, isError = false) => {
+                if (!ktpStatus) return;
+                ktpStatus.textContent = msg || '';
+                ktpStatus.className = `text-xs ${isError ? 'text-red-500' : 'text-slate-500'}`;
+            };
+
+            const resetKtpPreview = () => {
+                if (ktpPreview) {
+                    ktpPreview.src = '';
+                    ktpPreview.classList.add('hidden');
+                }
+                if (ktpVideo) ktpVideo.classList.add('hidden');
+                ktpImageData = null;
+                ktpResult = null;
+                if (ktpFieldName) ktpFieldName.textContent = '--';
+                if (ktpFieldNik) ktpFieldNik.textContent = '--';
+                if (ktpFieldGender) ktpFieldGender.textContent = '--';
+                if (ktpFieldDob) ktpFieldDob.textContent = '--';
+                if (ktpFieldAddress) ktpFieldAddress.textContent = '--';
+                setKtpStatus('');
+            };
+
+            const stopKtpCamera = () => {
+                if (ktpStream) {
+                    ktpStream.getTracks().forEach((t) => t.stop());
+                    ktpStream = null;
+                }
+            };
+
+            const openKtpModal = (participantItem) => {
+                activeParticipant = participantItem;
+                resetKtpPreview();
+                if (ktpModal) {
+                    ktpModal.classList.remove('hidden');
+                    ktpModal.classList.add('flex');
+                    document.body.classList.add('overflow-hidden');
+                }
+            };
+
+            const closeKtpModal = () => {
+                stopKtpCamera();
+                if (ktpModal) {
+                    ktpModal.classList.add('hidden');
+                    ktpModal.classList.remove('flex');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            };
+
+            const startKtpCamera = async () => {
+                if (!ktpVideo) return;
+                stopKtpCamera();
+                try {
+                    ktpStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    ktpVideo.srcObject = ktpStream;
+                    ktpVideo.classList.remove('hidden');
+                    if (ktpPreview) ktpPreview.classList.add('hidden');
+                    setKtpStatus('Kamera aktif. Posisikan kartu lalu ambil foto.');
+                } catch (e) {
+                    setKtpStatus('Tidak bisa mengakses kamera. Gunakan upload foto.', true);
+                }
+            };
+
+            const setKtpPreview = (src) => {
+                if (!ktpPreview) return;
+                ktpPreview.src = src;
+                ktpPreview.classList.remove('hidden');
+                if (ktpVideo) ktpVideo.classList.add('hidden');
+                ktpImageData = src;
+            };
+
+            const captureKtpPhoto = () => {
+                if (!ktpVideo || !ktpCanvas) return;
+                if (!ktpStream) {
+                    setKtpStatus('Kamera belum aktif.', true);
+                    return;
+                }
+                const w = ktpVideo.videoWidth || 1280;
+                const h = ktpVideo.videoHeight || 720;
+                ktpCanvas.width = w;
+                ktpCanvas.height = h;
+                const ctx = ktpCanvas.getContext('2d');
+                ctx.drawImage(ktpVideo, 0, 0, w, h);
+                const dataUrl = ktpCanvas.toDataURL('image/jpeg', 0.9);
+                setKtpPreview(dataUrl);
+                stopKtpCamera();
+                setKtpStatus('Foto tersimpan. Jalankan OCR untuk membaca data.');
+            };
+
+            let ktpWorker = null;
+            const getKtpWorker = async () => {
+                if (ktpWorker) return ktpWorker;
+                if (!window.Tesseract?.createWorker) return null;
+                ktpWorker = await window.Tesseract.createWorker('ind+eng');
+                await ktpWorker.setParameters({
+                    tessedit_pageseg_mode: '6',
+                    preserve_interword_spaces: '1',
+                    user_defined_dpi: '300'
+                });
+                return ktpWorker;
+            };
+
+            const loadImage = (src) => new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
+            });
+
+            const createCanvas = (w, h) => {
+                const c = document.createElement('canvas');
+                c.width = w;
+                c.height = h;
+                return c;
+            };
+
+            const cropCanvas = (src, x, y, w, h) => {
+                const c = createCanvas(w, h);
+                const ctx = c.getContext('2d');
+                ctx.drawImage(src, x, y, w, h, 0, 0, w, h);
+                return c;
+            };
+
+            const drawToCanvas = (img, maxWidth = 1600) => {
+                const scale = Math.min(1, maxWidth / img.width);
+                const w = Math.round(img.width * scale);
+                const h = Math.round(img.height * scale);
+                const c = createCanvas(w, h);
+                const ctx = c.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                return c;
+            };
+
+            const applyKernel = (src, kernel, divisor = 1) => {
+                const { width, height } = src;
+                const ctx = src.getContext('2d');
+                const img = ctx.getImageData(0, 0, width, height);
+                const out = ctx.createImageData(width, height);
+                const data = img.data;
+                const dst = out.data;
+                const k = kernel;
+                for (let y = 1; y < height - 1; y++) {
+                    for (let x = 1; x < width - 1; x++) {
+                        let r = 0, g = 0, b = 0;
+                        let i = 0;
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                const idx = ((y + ky) * width + (x + kx)) * 4;
+                                r += data[idx] * k[i];
+                                g += data[idx + 1] * k[i];
+                                b += data[idx + 2] * k[i];
+                                i++;
+                            }
+                        }
+                        const o = (y * width + x) * 4;
+                        dst[o] = Math.min(255, Math.max(0, r / divisor));
+                        dst[o + 1] = Math.min(255, Math.max(0, g / divisor));
+                        dst[o + 2] = Math.min(255, Math.max(0, b / divisor));
+                        dst[o + 3] = 255;
+                    }
+                }
+                ctx.putImageData(out, 0, 0);
+                return src;
+            };
+
+            const preprocessCanvas = (base, mode = 'clean') => {
+                const c = createCanvas(base.width, base.height);
+                const ctx = c.getContext('2d');
+                ctx.drawImage(base, 0, 0);
+                const img = ctx.getImageData(0, 0, c.width, c.height);
+                const data = img.data;
+                let sum = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    const v = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+                    data[i] = data[i + 1] = data[i + 2] = v;
+                    sum += v;
+                }
+                const mean = sum / (data.length / 4);
+                const contrast = mode === 'clean' ? 1.35 : 1.15;
+                const threshold = mode === 'threshold' ? Math.max(100, Math.min(190, mean + 10)) : null;
+                for (let i = 0; i < data.length; i += 4) {
+                    let v = data[i];
+                    v = (v - 128) * contrast + 128;
+                    if (threshold !== null) {
+                        v = v > threshold ? 255 : 0;
+                    }
+                    data[i] = data[i + 1] = data[i + 2] = Math.min(255, Math.max(0, v));
+                }
+                ctx.putImageData(img, 0, 0);
+                if (mode === 'clean') {
+                    applyKernel(c, [0, -1, 0, -1, 5, -1, 0, -1, 0], 1);
+                }
+                return c;
+            };
+
+            const blurScore = (canvas) => {
+                const ctx = canvas.getContext('2d');
+                const { width, height } = canvas;
+                const img = ctx.getImageData(0, 0, width, height).data;
+                const lap = [];
+                let sum = 0;
+                let sumSq = 0;
+                for (let y = 1; y < height - 1; y++) {
+                    for (let x = 1; x < width - 1; x++) {
+                        const idx = (y * width + x) * 4;
+                        const v = img[idx];
+                        const up = img[((y - 1) * width + x) * 4];
+                        const down = img[((y + 1) * width + x) * 4];
+                        const left = img[(y * width + (x - 1)) * 4];
+                        const right = img[(y * width + (x + 1)) * 4];
+                        const lapVal = (4 * v - up - down - left - right);
+                        lap.push(lapVal);
+                        sum += lapVal;
+                        sumSq += lapVal * lapVal;
+                    }
+                }
+                const n = lap.length || 1;
+                const mean = sum / n;
+                const variance = sumSq / n - mean * mean;
+                return variance;
+            };
+
+            const normalizeDate = (raw) => {
+                if (!raw) return '';
+                // OCR sometimes mistakes 0 for O or o, and 1 for I or l
+                const clean = raw.replace(/[Oo]/g, '0').replace(/[Il]/g, '1');
+                const m = clean.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
+                if (!m) return '';
+                // Return in m/d/Y format
+                return `${m[2]}/${m[1]}/${m[3]}`;
+            };
+
+            const parseAddressText = (text) => {
+                const clean = (text || '').replace(/\r/g, '');
+                const lines = clean.split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+                
+                // Labels that indicate the end of address section
+                const stopRegex = /(agama|status|pekerjaan|kewarganegaraan|berlaku|hingga|gol\. darah)/i;
+                const addressLabelRegex = /(alamat|alamai|alamei|alamet)/i;
+                
+                let addressLines = [];
+                let isCapturing = false;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    
+                    if (addressLabelRegex.test(line)) {
+                        isCapturing = true;
+                        // Extract content if it's on the same line as the label
+                        const content = line.replace(addressLabelRegex, '').replace(/[:\-]/g, '').trim();
+                        if (content) addressLines.push(content);
+                        continue;
+                    }
+                    
+                    if (isCapturing) {
+                        if (stopRegex.test(line)) break;
+                        addressLines.push(line);
+                        // KTP address usually doesn't exceed 5 lines including RT/RW etc.
+                        if (addressLines.length >= 5) break;
+                    }
+                }
+                
+                return addressLines.join(' ').replace(/\s+/g, ' ').trim();
+            };
+
+            const parseKtpText = (text) => {
+                const clean = (text || '').replace(/\r/g, '');
+                const lines = clean.split('\n').map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+                const joinedDigits = clean.replace(/\D/g, '');
+                const nik = (joinedDigits.match(/\d{16}/) || [])[0] || '';
+                const findLineIndex = (regex) => lines.findIndex((l) => regex.test(l));
+                const extractAfterLabel = (line, regex) => line.replace(regex, '').replace(/[:\-]/g, ' ').replace(/\s+/g, ' ').trim();
+
+                let name = '';
+                const nameIdx = findLineIndex(/nama/i);
+                if (nameIdx >= 0) {
+                    const inline = extractAfterLabel(lines[nameIdx], /nama/i);
+                    name = inline || (lines[nameIdx + 1] || '');
+                }
+
+                let gender = '';
+                const genderIdx = findLineIndex(/jenis kelamin/i);
+                if (genderIdx >= 0) {
+                    const line = lines[genderIdx].toLowerCase();
+                    if (line.includes('laki') || line.includes('laki-laki')) gender = 'male';
+                    else if (line.includes('perempuan')) gender = 'female';
+                } else {
+                    for (const line of lines) {
+                        const lower = line.toLowerCase();
+                        if (lower.includes('laki-laki') || (lower.includes('jenis') && lower.includes('laki'))) {
+                            gender = 'male';
+                            break;
+                        } else if (lower.includes('perempuan')) {
+                            gender = 'female';
+                            break;
+                        }
+                    }
+                }
+
+                let dob = '';
+                let dobRaw = '';
+                for (const line of lines) {
+                    // OCR robustness: allow O/o/I/l as substitutes for digits in date pattern
+                    const datePattern = /([0-9OoIl]{2}[\/\-.][0-9OoIl]{2}[\/\-.][0-9OoIl]{4})/;
+                    const match = line.match(datePattern);
+                    if (match) {
+                        dobRaw = match[1];
+                        break;
+                    }
+                }
+                dob = normalizeDate(dobRaw);
+
+                let address = '';
+                const addrIdx = findLineIndex(/alamat/i);
+                if (addrIdx >= 0) {
+                    const stopRegex = /(rt\/rw|rw\/rt|kel|desa|kec|kab|prov|gol|agama|status|pekerjaan|warga|berlaku)/i;
+                    const addrLines = [];
+                    const first = extractAfterLabel(lines[addrIdx], /alamat/i);
+                    if (first) addrLines.push(first);
+                    for (let i = addrIdx + 1; i < lines.length; i++) {
+                        if (stopRegex.test(lines[i])) break;
+                        addrLines.push(lines[i]);
+                        if (addrLines.join(' ').length > 160) break;
+                    }
+                    address = addrLines.join(' ');
+                }
+
+                return { nik, name, gender, dob, address };
+            };
+
+            const updateKtpFields = (data) => {
+                if (!data) return;
+                if (ktpFieldName) ktpFieldName.textContent = data.name || '--';
+                if (ktpFieldNik) ktpFieldNik.textContent = data.nik || '--';
+                if (ktpFieldGender) ktpFieldGender.textContent = (data.gender === 'male' ? 'LAKI-LAKI' : (data.gender === 'female' ? 'PEREMPUAN' : '--'));
+                if (ktpFieldDob) ktpFieldDob.textContent = data.dob || '--';
+                if (ktpFieldAddress) ktpFieldAddress.textContent = data.address || '--';
+            };
+
+            const runKtpOcr = async () => {
+                if (!ktpImageData) {
+                    setKtpStatus('Pilih foto KTP terlebih dahulu.', true);
+                    return;
+                }
+                if (!window.Tesseract) {
+                    setKtpStatus('OCR belum siap. Coba beberapa saat lagi.', true);
+                    return;
+                }
+                try {
+                    setKtpStatus('Menyiapkan gambar...');
+                    const img = await loadImage(ktpImageData);
+                    const baseCanvas = drawToCanvas(img, 1600);
+                    const cleanCanvas = preprocessCanvas(baseCanvas, 'clean');
+                    const thresholdCanvas = preprocessCanvas(baseCanvas, 'threshold');
+                    
+                    // Area khusus alamat (sekitar kiri-tengah-bawah KTP)
+                    const addrX = 0;
+                    const addrY = Math.round(baseCanvas.height * 0.32);
+                    const addrW = Math.round(baseCanvas.width * 0.65);
+                    const addrH = Math.round(baseCanvas.height * 0.40);
+                    const addressCanvas = cropCanvas(cleanCanvas, addrX, addrY, addrW, addrH);
+
+                    const focusScore = blurScore(cleanCanvas);
+                    if (focusScore < 120) {
+                        setKtpStatus('Foto terlihat blur. Coba ulang dengan pencahayaan lebih baik.', true);
+                    } else {
+                        setKtpStatus('Memproses OCR...');
+                    }
+                    const worker = await getKtpWorker();
+                    let textMain = '';
+                    let textAlt = '';
+                    let digitsOnly = '';
+                    let addressOnly = '';
+
+                    if (worker) {
+                        const main = await worker.recognize(cleanCanvas);
+                        textMain = main?.data?.text || '';
+                        
+                        const alt = await worker.recognize(thresholdCanvas);
+                        textAlt = alt?.data?.text || '';
+
+                        // OCR khusus area alamat
+                        const addrRes = await worker.recognize(addressCanvas);
+                        addressOnly = addrRes?.data?.text || '';
+
+                        await worker.setParameters({
+                            tessedit_char_whitelist: '0123456789',
+                            tessedit_pageseg_mode: '6'
+                        });
+                        const digitRes = await worker.recognize(thresholdCanvas);
+                        digitsOnly = digitRes?.data?.text || '';
+                        
+                        await worker.setParameters({
+                            tessedit_char_whitelist: '',
+                            tessedit_pageseg_mode: '6',
+                            preserve_interword_spaces: '1',
+                            user_defined_dpi: '300'
+                        });
+                    } else {
+                        const main = await window.Tesseract.recognize(cleanCanvas, 'ind+eng');
+                        textMain = main?.data?.text || '';
+                        const alt = await window.Tesseract.recognize(thresholdCanvas, 'ind+eng');
+                        textAlt = alt?.data?.text || '';
+                        const digitRes = await window.Tesseract.recognize(thresholdCanvas, 'eng');
+                        digitsOnly = digitRes?.data?.text || '';
+                    }
+                    const text = textAlt.length > textMain.length ? textAlt : textMain;
+                    const parsedMain = parseKtpText(text);
+                    const parsedDigits = parseKtpText(digitsOnly);
+                    const parsedAddress = parseAddressText(addressOnly);
+
+                    ktpResult = {
+                        name: parsedMain.name,
+                        gender: parsedMain.gender,
+                        address: parsedAddress || parsedMain.address,
+                        dob: parsedMain.dob,
+                        nik: parsedDigits.nik || parsedMain.nik
+                    };
+                    updateKtpFields(ktpResult);
+                    setKtpStatus('OCR selesai. Periksa hasil sebelum digunakan.');
+                } catch (e) {
+                    console.error('[OCR Error]', e);
+                    setKtpStatus('OCR gagal. Coba foto lebih jelas.', true);
+                }
+            };
+
+            const applyKtpResult = () => {
+                if (!activeParticipant || !ktpResult) {
+                    setKtpStatus('Belum ada hasil OCR.', true);
+                    return;
+                }
+                const nameInput = activeParticipant.querySelector('input[name*="[name]"]');
+                const genderSelect = activeParticipant.querySelector('select[name*="[gender]"]');
+                const nikInput = activeParticipant.querySelector('input[name*="[id_card]"]');
+                const dobInput = activeParticipant.querySelector('input[name*="[date_of_birth]"]');
+                const addressInput = activeParticipant.querySelector('textarea[name*="[address]"]');
+                if (ktpResult.name && nameInput) {
+                    nameInput.value = ktpResult.name;
+                    nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (ktpResult.gender && genderSelect) {
+                    genderSelect.value = ktpResult.gender;
+                    genderSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                if (ktpResult.nik && nikInput) {
+                    nikInput.value = ktpResult.nik;
+                    nikInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (ktpResult.dob && dobInput) {
+                    setDobValue(dobInput, ktpResult.dob);
+                }
+                if (ktpResult.address && addressInput) {
+                    addressInput.value = ktpResult.address;
+                    addressInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                closeKtpModal();
+            };
+
+            if (participantsWrapper) {
+                participantsWrapper.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.scan-ktp-btn');
+                    if (!btn) return;
+                    const item = btn.closest('.participant-item');
+                    if (item) openKtpModal(item);
+                });
+            }
+            if (ktpOverlay) ktpOverlay.addEventListener('click', closeKtpModal);
+            if (ktpClose) ktpClose.addEventListener('click', closeKtpModal);
+            if (ktpOpenCamera) ktpOpenCamera.addEventListener('click', startKtpCamera);
+            if (ktpCapture) ktpCapture.addEventListener('click', () => {
+                captureKtpPhoto();
+                runKtpOcr();
+            });
+            if (ktpUpload) {
+                ktpUpload.addEventListener('change', (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        setKtpPreview(reader.result);
+                        runKtpOcr();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            if (ktpRunOcr) ktpRunOcr.addEventListener('click', runKtpOcr);
+            if (ktpApply) ktpApply.addEventListener('click', applyKtpResult);
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && ktpModal && !ktpModal.classList.contains('hidden')) closeKtpModal();
+            });
 
             // 5. Form Submission Validation (Duplicate NIK Check)
             form.addEventListener('submit', function(e) {
@@ -2634,10 +3270,15 @@
                 const picName = document.querySelector('input[name="pic_name"]').value;
                 const picEmail = document.querySelector('input[name="pic_email"]').value;
                 const picPhone = document.querySelector('input[name="pic_phone"]').value;
+                const picDob = document.querySelector('input[name="pic_dob"]')?.value;
 
                 if (picName) participantItem.querySelector('input[name*="[name]"]').value = picName;
                 if (picEmail) participantItem.querySelector('input[name*="[email]"]').value = picEmail;
                 if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
+                if (picDob) {
+                    const dobInput = participantItem.querySelector('input[name*="[date_of_birth]"]');
+                    if (dobInput) setDobValue(dobInput, picDob);
+                }
             };
 
             window.copyFromPrev = function(btn) {
@@ -2655,7 +3296,11 @@
                         const sourceInput = prevItem.querySelector(`input[name*="[${field}]"]`);
                         const targetInput = currentItem.querySelector(`input[name*="[${field}]"]`);
                         if (sourceInput && targetInput) {
-                            targetInput.value = sourceInput.value;
+                            if (field === 'date_of_birth') {
+                                setDobValue(targetInput, sourceInput.value || null);
+                            } else {
+                                targetInput.value = sourceInput.value;
+                            }
                         }
                     });
 
@@ -3838,7 +4483,9 @@
                     date_of_birth: {
                         required: true,
                         custom: (value) => {
-                            const date = new Date(value);
+                            if (!value || !/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return false;
+                            const [m, d, y] = value.split('/').map(Number);
+                            const date = new Date(y, m - 1, d);
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
                             return date < today;

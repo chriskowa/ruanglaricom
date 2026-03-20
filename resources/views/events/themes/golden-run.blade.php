@@ -101,6 +101,23 @@
     <!-- Versi Apple Touch -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/paolo/apple-touch-icon.png') }}">
 
+    <!-- Google Analytics (Lite) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
+    </script>
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <meta name="app-url" content="{{ url('/') }}" />
@@ -1892,7 +1909,7 @@
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">                                            
                                             <em class="md:col-span-1 text-slate-400">Tanggal lahir</em>
-                                            <input type="date" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="w-full md:col-span-3 bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none" style="color-scheme: dark;" required>
+                                            <input type="text" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="dob-picker w-full md:col-span-3 bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none" required>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required>
@@ -2114,6 +2131,7 @@
                                     <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Hasil OCR</div>
                                     <div class="text-xs text-slate-300 flex justify-between"><span>Nama</span><span id="ktpFieldName" class="font-mono text-white">--</span></div>
                                     <div class="text-xs text-slate-300 flex justify-between"><span>No. ID</span><span id="ktpFieldNik" class="font-mono text-white">--</span></div>
+                                    <div class="text-xs text-slate-300 flex justify-between"><span>Jenis Kelamin</span><span id="ktpFieldGender" class="font-mono text-white">--</span></div>
                                     <div class="text-xs text-slate-300 flex justify-between"><span>Tanggal Lahir</span><span id="ktpFieldDob" class="font-mono text-white">--</span></div>
                                     <div class="text-xs text-slate-300">Alamat</div>
                                     <div id="ktpFieldAddress" class="text-xs text-white font-mono whitespace-pre-line">--</div>
@@ -2434,6 +2452,13 @@
             mobileBtn.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
             });
+
+            // Hide menu when any link inside mobileMenu is clicked
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
         }
 
         // E. Form Logic (Add Participant & Price Calculation)
@@ -2594,6 +2619,10 @@
                 participantsWrapper.appendChild(newItem);
                 attachListeners(newItem); // Re-attach change events
                 
+                // Initialize Flatpickr for the new dob input
+                const newDob = newItem.querySelector('.dob-picker');
+                if (newDob) initDobPicker(newDob);
+                
                 // Scroll to the new participant form with a slight delay to ensure DOM update
                 setTimeout(() => {
                     newItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2677,6 +2706,7 @@
             const ktpStatus = document.getElementById('ktpOcrStatus');
             const ktpFieldName = document.getElementById('ktpFieldName');
             const ktpFieldNik = document.getElementById('ktpFieldNik');
+            const ktpFieldGender = document.getElementById('ktpFieldGender');
             const ktpFieldDob = document.getElementById('ktpFieldDob');
             const ktpFieldAddress = document.getElementById('ktpFieldAddress');
 
@@ -2701,6 +2731,7 @@
                 ktpResult = null;
                 if (ktpFieldName) ktpFieldName.textContent = '--';
                 if (ktpFieldNik) ktpFieldNik.textContent = '--';
+                if (ktpFieldGender) ktpFieldGender.textContent = '--';
                 if (ktpFieldDob) ktpFieldDob.textContent = '--';
                 if (ktpFieldAddress) ktpFieldAddress.textContent = '--';
                 setKtpStatus('');
@@ -2778,7 +2809,9 @@
                 if (!window.Tesseract?.createWorker) return null;
                 ktpWorker = await window.Tesseract.createWorker('ind+eng');
                 await ktpWorker.setParameters({
-                    tessedit_pageseg_mode: '6'
+                    tessedit_pageseg_mode: '6',
+                    preserve_interword_spaces: '1',
+                    user_defined_dpi: '300'
                 });
                 return ktpWorker;
             };
@@ -2794,6 +2827,13 @@
                 const c = document.createElement('canvas');
                 c.width = w;
                 c.height = h;
+                return c;
+            };
+
+            const cropCanvas = (src, x, y, w, h) => {
+                const c = createCanvas(w, h);
+                const ctx = c.getContext('2d');
+                ctx.drawImage(src, x, y, w, h, 0, 0, w, h);
                 return c;
             };
 
@@ -2898,9 +2938,45 @@
 
             const normalizeDate = (raw) => {
                 if (!raw) return '';
-                const m = raw.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
+                // OCR sometimes mistakes 0 for O or o, and 1 for I or l
+                const clean = raw.replace(/[Oo]/g, '0').replace(/[Il]/g, '1');
+                const m = clean.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
                 if (!m) return '';
-                return `${m[3]}-${m[2]}-${m[1]}`;
+                // Return in m/d/Y format
+                return `${m[2]}/${m[1]}/${m[3]}`;
+            };
+
+            const parseAddressText = (text) => {
+                const clean = (text || '').replace(/\r/g, '');
+                const lines = clean.split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
+                
+                // Labels that indicate the end of address section
+                const stopRegex = /(agama|status|pekerjaan|kewarganegaraan|berlaku|hingga|gol\. darah)/i;
+                const addressLabelRegex = /(alamat|alamai|alamei|alamet)/i;
+                
+                let addressLines = [];
+                let isCapturing = false;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    
+                    if (addressLabelRegex.test(line)) {
+                        isCapturing = true;
+                        // Extract content if it's on the same line as the label
+                        const content = line.replace(addressLabelRegex, '').replace(/[:\-]/g, '').trim();
+                        if (content) addressLines.push(content);
+                        continue;
+                    }
+                    
+                    if (isCapturing) {
+                        if (stopRegex.test(line)) break;
+                        addressLines.push(line);
+                        // KTP address usually doesn't exceed 5 lines including RT/RW etc.
+                        if (addressLines.length >= 5) break;
+                    }
+                }
+                
+                return addressLines.join(' ').replace(/\s+/g, ' ').trim();
             };
 
             const parseKtpText = (text) => {
@@ -2918,10 +2994,31 @@
                     name = inline || (lines[nameIdx + 1] || '');
                 }
 
+                let gender = '';
+                const genderIdx = findLineIndex(/jenis kelamin/i);
+                if (genderIdx >= 0) {
+                    const line = lines[genderIdx].toLowerCase();
+                    if (line.includes('laki') || line.includes('laki-laki')) gender = 'male';
+                    else if (line.includes('perempuan')) gender = 'female';
+                } else {
+                    for (const line of lines) {
+                        const lower = line.toLowerCase();
+                        if (lower.includes('laki-laki') || (lower.includes('jenis') && lower.includes('laki'))) {
+                            gender = 'male';
+                            break;
+                        } else if (lower.includes('perempuan')) {
+                            gender = 'female';
+                            break;
+                        }
+                    }
+                }
+
                 let dob = '';
                 let dobRaw = '';
                 for (const line of lines) {
-                    const match = line.match(/(\d{2}[\/\-.]\d{2}[\/\-.]\d{4})/);
+                    // OCR robustness: allow O/o/I/l as substitutes for digits in date pattern
+                    const datePattern = /([0-9OoIl]{2}[\/\-.][0-9OoIl]{2}[\/\-.][0-9OoIl]{4})/;
+                    const match = line.match(datePattern);
                     if (match) {
                         dobRaw = match[1];
                         break;
@@ -2944,13 +3041,14 @@
                     address = addrLines.join(' ');
                 }
 
-                return { nik, name, dob, address };
+                return { nik, name, gender, dob, address };
             };
 
             const updateKtpFields = (data) => {
                 if (!data) return;
                 if (ktpFieldName) ktpFieldName.textContent = data.name || '--';
                 if (ktpFieldNik) ktpFieldNik.textContent = data.nik || '--';
+                if (ktpFieldGender) ktpFieldGender.textContent = (data.gender === 'male' ? 'LAKI-LAKI' : (data.gender === 'female' ? 'PEREMPUAN' : '--'));
                 if (ktpFieldDob) ktpFieldDob.textContent = data.dob || '--';
                 if (ktpFieldAddress) ktpFieldAddress.textContent = data.address || '--';
             };
@@ -2970,6 +3068,14 @@
                     const baseCanvas = drawToCanvas(img, 1600);
                     const cleanCanvas = preprocessCanvas(baseCanvas, 'clean');
                     const thresholdCanvas = preprocessCanvas(baseCanvas, 'threshold');
+                    
+                    // Area khusus alamat (sekitar kiri-tengah-bawah KTP)
+                    const addrX = 0;
+                    const addrY = Math.round(baseCanvas.height * 0.32);
+                    const addrW = Math.round(baseCanvas.width * 0.65);
+                    const addrH = Math.round(baseCanvas.height * 0.40);
+                    const addressCanvas = cropCanvas(cleanCanvas, addrX, addrY, addrW, addrH);
+
                     const focusScore = blurScore(cleanCanvas);
                     if (focusScore < 120) {
                         setKtpStatus('Foto terlihat blur. Coba ulang dengan pencahayaan lebih baik.', true);
@@ -2980,20 +3086,31 @@
                     let textMain = '';
                     let textAlt = '';
                     let digitsOnly = '';
+                    let addressOnly = '';
+
                     if (worker) {
                         const main = await worker.recognize(cleanCanvas);
                         textMain = main?.data?.text || '';
+                        
                         const alt = await worker.recognize(thresholdCanvas);
                         textAlt = alt?.data?.text || '';
+
+                        // OCR khusus area alamat
+                        const addrRes = await worker.recognize(addressCanvas);
+                        addressOnly = addrRes?.data?.text || '';
+
                         await worker.setParameters({
                             tessedit_char_whitelist: '0123456789',
                             tessedit_pageseg_mode: '6'
                         });
                         const digitRes = await worker.recognize(thresholdCanvas);
                         digitsOnly = digitRes?.data?.text || '';
+                        
                         await worker.setParameters({
                             tessedit_char_whitelist: '',
-                            tessedit_pageseg_mode: '6'
+                            tessedit_pageseg_mode: '6',
+                            preserve_interword_spaces: '1',
+                            user_defined_dpi: '300'
                         });
                     } else {
                         const main = await window.Tesseract.recognize(cleanCanvas, 'ind+eng');
@@ -3006,15 +3123,19 @@
                     const text = textAlt.length > textMain.length ? textAlt : textMain;
                     const parsedMain = parseKtpText(text);
                     const parsedDigits = parseKtpText(digitsOnly);
+                    const parsedAddress = parseAddressText(addressOnly);
+
                     ktpResult = {
                         name: parsedMain.name,
-                        address: parsedMain.address,
+                        gender: parsedMain.gender,
+                        address: parsedAddress || parsedMain.address,
                         dob: parsedMain.dob,
                         nik: parsedDigits.nik || parsedMain.nik
                     };
                     updateKtpFields(ktpResult);
                     setKtpStatus('OCR selesai. Periksa hasil sebelum digunakan.');
                 } catch (e) {
+                    console.error('[OCR Error]', e);
                     setKtpStatus('OCR gagal. Coba foto lebih jelas.', true);
                 }
             };
@@ -3025,20 +3146,25 @@
                     return;
                 }
                 const nameInput = activeParticipant.querySelector('input[name*="[name]"]');
+                const genderSelect = activeParticipant.querySelector('select[name*="[gender]"]');
                 const nikInput = activeParticipant.querySelector('input[name*="[id_card]"]');
                 const dobInput = activeParticipant.querySelector('input[name*="[date_of_birth]"]');
                 const addressInput = activeParticipant.querySelector('textarea[name*="[address]"]');
+
                 if (ktpResult.name && nameInput) {
                     nameInput.value = ktpResult.name;
                     nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (ktpResult.gender && genderSelect) {
+                    genderSelect.value = ktpResult.gender;
+                    genderSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
                 if (ktpResult.nik && nikInput) {
                     nikInput.value = ktpResult.nik;
                     nikInput.dispatchEvent(new Event('input', { bubbles: true }));
                 }
                 if (ktpResult.dob && dobInput) {
-                    dobInput.value = ktpResult.dob;
-                    dobInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    setDobValue(dobInput, ktpResult.dob);
                 }
                 if (ktpResult.address && addressInput) {
                     addressInput.value = ktpResult.address;
@@ -3046,6 +3172,39 @@
                 }
                 closeKtpModal();
             };
+
+            const setDobValue = (input, value) => {
+                if (!input || !value) return;
+                let finalValue = value;
+                // Convert YYYY-MM-DD to mm/dd/yyyy if necessary
+                if (value.includes('-')) {
+                    const [y, m, d] = value.split('-');
+                    finalValue = `${m}/${d}/${y}`;
+                }
+                if (input._flatpickr) {
+                    input._flatpickr.setDate(finalValue, true, 'm/d/Y'); 
+                } else {
+                    input.value = finalValue;
+                }
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+
+            const initDobPicker = (input) => {
+                if (!input || !window.flatpickr) return;
+                if (input._flatpickr) return; // Already initialized
+                window.flatpickr(input, {
+                    dateFormat: 'm/d/Y',
+                    altInput: true,
+                    altFormat: 'm/d/Y',
+                    maxDate: 'today',
+                    disableMobile: true,
+                    theme: 'airbnb' // Ensure theme is applied
+                });
+            };
+
+            // Initial setup for the first participant
+            document.querySelectorAll('.dob-picker').forEach(initDobPicker);
 
             if (participantsWrapper) {
                 participantsWrapper.addEventListener('click', (e) => {
@@ -3058,7 +3217,10 @@
             if (ktpOverlay) ktpOverlay.addEventListener('click', closeKtpModal);
             if (ktpClose) ktpClose.addEventListener('click', closeKtpModal);
             if (ktpOpenCamera) ktpOpenCamera.addEventListener('click', startKtpCamera);
-            if (ktpCapture) ktpCapture.addEventListener('click', captureKtpPhoto);
+            if (ktpCapture) ktpCapture.addEventListener('click', () => {
+                captureKtpPhoto();
+                runKtpOcr();
+            });
             if (ktpUpload) {
                 ktpUpload.addEventListener('change', (e) => {
                     const file = e.target.files?.[0];
@@ -3066,7 +3228,7 @@
                     const reader = new FileReader();
                     reader.onload = () => {
                         setKtpPreview(reader.result);
-                        setKtpStatus('Foto siap. Jalankan OCR untuk membaca data.');
+                        runKtpOcr();
                     };
                     reader.readAsDataURL(file);
                 });
@@ -3222,10 +3384,15 @@
                 const picName = document.querySelector('input[name="pic_name"]').value;
                 const picEmail = document.querySelector('input[name="pic_email"]').value;
                 const picPhone = document.querySelector('input[name="pic_phone"]').value;
+                const picDob = document.querySelector('input[name="pic_dob"]')?.value;
 
                 if (picName) participantItem.querySelector('input[name*="[name]"]').value = picName;
                 if (picEmail) participantItem.querySelector('input[name*="[email]"]').value = picEmail;
                 if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
+                if (picDob) {
+                    const dobInput = participantItem.querySelector('input[name*="[date_of_birth]"]');
+                    if (dobInput) setDobValue(dobInput, picDob);
+                }
             };
 
             window.copyFromPrev = function(btn) {
@@ -3243,7 +3410,11 @@
                         const sourceInput = prevItem.querySelector(`input[name*="[${field}]"]`);
                         const targetInput = currentItem.querySelector(`input[name*="[${field}]"]`);
                         if (sourceInput && targetInput) {
-                            targetInput.value = sourceInput.value;
+                            if (field === 'date_of_birth') {
+                                setDobValue(targetInput, sourceInput.value || null);
+                            } else {
+                                targetInput.value = sourceInput.value;
+                            }
                         }
                     });
 
@@ -4426,7 +4597,9 @@
                     date_of_birth: {
                         required: true,
                         custom: (value) => {
-                            const date = new Date(value);
+                            if (!value || !/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return false;
+                            const [m, d, y] = value.split('/').map(Number);
+                            const date = new Date(y, m - 1, d);
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
                             return date < today;
