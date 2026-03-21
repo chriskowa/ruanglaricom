@@ -3199,7 +3199,12 @@
                     altFormat: 'm/d/Y',
                     maxDate: 'today',
                     disableMobile: true,
-                    theme: 'airbnb' // Ensure theme is applied
+                    theme: 'airbnb', // Ensure theme is applied
+                    onChange: function(selectedDates, dateStr, instance) {
+                        // Manual dispatch to trigger FormValidator
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
                 });
             };
 
@@ -4737,6 +4742,12 @@
                     this.clearMessage(input);
                     input.classList.add('input-error');
                     input.classList.remove('input-success');
+                    
+                    // Also apply class to flatpickr altInput if exists
+                    if (input._flatpickr && input._flatpickr.altInput) {
+                        input._flatpickr.altInput.classList.add('input-error');
+                        input._flatpickr.altInput.classList.remove('input-success');
+                    }
 
                     const msgDiv = document.createElement('div');
                     msgDiv.className = 'validation-message error';
@@ -4756,6 +4767,12 @@
                     if (input.value.trim() !== '') {
                         input.classList.remove('input-error');
                         input.classList.add('input-success');
+                        
+                        // Also apply class to flatpickr altInput if exists
+                        if (input._flatpickr && input._flatpickr.altInput) {
+                            input._flatpickr.altInput.classList.remove('input-error');
+                            input._flatpickr.altInput.classList.add('input-success');
+                        }
                         
                         // Optional: Show checkmark for positive reinforcement
                         const msgDiv = document.createElement('div');
@@ -4787,7 +4804,12 @@
                         const firstError = this.form.querySelector('.input-error');
                         if (firstError) {
                             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            firstError.focus();
+                            // If it's a flatpickr field, focus the altInput
+                            if (firstError._flatpickr && firstError._flatpickr.altInput) {
+                                firstError._flatpickr.altInput.focus();
+                            } else {
+                                firstError.focus();
+                            }
                         }
                     }
                     return allValid;
@@ -4795,12 +4817,17 @@
 
                 clearMessage(input) {
                     const parent = input.parentNode;
-                    const existingMsg = parent.querySelector('.validation-message');
-                    if (existingMsg) {
-                        existingMsg.remove();
-                    }
+                    if (!parent) return;
+                    
+                    const messages = parent.querySelectorAll('.validation-message');
+                    messages.forEach(msg => msg.remove());
+                    
                     input.classList.remove('input-error');
-                    // Don't remove input-success here to keep green border until error
+                    
+                    // Also clear class from flatpickr altInput if exists
+                    if (input._flatpickr && input._flatpickr.altInput) {
+                        input._flatpickr.altInput.classList.remove('input-error');
+                    }
                 }
             }
 
