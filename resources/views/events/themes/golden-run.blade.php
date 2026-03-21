@@ -3173,16 +3173,22 @@
                 closeKtpModal();
             };
 
+            const normalizeToYmd = (raw) => {
+                if (!raw) return '';
+                // Format: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+                let m = raw.match(/^(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})$/);
+                if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+                // Format: YYYY-MM-DD
+                m = raw.match(/^(\d{4})[\/\-\.](\d{2})[\/\-\.](\d{2})$/);
+                if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+                return raw;
+            };
+
             const setDobValue = (input, value) => {
                 if (!input || !value) return;
-                let finalValue = value;
-                // Convert YYYY-MM-DD to mm/dd/yyyy if necessary
-                if (value.includes('-')) {
-                    const [y, m, d] = value.split('-');
-                    finalValue = `${m}/${d}/${y}`;
-                }
+                const finalValue = normalizeToYmd(value);
                 if (input._flatpickr) {
-                    input._flatpickr.setDate(finalValue, true, 'm/d/Y'); 
+                    input._flatpickr.setDate(finalValue, true); 
                 } else {
                     input.value = finalValue;
                 }
@@ -3193,19 +3199,38 @@
             const initDobPicker = (input) => {
                 if (!input || !window.flatpickr) return;
                 if (input._flatpickr) return; // Already initialized
-                window.flatpickr(input, {
-                    dateFormat: 'm/d/Y',
+                const fp = window.flatpickr(input, {
+                    dateFormat: 'Y-m-d',
                     altInput: true,
-                    altFormat: 'm/d/Y',
+                    altFormat: 'd/m/Y',
+                    allowInput: true,
                     maxDate: 'today',
                     disableMobile: true,
                     theme: 'airbnb', // Ensure theme is applied
-                    onChange: function(selectedDates, dateStr, instance) {
-                        // Manual dispatch to trigger FormValidator
+                    onChange: function() {
                         input.dispatchEvent(new Event('input', { bubbles: true }));
                         input.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 });
+
+                // Sinkronisasi input manual (altInput) ke input asli (value internal Y-m-d)
+                if (fp.altInput) {
+                    fp.altInput.addEventListener('blur', (e) => {
+                        const rawValue = e.target.value;
+                        if (rawValue) {
+                            const normalized = normalizeToYmd(rawValue);
+                            fp.setDate(normalized, false); // Set tanpa onChange agar tidak loop
+                            input.value = normalized; // Paksa update input asli (hidden)
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        } else {
+                            fp.clear();
+                            input.value = '';
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+                }
             };
 
             // Initial setup for the first participant
