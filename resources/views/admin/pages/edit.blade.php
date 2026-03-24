@@ -156,9 +156,36 @@
                     <p class="text-xs text-slate-500 mt-2">Recommended size: 1200x630px. Max: 2MB.</p>
                 </div>
 
+                <!-- Dynamic Template Settings -->
+                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Template Selection</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">Page Template</label>
+                            <select name="template_id" id="templateSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                                <option value="">Default (Standard Page)</option>
+                                @foreach($templates as $template)
+                                    <option value="{{ $template->id }}" {{ old('template_id', $page->template_id) == $template->id ? 'selected' : '' }} data-sections="{{ json_encode($template->sections) }}">
+                                        {{ $template->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1">Select a predefined template for this page.</p>
+                        </div>
+
+                        <!-- Template Data Sections -->
+                        <div id="templateDataContainer" class="space-y-4 pt-4 border-t border-slate-700 hidden">
+                            <h4 class="text-xs font-bold text-neon uppercase tracking-widest mb-2">Template Content</h4>
+                            <div id="templateFields" class="space-y-4">
+                                <!-- Dynamic fields will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Template Settings (Hardcoded) -->
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Template</h3>
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">System Settings</h3>
                     <div>
                         <label class="block text-sm font-bold text-slate-300 mb-2">Hardcoded View</label>
                         <input type="text" name="hardcoded" value="{{ old('hardcoded', $page->hardcoded) }}" 
@@ -190,6 +217,45 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        // Template Selection Logic
+        const templateSelect = document.getElementById('templateSelect');
+        const templateDataContainer = document.getElementById('templateDataContainer');
+        const templateFields = document.getElementById('templateFields');
+        const currentPageData = {!! json_encode($page->template_data ?? []) !!};
+
+        function renderTemplateFields() {
+            const selectedOption = templateSelect.options[templateSelect.selectedIndex];
+            const sections = selectedOption.dataset.sections ? JSON.parse(selectedOption.dataset.sections) : null;
+
+            if (sections && sections.length > 0) {
+                templateDataContainer.classList.remove('hidden');
+                templateFields.innerHTML = '';
+
+                sections.forEach(section => {
+                    const value = currentPageData[section.key] || '';
+                    const fieldId = `template_data_${section.key}`;
+                    let fieldHtml = `<div><label class="block text-xs font-bold text-slate-400 mb-1 uppercase">${section.label}</label>`;
+
+                    if (section.type === 'textarea') {
+                        fieldHtml += `<textarea name="template_data[${section.key}]" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-neon transition-colors" rows="3">${value}</textarea>`;
+                    } else if (section.type === 'image') {
+                        fieldHtml += `<input type="text" name="template_data[${section.key}]" value="${value}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-neon transition-colors" placeholder="Image URL or path">`;
+                    } else {
+                        fieldHtml += `<input type="text" name="template_data[${section.key}]" value="${value}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-neon transition-colors">`;
+                    }
+                    
+                    fieldHtml += `</div>`;
+                    templateFields.insertAdjacentHTML('beforeend', fieldHtml);
+                });
+            } else {
+                templateDataContainer.classList.add('hidden');
+                templateFields.innerHTML = '';
+            }
+        }
+
+        templateSelect.addEventListener('change', renderTemplateFields);
+        renderTemplateFields(); // Initial call on load
 
         // TinyMCE Init
         tinymce.init({

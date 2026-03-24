@@ -162,7 +162,11 @@
                     
                     const data = await res.json();
                     if (data.success) {
-                        window.location.reload();
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
                     } else {
                         this.errorMessage = data.message || 'Email atau password salah.';
                     }
@@ -209,7 +213,11 @@
                     
                     const data = await res.json();
                     if (res.ok) {
-                        window.location.reload();
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
                     } else {
                         this.errorMessage = data.message || 'Gagal mendaftar. Periksa kembali data Anda.';
                         if (data.errors) {

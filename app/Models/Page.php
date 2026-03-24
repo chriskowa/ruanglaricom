@@ -21,6 +21,12 @@ class Page extends Model
         'meta_title',
         'meta_description',
         'meta_keywords',
+        'template_id',
+        'template_data'
+    ];
+
+    protected $casts = [
+        'template_data' => 'array'
     ];
 
     protected static function boot()
@@ -43,5 +49,15 @@ class Page extends Model
     public function scopePublished($query)
     {
         return $query->where('status', 'published');
+    }
+
+    public function template()
+    {
+        return $this->belongsTo(PageTemplate::class);
+    }
+
+    public function getTemplateSectionsAttribute()
+    {
+        return $this->template ? $this->template->sections : [];
     }
 }

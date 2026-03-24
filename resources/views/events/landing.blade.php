@@ -31,6 +31,14 @@
     <div class="max-w-7xl mx-auto mb-8 relative z-10" data-aos="fade-up" data-aos-delay="100">
         <div class="bg-card/80 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-6 shadow-xl">
             <form id="filter-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Hidden fields for homepage filters -->
+                @if(request('city'))
+                    <input type="hidden" name="city" value="{{ request('city') }}">
+                @endif
+                @if(request('category'))
+                    <input type="hidden" name="category" value="{{ request('category') }}">
+                @endif
+                
                 <!-- Search -->
                 <div class="lg:col-span-1">
                     <div class="flex justify-between items-end mb-1">
@@ -41,7 +49,7 @@
                         </button>
                     </div>
                     <div class="relative">
-                        <input type="text" name="search" placeholder="Nama event atau lokasi..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 pl-10 text-white focus:outline-none focus:border-neon transition-colors">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama event atau lokasi..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 pl-10 text-white focus:outline-none focus:border-neon transition-colors">
                         <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
                 </div>
@@ -50,16 +58,27 @@
                 <div class="mobile-filter-item hidden md:block">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Waktu</label>
                     <div class="flex gap-2">
+                        @php
+                            $selectedMonth = request('month');
+                            $selectedYear = request('year');
+                            
+                            // Map homepage month (Y-m) if present
+                            if (request('month') && preg_match('/^\d{4}-\d{2}$/', request('month'))) {
+                                $parts = explode('-', request('month'));
+                                $selectedYear = $parts[0];
+                                $selectedMonth = (int)$parts[1];
+                            }
+                        @endphp
                         <select name="month" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
                             <option value="">Bulan</option>
                             @foreach(range(1, 12) as $m)
-                                <option value="{{ $m }}">{{ date('F', mktime(0, 0, 0, $m, 1)) }}</option>
+                                <option value="{{ $m }}" @selected($selectedMonth == $m)>{{ date('F', mktime(0, 0, 0, $m, 1)) }}</option>
                             @endforeach
                         </select>
                         <select name="year" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-neon transition-colors">
                             <option value="">Tahun</option>
                             @foreach(range(date('Y'), date('Y') + 1) as $y)
-                                <option value="{{ $y }}">{{ $y }}</option>
+                                <option value="{{ $y }}" @selected($selectedYear == $y)>{{ $y }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -347,6 +366,12 @@
 
         // Initial listeners
         attachPaginationListeners();
+
+        // Trigger initial fetch if query parameters exist (from homepage or direct link)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('city') || urlParams.has('month') || urlParams.has('category') || urlParams.has('search') || urlParams.has('city_id')) {
+            fetchEvents();
+        }
     });
 </script>
 

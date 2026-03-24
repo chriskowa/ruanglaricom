@@ -2,103 +2,89 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Models\PageTemplate;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Http\Controllers\Controller;
 
 class PageController extends Controller
 {
     public function index()
     {
-        $pages = Page::latest()->paginate(10);
-
-        return view('admin.pages.index', compact('pages'));
+        $pages = Page::with('template')->latest()->paginate(10);
+        $templates = PageTemplate::active()->get();
+        
+        return view('admin.pages.index', compact('pages', 'templates'));
     }
 
     public function create()
     {
-        return view('admin.pages.create');
+        $templates = PageTemplate::active()->get();
+        return view('admin.pages.create', compact('templates'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:pages,slug',
-            'content' => 'nullable|string',
-            'excerpt' => 'nullable|string',
-            'hardcoded' => 'nullable|string|max:50',
+            'template_id' => 'nullable|exists:page_templates,id',
             'status' => 'required|in:draft,published,archived',
-            'featured_image' => 'nullable|image|max:2048',
+            'content' => 'nullable|string',
             'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
         ]);
 
-        if ($request->filled('slug')) {
-            $validated['slug'] = Str::slug($request->slug);
-        } else {
-            $validated['slug'] = Str::slug($request->title);
+        $page = Page::create($validated);
+
+        // Handle template-specific data
+        if ($request->template_id && $template = PageTemplate::find($request->template_id)) {
+            $templateData = [];
+            foreach ($template->sections ?? [] as $section) {
+                $templateData[$section['key']] = $request->input("template_data.{$section['key']}");
+            }
+            $page->update(['template_data' => $templateData]);
         }
 
-        if ($request->hasFile('featured_image')) {
-            $path = $request->file('featured_image')->store('pages', 'public');
-            $validated['featured_image'] = $path;
-        }
-
-        Page::create($validated);
-
-        return redirect()->route('admin.pages.index')->with('success', 'Page created successfully.');
+        return redirect()->route('admin.pages.edit', $page)
+            ->with('success', 'Page created successfully');
     }
 
     public function edit(Page $page)
     {
-        return view('admin.pages.edit', compact('page'));
+        $templates = PageTemplate::active()->get();
+        return view('admin.pages.edit', compact('page', 'templates'));
     }
 
     public function update(Request $request, Page $page)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:pages,slug,'.$page->id,
-            'content' => 'nullable|string',
-            'excerpt' => 'nullable|string',
-            'hardcoded' => 'nullable|string|max:50',
+            'template_id' => 'nullable|exists:page_templates,id',
             'status' => 'required|in:draft,published,archived',
-            'featured_image' => 'nullable|image|max:2048',
+            'content' => 'nullable|string',
             'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
         ]);
-
-        if ($request->filled('slug')) {
-            $validated['slug'] = Str::slug($request->slug);
-        } else {
-            $validated['slug'] = Str::slug($request->title);
-        }
-
-        if ($request->hasFile('featured_image')) {
-            if ($page->featured_image && Storage::disk('public')->exists($page->featured_image)) {
-                Storage::disk('public')->delete($page->featured_image);
-            }
-            $path = $request->file('featured_image')->store('pages', 'public');
-            $validated['featured_image'] = $path;
-        }
 
         $page->update($validated);
 
-        return redirect()->route('admin.pages.index')->with('success', 'Page updated successfully.');
+        // Update template-specific data
+        if ($page->template_id && $template = $page->template) {
+            $templateData = [];
+            foreach ($template->sections ?? [] as $section) {
+                $templateData[$section['key']] = $request->input("template_data.{$section['key']}");
+            }
+            $page->update(['template_data' => $templateData]);
+        }
+
+        return redirect()->route('admin.pages.index')
+            ->with('success', 'Page updated successfully');
     }
 
     public function destroy(Page $page)
     {
-        if ($page->featured_image && Storage::disk('public')->exists($page->featured_image)) {
-            Storage::disk('public')->delete($page->featured_image);
-        }
         $page->delete();
-
-        return redirect()->route('admin.pages.index')->with('success', 'Page deleted successfully.');
+        return redirect()->route('admin.pages.index')
+            ->with('success', 'Page deleted successfully');
     }
 }

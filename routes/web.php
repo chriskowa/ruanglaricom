@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/api/moota/webhook', [App\Http\Controllers\MootaWebhookController::class, 'handle'])->name('moota.webhook');
 
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Homepage with template support
+Route::get('/', [App\Http\Controllers\PageController::class, 'homepage'])->name('home');
 
 Route::get('/join-now', App\Http\Controllers\JoinNowController::class)->name('home.join-now');
 
@@ -936,3 +937,6 @@ Route::get('/run-queue-worker', function () {
 
     return 'Worker executed. Output: '.Illuminate\Support\Facades\Artisan::output();
 });
+
+// Dynamic pages with template support (must be at the end)
+Route::get('/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('page.show');

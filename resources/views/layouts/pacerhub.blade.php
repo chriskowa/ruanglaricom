@@ -182,31 +182,31 @@
     </style>
     @stack('styles')
 </head>
-<body class="bg-dark text-white font-sans antialiased flex flex-col min-h-screen">
+<body class="{{ isset($lightMode) && $lightMode ? 'bg-slate-50 text-slate-900' : 'bg-dark text-white' }} font-sans antialiased flex flex-col min-h-screen">
 
-    <div id="loader" class="loader-overlay">
-        <div class="text-4xl font-black italic tracking-tighter animate-pulse">
-            RUANG<span class="text-primary">LARI</span>
+    <div id="loader" class="loader-overlay" style="{{ isset($lightMode) && $lightMode ? 'background: #f8fafc;' : '' }}">
+        <div class="text-4xl font-black italic tracking-tighter animate-pulse {{ isset($lightMode) && $lightMode ? 'text-slate-900' : '' }}">
+            RUANG<span class="text-primary" style="{{ isset($lightMode) && $lightMode ? 'color: #000000ff;' : '' }}">LARI</span>
         </div>
     </div>
 
     <div id="app" class="flex flex-col min-h-screen">
         
         @if(!isset($hideNav) || !$hideNav)
-            @include('layouts.components.pacerhub-nav')
+            @include('layouts.components.pacerhub-nav', ['lightMode' => $lightMode ?? false])
         @endif
 
         @if(isset($withSidebar) && $withSidebar && (!isset($hideSidebar) || !$hideSidebar))
             <div id="ph-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
-            @include('layouts.components.pacerhub-sidebar')
+            @include('layouts.components.pacerhub-sidebar', ['lightMode' => $lightMode ?? false])
         @endif
 
-        <main class="flex-grow w-full {{ (!isset($hideNav) || !$hideNav) ? 'pt-20' : '' }}">
+        <main class="flex-grow w-full {{ (!isset($hideNav) || !$hideNav) ? (isset($navHeight) ? 'pt-['.$navHeight.']' : 'pt-20') : '' }}">
             @yield('content')
         </main>
 
         @if(!isset($hideFooter) || !$hideFooter)
-            @include('layouts.components.pacerhub-footer')
+            @include('layouts.components.pacerhub-footer', ['lightMode' => $lightMode ?? false])
         @endif
 
     </div>

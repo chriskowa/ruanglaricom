@@ -13,7 +13,10 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @php($recaptchaSiteKey = env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY'))
+    @if($recaptchaSiteKey)
+        <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKey }}"></script>
+    @endif
     <script>
         tailwind.config = {
             theme: {
@@ -222,13 +225,12 @@
                     </div>
                 </div>
 
-                <div class="flex justify-center pt-2">
-                    <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
-                </div>
+                <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
 
                 <div class="pt-2">
-                    <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.02]">
-                        CREATE ACCOUNT
+                    <button type="submit" id="register-btn" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                        <span id="btn-text">CREATE ACCOUNT</span>
+                        <span id="btn-loader" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     </button>
                 </div>
 
@@ -267,6 +269,37 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const registerForm = document.querySelector('form');
+            const registerBtn = document.getElementById('register-btn');
+            const btnText = document.getElementById('btn-text');
+            const btnLoader = document.getElementById('btn-loader');
+            const recaptchaInput = document.getElementById('g-recaptcha-response');
+            const recaptchaSiteKey = '{{ $recaptchaSiteKey }}';
+
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (registerBtn.disabled) return;
+
+                registerBtn.disabled = true;
+                btnText.textContent = 'PROCESSING...';
+                btnLoader.classList.remove('hidden');
+
+                if (recaptchaSiteKey && typeof grecaptcha !== 'undefined') {
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute(recaptchaSiteKey, {action: 'register'}).then(function(token) {
+                            recaptchaInput.value = token;
+                            registerForm.submit();
+                        }).catch(function(error) {
+                            console.error('reCAPTCHA error:', error);
+                            registerForm.submit(); // Submit anyway, server will handle validation
+                        });
+                    });
+                } else {
+                    registerForm.submit();
+                }
+            });
+
             const roleRadios = document.querySelectorAll('input[name="role"]');
             const eoPackageSelection = document.getElementById('eo-package-selection');
             const packageRadios = document.querySelectorAll('input[name="package_tier"]');

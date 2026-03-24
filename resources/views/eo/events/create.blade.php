@@ -445,40 +445,10 @@
                         @error('platform_fee') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- WhatsApp Configuration -->
-                    <div class="md:col-span-2 mt-4 pt-6 border-t border-slate-700">
-                        <label class="block text-sm font-medium text-slate-300 mb-4">WhatsApp Notification (After Payment)</label>
-                        
-                        <div class="flex items-center gap-6 mb-4">
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <div class="relative flex items-center">
-                                    <input type="radio" name="whatsapp_config[enabled]" value="1" class="peer sr-only" onchange="toggleWhatsappTemplate(this.value)">
-                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 transition-colors"></div>
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                                        <div class="w-2 h-2 bg-black rounded-full"></div>
-                                    </div>
-                                </div>
-                                <span class="text-slate-300 group-hover:text-white transition-colors">Enable</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <div class="relative flex items-center">
-                                    <input type="radio" name="whatsapp_config[enabled]" value="0" class="peer sr-only" checked onchange="toggleWhatsappTemplate(this.value)">
-                                    <div class="w-5 h-5 border-2 border-slate-500 rounded-full peer-checked:border-red-500 peer-checked:bg-red-500 transition-colors"></div>
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                                        <div class="w-2 h-2 bg-black rounded-full"></div>
-                                    </div>
-                                </div>
-                                <span class="text-slate-300 group-hover:text-white transition-colors">Disable</span>
-                            </label>
-                        </div>
-
-                        <div id="whatsapp_template_container" class="opacity-50 pointer-events-none transition-all duration-200">
-                            <label class="block text-sm font-medium text-slate-400 mb-2">Message Template</label>
-                            <textarea name="whatsapp_config[template]" id="whatsapp_template" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-colors font-mono text-sm" placeholder="Halo @{{name}}, terima kasih telah mendaftar di @{{event_name}}. ID Transaksi Anda: @{{transaction_id}}."></textarea>
-                            <p class="text-xs text-slate-500 mt-2">
-                                Available variables: <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{name}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{event_name}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{transaction_id}}</code>, <code class="bg-slate-800 px-1 py-0.5 rounded text-green-400">@{{amount}}</code>
-                            </p>
-                        </div>
+                    <!-- WhatsApp Configuration (Hidden) -->
+                    <div class="hidden">
+                        <input type="hidden" name="whatsapp_config[enabled]" value="0">
+                        <input type="hidden" name="whatsapp_config[template]" value="">
                     </div>
                 </div>
 
@@ -602,9 +572,9 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
+                    <div class="md:col-span-2 hidden">
                         <label class="block text-sm font-medium text-slate-300 mb-2">Promo Code <span class="text-slate-500 text-xs">(Optional)</span></label>
-                        <input type="text" name="promo_code" value="{{ old('promo_code') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. EARLYBIRD">
+                        <input type="hidden" name="promo_code" value="">
                         <p class="text-xs text-slate-500 mt-1">Code for discount.</p>
                         @error('promo_code') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -872,7 +842,8 @@
     window.laravelErrors = @json($errors->getMessages());
 </script>
 <script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
@@ -1307,60 +1278,75 @@
         }
     }
 
-    // Leaflet Map
+    // Mapbox Map
     document.addEventListener('DOMContentLoaded', function() {
+        const mapboxToken = '{{ env('MAPBOX_TOKEN') }}';
+        if (!mapboxToken) {
+            console.error('Mapbox token is missing in .env (expected MAPBOX_TOKEN)');
+            return;
+        }
+        
+        mapboxgl.accessToken = mapboxToken;
+        
         const defaultLat = -6.2088;
         const defaultLng = 106.8456;
         
-        const map = L.map('map').setView([defaultLat, defaultLng], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        
-        let marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/light-v11', // dark style to match dashboard
+            center: [defaultLng, defaultLat],
+            zoom: 13
+        });
+
+        // Add navigation controls (zoom, rotate)
+        map.addControl(new mapboxgl.NavigationControl());
+
+        // Add geolocate control (current location)
+        const geolocate = new mapboxgl.GeolocateControl({
+            positionOptions: {
+                enableHighAccuracy: true
+            },
+            trackUserLocation: true,
+            showUserHeading: true
+        });
+        map.addControl(geolocate);
+
+        const marker = new mapboxgl.Marker({
+            draggable: true,
+            color: "#eab308" // yellow-500
+        })
+        .setLngLat([defaultLng, defaultLat])
+        .addTo(map);
         
         function updateLocation(lat, lng) {
             document.getElementById('location_lat').value = lat;
             document.getElementById('location_lng').value = lng;
             
-            // Reverse geocoding (optional, simple fetch)
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-                .then(res => {
-                    if (!res.ok) {
-                        console.error('Reverse geocoding failed', res.status, res.statusText);
-                        return null;
-                    }
-                    return res.json().catch(err => {
-                        console.error('Failed to parse reverse geocoding response', err);
-                        return null;
-                    });
-                })
+            // Reverse geocoding using Mapbox API
+            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}`)
+                .then(res => res.json())
                 .then(data => {
-                    if (!data) return;
-                    if (data.display_name) {
-                        document.getElementById('location_address').value = data.display_name;
-                        const addr = data.address || {};
-                        const name = data.name || addr.building || addr.suburb || '';
-                        if (name && !document.getElementById('location_name').value) {
-                            document.getElementById('location_name').value = name;
+                    if (data.features && data.features.length > 0) {
+                        const feature = data.features[0];
+                        document.getElementById('location_address').value = feature.place_name;
+                        
+                        // If venue name is empty, try to fill it from the first feature
+                        if (!document.getElementById('location_name').value) {
+                            document.getElementById('location_name').value = feature.text || '';
                         }
                     }
                 })
-                .catch(err => {
-                    console.error('Reverse geocoding error', err);
-                });
+                .catch(err => console.error('Reverse geocoding error:', err));
         }
 
-        marker.on('dragend', function(e) {
-            const pos = marker.getLatLng();
-            updateLocation(pos.lat, pos.lng);
+        marker.on('dragend', function() {
+            const lngLat = marker.getLngLat();
+            updateLocation(lngLat.lat, lngLat.lng);
         });
 
         map.on('click', function(e) {
-            marker.setLatLng(e.latlng);
-            updateLocation(e.latlng.lat, e.latlng.lng);
+            marker.setLngLat(e.lngLat);
+            updateLocation(e.lngLat.lat, e.lngLat.lng);
         });
 
         // Search location
@@ -1369,36 +1355,35 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const query = this.value;
-                fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}`, {
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                })
-                    .then(res => {
-                        if (!res.ok) {
-                            console.error('Search geocoding failed', res.status, res.statusText);
-                            return null;
-                        }
-                        return res.json().catch(err => {
-                            console.error('Failed to parse search geocoding response', err);
-                            return null;
-                        });
-                    })
+                
+                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&limit=1`)
+                    .then(res => res.json())
                     .then(data => {
-                        if (!data || !data.length) return;
-                        const first = data[0];
-                        const lat = parseFloat(first.lat);
-                        const lng = parseFloat(first.lon);
-                        if (Number.isNaN(lat) || Number.isNaN(lng)) return;
-                        map.setView([lat, lng], 16);
-                        marker.setLatLng([lat, lng]);
-                        updateLocation(lat, lng);
-                        document.getElementById('location_name').value = first.name || query;
+                        if (data.features && data.features.length > 0) {
+                            const first = data.features[0];
+                            const [lng, lat] = first.center;
+                            
+                            map.flyTo({
+                                center: [lng, lat],
+                                zoom: 16,
+                                essential: true
+                            });
+                            
+                            marker.setLngLat([lng, lat]);
+                            updateLocation(lat, lng);
+                            document.getElementById('location_name').value = first.text || query;
+                        }
                     })
-                    .catch(err => {
-                        console.error('Search geocoding error', err);
-                    });
+                    .catch(err => console.error('Search geocoding error:', err));
             }
+        });
+
+        // Handle successful geolocation
+        geolocate.on('geolocate', (e) => {
+            const lng = e.coords.longitude;
+            const lat = e.coords.latitude;
+            marker.setLngLat([lng, lat]);
+            updateLocation(lat, lng);
         });
         
         // Initial update

@@ -105,11 +105,14 @@
                     <a href="{{ route('password.request') }}" class="text-cyan-400 hover:text-cyan-300 transition-colors">Forgot Password?</a>
                 </div>
 
-                <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
+                <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
 
-                <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25 transition-all transform hover:scale-[1.02]">
-                    SIGN IN
-                </button>
+                <div>
+                    <button type="submit" id="login-btn" class="w-full py-3.5 rounded-xl bg-neon text-dark font-black shadow-lg shadow-neon/20 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                        <span id="btn-text">SIGN IN</span>
+                        <span id="btn-loader" class="hidden w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                    </button>
+                </div>
 
                 <div class="relative my-6">
                     <div class="absolute inset-0 flex items-center">
@@ -146,11 +149,20 @@
 
     <script>
         const loginForm = document.querySelector('form');
+        const loginBtn = document.getElementById('login-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+
         if (loginForm) {
             loginForm.addEventListener('submit', function(e) {
                 @if($recaptchaSiteKey)
                     e.preventDefault();
                     
+                    if (loginBtn.disabled) return;
+                    loginBtn.disabled = true;
+                    btnText.textContent = 'SIGNING IN...';
+                    btnLoader.classList.remove('hidden');
+
                     if (typeof grecaptcha === 'undefined') {
                         console.warn('reCAPTCHA not loaded.');
                         loginForm.submit();
@@ -160,7 +172,7 @@
                     grecaptcha.ready(function() {
                         grecaptcha.execute('{{ $recaptchaSiteKey }}', {action: 'login'})
                         .then(function(token) {
-                            const el = document.getElementById('recaptchaToken');
+                            const el = document.getElementById('g-recaptcha-response');
                             if (el) el.value = token;
                             loginForm.submit();
                         })
@@ -169,6 +181,11 @@
                             loginForm.submit();
                         });
                     });
+                @else
+                    if (loginBtn.disabled) return;
+                    loginBtn.disabled = true;
+                    btnText.textContent = 'SIGNING IN...';
+                    btnLoader.classList.remove('hidden');
                 @endif
             });
         }

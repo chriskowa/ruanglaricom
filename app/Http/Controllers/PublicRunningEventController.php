@@ -21,7 +21,13 @@ class PublicRunningEventController extends Controller
             ->with(['city', 'raceType', 'raceDistances', 'categories']);
 
         if ($request->filled('month')) {
-            $query->whereMonth('start_at', $request->month);
+            if (preg_match('/^\d{4}-\d{2}$/', $request->month)) {
+                $parts = explode('-', $request->month);
+                $query->whereYear('start_at', $parts[0])
+                      ->whereMonth('start_at', $parts[1]);
+            } else {
+                $query->whereMonth('start_at', $request->month);
+            }
         }
 
         if ($request->filled('year')) {
@@ -30,16 +36,29 @@ class PublicRunningEventController extends Controller
 
         if ($request->filled('city_id')) {
             $query->where('city_id', $request->city_id);
-        }
-
-        if ($request->filled('race_type_id')) {
-            $query->where('race_type_id', $request->race_type_id);
+        } elseif ($request->filled('city')) {
+            $citySearch = $request->city;
+            $query->where(function ($q) use ($citySearch) {
+                $q->whereHas('city', function ($sq) use ($citySearch) {
+                    $sq->where('name', 'like', "%{$citySearch}%");
+                })->orWhere('location_name', 'like', "%{$citySearch}%");
+            });
         }
 
         if ($request->filled('race_distance_id')) {
             $query->whereHas('raceDistances', function ($q) use ($request) {
                 $q->where('event_distances.race_distance_id', $request->race_distance_id);
             });
+        } elseif ($request->filled('category')) {
+            $categorySearch = str_replace('-', ' ', $request->category);
+            $query->whereHas('categories', function ($q) use ($categorySearch) {
+                $q->where('name', 'like', "%{$categorySearch}%")
+                  ->orWhere('distance_label', 'like', "%{$categorySearch}%");
+            });
+        }
+
+        if ($request->filled('race_type_id')) {
+            $query->where('race_type_id', $request->race_type_id);
         }
 
         if ($request->filled('search')) {

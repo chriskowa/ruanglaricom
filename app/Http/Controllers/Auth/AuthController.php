@@ -100,10 +100,24 @@ class AuthController extends Controller
                     ->first();
 
                 if ($pendingTx) {
+                    if ($request->wantsJson()) {
+                        return response()->json([
+                            'success' => true,
+                            'redirect_url' => route('eo.membership.payment', $pendingTx->id),
+                        ]);
+                    }
+
                     return redirect()->route('eo.membership.payment', $pendingTx->id);
                 }
 
                 // Jika tidak ada transaksi pending tapi membership tidak aktif (expired atau belum beli)
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect_url' => route('eo.packages.index'),
+                    ]);
+                }
+
                 return redirect()->route('eo.packages.index')
                     ->with('warning', 'Masa aktif paket Anda telah habis atau belum aktif. Silakan pilih paket.');
             }
@@ -197,9 +211,8 @@ class AuthController extends Controller
                     return;
                 }
 
-                // Check score for v3
-                if (isset($body['score']) && $body['score'] < 0.1) {
-                    $fail('Verifikasi keamanan gagal (skor sangat rendah).');
+                if (isset($body['score']) && $body['score'] < 0.3) {
+                    $fail('Verifikasi keamanan gagal (terdeteksi sebagai bot).');
                 }
             }],
         ]);
