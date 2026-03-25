@@ -1,3 +1,4 @@
+@php $lightMode = $lightMode ?? false; @endphp
 <style>[x-cloak]{display:none !important;}</style>
 <nav class="border-b {{ $lightMode ? 'border-slate-200 bg-white/90' : 'border-slate-800 bg-dark/80' }} backdrop-blur-md fixed w-full z-40">
     @php

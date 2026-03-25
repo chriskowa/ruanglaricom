@@ -1,3 +1,4 @@
+@php $lightMode = $lightMode ?? false; @endphp
 <aside id="ph-sidebar" class="fixed left-0 top-20 bottom-0 w-72 {{ $lightMode ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-700' }} border-r z-50 transform transition-transform duration-200 ease-out -translate-x-full">
     <div class="h-full flex flex-col">
         <div class="px-4 py-4 border-b {{ $lightMode ? 'border-slate-100' : 'border-slate-800' }}">
