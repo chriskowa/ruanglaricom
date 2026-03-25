@@ -110,11 +110,6 @@
         gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
     </script>
 
-    <!-- Flatpickr -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
     <!-- Tesseract.js for OCR -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
@@ -1909,7 +1904,7 @@
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">                                            
                                             <em class="md:col-span-1 text-slate-400">Tanggal lahir</em>
-                                            <input type="text" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="dob-picker w-full md:col-span-3 bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none" required>
+                                            <input type="date" name="participants[0][date_of_birth]" aria-label="Tanggal Lahir" class="w-full md:col-span-3 bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none" required>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required>
@@ -2619,10 +2614,6 @@
                 participantsWrapper.appendChild(newItem);
                 attachListeners(newItem); // Re-attach change events
                 
-                // Initialize Flatpickr for the new dob input
-                const newDob = newItem.querySelector('.dob-picker');
-                if (newDob) initDobPicker(newDob);
-                
                 // Scroll to the new participant form with a slight delay to ensure DOM update
                 setTimeout(() => {
                     newItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2942,8 +2933,8 @@
                 const clean = raw.replace(/[Oo]/g, '0').replace(/[Il]/g, '1');
                 const m = clean.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
                 if (!m) return '';
-                // Return in m/d/Y format
-                return `${m[2]}/${m[1]}/${m[3]}`;
+                // Return in Y-m-d format
+                return `${m[3]}-${m[2]}-${m[1]}`;
             };
 
             const parseAddressText = (text) => {
@@ -3164,7 +3155,9 @@
                     nikInput.dispatchEvent(new Event('input', { bubbles: true }));
                 }
                 if (ktpResult.dob && dobInput) {
-                    setDobValue(dobInput, ktpResult.dob);
+                    dobInput.value = ktpResult.dob;
+                    dobInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    dobInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
                 if (ktpResult.address && addressInput) {
                     addressInput.value = ktpResult.address;
@@ -3172,69 +3165,6 @@
                 }
                 closeKtpModal();
             };
-
-            const normalizeToYmd = (raw) => {
-                if (!raw) return '';
-                // Format: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
-                let m = raw.match(/^(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})$/);
-                if (m) return `${m[3]}-${m[2]}-${m[1]}`;
-                // Format: YYYY-MM-DD
-                m = raw.match(/^(\d{4})[\/\-\.](\d{2})[\/\-\.](\d{2})$/);
-                if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-                return raw;
-            };
-
-            const setDobValue = (input, value) => {
-                if (!input || !value) return;
-                const finalValue = normalizeToYmd(value);
-                if (input._flatpickr) {
-                    input._flatpickr.setDate(finalValue, true); 
-                } else {
-                    input.value = finalValue;
-                }
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-            };
-
-            const initDobPicker = (input) => {
-                if (!input || !window.flatpickr) return;
-                if (input._flatpickr) return; // Already initialized
-                const fp = window.flatpickr(input, {
-                    dateFormat: 'Y-m-d',
-                    altInput: true,
-                    altFormat: 'd/m/Y',
-                    allowInput: true,
-                    maxDate: 'today',
-                    disableMobile: true,
-                    theme: 'airbnb', // Ensure theme is applied
-                    onChange: function() {
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        input.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                });
-
-                // Sinkronisasi input manual (altInput) ke input asli (value internal Y-m-d)
-                if (fp.altInput) {
-                    fp.altInput.addEventListener('blur', (e) => {
-                        const rawValue = e.target.value;
-                        if (rawValue) {
-                            const normalized = normalizeToYmd(rawValue);
-                            fp.setDate(normalized, false); // Set tanpa onChange agar tidak loop
-                            input.value = normalized; // Paksa update input asli (hidden)
-                            input.dispatchEvent(new Event('input', { bubbles: true }));
-                            input.dispatchEvent(new Event('change', { bubbles: true }));
-                        } else {
-                            fp.clear();
-                            input.value = '';
-                            input.dispatchEvent(new Event('input', { bubbles: true }));
-                            input.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                    });
-                }
-            };
-
-            // Initial setup for the first participant
-            document.querySelectorAll('.dob-picker').forEach(initDobPicker);
 
             if (participantsWrapper) {
                 participantsWrapper.addEventListener('click', (e) => {
@@ -3409,6 +3339,17 @@
                 window.location.reload();
             };
 
+            window.normalizeToYmd = function(raw) {
+                if (!raw) return '';
+                // Format: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+                let m = raw.match(/^(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})$/);
+                if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+                // Format: YYYY-MM-DD
+                m = raw.match(/^(\d{4})[\/\-\.](\d{2})[\/\-\.](\d{2})$/);
+                if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+                return raw;
+            };
+
             window.copyFromPic = function(btn) {
                 const participantItem = btn.closest('.participant-item');
                 const picName = document.querySelector('input[name="pic_name"]').value;
@@ -3421,7 +3362,10 @@
                 if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
                 if (picDob) {
                     const dobInput = participantItem.querySelector('input[name*="[date_of_birth]"]');
-                    if (dobInput) setDobValue(dobInput, picDob);
+                    if (dobInput) {
+                        dobInput.value = normalizeToYmd(picDob);
+                        dobInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
                 }
             };
 
@@ -3441,7 +3385,7 @@
                         const targetInput = currentItem.querySelector(`input[name*="[${field}]"]`);
                         if (sourceInput && targetInput) {
                             if (field === 'date_of_birth') {
-                                setDobValue(targetInput, sourceInput.value || null);
+                                targetInput.value = normalizeToYmd(sourceInput.value) || '';
                             } else {
                                 targetInput.value = sourceInput.value;
                             }
