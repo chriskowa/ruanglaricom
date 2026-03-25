@@ -22,6 +22,7 @@
         $seoKeywords = isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
         $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
         $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
+        $isRegOpen = $event->isRegistrationOpen();
     @endphp
 
     <title>{{ $seoTitle }}</title>
@@ -139,7 +140,7 @@
                 <span class="font-bold tracking-tight text-sm md:text-base truncate max-w-[200px]">{{ $event->name }}</span>
             </div>
             
-            @if(!($event->registration_open_at && now() < $event->registration_open_at) && !($event->registration_close_at && now() > $event->registration_close_at))
+            @if($isRegOpen)
             <a href="#register" class="bg-black text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-gray-800 transition">
                 Daftar
             </a>
@@ -218,8 +219,7 @@
                 <div class="sticky top-24" id="register">
                     
                     @php
-                        $now = now();
-                        $isRegOpen = !($event->registration_open_at && $now < $event->registration_open_at) && !($event->registration_close_at && $now > $event->registration_close_at);
+                        $isRegOpen = $event->isRegistrationOpen();
 
                         $paymentConfig = $event->payment_config ?? [];
                         

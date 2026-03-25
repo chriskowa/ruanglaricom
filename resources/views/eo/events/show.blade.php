@@ -15,9 +15,28 @@
             </div>
             <div class="card-body">
                 <h5>Detail Event</h5>
-                <p><strong>Tanggal:</strong> {{ $event->date->format('d F Y') }}</p>
-                <p><strong>Waktu:</strong> {{ $event->time ? $event->time->format('H:i') : '-' }}</p>
-                <p><strong>Lokasi:</strong> {{ $event->location }}</p>
+                @php
+                    $startAt = $event->start_at ?? null;
+                    $startDateDisplay = '-';
+                    $startTimeDisplay = '-';
+                    if ($startAt) {
+                        try {
+                            if (is_string($startAt)) {
+                                $startDateDisplay = \Illuminate\Support\Carbon::parse($startAt)->format('d F Y');
+                                $startTimeDisplay = \Illuminate\Support\Carbon::parse($startAt)->format('H:i');
+                            } else {
+                                $startDateDisplay = $startAt->format('d F Y');
+                                $startTimeDisplay = $startAt->format('H:i');
+                            }
+                        } catch (\Exception $e) {
+                            $startDateDisplay = '-';
+                            $startTimeDisplay = '-';
+                        }
+                    }
+                @endphp
+                <p><strong>Tanggal:</strong> {{ $startDateDisplay }}</p>
+                <p><strong>Waktu:</strong> {{ $startTimeDisplay }}</p>
+                <p><strong>Lokasi:</strong> {{ $event->location_name ?? '-' }}</p>
                 <p><strong>Status:</strong> 
                     @if($event->is_active)
                         <span class="badge bg-success">Active</span>
