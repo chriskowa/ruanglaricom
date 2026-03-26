@@ -1124,8 +1124,13 @@
                 params.set('pts', pts);
                 params.set('pm', clamp(parseInt(els.paceMin.value || '0', 10), 0, 59));
                 params.set('ps', clamp(parseInt(els.paceSec.value || '0', 10), 0, 59));
-                if (els.followRoad && els.followRoad.checked) params.set('snap', '1');
+                if (els.followRoad) params.set('snap', els.followRoad.checked ? '1' : '0');
                 if (els.showDirections && els.showDirections.checked) params.set('dir', '1');
+                var modeStr = points.map(function (p) { return (p && p.mode === 'osrm') ? 'o' : 'd'; }).join('');
+                if (modeStr) params.set('m', modeStr);
+                if (routePoints.length >= 2) {
+                    params.set('rp', encodePolyline(routePoints));
+                }
                 var style = getStyle();
                 params.set('rc', style.route.replace('#', ''));
                 params.set('mc', style.marker.replace('#', ''));
@@ -1133,6 +1138,107 @@
                 params.set('fc', style.finish.replace('#', ''));
                 params.set('ai', String(style.arrowIntervalM));
                 return base + '?' + params.toString();
+            }
+
+            function encodePolyline(pts) {
+                var lastLat = 0;
+                var lastLng = 0;
+                var res = '';
+                for (var i = 0; i < pts.length; i++) {
+                    var lat = Math.round(pts[i].lat * 1e5);
+                    var lng = Math.round(pts[i].lng * 1e5);
+                    res += encodeSigned(lat - lastLat) + encodeSigned(lng - lastLng);
+                    lastLat = lat;
+                    lastLng = lng;
+                }
+                return res;
+            }
+
+            function encodeSigned(num) {
+                var sgn = num << 1;
+                if (num < 0) sgn = ~sgn;
+                return encodeChunks(sgn);
+            }
+
+            function encodeChunks(num) {
+                var out = '';
+                while (num >= 0x20) {
+                    out += String.fromCharCode((0x20 | (num & 0x1f)) + 63);
+                    num >>= 5;
+                }
+                out += String.fromCharCode(num + 63);
+                return out;
+            }
+
+            function decodePolyline(str) {
+                var index = 0;
+                var lat = 0;
+                var lng = 0;
+                var coordinates = [];
+                while (index < str.length) {
+                    var result = 1;
+                    var shift = 0;
+                    var b;
+                    do {
+                        b = str.charCodeAt(index++) - 63 - 1;
+                        result += b << shift;
+                        shift += 5;
+                    } while (b >= 0x1f);
+                    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+
+                    result = 1;
+                    shift = 0;
+                    do {
+                        b = str.charCodeAt(index++) - 63 - 1;
+                        result += b << shift;
+                        shift += 5;
+                    } while (b >= 0x1f);
+                    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+
+                    coordinates.push({ lat: lat / 1e5, lng: lng / 1e5 });
+                }
+                return coordinates;
+            }
+
+            function assignSegmentsFromRoutePoints(routePts) {
+                if (!Array.isArray(routePts) || routePts.length < 2) return;
+                if (!Array.isArray(points) || points.length < 2) return;
+                var startIdx = 0;
+                for (var i = 1; i < points.length; i++) {
+                    var prev = points[i - 1];
+                    var curr = points[i];
+                    var prevIdx = findNearestIndex(routePts, prev, startIdx);
+                    var currIdx = findNearestIndex(routePts, curr, Math.min(routePts.length - 1, prevIdx + 1));
+                    if (currIdx <= prevIdx) currIdx = Math.min(routePts.length - 1, prevIdx + 1);
+                    var seg = routePts.slice(prevIdx, currIdx + 1);
+                    if (!seg || seg.length < 2) seg = [prev, curr];
+                    seg[0] = { lat: prev.lat, lng: prev.lng };
+                    seg[seg.length - 1] = { lat: curr.lat, lng: curr.lng };
+                    points[i].segment = seg;
+                    startIdx = currIdx;
+                }
+            }
+
+            function findNearestIndex(routePts, target, fromIdx) {
+                var bestIdx = fromIdx || 0;
+                var best = Infinity;
+                var start = clamp(parseInt(fromIdx || 0, 10), 0, routePts.length - 1);
+                for (var i = start; i < routePts.length; i++) {
+                    var d = sqDist(routePts[i], target);
+                    if (d < best) {
+                        best = d;
+                        bestIdx = i;
+                        if (best < 1e-10) break;
+                    }
+                    if (i > start + 5000 && best < 1e-8) break;
+                }
+                return bestIdx;
+            }
+
+            function sqDist(a, b) {
+                var dx = (a.lat - b.lat);
+                var dy = (a.lng - b.lng);
+                return dx * dx + dy * dy;
             }
 
             function copyText(text) {
@@ -1415,7 +1521,9 @@
             function applyFromQuery() {
                 var qs = new URLSearchParams(window.location.search || '');
                 if (els.followRoad) {
-                    els.followRoad.checked = qs.get('snap') === '1';
+                    if (qs.has('snap')) {
+                        els.followRoad.checked = qs.get('snap') === '1';
+                    }
                 }
                 if (els.showDirections) {
                     els.showDirections.checked = qs.get('dir') !== '0';
@@ -1437,6 +1545,8 @@
                     applyStyleFromState(getStyle());
                 }
                 var pts = qs.get('pts');
+                var modes = qs.get('m') || '';
+                var routePolyline = qs.get('rp') || '';
                 if (pts) {
                     var parsed = pts.split(';').map(function (pair) {
                         var parts = pair.split(',');
@@ -1447,20 +1557,31 @@
                         return { lat: lat, lng: lng };
                     }).filter(Boolean);
                     if (parsed.length > 0) {
-                    var snap = qs.get('snap') === '1';
-                    points = parsed.map(function(p) {
-                        return { lat: p.lat, lng: p.lng, mode: snap ? 'osrm' : 'direct', segment: [] };
-                    });
-                    
-                    processLoadedPoints().then(function() {
-                        rebuildLine();
-                        rebuildMarkers();
-                        updateStats();
-                        updateElevation();
-                        setStatus('Rute dari link');
-                        setTimeout(fitRoute, 250);
-                        pushState();
-                    });
+                        var snap = qs.get('snap') === '1';
+                        points = parsed.map(function(p, idx) {
+                            var ch = modes && modes.length === parsed.length ? modes.charAt(idx) : '';
+                            var mode = ch === 'o' ? 'osrm' : (ch === 'd' ? 'direct' : (snap ? 'osrm' : 'direct'));
+                            return { lat: p.lat, lng: p.lng, mode: mode, segment: [] };
+                        });
+
+                        if (routePolyline) {
+                            try {
+                                var decoded = decodePolyline(routePolyline);
+                                if (decoded && decoded.length >= 2) {
+                                    assignSegmentsFromRoutePoints(decoded);
+                                }
+                            } catch (e) {}
+                        }
+
+                        processLoadedPoints().then(function() {
+                            rebuildLine();
+                            rebuildMarkers();
+                            updateStats();
+                            updateElevation();
+                            setStatus('Rute dari link');
+                            setTimeout(fitRoute, 250);
+                            pushState();
+                        });
                 }
                 }
                 var name = qs.get('name');

@@ -145,6 +145,7 @@
                                 <option value="paolo-fest-dark" {{ old('template', $event->template) == 'paolo-fest-dark' ? 'selected' : '' }}>Paolo Fest Dark</option>
                                 <option value="professional-city-run" {{ old('template', $event->template) == 'professional-city-run' ? 'selected' : '' }}>Professional City Run</option>
                                 <option value="simple-minimal" {{ old('template', $event->template) == 'simple-minimal' ? 'selected' : '' }}>Simple Minimal</option>
+                                <option value="quick-light" {{ old('template', $event->template) == 'quick-light' ? 'selected' : '' }}>Quick Light (Simple)</option>
                             </select>
                         </div>
                     </div>
