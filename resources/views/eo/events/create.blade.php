@@ -500,7 +500,7 @@
                     @error('payment_config.midtrans_demo_mode') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
 
                     <label class="block text-sm font-medium text-slate-300 mb-4">Payment Methods</label>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <label class="relative cursor-pointer group">
                             <input type="radio" name="payment_config[allowed_methods][]" value="midtrans" class="peer sr-only" checked>
                             <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
@@ -534,13 +534,29 @@
                         </label>
 
                         <label class="relative cursor-pointer group">
+                            <input type="radio" name="payment_config[allowed_methods][]" value="cod" class="peer sr-only">
+                            <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4 0 1.3.62 2.46 1.58 3.2L12 21l2.42-5.8A3.99 3.99 0 0016 12c0-2.21-1.79-4-4-4zm0 6a2 2 0 110-4 2 2 0 010 4z"/></svg>
+                                </div>
+                                <h4 class="font-bold text-white mb-1">COD</h4>
+                                <p class="text-xs text-slate-400">Bayar langsung sesuai arahan EO</p>
+                            </div>
+                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                <div class="bg-yellow-400 rounded-full p-1">
+                                    <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="relative cursor-pointer group">
                             <input type="radio" name="payment_config[allowed_methods][]" value="all" class="peer sr-only">
                             <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
                                 <div class="w-12 h-12 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                                 </div>
                                 <h4 class="font-bold text-white mb-1">Semua Metode</h4>
-                                <p class="text-xs text-slate-400">Aktifkan Midtrans & Moota</p>
+                                <p class="text-xs text-slate-400">Aktifkan Midtrans, Moota, COD</p>
                             </div>
                             <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
                                 <div class="bg-yellow-400 rounded-full p-1">

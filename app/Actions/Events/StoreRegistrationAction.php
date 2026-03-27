@@ -452,7 +452,7 @@ class StoreRegistrationAction
                 'final_amount' => $finalAmount,
                 'payment_status' => $isZeroAmount ? 'paid' : 'pending',
                 'paid_at' => $isZeroAmount ? now() : null,
-                'payment_gateway' => $paymentMethod === 'moota' ? 'moota' : 'midtrans',
+                'payment_gateway' => $paymentMethod === 'moota' ? 'moota' : ($paymentMethod === 'cod' ? 'cod' : 'midtrans'),
                 'unique_code' => $uniqueCode > 0 ? $uniqueCode : 0,
             ]);
 

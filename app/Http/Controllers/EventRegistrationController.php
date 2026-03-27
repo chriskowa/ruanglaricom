@@ -211,11 +211,29 @@ class EventRegistrationController extends Controller
                 return redirect()->route('events.payment', ['slug' => $slug, 'transaction' => $transaction->id]);
             }
 
+            // Handle COD success (no payment gateway redirect)
+            if ($transaction->payment_gateway === 'cod') {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Registrasi berhasil! Metode pembayaran COD.',
+                        'payment_gateway' => 'cod',
+                        'payment_status' => $transaction->payment_status,
+                        'transaction_id' => $transaction->id,
+                        'registration_id' => $transaction->public_ref,
+                        'redirect_url' => route('events.show', $slug).'?payment=success',
+                    ]);
+                }
+
+                return redirect()->route('events.show', $slug)->with('success', 'Registrasi berhasil!')->with('payment', 'success');
+            }
+
             // If AJAX request, return JSON
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Registrasi berhasil!',
+                    'payment_gateway' => $transaction->payment_gateway,
                     'snap_token' => $transaction->snap_token,
                     'transaction_id' => $transaction->id,
                     'registration_id' => $transaction->public_ref,

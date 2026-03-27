@@ -162,7 +162,7 @@ class EventController extends Controller
             'payment_config' => 'nullable|array',
             'payment_config.midtrans_demo_mode' => 'nullable|boolean',
             'payment_config.allowed_methods' => 'nullable|array|min:1',
-            'payment_config.allowed_methods.*' => 'in:midtrans,moota,all',
+            'payment_config.allowed_methods.*' => 'in:midtrans,moota,cod,all',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -282,7 +282,7 @@ class EventController extends Controller
                 $methods = [$methods];
             }
             if (in_array('all', $methods)) {
-                $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota'];
+                $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota', 'cod'];
             } else {
                 $validated['payment_config']['allowed_methods'] = array_values(array_unique($methods));
             }
@@ -438,7 +438,7 @@ class EventController extends Controller
             'payment_config' => 'nullable|array',
             'payment_config.midtrans_demo_mode' => 'nullable|boolean',
             'payment_config.allowed_methods' => 'nullable|array|min:1',
-            'payment_config.allowed_methods.*' => 'in:midtrans,moota,all',
+            'payment_config.allowed_methods.*' => 'in:midtrans,moota,cod,all',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -606,7 +606,7 @@ class EventController extends Controller
                 $methods = [$methods];
             }
             if (in_array('all', $methods)) {
-                $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota'];
+                $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota', 'cod'];
             } else {
                 $validated['payment_config']['allowed_methods'] = array_values(array_unique($methods));
             }
@@ -1577,7 +1577,7 @@ class EventController extends Controller
         ]);
 
         if ($validated['payment_status'] === 'paid') {
-            \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
+            \App\Jobs\ProcessPaidEventTransaction::dispatchAfterResponse($transaction);
         }
 
         // Always return JSON for AJAX requests

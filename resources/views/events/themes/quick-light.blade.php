@@ -5,6 +5,11 @@
         $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
         $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
         $showCOD = in_array('cod', $allowed) || in_array('all', $allowed);
+    } elseif (isset($paymentConfig['allowed_gateways']) && is_array($paymentConfig['allowed_gateways'])) {
+        $allowed = $paymentConfig['allowed_gateways'];
+        $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
+        $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
+        $showCOD = in_array('cod', $allowed) || in_array('all', $allowed);
     } else {
         $showMidtrans = $paymentConfig['midtrans'] ?? true;
         $showMoota = $paymentConfig['moota'] ?? false;
@@ -20,9 +25,42 @@
     $addons = is_array($event->addons ?? null) ? $event->addons : [];
     $isRegOpen = method_exists($event, 'isRegistrationOpen') ? $event->isRegistrationOpen() : true;
     $heroImage = $event->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
+    $logoImage = $event->logo_image ? asset('storage/'.$event->logo_image) : null;
+    $faviconImage = $logoImage ?? $heroImage;
+    $canonicalUrl = url()->current();
     $shortDescription = trim(strip_tags((string) ($event->short_description ?? '')));
     $platformFee = (int) ($event->platform_fee ?? 0);
     $defaultJersey = collect($event->jersey_sizes ?? [])->filter()->first() ?? 'L';
+    $schemaDescription = $shortDescription !== '' ? $shortDescription : trim(strip_tags((string) ($event->full_description ?? '')));
+    if ($schemaDescription === '') {
+        $schemaDescription = $event->name;
+    }
+    $schemaEvent = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Event',
+        'name' => $event->name,
+        'description' => $schemaDescription,
+        'image' => [$heroImage],
+        'url' => $canonicalUrl,
+        'startDate' => optional($event->start_at)->toIso8601String(),
+        'endDate' => optional($event->end_at ?? null)->toIso8601String(),
+        'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+        'eventStatus' => 'https://schema.org/EventScheduled',
+        'location' => [
+            '@type' => 'Place',
+            'name' => $event->location_name,
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $event->location_address,
+                'addressCountry' => 'ID',
+            ],
+        ],
+        'organizer' => [
+            '@type' => 'Organization',
+            'name' => config('app.name'),
+            'url' => url('/'),
+        ],
+    ];
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -32,6 +70,27 @@
     <title>{{ $event->name }} • Quick Light</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="{{ $shortDescription !== '' ? $shortDescription : $event->name }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <link rel="icon" href="{{ $faviconImage }}">
+    <link rel="apple-touch-icon" href="{{ $faviconImage }}">
+    <meta itemprop="name" content="{{ $event->name }}">
+    <meta itemprop="description" content="{{ $schemaDescription }}">
+    <meta itemprop="image" content="{{ $heroImage }}">
+    <meta property="og:site_name" content="{{ config('app.name') }}">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:type" content="event">
+    <meta property="og:title" content="{{ $event->name }}">
+    <meta property="og:description" content="{{ $schemaDescription }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $heroImage }}">
+    @if($logoImage)
+        <meta property="og:image:alt" content="{{ $event->name }}">
+    @endif
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $event->name }}">
+    <meta name="twitter:description" content="{{ $schemaDescription }}">
+    <meta name="twitter:image" content="{{ $heroImage }}">
+    <script type="application/ld+json">{!! json_encode($schemaEvent, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.tailwindcss.com"></script>
     @if($showMidtrans && $midtransClientKey)
@@ -205,6 +264,15 @@
                         <p class="mt-4 text-slate-700 leading-8">{{ $event->short_description }}</p>
                     </div>
                 @endif
+                
+                @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
+                    <div class="soft-card p-6 md:p-8" id="participants-list">
+                        <div class="text-sm font-black uppercase tracking-[0.2em] text-blue-600">Daftar Peserta</div>
+                        <div class="mt-4" id="vue-participants-app">
+                            @include('events.partials.participants-table')
+                        </div>
+                    </div>
+                @endif
             </section>
 
             <aside id="register" class="lg:sticky lg:top-24 self-start">
@@ -233,94 +301,242 @@
                         @else
                             <form id="quickForm" action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" class="space-y-5">
                                 @csrf
-                                <div>
-                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama</label>
-                                    <input class="field mt-2" name="participants[0][name]" placeholder="Nama lengkap peserta" required>
-                                </div>
-                                <div class="grid sm:grid-cols-2 gap-4">
+                                <div class="flex items-center justify-between gap-4">
                                     <div>
-                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Gender</label>
-                                        <select class="field mt-2" name="participants[0][gender]" required>
-                                            <option value="">Pilih gender</option>
-                                            <option value="male">Laki-laki</option>
-                                            <option value="female">Perempuan</option>
-                                        </select>
+                                        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Peserta</div>
+                                        <div class="mt-1 text-sm text-slate-600">Bisa daftar beberapa peserta sekaligus dalam satu transaksi.</div>
                                     </div>
-                                    <div>
-                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP</label>
-                                        <input class="field mt-2" name="participants[0][phone]" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Email</label>
-                                    <input class="field mt-2" type="email" name="participants[0][email]" placeholder="email@contoh.com" required>
+                                    <button id="addParticipantBtn" type="button" class="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-black text-blue-700 hover:bg-blue-100 transition">
+                                        <i class="fa-solid fa-plus"></i>
+                                        Tambah Peserta
+                                    </button>
                                 </div>
 
-                                @if($categories && $categories->count() > 0)
-                                    <div>
-                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Kategori</label>
-                                        <div class="mt-3 grid gap-3">
-                                            @foreach($categories as $cat)
-                                                @php
-                                                    $priceRegular = (int) ($cat->price_regular ?? 0);
-                                                    $priceEarly = (int) ($cat->price_early ?? 0);
-                                                    $priceLate = (int) ($cat->price_late ?? 0);
-                                                    $displayPrice = $priceRegular;
-                                                    if ($priceEarly > 0) {
-                                                        $displayPrice = $priceEarly;
-                                                    } elseif ($priceLate > 0) {
-                                                        $displayPrice = $priceLate;
-                                                    }
-                                                @endphp
-                                                <label class="choice relative block cursor-pointer">
-                                                    <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
-                                                    <div class="choice-box flex items-center justify-between gap-4">
-                                                        <div>
-                                                            <div class="text-sm font-black text-slate-900">{{ $cat->name }}</div>
-                                                            @if($cat->distance_km)
-                                                                <div class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
-                                                            @endif
-                                                        </div>
-                                                        <div class="text-right">
-                                                            @if($displayPrice !== $priceRegular && $priceRegular > 0)
-                                                                <div class="text-[11px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
-                                                            @endif
-                                                            <div class="text-sm font-black text-blue-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
-                                                        </div>
-                                                    </div>
-                                                </label>
-                                            @endforeach
+                                <div id="participantsWrapper" class="space-y-5">
+                                    <div class="participant-card rounded-[24px] border border-slate-200 bg-slate-50/80 p-5" data-participant-item>
+                                        <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                                            <div>
+                                                <div class="participant-title text-base font-black text-slate-900">Peserta 1</div>
+                                                <div class="text-xs text-slate-500 mt-1">Isi data ringkas, sistem melengkapi data wajib otomatis.</div>
+                                            </div>
+                                            <button type="button" class="remove-participant hidden rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-black text-rose-600 hover:bg-rose-100 transition">
+                                                Hapus
+                                            </button>
                                         </div>
-                                    </div>
-                                @endif
 
-                                @if(!empty($addons))
-                                    <div>
-                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Add-on</label>
-                                        <div class="mt-3 grid gap-3">
-                                            @foreach($addons as $idx => $addon)
-                                                <label class="choice relative block cursor-pointer">
-                                                    <input type="checkbox" name="participants[0][addons][{{ $idx }}][selected]" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
-                                                    <div class="choice-box flex items-center justify-between gap-4">
-                                                        <div>
-                                                            <div class="text-sm font-black text-slate-900">{{ $addon['name'] }}</div>
-                                                            <div class="mt-1 text-xs text-slate-500">Opsional</div>
-                                                        </div>
-                                                        <div class="text-sm font-black text-slate-900">
-                                                            @if((int) ($addon['price'] ?? 0) > 0)
-                                                                +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
-                                                            @else
-                                                                Gratis
-                                                            @endif
-                                                        </div>
+                                        <div class="mt-5 space-y-5">
+                                            <div>
+                                                <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama</label>
+                                                <input class="field mt-2" data-field="name" name="participants[0][name]" placeholder="Nama lengkap peserta" required>
+                                            </div>
+                                            <div class="grid sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Gender</label>
+                                                    <select class="field mt-2" data-field="gender" name="participants[0][gender]" required>
+                                                        <option value="">Pilih gender</option>
+                                                        <option value="male">Laki-laki</option>
+                                                        <option value="female">Perempuan</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP</label>
+                                                    <input class="field mt-2" data-field="phone" name="participants[0][phone]" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Email</label>
+                                                <input class="field mt-2" type="email" data-field="email" name="participants[0][email]" placeholder="email@contoh.com" required>
+                                            </div>
+
+                                            @if($categories && $categories->count() > 0)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Kategori</label>
+                                                    <div class="mt-3 grid gap-3">
+                                                        @foreach($categories as $cat)
+                                                            @php
+                                                                $priceRegular = (int) ($cat->price_regular ?? 0);
+                                                                $priceEarly = (int) ($cat->price_early ?? 0);
+                                                                $priceLate = (int) ($cat->price_late ?? 0);
+                                                                $displayPrice = $priceRegular;
+                                                                if ($priceEarly > 0) {
+                                                                    $displayPrice = $priceEarly;
+                                                                } elseif ($priceLate > 0) {
+                                                                    $displayPrice = $priceLate;
+                                                                }
+                                                            @endphp
+                                                            <label class="choice relative block cursor-pointer">
+                                                                <input type="radio" data-field="category_id" name="participants[0][category_id]" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
+                                                                <div class="choice-box flex items-center justify-between gap-4">
+                                                                    <div>
+                                                                        <div class="text-sm font-black text-slate-900">{{ $cat->name }}</div>
+                                                                        @if($cat->distance_km)
+                                                                            <div class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
+                                                                        @endif
+                                                                    </div>
+                                                                    <div class="text-right">
+                                                                        @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                                                            <div class="text-[11px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
+                                                                        @endif
+                                                                        <div class="text-sm font-black text-blue-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        @endforeach
                                                     </div>
-                                                    <input type="hidden" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}">
-                                                    <input type="hidden" name="participants[0][addons][{{ $idx }}][price]" value="{{ (int) ($addon['price'] ?? 0) }}">
-                                                </label>
-                                            @endforeach
+                                                </div>
+                                            @endif
+
+                                            @if(!empty($addons))
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Add-on</label>
+                                                    <div class="mt-3 grid gap-3">
+                                                        @foreach($addons as $idx => $addon)
+                                                            <label class="choice relative block cursor-pointer">
+                                                                <input type="checkbox" data-addon-index="{{ $idx }}" name="participants[0][addons][{{ $idx }}][selected]" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
+                                                                <div class="choice-box flex items-center justify-between gap-4">
+                                                                    <div>
+                                                                        <div class="text-sm font-black text-slate-900">{{ $addon['name'] }}</div>
+                                                                        <div class="mt-1 text-xs text-slate-500">Opsional</div>
+                                                                    </div>
+                                                                    <div class="text-sm font-black text-slate-900">
+                                                                        @if((int) ($addon['price'] ?? 0) > 0)
+                                                                            +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
+                                                                        @else
+                                                                            Gratis
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                                <input type="hidden" data-addon-name="{{ $idx }}" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}">
+                                                                <input type="hidden" data-addon-price-hidden="{{ $idx }}" name="participants[0][addons][{{ $idx }}][price]" value="{{ (int) ($addon['price'] ?? 0) }}">
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            <input type="hidden" data-hidden-auto="id_card" name="participants[0][id_card]">
+                                            <input type="hidden" data-hidden-auto="address" name="participants[0][address]">
+                                            <input type="hidden" data-hidden-auto="emergency_contact_name" name="participants[0][emergency_contact_name]">
+                                            <input type="hidden" data-hidden-auto="emergency_contact_number" name="participants[0][emergency_contact_number]">
+                                            <input type="hidden" data-hidden-auto="date_of_birth" name="participants[0][date_of_birth]">
+                                            <input type="hidden" data-hidden-auto="jersey_size" name="participants[0][jersey_size]" value="{{ $defaultJersey }}">
+                                            <input type="hidden" data-hidden-auto="target_time" name="participants[0][target_time]" value="">
                                         </div>
                                     </div>
-                                @endif
+                                </div>
+
+                                <template id="participantTemplate">
+                                    <div class="participant-card rounded-[24px] border border-slate-200 bg-slate-50/80 p-5" data-participant-item>
+                                        <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                                            <div>
+                                                <div class="participant-title text-base font-black text-slate-900">Peserta</div>
+                                                <div class="text-xs text-slate-500 mt-1">Isi data ringkas, sistem melengkapi data wajib otomatis.</div>
+                                            </div>
+                                            <button type="button" class="remove-participant rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-black text-rose-600 hover:bg-rose-100 transition">
+                                                Hapus
+                                            </button>
+                                        </div>
+
+                                        <div class="mt-5 space-y-5">
+                                            <div>
+                                                <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama</label>
+                                                <input class="field mt-2" data-field="name" placeholder="Nama lengkap peserta" required>
+                                            </div>
+                                            <div class="grid sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Gender</label>
+                                                    <select class="field mt-2" data-field="gender" required>
+                                                        <option value="">Pilih gender</option>
+                                                        <option value="male">Laki-laki</option>
+                                                        <option value="female">Perempuan</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP</label>
+                                                    <input class="field mt-2" data-field="phone" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Email</label>
+                                                <input class="field mt-2" type="email" data-field="email" placeholder="email@contoh.com" required>
+                                            </div>
+
+                                            @if($categories && $categories->count() > 0)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Kategori</label>
+                                                    <div class="mt-3 grid gap-3">
+                                                        @foreach($categories as $cat)
+                                                            @php
+                                                                $priceRegular = (int) ($cat->price_regular ?? 0);
+                                                                $priceEarly = (int) ($cat->price_early ?? 0);
+                                                                $priceLate = (int) ($cat->price_late ?? 0);
+                                                                $displayPrice = $priceRegular;
+                                                                if ($priceEarly > 0) {
+                                                                    $displayPrice = $priceEarly;
+                                                                } elseif ($priceLate > 0) {
+                                                                    $displayPrice = $priceLate;
+                                                                }
+                                                            @endphp
+                                                            <label class="choice relative block cursor-pointer">
+                                                                <input type="radio" data-field="category_id" value="{{ $cat->id }}" data-price="{{ $displayPrice }}" {{ $loop->first ? 'checked' : '' }} required>
+                                                                <div class="choice-box flex items-center justify-between gap-4">
+                                                                    <div>
+                                                                        <div class="text-sm font-black text-slate-900">{{ $cat->name }}</div>
+                                                                        @if($cat->distance_km)
+                                                                            <div class="mt-1 text-xs font-semibold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
+                                                                        @endif
+                                                                    </div>
+                                                                    <div class="text-right">
+                                                                        @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                                                            <div class="text-[11px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
+                                                                        @endif
+                                                                        <div class="text-sm font-black text-blue-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            @if(!empty($addons))
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Add-on</label>
+                                                    <div class="mt-3 grid gap-3">
+                                                        @foreach($addons as $idx => $addon)
+                                                            <label class="choice relative block cursor-pointer">
+                                                                <input type="checkbox" data-addon-index="{{ $idx }}" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
+                                                                <div class="choice-box flex items-center justify-between gap-4">
+                                                                    <div>
+                                                                        <div class="text-sm font-black text-slate-900">{{ $addon['name'] }}</div>
+                                                                        <div class="mt-1 text-xs text-slate-500">Opsional</div>
+                                                                    </div>
+                                                                    <div class="text-sm font-black text-slate-900">
+                                                                        @if((int) ($addon['price'] ?? 0) > 0)
+                                                                            +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
+                                                                        @else
+                                                                            Gratis
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                                <input type="hidden" data-addon-name="{{ $idx }}" value="{{ $addon['name'] }}">
+                                                                <input type="hidden" data-addon-price-hidden="{{ $idx }}" value="{{ (int) ($addon['price'] ?? 0) }}">
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            <input type="hidden" data-hidden-auto="id_card">
+                                            <input type="hidden" data-hidden-auto="address">
+                                            <input type="hidden" data-hidden-auto="emergency_contact_name">
+                                            <input type="hidden" data-hidden-auto="emergency_contact_number">
+                                            <input type="hidden" data-hidden-auto="date_of_birth">
+                                            <input type="hidden" data-hidden-auto="jersey_size" value="{{ $defaultJersey }}">
+                                            <input type="hidden" data-hidden-auto="target_time" value="">
+                                        </div>
+                                    </div>
+                                </template>
 
                                 <div>
                                     <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Metode Pembayaran</label>
@@ -386,13 +602,6 @@
                                 <input type="hidden" name="pic_name">
                                 <input type="hidden" name="pic_email">
                                 <input type="hidden" name="pic_phone">
-                                <input type="hidden" name="participants[0][id_card]">
-                                <input type="hidden" name="participants[0][address]">
-                                <input type="hidden" name="participants[0][emergency_contact_name]">
-                                <input type="hidden" name="participants[0][emergency_contact_number]">
-                                <input type="hidden" name="participants[0][date_of_birth]">
-                                <input type="hidden" name="participants[0][jersey_size]" value="{{ $defaultJersey }}">
-                                <input type="hidden" name="participants[0][target_time]" value="">
 
                                 <button id="quickSubmitBtn" type="submit" class="submit-btn w-full inline-flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] bg-blue-600 hover:bg-blue-700 text-white font-black text-base shadow-lg shadow-blue-600/20 transition">
                                     <i class="fa-solid fa-paper-plane"></i>
@@ -414,6 +623,9 @@
             const form = document.getElementById('quickForm');
             if(!form) return;
 
+            const participantsWrapper = document.getElementById('participantsWrapper');
+            const participantTemplate = document.getElementById('participantTemplate');
+            const addParticipantBtn = document.getElementById('addParticipantBtn');
             const ticketPriceEl = document.getElementById('ql-ticket-price');
             const addonPriceEl = document.getElementById('ql-addon-price');
             const platformFeeEl = document.getElementById('ql-platform-fee');
@@ -426,22 +638,28 @@
                 return 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(value || 0));
             }
 
-            function selectedCategoryPrice() {
-                const checked = form.querySelector('input[name="participants[0][category_id]"]:checked');
+            function getParticipantItems() {
+                return Array.from(participantsWrapper.querySelectorAll('[data-participant-item]'));
+            }
+
+            function selectedCategoryPrice(item) {
+                const checked = item.querySelector('input[data-field="category_id"]:checked');
                 return checked ? parseInt(checked.dataset.price || '0', 10) : 0;
             }
 
-            function selectedAddonPrice() {
-                return Array.from(form.querySelectorAll('input[data-addon-price]:checked')).reduce(function(sum, el) {
+            function selectedAddonPrice(item) {
+                return Array.from(item.querySelectorAll('input[data-addon-price]:checked')).reduce(function(sum, el) {
                     return sum + parseInt(el.dataset.addonPrice || '0', 10);
                 }, 0);
             }
 
             function updateSummary() {
-                const ticket = selectedCategoryPrice();
-                const addons = selectedAddonPrice();
+                const items = getParticipantItems();
+                const ticket = items.reduce(function(sum, item) { return sum + selectedCategoryPrice(item); }, 0);
+                const addons = items.reduce(function(sum, item) { return sum + selectedAddonPrice(item); }, 0);
+                const participantCount = items.length;
                 const subTotal = ticket + addons;
-                const fee = subTotal > 0 ? platformFee : 0;
+                const fee = subTotal > 0 ? platformFee * participantCount : 0;
                 const total = subTotal + fee;
                 if (ticketPriceEl) ticketPriceEl.textContent = formatCurrency(ticket);
                 if (addonPriceEl) addonPriceEl.textContent = formatCurrency(addons);
@@ -453,20 +671,81 @@
                 return String(phone || '').replace(/[^0-9]/g, '');
             }
 
+            function setNameByField(item, selector, name) {
+                item.querySelectorAll(selector).forEach(function(el) {
+                    el.name = name;
+                });
+            }
+
+            function reindexParticipants() {
+                getParticipantItems().forEach(function(item, index) {
+                    const title = item.querySelector('.participant-title');
+                    if (title) title.textContent = 'Peserta ' + (index + 1);
+
+                    item.querySelectorAll('[data-field]').forEach(function(el) {
+                        const field = el.dataset.field;
+                        el.name = 'participants[' + index + '][' + field + ']';
+                    });
+
+                    item.querySelectorAll('[data-hidden-auto]').forEach(function(el) {
+                        const field = el.dataset.hiddenAuto;
+                        el.name = 'participants[' + index + '][' + field + ']';
+                    });
+
+                    item.querySelectorAll('[data-addon-index]').forEach(function(el) {
+                        const addonIndex = el.dataset.addonIndex;
+                        el.name = 'participants[' + index + '][addons][' + addonIndex + '][selected]';
+                    });
+
+                    item.querySelectorAll('[data-addon-name]').forEach(function(el) {
+                        const addonIndex = el.dataset.addonName;
+                        el.name = 'participants[' + index + '][addons][' + addonIndex + '][name]';
+                    });
+
+                    item.querySelectorAll('[data-addon-price-hidden]').forEach(function(el) {
+                        const addonIndex = el.dataset.addonPriceHidden;
+                        el.name = 'participants[' + index + '][addons][' + addonIndex + '][price]';
+                    });
+
+                    const removeBtn = item.querySelector('.remove-participant');
+                    if (removeBtn) {
+                        removeBtn.classList.toggle('hidden', getParticipantItems().length === 1);
+                    }
+                });
+            }
+
+            function createParticipantItem() {
+                const fragment = participantTemplate.content.cloneNode(true);
+                const item = fragment.querySelector('[data-participant-item]');
+                participantsWrapper.appendChild(fragment);
+                reindexParticipants();
+                updateSummary();
+                return item;
+            }
+
             function fillHiddenFields() {
-                const name = form.querySelector('[name="participants[0][name]"]')?.value?.trim() || '';
-                const email = form.querySelector('[name="participants[0][email]"]')?.value?.trim() || '';
-                const phone = normalizePhone(form.querySelector('[name="participants[0][phone]"]')?.value || '');
-                const categoryId = form.querySelector('[name="participants[0][category_id]"]:checked')?.value || '0';
-                const identity = ('QL-' + phone + '-' + email.toLowerCase() + '-' + categoryId).replace(/[^a-zA-Z0-9@._-]/g, '').slice(0, 50) || ('QL-' + Date.now());
-                form.querySelector('[name="pic_name"]').value = name;
-                form.querySelector('[name="pic_email"]').value = email;
-                form.querySelector('[name="pic_phone"]').value = phone;
-                form.querySelector('[name="participants[0][id_card]"]').value = identity;
-                form.querySelector('[name="participants[0][address]"]').value = '-';
-                form.querySelector('[name="participants[0][emergency_contact_name]"]').value = name || 'Kontak Darurat';
-                form.querySelector('[name="participants[0][emergency_contact_number]"]').value = phone || '0811111111';
-                form.querySelector('[name="participants[0][date_of_birth]"]').value = '1990-01-01';
+                const items = getParticipantItems();
+                const first = items[0];
+                const firstName = first?.querySelector('[data-field="name"]')?.value?.trim() || '';
+                const firstEmail = first?.querySelector('[data-field="email"]')?.value?.trim() || '';
+                const firstPhone = normalizePhone(first?.querySelector('[data-field="phone"]')?.value || '');
+
+                form.querySelector('[name="pic_name"]').value = firstName;
+                form.querySelector('[name="pic_email"]').value = firstEmail;
+                form.querySelector('[name="pic_phone"]').value = firstPhone;
+
+                items.forEach(function(item, index) {
+                    const name = item.querySelector('[data-field="name"]')?.value?.trim() || '';
+                    const email = item.querySelector('[data-field="email"]')?.value?.trim() || '';
+                    const phone = normalizePhone(item.querySelector('[data-field="phone"]')?.value || '');
+                    const categoryId = item.querySelector('[data-field="category_id"]:checked')?.value || '0';
+                    const identity = ('QL-' + phone + '-' + email.toLowerCase() + '-' + categoryId + '-' + index).replace(/[^a-zA-Z0-9@._-]/g, '').slice(0, 50) || ('QL-' + Date.now() + '-' + index);
+                    item.querySelector('[data-hidden-auto="id_card"]').value = identity;
+                    item.querySelector('[data-hidden-auto="address"]').value = '-';
+                    item.querySelector('[data-hidden-auto="emergency_contact_name"]').value = name || 'Kontak Darurat';
+                    item.querySelector('[data-hidden-auto="emergency_contact_number"]').value = phone || '0811111111';
+                    item.querySelector('[data-hidden-auto="date_of_birth"]').value = '1990-01-01';
+                });
             }
 
             function setSubmittingState(isSubmitting) {
@@ -478,6 +757,15 @@
             function handleSuccess(data) {
                 if (!data || !data.success) {
                     throw new Error((data && data.message) || 'Pendaftaran gagal diproses.');
+                }
+
+                if (data.payment_gateway === 'cod') {
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                        return;
+                    }
+                    window.location.href = `{{ route('events.show', $event->slug) }}?payment=success`;
+                    return;
                 }
 
                 if (data.snap_token && window.snap) {
@@ -553,12 +841,34 @@
                 });
             }
 
-            form.querySelectorAll('input[name="participants[0][category_id]"], input[data-addon-price], input[name="payment_method"]').forEach(function(el) {
-                el.addEventListener('change', updateSummary);
+            if (addParticipantBtn) {
+                addParticipantBtn.addEventListener('click', function() {
+                    const item = createParticipantItem();
+                    const firstInput = item ? item.querySelector('[data-field="name"]') : null;
+                    if (firstInput) firstInput.focus();
+                });
+            }
+
+            participantsWrapper.addEventListener('click', function(e) {
+                const removeBtn = e.target.closest('.remove-participant');
+                if (!removeBtn) return;
+                const item = removeBtn.closest('[data-participant-item]');
+                if (!item) return;
+                item.remove();
+                reindexParticipants();
+                updateSummary();
             });
 
-            form.querySelector('[name="participants[0][phone]"]').addEventListener('input', function() {
-                this.value = normalizePhone(this.value).slice(0, 15);
+            form.addEventListener('change', function(e) {
+                if (e.target.matches('input[data-field="category_id"], input[data-addon-price], input[name="payment_method"]')) {
+                    updateSummary();
+                }
+            });
+
+            form.addEventListener('input', function(e) {
+                if (e.target.matches('[data-field="phone"]')) {
+                    e.target.value = normalizePhone(e.target.value).slice(0, 15);
+                }
             });
 
             form.addEventListener('submit', function(e) {
@@ -587,8 +897,25 @@
                 processSubmission();
             });
 
+            reindexParticipants();
             updateSummary();
         })();
     </script>
+
+    @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js'"></script>
+        <script>
+            (function () {
+                if (!window.Vue) return;
+                const { createApp } = Vue;
+                const vueApp = createApp({});
+                if (typeof ParticipantsTableComponent !== 'undefined') {
+                    vueApp.component('participants-table', ParticipantsTableComponent);
+                }
+                const mountEl = document.getElementById('vue-participants-app');
+                if (mountEl) vueApp.mount(mountEl);
+            })();
+        </script>
+    @endif
 </body>
 </html>

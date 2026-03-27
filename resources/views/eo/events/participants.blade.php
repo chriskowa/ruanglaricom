@@ -1442,6 +1442,25 @@
         if(el) el.value = (val === null || val === undefined) ? '' : val;
     }
 
+    function formatDateId(dob) {
+        if (!dob) return '-';
+        try {
+            var s = String(dob).trim();
+            if (/^\d{4}-\d{2}-\d{2}/.test(s)) s = s.substring(0, 10);
+            var parts = s.split('-');
+            var date;
+            if (parts.length === 3 && parts[0].length === 4) {
+                date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            } else {
+                date = new Date(s);
+            }
+            if (isNaN(date.getTime())) return String(dob);
+            return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
+        } catch (e) {
+            return String(dob);
+        }
+    }
+
     function cancelEdit() {
         toggleEditMode(false);
         if (currentParticipantData) {
@@ -1566,7 +1585,7 @@
                 document.getElementById('dm_email').textContent = res.data.email;
                 document.getElementById('dm_phone').textContent = res.data.phone;
                 document.getElementById('dm_gender').textContent = res.data.gender ? (res.data.gender.charAt(0).toUpperCase() + res.data.gender.slice(1)) : '-';
-                document.getElementById('dm_dob').textContent = res.data.date_of_birth || '-';
+                document.getElementById('dm_dob').textContent = formatDateId(res.data.date_of_birth);
                 document.getElementById('dm_address').textContent = res.data.address || '-';
                 document.getElementById('dm_city').textContent = res.data.city || '-';
                 document.getElementById('dm_province').textContent = res.data.province || '-';
@@ -1642,7 +1661,7 @@
         
         document.getElementById('dm_gender').textContent = data.gender_label || (data.gender ? (data.gender.charAt(0).toUpperCase() + data.gender.slice(1)) : '-');
         
-        document.getElementById('dm_dob').textContent = data.date_of_birth || '-';
+        document.getElementById('dm_dob').textContent = formatDateId(data.date_of_birth);
         
         document.getElementById('dm_email').textContent = data.email;
         
