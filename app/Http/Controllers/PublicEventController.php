@@ -92,7 +92,7 @@ class PublicEventController extends Controller
             $seo = $this->buildSeo($event);
             $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                 $q->where('event_id', $event->id)
-                    ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+                    ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
             })->exists();
             if ($event->hardcoded === 'latbarkamis') {
                 $participants = $this->getLatbarParticipants($event);
@@ -141,7 +141,7 @@ class PublicEventController extends Controller
         $seo = $this->buildSeo($event);
         $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id)
-                ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+                ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
         })->exists();
 
         if ($event->hardcoded === 'latbarkamis') {
@@ -232,7 +232,7 @@ class PublicEventController extends Controller
 
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id)
-                ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+                ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
         });
 
         if ($request->has('category_id') && $request->category_id) {
@@ -270,12 +270,13 @@ class PublicEventController extends Controller
         }
 
         $participants = $query->orderBy('created_at', 'desc')
-            ->select('name', 'bib_number', 'race_category_id', 'created_at', 'gender', 'id_card', 'date_of_birth')
-            ->with('category:id,name')
+            ->select('transaction_id', 'name', 'bib_number', 'race_category_id', 'created_at', 'gender', 'id_card', 'date_of_birth')
+            ->with(['category:id,name', 'transaction:id,payment_status'])
             ->paginate(10);
 
         $participants->getCollection()->transform(function ($participant) use ($event) {
             $participant->age_group = $participant->getAgeGroup($event->start_at);
+            $participant->payment_status_public = $participant->transaction?->payment_status === 'cod' ? 'cod' : 'paid';
 
             return $participant;
         });

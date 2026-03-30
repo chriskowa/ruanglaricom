@@ -162,17 +162,18 @@
                                 <th class="p-4 font-normal">Nama Peserta</th>
                                 <th class="p-4 font-normal">Kategori</th>
                                 <th class="p-4 font-normal">Age Group</th>
+                                <th class="p-4 font-normal">Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5">
                             <tr v-if="isLoading">
-                                <td colspan="3" class="p-8 text-center text-gray-500">
+                                <td colspan="4" class="p-8 text-center text-gray-500">
                                     <i class="fas fa-circle-notch fa-spin text-2xl mb-2 text-sport-volt"></i>
                                     <p>Memuat data...</p>
                                 </td>
                             </tr>
                             <tr v-else-if="participants.length === 0">
-                                <td colspan="3" class="p-8 text-center text-gray-500">
+                                <td colspan="4" class="p-8 text-center text-gray-500">
                                     <i class="fas fa-users-slash text-2xl mb-2"></i>
                                     <p>Belum ada peserta</p>
                                 </td>
@@ -197,6 +198,15 @@
                                 <td class="p-4 text-sm text-gray-300">
                                     <span class="bg-white/5 px-2 py-1 rounded text-xs border border-white/10">
                                         {{ p.age_group }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-sm text-gray-300">
+                                    <span
+                                        class="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border"
+                                        :class="p.payment_status_public === 'cod'
+                                            ? 'bg-orange-500/10 text-orange-300 border-orange-400/30'
+                                            : 'bg-emerald-500/10 text-emerald-300 border-emerald-400/30'">
+                                        {{ p.payment_status_public === 'cod' ? 'COD' : 'Paid' }}
                                     </span>
                                 </td>
                             </tr>
