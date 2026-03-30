@@ -223,7 +223,7 @@
                     <div class="grid md:grid-cols-[1.1fr_.9fr]">
                         <div class="p-6 md:p-8 lg:p-10">
                             <div class="text-sm font-black uppercase tracking-[0.2em] text-blue-600">Event Overview</div>
-                            <h2 class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-slate-900">Pendaftaran cepat dengan detail event yang tetap lengkap</h2>
+                            <h2 class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-slate-900">Pendaftaran cepat</h2>
                             <div class="mt-5 grid sm:grid-cols-3 gap-3">
                                 <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                                     <div class="text-xs font-bold uppercase text-slate-500">Tanggal</div>
