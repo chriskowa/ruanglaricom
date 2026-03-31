@@ -321,7 +321,7 @@
         @endif
     </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen">
+<body class="antialiased flex flex-col min-h-screen overflow-x-hidden max-w-full">
 
     @php
         $paymentConfig = $event->payment_config ?? [];
@@ -571,7 +571,7 @@
         </div>
     </nav>
 
-    <header id="top" class="relative pt-24 pb-12 overflow-hidden bg-slate-900 min-h-[85vh] flex items-center">
+    <header id="top" class="relative pt-24 pb-12 overflow-hidden bg-slate-900 min-h-[85vh] flex items-center w-full max-w-full">
         <!-- Dynamic Background -->
         <div class="absolute inset-0 z-0">
             @if($event->hero_image)
@@ -586,7 +586,7 @@
             @endif
         </div>
 
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
                 <div class="flex-1 text-center md:text-left reveal active">
                     <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-lg mb-8 hover:bg-white/20 transition cursor-default">
@@ -725,7 +725,7 @@
     </header>
 
     <!-- About Section -->
-    <section id="about" class="py-24 bg-white relative z-10">
+    <section id="about" class="py-24 bg-white relative z-10 w-full overflow-hidden max-w-full">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div class="reveal">
@@ -783,7 +783,7 @@
 
     <!-- Gallery Section (New) -->
     @if(isset($event->gallery) && count($event->gallery) > 0)
-    <section id="gallery" class="py-24 bg-slate-50">
+    <section id="gallery" class="py-24 bg-slate-50 w-full overflow-hidden max-w-full">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 reveal">
                 <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Dokumentasi</span>
@@ -806,7 +806,7 @@
     @endif
 
     <!-- Categories Section -->
-    <section id="categories" class="py-24 bg-white">
+    <section id="categories" class="py-24 bg-white w-full overflow-hidden max-w-full">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
                 <span class="text-brand-600 font-bold uppercase tracking-widest text-sm">Kategori Lomba</span>
@@ -1230,7 +1230,7 @@
     </section>
 
     <!-- Info Section (RPC & Venue) -->
-    <section id="info" class="py-24 bg-white">
+    <section id="info" class="py-24 bg-white w-full overflow-hidden max-w-full">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <!-- RPC Info -->
@@ -1615,7 +1615,7 @@
     </section>
     @endif
 
-    <section id="register" class="py-24 bg-white">
+    <section id="register" class="py-24 bg-white w-full overflow-hidden max-w-full">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div class="text-center mb-12 reveal">

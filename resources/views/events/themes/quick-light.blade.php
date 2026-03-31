@@ -142,7 +142,7 @@
 <body>
     <section class="relative overflow-hidden">
         <div class="absolute inset-0">
-            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
+            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
             <div class="absolute inset-0 hero-overlay"></div>
         </div>
         <div class="relative max-w-7xl mx-auto px-4 md:px-8 pt-10 pb-24 lg:pt-16 lg:pb-28">
@@ -152,7 +152,7 @@
                     Quick Light
                 </div>
                 @if($event->logo_image)
-                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-12 md:h-16 w-auto object-contain rounded-2xl bg-white/80 p-2">
+                    <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-12 md:h-16 w-auto object-contain rounded-2xl bg-white/80 p-2" loading="lazy" decoding="async">
                 @endif
             </div>
 
@@ -267,7 +267,7 @@
                             @endif
                         </div>
                         <div class="min-h-[280px] relative" id="qlGallery" data-images='@json($galleryUrls)'>
-                            <img id="qlGalleryImg" src="{{ $galleryUrls[0] }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
+                            <img id="qlGalleryImg" src="{{ $galleryUrls[0] }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
                             <button type="button" id="qlGalleryPrev" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-2xl bg-white/85 hover:bg-white border border-white/40 shadow-lg flex items-center justify-center text-slate-900 transition">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </button>
