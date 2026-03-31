@@ -316,6 +316,9 @@
             from { opacity: 0; transform: translateY(-5px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        @if(env('RECAPTCHA_SITE_KEY_v3'))
+        .grecaptcha-badge { visibility:hidden !important; }
+        @endif
     </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen">

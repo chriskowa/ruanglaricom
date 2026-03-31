@@ -25,6 +25,22 @@
     $addons = is_array($event->addons ?? null) ? $event->addons : [];
     $isRegOpen = method_exists($event, 'isRegistrationOpen') ? $event->isRegistrationOpen() : true;
     $heroImage = $event->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
+    $rawGallery = is_array($event->gallery ?? null) ? $event->gallery : [];
+    $galleryUrls = [];
+    foreach ($rawGallery as $img) {
+        $img = is_string($img) ? trim($img) : '';
+        if ($img === '') {
+            continue;
+        }
+        if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+            $galleryUrls[] = $img;
+        } else {
+            $galleryUrls[] = asset('storage/'.$img);
+        }
+    }
+    if (count($galleryUrls) === 0) {
+        $galleryUrls[] = $heroImage;
+    }
     $logoImage = $event->logo_image ? asset('storage/'.$event->logo_image) : null;
     $faviconImage = $logoImage ?? $heroImage;
     $canonicalUrl = url()->current();
@@ -116,6 +132,11 @@
         .content-html h1, .content-html h2, .content-html h3, .content-html h4 { color:#0f172a; font-weight:800; margin-top:1.4rem; margin-bottom:.8rem; }
         .content-html ul, .content-html ol { padding-left:1.25rem; color:#334155; margin-bottom:1rem; }
         .hero-overlay { background:linear-gradient(110deg, rgba(15,23,42,.72) 0%, rgba(15,23,42,.48) 35%, rgba(255,255,255,.05) 100%); }
+        .ql-gallery-dot { width:8px; height:8px; border-radius:999px; background:rgba(255,255,255,.45); transition:transform .15s ease, background .15s ease; }
+        .ql-gallery-dot[data-active="1"] { background:#fff; transform:scale(1.25); }
+        @if(env('RECAPTCHA_SITE_KEY_v3'))
+        .grecaptcha-badge { visibility:hidden !important; }
+        @endif
     </style>
 </head>
 <body>
@@ -245,8 +266,15 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="min-h-[280px]">
-                            <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
+                        <div class="min-h-[280px] relative" id="qlGallery" data-images='@json($galleryUrls)'>
+                            <img id="qlGalleryImg" src="{{ $galleryUrls[0] }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
+                            <button type="button" id="qlGalleryPrev" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-2xl bg-white/85 hover:bg-white border border-white/40 shadow-lg flex items-center justify-center text-slate-900 transition">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button type="button" id="qlGalleryNext" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-2xl bg-white/85 hover:bg-white border border-white/40 shadow-lg flex items-center justify-center text-slate-900 transition">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <div id="qlGalleryDots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-900/40 border border-white/15 backdrop-blur-md"></div>
                         </div>
                     </div>
                 </div>
@@ -608,6 +636,15 @@
                                     <span>Daftar Sekarang</span>
                                 </button>
                                 <div class="text-xs text-slate-500 text-center leading-6">Form ini dirancang singkat agar proses daftar terasa cepat tanpa mengorbankan kelengkapan data sistem.</div>
+                                @if(env('RECAPTCHA_SITE_KEY_v3'))
+                                    <div class="text-[11px] text-slate-400 text-center leading-5">
+                                        Halaman ini dilindungi reCAPTCHA, serta Google
+                                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="underline">Kebijakan Privasi</a>
+                                        dan
+                                        <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" class="underline">Persyaratan Layanan</a>
+                                        berlaku.
+                                    </div>
+                                @endif
                             </form>
                         @endif
                     </div>
@@ -617,6 +654,69 @@
     </main>
 
     @include('events.partials.moota-payment-modal')
+
+    <script>
+        (function () {
+            const root = document.getElementById('qlGallery');
+            const imgEl = document.getElementById('qlGalleryImg');
+            const prevBtn = document.getElementById('qlGalleryPrev');
+            const nextBtn = document.getElementById('qlGalleryNext');
+            const dotsEl = document.getElementById('qlGalleryDots');
+            if (!root || !imgEl || !prevBtn || !nextBtn || !dotsEl) return;
+
+            let items = [];
+            try {
+                items = JSON.parse(root.getAttribute('data-images') || '[]');
+            } catch (e) {
+                items = [];
+            }
+            items = Array.isArray(items) ? items.filter(Boolean) : [];
+            if (items.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                dotsEl.style.display = 'none';
+                return;
+            }
+
+            let index = 0;
+
+            function renderDots() {
+                dotsEl.innerHTML = items.map(function (_, i) {
+                    return '<button type="button" class="ql-gallery-dot" data-dot="' + i + '" data-active="' + (i === index ? '1' : '0') + '"></button>';
+                }).join('');
+            }
+
+            function preload(i) {
+                const url = items[i];
+                if (!url) return;
+                const im = new Image();
+                im.src = url;
+            }
+
+            function go(i) {
+                index = (i + items.length) % items.length;
+                imgEl.src = items[index];
+                imgEl.alt = '{{ $event->name }}' + ' • ' + (index + 1);
+                Array.from(dotsEl.querySelectorAll('[data-dot]')).forEach(function (btn) {
+                    const b = parseInt(btn.getAttribute('data-dot') || '0', 10);
+                    btn.setAttribute('data-active', b === index ? '1' : '0');
+                });
+                preload((index + 1) % items.length);
+                preload((index - 1 + items.length) % items.length);
+            }
+
+            prevBtn.addEventListener('click', function () { go(index - 1); });
+            nextBtn.addEventListener('click', function () { go(index + 1); });
+            dotsEl.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-dot]');
+                if (!btn) return;
+                go(parseInt(btn.getAttribute('data-dot') || '0', 10));
+            });
+
+            renderDots();
+            preload(1);
+        })();
+    </script>
 
     <script>
         (function(){
