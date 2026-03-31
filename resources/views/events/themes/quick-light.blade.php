@@ -297,7 +297,7 @@
                     <div class="soft-card p-6 md:p-8" id="participants-list">
                         <div class="text-sm font-black uppercase tracking-[0.2em] text-blue-600">Daftar Peserta</div>
                         <div class="mt-4" id="vue-participants-app">
-                            @include('events.partials.participants-table')
+                            @include('events.partials.participants-table-light')
                         </div>
                     </div>
                 @endif
@@ -355,7 +355,7 @@
                                         <div class="mt-5 space-y-5">
                                             <div>
                                                 <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama</label>
-                                                <input class="field mt-2" data-field="name" name="participants[0][name]" placeholder="Nama lengkap peserta" required>
+                                                <input class="field mt-2" data-field="name" name="participants[0][name]" placeholder="Nama  peserta" required>
                                             </div>
                                             <div class="grid sm:grid-cols-2 gap-4">
                                                 <div>
