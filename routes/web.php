@@ -377,6 +377,15 @@ Route::get('/paolorunfest', function (Request $request) {
 
     return redirect()->to($to, 301);
 });
+Route::get('/gajayana-track', function (Request $request) {
+    $to = route('events.show', 'latihan-bersama-kamis-gajayana');
+    $qs = $request->getQueryString();
+    if ($qs) {
+        $to .= '?'.$qs;
+    }
+
+    return redirect()->to($to, 301);
+});
 
 // Legacy public event routes redirects
 Route::get('/events/{slug}/participants-list', function ($slug) {
