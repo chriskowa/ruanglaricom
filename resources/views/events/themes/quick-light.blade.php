@@ -139,17 +139,17 @@
         @endif
     </style>
 </head>
-<body>
-    <section class="relative overflow-hidden">
+<body class="overflow-x-hidden max-w-full">
+    <section class="relative overflow-hidden w-full max-w-full">
         <div class="absolute inset-0">
             <img src="{{ $heroImage }}" alt="{{ $event->name }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
             <div class="absolute inset-0 hero-overlay"></div>
         </div>
-        <div class="relative max-w-7xl mx-auto px-4 md:px-8 pt-10 pb-24 lg:pt-16 lg:pb-28">
+        <div class="relative w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-10 pb-24 lg:pt-16 lg:pb-28">
             <div class="flex items-start justify-between gap-6 mb-12">
                 <div class="pill bg-white/12 text-white border border-white/20">
                     <i class="fa-solid fa-bolt"></i>
-                    Quick Light
+                    Ruang Lari Portal Registration
                 </div>
                 @if($event->logo_image)
                     <img src="{{ asset('storage/'.$event->logo_image) }}" alt="{{ $event->name }}" class="h-12 md:h-16 w-auto object-contain rounded-2xl bg-white/80 p-2" loading="lazy" decoding="async">
@@ -212,7 +212,7 @@
         </div>
     </section>
 
-    <main class="max-w-7xl mx-auto px-4 md:px-8 -mt-12 pb-16 relative z-10">
+    <main class="max-w-7xl mx-auto px-5 sm:px-6 md:px-8 -mt-12 pb-16 relative z-10 w-full">
         @if(request('payment') === 'pending')
             <div class="soft-card p-5 md:p-6 mb-6 border-yellow-200 bg-yellow-50">
                 <div class="flex items-start gap-4">
@@ -239,7 +239,7 @@
         @endif
 
         <div class="grid lg:grid-cols-[1.05fr_.95fr] gap-6">
-            <section id="detail-event" class="space-y-6">
+            <section id="detail-event" class="space-y-6 w-full max-w-full overflow-hidden">
                 <div class="soft-card overflow-hidden">
                     <div class="grid md:grid-cols-[1.1fr_.9fr]">
                         <div class="p-6 md:p-8 lg:p-10">
