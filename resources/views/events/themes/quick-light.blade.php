@@ -43,7 +43,7 @@
     }
     $logoImage = $event->logo_image ? asset('storage/'.$event->logo_image) : null;
     $faviconImage = $logoImage ?? $heroImage;
-    $canonicalUrl = url()->current();
+    $canonicalUrl = route('events.show', $event->slug);
     $shortDescription = trim(strip_tags((string) ($event->short_description ?? '')));
     $platformFee = (int) ($event->platform_fee ?? 0);
     $defaultJersey = collect($event->jersey_sizes ?? [])->filter()->first() ?? 'L';
@@ -51,12 +51,15 @@
     if ($schemaDescription === '') {
         $schemaDescription = $event->name;
     }
+    $metaTitle = $event->name.(($event->location_name ?? '') !== '' ? ' - '.$event->location_name : '');
+    $metaDescription = \Illuminate\Support\Str::limit($schemaDescription, 155, '');
+    $metaImage = $galleryUrls[0] ?? $heroImage;
     $schemaEvent = [
         '@context' => 'https://schema.org',
         '@type' => 'Event',
-        'name' => $event->name,
+        'name' => $metaTitle,
         'description' => $schemaDescription,
-        'image' => [$heroImage],
+        'image' => [$metaImage],
         'url' => $canonicalUrl,
         'startDate' => optional($event->start_at)->toIso8601String(),
         'endDate' => optional($event->end_at ?? null)->toIso8601String(),
@@ -83,29 +86,30 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $event->name }} • Quick Light</title>
+    <title>{{ $metaTitle }} • Quick Light</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="{{ $shortDescription !== '' ? $shortDescription : $event->name }}">
+    <meta name="description" content="{{ $metaDescription }}">
+    <meta name="robots" content="index,follow,max-image-preview:large">
     <link rel="canonical" href="{{ $canonicalUrl }}">
     <link rel="icon" href="{{ $faviconImage }}">
     <link rel="apple-touch-icon" href="{{ $faviconImage }}">
-    <meta itemprop="name" content="{{ $event->name }}">
+    <meta itemprop="name" content="{{ $metaTitle }}">
     <meta itemprop="description" content="{{ $schemaDescription }}">
-    <meta itemprop="image" content="{{ $heroImage }}">
+    <meta itemprop="image" content="{{ $metaImage }}">
     <meta property="og:site_name" content="{{ config('app.name') }}">
     <meta property="og:locale" content="id_ID">
     <meta property="og:type" content="event">
-    <meta property="og:title" content="{{ $event->name }}">
-    <meta property="og:description" content="{{ $schemaDescription }}">
+    <meta property="og:title" content="{{ $metaTitle }}">
+    <meta property="og:description" content="{{ $metaDescription }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
-    <meta property="og:image" content="{{ $heroImage }}">
-    @if($logoImage)
-        <meta property="og:image:alt" content="{{ $event->name }}">
-    @endif
+    <meta property="og:image" content="{{ $metaImage }}">
+    <meta property="og:image:secure_url" content="{{ $metaImage }}">
+    <meta property="og:image:alt" content="{{ $metaTitle }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $event->name }}">
-    <meta name="twitter:description" content="{{ $schemaDescription }}">
-    <meta name="twitter:image" content="{{ $heroImage }}">
+    <meta name="twitter:title" content="{{ $metaTitle }}">
+    <meta name="twitter:description" content="{{ $metaDescription }}">
+    <meta name="twitter:image" content="{{ $metaImage }}">
+    <meta name="twitter:image:alt" content="{{ $metaTitle }}">
     <script type="application/ld+json">{!! json_encode($schemaEvent, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.tailwindcss.com"></script>
