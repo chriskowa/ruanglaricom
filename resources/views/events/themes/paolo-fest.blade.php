@@ -2005,7 +2005,7 @@
                                     <button type="button" id="ktpCapture" class="px-4 py-2 rounded-lg bg-slate-900 text-white border border-slate-900 text-xs font-bold hover:bg-slate-800 transition">Ambil Foto</button>
                                     <label class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold hover:bg-slate-200 transition cursor-pointer">
                                         Upload Foto
-                                        <input type="file" id="ktpUpload" accept="image/*" class="hidden">
+                                        <input type="file" id="ktpUpload" accept="image/*" capture="environment" class="hidden">
                                     </label>
                                     <button type="button" id="ktpRunOcr" class="px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold hover:bg-emerald-100 transition">Scan OCR</button>
                                 </div>
@@ -2370,6 +2370,8 @@
             let participantCount = 1;
             let appliedCoupon = null;
             let discountAmount = 0;
+            let familyAutoApplied = false;
+            let familyAutoApplying = false;
 
             // Template for cloning (Take the first item)
             const template = participantsWrapper.querySelector('.participant-item').cloneNode(true);
@@ -2452,9 +2454,29 @@
                 const totalFee = selectedCount * platformFee;
                 if(platformFeeDisplay) platformFeeDisplay.textContent = formatCurrency(totalFee);
                 
+                // Auto-apply promo FAMILY for 4 participants
+                const codeInput = document.getElementById('coupon_code');
+                if (selectedCount >= 4) {
+                    if (!familyAutoApplying && (!appliedCoupon || (appliedCoupon.code !== 'FAMILY'))) {
+                        familyAutoApplied = true;
+                        if (codeInput) codeInput.value = 'FAMILY';
+                        familyAutoApplying = true;
+                        applyCouponCode('FAMILY').finally(() => { familyAutoApplying = false; });
+                    }
+                } else {
+                    if (familyAutoApplied) {
+                        familyAutoApplied = false;
+                        familyAutoApplying = false;
+                        if (appliedCoupon && appliedCoupon.code === 'FAMILY') {
+                            resetCoupon();
+                        }
+                    }
+                }
+
                 let grandTotal = subtotal + totalFee - discountAmount;
                 if (grandTotal < 0) grandTotal = 0;
                 totalDisplay.textContent = formatCurrency(grandTotal);
+
 
                 const discountRow = document.getElementById('discountRow');
                 const discountDisplay = document.getElementById('discountDisplay');
@@ -2518,11 +2540,11 @@
                 const firstCategoryRadio = newItem.querySelector('input[type="radio"][name*="[category_id]"]');
                 if (firstCategoryRadio) {
                     firstCategoryRadio.checked = true;
-                    firstCategoryRadio.dispatchEvent(new Event('change', { bubbles: true }));
                 }
 
                 participantsWrapper.appendChild(newItem);
                 attachListeners(newItem); // Re-attach change events
+                calculateTotal();
                 
                 // No need to initialize flatpickr for native date input
                 
@@ -2672,7 +2694,13 @@
                 if (!ktpVideo) return;
                 stopKtpCamera();
                 try {
-                    ktpStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    ktpStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: { ideal: 'environment' },
+                            width: { min: 720, ideal: 1920 },
+                            height: { min: 720, ideal: 1080 }
+                        }
+                    });
                     ktpVideo.srcObject = ktpStream;
                     ktpVideo.classList.remove('hidden');
                     if (ktpPreview) ktpPreview.classList.add('hidden');
@@ -2690,22 +2718,36 @@
                 ktpImageData = src;
             };
 
-            const captureKtpPhoto = () => {
+            const captureKtpPhoto = async () => {
                 if (!ktpVideo || !ktpCanvas) return;
                 if (!ktpStream) {
                     setKtpStatus('Kamera belum aktif.', true);
                     return;
                 }
-                const w = ktpVideo.videoWidth || 1280;
-                const h = ktpVideo.videoHeight || 720;
-                ktpCanvas.width = w;
-                ktpCanvas.height = h;
-                const ctx = ktpCanvas.getContext('2d');
-                ctx.drawImage(ktpVideo, 0, 0, w, h);
-                const dataUrl = ktpCanvas.toDataURL('image/jpeg', 0.9);
-                setKtpPreview(dataUrl);
-                stopKtpCamera();
-                setKtpStatus('Foto tersimpan. Jalankan OCR untuk membaca data.');
+                try {
+                    const track = ktpStream.getVideoTracks && ktpStream.getVideoTracks()[0];
+                    if (track && 'ImageCapture' in window) {
+                        const ic = new ImageCapture(track);
+                        const blob = await ic.takePhoto();
+                        const url = URL.createObjectURL(blob);
+                        setKtpPreview(url);
+                    } else {
+                        const w = ktpVideo.videoWidth || 1280;
+                        const h = ktpVideo.videoHeight || 720;
+                        const dpr = window.devicePixelRatio || 1;
+                        ktpCanvas.width = Math.round(w * dpr);
+                        ktpCanvas.height = Math.round(h * dpr);
+                        const ctx = ktpCanvas.getContext('2d');
+                        ctx.scale(dpr, dpr);
+                        ctx.drawImage(ktpVideo, 0, 0, w, h);
+                        const dataUrl = ktpCanvas.toDataURL('image/jpeg', 0.95);
+                        setKtpPreview(dataUrl);
+                    }
+                    stopKtpCamera();
+                    setKtpStatus('Foto tersimpan. Jalankan OCR untuk membaca data.');
+                } catch (e) {
+                    setKtpStatus('Gagal mengambil foto. Gunakan upload foto.', true);
+                }
             };
 
             let ktpWorker = null;
@@ -3232,6 +3274,42 @@
                         couponBtn.disabled = false;
                     });
                 });
+            }
+
+            async function applyCouponCode(code) {
+                const codeInput = document.getElementById('coupon_code');
+                const hidden = document.getElementById('coupon_code_hidden');
+                const couponMsg = document.getElementById('couponMessage');
+                const subtotal = calculateSubtotalWithAddons();
+                if (codeInput) codeInput.value = code;
+                if (subtotal === 0) return;
+                try {
+                    const r = await fetch(`{{ route('events.register.coupon', ['slug' => $event->slug]) }}`, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ event_id: {{ $event->id }}, coupon_code: code, total_amount: subtotal })
+                    });
+                    const contentType = r.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) throw new Error('Server error (' + r.status + ')');
+                    const data = await r.json();
+                    if (!r.ok || !data.success) throw new Error(data.message || 'Kupon gagal digunakan');
+                    appliedCoupon = data.coupon;
+                    discountAmount = data.discount_amount;
+                    if (hidden) hidden.value = data.coupon.code;
+                    if (couponMsg) couponMsg.innerHTML = '<span class="text-green-600">Kupon berhasil digunakan!</span>';
+                    calculateTotal();
+                } catch (err) {
+                    appliedCoupon = null;
+                    discountAmount = 0;
+                    if (hidden) hidden.value = '';
+                    if (couponMsg) couponMsg.innerHTML = `<span class="text-red-500">${err.message}</span>`;
+                    calculateTotal();
+                }
             }
 
             // 5. Submit Handler (AJAX)
