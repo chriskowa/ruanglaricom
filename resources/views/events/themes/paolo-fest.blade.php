@@ -2001,13 +2001,17 @@
                                     <canvas id="ktpCanvas" class="hidden"></canvas>
                                 </div>
                                 <div class="flex flex-wrap gap-2">
-                                    <button type="button" id="ktpOpenCamera" class="px-4 py-2 rounded-lg bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold hover:bg-brand-100 transition">Buka Kamera</button>
-                                    <button type="button" id="ktpCapture" class="px-4 py-2 rounded-lg bg-slate-900 text-white border border-slate-900 text-xs font-bold hover:bg-slate-800 transition">Ambil Foto</button>
-                                    <label class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold hover:bg-slate-200 transition cursor-pointer">
+                                    <label class="px-4 py-2 rounded-lg bg-brand-600 text-white border border-brand-600 text-xs font-black hover:bg-brand-700 transition cursor-pointer shadow-sm">
                                         Upload Foto
-                                        <input type="file" id="ktpUpload" accept="image/*" capture="environment" class="hidden">
+                                        <input type="file" id="ktpUpload" accept="image/*" class="hidden">
                                     </label>
                                     <button type="button" id="ktpRunOcr" class="px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold hover:bg-emerald-100 transition">Scan OCR</button>
+                                    <button type="button" id="ktpOpenCamera" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold hover:bg-slate-200 transition">Buka Kamera</button>
+                                    <button type="button" id="ktpCapture" class="px-4 py-2 rounded-lg bg-slate-900 text-white border border-slate-900 text-xs font-bold hover:bg-slate-800 transition">Ambil Foto</button>
+                                </div>
+                                <div id="ktpOcrLoading" class="hidden mt-3 flex items-center gap-3 text-xs text-slate-500">
+                                    <img src="{{ asset('vendor/lightgallery/dist/images/loading.gif') }}" alt="Loading" class="w-5 h-5">
+                                    <span>Memproses OCR...</span>
                                 </div>
                                 <div id="ktpOcrStatus" class="text-xs text-slate-500"></div>
                             </div>
@@ -2631,6 +2635,7 @@
             const ktpRunOcr = document.getElementById('ktpRunOcr');
             const ktpApply = document.getElementById('ktpApply');
             const ktpStatus = document.getElementById('ktpOcrStatus');
+            const ktpLoading = document.getElementById('ktpOcrLoading');
             const ktpFieldName = document.getElementById('ktpFieldName');
             const ktpFieldNik = document.getElementById('ktpFieldNik');
             const ktpFieldGender = document.getElementById('ktpFieldGender');
@@ -2754,11 +2759,11 @@
             const getKtpWorker = async () => {
                 if (ktpWorker) return ktpWorker;
                 if (!window.Tesseract?.createWorker) return null;
-                ktpWorker = await window.Tesseract.createWorker('ind+eng');
+                ktpWorker = await window.Tesseract.createWorker('ind');
                 await ktpWorker.setParameters({
                     tessedit_pageseg_mode: '6',
                     preserve_interword_spaces: '1',
-                    user_defined_dpi: '300'
+                    user_defined_dpi: '200'
                 });
                 return ktpWorker;
             };
@@ -3010,9 +3015,10 @@
                     return;
                 }
                 try {
+                    if (ktpLoading) ktpLoading.classList.remove('hidden');
                     setKtpStatus('Menyiapkan gambar...');
                     const img = await loadImage(ktpImageData);
-                    const baseCanvas = drawToCanvas(img, 1600);
+                    const baseCanvas = drawToCanvas(img, 1280);
                     const cleanCanvas = preprocessCanvas(baseCanvas, 'clean');
                     const thresholdCanvas = preprocessCanvas(baseCanvas, 'threshold');
                     
@@ -3031,59 +3037,94 @@
                     }
                     const worker = await getKtpWorker();
                     let textMain = '';
-                    let textAlt = '';
+                    let textFallback = '';
                     let digitsOnly = '';
                     let addressOnly = '';
 
                     if (worker) {
                         const main = await worker.recognize(cleanCanvas);
                         textMain = main?.data?.text || '';
-                        
-                        const alt = await worker.recognize(thresholdCanvas);
-                        textAlt = alt?.data?.text || '';
 
-                        // OCR khusus area alamat
-                        const addrRes = await worker.recognize(addressCanvas);
-                        addressOnly = addrRes?.data?.text || '';
+                        let parsedMain = parseKtpText(textMain);
 
-                        await worker.setParameters({
-                            tessedit_char_whitelist: '0123456789',
-                            tessedit_pageseg_mode: '6'
-                        });
-                        const digitRes = await worker.recognize(thresholdCanvas);
-                        digitsOnly = digitRes?.data?.text || '';
-                        
-                        await worker.setParameters({
-                            tessedit_char_whitelist: '',
-                            tessedit_pageseg_mode: '6',
-                            preserve_interword_spaces: '1',
-                            user_defined_dpi: '300'
-                        });
+                        if (!parsedMain.name || !parsedMain.dob || !parsedMain.gender) {
+                            const alt = await worker.recognize(thresholdCanvas);
+                            textFallback = alt?.data?.text || '';
+                            if (textFallback) {
+                                const parsedAlt = parseKtpText(textFallback);
+                                parsedMain = {
+                                    nik: parsedMain.nik || parsedAlt.nik,
+                                    name: parsedMain.name || parsedAlt.name,
+                                    gender: parsedMain.gender || parsedAlt.gender,
+                                    dob: parsedMain.dob || parsedAlt.dob,
+                                    address: parsedMain.address || parsedAlt.address
+                                };
+                            }
+                        }
+
+                        if (!parsedMain.address) {
+                            const addrRes = await worker.recognize(addressCanvas);
+                            addressOnly = addrRes?.data?.text || '';
+                        }
+
+                        if (!parsedMain.nik) {
+                            await worker.setParameters({
+                                tessedit_char_whitelist: '0123456789',
+                                tessedit_pageseg_mode: '6'
+                            });
+                            const digitRes = await worker.recognize(thresholdCanvas);
+                            digitsOnly = digitRes?.data?.text || '';
+                            await worker.setParameters({
+                                tessedit_char_whitelist: '',
+                                tessedit_pageseg_mode: '6',
+                                preserve_interword_spaces: '1',
+                                user_defined_dpi: '200'
+                            });
+                        }
+
+                        const parsedDigits = parseKtpText(digitsOnly);
+                        const parsedAddress = parseAddressText(addressOnly);
+
+                        ktpResult = {
+                            name: parsedMain.name,
+                            gender: parsedMain.gender,
+                            address: parsedAddress || parsedMain.address,
+                            dob: parsedMain.dob,
+                            nik: parsedDigits.nik || parsedMain.nik
+                        };
                     } else {
-                        const main = await window.Tesseract.recognize(cleanCanvas, 'ind+eng');
+                        const main = await window.Tesseract.recognize(cleanCanvas, 'ind');
                         textMain = main?.data?.text || '';
-                        const alt = await window.Tesseract.recognize(thresholdCanvas, 'ind+eng');
-                        textAlt = alt?.data?.text || '';
-                        const digitRes = await window.Tesseract.recognize(thresholdCanvas, 'eng');
-                        digitsOnly = digitRes?.data?.text || '';
-                    }
-                    const text = textAlt.length > textMain.length ? textAlt : textMain;
-                    const parsedMain = parseKtpText(text);
-                    const parsedDigits = parseKtpText(digitsOnly);
-                    const parsedAddress = parseAddressText(addressOnly);
+                        const parsedMain = parseKtpText(textMain);
 
-                    ktpResult = {
-                        name: parsedMain.name,
-                        gender: parsedMain.gender,
-                        address: parsedAddress || parsedMain.address,
-                        dob: parsedMain.dob,
-                        nik: parsedDigits.nik || parsedMain.nik
-                    };
+                        if (!parsedMain.address) {
+                            const addrRes = await window.Tesseract.recognize(addressCanvas, 'ind');
+                            addressOnly = addrRes?.data?.text || '';
+                        }
+
+                        if (!parsedMain.nik) {
+                            const digitRes = await window.Tesseract.recognize(thresholdCanvas, 'eng');
+                            digitsOnly = digitRes?.data?.text || '';
+                        }
+
+                        const parsedDigits = parseKtpText(digitsOnly);
+                        const parsedAddress = parseAddressText(addressOnly);
+
+                        ktpResult = {
+                            name: parsedMain.name,
+                            gender: parsedMain.gender,
+                            address: parsedAddress || parsedMain.address,
+                            dob: parsedMain.dob,
+                            nik: parsedDigits.nik || parsedMain.nik
+                        };
+                    }
                     updateKtpFields(ktpResult);
                     setKtpStatus('OCR selesai. Periksa hasil sebelum digunakan.');
                 } catch (e) {
                     console.error('[OCR Error]', e);
                     setKtpStatus('OCR gagal. Coba foto lebih jelas.', true);
+                } finally {
+                    if (ktpLoading) ktpLoading.classList.add('hidden');
                 }
             };
 
@@ -3132,9 +3173,9 @@
             if (ktpOverlay) ktpOverlay.addEventListener('click', closeKtpModal);
             if (ktpClose) ktpClose.addEventListener('click', closeKtpModal);
             if (ktpOpenCamera) ktpOpenCamera.addEventListener('click', startKtpCamera);
-            if (ktpCapture) ktpCapture.addEventListener('click', () => {
-                captureKtpPhoto();
-                runKtpOcr();
+            if (ktpCapture) ktpCapture.addEventListener('click', async () => {
+                await captureKtpPhoto();
+                await runKtpOcr();
             });
             if (ktpUpload) {
                 ktpUpload.addEventListener('change', (e) => {
