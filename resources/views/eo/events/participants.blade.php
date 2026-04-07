@@ -75,6 +75,14 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                     Bulk Reminder
                 </button>
+                <button type="button" onclick="clearParticipants(this, false)" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-red-900/40 text-red-300 border border-red-500/30 font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta non-paid">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    Clear Participants
+                </button>
+                <button type="button" onclick="clearParticipants(this, true)" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta termasuk paid (berbahaya)">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+                    Clear ALL (Paid)
+                </button>
                 <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     Export CSV
@@ -1797,6 +1805,56 @@
             }
         })
         .catch(function(){ alert('Terjadi kesalahan saat menghapus'); });
+    }
+
+    function clearParticipants(btn, includePaid) {
+        includePaid = !!includePaid;
+
+        let typed;
+        if (!includePaid) {
+            if (!confirm('Hapus semua peserta non-paid untuk event ini? Peserta dengan transaksi paid tidak akan dihapus.')) return;
+        } else {
+            if (!confirm('INI SANGAT BERBAHAYA. Ini akan menghapus peserta termasuk yang paid. Lanjut?')) return;
+            typed = prompt('Ketik DELETE_ALL untuk konfirmasi menghapus peserta termasuk paid:');
+            if (!typed) return;
+        }
+
+        var tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
+        var url = '{{ route('eo.events.participants.clear', $event) }}' + (includePaid ? '?include_paid=1' : '');
+        var original = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6.366 2.634l-.707.707M20 12h-1m-2.634 6.366l-.707-.707M12 20v-1m-6.366-2.634l.707-.707M4 12H3m2.634-6.366l.707-.707" /></svg> Clearing...';
+        }
+
+        fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: includePaid ? JSON.stringify({ confirm: typed }) : undefined
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+            if (res.success) {
+                alert(res.message);
+                var submitBtn = document.querySelector('#filtersForm button[type="submit"]');
+                if (submitBtn) submitBtn.click();
+                else window.location.reload();
+            } else {
+                alert(res.message || 'Gagal menghapus peserta');
+            }
+        })
+        .catch(function(){ alert('Terjadi kesalahan saat menghapus'); })
+        .finally(function(){
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        });
     }
 
     window.openAddParticipantModal = function () {

@@ -230,9 +230,15 @@ class PublicEventController extends Controller
             ]);
         }
 
-        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+        $fromDate = $event->registration_open_at ? $event->registration_open_at->copy()->startOfDay() : null;
+
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event, $fromDate) {
             $q->where('event_id', $event->id)
                 ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
+
+            if ($fromDate) {
+                $q->where('created_at', '>=', $fromDate);
+            }
         });
 
         if ($request->has('category_id') && $request->category_id) {

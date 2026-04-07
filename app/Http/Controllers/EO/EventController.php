@@ -1520,6 +1520,72 @@ class EventController extends Controller
         return back()->with('success', 'Peserta berhasil dihapus');
     }
 
+    public function clearParticipants(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $includePaid = (bool) $request->boolean('include_paid', false);
+
+        $baseQuery = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id);
+        });
+
+        if ($includePaid) {
+            $validated = $request->validate([
+                'confirm' => 'required|string',
+            ]);
+
+            if (($validated['confirm'] ?? '') !== 'DELETE_ALL') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Konfirmasi tidak valid. Ketik DELETE_ALL untuk menghapus peserta termasuk paid.',
+                ], 422);
+            }
+
+            $deletedCount = (clone $baseQuery)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil menghapus {$deletedCount} peserta (termasuk paid).",
+                'deleted' => $deletedCount,
+                'skipped' => 0,
+            ]);
+        }
+
+        $protectedStatuses = ['paid', 'settlement', 'capture'];
+
+        $skippedCount = (clone $baseQuery)
+            ->whereHas('transaction', function ($q) use ($protectedStatuses) {
+                $q->whereIn('payment_status', $protectedStatuses);
+            })
+            ->count();
+
+        $deletedCount = (clone $baseQuery)
+            ->whereHas('transaction', function ($q) use ($protectedStatuses) {
+                $q->where(function ($t) use ($protectedStatuses) {
+                    $t->whereNull('payment_status')
+                        ->orWhereNotIn('payment_status', $protectedStatuses);
+                });
+            })
+            ->delete();
+
+        $message = "Berhasil menghapus {$deletedCount} peserta.";
+        if ($skippedCount > 0) {
+            $message .= " {$skippedCount} peserta dilewati karena transaksi sudah paid.";
+        }
+
+        if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'deleted' => $deletedCount,
+                'skipped' => $skippedCount,
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
     /**
      * Update participant picked up status
      */

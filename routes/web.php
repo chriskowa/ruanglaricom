@@ -853,6 +853,7 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/transactions/{transaction}/remind-pending', [App\Http\Controllers\EO\EventController::class, 'remindPending'])->name('events.transactions.remind-pending');
         Route::post('events/{event}/remind-pending-bulk', [App\Http\Controllers\EO\EventController::class, 'remindPendingBulk'])->name('events.remind-pending.bulk');
         Route::post('events/{event}/participants/bulk-delete', [App\Http\Controllers\EO\EventController::class, 'bulkDelete'])->name('events.participants.bulk-delete');
+        Route::delete('events/{event}/participants/clear', [App\Http\Controllers\EO\EventController::class, 'clearParticipants'])->name('events.participants.clear');
         Route::get('email-reports', [App\Http\Controllers\EO\EmailReportController::class, 'index'])->name('email-reports.index');
         Route::get('email-reports/data', [App\Http\Controllers\EO\EmailReportController::class, 'data'])->name('email-reports.data');
         Route::post('email-reports/send', [App\Http\Controllers\EO\EmailReportController::class, 'send'])->name('email-reports.send');
