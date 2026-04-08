@@ -86,7 +86,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $metaTitle }} • Quick Light</title>
+    <title>{{ $metaTitle }} • Ruang Lari</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="{{ $metaDescription }}">
     <meta name="robots" content="index,follow,max-image-preview:large">
@@ -117,7 +117,7 @@
         <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
     @endif
     @if(env('RECAPTCHA_SITE_KEY_v3'))
-        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
+        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}" onerror="this.onerror=null;this.src='https://www.recaptcha.net/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}';"></script>
     @endif
     <style>
         :root { --primary:#2563eb; --primary-dark:#1d4ed8; --ink:#0f172a; --muted:#64748b; --line:#dbe4f0; --bg:#f6f9fc; }
@@ -978,25 +978,27 @@
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 @if(env('RECAPTCHA_SITE_KEY_v3'))
-                    if (typeof grecaptcha !== 'undefined') {
-                        grecaptcha.ready(function() {
-                            grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', { action: 'event_register' }).then(function(token) {
-                                let input = document.getElementById('recaptchaToken');
-                                if (!input) {
-                                    input = document.createElement('input');
-                                    input.type = 'hidden';
-                                    input.name = 'g-recaptcha-response';
-                                    input.id = 'recaptchaToken';
-                                    form.appendChild(input);
-                                }
-                                input.value = token;
-                                processSubmission();
-                            }).catch(function() {
-                                processSubmission();
-                            });
-                        });
+                    if (typeof grecaptcha === 'undefined') {
+                        alert('Gagal memuat reCAPTCHA. Silakan refresh halaman atau coba jaringan lain.');
                         return;
                     }
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', { action: 'event_register' }).then(function(token) {
+                            let input = document.getElementById('recaptchaToken');
+                            if (!input) {
+                                input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'g-recaptcha-response';
+                                input.id = 'recaptchaToken';
+                                form.appendChild(input);
+                            }
+                            input.value = token;
+                            processSubmission();
+                        }).catch(function() {
+                            alert('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+                        });
+                    });
+                    return;
                 @endif
                 processSubmission();
             });

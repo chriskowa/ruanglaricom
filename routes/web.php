@@ -859,6 +859,7 @@ Route::middleware('auth')->group(function () {
         Route::post('email-reports/send', [App\Http\Controllers\EO\EmailReportController::class, 'send'])->name('email-reports.send');
         Route::post('email-reports/{delivery}/resend', [App\Http\Controllers\EO\EmailReportController::class, 'resend'])->name('email-reports.resend');
         Route::get('email-monitoring', [App\Http\Controllers\EO\EmailMonitoringController::class, 'index'])->name('email-monitoring.index');
+        Route::get('email-campaigns', [App\Http\Controllers\EO\EventEmailCampaignController::class, 'all'])->name('email-campaigns.index');
         Route::get('events/{event}/blast', [App\Http\Controllers\EO\EventController::class, 'blast'])->name('events.blast');
         Route::post('events/{event}/blast', [App\Http\Controllers\EO\EventController::class, 'sendBlast'])->name('events.blast.send');
         Route::delete('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'destroyParticipant'])->name('events.participants.destroy');
@@ -875,6 +876,12 @@ Route::middleware('auth')->group(function () {
         Route::get('community-participants', [App\Http\Controllers\EO\CommunityParticipantController::class, 'index'])->name('community.index');
         Route::get('events/{event}/community-participants', [App\Http\Controllers\EO\CommunityParticipantController::class, 'show'])->name('events.community.index');
         Route::post('events/{event}/community-participants/{registration}/import', [App\Http\Controllers\EO\CommunityParticipantController::class, 'import'])->name('events.community.import');
+
+        Route::get('events/{event}/campaigns', [\App\Http\Controllers\EO\EventEmailCampaignController::class, 'index'])->name('events.campaigns.index');
+        Route::get('events/{event}/campaigns/create', [\App\Http\Controllers\EO\EventEmailCampaignController::class, 'create'])->name('events.campaigns.create');
+        Route::post('events/{event}/campaigns', [\App\Http\Controllers\EO\EventEmailCampaignController::class, 'store'])->name('events.campaigns.store');
+        Route::post('events/{event}/campaigns/preview', [\App\Http\Controllers\EO\EventEmailCampaignController::class, 'preview'])->name('events.campaigns.preview');
+        Route::get('events/{event}/campaigns/{campaign}', [\App\Http\Controllers\EO\EventEmailCampaignController::class, 'show'])->name('events.campaigns.show');
 
         // Race results management
         Route::get('events/{event}/results', [App\Http\Controllers\EO\RaceResultController::class, 'index'])->name('events.results');

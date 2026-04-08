@@ -135,9 +135,13 @@
             <div class="bg-card/50 border border-slate-700 rounded-2xl p-6">
                 <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-slate-700 pb-2">Shortcuts</h3>
                 <div class="space-y-2">
-                    <a href="#" class="flex items-center justify-between p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                    <a href="{{ route('eo.events.create') }}" class="flex items-center justify-between p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
                         <span class="text-slate-300 group-hover:text-white text-sm font-medium">Create New Event</span>
                         <svg class="w-4 h-4 text-slate-500 group-hover:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    </a>
+                    <a href="{{ route('eo.email-campaigns.index') }}" class="flex items-center justify-between p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
+                        <span class="text-slate-300 group-hover:text-white text-sm font-medium">Email Campaigns</span>
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18V8H3v8z" /></svg>
                     </a>
                     <a href="#" class="flex items-center justify-between p-3 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors group">
                         <span class="text-slate-300 group-hover:text-white text-sm font-medium">Check-in Scanner</span>

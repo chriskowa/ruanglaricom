@@ -12,6 +12,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('leaderboard:sync')->dailyAt('02:00');
         $schedule->command('marketplace:auctions:finalize')->everyMinute();
         $schedule->command('eo-report-emails:monitor')->everyMinute();
+        $schedule->command('events:run-scheduled-campaigns')->everyMinute();
         // Run pending payment reminders every hour (it handles 24h throttling internally)
         $schedule->command('payments:remind-pending')->hourly();
     }

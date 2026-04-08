@@ -84,6 +84,12 @@
                                 <span>Email Monitoring</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('eo.email-campaigns.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">
+                                <span class="w-5 text-slate-400"><i class="fas fa-paper-plane"></i></span>
+                                <span>Email Campaigns</span>
+                            </a>
+                        </li>
                     @endif
                     
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Commerce</li>
