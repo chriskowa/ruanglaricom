@@ -21,7 +21,7 @@
 @endif
 
 @section('content')
-<div class="min-h-screen bg-dark pt-6">
+<div class="min-h-screen bg-dark pt-6 pb-20">
     
     <div class="container mx-auto px-4 md:px-8 py-4">
         <div class="flex items-center justify-between md:hidden">
