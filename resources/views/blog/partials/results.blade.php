@@ -19,7 +19,7 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-dark/90 via-dark/20 to-transparent"></div>
                 <div class="absolute bottom-3 left-4 right-4">
                     @if($a->category)
-                        <div class="text-xs font-mono text-neon/90 mb-2">{{ $a->category->name }}</div>
+                        <div class="text-xs font-mono text-neon/90 mb-2 truncate">{{ $a->category->name }}</div>
                     @endif
                     <div class="text-white font-bold leading-snug line-clamp-2">{{ $a->title }}</div>
                     <div class="mt-2 text-[11px] font-mono text-slate-300 flex items-center gap-3">

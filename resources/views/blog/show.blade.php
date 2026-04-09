@@ -75,7 +75,7 @@
             <div class="absolute bottom-0 left-0 w-full z-20 pb-12 md:pb-16 pl-8 md:pl-12">
                 <div class="max-w-4xl">
                     @if($article->category)
-                        <span class="inline-block px-3 py-1 mb-4 rounded-full bg-neon/20 text-neon border border-neon/50 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+                        <span class="inline-block max-w-[80vw] truncate px-3 py-1 mb-4 rounded-full bg-neon/20 text-neon border border-neon/50 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
                             {{ $article->category->name }}
                         </span>
                     @endif

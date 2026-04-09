@@ -12,6 +12,11 @@
     $searchValue = $search ?? '';
 @endphp
 
+<style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+
 <div class="min-h-screen bg-dark pt-6">
     <div class="container mx-auto px-4 md:px-8">
         <div class="flex flex-col lg:flex-row gap-10 items-start">
@@ -48,13 +53,13 @@
                     </div>
                 </div>
 
-                <div class="mt-8 flex flex-wrap gap-2">
-                    <a href="{{ route('blog.index') }}" data-cat-kind="chip" data-category="" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug ? 'border-slate-700 text-slate-300 hover:text-white' : 'border-neon/40 bg-neon/10 text-neon' }}">
+                <div class="mt-8 -mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar md:mx-0 md:px-0 md:flex-wrap md:overflow-visible">
+                    <a href="{{ route('blog.index') }}" data-cat-kind="chip" data-category="" class="blog-cat flex-none whitespace-nowrap inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug ? 'border-slate-700 text-slate-300 hover:text-white' : 'border-neon/40 bg-neon/10 text-neon' }}">
                         Semua
                         <span class="text-xs font-mono text-slate-400">{{ $categories->sum('published_articles_count') }}</span>
                     </a>
                     @foreach($categories as $cat)
-                        <a href="{{ route('blog.category', $cat->slug) }}" data-cat-kind="chip" data-category="{{ $cat->slug }}" class="blog-cat inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300 hover:text-white' }}">
+                        <a href="{{ route('blog.category', $cat->slug) }}" data-cat-kind="chip" data-category="{{ $cat->slug }}" class="blog-cat flex-none whitespace-nowrap inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold transition-all {{ $activeSlug === $cat->slug ? 'border-neon/40 bg-neon/10 text-neon' : 'border-slate-700 text-slate-300 hover:text-white' }}">
                             {{ $cat->name }}
                             <span class="text-xs font-mono text-slate-500">{{ $cat->published_articles_count }}</span>
                         </a>
