@@ -17,7 +17,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
-<div class="min-h-screen bg-dark pt-6">
+<div class="min-h-screen bg-dark pt-6 pb-10">
     <div class="container mx-auto px-4 md:px-8">
         <div class="flex flex-col lg:flex-row gap-10 items-start">
             <div class="flex-1 w-full">
