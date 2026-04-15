@@ -58,35 +58,49 @@
                 </h1>
                 <p class="text-slate-400 text-lg mt-1">{{ $event->name }}</p>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('eo.events.community.index', $event) }}" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                    Community
-                </a>
-                <button type="button" onclick="openAddParticipantModal()" class="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-bold flex items-center gap-2 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                    Tambah Peserta
-                </button>
-                <button type="button" onclick="copyReportLink()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                    Copy Report Link
-                </button>
-                <button type="button" onclick="sendBulkPendingReminder(this)" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Kirim reminder ke peserta pending > 1 hari">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                    Bulk Reminder
-                </button>
-                <button type="button" onclick="clearParticipants(this, false)" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-red-900/40 text-red-300 border border-red-500/30 font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta non-paid">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    Clear Participants
-                </button>
-                <button type="button" onclick="clearParticipants(this, true)" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta termasuk paid (berbahaya)">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
-                    Clear ALL (Paid)
-                </button>
-                <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    Export CSV
-                </a>
+            <div class="flex flex-col items-end gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
+                    <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-slate-700/60 p-2">
+                        <a href="{{ route('eo.events.community.index', $event) }}" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            Community
+                        </a>
+                        <button type="button" onclick="copyReportLink()" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            Copy Report Link
+                        </button>
+                        <button type="button" onclick="sendBulkPendingReminder(this)" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Kirim reminder ke peserta pending > 1 hari">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                            Bulk Reminder
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-slate-700/60 p-2">
+                        <button type="button" onclick="openAddParticipantModal()" class="px-3 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-bold flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                            Tambah Peserta
+                        </button>
+                        <button type="button" onclick="openImportCsvModal()" class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                            Import CSV
+                        </button>
+                        <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            Export CSV
+                        </a>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-red-500/20 p-2">
+                        <button type="button" onclick="clearParticipants(this, false)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-red-900/40 text-red-300 border border-red-500/30 font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta non-paid">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            Clear Non-Paid
+                        </button>
+                        <button type="button" onclick="clearParticipants(this, true)" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta termasuk paid (berbahaya)">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+                            Clear ALL
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -234,6 +248,8 @@
         <!-- Filters -->
         <div class="p-4 border-b border-slate-700 bg-slate-900/30">
             <form id="filtersForm" method="GET" action="{{ route('eo.events.participants', $event) }}" class="flex flex-wrap gap-4 items-end">
+                <input type="hidden" name="sort_by" id="sortByInput" value="{{ request('sort_by', 'created_at') }}">
+                <input type="hidden" name="sort_dir" id="sortDirInput" value="{{ request('sort_dir', 'desc') }}">
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Payment Status</label>
                     <select name="payment_status" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
@@ -322,6 +338,8 @@
                 <input type="hidden" name="category_id" value="{{ request('category_id') }}">
                 <input type="hidden" name="age_group" value="{{ request('age_group') }}">
                 <input type="hidden" name="search" value="{{ request('search') }}">
+                <input type="hidden" name="sort_by" value="{{ request('sort_by', 'created_at') }}">
+                <input type="hidden" name="sort_dir" value="{{ request('sort_dir', 'desc') }}">
             </form>
         </div>
 
@@ -332,14 +350,39 @@
                         <th class="px-6 py-4 w-12">
                             <input type="checkbox" id="selectAll" class="rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer">
                         </th>
-                        <th class="px-6 py-4">Participant</th>
-                        <th class="px-6 py-4">ID Card</th>
+                        <th class="px-6 py-4">
+                            <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="name" onclick="setTableSort('name')">
+                                Participant
+                                <span class="sort-indicator" data-sort-indicator="name"></span>
+                            </button>
+                        </th>
+                        <th class="px-6 py-4">
+                            <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="id_card" onclick="setTableSort('id_card')">
+                                ID Card
+                                <span class="sort-indicator" data-sort-indicator="id_card"></span>
+                            </button>
+                        </th>
                         <th class="px-6 py-4">PIC Info</th>
                         <th class="px-6 py-4">Jersey Size</th>
-                        <th class="px-6 py-4">Category & BIB</th>
+                        <th class="px-6 py-4">
+                            <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="bib_number" onclick="setTableSort('bib_number')">
+                                Category & BIB
+                                <span class="sort-indicator" data-sort-indicator="bib_number"></span>
+                            </button>
+                        </th>
                         <th class="px-6 py-4">Age Group</th>                        
-                        <th class="px-6 py-4">Payment</th>
-                        <th class="px-6 py-4">Pickup Status</th>
+                        <th class="px-6 py-4">
+                            <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="payment_status" onclick="setTableSort('payment_status')">
+                                Payment
+                                <span class="sort-indicator" data-sort-indicator="payment_status"></span>
+                            </button>
+                        </th>
+                        <th class="px-6 py-4">
+                            <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="is_picked_up" onclick="setTableSort('is_picked_up')">
+                                Pickup Status
+                                <span class="sort-indicator" data-sort-indicator="is_picked_up"></span>
+                            </button>
+                        </th>
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
@@ -695,6 +738,73 @@
         </div>
     </div>
 </div>
+<div id="importCsvModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeImportCsvModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                <form id="importCsvForm">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white">Import Peserta via CSV</h3>
+                            <button type="button" onclick="closeImportCsvModal()" class="text-slate-400 hover:text-white">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        <div class="rounded-xl border border-slate-700 bg-slate-900/40 p-4 text-xs text-slate-300 space-y-2">
+                            <div class="font-bold text-white">Kolom CSV</div>
+                            <div class="text-slate-400">Wajib: group_key, pic_name, pic_email, pic_phone, name, email, phone, gender, category_id, id_card, address, payment_status. Opsional: coupon_code, city, province, postal_code, emergency_contact_name, emergency_contact_number, date_of_birth, target_time, jersey_size, bib_number.</div>
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                <a href="{{ route('eo.events.participants.import-template', $event) }}" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    Download Template
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 space-y-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">File CSV</label>
+                                <input id="importCsvFile" name="file" type="file" accept=".csv,text/csv" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+                            </div>
+
+                            <div class="space-y-3 border-t border-slate-700 pt-3">
+                                <label class="flex items-start gap-3 text-sm text-slate-200">
+                                    <input id="importDryRun" type="checkbox" class="mt-1 w-4 h-4 rounded bg-slate-900 border-slate-700 text-yellow-500" checked>
+                                    <span>
+                                        <span class="font-bold text-white">Dry Run</span>
+                                        <div class="text-xs text-slate-400">Validasi CSV tanpa menyimpan data.</div>
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-3 text-sm text-slate-200">
+                                    <input id="importSendPaidEmail" type="checkbox" class="mt-1 w-4 h-4 rounded bg-slate-900 border-slate-700 text-yellow-500" checked>
+                                    <span>
+                                        <span class="font-bold text-white">Jika Paid, kirim email otomatis</span>
+                                        <div class="text-xs text-slate-400">Khusus transaksi berstatus paid.</div>
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-3 text-sm text-slate-200">
+                                    <input id="importUseQueue" type="checkbox" class="mt-1 w-4 h-4 rounded bg-slate-900 border-slate-700 text-yellow-500" checked>
+                                    <span>
+                                        <span class="font-bold text-white">Proses via Queue</span>
+                                        <div class="text-xs text-slate-400">Disarankan agar tidak timeout (pastikan worker aktif).</div>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div id="importCsvResult" class="hidden rounded-xl border border-slate-700 bg-slate-900/40 p-4 text-sm text-slate-200"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/50 px-6 py-4 flex justify-end gap-3">
+                        <button type="button" onclick="closeImportCsvModal()" class="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-bold">Batal</button>
+                        <button id="btnImportCsvSubmit" type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold">Proses Import</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Pickup Modal -->
 <div id="pickupModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -968,6 +1078,47 @@
             return data;
         }
 
+        var sortByInput = document.getElementById('sortByInput');
+        var sortDirInput = document.getElementById('sortDirInput');
+
+        function getSortBy() {
+            return sortByInput && sortByInput.value ? sortByInput.value : 'created_at';
+        }
+
+        function getSortDir() {
+            var v = sortDirInput && sortDirInput.value ? String(sortDirInput.value).toLowerCase() : 'desc';
+            return (v === 'asc' || v === 'desc') ? v : 'desc';
+        }
+
+        function setSortIndicators() {
+            var sortBy = getSortBy();
+            var sortDir = getSortDir();
+
+            var indicators = document.querySelectorAll('[data-sort-indicator]');
+            indicators.forEach(function (el) {
+                var key = el.getAttribute('data-sort-indicator');
+                if (key === sortBy) {
+                    el.textContent = sortDir === 'asc' ? '▲' : '▼';
+                    el.className = 'sort-indicator text-yellow-400 text-xs';
+                } else {
+                    el.textContent = '';
+                    el.className = 'sort-indicator text-slate-500 text-xs';
+                }
+            });
+
+            var btns = document.querySelectorAll('button[data-sort-key]');
+            btns.forEach(function (btn) {
+                var key = btn.getAttribute('data-sort-key');
+                if (key === sortBy) {
+                    btn.classList.add('text-yellow-400');
+                    btn.classList.remove('text-slate-300');
+                } else {
+                    btn.classList.add('text-slate-300');
+                    btn.classList.remove('text-yellow-400');
+                }
+            });
+        }
+
         function phoneToWa(phone) {
             var digits = String(phone || '').replace(/[^0-9]/g, '');
             return digits.replace(/^0/, '62');
@@ -975,7 +1126,7 @@
 
         function renderRows(items) {
             if (!items || items.length === 0) {
-                return '<tr><td colspan="9" class="px-6 py-12 text-center"><p class="text-slate-500">No participants found matching your criteria.</p></td></tr>';
+                return '<tr><td colspan="10" class="px-6 py-12 text-center"><p class="text-slate-500">No participants found matching your criteria.</p></td></tr>';
             }
             var html = '';
             items.forEach(function(p){
@@ -1189,6 +1340,23 @@
             })
             .catch(function(){ alert('Terjadi kesalahan'); });
         }
+
+        window.setTableSort = function (key) {
+            if (!sortByInput || !sortDirInput) return;
+            var cur = getSortBy();
+            var dir = getSortDir();
+            if (cur === key) {
+                dir = dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                dir = 'asc';
+            }
+            sortByInput.value = key;
+            sortDirInput.value = dir;
+            setSortIndicators();
+            fetchParticipants(1);
+        };
+
+        setSortIndicators();
 
         form.addEventListener('submit', function(e){ e.preventDefault(); fetchParticipants(1); });
         form.querySelectorAll('select').forEach(function(sel){
@@ -1856,6 +2024,123 @@
             }
         });
     }
+
+    function openImportCsvModal() {
+        var modal = document.getElementById('importCsvModal');
+        if (modal) modal.classList.remove('hidden');
+        var resultEl = document.getElementById('importCsvResult');
+        if (resultEl) {
+            resultEl.classList.add('hidden');
+            resultEl.innerHTML = '';
+        }
+    }
+
+    function closeImportCsvModal() {
+        var modal = document.getElementById('importCsvModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    window.openImportCsvModal = openImportCsvModal;
+    window.closeImportCsvModal = closeImportCsvModal;
+
+    (function () {
+        var form = document.getElementById('importCsvForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            var fileInput = document.getElementById('importCsvFile');
+            var btn = document.getElementById('btnImportCsvSubmit');
+            var resultEl = document.getElementById('importCsvResult');
+            var tokenMeta = document.querySelector('meta[name="csrf-token"]');
+            var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
+
+            var file = fileInput && fileInput.files ? fileInput.files[0] : null;
+            if (!file) {
+                alert('Pilih file CSV terlebih dahulu.');
+                return;
+            }
+
+            var original = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<svg class="w-4 h-4 animate-spin mr-2 inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...';
+            }
+
+            var fd = new FormData();
+            fd.append('file', file);
+            fd.append('dry_run', document.getElementById('importDryRun') && document.getElementById('importDryRun').checked ? '1' : '0');
+            fd.append('send_email_if_paid', document.getElementById('importSendPaidEmail') && document.getElementById('importSendPaidEmail').checked ? '1' : '0');
+            fd.append('use_queue', document.getElementById('importUseQueue') && document.getElementById('importUseQueue').checked ? '1' : '0');
+
+            fetch('{{ route('eo.events.participants.import-csv', $event) }}', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json'
+                },
+                body: fd
+            })
+            .then(function (r) {
+                return r.json().catch(function () {
+                    return { success: false, message: 'Gagal mengurai respons server.' };
+                }).then(function (data) {
+                    data.__status = r.status;
+                    return data;
+                });
+            })
+            .then(function (data) {
+                if (!resultEl) return;
+                resultEl.classList.remove('hidden');
+
+                var summary = data.summary || {};
+                var lines = [];
+                lines.push('<div class="font-bold text-white mb-2">Hasil Import</div>');
+                lines.push('<div class="text-xs text-slate-300 space-y-1">');
+                lines.push('<div>Rows: <span class="font-bold">'+(typeof summary.rows !== 'undefined' ? summary.rows : '-')+'</span></div>');
+                lines.push('<div>Groups: <span class="font-bold">'+(typeof summary.groups !== 'undefined' ? summary.groups : '-')+'</span></div>');
+                lines.push('<div>Created Transactions: <span class="font-bold">'+(typeof summary.created_transactions !== 'undefined' ? summary.created_transactions : 0)+'</span></div>');
+                lines.push('<div>Created Participants: <span class="font-bold">'+(typeof summary.created_participants !== 'undefined' ? summary.created_participants : 0)+'</span></div>');
+                lines.push('<div>Emailed Paid: <span class="font-bold">'+(typeof summary.emailed_paid !== 'undefined' ? summary.emailed_paid : 0)+'</span></div>');
+                lines.push('<div>Skipped Existing: <span class="font-bold">'+(typeof summary.skipped_existing !== 'undefined' ? summary.skipped_existing : 0)+'</span></div>');
+                lines.push('<div>Errors: <span class="font-bold text-red-300">'+(typeof summary.errors !== 'undefined' ? summary.errors : 0)+'</span></div>');
+                lines.push('</div>');
+
+                if (Array.isArray(data.errors) && data.errors.length) {
+                    lines.push('<div class="mt-3 text-xs text-red-200 font-bold">Contoh Error (maks 10):</div>');
+                    lines.push('<ul class="mt-2 text-xs text-red-200 list-disc pl-5 space-y-1">');
+                    data.errors.slice(0, 10).forEach(function (er) {
+                        var row = (er && typeof er.row !== 'undefined') ? er.row : '-';
+                        var msg = (er && typeof er.message !== 'undefined') ? er.message : 'Error';
+                        lines.push('<li>Row '+row+': '+msg+'</li>');
+                    });
+                    lines.push('</ul>');
+                }
+
+                resultEl.innerHTML = lines.join('');
+
+                if (data.success && !data.dry_run) {
+                    var submitBtn = document.querySelector('#filtersForm button[type="submit"]');
+                    if (submitBtn) submitBtn.click();
+                }
+
+                if (!data.success && data.__status === 422 && !data.errors) {
+                    alert(data.message || 'Import gagal.');
+                }
+            })
+            .catch(function () {
+                alert('Terjadi kesalahan saat import CSV.');
+            })
+            .finally(function () {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                }
+            });
+        });
+    })();
 
     window.openAddParticipantModal = function () {
         var modal = document.getElementById('addParticipantModal');

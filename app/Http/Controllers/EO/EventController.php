@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
@@ -834,6 +835,21 @@ class EventController extends Controller
             });
         }
 
+        $sortBy = request()->query('sort_by', 'created_at');
+        $sortDir = strtolower((string) request()->query('sort_dir', 'desc'));
+        if (! in_array($sortDir, ['asc', 'desc'], true)) {
+            $sortDir = 'desc';
+        }
+
+        $allowedSorts = [
+            'created_at' => 'participants.created_at',
+            'name' => 'participants.name',
+            'id_card' => 'participants.id_card',
+            'bib_number' => 'participants.bib_number',
+            'is_picked_up' => 'participants.is_picked_up',
+            'payment_status' => 'transactions.payment_status',
+        ];
+
         $perPage = (int) request()->query('per_page', 20);
         if ($perPage < 5) {
             $perPage = 5;
@@ -842,7 +858,20 @@ class EventController extends Controller
             $perPage = 200;
         }
 
-        $participants = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        if (! array_key_exists($sortBy, $allowedSorts)) {
+            $sortBy = 'created_at';
+        }
+
+        if ($sortBy === 'payment_status') {
+            $query->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+                ->where('transactions.event_id', $event->id)
+                ->select('participants.*')
+                ->orderBy('transactions.payment_status', $sortDir);
+        } else {
+            $query->orderBy($allowedSorts[$sortBy], $sortDir);
+        }
+
+        $participants = $query->paginate($perPage)->withQueryString();
 
         $financials = [
             'gross_revenue' => \App\Models\Transaction::where('event_id', $event->id)
@@ -1130,7 +1159,7 @@ class EventController extends Controller
             'jersey_size' => 'nullable|string|max:10',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => 'nullable|string|min:10|max:15|regex:/^[0-9]+$/',
-            'bib_number' => 'nullable|string|max:20',
+            'bib_number' => ['nullable', 'string', 'max:20', Rule::unique('participants', 'bib_number')],
             'send_whatsapp' => 'nullable|boolean',
             'use_queue' => 'nullable|boolean',
             'coupon_id' => [
@@ -1168,6 +1197,99 @@ class EventController extends Controller
             ->with('success', 'Peserta berhasil ditambahkan dan email konfirmasi dikirim.');
     }
 
+    public function downloadParticipantsImportTemplate(Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $headers = [
+            'group_key',
+            'pic_name',
+            'pic_email',
+            'pic_phone',
+            'name',
+            'email',
+            'phone',
+            'gender',
+            'category_id',
+            'id_card',
+            'address',
+            'city',
+            'province',
+            'postal_code',
+            'emergency_contact_name',
+            'emergency_contact_number',
+            'date_of_birth',
+            'target_time',
+            'jersey_size',
+            'bib_number',
+            'payment_status',
+            'coupon_code',
+        ];
+
+        $example = [
+            'GROUP-001',
+            'PIC Name',
+            'pic@example.com',
+            '081234567890',
+            'Nama Peserta',
+            'peserta@example.com',
+            '081234567891',
+            'male',
+            optional($event->categories->first())->id ?: '',
+            'IDCARD-001',
+            'Alamat peserta',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '1990-01-01',
+            '01:30:00',
+            'M',
+            '',
+            'paid',
+            '',
+        ];
+
+        $out = implode(',', $headers)."\n".implode(',', array_map(function ($v) {
+            $v = (string) $v;
+            $v = str_replace('"', '""', $v);
+            return '"'.$v.'"';
+        }, $example))."\n";
+
+        $filename = 'participants-import-template-'.$event->id.'.csv';
+
+        return response($out, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function importParticipantsCsv(Request $request, Event $event, \App\Actions\EO\ImportParticipantsCsvAction $action)
+    {
+        $this->authorizeEvent($event);
+
+        $validated = $request->validate([
+            'file' => 'required|file|max:5120|mimes:csv,txt',
+            'dry_run' => 'nullable|boolean',
+            'send_email_if_paid' => 'nullable|boolean',
+            'use_queue' => 'nullable|boolean',
+        ]);
+
+        $result = $action->execute(
+            $event,
+            $request->file('file'),
+            [
+                'dry_run' => $request->boolean('dry_run', true),
+                'send_email_if_paid' => $request->boolean('send_email_if_paid', true),
+                'use_queue' => $request->boolean('use_queue', true),
+            ],
+            $request->user()
+        );
+
+        return response()->json($result, $result['success'] ? 200 : 422);
+    }
+
     /**
      * Update participant details
      */
@@ -1198,7 +1320,7 @@ class EventController extends Controller
             'province' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
             'race_category_id' => 'required|exists:race_categories,id',
-            'bib_number' => 'nullable|string|max:20',
+            'bib_number' => ['nullable', 'string', 'max:20', Rule::unique('participants', 'bib_number')->ignore($participant->id)],
             'jersey_size' => 'nullable|string|max:10',
             'is_picked_up' => 'nullable|boolean',
             'coupon_id' => 'nullable|exists:coupons,id',

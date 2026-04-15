@@ -849,6 +849,8 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/send-test-email', [App\Http\Controllers\EO\EventController::class, 'sendTestEmail'])->name('events.send-test-email');
         Route::get('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participants'])->name('events.participants');
         Route::post('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'storeParticipant'])->name('events.participants.store');
+        Route::post('events/{event}/participants/import-csv', [App\Http\Controllers\EO\EventController::class, 'importParticipantsCsv'])->name('events.participants.import-csv');
+        Route::get('events/{event}/participants/import-template', [App\Http\Controllers\EO\EventController::class, 'downloadParticipantsImportTemplate'])->name('events.participants.import-template');
         Route::put('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'updateParticipant'])->name('events.participants.update');
         Route::post('events/{event}/transactions/{transaction}/remind-pending', [App\Http\Controllers\EO\EventController::class, 'remindPending'])->name('events.transactions.remind-pending');
         Route::post('events/{event}/remind-pending-bulk', [App\Http\Controllers\EO\EventController::class, 'remindPendingBulk'])->name('events.remind-pending.bulk');
