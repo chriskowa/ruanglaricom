@@ -30,7 +30,13 @@ class EventEmailCampaignController extends Controller
             ->latest()
             ->paginate(15);
 
-        return view('eo.email-campaigns.index', compact('campaigns'));
+        $events = Event::query()
+            ->where('user_id', auth()->id())
+            ->select(['id', 'name'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('eo.email-campaigns.index', compact('campaigns', 'events'));
     }
 
     public function index(Event $event)

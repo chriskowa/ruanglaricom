@@ -88,52 +88,115 @@
                         </div>
                     </div>
 
-                    <!-- Hero Image -->
+                    <!-- Hero Featured Slider -->
                     <div class="relative order-1 md:order-2" data-aos="fade-left" data-aos-delay="200">
+                        @php
+                            $slides = collect();
+                            $fallbackHero = $homepageContent && $homepageContent->floating_image
+                                ? asset($homepageContent->floating_image)
+                                : 'https://res.cloudinary.com/dslfarxct/images/v1766050868/542301374_18517775974013478_1186867397282832240_n/542301374_18517775974013478_1186867397282832240_n.jpg';
+
+                            if (isset($featuredEvents) && $featuredEvents) {
+                                foreach ($featuredEvents as $ev) {
+                                    $slides->push([
+                                        'type' => 'event',
+                                        'title' => $ev->name,
+                                        'href' => $ev->public_url,
+                                        'image' => $ev->getHeroImageUrl(),
+                                        'eyebrow' => 'Featured Event',
+                                        'meta_1' => optional($ev->start_at)->translatedFormat('d M Y') ?: null,
+                                        'meta_2' => $ev->location_name ?: null,
+                                    ]);
+                                }
+                            }
+
+                            if (isset($featuredArticles) && $featuredArticles) {
+                                foreach ($featuredArticles as $a) {
+                                    $img = null;
+                                    if ($a->featured_image) {
+                                        if (Str::startsWith($a->featured_image, ['http://', 'https://'])) {
+                                            $img = $a->featured_image;
+                                        } else {
+                                            $img = asset('storage/' . $a->featured_image);
+                                        }
+                                    }
+                                    $slides->push([
+                                        'type' => 'article',
+                                        'title' => $a->title,
+                                        'href' => route('blog.show', $a->slug),
+                                        'image' => $img ?: asset('ruanglari.webp'),
+                                        'eyebrow' => 'Featured Artikel',
+                                        'meta_1' => optional($a->published_at ?: $a->created_at)->translatedFormat('d M Y') ?: null,
+                                        'meta_2' => optional($a->category)->name ?: null,
+                                    ]);
+                                }
+                            }
+
+                            $slides = $slides->filter(fn ($s) => ! empty($s['href']))->values()->take(6);
+                        @endphp
+
                         <div class="relative z-10 rounded-[2.5rem] overflow-hidden border-8 border-slate-800/50 shadow-2xl rotate-3 hover:rotate-0 transition duration-700 group">
-                            <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent z-10"></div>
-                            <img src="{{ $featuredEvent ? $featuredEvent->getHeroImageUrl() : ($homepageContent && $homepageContent->floating_image ? asset($homepageContent->floating_image) : 'https://res.cloudinary.com/dslfarxct/images/v1766050868/542301374_18517775974013478_1186867397282832240_n/542301374_18517775974013478_1186867397282832240_n.jpg') }}" alt="{{ $featuredEvent ? $featuredEvent->name : 'Runner' }}" class="w-full h-[500px] object-cover object-center transform group-hover:scale-110 transition duration-1000">
-                            
-                            @if($featuredEvent)
-                                <a href="{{ $featuredEvent->public_url }}" class="absolute bottom-6 left-6 right-6 md:right-auto md:max-w-sm z-20 bg-dark/80 hover:bg-dark/90 backdrop-blur-md p-4 rounded-2xl border border-white/10 transition">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-11 h-11 rounded-xl bg-neon/20 flex items-center justify-center text-neon flex-shrink-0">
-                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-black">Featured Event</p>
-                                            <p class="text-lg font-black text-white leading-tight truncate">{{ $featuredEvent->name }}</p>
-                                            <div class="mt-1 text-xs text-slate-300 space-y-0.5">
-                                                <div class="flex items-center gap-2">
-                                                    <span class="text-slate-500">Tanggal</span>
-                                                    <span class="font-bold">{{ optional($featuredEvent->start_at)->translatedFormat('d M Y') }}</span>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <span class="text-slate-500">Lokasi</span>
-                                                    <span class="font-bold truncate">{{ $featuredEvent->location_name }}</span>
-                                                </div>
-                                                @if($featuredEvent->user)
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="text-slate-500">EO</span>
-                                                        <span class="font-bold truncate">{{ $featuredEvent->user->name }}</span>
+                            <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent z-10 pointer-events-none"></div>
+
+                            <div class="relative">
+                                <div id="heroFeaturedTrack" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth">
+                                    @forelse($slides as $i => $s)
+                                        <a href="{{ $s['href'] }}" class="snap-center flex-none w-full relative block" aria-label="{{ $s['eyebrow'] }}: {{ $s['title'] }}">
+                                            <img src="{{ $s['image'] ?: $fallbackHero }}" alt="{{ $s['title'] }}" class="w-full h-[500px] object-cover object-center transform transition duration-1000 group-hover:scale-110" @if($i === 0) fetchpriority="high" @else loading="lazy" @endif>
+
+                                            <div class="absolute bottom-6 left-6 right-6 z-20 bg-dark/80 hover:bg-dark/90 backdrop-blur-md p-4 rounded-2xl border border-white/10 transition">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="w-11 h-11 rounded-xl bg-neon/20 flex items-center justify-center text-neon flex-shrink-0">
+                                                        @if($s['type'] === 'event')
+                                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                        @else
+                                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                                        @endif
                                                     </div>
-                                                @endif
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-black">{{ $s['eyebrow'] }}</p>
+                                                        <p class="text-lg font-black text-white leading-tight line-clamp-2">{{ $s['title'] }}</p>
+                                                        <div class="mt-1 text-xs text-slate-300 space-y-0.5">
+                                                            @if(!empty($s['meta_1']))
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="text-slate-500">{{ $s['type'] === 'event' ? 'Tanggal' : 'Terbit' }}</span>
+                                                                    <span class="font-bold">{{ $s['meta_1'] }}</span>
+                                                                </div>
+                                                            @endif
+                                                            @if(!empty($s['meta_2']))
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="text-slate-500">{{ $s['type'] === 'event' ? 'Lokasi' : 'Kategori' }}</span>
+                                                                    <span class="font-bold truncate">{{ $s['meta_2'] }}</span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <div class="hidden sm:flex items-center">
+                                                        <span class="px-3 py-2 rounded-xl bg-neon text-dark font-black text-xs">{{ $s['type'] === 'event' ? 'JOIN' : 'BACA' }}</span>
+                                                    </div>
+                                                </div>
                                             </div>
+                                        </a>
+                                    @empty
+                                        <div class="snap-center flex-none w-full relative">
+                                            <img src="{{ $featuredEvent ? $featuredEvent->getHeroImageUrl() : $fallbackHero }}" alt="Hero" class="w-full h-[500px] object-cover object-center">
                                         </div>
-                                    </div>
-                                </a>
-                            @endif
+                                    @endforelse
+                                </div>
+
+                                @if($slides->count() > 1)
+                                    <button type="button" id="heroFeaturedPrev" class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-2xl bg-dark/70 hover:bg-dark/90 border border-white/10 backdrop-blur items-center justify-center text-white">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                                    </button>
+                                    <button type="button" id="heroFeaturedNext" class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-2xl bg-dark/70 hover:bg-dark/90 border border-white/10 backdrop-blur items-center justify-center text-white">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                    </button>
+
+                                    <div id="heroFeaturedDots" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-dark/50 border border-white/10 backdrop-blur px-3 py-2 rounded-full"></div>
+                                @endif
+                            </div>
                         </div>
-@if($featuredEvent)
-                        <!-- Floating Join Button -->
-                        <div class="absolute top-1/2 -translate-y-1/2 -right-6 md:-right-12 z-30">
-                            <a href="{{ $featuredEvent->public_url }}" class="flex flex-col items-center justify-center w-24 h-24 md:w-32 md:h-32 bg-neon rounded-full text-dark font-black text-xs md:text-sm text-center p-2 rotate-12 hover:rotate-0 hover:scale-110 transition duration-300 shadow-[0_0_40px_rgba(204,255,0,0.6)] animate-float border-4 border-dark">
-                                <span>JOIN</span>
-                                <span class="text-lg md:text-2xl leading-none">NOW</span>
-                            </a>
-                        </div>
-@endif
-                        <!-- Decor Elements -->
+
                         <div class="absolute -top-10 -right-10 text-[200px] leading-none font-black text-slate-800/30 select-none pointer-events-none z-0">01</div>
                     </div>
                 </div>
@@ -829,6 +892,8 @@
     .bg-hero-glow { background-image: radial-gradient(circle at center, rgba(204,255,0,0.1) 0%, transparent 60%); }
     .animate-float { animation: floaty 3s ease-in-out infinite; }
     .animate-pulse-slow { animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     @keyframes floaty { 
         0%, 100% { transform: translateY(0) rotate(12deg); } 
         50% { transform: translateY(-10px) rotate(12deg); } 
@@ -841,6 +906,131 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
     AOS.init({duration:800, once:true, offset:50});
+
+    (function () {
+        var track = document.getElementById('heroFeaturedTrack');
+        var dots = document.getElementById('heroFeaturedDots');
+        var btnPrev = document.getElementById('heroFeaturedPrev');
+        var btnNext = document.getElementById('heroFeaturedNext');
+        if (!track) return;
+
+        var slides = Array.prototype.slice.call(track.children || []);
+        if (!slides.length) return;
+
+        var prefersReduced = false;
+        try {
+            prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        } catch (e) {}
+
+        function scrollToIndex(idx) {
+            idx = Math.max(0, Math.min(slides.length - 1, idx));
+            var el = slides[idx];
+            if (!el) return;
+            track.scrollTo({ left: el.offsetLeft, behavior: prefersReduced ? 'auto' : 'smooth' });
+        }
+
+        function getActiveIndex() {
+            var left = track.scrollLeft;
+            var best = 0;
+            var bestDist = Infinity;
+            for (var i = 0; i < slides.length; i++) {
+                var dist = Math.abs(slides[i].offsetLeft - left);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    best = i;
+                }
+            }
+            return best;
+        }
+
+        function renderDots() {
+            if (!dots) return;
+            dots.innerHTML = '';
+            for (var i = 0; i < slides.length; i++) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'w-2.5 h-2.5 rounded-full bg-slate-500/70 hover:bg-white transition';
+                b.setAttribute('aria-label', 'Slide ' + (i + 1));
+                (function (idx) {
+                    b.addEventListener('click', function () {
+                        scrollToIndex(idx);
+                        stopAuto();
+                    });
+                })(i);
+                dots.appendChild(b);
+            }
+        }
+
+        function setActiveDot(idx) {
+            if (!dots) return;
+            var children = dots.children;
+            for (var i = 0; i < children.length; i++) {
+                children[i].className = i === idx
+                    ? 'w-2.5 h-2.5 rounded-full bg-neon transition'
+                    : 'w-2.5 h-2.5 rounded-full bg-slate-500/70 hover:bg-white transition';
+            }
+        }
+
+        if (slides.length > 1) {
+            renderDots();
+            setActiveDot(0);
+        }
+
+        try {
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        var idx = slides.indexOf(entry.target);
+                        if (idx >= 0) setActiveDot(idx);
+                    }
+                });
+            }, { root: track, threshold: 0.6 });
+
+            slides.forEach(function (s) { io.observe(s); });
+        } catch (e) {
+            track.addEventListener('scroll', function () {
+                setActiveDot(getActiveIndex());
+            }, { passive: true });
+        }
+
+        if (btnPrev) {
+            btnPrev.addEventListener('click', function () {
+                var i = getActiveIndex();
+                scrollToIndex(i - 1);
+                stopAuto();
+            });
+        }
+        if (btnNext) {
+            btnNext.addEventListener('click', function () {
+                var i = getActiveIndex();
+                scrollToIndex(i + 1);
+                stopAuto();
+            });
+        }
+
+        var timer = null;
+        function startAuto() {
+            if (prefersReduced) return;
+            if (slides.length <= 1) return;
+            if (timer) return;
+            timer = setInterval(function () {
+                var i = getActiveIndex();
+                scrollToIndex((i + 1) % slides.length);
+            }, 6500);
+        }
+
+        function stopAuto() {
+            if (!timer) return;
+            clearInterval(timer);
+            timer = null;
+        }
+
+        track.addEventListener('pointerdown', stopAuto, { passive: true });
+        track.addEventListener('mouseenter', stopAuto, { passive: true });
+        track.addEventListener('mouseleave', startAuto, { passive: true });
+
+        startAuto();
+    })();
 
     async function loadLatestBlogs(){
         const c=document.getElementById('blogCards');

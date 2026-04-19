@@ -32,14 +32,23 @@
         </div>
         
         <div class="content">
+            @php
+                $nameTokens = ['{{' . 'name' . '}}', '@{{' . 'name' . '}}'];
+                $bibTokens = ['{{' . 'bib' . '}}', '@{{' . 'bib' . '}}'];
+                $replacedName = $participant->name ?? '';
+                $replacedBib = $participant->bib_number ?? '';
+                $tokens = array_merge($nameTokens, $bibTokens);
+                $values = [$replacedName, $replacedName, $replacedBib, $replacedBib];
+            @endphp
+
             @if(!empty($contentData['headline']))
-                <h2 class="headline">{{ str_replace(['{{name}}', '{{bib}}'], [$participant->name, $participant->bib_number], $contentData['headline']) }}</h2>
+                <h2 class="headline">{{ str_replace($tokens, $values, $contentData['headline']) }}</h2>
             @else
                 <h2 class="headline">Halo {{ $participant->name }},</h2>
             @endif
 
             @if(!empty($contentData['body_text']))
-                <div class="body-text">{{ str_replace(['{{name}}', '{{bib}}'], [$participant->name, $participant->bib_number], $contentData['body_text']) }}</div>
+                <div class="body-text">{{ str_replace($tokens, $values, $contentData['body_text']) }}</div>
             @endif
 
             @if($preset === 'reminder' || $preset === 'info')

@@ -7,6 +7,7 @@ use App\Models\PageTemplate;
 use App\Models\Event;
 use App\Models\HomepageContent;
 use App\Models\Menu;
+use App\Models\Article;
 use App\Services\StravaClubService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -74,6 +75,17 @@ class PageController extends Controller
                 ->first();
         });
 
+        $featuredArticles = Cache::remember('home.featured_articles', 300, function () {
+            return Article::query()
+                ->published()
+                ->select(['id', 'title', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id'])
+                ->with(['category:id,name,slug'])
+                ->orderByDesc('views_count')
+                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->limit(4)
+                ->get();
+        });
+
         $leaderboard = Cache::remember('home.leaderboard.data', 3600, function () use ($stravaService) {
             try {
                 $data = $stravaService->getLeaderboard();
@@ -93,6 +105,8 @@ class PageController extends Controller
         return view('home.index', [
             'homepageContent' => $homepageContent,
             'featuredEvent' => $featuredEvent,
+            'featuredEvents' => $featuredEvents,
+            'featuredArticles' => $featuredArticles,
             'leaderboard' => $leaderboard,
             'primaryMenu' => $primaryMenu,
         ]);
