@@ -51,54 +51,71 @@
                 </li>
             </ol>
         </nav>
-        <div class="flex justify-between items-end">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
             <div>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">
                     EVENT <span class="text-yellow-400">PARTICIPANTS</span>
                 </h1>
                 <p class="text-slate-400 text-lg mt-1">{{ $event->name }}</p>
             </div>
-            <div class="flex flex-col items-end gap-2">
-                <div class="flex flex-wrap items-center justify-end gap-2">
-                    <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-slate-700/60 p-2">
-                        <a href="{{ route('eo.events.community.index', $event) }}" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                            Community
-                        </a>
-                        <button type="button" onclick="copyReportLink()" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                            Copy Report Link
-                        </button>
-                        <button type="button" onclick="sendBulkPendingReminder(this)" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Kirim reminder ke peserta pending > 1 hari">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                            Bulk Reminder
-                        </button>
-                    </div>
+            <div class="w-full md:w-auto">
+                <div class="md:hidden grid grid-cols-3 gap-2">
+                    <button type="button" onclick="openAddParticipantModal()" class="px-3 py-2 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-black text-sm flex items-center justify-center gap-2 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        Tambah
+                    </button>
+                    <button type="button" onclick="openImportCsvModal()" class="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm flex items-center justify-center gap-2 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        Import
+                    </button>
+                    <button type="button" onclick="openParticipantsActionsModal()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-sm flex items-center justify-center gap-2 border border-slate-700 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        Menu
+                    </button>
+                </div>
 
-                    <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-slate-700/60 p-2">
-                        <button type="button" onclick="openAddParticipantModal()" class="px-3 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-bold flex items-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                            Tambah Peserta
-                        </button>
-                        <button type="button" onclick="openImportCsvModal()" class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                            Import CSV
-                        </button>
-                        <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                            Export CSV
-                        </a>
-                    </div>
+                <div class="hidden md:flex flex-col items-end gap-2">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-slate-700/60 p-2">
+                            <a href="{{ route('eo.events.community.index', $event) }}" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                Community
+                            </a>
+                            <button type="button" onclick="copyReportLink()" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                Copy Report Link
+                            </button>
+                            <button type="button" onclick="sendBulkPendingReminder(this)" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Kirim reminder ke peserta pending > 1 hari">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                                Bulk Reminder
+                            </button>
+                        </div>
 
-                    <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-red-500/20 p-2">
-                        <button type="button" onclick="clearParticipants(this, false)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-red-900/40 text-red-300 border border-red-500/30 font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta non-paid">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            Clear Non-Paid
-                        </button>
-                        <button type="button" onclick="clearParticipants(this, true)" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta termasuk paid (berbahaya)">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
-                            Clear ALL
-                        </button>
+                        <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-slate-700/60 p-2">
+                            <button type="button" onclick="openAddParticipantModal()" class="px-3 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-bold flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                Tambah Peserta
+                            </button>
+                            <button type="button" onclick="openImportCsvModal()" class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                Import CSV
+                            </button>
+                            <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Export CSV
+                            </a>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-red-500/20 p-2">
+                            <button type="button" onclick="clearParticipants(this, false)" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-red-900/40 text-red-300 border border-red-500/30 font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta non-paid">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                Clear Non-Paid
+                            </button>
+                            <button type="button" onclick="clearParticipants(this, true)" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold flex items-center gap-2 transition-colors" title="Hapus semua peserta termasuk paid (berbahaya)">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+                                Clear ALL
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -801,6 +818,74 @@
                         <button id="btnImportCsvSubmit" type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold">Proses Import</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="participantsActionsModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeParticipantsActionsModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative w-full sm:max-w-md transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all">
+                <div class="p-5 border-b border-slate-700 flex items-center justify-between">
+                    <div class="text-white font-black uppercase tracking-widest text-sm">Actions</div>
+                    <button type="button" onclick="closeParticipantsActionsModal()" class="text-slate-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div class="space-y-2">
+                        <button type="button" onclick="closeParticipantsActionsModal(); openAddParticipantModal();" class="w-full px-4 py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-black text-sm flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                Tambah Peserta
+                            </span>
+                            <span class="text-xs font-black opacity-70">Primary</span>
+                        </button>
+                        <button type="button" onclick="closeParticipantsActionsModal(); openImportCsvModal();" class="w-full px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                Import CSV
+                            </span>
+                        </button>
+                        <a href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="w-full px-4 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-black text-sm flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Export CSV
+                            </span>
+                        </a>
+                    </div>
+
+                    <div class="border-t border-slate-700 pt-4 space-y-2">
+                        <a href="{{ route('eo.events.community.index', $event) }}" class="w-full px-4 py-3 rounded-xl bg-slate-900/40 hover:bg-slate-700 text-white font-bold text-sm flex items-center gap-2 transition-colors border border-slate-700">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            Community
+                        </a>
+                        <button type="button" onclick="closeParticipantsActionsModal(); copyReportLink();" class="w-full px-4 py-3 rounded-xl bg-slate-900/40 hover:bg-slate-700 text-white font-bold text-sm flex items-center gap-2 transition-colors border border-slate-700">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            Copy Report Link
+                        </button>
+                        <button type="button" onclick="closeParticipantsActionsModal(); sendBulkPendingReminder(this);" class="w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-sm flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                            Bulk Reminder
+                        </button>
+                    </div>
+
+                    <div class="border-t border-slate-700 pt-4 space-y-2">
+                        <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, false);" class="w-full px-4 py-3 rounded-xl bg-slate-800 hover:bg-red-900/40 text-red-200 font-black text-sm flex items-center gap-2 transition-colors border border-red-500/30">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            Clear Non-Paid
+                        </button>
+                        <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, true);" class="w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-sm flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+                            Clear ALL (Paid)
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-slate-900/50 px-5 py-4 flex justify-end">
+                    <button type="button" onclick="closeParticipantsActionsModal()" class="px-4 py-2 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-black uppercase tracking-widest">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -2040,8 +2125,20 @@
         if (modal) modal.classList.add('hidden');
     }
 
+    function openParticipantsActionsModal() {
+        var modal = document.getElementById('participantsActionsModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeParticipantsActionsModal() {
+        var modal = document.getElementById('participantsActionsModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
     window.openImportCsvModal = openImportCsvModal;
     window.closeImportCsvModal = closeImportCsvModal;
+    window.openParticipantsActionsModal = openParticipantsActionsModal;
+    window.closeParticipantsActionsModal = closeParticipantsActionsModal;
 
     (function () {
         var form = document.getElementById('importCsvForm');

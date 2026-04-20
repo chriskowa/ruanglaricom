@@ -43,6 +43,12 @@
                                 <span>Email Monitoring</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('admin.reports.event-finance.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">
+                                <span class="w-5 text-slate-400"><i class="fas fa-coins"></i></span>
+                                <span>Event Finance</span>
+                            </a>
+                        </li>
                         <li><a href="{{ route('admin.integration.settings') }}" class="flex items-center px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Settings</a></li>
                         <li><a href="{{ route('admin.vcard.settings') }}" class="flex items-center px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">V-Card</a></li>
                         <li><a href="{{ route('admin.seo.settings') }}" class="flex items-center px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">SEO Settings</a></li>

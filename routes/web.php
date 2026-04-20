@@ -702,6 +702,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/seo-settings', [App\Http\Controllers\Admin\SeoSettingsController::class, 'index'])->name('seo.settings');
         Route::post('/seo-settings', [App\Http\Controllers\Admin\SeoSettingsController::class, 'update'])->name('seo.settings.update');
 
+        Route::get('reports/event-finance', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'index'])->name('reports.event-finance.index');
+        Route::get('reports/event-finance/{event}', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'show'])->name('reports.event-finance.show');
+        Route::post('reports/event-finance/{event}/payouts', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'storePayout'])->name('reports.event-finance.payouts.store');
+        Route::delete('reports/event-finance/payouts/{payout}', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'destroyPayout'])->name('reports.event-finance.payouts.destroy');
+
         Route::get('email-reports', [App\Http\Controllers\Admin\EmailReportController::class, 'index'])->name('email-reports.index');
         Route::get('email-reports/export', [App\Http\Controllers\Admin\EmailReportController::class, 'export'])->name('email-reports.export');
         Route::get('email-reports/print', [App\Http\Controllers\Admin\EmailReportController::class, 'print'])->name('email-reports.print');
