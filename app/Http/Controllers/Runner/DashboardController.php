@@ -21,7 +21,6 @@ class DashboardController extends Controller
             ->with('program')
             ->get();
 
-        // Calculate total earnings (income from commission, etc)
         $totalEarnings = 0;
         if ($user->wallet) {
             $totalEarnings = $user->wallet->transactions()
@@ -30,10 +29,13 @@ class DashboardController extends Controller
                 ->sum('amount');
         }
 
-        // Weekly volume calculation (planned for current week)
-        $startOfWeek = Carbon::now()->startOfWeek();
-        $endOfWeek = Carbon::now()->endOfWeek();
-        $weeklyVolumeKm = 0.0;
+        $startOfWeek = Carbon::now()->startOfWeek()->startOfDay();
+        $endOfWeek = Carbon::now()->endOfWeek()->endOfDay();
+
+        $weeklyPlannedKm = 0.0;
+        $weeklyCompletedKm = 0.0;
+        $weeklySessionsPlanned = 0;
+        $weeklySessionsCompleted = 0;
 
         foreach ($activeEnrollments as $enrollment) {
             $program = $enrollment->program;
@@ -67,22 +69,36 @@ class DashboardController extends Controller
                     continue;
                 }
 
-                $weeklyVolumeKm += (float) ($session['distance'] ?? 0);
+                $dist = (float) ($session['distance'] ?? 0);
+                $weeklyPlannedKm += $dist;
+                $weeklySessionsPlanned++;
+
+                $tracking = $trackings->get($day);
+                if ($tracking && $tracking->status === 'completed') {
+                    $weeklyCompletedKm += $dist;
+                    $weeklySessionsCompleted++;
+                }
             }
         }
 
-        // Include custom workouts in the same week
         $customWorkouts = CustomWorkout::where('runner_id', $user->id)
             ->whereBetween('workout_date', [$startOfWeek, $endOfWeek])
             ->get();
         foreach ($customWorkouts as $cw) {
-            $weeklyVolumeKm += (float) ($cw->distance ?? 0);
+            $dist = (float) ($cw->distance ?? 0);
+            $weeklyPlannedKm += $dist;
+            $weeklySessionsPlanned++;
+            if (($cw->status ?? 'pending') === 'completed') {
+                $weeklyCompletedKm += $dist;
+                $weeklySessionsCompleted++;
+            }
         }
 
         $stravaConnected = (bool) $user->strava_access_token;
         $lastStravaSyncAt = StravaActivity::where('user_id', $user->id)
             ->orderByDesc('updated_at')
-            ->first()?->updated_at;
+            ->first();
+        $lastStravaSyncAt = $lastStravaSyncAt ? $lastStravaSyncAt->updated_at : null;
         $lastStravaActivity = StravaActivity::where('user_id', $user->id)->orderByDesc('start_date')->first();
         $stravaWeekDistanceKm = (float) (StravaActivity::query()
             ->where('user_id', $user->id)
@@ -120,6 +136,15 @@ class DashboardController extends Controller
 
         $today = Carbon::now()->startOfDay();
         $next7 = Carbon::now()->addDays(6)->endOfDay();
+        $rangeCursor = $today->copy();
+
+        $workoutsByDate = [];
+        for ($i = 0; $i < 7; $i++) {
+            $workoutsByDate[$rangeCursor->format('Y-m-d')] = [];
+            $rangeCursor->addDay();
+        }
+
+        $seenWorkoutKeys = [];
         $upcoming = [];
 
         foreach ($activeEnrollments as $enrollment) {
@@ -149,7 +174,13 @@ class DashboardController extends Controller
                 if ($date->lt($today) || $date->gt($next7)) {
                     continue;
                 }
-                $upcoming[] = [
+                $key = 'program:'.$enrollment->id.':'.$day;
+                if (isset($seenWorkoutKeys[$key])) {
+                    continue;
+                }
+                $seenWorkoutKeys[$key] = true;
+
+                $item = [
                     'date' => $date->format('Y-m-d'),
                     'date_label' => $date->format('D, d M'),
                     'type' => $session['type'] ?? 'Run',
@@ -158,7 +189,16 @@ class DashboardController extends Controller
                     'status' => $tracking ? ($tracking->status ?? 'pending') : 'pending',
                     'program_title' => $program->title,
                     'strava_link' => $tracking ? $tracking->strava_link : null,
+                    'source' => 'program',
+                    'enrollment_id' => $enrollment->id,
+                    'session_day' => $day,
                 ];
+
+                $upcoming[] = $item;
+                $dateKey = $item['date'];
+                if (isset($workoutsByDate[$dateKey])) {
+                    $workoutsByDate[$dateKey][] = $item;
+                }
             }
         }
 
@@ -167,7 +207,13 @@ class DashboardController extends Controller
             ->orderBy('workout_date')
             ->get();
         foreach ($customUpcoming as $cw) {
-            $upcoming[] = [
+            $key = 'custom:'.$cw->id;
+            if (isset($seenWorkoutKeys[$key])) {
+                continue;
+            }
+            $seenWorkoutKeys[$key] = true;
+
+            $item = [
                 'date' => $cw->workout_date->format('Y-m-d'),
                 'date_label' => $cw->workout_date->format('D, d M'),
                 'type' => $cw->type === 'race' ? ($cw->workout_structure['race_name'] ?? 'Race') : ($cw->type ?? 'Run'),
@@ -176,13 +222,78 @@ class DashboardController extends Controller
                 'status' => $cw->status ?? 'pending',
                 'program_title' => 'Custom',
                 'strava_link' => null,
+                'source' => 'custom',
+                'custom_workout_id' => $cw->id,
             ];
+
+            $upcoming[] = $item;
+            $dateKey = $item['date'];
+            if (isset($workoutsByDate[$dateKey])) {
+                $workoutsByDate[$dateKey][] = $item;
+            }
         }
 
         usort($upcoming, fn ($a, $b) => strcmp($a['date'], $b['date']));
         $upcoming = array_slice($upcoming, 0, 8);
 
-        $nextWorkout = $upcoming[0] ?? null;
+        $nextWorkout = null;
+        foreach ($upcoming as $w) {
+            if (($w['status'] ?? 'pending') !== 'completed') {
+                $nextWorkout = $w;
+                break;
+            }
+        }
+        $nextWorkout = $nextWorkout ?: ($upcoming[0] ?? null);
+
+        $todayKey = $today->format('Y-m-d');
+        $todayWorkouts = $workoutsByDate[$todayKey] ?? [];
+        $todayWorkout = $todayWorkouts[0] ?? null;
+
+        $weekStrip = [];
+        $cursor = $today->copy();
+        for ($i = 0; $i < 7; $i++) {
+            $k = $cursor->format('Y-m-d');
+            $items = $workoutsByDate[$k] ?? [];
+
+            $completed = 0;
+            $started = 0;
+            $pending = 0;
+            foreach ($items as $it) {
+                $st = $it['status'] ?? 'pending';
+                if ($st === 'completed') {
+                    $completed++;
+                } elseif ($st === 'started') {
+                    $started++;
+                } else {
+                    $pending++;
+                }
+            }
+
+            $status = 'rest';
+            if (count($items) > 0) {
+                if ($started > 0) {
+                    $status = 'started';
+                } elseif ($pending > 0) {
+                    $status = 'pending';
+                } else {
+                    $status = 'completed';
+                }
+            }
+
+            $weekStrip[] = [
+                'date' => $k,
+                'day_short' => $cursor->format('D'),
+                'day_num' => $cursor->format('d'),
+                'is_today' => $k === $todayKey,
+                'items_count' => count($items),
+                'status' => $status,
+                'completed_count' => $completed,
+                'primary' => $items[0] ?? null,
+            ];
+
+            $cursor->addDay();
+        }
+
         $now = Carbon::now();
         $hour = (int) $now->format('H');
         $greeting = match (true) {
@@ -196,7 +307,10 @@ class DashboardController extends Controller
             'activeEnrollments' => $activeEnrollments,
             'walletBalance' => $user->wallet ? $user->wallet->balance : 0,
             'totalEarnings' => $totalEarnings,
-            'weeklyVolumeKm' => round($weeklyVolumeKm, 1),
+            'weeklyPlannedKm' => round($weeklyPlannedKm, 1),
+            'weeklyCompletedKm' => round($weeklyCompletedKm, 1),
+            'weeklySessionsPlanned' => $weeklySessionsPlanned,
+            'weeklySessionsCompleted' => $weeklySessionsCompleted,
             'stravaConnected' => $stravaConnected,
             'lastStravaSyncAt' => $lastStravaSyncAt,
             'lastStravaActivity' => $lastStravaActivity,
@@ -204,6 +318,9 @@ class DashboardController extends Controller
             'upcomingWorkouts' => $upcoming,
             'recentStravaActivities' => $recentStravaActivities,
             'nextWorkout' => $nextWorkout,
+            'weekStrip' => $weekStrip,
+            'todayWorkout' => $todayWorkout,
+            'todayWorkoutCount' => count($todayWorkouts),
             'greeting' => $greeting,
         ]);
     }

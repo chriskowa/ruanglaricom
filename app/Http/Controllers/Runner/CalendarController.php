@@ -585,7 +585,7 @@ class CalendarController extends Controller
         \Log::info('updateSessionStatus payload:', $request->all());
 
         $validator = \Validator::make($request->all(), [
-            'status' => 'required|in:started,completed',
+            'status' => 'required|in:pending,started,completed',
             'strava_link' => 'nullable|url|max:255',
             'notes' => 'nullable|string|max:1000',
             'rpe' => 'nullable|integer|min:1|max:10',
@@ -613,7 +613,10 @@ class CalendarController extends Controller
                 ->where('runner_id', $user->id)
                 ->firstOrFail();
 
-            $updateData = ['status' => $validated['status']];
+            $updateData = [
+                'status' => $validated['status'],
+                'completed_at' => $validated['status'] === 'completed' ? now() : null,
+            ];
 
             if ($request->has('strava_link')) {
                 $updateData['strava_link'] = $validated['strava_link'];

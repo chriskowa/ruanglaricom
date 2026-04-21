@@ -692,13 +692,59 @@
                         <div v-if="detail.strength?.equipment || detail.description?.includes('Equipment')" class="text-xs text-slate-400 bg-slate-900/50 p-3 rounded-xl border border-slate-800">
                             <span class="font-bold text-slate-300">Equipment Needed:</span> @{{ detail.strength?.equipment || 'Dumbbells, Mat' }}
                         </div>
+
+                        <div v-if="showGuidedPlayer" class="rounded-2xl border border-purple-500/20 bg-purple-900/10 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="text-[10px] font-black uppercase tracking-widest text-purple-300">Guided Workout</div>
+                                    <div class="text-sm font-black text-white truncate">
+                                        @{{ currentExercise ? currentExercise.name : 'Workout' }}
+                                    </div>
+                                </div>
+                                <button type="button" class="px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 text-xs font-black hover:border-purple-500/40 transition" @click="exitGuidedWorkout">Exit</button>
+                            </div>
+
+                            <div v-if="!currentExercise" class="mt-3 text-xs text-slate-400">Workout plan belum punya exercise.</div>
+
+                            <div v-else class="mt-3 grid grid-cols-2 gap-3">
+                                <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-3">
+                                    <div class="text-[10px] text-slate-400 uppercase">Progress</div>
+                                    <div class="text-sm font-black text-white">@{{ currentExerciseIndex + 1 }} / @{{ guidedExercises.length }}</div>
+                                </div>
+                                <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-3">
+                                    <div class="text-[10px] text-slate-400 uppercase">Timer</div>
+                                    <div class="text-sm font-black text-white">@{{ formatTimer(timerSeconds) }}</div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentExercise" class="mt-3 text-xs text-slate-300">
+                                <span class="text-slate-400">@{{ currentExercise.sets }} sets</span>
+                                <span class="text-slate-600">•</span>
+                                <span class="text-slate-400">@{{ currentExercise.reps }} reps</span>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-4 gap-2">
+                                <button type="button" class="py-2 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 text-xs font-black hover:border-purple-500/40 transition" @click="prevExercise">Prev</button>
+                                <button type="button" class="py-2 rounded-xl bg-purple-600 text-white text-xs font-black hover:bg-purple-500 transition" @click="togglePlay">@{{ isPlaying ? 'Pause' : 'Play' }}</button>
+                                <button type="button" class="py-2 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 text-xs font-black hover:border-purple-500/40 transition" @click="nextExercise">Next</button>
+                                <button type="button" class="py-2 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 text-xs font-black hover:border-purple-500/40 transition" @click="resetTimer">Reset</button>
+                            </div>
+
+                            <div class="mt-3 grid grid-cols-2 gap-2">
+                                <button type="button" class="py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-black hover:bg-slate-700 transition border border-slate-700" @click="stopGuidedWorkout">Stop</button>
+                                <button type="button" class="py-2 rounded-xl bg-green-500 text-white text-xs font-black hover:bg-green-600 transition" @click="finishGuidedWorkout">Finish</button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Footer: Action -->
                     <div class="p-4 border-t border-slate-800 bg-slate-900/80 backdrop-blur-md">
-                        <button class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-lg shadow-lg shadow-purple-900/30 hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-3"
+                        <button v-if="detail.status === 'completed'" type="button" disabled class="w-full py-4 rounded-2xl bg-slate-800/60 text-slate-500 font-black text-lg border border-slate-700">
+                            Completed
+                        </button>
+                        <button v-else type="button" class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-lg shadow-lg shadow-purple-900/30 hover:scale-[1.02] active:scale-[0.98] transition flex items-center justify-center gap-3"
                                 @click="startGuidedWorkout(detail)">
-                            <span>Start Guided Workout</span>
+                            <span>@{{ detail.status === 'started' ? 'Resume Guided Workout' : 'Start Guided Workout' }}</span>
                             <span class="bg-white/20 px-2 py-0.5 rounded text-xs">Beta</span>
                         </button>
                     </div>
@@ -1064,15 +1110,15 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons for Program Session -->
-                <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest'" class="mt-4 border-t border-slate-700 pt-4">
+                <!-- Action Buttons -->
+                <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race'" class="mt-4 border-t border-slate-700 pt-4">
                     <div v-if="detail.status === 'pending' || !detail.status">
                         <button class="w-full py-3 rounded-xl bg-neon text-dark font-black text-sm hover:bg-neon/90 transition" @click="updateSessionStatus(detail, 'started')">Start Activity</button>
                     </div>
                     <div v-else-if="detail.status === 'started'">
                         <div class="space-y-3">
                              <div>
-                                <label class="text-xs text-slate-400 block mb-1">Strava Activity Link (Required)</label>
+                                <label class="text-xs text-slate-400 block mb-1">Strava Activity Link (@{{ detail.enrollment_id ? 'Required' : 'Optional' }})</label>
                                 <input type="url" v-model="stravaLinkInput" placeholder="https://www.strava.com/activities/..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
                             </div>
                             
@@ -1107,7 +1153,10 @@
                                 <label class="text-xs text-slate-400 block mb-1">Notes for Coach (Optional)</label>
                                 <textarea v-model="notesInput" rows="2" placeholder="How was your run? Any pain or issues?" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></textarea>
                             </div>
-                            <button class="w-full py-2 rounded-lg bg-green-500 text-white font-black text-sm hover:bg-green-600 transition" @click="finishActivityWithLink">Finish Activity</button>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button class="w-full py-2 rounded-lg bg-slate-800 text-slate-200 font-black text-sm hover:bg-slate-700 transition border border-slate-700" @click="updateSessionStatus(detail, 'pending')">Stop</button>
+                                <button class="w-full py-2 rounded-lg bg-green-500 text-white font-black text-sm hover:bg-green-600 transition" @click="finishActivityWithLink">Finish Activity</button>
+                            </div>
                         </div>
                     </div>
                     <div v-else-if="detail.status === 'completed'" class="text-center text-xs text-slate-500">
@@ -2269,7 +2318,7 @@ createApp({
         };
 
         const getExerciseIcon = (name) => {
-            const n = name.toLowerCase();
+            const n = String(name || '').toLowerCase();
             if (n.includes('squat')) return '🏋️';
             if (n.includes('push')) return '💪';
             if (n.includes('plank') || n.includes('core')) return '🧱';
@@ -2279,12 +2328,44 @@ createApp({
             return '⚡';
         };
 
-        const startGuidedWorkout = (d) => {
+        const formatTimer = (s) => {
+            const sec = Math.max(0, parseInt(s || 0, 10));
+            const m = Math.floor(sec / 60);
+            const ss = sec % 60;
+            return `${m}:${String(ss).padStart(2, '0')}`;
+        };
+
+        const startGuidedWorkout = async (d) => {
+            if (!showGuidedPlayer.value && (d.status !== 'started')) {
+                const ok = await updateSessionStatus(d, 'started');
+                if (!ok) return;
+                d.status = 'started';
+            }
+
             guidedExercises.value = parseStrengthExercises(d);
             currentExerciseIndex.value = 0;
             showGuidedPlayer.value = true;
             isPlaying.value = false;
             timerSeconds.value = 0;
+        };
+
+        const exitGuidedWorkout = () => {
+            resetTimer();
+            showGuidedPlayer.value = false;
+        };
+
+        const stopGuidedWorkout = async () => {
+            const ok = await updateSessionStatus(detail, 'pending');
+            if (!ok) return;
+            resetTimer();
+            showGuidedPlayer.value = false;
+        };
+
+        const finishGuidedWorkout = async () => {
+            const ok = await updateSessionStatus(detail, 'completed');
+            if (!ok) return;
+            resetTimer();
+            showGuidedPlayer.value = false;
         };
 
         const togglePlay = () => {
@@ -3350,6 +3431,11 @@ createApp({
 
         const closeDetail = () => {
             destroyStravaChart();
+            try {
+                resetTimer();
+                showGuidedPlayer.value = false;
+            } catch (e) {
+            }
             showDetailModal.value = false;
         };
 
@@ -3430,6 +3516,14 @@ createApp({
 
                         if (isSamePlan) {
                             detail.status = status;
+                            if (status !== 'completed') {
+                                detail.completed_at = null;
+                            }
+                            if (data && data.tracking && data.tracking.completed_at) {
+                                detail.completed_at = data.tracking.completed_at;
+                            } else if (status === 'completed') {
+                                detail.completed_at = new Date().toISOString();
+                            }
                             if (stravaLink) detail.strava_link = stravaLink;
                             if (notes) detail.notes = notes;
                             if (status === 'completed') showDetailModal.value = false;
@@ -3450,8 +3544,13 @@ createApp({
         };
 
         const finishActivityWithLink = async () => {
-            await updateSessionStatus(detail, 'completed', stravaLinkInput.value, notesInput.value, rpeInput.value, feelingInput.value);
-            // Close modal after success or update UI
+            const isProgram = !!detail.enrollment_id;
+            const link = String(stravaLinkInput.value || '').trim();
+            if (isProgram && !link) {
+                alert('Strava Activity Link wajib diisi untuk program session.');
+                return;
+            }
+            await updateSessionStatus(detail, 'completed', link || null, notesInput.value, rpeInput.value, feelingInput.value);
         };
 
         const deleteEnrollment = async (enrollmentId) => {
@@ -3527,7 +3626,10 @@ createApp({
             showRescheduleModal, rescheduleTarget, rescheduleForm, rescheduleLoading, openRescheduleModal, submitReschedule,
             showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans,
             showApplyModal, applyForm, applyLoading, applyTarget, submitApply,
-            countExercises, parseStrengthExercises, payDonation, donationLoading, donationAmount,
+            countExercises, parseStrengthExercises, getExerciseIcon, previewExercise, startGuidedWorkout,
+            showGuidedPlayer, guidedExercises, currentExerciseIndex, currentExercise, isPlaying, timerSeconds, togglePlay, nextExercise, prevExercise, resetTimer,
+            stopGuidedWorkout, finishGuidedWorkout, exitGuidedWorkout, formatTimer,
+            payDonation, donationLoading, donationAmount,
             hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek,
             promoCode, promoApplied, promoError, checkingPromo, applyPromo, handleUnlockAction,
             notification, showNotification
