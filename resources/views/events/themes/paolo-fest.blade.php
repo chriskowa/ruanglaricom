@@ -1622,7 +1622,7 @@
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Registrasi Peserta</h2>
                 <p class="mt-4 text-slate-600">Pastikan data yang Anda masukkan sesuai dengan identitas (KTP/SIM). </p>
                 <div class="flex justify-center">
-              <button type="button" onclick="openLightbox('https://res.cloudinary.com/dslfarxct/image/upload/v1769987180/Panduan_trajpm.webp', true)" 
+              <button type="button" onclick="openLightbox('https://ruanglari.com/storage/blog/media/xWRVum6G1N2X5uHsNnxio6vmIOBg3ZR14xwwTDWS.jpghttps://ruanglari.com/storage/blog/media/SEIthtxRb1p8CPI9wjjYfkiWYzcuzFek7tTVbrqq.webp', true)" 
                     class="text-xs font-bold text-brand-600 hover:text-brand-700 mt-1.5 flex items-center gap-1 ml-1 transition-colors">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
