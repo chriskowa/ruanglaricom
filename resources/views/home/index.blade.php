@@ -135,7 +135,7 @@
                             $slides = $slides->filter(fn ($s) => ! empty($s['href']))->values()->take(6);
                         @endphp
 
-                        <div class="relative z-10 rounded-[2.5rem] overflow-hidden border-8 border-slate-800/50 shadow-2xl rotate-3 hover:rotate-0 transition duration-700 group">
+                        <div class="relative z-10 rounded-[2.5rem] overflow-hidden border-8 border-slate-800/50 shadow-2xl transition duration-700 group">
                             <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent z-10 pointer-events-none"></div>
 
                             <div class="relative">

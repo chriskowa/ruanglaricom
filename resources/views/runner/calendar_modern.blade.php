@@ -167,25 +167,88 @@
         </div>
     </transition>
 
-    <main class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans">
+    <main class="min-h-screen pt-20 pb-28 md:pb-10 px-4 md:px-8 font-sans">
     <div class="max-w-7xl mx-auto pt-10">
         <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-8">
             <div>
                 <p class="text-neon font-mono text-sm tracking-widest uppercase">Training</p>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Runner Calendar</h1>
             </div>
-            <div class="flex gap-2 md:gap-3 flex-wrap justify-end relative z-[10] isolate pointer-events-auto" data-debug="runner-calendar-header-actions">
-                <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-xs md:text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
-                <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#E34402] transition text-xs md:text-sm shadow-lg shadow-orange-600/20 flex items-center gap-1 disabled:opacity-70 disabled:cursor-not-allowed">
-                    <span v-if="isSyncingStrava" class="animate-spin">⟳</span>
-                    Sync Strava
-                </button>
-                @if($isEnrolled40Days)
-                <a href="{{ route('challenge.create') }}" class="relative z-[5001] px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-xs md:text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
-                @endif
-                <a href="{{ route('programs.index') }}" class="relative z-[5001] px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-xs md:text-sm font-bold">Browse Programs</a>
-                <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Custom Workout'); openFormForToday(); }" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-xs md:text-sm">Add Custom Workout</button>
-                <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Race'); openRaceForm(); }" class="relative z-[5001] cursor-pointer px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-xs md:text-sm">Add Race</button>
+            <div class="relative z-[10] isolate pointer-events-auto w-full md:w-auto">
+                <div class="grid grid-cols-3 gap-2 md:hidden">
+                    <button type="button" @click="openMobileAddSheet" class="w-full px-3 py-2.5 rounded-2xl bg-neon text-dark font-black shadow-lg shadow-neon/20 active:scale-[0.99] transition flex items-center justify-center gap-2">
+                        <span class="text-base">＋</span>
+                        <span class="text-sm">Add</span>
+                    </button>
+                    <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="w-full px-3 py-2.5 rounded-2xl bg-[#FC4C02] text-white font-black shadow-lg shadow-orange-600/20 active:scale-[0.99] transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <span v-if="isSyncingStrava" class="animate-spin">⟳</span>
+                        <span class="text-sm">Sync</span>
+                    </button>
+                    <button type="button" @click="showHeaderActions = true" class="w-full px-3 py-2.5 rounded-2xl bg-slate-800 border border-slate-600 text-white font-black active:scale-[0.99] transition flex items-center justify-center gap-2">
+                        <span class="text-base">⋯</span>
+                        <span class="text-sm">More</span>
+                    </button>
+                </div>
+
+                <div class="hidden md:flex gap-2 md:gap-3 flex-wrap justify-end" data-debug="runner-calendar-header-actions">
+                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
+                    <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#E34402] transition text-sm shadow-lg shadow-orange-600/20 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <span v-if="isSyncingStrava" class="animate-spin">⟳</span>
+                        Sync Strava
+                    </button>
+                    @if($isEnrolled40Days)
+                    <a href="{{ route('challenge.create') }}" class="relative z-[5001] px-4 py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
+                    @endif
+                    <a href="{{ route('programs.index') }}" class="relative z-[5001] px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm font-bold">Browse Programs</a>
+                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Custom Workout'); openFormForToday(); }" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-sm">Add Custom Workout</button>
+                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Race'); openRaceForm(); }" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-sm">Add Race</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showMobileAddSheet" class="fixed inset-0 z-[1200] md:hidden">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="showMobileAddSheet = false"></div>
+            <div class="fixed bottom-0 left-0 right-0 rounded-t-3xl bg-slate-900 border-t border-slate-700 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="text-xs font-mono text-slate-400 uppercase tracking-widest">Add</div>
+                    <button type="button" class="w-10 h-10 rounded-2xl bg-slate-800 border border-slate-700 text-slate-200 font-black" @click="showMobileAddSheet = false">✕</button>
+                </div>
+                <div class="mt-3 grid grid-cols-1 gap-2">
+                    <button type="button" class="w-full px-4 py-3 rounded-2xl bg-neon text-dark font-black text-sm flex items-center justify-between" @click="showMobileAddSheet = false; openFormForToday();">
+                        <span>Add Custom Workout</span>
+                        <span class="text-dark/70">›</span>
+                    </button>
+                    <button type="button" class="w-full px-4 py-3 rounded-2xl bg-yellow-500 text-black font-black text-sm flex items-center justify-between" @click="showMobileAddSheet = false; openRaceForm();">
+                        <span>Add Race</span>
+                        <span class="text-black/70">›</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showHeaderActions" class="fixed inset-0 z-[1200] md:hidden">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="showHeaderActions = false"></div>
+            <div class="fixed bottom-0 left-0 right-0 rounded-t-3xl bg-slate-900 border-t border-slate-700 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="text-xs font-mono text-slate-400 uppercase tracking-widest">More</div>
+                    <button type="button" class="w-10 h-10 rounded-2xl bg-slate-800 border border-slate-700 text-slate-200 font-black" @click="showHeaderActions = false">✕</button>
+                </div>
+                <div class="mt-3 grid grid-cols-1 gap-2">
+                    <button type="button" class="w-full px-4 py-3 rounded-2xl bg-purple-600 text-white font-black text-sm flex items-center justify-between" @click="showHeaderActions = false; openVdotModal();">
+                        <span>Generate VDOT</span>
+                        <span class="text-white/80">›</span>
+                    </button>
+                    <a href="{{ route('programs.index') }}" class="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white font-black text-sm flex items-center justify-between">
+                        <span>Browse Programs</span>
+                        <span class="text-slate-300">›</span>
+                    </a>
+                    @if($isEnrolled40Days)
+                    <a href="{{ route('challenge.create') }}" class="w-full px-4 py-3 rounded-2xl bg-orange-600 text-white font-black text-sm flex items-center justify-between">
+                        <span>Lapor Aktivitas</span>
+                        <span class="text-white/80">›</span>
+                    </a>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -544,14 +607,14 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-2xl p-4 md:p-6">
+                <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-calendar-section">
                     <div id="calendar"></div>
                 </div>
             </div>
 
             <div class="space-y-6">
                 <!-- Plan List moved to sidebar for better UX -->
-                <div class="glass-panel rounded-2xl p-4 md:p-6">
+                <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-plans-section">
                     <div class="flex flex-col sm:flex-row items-end justify-between mb-4 gap-4">
                         <div>
                             <h3 class="text-white font-bold text-lg tracking-tight italic uppercase">Plan List</h3>
@@ -1595,6 +1658,35 @@
             </div>
         </div>
 
+        <div class="fixed bottom-4 left-4 right-4 z-[900] md:hidden pointer-events-none">
+            <div class="pointer-events-auto bg-slate-900/80 border border-slate-700/70 backdrop-blur-xl rounded-3xl shadow-2xl px-3 py-2">
+                <div class="grid grid-cols-4 gap-2">
+                    <button type="button" class="py-2 rounded-2xl text-xs font-black transition flex flex-col items-center justify-center gap-1"
+                            :class="activeDock === 'today' ? 'bg-neon text-dark' : 'bg-slate-800 text-slate-200 border border-slate-700'"
+                            @click="scrollToSection('today')">
+                        <span class="text-base">●</span>
+                        <span>Today</span>
+                    </button>
+                    <button type="button" class="py-2 rounded-2xl text-xs font-black transition flex flex-col items-center justify-center gap-1"
+                            :class="activeDock === 'calendar' ? 'bg-neon text-dark' : 'bg-slate-800 text-slate-200 border border-slate-700'"
+                            @click="scrollToSection('calendar')">
+                        <span class="text-base">⌁</span>
+                        <span>Calendar</span>
+                    </button>
+                    <button type="button" class="py-2 rounded-2xl bg-neon text-dark text-xs font-black transition flex flex-col items-center justify-center gap-1 shadow-lg shadow-neon/20"
+                            @click="openMobileAddSheet">
+                        <span class="text-base">＋</span>
+                        <span>Add</span>
+                    </button>
+                    <button type="button" class="py-2 rounded-2xl bg-slate-800 text-slate-200 border border-slate-700 text-xs font-black transition flex flex-col items-center justify-center gap-1"
+                            @click="showHeaderActions = true">
+                        <span class="text-base">⋯</span>
+                        <span>More</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 @endsection
@@ -1625,6 +1717,9 @@ createApp({
         const pageSize = 10;
         const visibleCount = ref(pageSize);
         const notification = ref(null);
+        const showHeaderActions = ref(false);
+        const showMobileAddSheet = ref(false);
+        const activeDock = ref('today');
 
         const showNotification = (message, type = 'success') => {
             notification.value = { message, type };
@@ -1637,6 +1732,26 @@ createApp({
         const canLoadMore = computed(() => visibleCount.value < plans.value.length);
         const loadMorePlans = () => {
             visibleCount.value = Math.min(visibleCount.value + pageSize, plans.value.length);
+        };
+
+        const openMobileAddSheet = () => {
+            showHeaderActions.value = false;
+            showMobileAddSheet.value = true;
+        };
+
+        const scrollToSection = (key) => {
+            try {
+                if (key === 'calendar') {
+                    const el = document.getElementById('calendar') || document.getElementById('runner-calendar-section');
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    activeDock.value = 'calendar';
+                    return;
+                }
+                const el = document.getElementById('runner-plans-section');
+                el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                activeDock.value = 'today';
+            } catch (e) {
+            }
         };
         const weeklyVolume = ref([]);
         const maxVolume = computed(() => {
@@ -3608,7 +3723,26 @@ createApp({
                 console.error('[RunnerCalendar] initCalendar failed', e);
             }
 
-           
+            try {
+                nextTick(() => {
+                    const plansEl = document.getElementById('runner-plans-section');
+                    const calEl = document.getElementById('runner-calendar-section') || document.getElementById('calendar');
+                    if (!plansEl || !calEl) return;
+
+                    const obs = new IntersectionObserver((entries) => {
+                        const calEntry = entries.find(e => e.target === calEl);
+                        if (calEntry && calEntry.isIntersecting) {
+                            activeDock.value = 'calendar';
+                        } else {
+                            activeDock.value = 'today';
+                        }
+                    }, { threshold: 0.25 });
+
+                    obs.observe(calEl);
+                    obs.observe(plansEl);
+                });
+            } catch (e) {
+            }
         });
 
         return { filter, plans, plansLoading, enrollments, programBag, setFilter, dayName, statusText, statusClass, activityLabel, formatDate,
@@ -3632,7 +3766,7 @@ createApp({
             payDonation, donationLoading, donationAmount,
             hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek,
             promoCode, promoApplied, promoError, checkingPromo, applyPromo, handleUnlockAction,
-            notification, showNotification
+            notification, showNotification, showHeaderActions, showMobileAddSheet, openMobileAddSheet, activeDock, scrollToSection
         };
     }
 
