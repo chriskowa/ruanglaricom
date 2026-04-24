@@ -22,7 +22,7 @@
 @endpush
 
 @section('content')
-<div id="coach-dashboard-app" class="max-w-7xl mx-auto mt-[100px] pb-10 font-sans">
+<div id="coach-dashboard-app" class="max-w-7xl mx-auto mt-[100px] pb-10 px-4 md:px-8 font-sans">
     
     <!-- Hero Section -->
     <div class="mb-10 relative z-10" data-aos="fade-up">
@@ -101,17 +101,205 @@
         </div>
     </div>
 
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-10 relative z-10">
+        <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-4">
+            <div class="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Due Today</div>
+            <div class="mt-2 text-2xl font-black text-white">{{ number_format((int) ($coachMetrics['due_today'] ?? 0)) }}</div>
+        </div>
+        <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-4">
+            <div class="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Needs Review</div>
+            <div class="mt-2 text-2xl font-black text-white">{{ number_format((int) ($coachMetrics['needs_review'] ?? 0)) }}</div>
+        </div>
+        <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-4">
+            <div class="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Overdue</div>
+            <div class="mt-2 text-2xl font-black text-white">{{ number_format((int) ($coachMetrics['overdue'] ?? 0)) }}</div>
+        </div>
+        <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-4">
+            <div class="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Unread Chats</div>
+            <div class="mt-2 text-2xl font-black text-white">{{ number_format((int) ($coachMetrics['unread_chats'] ?? 0)) }}</div>
+        </div>
+        <div class="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-4 col-span-2 md:col-span-2">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <div class="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Week Completion</div>
+                    <div class="mt-2 text-2xl font-black text-white">{{ number_format((int) ($coachMetrics['weekly_completion_rate'] ?? 0)) }}%</div>
+                    <div class="mt-1 text-xs text-slate-400">
+                        {{ number_format((int) ($coachMetrics['weekly_completed'] ?? 0)) }}/{{ number_format((int) ($coachMetrics['weekly_scheduled'] ?? 0)) }} sessions · {{ number_format((int) ($coachMetrics['active_athletes'] ?? 0)) }} athletes
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3a1 1 0 012 0v18a1 1 0 01-2 0V3zm8 8a1 1 0 011 1v8a1 1 0 11-2 0v-8a1 1 0 011-1zM5 13a1 1 0 011 1v6a1 1 0 11-2 0v-6a1 1 0 011-1z" /></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Links & Actions -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         
-        <!-- Performance Overview (Mockup) -->
-        <div class="lg:col-span-2 bg-card/30 border border-slate-700 rounded-2xl p-6">
-            <h3 class="text-lg font-bold text-white mb-6">Performance Overview</h3>
-            <div class="h-64 flex items-center justify-center border-2 border-dashed border-slate-700 rounded-xl bg-slate-800/50">
-                <div class="text-center">
-                    <svg class="w-12 h-12 text-slate-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
-                    <p class="text-slate-500 text-sm">Revenue Chart will appear here</p>
+        <div class="lg:col-span-2 space-y-8">
+            <div class="bg-card/30 border border-slate-700 rounded-2xl p-6">
+                <div class="flex items-start justify-between gap-4 mb-5">
+                    <div>
+                        <h3 class="text-lg font-black text-white italic tracking-tight">Today Queue</h3>
+                        <div class="text-xs text-slate-400 mt-1">Prioritas: risk, overdue, needs review, due today, unread chat.</div>
+                    </div>
+                    <a href="{{ route('coach.athletes.index') }}" class="text-sm text-cyan-400 hover:underline font-bold">View Athletes</a>
                 </div>
+
+                @if(empty($queueItems ?? []))
+                    <div class="py-10 text-center border border-dashed border-slate-700 rounded-2xl bg-slate-900/40">
+                        <div class="text-white font-bold">Queue bersih.</div>
+                        <div class="text-xs text-slate-400 mt-1">Belum ada atlet yang butuh tindakan hari ini.</div>
+                    </div>
+                @else
+                    <div class="space-y-3">
+                        @foreach(($queueItems ?? []) as $it)
+                            <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-700/60 hover:border-cyan-400/40 transition-all">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex items-start gap-3 min-w-0">
+                                        @if(!empty($it['runner_avatar']))
+                                            <img src="{{ $it['runner_avatar'] }}" alt="{{ $it['runner_name'] }}" class="w-10 h-10 rounded-full object-cover border border-slate-700">
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-black text-sm">
+                                                {{ strtoupper(mb_substr($it['runner_name'] ?? 'R', 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0">
+                                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                <div class="text-white font-black truncate">{{ $it['runner_name'] }}</div>
+                                                <div class="text-[11px] text-slate-400 font-mono">{{ $it['program_title'] }}</div>
+                                            </div>
+                                            <div class="mt-1 text-xs text-slate-300">
+                                                <span class="font-bold">{{ $it['date_label'] }}</span>
+                                                <span class="text-slate-500">·</span>
+                                                <span class="capitalize">{{ str_replace('_', ' ', $it['type'] ?? 'run') }}</span>
+                                                @if(!empty($it['distance']))
+                                                    <span class="text-slate-500">·</span>
+                                                    <span>{{ $it['distance'] }} km</span>
+                                                @endif
+                                                @if(!empty($it['duration']))
+                                                    <span class="text-slate-500">·</span>
+                                                    <span>{{ $it['duration'] }}</span>
+                                                @endif
+                                            </div>
+                                            <div class="mt-2 flex flex-wrap gap-2">
+                                                @if(!empty($it['flags']['risk']))
+                                                    <span class="px-2 py-1 rounded-lg bg-red-600/20 text-red-300 border border-red-600/30 text-[11px] font-black">Risk</span>
+                                                @endif
+                                                @if(!empty($it['flags']['overdue']))
+                                                    <span class="px-2 py-1 rounded-lg bg-orange-600/20 text-orange-300 border border-orange-600/30 text-[11px] font-black">Overdue</span>
+                                                @endif
+                                                @if(!empty($it['flags']['needs_review']))
+                                                    <span class="px-2 py-1 rounded-lg bg-yellow-600/20 text-yellow-300 border border-yellow-600/30 text-[11px] font-black">Needs Review</span>
+                                                @endif
+                                                @if(!empty($it['flags']['due_today']))
+                                                    <span class="px-2 py-1 rounded-lg bg-cyan-600/20 text-cyan-300 border border-cyan-600/30 text-[11px] font-black">Due Today</span>
+                                                @endif
+                                                @if(!empty($it['unread_count']))
+                                                    <span class="px-2 py-1 rounded-lg bg-purple-600/20 text-purple-300 border border-purple-600/30 text-[11px] font-black">{{ (int) $it['unread_count'] }} Unread</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col gap-2 w-[120px] shrink-0">
+                                        <a href="{{ route('chat.show', $it['runner_id']) }}" class="px-3 py-2 rounded-xl bg-neon text-dark font-black text-xs text-center hover:bg-neon/90 transition">Chat</a>
+                                        @if(!empty($it['enrollment_id']))
+                                            <a href="{{ route('coach.athletes.show', $it['enrollment_id']) }}" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs text-center hover:border-cyan-400/60 hover:text-cyan-300 transition">Review</a>
+                                        @else
+                                            <a href="{{ route('coach.athletes.index') }}" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs text-center hover:border-cyan-400/60 hover:text-cyan-300 transition">Open</a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            <div class="bg-card/30 border border-slate-700 rounded-2xl p-6">
+                <div class="flex items-start justify-between gap-4 mb-5">
+                    <div>
+                        <h3 class="text-lg font-black text-white italic tracking-tight">Recent Activity</h3>
+                        <div class="text-xs text-slate-400 mt-1">Aktivitas selesai (7 hari terakhir).</div>
+                    </div>
+                    <a href="{{ route('chat.index') }}" class="text-sm text-slate-300 hover:text-white font-bold">Open Chat</a>
+                </div>
+
+                @if(empty($recentActivities ?? []))
+                    <div class="py-10 text-center border border-dashed border-slate-700 rounded-2xl bg-slate-900/40">
+                        <div class="text-white font-bold">Belum ada aktivitas.</div>
+                        <div class="text-xs text-slate-400 mt-1">Nanti hasil latihan atlet akan muncul di sini.</div>
+                    </div>
+                @else
+                    <div class="space-y-3">
+                        @foreach(($recentActivities ?? []) as $a)
+                            <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-700/60 hover:border-slate-500/60 transition-all">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex items-start gap-3 min-w-0">
+                                        @if(!empty($a['runner_avatar']))
+                                            <img src="{{ $a['runner_avatar'] }}" alt="{{ $a['runner_name'] }}" class="w-10 h-10 rounded-full object-cover border border-slate-700">
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-black text-sm">
+                                                {{ strtoupper(mb_substr($a['runner_name'] ?? 'R', 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0">
+                                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                <div class="text-white font-black truncate">{{ $a['runner_name'] }}</div>
+                                                <div class="text-[11px] text-slate-400 font-mono">{{ $a['program_title'] }}</div>
+                                            </div>
+                                            <div class="mt-1 text-xs text-slate-300">
+                                                <span class="capitalize">{{ str_replace('_', ' ', $a['type'] ?? 'run') }}</span>
+                                                @if(!empty($a['distance']))
+                                                    <span class="text-slate-500">·</span>
+                                                    <span>{{ $a['distance'] }} km</span>
+                                                @endif
+                                                @if(!empty($a['duration']))
+                                                    <span class="text-slate-500">·</span>
+                                                    <span>{{ $a['duration'] }}</span>
+                                                @endif
+                                            </div>
+                                            <div class="mt-2 flex flex-wrap gap-2">
+                                                @if(!empty($a['rpe']))
+                                                    <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] text-slate-200 font-bold">RPE {{ (int) $a['rpe'] }}</span>
+                                                @endif
+                                                @if(!empty($a['feeling']))
+                                                    <span class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] text-slate-200 font-bold capitalize">{{ $a['feeling'] }}</span>
+                                                @endif
+                                                @if(empty($a['coach_rating']))
+                                                    <span class="px-2 py-1 rounded-lg bg-yellow-600/20 text-yellow-300 border border-yellow-600/30 text-[11px] font-black">Not Reviewed</span>
+                                                @else
+                                                    <span class="px-2 py-1 rounded-lg bg-green-600/20 text-green-300 border border-green-600/30 text-[11px] font-black">Reviewed</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col gap-2 w-[120px] shrink-0">
+                                        <a href="{{ route('chat.show', $a['runner_id']) }}" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs text-center hover:border-neon hover:text-neon transition">Chat</a>
+                                        @if(!empty($a['enrollment_id']))
+                                            <a href="{{ route('coach.athletes.show', $a['enrollment_id']) }}" class="px-3 py-2 rounded-xl bg-neon text-dark font-black text-xs text-center hover:bg-neon/90 transition">Review</a>
+                                        @else
+                                            <a href="{{ route('coach.athletes.index') }}" class="px-3 py-2 rounded-xl bg-neon text-dark font-black text-xs text-center hover:bg-neon/90 transition">Open</a>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                                    <div>
+                                        @if(!empty($a['completed_at']))
+                                            {{ \Carbon\Carbon::parse($a['completed_at'])->translatedFormat('d M Y, H:i') }}
+                                        @endif
+                                    </div>
+                                    @if(!empty($a['strava_link']))
+                                        <a href="{{ $a['strava_link'] }}" target="_blank" rel="noopener" class="text-cyan-400 hover:underline font-bold">Strava</a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -124,6 +312,29 @@
                 <a href="{{ route('coach.athletes.index') }}" class="block w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-center rounded-xl transition-colors shadow-lg shadow-purple-500/25">
                     Open Hub
                 </a>
+            </div>
+
+            <div class="bg-card/50 border border-slate-700 rounded-2xl p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Team Snapshot</div>
+                        <div class="mt-2 text-white font-black text-xl">{{ number_format((int) ($coachMetrics['weekly_completion_rate'] ?? 0)) }}%</div>
+                        <div class="mt-1 text-xs text-slate-400">Completion week-to-date</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m4 0a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h14z" /></svg>
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                    <div class="p-3 rounded-xl bg-slate-900/40 border border-slate-700/60">
+                        <div class="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Risk</div>
+                        <div class="mt-1 text-white font-black">{{ number_format((int) ($coachMetrics['risk'] ?? 0)) }}</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-900/40 border border-slate-700/60">
+                        <div class="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Active</div>
+                        <div class="mt-1 text-white font-black">{{ number_format((int) ($coachMetrics['active_athletes'] ?? 0)) }}</div>
+                    </div>
+                </div>
             </div>
 
             <div class="bg-card/50 border border-slate-700 rounded-2xl p-6">

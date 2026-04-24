@@ -9,58 +9,90 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css">
 <style>
 .glass-panel{background:rgba(15,23,42,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
-.fc .fc-toolbar-title{font-size: medium;font-weight:800;color:#e2e8f0}
+.fc .fc-toolbar-title{font-size: 1rem;font-weight:800;color:#e2e8f0}
 .fc .fc-button{background:#1e293b;border-color:#334155;color:#cbd5e1}
 .fc .fc-button:hover{color:#ccff00;border-color:#ccff00}
-.fc-event{border:none;border-radius:4px;cursor:pointer;}
+.fc-event{border:none;border-radius:6px;cursor:pointer;padding:2px 4px;font-size:0.75rem;}
 /* Calendar Dark Mode Overrides */
 .fc-theme-standard .fc-scrollgrid { border-color: #334155; }
 .fc-theme-standard td, .fc-theme-standard th { border-color: #334155; }
 .fc .fc-daygrid-day-number { color: #94a3b8; text-decoration: none; }
 .fc .fc-col-header-cell-cushion { color: #94a3b8; text-decoration: none; }
 .fc-day-today { background-color: rgba(204, 255, 0, 0.05) !important; }
-.fc-daygrid-day-frame { min-height: 100px; }
+.fc-daygrid-day-frame { min-height: 80px; }
 .fc .fc-daygrid-day.fc-day-other { background-color: rgba(0,0,0,0.2); }
+
+/* Mobile List View Styling */
+.fc-list { border: none !important; background: transparent !important; }
+.fc-list-day-cushion { background-color: transparent !important; }
+.fc-list-day-text, .fc-list-day-side-text { font-size: 1rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+.fc-list-event td { border: none !important; }
+.fc-list-event { 
+    background-color: #1e293b !important; 
+    border-radius: 12px; 
+    margin-bottom: 8px; 
+    display: block;
+    position: relative;
+    border: 1px solid #334155;
+}
+.fc-list-table { border-collapse: separate; border-spacing: 0 8px; }
+.fc-list-event:hover td { background-color: transparent !important; }
+.fc-list-event-graphic { display: none; }
+.fc-list-event-time { color: #94a3b8; font-size: 0.75rem; padding: 12px 0 12px 16px !important; width: 20%; }
+.fc-list-event-title { color: #fff; font-weight: 700; padding: 12px 16px !important; }
+
+/* Workout Colors */
+.fc-event.workout-easy_run, .fc-list-event.workout-easy_run { border-left: 4px solid #4CAF50 !important; }
+.fc-event.workout-long_run, .fc-list-event.workout-long_run { border-left: 4px solid #2196F3 !important; }
+.fc-event.workout-interval, .fc-list-event.workout-interval { border-left: 4px solid #F44336 !important; }
+.fc-event.workout-tempo, .fc-list-event.workout-tempo { border-left: 4px solid #FFC107 !important; }
+.fc-event.workout-strength, .fc-list-event.workout-strength { border-left: 4px solid #9C27B0 !important; }
+.fc-event.workout-rest, .fc-list-event.workout-rest { border-left: 4px solid #9E9E9E !important; }
+.fc-event.workout-race, .fc-list-event.workout-race { border-left: 4px solid #FFD700 !important; }
+
+@media (max-width: 640px) {
+    .fc .fc-header-toolbar { margin-bottom: 1rem; flex-direction: column; gap: 0.5rem; }
+    .fc .fc-toolbar-title { font-size: 0.9rem; }
+    .fc .fc-button { padding: 0.25rem 0.5rem; font-size: 0.7rem; }
+}
 </style>
 @endpush
 
 @section('content')
 <main id="coach-monitor-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans" v-cloak>
     <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
-            <div>
-                <a href="{{ route('coach.athletes.index') }}" class="text-slate-400 hover:text-white text-xs mb-2 flex items-center gap-1">
-                    ← Back to Athletes
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
+            <div class="w-full md:w-auto">
+                <a href="{{ route('coach.athletes.index') }}" class="text-slate-400 hover:text-white text-xs mb-3 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Back to Athletes
                 </a>
-                <h1 class="text-3xl font-black text-white italic tracking-tighter">{{ $enrollment->runner->name }}</h1>
-                <p class="text-neon font-mono text-sm tracking-widest uppercase">{{ $enrollment->program->title }}</p>
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-black text-2xl shadow-xl italic">
+                        {{ substr($enrollment->runner->name, 0, 1) }}
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-black text-white italic tracking-tighter leading-none">{{ $enrollment->runner->name }}</h1>
+                        <p class="text-neon font-mono text-sm tracking-widest uppercase mt-1">{{ $enrollment->program->title }}</p>
+                    </div>
+                </div>
             </div>
             
-            <!-- Runner Stats Summary -->
-            <div class="flex gap-4">
-                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
-                    <div class="text-[10px] text-slate-400 uppercase">Gender</div>
-                    <div class="text-lg font-black text-white capitalize">{{ $enrollment->runner->gender ?? '-' }}</div>
-                </div>
-                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
-                    <div class="text-[10px] text-slate-400 uppercase">Age</div>
-                    <div class="text-lg font-black text-white">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age : '-' }}</div>
-                </div>
-                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
-                    <div class="text-[10px] text-slate-400 uppercase">Weight</div>
-                    <div class="text-lg font-black text-white">{{ $enrollment->runner->weight ? $enrollment->runner->weight.' kg' : '-' }}</div>
-                </div>
-                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
-                    <div class="text-[10px] text-slate-400 uppercase">Height</div>
-                    <div class="text-lg font-black text-white">{{ $enrollment->runner->height ? $enrollment->runner->height.' cm' : '-' }}</div>
-                </div>
-                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
-                    <div class="text-[10px] text-slate-400 uppercase">VDOT</div>
-                    <div class="text-lg font-black text-neon">{{ $trainingProfile['vdot'] ?? '-' }}</div>
-                </div>
-                <div class="bg-slate-800/50 rounded-xl p-3 border border-slate-700 text-center min-w-[80px]">
-                    <div class="text-[10px] text-slate-400 uppercase">Weekly Target (km)</div>
-                    <div class="text-lg font-black text-white">{{ isset($trainingProfile['weekly_km_target']) && $trainingProfile['weekly_km_target'] !== null ? number_format($trainingProfile['weekly_km_target'], 1) : '-' }}</div>
+            <!-- Runner Stats Summary - Mobile Optimized -->
+            <div class="w-full overflow-x-auto no-scrollbar">
+                <div class="flex gap-3 pb-2 min-w-max md:min-w-0">
+                    <div class="bg-slate-800/40 backdrop-blur-md rounded-2xl p-4 border border-slate-700/50 text-center min-w-[100px]">
+                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">VDOT</div>
+                        <div class="text-2xl font-black text-neon italic">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+                    </div>
+                    <div class="bg-slate-800/40 backdrop-blur-md rounded-2xl p-4 border border-slate-700/50 text-center min-w-[100px]">
+                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Target</div>
+                        <div class="text-2xl font-black text-white italic">@{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(0) : '-' }}<span class="text-xs font-normal text-slate-400 ml-1">km</span></div>
+                    </div>
+                    <div class="bg-slate-800/40 backdrop-blur-md rounded-2xl p-4 border border-slate-700/50 text-center min-w-[100px]">
+                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Age</div>
+                        <div class="text-2xl font-black text-white italic">{{ $enrollment->runner->date_of_birth ? \Carbon\Carbon::parse($enrollment->runner->date_of_birth)->age : '-' }}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -76,16 +108,14 @@
                         </svg>
                     </div>
                     <div class="relative z-10">
-                        <div class="flex justify-between items-start mb-6">
+                        <div class="flex justify-between items-center mb-6">
                             <div>
-                                <h3 class="text-white font-bold text-lg flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                    </svg>
-                                    Training Profile
-                                </h3>
-                                <p class="text-xs text-slate-400">Based on Athlete's Personal Best (PB)</p>
+                                <h3 class="text-white font-black text-xl italic tracking-tight">Athlete Profile</h3>
+                                <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Based on VDOT Analytics</p>
                             </div>
+                            <button @click="showWeeklyTargetModal = true" class="p-2 rounded-xl bg-slate-800 border border-slate-700 text-neon hover:text-white transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
                         </div>
 
                         <!-- VDOT Score -->
@@ -234,27 +264,30 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-2xl p-4 md:p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-white font-bold">Training Calendar</h3>
-                        <button @click="openRaceForm" class="px-3 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-xs flex items-center gap-1">
-                            <span>🏆</span> Add Race
+                <div class="glass-panel rounded-[2.5rem] p-4 md:p-8">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                            <h3 class="text-white font-black text-2xl italic tracking-tight">Training Calendar</h3>
+                            <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">Review & Plan workouts</p>
+                        </div>
+                        <button @click="openRaceForm" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-yellow-500 text-dark font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-sm flex items-center justify-center gap-2">
+                            <span>🏆</span> Add Race Event
                         </button>
                     </div>
-                    <div id="calendar"></div>
+                    <div id="calendar" class="fc-modern"></div>
                 </div>
             </div>
 
-            <!-- Detail & Feedback Column -->
+            <!-- Detail & Feedback Column - Mobile Sheet Style -->
             <div class="lg:col-span-1">
-                <div class="glass-panel rounded-2xl p-6 sticky top-24">
-                    <div v-if="selectedSession">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <div class="text-xs text-slate-400 uppercase font-bold">@{{ formatDate(selectedSession.start) }}</div>
-                                <h3 class="text-xl font-black text-white">@{{ selectedSession.title }}</h3>
+                <div v-if="selectedSession" class="lg:sticky lg:top-24 space-y-6">
+                    <div class="glass-panel rounded-[2.5rem] p-6 border-neon/20 shadow-xl shadow-neon/5">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">@{{ formatDate(selectedSession.start) }}</div>
+                                <h3 class="text-2xl font-black text-white italic tracking-tight truncate">@{{ selectedSession.title }}</h3>
                             </div>
-                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase" 
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm" 
                                 :class="statusClass(selectedSession.extendedProps.status)">
                                 @{{ selectedSession.extendedProps.status }}
                             </span>
@@ -2001,10 +2034,26 @@ createApp({
 
         onMounted(() => {
             const el = document.getElementById('calendar');
+            const isMobile = window.innerWidth < 768;
+            const initialView = isMobile ? 'listWeek' : 'dayGridMonth';
+            const headerToolbar = isMobile 
+                ? { left: 'prev,next', center: 'title', right: '' }
+                : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' };
+
             calendar = new FullCalendar.Calendar(el, {
-                initialView: 'dayGridMonth',
-                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                initialView: initialView,
+                headerToolbar: headerToolbar,
                 events: '{{ route("coach.athletes.events", $enrollment->id) }}',
+                locale: 'id',
+                firstDay: 1,
+                editable: false,
+                eventClassNames: (arg) => {
+                    const cls = [];
+                    const props = arg.event.extendedProps || {};
+                    const type = props.type || (props.session ? props.session.type : 'run');
+                    if (type) cls.push('workout-' + type);
+                    return cls;
+                },
                 dateClick: (info) => {
                     openForm(info.dateStr);
                 },
@@ -2019,8 +2068,18 @@ createApp({
                         feedbackForm.coach_rating = 0;
                         feedbackForm.coach_feedback = '';
                     }
+
+                    // Scroll to detail on mobile
+                    if (window.innerWidth < 1024) {
+                        setTimeout(() => {
+                            const detailEl = document.querySelector('.lg\\:col-span-1');
+                            if (detailEl) detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
+                    }
                 },
-                height: 'auto'
+                height: 'auto',
+                listDayFormat: { month: 'short', day: 'numeric', weekday: 'short' },
+                listDaySideFormat: false
             });
             calendar.render();
 
