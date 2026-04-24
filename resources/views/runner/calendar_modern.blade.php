@@ -150,6 +150,62 @@
 .fc-list-event.workout-race { background: linear-gradient(90deg, rgba(255,215,0,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #FFD700 !important; }
 .fc-list-event.workout-rest { background: linear-gradient(90deg, rgba(100,116,139,0.1) 0%, rgba(30,41,59,1) 100%) !important; border-left: 4px solid #64748b !important; }*/
 
+@media (max-width: 640px) {
+    .fc .fc-header-toolbar {
+        margin-bottom: 0.75rem;
+    }
+
+    .fc .fc-toolbar {
+        gap: 0.35rem;
+        flex-wrap: wrap;
+    }
+
+    .fc .fc-toolbar-chunk:nth-child(2) {
+        order: 0;
+        flex: 1 1 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .fc .fc-toolbar-chunk:nth-child(1),
+    .fc .fc-toolbar-chunk:nth-child(3) {
+        order: 1;
+        flex: 1 1 50%;
+        display: flex;
+        align-items: center;
+    }
+
+    .fc .fc-toolbar-chunk:nth-child(1) {
+        justify-content: flex-start;
+    }
+
+    .fc .fc-toolbar-chunk:nth-child(3) {
+        justify-content: flex-end;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1rem;
+        line-height: 1.15;
+        text-align: center;
+        margin: 0.15rem 0;
+    }
+
+    .fc .fc-button {
+        padding: 0.35rem 0.55rem;
+        font-size: 0.75rem;
+        line-height: 1;
+        border-radius: 0.8rem;
+    }
+
+    .fc .fc-button-group {
+        gap: 0.35rem;
+    }
+
+    .fc .fc-button-group > .fc-button {
+        border-radius: 0.8rem;
+    }
+}
+
 </style>
 @endpush
 
@@ -167,7 +223,7 @@
         </div>
     </transition>
 
-    <main class="min-h-screen pt-20 pb-28 md:pb-10 px-4 md:px-8 font-sans">
+    <main class="min-h-screen pb-28 md:pb-10 px-4 md:px-8 font-sans">
     <div class="max-w-7xl mx-auto pt-10">
         <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-8">
             <div>
@@ -1181,7 +1237,7 @@
                     <div v-else-if="detail.status === 'started'">
                         <div class="space-y-3">
                              <div>
-                                <label class="text-xs text-slate-400 block mb-1">Strava Activity Link (@{{ detail.enrollment_id ? 'Required' : 'Optional' }})</label>
+                                <label class="text-xs text-slate-400 block mb-1">Strava Activity Link (Optional)</label>
                                 <input type="url" v-model="stravaLinkInput" placeholder="https://www.strava.com/activities/..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
                             </div>
                             
@@ -3206,9 +3262,9 @@ createApp({
             }
             
             const isMobile = window.innerWidth < 768;
-            const initialView = isMobile ? 'listMonth' : 'dayGridMonth';
+            const initialView = isMobile ? 'listWeek' : 'dayGridMonth';
             const headerToolbar = isMobile 
-                ? { left: 'prev,next', center: 'title', right: 'listMonth' }
+                ? { left: 'prev,next', center: 'title', right: 'listWeek' }
                 : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' };
 
             calendar = new FullCalendar.Calendar(el, {
@@ -3659,12 +3715,7 @@ createApp({
         };
 
         const finishActivityWithLink = async () => {
-            const isProgram = !!detail.enrollment_id;
             const link = String(stravaLinkInput.value || '').trim();
-            if (isProgram && !link) {
-                alert('Strava Activity Link wajib diisi untuk program session.');
-                return;
-            }
             await updateSessionStatus(detail, 'completed', link || null, notesInput.value, rpeInput.value, feelingInput.value);
         };
 
