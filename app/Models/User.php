@@ -12,6 +12,8 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $appends = ['avatar_url', 'vdot', 'training_paces'];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -74,6 +76,10 @@ class User extends Authenticatable
 
         if (str_starts_with($this->avatar, 'http')) {
             return $this->avatar;
+        }
+
+        if (str_starts_with($this->avatar, 'images/')) {
+            return asset($this->avatar);
         }
 
         if (str_starts_with($this->avatar, '/storage')) {

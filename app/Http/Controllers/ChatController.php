@@ -129,7 +129,7 @@ class ChatController extends Controller
                     'sender' => [
                         'id' => $message->sender->id,
                         'name' => $message->sender->name,
-                        'avatar' => $message->sender->avatar,
+                        'avatar' => $message->sender->avatar_url,
                     ],
                 ],
             ]);
@@ -172,7 +172,7 @@ class ChatController extends Controller
                 return [
                     'user_id' => $otherUser->id,
                     'user_name' => $otherUser->name,
-                    'user_avatar' => $otherUser->avatar,
+                    'user_avatar' => $otherUser->avatar_url,
                     'user_email' => $otherUser->email,
                     'last_message' => $lastMessage->message,
                     'last_message_time' => $lastMessage->created_at->toISOString(),
@@ -188,7 +188,7 @@ class ChatController extends Controller
             $formattedConversations->prepend([
                 'user_id' => $aiCoach->id,
                 'user_name' => $aiCoach->name,
-                'user_avatar' => $aiCoach->avatar,
+                'user_avatar' => $aiCoach->avatar_url,
                 'user_email' => $aiCoach->email,
                 'last_message' => 'Halo! Saya Coach AI Anda. Ada yang bisa saya bantu?',
                 'last_message_time' => now()->toISOString(),
@@ -226,7 +226,7 @@ class ChatController extends Controller
                     'sender' => [
                         'id' => $message->sender->id,
                         'name' => $message->sender->name,
-                        'avatar' => $message->sender->avatar,
+                        'avatar' => $message->sender->avatar_url,
                     ],
                 ];
             });
@@ -245,7 +245,7 @@ class ChatController extends Controller
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
-                'avatar' => $user->avatar,
+                'avatar' => $user->avatar_url,
             ],
         ]);
     }

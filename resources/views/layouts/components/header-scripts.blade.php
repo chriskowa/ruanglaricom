@@ -6,7 +6,7 @@
     const storageBase = @json(asset('storage/'));
     const defaultAvatar = @json(asset('images/avatar/1.jpg'));
     const authId = @json(auth()->id() ?: 0);
-    const authAvatar = @json(auth()->user() && auth()->user()->avatar ? asset('storage/' . preg_replace('/^(\/)?storage\//', '', auth()->user()->avatar)) : asset('images/avatar/1.jpg'));
+    const authAvatar = @json(auth()->user() ? auth()->user()->avatar_url : asset('images/avatar/1.jpg'));
     const authName = @json(auth()->user() ? auth()->user()->name : '');
     const authRole = @json(auth()->user() ? auth()->user()->role : '');
 
@@ -199,7 +199,7 @@
                         const li = document.createElement('li');
                         li.className = 'dz-chat-user';
                         li.dataset.userId = conv.user_id;
-                        const avatarUrl = conv.user_avatar ? (storageBase + conv.user_avatar) : defaultAvatar;
+                        const avatarUrl = conv.user_avatar;
                         const isAi = conv.user_email === 'ai-coach@ruanglari.com';
                         li.innerHTML = `
                             <div class="d-flex bd-highlight">
@@ -291,7 +291,7 @@
                         const isOwnMessage = String(msg.sender_id) === String(authId);
                         const messageDiv = document.createElement('div');
                         messageDiv.className = `d-flex ${isOwnMessage ? 'justify-content-end' : 'justify-content-start'} mb-4`;
-                        const senderAvatarUrl = msg.sender.avatar ? (storageBase + msg.sender.avatar) : defaultAvatar;
+                        const senderAvatarUrl = msg.sender.avatar_url || msg.sender.avatar;
                         const currentUserAvatarUrl = authAvatar;
                         messageDiv.innerHTML = `
                             ${!isOwnMessage ? `

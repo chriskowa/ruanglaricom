@@ -111,27 +111,6 @@
 
 @push('scripts')
 <script>
-    function getAvatarUrl(path) {
-        if (!path) return '/images/profile/17.jpg';
-        if (path.indexOf('http') === 0) return path;
-        
-        var baseUrl = "{{ url('/') }}";
-        var storageBase = "{{ asset('storage') }}";
-        
-        // If path already contains storage/, use baseUrl instead of storageBase
-        if (path.indexOf('storage/') === 0 || path.indexOf('/storage/') === 0) {
-             var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
-             return baseUrl + '/' + cleanPath;
-        }
-        
-        // Ensure slash between storageBase and path
-        var prefix = storageBase;
-        if (prefix.slice(-1) !== '/') prefix += '/';
-        var cleanPath = path.indexOf('/') === 0 ? path.substring(1) : path;
-        
-        return prefix + cleanPath;
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
         const messagesContainer = document.getElementById('chat-messages');
         const form = document.getElementById('chat-form');
@@ -145,15 +124,9 @@
         const currentUserId = {{ auth()->id() }};
         
         // Initial Avatar Setup
-        const userAvatar = @json($user->avatar);
-        const headerAvatarUrl = getAvatarUrl(userAvatar);
+        const headerAvatarUrl = @json($user->avatar_url);
         document.getElementById('header-avatar-link').href = headerAvatarUrl;
         document.getElementById('header-avatar-img').src = headerAvatarUrl;
-
-        // Update initial message avatars
-        document.querySelectorAll('img.message-avatar').forEach(img => {
-            img.src = getAvatarUrl(img.dataset.avatar);
-        });
 
         // Scroll to bottom
         function scrollToBottom() {
@@ -179,7 +152,7 @@
         // Helper: Create Message Bubble HTML
         function createMessageBubble(msg, isOwn) {
             const time = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const avatarUrl = !isOwn ? getAvatarUrl(msg.sender.avatar) : '';
+            const avatarUrl = !isOwn ? msg.sender.avatar : '';
             const avatarHtml = !isOwn 
                 ? `<img src="${avatarUrl}" class="w-8 h-8 rounded-full object-cover self-end mb-1 hidden md:block border border-slate-700">`
                 : '';
