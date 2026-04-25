@@ -27,30 +27,44 @@
         @forelse($conversations as $userId => $msgs)
             @php
                 $lastMessage = $msgs->first();
-                $otherUser = $lastMessage->sender_id === auth()->id() 
-                    ? $lastMessage->receiver 
-                    : $lastMessage->sender;
+                if (!$lastMessage) {
+                    $otherUser = \App\Models\User::find($userId);
+                } else {
+                    $otherUser = $lastMessage->sender_id === auth()->id() 
+                        ? $lastMessage->receiver 
+                        : $lastMessage->sender;
+                }
+                
+                if (!$otherUser) continue;
+                
                 $isActive = isset($activeUserId) && $otherUser->id === $activeUserId;
                 $unreadCount = $msgs->where('receiver_id', auth()->id())->where('is_read', false)->count();
+                $isAiCoach = $otherUser->email === 'ai-coach@ruanglari.com';
             @endphp
             <a href="{{ route('chat.show', $otherUser) }}" class="block p-4 border-b border-slate-800/50 transition-colors group {{ $isActive ? 'bg-slate-800 border-l-2 border-l-neon' : 'hover:bg-slate-800/50' }}">
                 <div class="flex items-start gap-3">
                     <div class="relative">
-                        <img src="/images/profile/17.jpg"
-                             data-avatar="{{ $otherUser->avatar }}"
+                        <img src="{{ $otherUser->avatar_url }}"
                              class="sidebar-avatar w-12 h-12 rounded-full object-cover border-2 {{ $isActive ? 'border-neon' : 'border-slate-700 group-hover:border-neon' }} transition-colors" 
                              alt="{{ $otherUser->name }}">
+                        @if($isAiCoach)
+                            <span class="absolute -bottom-1 -right-1 bg-neon text-dark text-[8px] font-black px-1 rounded-sm border border-dark">AI</span>
+                        @endif
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline mb-1">
                             <h3 class="text-sm font-bold {{ $isActive ? 'text-white' : 'text-slate-300 group-hover:text-white' }} truncate">{{ $otherUser->name }}</h3>
-                            <span class="text-[10px] text-slate-500 font-mono">{{ $lastMessage->created_at->diffForHumans(null, true, true) }}</span>
+                            <span class="text-[10px] text-slate-500 font-mono">{{ $lastMessage ? $lastMessage->created_at->diffForHumans(null, true, true) : 'Always Online' }}</span>
                         </div>
                         <p class="text-xs truncate {{ $isActive ? 'text-slate-300' : 'text-slate-500' }} {{ $unreadCount > 0 ? 'font-bold text-white' : '' }}">
-                            @if($lastMessage->sender_id === auth()->id())
-                                <span class="text-neon">You:</span>
+                            @if($lastMessage)
+                                @if($lastMessage->sender_id === auth()->id())
+                                    <span class="text-neon">You:</span>
+                                @endif
+                                {{ Str::limit($lastMessage->message, 40) }}
+                            @else
+                                <span class="italic text-neon">Siap membantu program lari Anda!</span>
                             @endif
-                            {{ Str::limit($lastMessage->message, 40) }}
                         </p>
                     </div>
                     @if($unreadCount > 0)

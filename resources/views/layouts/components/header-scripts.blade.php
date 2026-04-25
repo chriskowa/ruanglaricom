@@ -200,21 +200,23 @@
                         li.className = 'dz-chat-user';
                         li.dataset.userId = conv.user_id;
                         const avatarUrl = conv.user_avatar ? (storageBase + conv.user_avatar) : defaultAvatar;
+                        const isAi = conv.user_email === 'ai-coach@ruanglari.com';
                         li.innerHTML = `
                             <div class="d-flex bd-highlight">
                                 <div class="img_cont">
                                     <img src="${avatarUrl}" 
                                          class="rounded-circle user_img" alt="${conv.user_name}">
-                                    <span class="online_icon offline"></span>
+                                    <span class="online_icon ${isAi ? '' : 'offline'}"></span>
+                                    ${isAi ? '<span class="position-absolute bottom-0 end-0 bg-neon text-dark font-weight-bold px-1 rounded" style="font-size: 8px; line-height: 1;">AI</span>' : ''}
                                 </div>
                                 <div class="user_info">
                                     <span>${conv.user_name} ${conv.unread_count > 0 ? '<span class="badge badge-danger">' + conv.unread_count + '</span>' : ''}</span>
-                                    <p>${conv.last_message ? conv.last_message.substring(0, 30) + (conv.last_message.length > 30 ? '...' : '') : 'Tidak ada pesan'}</p>
+                                    <p>${isAi ? 'Always Online' : (conv.last_message ? conv.last_message.substring(0, 30) + (conv.last_message.length > 30 ? '...' : '') : 'Tidak ada pesan')}</p>
                                 </div>
                             </div>
                         `;
                         li.addEventListener('click', function() {
-                            openChat(conv.user_id, conv.user_name, conv.user_avatar);
+                            openChat(conv.user_id, conv.user_name, conv.user_avatar, conv.user_email);
                         });
                         conversationsList.appendChild(li);
                     });
@@ -232,12 +234,19 @@
     }
 
     // Open chat with user
-    function openChat(userId, userName, userAvatar) {
+    function openChat(userId, userName, userAvatar, userEmail = null) {
         currentChatUserId = userId;
         lastMessageId = null;
 
+        const isAi = userEmail === 'ai-coach@ruanglari.com';
+
         // Update chat header
         document.getElementById('chat-with-name').textContent = userName;
+        const statusEl = document.getElementById('chat-with-status');
+        if (statusEl) {
+            statusEl.textContent = isAi ? 'Always Online' : 'Online';
+            statusEl.className = isAi ? 'mb-0 text-neon' : 'mb-0 text-success';
+        }
         document.getElementById('chat-view-profile').href = @json(route("profile.show")) + '?user=' + userId;
 
         // Show chat history box, hide contacts box

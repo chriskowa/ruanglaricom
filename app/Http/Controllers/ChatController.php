@@ -4,14 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Models\User;
+use App\Services\OpenAiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
+    private function getAiCoach()
+    {
+        return User::firstOrCreate(
+            ['email' => 'ai-coach@ruanglari.com'],
+            [
+                'name' => 'Coach AI',
+                'password' => bcrypt(str()->random(16)),
+                'role' => 'coach',
+                'username' => 'coach-ai',
+                'avatar' => 'images/profile/17.jpg',
+                'is_active' => true,
+            ]
+        );
+    }
+
     private function getConversationsList()
     {
-        return Message::where('sender_id', Auth::id())
+        $aiCoach = $this->getAiCoach();
+
+        $conversations = Message::where('sender_id', Auth::id())
             ->orWhere('receiver_id', Auth::id())
             ->with(['sender', 'receiver'])
             ->latest()
@@ -21,6 +39,13 @@ class ChatController extends Controller
                     ? $message->receiver_id
                     : $message->sender_id;
             });
+
+        // Ensure AI Coach is in the list even if no messages yet
+        if (!$conversations->has($aiCoach->id)) {
+            $conversations->put($aiCoach->id, collect());
+        }
+
+        return $conversations;
     }
 
     public function index()
@@ -77,6 +102,20 @@ class ChatController extends Controller
 
         $message->load(['sender', 'receiver']);
 
+        // AI Coach Auto-reply
+        if ($user->email === 'ai-coach@ruanglari.com') {
+            $openAiService = app(OpenAiService::class);
+            $aiResponse = $openAiService->getCoachResponse(Auth::user(), $request->message);
+
+            if ($aiResponse) {
+                Message::create([
+                    'sender_id' => $user->id,
+                    'receiver_id' => Auth::id(),
+                    'message' => $aiResponse,
+                ]);
+            }
+        }
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -101,6 +140,8 @@ class ChatController extends Controller
 
     public function getConversations()
     {
+        $aiCoach = $this->getAiCoach();
+
         $conversations = Message::where('sender_id', Auth::id())
             ->orWhere('receiver_id', Auth::id())
             ->with(['sender', 'receiver'])
@@ -110,13 +151,18 @@ class ChatController extends Controller
                 return $message->sender_id === Auth::id()
                     ? $message->receiver_id
                     : $message->sender_id;
-            })
-            ->take(10)
+            });
+
+        $formattedConversations = $conversations->take(10)
             ->map(function ($messages, $userId) {
                 $lastMessage = $messages->first();
+                if (!$lastMessage) return null;
+
                 $otherUser = $lastMessage->sender_id === Auth::id()
                     ? $lastMessage->receiver
                     : $lastMessage->sender;
+
+                if (!$otherUser) return null;
 
                 $unreadCount = Message::where('sender_id', $otherUser->id)
                     ->where('receiver_id', Auth::id())
@@ -127,15 +173,31 @@ class ChatController extends Controller
                     'user_id' => $otherUser->id,
                     'user_name' => $otherUser->name,
                     'user_avatar' => $otherUser->avatar,
+                    'user_email' => $otherUser->email,
                     'last_message' => $lastMessage->message,
                     'last_message_time' => $lastMessage->created_at->toISOString(),
                     'unread_count' => $unreadCount,
                 ];
             })
+            ->filter()
             ->values();
 
+        // Ensure AI Coach is in the list
+        $hasAiCoach = $formattedConversations->contains('user_id', $aiCoach->id);
+        if (!$hasAiCoach) {
+            $formattedConversations->prepend([
+                'user_id' => $aiCoach->id,
+                'user_name' => $aiCoach->name,
+                'user_avatar' => $aiCoach->avatar,
+                'user_email' => $aiCoach->email,
+                'last_message' => 'Halo! Saya Coach AI Anda. Ada yang bisa saya bantu?',
+                'last_message_time' => now()->toISOString(),
+                'unread_count' => 0,
+            ]);
+        }
+
         return response()->json([
-            'conversations' => $conversations,
+            'conversations' => $formattedConversations,
         ]);
     }
 

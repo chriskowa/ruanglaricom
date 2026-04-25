@@ -18,12 +18,16 @@
                     </svg>
                 </a>
                 <a href="#" id="header-avatar-link" target="_blank" rel="noopener">
-                    <img src="/images/profile/17.jpg" id="header-avatar-img"
+                    <img src="{{ $user->avatar_url }}" id="header-avatar-img"
                          class="w-10 h-10 rounded-full object-cover border border-slate-700" alt="{{ $user->name }}">
                 </a>
                 <div>
                     <h3 class="text-white font-bold text-sm md:text-base">{{ $user->name }}</h3>
-                    <p class="text-neon text-[10px] md:text-xs font-mono uppercase tracking-wider">{{ ucfirst($user->role) }}</p>
+                    @if($user->email === 'ai-coach@ruanglari.com')
+                        <p class="text-neon text-[10px] md:text-xs font-mono uppercase tracking-wider">AI ASSISTANT • ALWAYS ONLINE</p>
+                    @else
+                        <p class="text-neon text-[10px] md:text-xs font-mono uppercase tracking-wider">{{ ucfirst($user->role) }}</p>
+                    @endif
                 </div>
             </div>
             <div class="flex gap-2">
@@ -42,8 +46,7 @@
                 <div class="flex w-full {{ $isOwn ? 'justify-end' : 'justify-start' }}">
                     <div class="max-w-[85%] md:max-w-[70%] flex {{ $isOwn ? 'flex-row-reverse' : 'flex-row' }} gap-2">
                         @if(!$isOwn)
-                            <img src="/images/profile/17.jpg" 
-                                 data-avatar="{{ $user->avatar }}"
+                            <img src="{{ $user->avatar_url }}" 
                                  class="message-avatar w-8 h-8 rounded-full object-cover self-end mb-1 hidden md:block border border-slate-700">
                         @endif
                         
