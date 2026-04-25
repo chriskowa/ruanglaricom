@@ -83,9 +83,13 @@
                             <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition">
                                 <td class="py-4 pl-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold">
-                                            {{ substr($enrollment->runner->name, 0, 1) }}
-                                        </div>
+                                        @if($enrollment->runner->avatar)
+                                            <img src="{{ $enrollment->runner->avatar_url }}" alt="{{ $enrollment->runner->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-700">
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold">
+                                                {{ substr($enrollment->runner->name, 0, 1) }}
+                                            </div>
+                                        @endif
                                         <div>
                                             <div class="font-bold text-white">{{ $enrollment->runner->name }}</div>
                                             <div class="text-xs text-slate-500">{{ $enrollment->runner->email }}</div>
@@ -133,9 +137,13 @@
                     @foreach($enrollments as $enrollment)
                         <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4">
                             <div class="flex items-center gap-3 mb-4">
-                                <div class="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center text-white font-black text-lg">
-                                    {{ substr($enrollment->runner->name, 0, 1) }}
-                                </div>
+                                @if($enrollment->runner->avatar)
+                                    <img src="{{ $enrollment->runner->avatar_url }}" alt="{{ $enrollment->runner->name }}" class="w-12 h-12 rounded-full object-cover border border-slate-700">
+                                @else
+                                    <div class="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center text-white font-black text-lg">
+                                        {{ substr($enrollment->runner->name, 0, 1) }}
+                                    </div>
+                                @endif
                                 <div class="flex-1 min-w-0">
                                     <div class="font-black text-white truncate italic">{{ $enrollment->runner->name }}</div>
                                     <div class="text-xs text-slate-500 truncate">{{ $enrollment->runner->email }}</div>

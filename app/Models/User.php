@@ -63,6 +63,26 @@ class User extends Authenticatable
         'membership_status',
     ];
 
+    /**
+     * Get avatar URL
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if (! $this->avatar) {
+            return asset('images/profile/17.jpg');
+        }
+
+        if (str_starts_with($this->avatar, 'http')) {
+            return $this->avatar;
+        }
+
+        if (str_starts_with($this->avatar, '/storage')) {
+            return asset(ltrim($this->avatar, '/'));
+        }
+
+        return asset('storage/'.$this->avatar);
+    }
+
     public function pacer()
     {
         return $this->hasOne(Pacer::class);
