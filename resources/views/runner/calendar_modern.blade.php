@@ -204,21 +204,25 @@
     .fc .fc-button-group > .fc-button {
         border-radius: 0.8rem;
     }
+}
 
-    /* Fix chat box overlap with mobile dock */
+/* Fix chat box overlap with mobile dock */
+#chatbox-toggle {
+    transition: bottom 0.3s ease-in-out, transform 0.3s ease;
+}
+
+@media (max-width: 767px) {
     #chatbox-toggle {
-        transition: bottom 0.3s ease-in-out, transform 0.3s ease;
+        bottom: calc(1rem + env(safe-area-inset-bottom) + 7rem) !important;
+        z-index: 1000 !important;
     }
-    
-    @media (max-width: 767px) {
-        #chatbox-toggle {
-            bottom: 6rem !important;
-            z-index: 1000 !important;
-        }
-        #ph-chatbox {
-            bottom: 10rem !important;
-            z-index: 1000 !important;
-        }
+
+    #ph-chatbox {
+        bottom: calc(1rem + env(safe-area-inset-bottom) + 10.5rem) !important;
+        left: 1rem !important;
+        right: 1rem !important;
+        width: auto !important;
+        z-index: 1000 !important;
     }
 }
 
