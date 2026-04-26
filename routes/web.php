@@ -668,6 +668,7 @@ Route::middleware('auth')->group(function () {
         Route::post('menus/{menu}/reorder', [App\Http\Controllers\Admin\MenuController::class, 'reorder'])->name('menus.reorder');
 
         // Blog Management
+        Route::post('blog/articles/generate', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'generate'])->name('blog.articles.generate');
         Route::resource('blog/articles', App\Http\Controllers\Admin\Blog\ArticleController::class)->names('blog.articles');
         Route::resource('blog/categories', App\Http\Controllers\Admin\Blog\CategoryController::class)->names('blog.categories');
         Route::post('blog/images/upload', [App\Http\Controllers\Admin\Blog\ImageController::class, 'upload'])->name('blog.images.upload');

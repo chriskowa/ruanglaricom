@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('events:run-scheduled-campaigns')->everyMinute();
         // Run pending payment reminders every hour (it handles 24h throttling internally)
         $schedule->command('payments:remind-pending')->hourly();
+        $schedule->command('articles:generate-daily')->dailyAt('01:00');
     }
 
     protected function commands(): void

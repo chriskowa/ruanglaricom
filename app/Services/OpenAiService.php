@@ -13,7 +13,44 @@ class OpenAiService
 
     public function __construct()
     {
-        $this->apiKey = config('services.openai.key') ?: env('OPENAI_API_KEY');
+        $this->apiKey = config('services.openai.api_key') ?: env('OPENAI_API_KEY');
+    }
+
+    /**
+     * Generic method to get AI response.
+     */
+    public function getAiResponse(string $prompt, string $systemMessage = 'You are a helpful assistant.', string $model = 'gpt-4o'): ?string
+    {
+        if (empty($this->apiKey)) {
+            Log::error('OpenAI API Key is not set.');
+            return null;
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->post($this->baseUrl, [
+                'model' => $model,
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemMessage],
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+                'temperature' => 0.7,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return $data['choices'][0]['message']['content'] ?? null;
+            }
+
+            Log::error('OpenAI API Error: ' . $response->body());
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error('OpenAI Exception: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -32,32 +69,9 @@ class OpenAiService
 
         $systemPrompt = $this->buildSystemPrompt($runner, $profileData);
 
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-            ])->post($this->baseUrl, [
-                'model' => 'gpt-4o-mini',
-                'messages' => [
-                    ['role' => 'system', 'content' => $systemPrompt],
-                    ['role' => 'user', 'content' => $userMessage],
-                ],
-                'temperature' => 0.7,
-                'max_tokens' => 500,
-            ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                return $data['choices'][0]['message']['content'] ?? null;
-            }
-
-            Log::error('OpenAI API Error: ' . $response->body());
-            return 'Maaf, Coach sedang beristirahat sejenak. Silakan coba lagi nanti.';
-
-        } catch (\Exception $e) {
-            Log::error('OpenAI Exception: ' . $e->getMessage());
-            return 'Terjadi kesalahan saat menghubungi Coach.';
-        }
+        $response = $this->getAiResponse($userMessage, $systemPrompt, 'gpt-4o');
+        
+        return $response ?: 'Maaf, Coach sedang beristirahat sejenak. Silakan coba lagi nanti.';
     }
 
     /**

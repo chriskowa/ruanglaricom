@@ -6,17 +6,109 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\BlogCategory;
 use App\Models\BlogTag;
+use App\Services\OpenAiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ArticleController extends Controller
 {
+    protected $aiService;
+
+    public function __construct(OpenAiService $aiService)
+    {
+        $this->aiService = $aiService;
+    }
+
     public function index()
     {
         $articles = Article::with('category', 'user')->latest()->paginate(10);
 
         return view('admin.blog.articles.index', compact('articles'));
+    }
+
+    /**
+     * Generate article using AI.
+     */
+    public function generate(Request $request)
+    {
+        $request->validate([
+            'topic' => 'required|string',
+            'url' => 'nullable|url',
+        ]);
+
+        $topic = $request->topic;
+        $url = $request->url;
+        
+        $systemPrompt = "Tugas: Buat artikel SEO berkualitas tinggi berdasarkan input berikut. Artikel harus: 
+ 1. **Unik dan faktual**: Parafrase total atau tulis ulang, susun ulang kalimat, struktur baru. Semua klaim harus **divalidasi dari sumber terpercaya** (jurnal, gov, edu, atau situs resmi industri terbaru). 
+ 2. **SEO 2026-friendly**: Optimasi untuk Google terbaru, fokus E-A-T, user intent, semantic / LSI keywords, mobile-friendly. 
+ 3. **Terstruktur**: H1 untuk judul, H2–H3 untuk subtopik, bullet/numbered list bila perlu, paragraf pendek (2–4 kalimat). 
+ 4. **Engaging & mudah dibaca**: Bahasa jelas, formal atau sesuai target audiens, tetap menarik. 
+
+ **Input**: 
+ - Keyword / Topik utama: " . $topic . ($url ? "\n - Rewrite dari URL: " . $url : "") . "
+
+ **Langkah tambahan**: 
+ - **Cek fakta**: sebelum menulis, gunakan data terbaru dari sumber terpercaya (jurnal, situs gov, edu, organisasi internasional, artikel 5 tahun terakhir).  
+ - **Catat sumber**: bila memungkinkan, sertakan link/referensi yang digunakan. 
+
+ **Output yang harus dihasilkan dalam format JSON**: 
+ {
+  \"seo_title\": \"Judul unik, mengandung keyword utama, max 60 karakter\",
+  \"keywords\": \"Keyword utama + 3–5 semantic / LSI keywords\",
+  \"meta_description\": \"150–160 karakter, mengandung keyword utama\",
+  \"content\": \"Artikel lengkap 800–2000 kata dalam format HTML (gunakan H1, H2, H3, p, ul, li)\",
+  \"slug\": \"URL pendek, SEO-friendly\"
+ }
+
+ **Instruksi tambahan**: 
+ - Jika output kurang sesuai, perbaiki dengan menambah fakta, contoh terbaru, atau data statistik untuk meningkatkan kredibilitas. 
+ - Hindari informasi yang tidak dapat diverifikasi atau spekulatif. 
+ - Struktur konten harus logis dan mudah dipindai pembaca. 
+
+ **Catatan**: Hasil harus siap dipublikasikan sebagai artikel SEO 2026, unik, faktual, teroptimasi penuh, dan valid secara ilmiah atau resmi. 
+ Sertakan hanya valid JSON dalam jawaban Anda.";
+
+        try {
+            // Using gpt-4o as requested
+            $response = $this->aiService->getAiResponse("Generate article about: " . $topic, $systemPrompt, 'gpt-4o');
+
+            if (!$response) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI did not return any content.'
+                ], 500);
+            }
+
+            $jsonStr = $response;
+            if (preg_match('/```json\s*(.*?)\s*```/s', $response, $matches)) {
+                $jsonStr = $matches[1];
+            } elseif (preg_match('/```\s*(.*?)\s*```/s', $response, $matches)) {
+                $jsonStr = $matches[1];
+            }
+
+            $data = json_decode($jsonStr, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI returned invalid JSON format.',
+                    'raw' => $response
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function create()

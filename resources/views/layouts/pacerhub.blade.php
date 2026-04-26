@@ -410,6 +410,20 @@
                 if(!currentUserId) return;
                 var text = (input.value||'').trim();
                 if(!text) return;
+                
+                // Show loading state if it's AI Coach (usually a specific ID or name)
+                var isAiCoach = titleEl.textContent.toLowerCase().includes('coach') || titleEl.textContent.toLowerCase().includes('ai');
+                var loadingEl = null;
+                
+                if(isAiCoach) {
+                    loadingEl = document.createElement('div');
+                    loadingEl.id = 'ph-chat-loading';
+                    loadingEl.className = 'flex justify-start';
+                    loadingEl.innerHTML = '<div class="max-w-[70%] px-3 py-2 rounded-xl text-sm bg-slate-800 text-white flex items-center gap-2"><div class="loader w-4 h-4"></div><span class="text-xs text-slate-400 italic">Coach sedang mengetik...</span></div>';
+                    msgBody.appendChild(loadingEl);
+                    msgBody.scrollTop = msgBody.scrollHeight;
+                }
+
                 input.disabled = true; sendBtn.disabled = true;
                 fetch(baseUrl+'/chat/'+currentUserId, {
                     method:'POST',
@@ -425,7 +439,10 @@
                         fetchConversations();
                     }
                 })
-                .finally(function(){ input.disabled = false; sendBtn.disabled = false; input.focus(); });
+                .finally(function(){ 
+                    if(loadingEl) loadingEl.remove();
+                    input.disabled = false; sendBtn.disabled = false; input.focus(); 
+                });
             }
             function openChat(userId, name, avatar, initialMessage){
                 currentUserId = userId;
@@ -448,6 +465,12 @@
             backBtn.addEventListener('click', function(){ showConversations(); stopPoll(); currentUserId=null; setOpen(''); });
             closeBtn.addEventListener('click', function(){ hideBox(); });
             sendBtn.addEventListener('click', sendMessage);
+            input.addEventListener('keydown', function(e){
+                if(e.key === 'Enter' && !e.shiftKey){
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
             input.addEventListener('input', function(){ if(currentUserId) setDraft(currentUserId, input.value); });
             msgBody.addEventListener('scroll', function(){ if(currentUserId){ sessionStorage.setItem('phChatScroll:'+currentUserId, String(msgBody.scrollTop)); } });
             document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ hideBox(); } });

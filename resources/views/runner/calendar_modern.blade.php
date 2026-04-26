@@ -204,6 +204,22 @@
     .fc .fc-button-group > .fc-button {
         border-radius: 0.8rem;
     }
+
+    /* Fix chat box overlap with mobile dock */
+    #chatbox-toggle {
+        transition: bottom 0.3s ease-in-out, transform 0.3s ease;
+    }
+    
+    @media (max-width: 767px) {
+        #chatbox-toggle {
+            bottom: 6rem !important;
+            z-index: 1000 !important;
+        }
+        #ph-chatbox {
+            bottom: 10rem !important;
+            z-index: 1000 !important;
+        }
+    }
 }
 
 </style>

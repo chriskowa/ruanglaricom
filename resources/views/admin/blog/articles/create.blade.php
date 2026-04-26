@@ -25,6 +25,49 @@
             
             <!-- Main Content -->
             <div class="lg:col-span-2 space-y-6">
+                <!-- AI Generator -->
+                <div class="bg-card/50 backdrop-blur-md border border-neon/30 rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <svg class="w-12 h-12 text-neon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-neon/10 text-neon">
+                            <i class="fas fa-robot"></i>
+                        </span>
+                        AI Article Generator
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Topic or Keyword</label>
+                                <input type="text" id="ai-topic" onkeyup="syncPrompt()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="e.g., Tips Lari Marathon">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Reference URL (Optional Rewrite)</label>
+                                <input type="url" id="ai-url" onkeyup="syncPrompt()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="https://external-article.com/...">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">Final AI Prompt Preview</label>
+                            <textarea id="ai-prompt-preview" rows="4" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs font-mono focus:outline-none focus:border-neon transition-colors" readonly></textarea>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" onclick="generateArticle()" id="btn-generate-ai" class="px-8 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all flex items-center gap-2">
+                                <i class="fas fa-magic"></i> Generate Article
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2 italic text-center">AI akan melakukan riset faktual & optimasi SEO 2026. Hasil akan mengisi form di bawah.</p>
+                    </div>
+                    <!-- Loading State -->
+                    <div id="ai-loading" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-center p-6">
+                        <div class="w-12 h-12 border-4 border-neon border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <h4 class="text-white font-bold mb-1">Menyusun Artikel...</h4>
+                        <p class="text-slate-400 text-sm">Proses ini memakan waktu sekitar 30-60 detik karena AI melakukan riset faktual.</p>
+                    </div>
+                </div>
+
                 <!-- Title & Slug -->
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <div class="space-y-4">
@@ -207,13 +250,96 @@
             };
 
             const formData = new FormData();
-            formData.append('file', blobInfo.blob(), blobInfo.filename());
+        formData.append('file', blobInfo.blob(), blobInfo.filename());
 
-            xhr.send(formData);
-        })
-    });
+        xhr.send(formData);
+    })
+});
 
-    function openMediaModal(onSelectCallback) {
+const promptTemplate = `Tugas: Buat artikel SEO berkualitas tinggi berdasarkan input berikut. Artikel harus:
+1. Unik dan faktual (Parafrase total, divalidasi sumber terpercaya).
+2. SEO 2026-friendly (E-A-T, user intent, semantic keywords).
+3. Terstruktur (H1, H2-H3, bullet points).
+4. Engaging & mudah dibaca.
+
+Input Topic: {topic}
+{url_section}`;
+
+function syncPrompt() {
+    const topic = document.getElementById('ai-topic').value || '{topic}';
+    const url = document.getElementById('ai-url').value;
+    const urlSection = url ? `Rewrite from URL: ${url}` : '';
+    
+    document.getElementById('ai-prompt-preview').value = promptTemplate
+        .replace('{topic}', topic)
+        .replace('{url_section}', urlSection);
+}
+
+// Initialize prompt
+syncPrompt();
+
+async function generateArticle() {
+    const topic = document.getElementById('ai-topic').value;
+    const url = document.getElementById('ai-url').value;
+    
+    if (!topic) {
+        alert('Silakan masukkan topik atau keyword terlebih dahulu.');
+        return;
+    }
+
+    if (!confirm('AI akan meng-overwrite konten yang sedang Anda tulis. Lanjutkan?')) {
+        return;
+    }
+
+    const btn = document.getElementById('btn-generate-ai');
+    const loading = document.getElementById('ai-loading');
+    
+    btn.disabled = true;
+    loading.classList.remove('hidden');
+
+    try {
+        const response = await fetch('{{ route("admin.blog.articles.generate") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ topic: topic, url: url })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            const data = result.data;
+            
+            document.querySelector('input[name="title"]').value = data.seo_title || '';
+            document.querySelector('input[name="slug"]').value = data.slug || '';
+            document.querySelector('input[name="meta_title"]').value = data.seo_title || '';
+            document.querySelector('textarea[name="meta_description"]').value = data.meta_description || '';
+            document.querySelector('input[name="meta_keywords"]').value = data.keywords || '';
+            
+            if (tinymce.get('editor')) {
+                tinymce.get('editor').setContent(data.content || '');
+            }
+            
+            if (data.meta_description) {
+                document.querySelector('textarea[name="excerpt"]').value = data.meta_description;
+            }
+
+            alert('Artikel berhasil di-generate!');
+        } else {
+            alert('Gagal generate artikel: ' + (result.message || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan sistem.');
+        console.error(error);
+    } finally {
+        btn.disabled = false;
+        loading.classList.add('hidden');
+    }
+}
+
+function openMediaModal(onSelectCallback) {
         let modalId = 'media-library-modal';
         let modal = document.getElementById(modalId);
         
