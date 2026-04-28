@@ -2772,9 +2772,16 @@
 
             // Reset UI elements
             if (coachMessageEl) coachMessageEl.innerHTML = '';
-            if (scoreGauge) scoreGauge.style.setProperty('--score', 0);
-            if (scoreText) scoreText.textContent = 'N/A';
-            if (videoScoreEl) videoScoreEl.textContent = 'N/A';
+            if (scoreEl) scoreEl.textContent = '--';
+            if (scoreBadge) {
+                scoreBadge.textContent = 'MENUNGGU';
+                scoreBadge.className = 'bg-slate-800 text-slate-200 px-2 py-1 rounded text-xs font-bold border border-slate-700';
+            }
+            if (videoScoreEl) videoScoreEl.textContent = '--';
+            if (videoScoreBadge) {
+                videoScoreBadge.textContent = 'MENUNGGU';
+                videoScoreBadge.className = 'bg-slate-800 text-slate-200 px-2 py-1 rounded text-[10px] font-bold border border-slate-700';
+            }
             if (positivesEl) positivesEl.innerHTML = '';
             if (issuesEl) issuesEl.innerHTML = '';
             if (suggestionsEl) suggestionsEl.innerHTML = '';
