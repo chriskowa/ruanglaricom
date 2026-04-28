@@ -723,6 +723,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/strava/sync', [App\Http\Controllers\Runner\StravaController::class, 'sync'])->name('strava.sync');
         Route::get('/strava/activities/{stravaActivityId}/details', [App\Http\Controllers\Runner\StravaController::class, 'activityDetails'])->name('strava.activities.details');
         Route::get('/strava/activities/{stravaActivityId}/streams', [App\Http\Controllers\Runner\StravaController::class, 'activityStreams'])->name('strava.activities.streams');
+        Route::get('/strava/activities/{stravaActivityId}/ai-analysis', [App\Http\Controllers\Runner\StravaController::class, 'activityAiAnalysis'])->name('strava.activities.ai-analysis');
         // Challenge Programs listing (filtered)
         Route::get('/programs/challenges', function (Illuminate\Http\Request $request) {
             $request->merge(['challenge' => 1]);

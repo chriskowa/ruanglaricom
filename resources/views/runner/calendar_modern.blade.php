@@ -1249,6 +1249,70 @@
                     </div>
                 </div>
 
+                <div v-if="detail.source === 'strava' || detail.strava_metrics" class="mt-4 bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-purple-400 flex items-center justify-center text-dark font-bold text-xs">AI</div>
+                            <span class="text-sm font-bold text-purple-300">AI Workout Analysis</span>
+                        </div>
+                        <button class="px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-200 border border-purple-500/30 text-xs font-bold hover:bg-purple-500/30 transition disabled:opacity-50"
+                                :disabled="aiAnalysisLoading"
+                                @click="loadAiWorkoutAnalysis(detail.strava_metrics?.strava_activity_id || detail.strava_activity_id, true)">
+                            @{{ aiAnalysisLoading ? 'Analyzing...' : 'Refresh AI' }}
+                        </button>
+                    </div>
+
+                    <div v-if="aiAnalysisLoading" class="text-xs text-slate-400">AI sedang menganalisis workout dan konteks latihan Anda...</div>
+                    <div v-else-if="aiAnalysisError" class="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">@{{ aiAnalysisError }}</div>
+                    <div v-else-if="detail.ai_analysis" class="space-y-3 text-sm">
+                        <div v-if="detail.ai_analysis.summary" class="text-slate-200 leading-relaxed">@{{ detail.ai_analysis.summary }}</div>
+
+                        <div v-if="detail.ai_analysis.what_went_well?.length">
+                            <div class="text-[11px] font-bold text-green-300 uppercase mb-2">Yang Sudah Bagus</div>
+                            <ul class="space-y-1 text-slate-300">
+                                <li v-for="(item, idx) in detail.ai_analysis.what_went_well" :key="'well-' + idx">• @{{ item }}</li>
+                            </ul>
+                        </div>
+
+                        <div v-if="detail.ai_analysis.what_to_improve?.length">
+                            <div class="text-[11px] font-bold text-amber-300 uppercase mb-2">Yang Perlu Ditingkatkan</div>
+                            <ul class="space-y-1 text-slate-300">
+                                <li v-for="(item, idx) in detail.ai_analysis.what_to_improve" :key="'improve-' + idx">• @{{ item }}</li>
+                            </ul>
+                        </div>
+
+                        <div v-if="detail.ai_analysis.next_workout_suggestion?.type || detail.ai_analysis.next_workout_suggestion?.reason" class="rounded-xl bg-slate-900/80 border border-slate-700 p-3">
+                            <div class="text-[11px] font-bold text-neon uppercase mb-2">Saran Workout Berikutnya</div>
+                            <div class="text-white font-bold">@{{ detail.ai_analysis.next_workout_suggestion.type || '-' }}</div>
+                            <div v-if="detail.ai_analysis.next_workout_suggestion.duration" class="text-xs text-slate-400 mt-1">Durasi: @{{ detail.ai_analysis.next_workout_suggestion.duration }}</div>
+                            <div v-if="detail.ai_analysis.next_workout_suggestion.target" class="text-xs text-slate-400">Target: @{{ detail.ai_analysis.next_workout_suggestion.target }}</div>
+                            <div v-if="detail.ai_analysis.next_workout_suggestion.reason" class="text-sm text-slate-300 mt-2">@{{ detail.ai_analysis.next_workout_suggestion.reason }}</div>
+                        </div>
+
+                        <div v-if="detail.ai_analysis.recovery_advice?.length">
+                            <div class="text-[11px] font-bold text-sky-300 uppercase mb-2">Recovery Advice</div>
+                            <ul class="space-y-1 text-slate-300">
+                                <li v-for="(item, idx) in detail.ai_analysis.recovery_advice" :key="'recovery-' + idx">• @{{ item }}</li>
+                            </ul>
+                        </div>
+
+                        <div v-if="detail.ai_analysis.improve_next_time?.length">
+                            <div class="text-[11px] font-bold text-purple-300 uppercase mb-2">Improve Next Time</div>
+                            <ul class="space-y-1 text-slate-300">
+                                <li v-for="(item, idx) in detail.ai_analysis.improve_next_time" :key="'next-' + idx">• @{{ item }}</li>
+                            </ul>
+                        </div>
+
+                        <div v-if="detail.ai_analysis.risk_flags?.length" class="rounded-xl bg-red-500/10 border border-red-500/20 p-3">
+                            <div class="text-[11px] font-bold text-red-300 uppercase mb-2">Risk Flags</div>
+                            <ul class="space-y-1 text-red-100">
+                                <li v-for="(item, idx) in detail.ai_analysis.risk_flags" :key="'risk-' + idx">• @{{ item }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div v-else class="text-xs text-slate-400">Analisis AI belum dimuat.</div>
+                </div>
+
                 <!-- Action Buttons -->
                 <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race'" class="mt-4 border-t border-slate-700 pt-4">
                     <div v-if="detail.status === 'pending' || !detail.status">
@@ -2011,10 +2075,14 @@ createApp({
             // AI / Expert
             detail.analysis = null;
             detail.suggestion = null;
+            detail.ai_analysis = null;
+            detail.strava_activity_id = null;
             detail.session = null;
             
             stravaDetailsLoading.value = false;
             stravaDetailsError.value = '';
+            aiAnalysisLoading.value = false;
+            aiAnalysisError.value = '';
             stravaLinkInput.value = '';
             notesInput.value = '';
         };
@@ -2027,6 +2095,8 @@ createApp({
         const stravaDetailsError = ref('');
         const stravaStreamsLoading = ref(false);
         const stravaStreamsError = ref('');
+        const aiAnalysisLoading = ref(false);
+        const aiAnalysisError = ref('');
         let stravaChart = null;
         const ttsSupported = computed(() => typeof window !== 'undefined' && 'speechSynthesis' in window);
         const isSpeaking = ref(false);
@@ -3151,6 +3221,47 @@ createApp({
             };
         };
 
+        const loadAiWorkoutAnalysis = async (activityId, force = false) => {
+            const id = parseInt(activityId || 0, 10);
+            if (!id) return;
+
+            aiAnalysisLoading.value = true;
+            aiAnalysisError.value = '';
+
+            try {
+                const url = new URL(`${runnerUrl}/strava/activities/${id}/ai-analysis`, window.location.origin);
+                if (force) {
+                    url.searchParams.set('force', '1');
+                }
+
+                const res = await fetch(url.toString(), {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (res.ok && data && data.success) {
+                    detail.ai_analysis = data.analysis || null;
+
+                    if (detail.ai_analysis?.summary) {
+                        detail.analysis = detail.ai_analysis.summary;
+                    }
+
+                    const nextWorkout = detail.ai_analysis?.next_workout_suggestion;
+                    if (nextWorkout?.reason) {
+                        const target = nextWorkout?.target ? ` Target ${nextWorkout.target}.` : '';
+                        const duration = nextWorkout?.duration ? ` ${nextWorkout.duration}.` : '';
+                        detail.suggestion = `${nextWorkout.reason}${duration}${target}`.trim();
+                    }
+                } else {
+                    aiAnalysisError.value = (data && data.message) ? data.message : 'Gagal mengambil analisis AI.';
+                }
+            } catch (e) {
+                aiAnalysisError.value = 'Gagal mengambil analisis AI.';
+            } finally {
+                aiAnalysisLoading.value = false;
+            }
+        };
+
         const loadStravaDetails = async (activityId) => {
             const id = parseInt(activityId || 0, 10);
             if (!id) return;
@@ -3170,6 +3281,9 @@ createApp({
             detail.strava_zone_suggestion = null;
             detail.analysis = null;
             detail.suggestion = null;
+            detail.ai_analysis = null;
+            detail.strava_activity_id = id;
+            aiAnalysisError.value = '';
             stravaStreamsError.value = '';
             destroyStravaChart();
 
@@ -3192,6 +3306,7 @@ createApp({
                     detail.suggestion = ana.suggestion;
 
                     loadStravaStreams(id);
+                    loadAiWorkoutAnalysis(id);
                 } else {
                     stravaDetailsError.value = (data && data.message) ? data.message : 'Gagal mengambil detail Strava.';
                 }
@@ -3828,6 +3943,7 @@ createApp({
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             stravaDetailsLoading, stravaDetailsError, formatSeconds, displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass,
+            aiAnalysisLoading, aiAnalysisError, loadAiWorkoutAnalysis,
             showRescheduleModal, rescheduleTarget, rescheduleForm, rescheduleLoading, openRescheduleModal, submitReschedule,
             showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans,
             showApplyModal, applyForm, applyLoading, applyTarget, submitApply,

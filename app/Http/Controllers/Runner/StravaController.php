@@ -7,6 +7,8 @@ use App\Models\Admin\StravaConfig;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
 use App\Models\StravaActivity;
+use App\Services\OpenAiService;
+use App\Services\RunningProfileService;
 use App\Services\StravaApiService;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
@@ -560,5 +562,300 @@ class StravaController extends Controller
             'success' => true,
             'streams' => $out,
         ]);
+    }
+
+    public function activityAiAnalysis(Request $request, string $stravaActivityId)
+    {
+        $user = auth()->user();
+        if (! is_numeric($stravaActivityId) || (string) $stravaActivityId === '0') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid activity id.',
+            ], 422);
+        }
+
+        $activityId = (string) $stravaActivityId;
+        $activity = StravaActivity::query()
+            ->where('user_id', $user->id)
+            ->where('strava_activity_id', $activityId)
+            ->first();
+
+        if (! $activity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Activity tidak ditemukan.',
+            ], 404);
+        }
+
+        try {
+            $api = app(StravaApiService::class);
+            $raw = is_array($activity->raw) ? $activity->raw : [];
+
+            $details = data_get($raw, 'details');
+            if (! is_array($details) || empty($details)) {
+                $details = $api->fetchActivityDetails($user, $activityId);
+                if (! $details) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal mengambil detail aktivitas Strava untuk AI.',
+                    ], 422);
+                }
+                $raw['details'] = $details;
+            }
+
+            $streams = data_get($raw, 'streams');
+            if (! is_array($streams) || empty($streams)) {
+                $streams = $api->fetchActivityStreams($user, $activityId);
+                if (is_array($streams) && ! empty($streams)) {
+                    $raw['streams'] = $streams;
+                } else {
+                    $streams = [];
+                }
+            }
+
+            $activity->update(['raw' => $raw]);
+
+            $profile = app(RunningProfileService::class)->getProfile($user);
+            $context = $this->buildRecentTrainingContext($user->id, $activity);
+            $metrics = $this->buildAiWorkoutPayload($activity, $details, $streams, $profile, $context, $api);
+            $inputHash = md5(json_encode($metrics));
+
+            $cachedHash = data_get($raw, 'ai_analysis.input_hash');
+            $cachedResult = data_get($raw, 'ai_analysis.result');
+            $force = $request->boolean('force');
+
+            if (! $force && $cachedHash === $inputHash && is_array($cachedResult)) {
+                return response()->json([
+                    'success' => true,
+                    'analysis' => $cachedResult,
+                    'cached' => true,
+                ]);
+            }
+
+            $systemPrompt = "Anda adalah AI Running Coach Ruang Lari. "
+                ."Analisis workout lari berdasarkan data Strava dan konteks latihan mingguan. "
+                ."Jawab hanya dalam Bahasa Indonesia yang ringkas, spesifik, dan actionable. "
+                ."Jangan mengarang metrik yang tidak ada. Jika data kurang, katakan secara eksplisit. "
+                ."Return HARUS JSON valid tanpa markdown dan tanpa teks lain.";
+
+            $userPrompt = "Analisis workout berikut dan berikan insight pelatihan.\n"
+                ."Format output JSON:\n"
+                ."{\n"
+                ."  \"summary\": \"...\",\n"
+                ."  \"what_went_well\": [\"...\"],\n"
+                ."  \"what_to_improve\": [\"...\"],\n"
+                ."  \"risk_flags\": [\"...\"],\n"
+                ."  \"next_workout_suggestion\": {\n"
+                ."    \"type\": \"easy_run|recovery|tempo|interval|long_run|rest|cross_training\",\n"
+                ."    \"reason\": \"...\",\n"
+                ."    \"duration\": \"...\",\n"
+                ."    \"target\": \"...\"\n"
+                ."  },\n"
+                ."  \"recovery_advice\": [\"...\"],\n"
+                ."  \"improve_next_time\": [\"...\"],\n"
+                ."  \"confidence\": \"low|medium|high\"\n"
+                ."}\n\n"
+                ."Data workout:\n".json_encode($metrics, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+            $aiRaw = app(OpenAiService::class)->getAiResponse($userPrompt, $systemPrompt, 'gpt-4o');
+            if (! $aiRaw) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI tidak mengembalikan respons.',
+                ], 502);
+            }
+
+            $jsonStr = trim(str_replace(["```json", "```"], '', $aiRaw));
+            if (preg_match('/\{[\s\S]*\}/', $jsonStr, $matches)) {
+                $jsonStr = $matches[0];
+            }
+
+            $decoded = json_decode($jsonStr, true);
+            if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI mengembalikan format analisis yang tidak valid.',
+                    'raw' => $aiRaw,
+                ], 500);
+            }
+
+            $decoded = $this->normalizeAiAnalysis($decoded);
+            $raw['ai_analysis'] = [
+                'model' => 'gpt-4o',
+                'created_at' => now()->toIso8601String(),
+                'input_hash' => $inputHash,
+                'result' => $decoded,
+            ];
+            $activity->update(['raw' => $raw]);
+
+            return response()->json([
+                'success' => true,
+                'analysis' => $decoded,
+                'cached' => false,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menganalisis workout: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function buildRecentTrainingContext(int $userId, StravaActivity $currentActivity): array
+    {
+        $end = $currentActivity->local_start_date ?: $currentActivity->start_date ?: now();
+        $start = $end->copy()->subDays(7);
+
+        $recentActivities = StravaActivity::query()
+            ->where('user_id', $userId)
+            ->where('id', '!=', $currentActivity->id)
+            ->whereBetween('start_date', [$start, $end])
+            ->orderByDesc('start_date')
+            ->get();
+
+        $totalDistanceKm = round($recentActivities->sum(fn ($item) => ((float) ($item->distance_m ?? 0)) / 1000), 2);
+        $runCount = 0;
+        $hardSessions = 0;
+
+        foreach ($recentActivities as $item) {
+            $type = strtolower((string) $item->type);
+            if (in_array($type, ['run', 'virtualrun', 'trailrun', 'treadmill'], true)) {
+                $runCount++;
+            }
+
+            $details = is_array($item->raw) ? data_get($item->raw, 'details', []) : [];
+            $avgHr = (float) data_get($details, 'average_heartrate', 0);
+            $distanceKm = ((float) ($item->distance_m ?? 0)) / 1000;
+            if ($avgHr >= 160 || $distanceKm >= 15) {
+                $hardSessions++;
+            }
+        }
+
+        return [
+            'lookback_days' => 7,
+            'recent_runs' => $runCount,
+            'recent_distance_km' => $totalDistanceKm,
+            'estimated_hard_sessions' => $hardSessions,
+        ];
+    }
+
+    private function buildAiWorkoutPayload(
+        StravaActivity $activity,
+        array $details,
+        array $streams,
+        array $profile,
+        array $context,
+        StravaApiService $api
+    ): array {
+        $avgSpeed = (float) data_get($details, 'average_speed', $activity->average_speed);
+        $distanceKm = round(((float) data_get($details, 'distance', $activity->distance_m ?? 0)) / 1000, 2);
+        $splits = data_get($details, 'splits_metric', []);
+
+        return [
+            'activity' => [
+                'id' => $activity->strava_activity_id,
+                'name' => $activity->name,
+                'type' => $activity->type,
+                'date' => $activity->local_start_date?->toDateString(),
+                'distance_km' => $distanceKm,
+                'moving_time_minutes' => round(((int) data_get($details, 'moving_time', $activity->moving_time_s ?? 0)) / 60, 1),
+                'elapsed_time_minutes' => round(((int) data_get($details, 'elapsed_time', $activity->elapsed_time_s ?? 0)) / 60, 1),
+                'average_pace' => $api->formatPaceFromSpeed($avgSpeed),
+                'average_heartrate' => data_get($details, 'average_heartrate'),
+                'max_heartrate' => data_get($details, 'max_heartrate'),
+                'average_cadence' => data_get($details, 'average_cadence'),
+                'elevation_gain_m' => data_get($details, 'total_elevation_gain', $activity->total_elevation_gain),
+                'split_count' => is_array($splits) ? count($splits) : 0,
+                'first_split_pace' => $this->extractSplitPace($splits, 0, $api),
+                'last_split_pace' => $this->extractSplitPace($splits, -1, $api),
+            ],
+            'stream_summary' => [
+                'heartrate' => $this->summarizeStream(data_get($streams, 'heartrate.data', []), 0),
+                'cadence' => $this->summarizeStream(data_get($streams, 'cadence.data', []), 1),
+                'pace' => $this->summarizePaceStream(data_get($streams, 'velocity_smooth.data', []), $api),
+            ],
+            'runner_profile' => [
+                'pb' => $profile['pb'] ?? [],
+                'vdot' => $profile['vdot'] ?? null,
+                'weekly_km_target' => $profile['weekly_km_target'] ?? null,
+                'paces' => $profile['paces'] ?? null,
+            ],
+            'recent_training_context' => $context,
+        ];
+    }
+
+    private function summarizeStream(array $values, int $precision = 0): ?array
+    {
+        $numbers = array_values(array_filter($values, fn ($value) => is_numeric($value)));
+        if (empty($numbers)) {
+            return null;
+        }
+
+        sort($numbers);
+        $count = count($numbers);
+        $avg = array_sum($numbers) / $count;
+        $median = $numbers[(int) floor(($count - 1) / 2)];
+
+        return [
+            'min' => round((float) $numbers[0], $precision),
+            'avg' => round((float) $avg, $precision),
+            'median' => round((float) $median, $precision),
+            'max' => round((float) $numbers[$count - 1], $precision),
+        ];
+    }
+
+    private function summarizePaceStream(array $speeds, StravaApiService $api): ?array
+    {
+        $numbers = array_values(array_filter($speeds, fn ($value) => is_numeric($value) && (float) $value > 0));
+        if (empty($numbers)) {
+            return null;
+        }
+
+        sort($numbers);
+        $count = count($numbers);
+        $avg = array_sum($numbers) / $count;
+        $median = $numbers[(int) floor(($count - 1) / 2)];
+
+        return [
+            'fastest_pace' => $api->formatPaceFromSpeed((float) $numbers[$count - 1]),
+            'average_pace' => $api->formatPaceFromSpeed((float) $avg),
+            'median_pace' => $api->formatPaceFromSpeed((float) $median),
+            'slowest_pace' => $api->formatPaceFromSpeed((float) $numbers[0]),
+        ];
+    }
+
+    private function extractSplitPace($splits, int $index, StravaApiService $api): ?string
+    {
+        if (! is_array($splits) || empty($splits)) {
+            return null;
+        }
+
+        $split = $index === -1 ? end($splits) : ($splits[$index] ?? null);
+        if (! is_array($split)) {
+            return null;
+        }
+
+        $speed = data_get($split, 'average_speed');
+
+        return $speed ? $api->formatPaceFromSpeed((float) $speed) : null;
+    }
+
+    private function normalizeAiAnalysis(array $decoded): array
+    {
+        return [
+            'summary' => (string) ($decoded['summary'] ?? ''),
+            'what_went_well' => array_values(array_filter($decoded['what_went_well'] ?? [], fn ($item) => is_string($item) && trim($item) !== '')),
+            'what_to_improve' => array_values(array_filter($decoded['what_to_improve'] ?? [], fn ($item) => is_string($item) && trim($item) !== '')),
+            'risk_flags' => array_values(array_filter($decoded['risk_flags'] ?? [], fn ($item) => is_string($item) && trim($item) !== '')),
+            'next_workout_suggestion' => [
+                'type' => (string) data_get($decoded, 'next_workout_suggestion.type', ''),
+                'reason' => (string) data_get($decoded, 'next_workout_suggestion.reason', ''),
+                'duration' => (string) data_get($decoded, 'next_workout_suggestion.duration', ''),
+                'target' => (string) data_get($decoded, 'next_workout_suggestion.target', ''),
+            ],
+            'recovery_advice' => array_values(array_filter($decoded['recovery_advice'] ?? [], fn ($item) => is_string($item) && trim($item) !== '')),
+            'improve_next_time' => array_values(array_filter($decoded['improve_next_time'] ?? [], fn ($item) => is_string($item) && trim($item) !== '')),
+            'confidence' => (string) ($decoded['confidence'] ?? 'medium'),
+        ];
     }
 }
