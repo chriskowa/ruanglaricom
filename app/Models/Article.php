@@ -21,6 +21,7 @@ class Article extends Model
         'content',
         'featured_image',
         'status',
+        'is_featured',
         'published_at',
         'meta_title',
         'meta_description',
@@ -31,6 +32,7 @@ class Article extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'is_featured' => 'boolean',
     ];
 
     protected static function boot()

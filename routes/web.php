@@ -505,6 +505,7 @@ Route::get('/api/blog/latest', function () {
         }
 
         return \App\Models\Article::published()
+            ->orderByDesc('is_featured')
             ->orderByRaw('COALESCE(published_at, created_at) DESC')
             ->limit(3)
             ->get()
@@ -669,6 +670,7 @@ Route::middleware('auth')->group(function () {
 
         // Blog Management
         Route::post('blog/articles/generate', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'generate'])->name('blog.articles.generate');
+        Route::post('blog/articles/{article}/toggle-featured', [App\Http\Controllers\Admin\Blog\ArticleController::class, 'toggleFeatured'])->name('blog.articles.toggle-featured');
         Route::resource('blog/articles', App\Http\Controllers\Admin\Blog\ArticleController::class)->names('blog.articles');
         Route::resource('blog/categories', App\Http\Controllers\Admin\Blog\CategoryController::class)->names('blog.categories');
         Route::post('blog/images/upload', [App\Http\Controllers\Admin\Blog\ImageController::class, 'upload'])->name('blog.images.upload');

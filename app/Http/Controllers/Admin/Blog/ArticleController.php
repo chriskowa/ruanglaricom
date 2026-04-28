@@ -134,6 +134,7 @@ class ArticleController extends Controller
             'featured_image' => 'nullable|image|max:2048',
             'featured_image_url' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',
+            'is_featured' => 'nullable|boolean',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:blog_tags,id',
             'new_tags' => 'nullable|string', // Comma separated new tags
@@ -146,6 +147,7 @@ class ArticleController extends Controller
         ]);
 
         $validated['user_id'] = auth()->id();
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         if ($request->filled('slug')) {
             $validated['slug'] = Str::slug($request->slug);
@@ -186,6 +188,8 @@ class ArticleController extends Controller
 
         $article->tags()->sync(array_unique($tagIds));
 
+        \Illuminate\Support\Facades\Cache::forget('home.featured_articles');
+
         return redirect()->route('admin.blog.articles.index')->with('success', 'Article created successfully.');
     }
 
@@ -209,6 +213,7 @@ class ArticleController extends Controller
             'featured_image' => 'nullable|image|max:2048',
             'featured_image_url' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',
+            'is_featured' => 'nullable|boolean',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:blog_tags,id',
             'new_tags' => 'nullable|string',
@@ -245,6 +250,8 @@ class ArticleController extends Controller
             $validated['published_at'] = now();
         }
 
+        $validated['is_featured'] = $request->boolean('is_featured');
+
         $article->update($validated);
 
         // Handle Tags
@@ -266,6 +273,8 @@ class ArticleController extends Controller
 
         $article->tags()->sync(array_unique($tagIds));
 
+        \Illuminate\Support\Facades\Cache::forget('home.featured_articles');
+
         return redirect()->route('admin.blog.articles.index')->with('success', 'Article updated successfully.');
     }
 
@@ -277,6 +286,19 @@ class ArticleController extends Controller
         $article->tags()->detach();
         $article->delete();
 
+        \Illuminate\Support\Facades\Cache::forget('home.featured_articles');
+
         return redirect()->route('admin.blog.articles.index')->with('success', 'Article deleted successfully.');
+    }
+
+    public function toggleFeatured(Article $article)
+    {
+        $article->update(['is_featured' => ! $article->is_featured]);
+        \Illuminate\Support\Facades\Cache::forget('home.featured_articles');
+
+        return response()->json([
+            'success' => true,
+            'is_featured' => (bool) $article->is_featured,
+        ]);
     }
 }

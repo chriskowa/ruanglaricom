@@ -78,8 +78,9 @@ class PageController extends Controller
         $featuredArticles = Cache::remember('home.featured_articles', 300, function () {
             return Article::query()
                 ->published()
-                ->select(['id', 'title', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id'])
+                ->select(['id', 'title', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id', 'is_featured'])
                 ->with(['category:id,name,slug'])
+                ->orderByDesc('is_featured')
                 ->orderByDesc('views_count')
                 ->orderByRaw('COALESCE(published_at, created_at) DESC')
                 ->limit(4)

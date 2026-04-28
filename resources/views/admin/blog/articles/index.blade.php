@@ -38,6 +38,7 @@
                         <th class="px-6 py-4">Title</th>
                         <th class="px-6 py-4">Category</th>
                         <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-center">Featured</th>
                         <th class="px-6 py-4">Published</th>
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
@@ -71,6 +72,13 @@
                                 {{ ucfirst($article->status) }}
                             </span>
                         </td>
+                        <td class="px-6 py-4 text-center">
+                            <button type="button" onclick="toggleFeatured({{ $article->id }})" class="p-2 rounded-lg hover:bg-slate-700 transition-colors" title="Toggle Featured">
+                                <svg id="icon-featured-{{ $article->id }}" class="w-5 h-5 {{ $article->is_featured ? 'text-yellow-400' : 'text-slate-500' }}" fill="{{ $article->is_featured ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                            </button>
+                        </td>
                         <td class="px-6 py-4 text-slate-400 text-sm">
                             {{ $article->published_at ? $article->published_at->format('M d, Y H:i') : '-' }}
                         </td>
@@ -94,7 +102,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                             <div class="flex flex-col items-center justify-center">
                                 <svg class="w-12 h-12 mb-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
                                 <p class="text-lg font-medium">No articles found</p>
@@ -112,3 +120,50 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function toggleFeatured(id) {
+    const icon = document.getElementById('icon-featured-' + id);
+    if (!icon) return;
+
+    const wasFeatured = icon.classList.contains('text-yellow-400');
+
+    if (wasFeatured) {
+        icon.classList.remove('text-yellow-400');
+        icon.classList.add('text-slate-500');
+        icon.setAttribute('fill', 'none');
+    } else {
+        icon.classList.remove('text-slate-500');
+        icon.classList.add('text-yellow-400');
+        icon.setAttribute('fill', 'currentColor');
+    }
+
+    fetch(`/admin/blog/articles/${id}/toggle-featured`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => r.ok ? r.json() : Promise.reject(r))
+    .then(data => {
+        if (!data || !data.success) {
+            throw new Error('toggle failed');
+        }
+    })
+    .catch(() => {
+        if (wasFeatured) {
+            icon.classList.remove('text-slate-500');
+            icon.classList.add('text-yellow-400');
+            icon.setAttribute('fill', 'currentColor');
+        } else {
+            icon.classList.remove('text-yellow-400');
+            icon.classList.add('text-slate-500');
+            icon.setAttribute('fill', 'none');
+        }
+        alert('Gagal mengubah status featured.');
+    });
+}
+</script>
+@endpush

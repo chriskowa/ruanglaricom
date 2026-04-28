@@ -134,6 +134,10 @@
                                 <option value="archived" {{ old('status') == 'archived' ? 'selected' : '' }}>Archived</option>
                             </select>
                         </div>
+                        <label class="flex items-center gap-3 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3">
+                            <input type="checkbox" name="is_featured" value="1" class="rounded bg-slate-800 border-slate-600 text-neon focus:ring-0" {{ old('is_featured') ? 'checked' : '' }}>
+                            <span class="text-sm font-bold text-slate-300">Featured di Home</span>
+                        </label>
                         <button type="submit" class="w-full py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all shadow-lg shadow-neon/20">
                             Save Article
                         </button>
