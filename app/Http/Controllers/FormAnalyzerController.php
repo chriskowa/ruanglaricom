@@ -127,6 +127,18 @@ class FormAnalyzerController extends Controller
 
             $metrics = $this->parseMetrics($data['metrics'] ?? null);
             $biomech = $this->normalizeBiomechMetrics($metrics);
+            
+            // Enforce Expert Mode limit
+            if (isset($metrics['samples']) && $metrics['samples'] > 100) {
+                if (! $isAdmin && ! $hasPaidFeature) {
+                    return response()->json([
+                        'ok' => false,
+                        'error' => 'Akses ditolak.',
+                        'message' => 'Video terlalu detail (Expert Mode). Silakan upgrade untuk analisis ini.',
+                    ], 403);
+                }
+            }
+
             $formReport = $this->buildFormReport($biomech, $metrics);
 
             $originalMeta = $this->buildMeta(null, $data, 0);
@@ -212,8 +224,26 @@ class FormAnalyzerController extends Controller
             [$score, $issues, $suggestions, $coachMessage, $positives, $formIssues, $strengthPlan, $recoveryPlan, $videoScore, $formScore] =
                 $this->makeFeedback($originalMeta, $meta['compression'], $compressionWarnings, $biomech);
 
+            // Save result to Cache for PDF generation
+            $analysisId = (string) Str::uuid();
+            $reportData = [
+                'score' => $score,
+                'video_score' => $videoScore,
+                'meta' => $meta,
+                'positives' => $positives,
+                'issues' => $issues,
+                'suggestions' => $suggestions,
+                'form_issues' => $formIssues,
+                'form_report' => $formReport,
+                'strength_plan' => $strengthPlan,
+                'recovery_plan' => $recoveryPlan,
+                'coach_message' => $coachMessage,
+            ];
+            Cache::put('form_analyzer_result:'.$analysisId, $reportData, now()->addHours(24));
+
             return response()->json([
                 'ok' => true,
+                'analysis_id' => $analysisId,
                 'score' => $score,
                 'video_score' => $videoScore,
                 'form_score' => $formScore,
@@ -252,10 +282,14 @@ class FormAnalyzerController extends Controller
     public function report(Request $request)
     {
         $data = $request->validate([
-            'report' => ['required', 'array'],
+            'analysis_id' => ['required', 'string'],
         ]);
 
-        $report = $data['report'];
+        $report = Cache::get('form_analyzer_result:'.$data['analysis_id']);
+        if (!$report) {
+            return response()->json(['error' => 'Laporan tidak ditemukan atau sudah kedaluwarsa.'], 404);
+        }
+
         $score = $report['score'] ?? null;
         $videoScore = $report['video_score'] ?? null;
         $meta = $report['meta'] ?? [];
@@ -313,8 +347,10 @@ class FormAnalyzerController extends Controller
         $user = $request->user();
         $ip = $request->ip();
         $sessionId = $request->session()->getId();
-        $usageKey = 'form_analyzer:usage:'.$ip.':'.$sessionId;
-        Cache::forget($usageKey);
+        
+        // Remove automatic trial reset
+        // $usageKey = 'form_analyzer:usage:'.$ip.':'.$sessionId;
+        // Cache::forget($usageKey);
 
         Log::info('form_analyzer_support', [
             'name' => $data['name'] ?? null,

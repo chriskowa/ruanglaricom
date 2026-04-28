@@ -452,9 +452,9 @@
                                         <button id="rlfa-advanced-btn" type="button" class="w-full bg-neon text-dark font-bold py-3 rounded-xl text-sm hover:bg-white">
                                             Lihat Analisis Lari
                                         </button>
-                                        <button id="rlfa-download-gif-btn" type="button" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-xl text-sm hover:from-emerald-500 hover:to-teal-500 transition flex items-center justify-center gap-2">
+                                        <button id="rlfa-download-gif-btn" type="button" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-xl text-sm hover:from-emerald-500 hover:to-teal-500 transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
                                             <i class="fa-solid fa-film"></i>
-                                            Download GIF Skeleton
+                                            Download GIF Gerak (Skeleton)
                                         </button>
                                         <button id="rlfa-download-pdf-btn" type="button" class="w-full bg-slate-900 text-slate-100 font-bold py-3 rounded-xl text-sm border border-slate-700 hover:bg-slate-800">
                                             Download PDF Hasil Analisis
@@ -1949,8 +1949,9 @@
         const expertFeedback = document.getElementById('rlfa-expert-feedback');
         let qrisSubmitting = false;
         let expertSubmitting = false;
-        let expertEnabled = true; // Langsung aktifkan fitur Expert untuk semua orang
-        window.RLFA_EXPERT_MODE = true; // Langsung aktifkan fitur Expert untuk semua orang
+        let expertAccess = @json($hasPaidFeature);
+        let expertEnabled = expertAccess; // Aktif jika punya akses
+        window.RLFA_EXPERT_MODE = expertEnabled;
         let lastResult = null;
         let currentVisGif = null;
         let currentVisPhoto = null;
@@ -2356,6 +2357,7 @@
         };
 
         const setExpertEnabled = (value) => {
+            if (!expertAccess && value) return; // Cegah bypass
             expertEnabled = !!value;
             window.RLFA_EXPERT_MODE = expertEnabled;
             updateExpertLabel();
@@ -3113,11 +3115,13 @@
                     visualizationImg.src = '';
                 }
             }
-            // GIF download button
+            // GIF download button state setup
             const downloadGifBtn = document.getElementById('rlfa-download-gif-btn');
             if (downloadGifBtn) {
+                downloadGifBtn.classList.remove('hidden');
                 if (currentVisGif) {
-                    downloadGifBtn.classList.remove('hidden');
+                    downloadGifBtn.disabled = false;
+                    downloadGifBtn.innerHTML = '<i class="fa-solid fa-film"></i> Download GIF Gerak (Skeleton)';
                     downloadGifBtn.onclick = () => {
                         const a = document.createElement('a');
                         a.href = currentVisGif;
@@ -3126,7 +3130,12 @@
                         a.click();
                         document.body.removeChild(a);
                     };
+                } else if (result.gif_url === undefined && window.gifshot) {
+                    // Masih proses background
+                    downloadGifBtn.disabled = true;
+                    downloadGifBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menyiapkan GIF...';
                 } else {
+                    // Gagal atau tidak ada
                     downloadGifBtn.classList.add('hidden');
                 }
             }
@@ -3553,6 +3562,8 @@
                         const downloadGifBtn = document.getElementById('rlfa-download-gif-btn');
                         if (downloadGifBtn) {
                             downloadGifBtn.classList.remove('hidden');
+                            downloadGifBtn.disabled = false;
+                            downloadGifBtn.innerHTML = '<i class="fa-solid fa-film"></i> Download GIF Gerak (Skeleton)';
                             downloadGifBtn.onclick = () => {
                                 const a = document.createElement('a');
                                 a.href = gifUrl;
@@ -3634,21 +3645,8 @@
         };
 
         const downloadPdf = async () => {
-            if (!downloadPdfBtn || !lastResult) return;
+            if (!downloadPdfBtn || !lastResult || !lastResult.analysis_id) return;
             try {
-                const payload = {
-                    score: lastResult.form_score ?? lastResult.score ?? null,
-                    video_score: lastResult.video_score ?? null,
-                    meta: lastResult.meta ?? null,
-                    positives: lastResult.positives ?? [],
-                    issues: lastResult.issues ?? [],
-                    suggestions: lastResult.suggestions ?? [],
-                    form_issues: lastResult.form_issues ?? [],
-                    form_report: lastResult.form_report ?? [],
-                    strength_plan: lastResult.strength_plan ?? [],
-                    recovery_plan: lastResult.recovery_plan ?? [],
-                    coach_message: lastResult.coach_message ?? null,
-                };
                 const res = await fetch(routeReport, {
                     method: 'POST',
                     headers: {
@@ -3656,7 +3654,7 @@
                         'Accept': 'application/pdf',
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ report: payload }),
+                    body: JSON.stringify({ analysis_id: lastResult.analysis_id }),
                 });
                 if (!res.ok) {
                     throw new Error('Gagal membuat PDF. Coba lagi beberapa saat.');
