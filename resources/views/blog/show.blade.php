@@ -1,9 +1,25 @@
 @extends('layouts.pacerhub')
 
-@section('title', $article->meta_title ?? $article->title)
-@section('meta_title', $article->meta_title ?? $article->title)
-@section('meta_description', $article->meta_description ?? Str::limit(strip_tags($article->content), 150))
+@php
+    $canonicalUrl = $article->canonical_url ?: route('blog.show', $article->slug);
+    $metaTitle = $article->meta_title ?: $article->title . ' | Ruang Lari';
+    $metaDescription = $article->meta_description ?: ($article->excerpt ?: Str::limit(preg_replace('/\s+/', ' ', trim(strip_tags($article->content))), 160));
+    $publishedAtIso = optional($article->published_at ?: $article->created_at)?->toIso8601String();
+    $modifiedAtIso = optional($article->updated_at ?: $article->created_at)?->toIso8601String();
+@endphp
+
+@section('title', $metaTitle)
+@section('meta_title', $metaTitle)
+@section('meta_description', $metaDescription)
 @section('meta_keywords', $article->meta_keywords ?? '')
+@section('canonical_url', $canonicalUrl)
+@section('og_type', 'article')
+@section('og_url', $canonicalUrl)
+@section('article_published_time', $publishedAtIso)
+@section('article_modified_time', $modifiedAtIso)
+@section('article_author', $article->user?->name ?? 'Ruang Lari')
+@section('article_section', $article->category?->name ?? 'Blog')
+@section('article_tags', $article->tags->pluck('name')->implode(', '))
 
 @php
     $bgImage = null;
@@ -19,6 +35,79 @@
 @if($bgImage)
     @section('og_image', $bgImage)
 @endif
+
+@push('structured_data')
+@php
+    $schemaImage = $bgImage ?: asset('images/ruanglari.webp');
+    $schemaDescription = $metaDescription;
+    $breadcrumbItems = [
+        [
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Home',
+            'item' => url('/'),
+        ],
+        [
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => 'Blog',
+            'item' => route('blog.index'),
+        ],
+    ];
+
+    if ($article->category) {
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 3,
+            'name' => $article->category->name,
+            'item' => route('blog.category', $article->category->slug),
+        ];
+    }
+
+    $breadcrumbItems[] = [
+        '@type' => 'ListItem',
+        'position' => count($breadcrumbItems) + 1,
+        'name' => $article->title,
+        'item' => $canonicalUrl,
+    ];
+
+    $articleSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BlogPosting',
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => $canonicalUrl,
+        ],
+        'headline' => $article->title,
+        'description' => $schemaDescription,
+        'image' => [$schemaImage],
+        'datePublished' => $publishedAtIso,
+        'dateModified' => $modifiedAtIso,
+        'author' => [
+            '@type' => 'Person',
+            'name' => $article->user?->name ?? 'Ruang Lari',
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => 'Ruang Lari',
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => asset('images/green/favicon-32x32.png'),
+            ],
+        ],
+        'articleSection' => $article->category?->name ?? 'Blog',
+        'keywords' => $article->tags->pluck('name')->implode(', '),
+    ];
+
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbItems,
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode($articleSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+<script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endpush
 
 @section('content')
 <div class="min-h-screen bg-dark pt-6 pb-20">

@@ -114,13 +114,17 @@ class BlogController extends Controller
 
     public function show($slug)
     {
-        $article = Article::where('slug', $slug)->published()->firstOrFail();
+        $article = Article::with(['user:id,name', 'category:id,name,slug', 'tags:id,name,slug'])
+            ->where('slug', $slug)
+            ->published()
+            ->firstOrFail();
 
         $article->increment('views_count');
 
         $relatedArticles = Article::where('category_id', $article->category_id)
             ->where('id', '!=', $article->id)
             ->published()
+            ->with(['category:id,name,slug'])
             ->latest('published_at')
             ->limit(3)
             ->get();

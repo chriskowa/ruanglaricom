@@ -256,19 +256,35 @@
     })
 });
 
-const promptTemplate = `Tugas: Buat artikel SEO berkualitas tinggi berdasarkan input berikut. Artikel harus:
-1. Unik dan faktual (Parafrase total, divalidasi sumber terpercaya).
-2. SEO 2026-friendly (E-A-T, user intent, semantic keywords).
-3. Terstruktur (H1, H2-H3, bullet points).
-4. Engaging & mudah dibaca.
+const promptTemplate = `Anda adalah penulis SEO senior (Bahasa Indonesia) untuk Ruang Lari.
 
-Input Topic: {topic}
-{url_section}`;
+Aturan:
+- Tulis unik (parafrase total), tidak plagiarisme.
+- Factual: jangan mengarang data/statistik. Jika menyebut angka/klaim penting, sertakan URL sumber pada field sources.
+- SEO 2026-friendly: fokus intent, E-E-A-T, dan keterbacaan mobile.
+- Struktur: JANGAN gunakan <h1> di content (judul halaman sudah H1). Mulai dari <h2>/<h3>. Paragraf 2–4 kalimat.
+- HTML saja untuk content (pakai <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>).
+- Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut.
+
+Input:
+- Topik: {topic}
+{url_section}
+
+Output HARUS JSON valid TANPA markdown dan TANPA teks lain. Format:
+{
+  "seo_title": "... (<= 60 karakter)",
+  "keywords": "... (utama + 3-5 LSI)",
+  "meta_description": "... (140-160 karakter)",
+  "excerpt": "... (ringkas 1-2 kalimat)",
+  "content": "... (HTML body, tanpa <h1>)",
+  "slug": "... (slug pendek)",
+  "sources": ["https://..."]
+}`;
 
 function syncPrompt() {
     const topic = document.getElementById('ai-topic').value || '{topic}';
     const url = document.getElementById('ai-url').value;
-    const urlSection = url ? `Rewrite from URL: ${url}` : '';
+    const urlSection = url ? `- URL referensi: ${url}` : '';
     
     document.getElementById('ai-prompt-preview').value = promptTemplate
         .replace('{topic}', topic)
@@ -322,8 +338,8 @@ async function generateArticle() {
                 tinymce.get('editor').setContent(data.content || '');
             }
             
-            if (data.meta_description) {
-                document.querySelector('textarea[name="excerpt"]').value = data.meta_description;
+            if (data.excerpt || data.meta_description) {
+                document.querySelector('textarea[name="excerpt"]').value = data.excerpt || data.meta_description;
             }
 
             alert('Artikel berhasil di-generate!');

@@ -40,39 +40,32 @@ class ArticleController extends Controller
         $topic = $request->topic;
         $url = $request->url;
         
-        $systemPrompt = "Tugas: Buat artikel SEO berkualitas tinggi berdasarkan input berikut. Artikel harus: 
- 1. **Unik dan faktual**: Parafrase total atau tulis ulang, susun ulang kalimat, struktur baru. Semua klaim harus **divalidasi dari sumber terpercaya** (jurnal, gov, edu, atau situs resmi industri terbaru). 
- 2. **SEO 2026-friendly**: Optimasi untuk Google terbaru, fokus E-A-T, user intent, semantic / LSI keywords, mobile-friendly. 
- 3. **Terstruktur**: H1 untuk judul, H2–H3 untuk subtopik, bullet/numbered list bila perlu, paragraf pendek (2–4 kalimat). 
- 4. **Engaging & mudah dibaca**: Bahasa jelas, formal atau sesuai target audiens, tetap menarik. 
-
- **Input**: 
- - Keyword / Topik utama: " . $topic . ($url ? "\n - Rewrite dari URL: " . $url : "") . "
-
- **Langkah tambahan**: 
- - **Cek fakta**: sebelum menulis, gunakan data terbaru dari sumber terpercaya (jurnal, situs gov, edu, organisasi internasional, artikel 5 tahun terakhir).  
- - **Catat sumber**: bila memungkinkan, sertakan link/referensi yang digunakan. 
-
- **Output yang harus dihasilkan dalam format JSON**: 
- {
-  \"seo_title\": \"Judul unik, mengandung keyword utama, max 60 karakter\",
-  \"keywords\": \"Keyword utama + 3–5 semantic / LSI keywords\",
-  \"meta_description\": \"150–160 karakter, mengandung keyword utama\",
-  \"content\": \"Artikel lengkap 800–2000 kata dalam format HTML (gunakan H1, H2, H3, p, ul, li)\",
-  \"slug\": \"URL pendek, SEO-friendly\"
- }
-
- **Instruksi tambahan**: 
- - Jika output kurang sesuai, perbaiki dengan menambah fakta, contoh terbaru, atau data statistik untuk meningkatkan kredibilitas. 
- - Hindari informasi yang tidak dapat diverifikasi atau spekulatif. 
- - Struktur konten harus logis dan mudah dipindai pembaca. 
-
- **Catatan**: Hasil harus siap dipublikasikan sebagai artikel SEO 2026, unik, faktual, teroptimasi penuh, dan valid secara ilmiah atau resmi. 
- Sertakan hanya valid JSON dalam jawaban Anda.";
+        $systemPrompt = "Anda adalah penulis SEO senior (Bahasa Indonesia) untuk Ruang Lari.\n\n"
+            . "Aturan:\n"
+            . "- Tulis unik (parafrase total), tidak plagiarisme.\n"
+            . "- Factual: jangan mengarang data/statistik. Jika menyebut angka/klaim penting, sertakan URL sumber pada field sources.\n"
+            . "- SEO 2026-friendly: fokus intent, E-E-A-T, dan keterbacaan mobile.\n"
+            . "- Struktur: JANGAN gunakan <h1> di content (judul halaman sudah H1). Mulai dari <h2>/<h3>. Paragraf 2–4 kalimat.\n"
+            . "- HTML saja untuk content (pakai <h2>, <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table>).\n"
+            . "- Jika URL referensi diberikan tetapi Anda tidak bisa mengakses isinya, jangan mengklaim sudah membaca URL tersebut; tetap tulis artikel original berdasarkan topik.\n\n"
+            . "Input:\n"
+            . "- Topik: {$topic}\n"
+            . ($url ? "- URL referensi: {$url}\n" : "")
+            . "\nOutput HARUS JSON valid TANPA markdown dan TANPA teks lain. Format:\n"
+            . "{\n"
+            . "  \"seo_title\": \"... (<= 60 karakter)\",\n"
+            . "  \"keywords\": \"... (utama + 3-5 LSI)\",\n"
+            . "  \"meta_description\": \"... (140-160 karakter)\",\n"
+            . "  \"excerpt\": \"... (ringkas 1-2 kalimat)\",\n"
+            . "  \"content\": \"... (HTML body, tanpa <h1>)\",\n"
+            . "  \"slug\": \"... (slug pendek)\",\n"
+            . "  \"sources\": [\"https://...\"]\n"
+            . "}";
 
         try {
-            // Using gpt-4o as requested
-            $response = $this->aiService->getAiResponse("Generate article about: " . $topic, $systemPrompt, 'gpt-4o');
+            // Using gpt-5.5 as requested
+            $userPrompt = "Topik: {$topic}" . ($url ? "\nURL referensi: {$url}" : "");
+            $response = $this->aiService->getAiResponse($userPrompt, $systemPrompt, 'gpt-5.5');
 
             if (!$response) {
                 return response()->json([
@@ -81,21 +74,32 @@ class ArticleController extends Controller
                 ], 500);
             }
 
-            $jsonStr = $response;
-            if (preg_match('/```json\s*(.*?)\s*```/s', $response, $matches)) {
-                $jsonStr = $matches[1];
-            } elseif (preg_match('/```\s*(.*?)\s*```/s', $response, $matches)) {
-                $jsonStr = $matches[1];
+            $jsonStr = trim($response);
+            $jsonStr = str_replace(["```json", "```"], '', $jsonStr);
+            $jsonStr = trim($jsonStr);
+
+            if (preg_match('/\{[\s\S]*\}/', $jsonStr, $matches)) {
+                $jsonStr = $matches[0];
             }
 
             $data = json_decode($jsonStr, true);
 
-            if (json_last_error() !== JSON_ERROR_NONE) {
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'AI returned invalid JSON format.',
                     'raw' => $response
                 ], 500);
+            }
+
+            if (isset($data['slug'])) {
+                $data['slug'] = Str::slug((string) $data['slug']);
+            } elseif (isset($data['seo_title'])) {
+                $data['slug'] = Str::slug((string) $data['seo_title']);
+            }
+
+            if (!isset($data['excerpt']) && isset($data['meta_description'])) {
+                $data['excerpt'] = (string) $data['meta_description'];
             }
 
             return response()->json([

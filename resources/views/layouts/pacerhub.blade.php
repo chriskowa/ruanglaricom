@@ -48,21 +48,40 @@
     <meta name="author" content="Ruang Lari Indonesia">
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:url" content="@yield('og_url', trim($__env->yieldContent('canonical_url')) ?: url()->current())">
+    <meta property="og:site_name" content="Ruang Lari">
     <meta property="og:title" content="@yield('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans')">
     <meta property="og:description" content="@yield('meta_description', 'Gabung dengan Ruang Lari, komunitas lari terbesar di Indonesia. Ikuti event, temukan pacer, dan pecahkan personal record Anda.')">
     <meta property="og:image" content="@yield('og_image', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg')">
+    @if(trim($__env->yieldContent('article_published_time')))
+    <meta property="article:published_time" content="@yield('article_published_time')">
+    @endif
+    @if(trim($__env->yieldContent('article_modified_time')))
+    <meta property="article:modified_time" content="@yield('article_modified_time')">
+    @endif
+    @if(trim($__env->yieldContent('article_author')))
+    <meta property="article:author" content="@yield('article_author')">
+    @endif
+    @if(trim($__env->yieldContent('article_section')))
+    <meta property="article:section" content="@yield('article_section')">
+    @endif
+    @if(trim($__env->yieldContent('article_tags')))
+    <meta property="article:tag" content="@yield('article_tags')">
+    @endif
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:url" content="@yield('og_url', trim($__env->yieldContent('canonical_url')) ?: url()->current())">
     <meta name="twitter:title" content="@yield('meta_title', 'Ruang Lari | Komunitas Lari Indonesia, Event, Pacer & Training Plans')">
     <meta name="twitter:description" content="@yield('meta_description', 'Platform all-in-one untuk pelari, pacer, dan pelatih. Pantau progres, ikuti event, dan raih personal best Anda.')">
     <meta name="twitter:image" content="@yield('og_image', 'https://ruanglari.id/assets/images/ruanglari-cover.jpg')">
+    @if(trim($__env->yieldContent('meta_robots')))
+    <meta name="robots" content="@yield('meta_robots')">
+    @endif
 
     <!-- Canonical -->
-    <link rel="canonical" href="{{ url()->current() }}">   
+    <link rel="canonical" href="@yield('canonical_url', url()->current())">   
 
     <!-- Favicon default -->
     <link rel="icon" href="{{ asset('images/green/favicon-32x32.png') }}" type="image/x-icon">
@@ -181,6 +200,7 @@
         .grecaptcha-badge { visibility: hidden !important; }
     </style>
     @stack('styles')
+    @stack('structured_data')
 </head>
 <body class="{{ isset($lightMode) && $lightMode ? 'bg-slate-50 text-slate-900' : 'bg-dark text-white' }} font-sans antialiased flex flex-col min-h-screen">
 
