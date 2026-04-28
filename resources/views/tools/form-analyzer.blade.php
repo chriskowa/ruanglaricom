@@ -2321,8 +2321,6 @@
             qrisModal.classList.add('hidden');
         };
 
-        let expertAccess = @json($hasPaidFeature);
-
         const openExpertModal = () => {
             if (!expertModal) return;
             expertModal.classList.remove('hidden');
