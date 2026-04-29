@@ -191,9 +191,9 @@
                 <div class="glass rounded-[28px] border border-white/40 shadow-2xl p-5 md:p-6">
                     <div class="grid grid-cols-2 gap-3">
                         <div class="rounded-2xl bg-white p-4 border border-slate-200">
-                            <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Latihan</div>
+                            <div class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Running</div>
                             <div class="mt-2 text-sm font-extrabold text-slate-900">
-                                Bebas 
+                                Habbit 
                             </div>
                         </div>
                         <div class="rounded-2xl bg-white p-4 border border-slate-200">
