@@ -120,17 +120,17 @@
         <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}" onerror="this.onerror=null;this.src='https://www.recaptcha.net/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}';"></script>
     @endif
     <style>
-        :root { --primary:#2563eb; --primary-dark:#1d4ed8; --ink:#0f172a; --muted:#64748b; --line:#dbe4f0; --bg:#f6f9fc; }
+        :root { --primary:#f1631e; --primary-dark:#d94f0b; --ink:#0f172a; --muted:#64748b; --line:#dbe4f0; --bg:#f6f9fc; }
         html { scroll-behavior:smooth; }
         body { background:linear-gradient(180deg,#f8fbff 0%,#f5f7fb 100%); color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
         .glass { background:rgba(255,255,255,.85); backdrop-filter:blur(18px); }
         .soft-card { border:1px solid rgba(148,163,184,.18); box-shadow:0 10px 40px rgba(15,23,42,.08); border-radius:28px; background:#fff; }
         .field { width:100%; border:1px solid #dbe4f0; border-radius:18px; padding:15px 16px; font-weight:600; color:#0f172a; background:#fff; outline:none; transition:.18s ease; }
-        .field:focus { border-color:#60a5fa; box-shadow:0 0 0 4px rgba(37,99,235,.12); }
+        .field:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(241,99,30,.12); }
         .pill { display:inline-flex; align-items:center; gap:.5rem; border-radius:999px; padding:.55rem .9rem; font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
         .choice input { position:absolute; opacity:0; pointer-events:none; }
         .choice-box { border:1px solid #dbe4f0; border-radius:20px; padding:14px 16px; background:#fff; transition:.18s ease; }
-        .choice input:checked + .choice-box { border-color:#2563eb; background:linear-gradient(180deg,#eff6ff 0%,#ffffff 100%); box-shadow:0 0 0 4px rgba(37,99,235,.08); }
+        .choice input:checked + .choice-box { border-color:var(--primary); background:linear-gradient(180deg,#fff7ed 0%,#ffffff 100%); box-shadow:0 0 0 4px rgba(241,99,30,.08); }
         .submit-btn[disabled] { opacity:.7; cursor:not-allowed; }
         .content-html p { margin-top:0; margin-bottom:1rem; line-height:1.75; color:#334155; }
         .content-html h1, .content-html h2, .content-html h3, .content-html h4 { color:#0f172a; font-weight:800; margin-top:1.4rem; margin-bottom:.8rem; }
@@ -247,7 +247,7 @@
                 <div class="soft-card overflow-hidden">
                     <div class="grid md:grid-cols-[1.1fr_.9fr]">
                         <div class="p-6 md:p-8 lg:p-10">
-                            <div class="text-sm font-black uppercase tracking-[0.2em] text-blue-600">Event Overview</div>
+                            <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Event Overview</div>
                             <h2 class="mt-3 text-2xl md:text-3xl font-black tracking-tight text-slate-900">Pendaftaran cepat</h2>
                             <div class="mt-5 grid sm:grid-cols-3 gap-3">
                                 <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
@@ -264,7 +264,7 @@
                                 </div>
                             </div>
                             @if($event->location_address)
-                                <div class="mt-5 rounded-2xl bg-blue-50 border border-blue-100 p-4 text-sm text-slate-700 leading-7">
+                                <div class="mt-5 rounded-2xl bg-orange-50 border border-orange-100 p-4 text-sm text-slate-700 leading-7">
                                     <div class="font-extrabold text-slate-900 mb-1">Alamat</div>
                                     {{ $event->location_address }}
                                 </div>
@@ -285,21 +285,21 @@
 
                 @if($event->full_description)
                     <div class="soft-card p-6 md:p-8">
-                        <div class="text-sm font-black uppercase tracking-[0.2em] text-blue-600">Description</div>
+                        <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Description</div>
                         <div class="content-html mt-4 text-slate-700">
                             {!! $event->full_description !!}
                         </div>
                     </div>
                 @elseif($event->short_description)
                     <div class="soft-card p-6 md:p-8">
-                        <div class="text-sm font-black uppercase tracking-[0.2em] text-blue-600">Description</div>
+                        <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Description</div>
                         <p class="mt-4 text-slate-700 leading-8">{{ $event->short_description }}</p>
                     </div>
                 @endif
                 
                 @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
                     <div class="soft-card p-6 md:p-8" id="participants-list">
-                        <div class="text-sm font-black uppercase tracking-[0.2em] text-blue-600">Daftar Peserta</div>
+                        <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Daftar Peserta</div>
                         <div class="mt-4" id="vue-participants-app">
                             @include('events.partials.participants-table-light')
                         </div>
@@ -309,7 +309,7 @@
 
             <aside id="register" class="lg:sticky lg:top-24 self-start">
                 <div class="soft-card overflow-hidden">
-                    <div class="px-6 md:px-7 py-6 border-b border-slate-200 bg-gradient-to-r from-blue-600 to-cyan-500 text-white">
+                    <div class="px-6 md:px-7 py-6 border-b border-slate-200 bg-gradient-to-r from-[#f1631e] to-[#ff8a3d] text-white">
                         <div class="flex items-center justify-between gap-4">
                             <div>
                                 <div class="text-sm font-black uppercase tracking-[0.2em] text-white/80">Quick Registration</div>
@@ -338,7 +338,7 @@
                                         <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Peserta</div>
                                         <div class="mt-1 text-sm text-slate-600">Bisa daftar beberapa peserta sekaligus dalam satu transaksi.</div>
                                     </div>
-                                    <button id="addParticipantBtn" type="button" class="inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-black text-blue-700 hover:bg-blue-100 transition">
+                                    <button id="addParticipantBtn" type="button" class="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-black text-[#f1631e] hover:bg-orange-100 transition">
                                         <i class="fa-solid fa-plus"></i>
                                         Tambah Peserta
                                     </button>
@@ -409,7 +409,7 @@
                                                                         @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                             <div class="text-[11px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
                                                                         @endif
-                                                                        <div class="text-sm font-black text-blue-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                        <div class="text-sm font-black text-[#f1631e]">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
                                                                     </div>
                                                                 </div>
                                                             </label>
@@ -522,7 +522,7 @@
                                                                         @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                             <div class="text-[11px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
                                                                         @endif
-                                                                        <div class="text-sm font-black text-blue-600">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                        <div class="text-sm font-black text-[#f1631e]">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
                                                                     </div>
                                                                 </div>
                                                             </label>
@@ -627,7 +627,7 @@
                                     </div>
                                     <div class="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
                                         <span class="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Total</span>
-                                        <span id="ql-total-price" class="text-2xl font-black text-blue-600">Rp 0</span>
+                                        <span id="ql-total-price" class="text-2xl font-black text-[#f1631e]">Rp 0</span>
                                     </div>
                                 </div>
 
@@ -635,7 +635,7 @@
                                 <input type="hidden" name="pic_email">
                                 <input type="hidden" name="pic_phone">
 
-                                <button id="quickSubmitBtn" type="submit" class="submit-btn w-full inline-flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] bg-blue-600 hover:bg-blue-700 text-white font-black text-base shadow-lg shadow-blue-600/20 transition">
+                                <button id="quickSubmitBtn" type="submit" class="submit-btn w-full inline-flex items-center justify-center gap-3 px-6 py-4 rounded-[20px] bg-[#f1631e] hover:bg-[#d94f0b] text-white font-black text-base shadow-lg shadow-[#f1631e]/20 transition">
                                     <i class="fa-solid fa-paper-plane"></i>
                                     <span>Daftar Sekarang</span>
                                 </button>
