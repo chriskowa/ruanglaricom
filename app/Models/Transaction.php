@@ -101,6 +101,10 @@ class Transaction extends Model
      */
     public function markAsFailed(?string $midtransOrderId = null, ?string $transactionStatus = null): void
     {
+        if (($this->payment_status ?? null) === 'paid') {
+            return;
+        }
+
         $this->update([
             'payment_status' => 'failed',
             'midtrans_order_id' => $midtransOrderId ?? $this->midtrans_order_id,

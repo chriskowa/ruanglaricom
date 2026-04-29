@@ -147,6 +147,19 @@ class EventTransactionWebhookController extends Controller
             ], 401);
         }
 
+        if (($transaction->payment_status ?? null) === 'paid') {
+            if ($transactionStatus) {
+                $transaction->update([
+                    'midtrans_transaction_status' => $transactionStatus,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction already paid',
+            ]);
+        }
+
         // Check transaction status
         if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
             if ($fraudStatus == 'accept') {

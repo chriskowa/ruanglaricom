@@ -228,7 +228,11 @@ class EventPaymentRecoveryController extends Controller
         $midtransStatus = (string) ($result['status']->transaction_status ?? '');
         $internal = $this->mapMidtransStatusToInternal($midtransStatus);
 
-        if ($internal !== null) {
+        if (($tx->payment_status ?? null) === 'paid') {
+            $tx->update([
+                'midtrans_transaction_status' => $midtransStatus,
+            ]);
+        } elseif ($internal !== null) {
             $tx->update([
                 'payment_status' => $internal,
                 'midtrans_transaction_status' => $midtransStatus,

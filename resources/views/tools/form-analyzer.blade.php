@@ -456,6 +456,10 @@
                                             <i class="fa-solid fa-film"></i>
                                             Download GIF Gerak (Skeleton)
                                         </button>
+                                        <button id="rlfa-download-mp4-btn" type="button" class="hidden w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold py-3 rounded-xl text-sm hover:from-indigo-500 hover:to-violet-500 transition flex items-center justify-center gap-2 shadow-lg shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <i class="fa-solid fa-video"></i>
+                                            Download MP4 / WebM Gerak (Pro)
+                                        </button>
                                         <button id="rlfa-download-pdf-btn" type="button" class="w-full bg-slate-900 text-slate-100 font-bold py-3 rounded-xl text-sm border border-slate-700 hover:bg-slate-800">
                                             Download PDF Hasil Analisis
                                         </button>
@@ -1148,7 +1152,8 @@
         };
 
         // GIF frame collection
-        const GIF_TARGET_FRAMES = 15;
+        const proExport = !!window.RLFA_PRO_UNLOCKED;
+        const GIF_TARGET_FRAMES = proExport ? 30 : 15;
         const gifW = Math.min(360, width);
         const gifH = Math.round(gifW * (height / width)) || gifW;
         const gifFrames = [];
@@ -1532,6 +1537,83 @@
             return null;
         };
 
+        const generateVideoTask = async () => {
+            if (!proExport) return null;
+            if (gifFrames.length < 2) return null;
+            if (typeof window === 'undefined' || !window.MediaRecorder) return null;
+
+            const mimeCandidates = [
+                'video/mp4;codecs=h264',
+                'video/mp4',
+                'video/webm;codecs=vp9',
+                'video/webm;codecs=vp8',
+                'video/webm',
+            ];
+
+            const mimeType = mimeCandidates.find((t) => {
+                try { return MediaRecorder.isTypeSupported(t); } catch (e) { return false; }
+            }) || '';
+
+            if (!mimeType) return null;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = gifW;
+            canvas.height = gifH;
+            const ctx = canvas.getContext('2d');
+            if (!ctx || !canvas.captureStream) return null;
+
+            const fps = 12;
+            const targetSeconds = Math.min(8, Math.max(4, gifFrames.length * 0.12));
+            const totalFrames = Math.max(2, Math.round(targetSeconds * fps));
+
+            const stream = canvas.captureStream(fps);
+            const chunks = [];
+
+            let recorder = null;
+            try {
+                recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2500000 });
+            } catch (e) {
+                return null;
+            }
+
+            const finished = new Promise((resolve) => {
+                recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+                recorder.onstop = () => resolve();
+                recorder.onerror = () => resolve();
+            });
+
+            recorder.start(200);
+
+            const imgs = await Promise.all(gifFrames.map((src) => new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            })));
+
+            const validImgs = imgs.filter(Boolean);
+            if (!validImgs.length) {
+                try { recorder.stop(); } catch (e) {}
+                await finished;
+                return null;
+            }
+
+            for (let i = 0; i < totalFrames; i++) {
+                const img = validImgs[i % validImgs.length];
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                await new Promise((r) => setTimeout(r, Math.round(1000 / fps)));
+            }
+
+            try { recorder.stop(); } catch (e) {}
+            await finished;
+
+            const blob = chunks.length ? new Blob(chunks, { type: mimeType }) : null;
+            if (!blob || !blob.size) return null;
+            const url = URL.createObjectURL(blob);
+            return { url, mime: blob.type || mimeType };
+        };
+
         const coverage = Object.keys(CATEGORY_REQUIREMENTS).reduce((acc, k) => {
             const min = CATEGORY_REQUIREMENTS[k].min;
             const count = counts[k] || 0;
@@ -1563,6 +1645,7 @@
             visualization: visualization,
             snapshots: snapshots,
             generateGif: generateGifTask,
+            generateVideo: generateVideoTask,
         };
     };
 
@@ -1983,16 +2066,22 @@
             }
         };
 
+        const syncProUnlocked = () => {
+            window.RLFA_PRO_UNLOCKED = !!(isAdmin || expertAccess || isSupporter());
+        };
+
         const markSupporter = () => {
             if (typeof window === 'undefined') return;
             try {
                 window.localStorage.setItem(SUPPORT_KEY, '1');
+                syncProUnlocked();
                 const badge = document.getElementById('rlfa-supporter-badge');
                 if (badge) badge.classList.remove('hidden');
             } catch (e) {}
         };
 
         const initSupporterBadge = () => {
+            syncProUnlocked();
             if (isSupporter()) {
                 const badge = document.getElementById('rlfa-supporter-badge');
                 if (badge) badge.classList.remove('hidden');
@@ -2358,6 +2447,7 @@
             if (!expertAccess && value) return; // Cegah bypass
             expertEnabled = !!value;
             window.RLFA_EXPERT_MODE = expertEnabled;
+            syncProUnlocked();
             updateExpertLabel();
             updateExpertStatus();
         };
@@ -3142,6 +3232,41 @@
                 } else {
                     // Gagal atau tidak ada
                     downloadGifBtn.classList.add('hidden');
+                }
+            }
+
+            const downloadVideoBtn = document.getElementById('rlfa-download-mp4-btn');
+            if (downloadVideoBtn) {
+                const pro = !!window.RLFA_PRO_UNLOCKED;
+                const generator = result?.client_metrics?.generateVideo;
+                if (!pro || typeof generator !== 'function') {
+                    downloadVideoBtn.classList.add('hidden');
+                    downloadVideoBtn.onclick = null;
+                } else {
+                    downloadVideoBtn.classList.remove('hidden');
+                    downloadVideoBtn.disabled = false;
+                    downloadVideoBtn.innerHTML = '<i class="fa-solid fa-video"></i> Download MP4 / WebM Gerak (Pro)';
+                    downloadVideoBtn.onclick = async () => {
+                        downloadVideoBtn.disabled = true;
+                        downloadVideoBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menyiapkan video...';
+                        try {
+                            const out = await generator();
+                            if (!out || !out.url) throw new Error('Gagal membuat video.');
+                            const mime = out.mime || '';
+                            const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+                            const a = document.createElement('a');
+                            a.href = out.url;
+                            a.download = 'skeleton-animasi.' + ext;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        } catch (e) {
+                            pushWarning(e?.message || 'Gagal membuat video. Coba download GIF saja.');
+                        } finally {
+                            downloadVideoBtn.disabled = false;
+                            downloadVideoBtn.innerHTML = '<i class="fa-solid fa-video"></i> Download MP4 / WebM Gerak (Pro)';
+                        }
+                    };
                 }
             }
 
@@ -3972,6 +4097,7 @@
         window.RLFA_EXPERT_MODE = expertAccess; // Sesuaikan dengan akses asli
 
         initSupporterBadge();
+        syncProUnlocked();
         const savedResult = loadLastResult();
         if (savedResult) {
             renderResults(savedResult);
