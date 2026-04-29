@@ -249,9 +249,9 @@
                     </div>
                 </div>
 
-                <div id="qlSponsorTrack" class="mt-4 flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 no-scrollbar">
+                <div id="qlSponsorTrack" class="mt-4 flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 no-scrollbar md:justify-center">
                     @foreach($sponsorUrls as $logo)
-                        <div class="snap-start flex-none w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+                        <div class="snap-center flex-none w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
                             <div class="h-20 md:h-24 rounded-2xl border border-slate-200 bg-white flex items-center justify-center p-4">
                                 <img src="{{ $logo }}" alt="Sponsor {{ $event->name }}" class="max-h-full max-w-full object-contain" loading="lazy" decoding="async">
                             </div>
@@ -784,18 +784,9 @@
                 return;
             }
 
-            let itemStep = 1;
             let index = 0;
-
-            function computeStep() {
-                const first = items[0];
-                if (!first) return;
-                const style = window.getComputedStyle(track);
-                const gap = parseFloat(style.columnGap || style.gap || '0') || 0;
-                const w = first.getBoundingClientRect().width || 1;
-                itemStep = w + gap;
-                if (!itemStep || itemStep < 1) itemStep = w || 1;
-            }
+            let lastInteractionAt = Date.now();
+            let intervalId = null;
 
             function clamp(n) {
                 return Math.max(0, Math.min(items.length - 1, n));
@@ -808,10 +799,18 @@
                 });
             }
 
+            function targetLeftFor(i) {
+                const el = items[i];
+                if (!el) return 0;
+                const left = el.offsetLeft;
+                const w = el.getBoundingClientRect().width || el.offsetWidth || 0;
+                const viewport = track.clientWidth || 0;
+                return Math.max(0, left - Math.max(0, (viewport - w) / 2));
+            }
+
             function go(i) {
-                computeStep();
                 index = clamp(i);
-                track.scrollTo({ left: index * itemStep, behavior: 'smooth' });
+                track.scrollTo({ left: targetLeftFor(index), behavior: 'smooth' });
                 setActiveDot();
             }
 
@@ -822,26 +821,65 @@
             }
 
             function syncFromScroll() {
-                if (!itemStep) computeStep();
-                const i = clamp(Math.round(track.scrollLeft / (itemStep || 1)));
-                if (i === index) return;
-                index = i;
+                const center = track.scrollLeft + (track.clientWidth / 2);
+                let best = index;
+                let bestDist = Infinity;
+                for (let i = 0; i < items.length; i++) {
+                    const el = items[i];
+                    const elCenter = el.offsetLeft + (el.getBoundingClientRect().width / 2);
+                    const dist = Math.abs(elCenter - center);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        best = i;
+                    }
+                }
+                if (best === index) return;
+                index = best;
                 setActiveDot();
             }
 
-            prevBtn.addEventListener('click', function () { go(index - 1); });
-            nextBtn.addEventListener('click', function () { go(index + 1); });
+            function bumpInteraction() {
+                lastInteractionAt = Date.now();
+            }
+
+            function startAuto() {
+                if (intervalId) return;
+                intervalId = window.setInterval(function () {
+                    if (document.hidden) return;
+                    if (Date.now() - lastInteractionAt < 5000) return;
+                    go(index + 1);
+                }, 3500);
+            }
+
+            function stopAuto() {
+                if (!intervalId) return;
+                window.clearInterval(intervalId);
+                intervalId = null;
+            }
+
+            prevBtn.addEventListener('click', function () { bumpInteraction(); go(index - 1); });
+            nextBtn.addEventListener('click', function () { bumpInteraction(); go(index + 1); });
             dotsEl.addEventListener('click', function (e) {
                 const btn = e.target.closest('[data-dot]');
                 if (!btn) return;
+                bumpInteraction();
                 go(parseInt(btn.getAttribute('data-dot') || '0', 10));
             });
-            track.addEventListener('scroll', function () { window.requestAnimationFrame(syncFromScroll); }, { passive: true });
-            window.addEventListener('resize', function () { computeStep(); syncFromScroll(); });
+            track.addEventListener('scroll', function () { bumpInteraction(); window.requestAnimationFrame(syncFromScroll); }, { passive: true });
+            track.addEventListener('pointerenter', stopAuto);
+            track.addEventListener('pointerleave', startAuto);
+            prevBtn.addEventListener('pointerenter', stopAuto);
+            nextBtn.addEventListener('pointerenter', stopAuto);
+            prevBtn.addEventListener('pointerleave', startAuto);
+            nextBtn.addEventListener('pointerleave', startAuto);
+            dotsEl.addEventListener('pointerenter', stopAuto);
+            dotsEl.addEventListener('pointerleave', startAuto);
+            window.addEventListener('resize', function () { bumpInteraction(); syncFromScroll(); });
 
-            computeStep();
             renderDots();
             syncFromScroll();
+            go(0);
+            startAuto();
         })();
     </script>
 
