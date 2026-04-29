@@ -21,6 +21,9 @@
             </div>
             <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                 <a href="{{ route('admin.races.edit', $race) }}" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-200 font-bold text-center">Edit</a>
+                @if ($race->slug)
+                    <a href="{{ route('races.show', ['slug' => $race->slug]) }}" target="_blank" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-black text-center">Open Landing</a>
+                @endif
                 <form method="POST" action="{{ route('admin.races.destroy', $race) }}" onsubmit="return confirm('Hapus race ini? Semua participant, session, lap, dan certificate akan ikut terhapus.')">
                     @csrf
                     @method('DELETE')
@@ -62,6 +65,17 @@
                         <div class="text-xs text-slate-500 font-bold uppercase">Created At</div>
                         <div class="text-white font-bold mt-1">{{ $race->created_at?->format('Y-m-d H:i') }}</div>
                     </div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Slug</div>
+                        <div class="text-white font-bold mt-1">{{ $race->slug ?: '-' }}</div>
+                        @if ($race->slug)
+                            <div class="text-xs text-slate-500 mt-1">{{ route('races.show', ['slug' => $race->slug]) }}</div>
+                        @endif
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                        <div class="text-xs text-slate-500 font-bold uppercase">Publish</div>
+                        <div class="text-white font-bold mt-1">{{ $race->is_published ? 'Published' : 'Draft' }}</div>
+                    </div>
                 </div>
             </div>
             <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
@@ -81,6 +95,16 @@
                 <h2 class="text-xl font-black text-white">Sessions</h2>
                 <div class="text-sm text-slate-400">Menampilkan 50 terbaru</div>
             </div>
+            <div class="p-6 border-b border-slate-800">
+                <form method="POST" action="{{ route('admin.races.sessions.store', $race) }}" class="grid grid-cols-1 md:grid-cols-6 gap-3">
+                    @csrf
+                    <input name="category" value="{{ old('category') }}" placeholder="Kategori (contoh: 5K)" class="md:col-span-2 px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                    <input name="distance_km" value="{{ old('distance_km') }}" placeholder="Jarak (KM)" type="number" step="0.001" min="0.1" max="999.999" class="px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                    <input name="quota" value="{{ old('quota') }}" placeholder="Quota (opsional)" type="number" min="1" class="px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                    <input name="bib_start" value="{{ old('bib_start') }}" placeholder="BIB start (opsional)" type="number" min="1" class="px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                    <button type="submit" class="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black">Add Category</button>
+                </form>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-800">
                     <thead class="bg-slate-950">
@@ -88,9 +112,10 @@
                             <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">ID</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Category</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Distance</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Quota</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Started</th>
                             <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Ended</th>
-                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Result Link</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800">
@@ -100,23 +125,38 @@
                                     <td class="px-4 py-3 text-sm text-slate-300">#{{ $s->id }}</td>
                                     <td class="px-4 py-3 text-sm text-white font-bold">{{ $s->category ?: '-' }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-300">{{ $s->distance_km !== null ? $s->distance_km.' km' : '-' }}</td>
+                                    <td class="px-4 py-3 text-sm text-slate-300">{{ $s->quota ? number_format($s->quota) : '-' }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-400">{{ $s->started_at?->format('Y-m-d H:i') ?: '-' }}</td>
                                     <td class="px-4 py-3 text-sm text-slate-400">{{ $s->ended_at?->format('Y-m-d H:i') ?: '-' }}</td>
                                     <td class="px-4 py-3 text-right">
-                                        @if ($s->slug)
-                                            <div class="flex justify-end gap-2 items-center">
-                                                <a href="{{ route('tools.race-master.results', ['slug' => $s->slug]) }}" target="_blank" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-bold">Open</a>
-                                                <button type="button" class="px-3 py-2 rounded-lg bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-200 text-sm font-bold" data-copy="{{ route('tools.race-master.results', ['slug' => $s->slug]) }}">Copy</button>
-                                            </div>
-                                        @else
-                                            <span class="text-slate-500 text-sm">No slug</span>
-                                        @endif
+                                        <div class="flex justify-end gap-2 items-center flex-wrap">
+                                            @if ($s->slug)
+                                                <a href="{{ route('tools.race-master.results', ['slug' => $s->slug]) }}" target="_blank" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-bold">Leaderboard</a>
+                                            @endif
+                                            <form method="POST" action="{{ route('admin.races.sessions.start', [$race, $s]) }}">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold">Start</button>
+                                            </form>
+                                            <form method="POST" action="{{ route('admin.races.sessions.finish', [$race, $s]) }}">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold">Finish</button>
+                                            </form>
+                                            <form method="POST" action="{{ route('admin.races.sessions.reset', [$race, $s]) }}" onsubmit="return confirm('Reset leaderboard kategori ini? Lap dan certificate akan dihapus.')">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-2 rounded-lg bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-200 text-sm font-bold">Reset</button>
+                                            </form>
+                                            <form method="POST" action="{{ route('admin.races.sessions.destroy', [$race, $s]) }}" onsubmit="return confirm('Hapus kategori ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-bold">Delete</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
                         @else
                             <tr>
-                                <td colspan="6" class="px-4 py-10 text-center text-slate-500">Belum ada session.</td>
+                                <td colspan="7" class="px-4 py-10 text-center text-slate-500">Belum ada session.</td>
                             </tr>
                         @endif
                     </tbody>

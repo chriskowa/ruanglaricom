@@ -63,16 +63,9 @@ class ArticleController extends Controller
             . "}";
 
         try {
-            // Using gpt-5.5 as requested
             $userPrompt = "Topik: {$topic}" . ($url ? "\nURL referensi: {$url}" : "");
-            $response = $this->aiService->getAiResponse($userPrompt, $systemPrompt, 'gpt-5.5');
-
-            if (!$response) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'AI did not return any content.'
-                ], 500);
-            }
+            $model = config('services.openai.blog_model') ?: config('services.openai.model') ?: 'gpt-4o';
+            $response = $this->aiService->getAiResponseOrThrow($userPrompt, $systemPrompt, $model);
 
             $jsonStr = trim($response);
             $jsonStr = str_replace(["```json", "```"], '', $jsonStr);

@@ -147,18 +147,14 @@ Route::get('/tools/trackmaster', function () {
     return view('tools.trackmaster');
 })->name('tools.trackmaster');
 
-Route::get('/tools/race-master', function () {
-    return view('tools.race-master');
-})->name('tools.race-master');
-
-Route::get('/tools/race-master', function () {
+Route::middleware(['auth', 'role:admin|eo'])->get('/tools/race-master', function () {
     return view('tools.race-master');
 })->name('tools.race-master');
 
 Route::get('/tools/race-master/results/{slug}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsPage'])
     ->name('tools.race-master.results');
 
-Route::prefix('/api/tools/race-master')->group(function () {
+Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->group(function () {
     Route::get('/docs', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'docs'])->name('tools.race-master.api.docs');
     Route::get('/races', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'index'])->name('tools.race-master.api.races.index');
     Route::get('/races/{race}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'show'])->name('tools.race-master.api.races.show');
@@ -167,16 +163,107 @@ Route::prefix('/api/tools/race-master')->group(function () {
     Route::post('/races/{race}/participants/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'upsertParticipants'])->name('tools.race-master.api.races.participants.bulk');
     Route::post('/races/{race}/sessions', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'startSession'])->name('tools.race-master.api.races.sessions.start');
     Route::post('/sessions/{session}/laps', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLap'])->name('tools.race-master.api.sessions.laps.store');
+    Route::post('/sessions/{session}/laps/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLapsBulk'])->name('tools.race-master.api.sessions.laps.bulk');
     Route::post('/sessions/{session}/finish', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'finishSession'])->name('tools.race-master.api.sessions.finish');
     Route::post('/sessions/{session}/certificates', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateCertificates'])->name('tools.race-master.api.sessions.certificates.generate');
     Route::post('/sessions/{session}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generatePoster'])->name('tools.race-master.api.sessions.poster');
     Route::post('/sessions/{session}/poster/{participant}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'generateParticipantPoster'])->name('tools.race-master.api.sessions.poster.participant');
-    Route::prefix('/public')->group(function () {
-        Route::get('/{slug}/results', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsJson'])->name('tools.race-master.api.public.results');
-        Route::post('/{slug}/participants/{bib}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantPoster'])->name('tools.race-master.api.public.poster');
-        Route::post('/{slug}/participants/{bib}/certificate', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantCertificate'])->name('tools.race-master.api.public.certificate');
-    });
 });
+
+Route::prefix('/api/tools/race-master/public')->group(function () {
+    Route::get('/{slug}/results', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResultsJson'])->name('tools.race-master.api.public.results');
+    Route::post('/{slug}/participants/{bib}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantPoster'])->name('tools.race-master.api.public.poster');
+    Route::post('/{slug}/participants/{bib}/certificate', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantCertificate'])->name('tools.race-master.api.public.certificate');
+});
+
+Route::get('/races/{slug}', function (string $slug) {
+    $race = \App\Models\Race::query()
+        ->where('slug', $slug)
+        ->with(['sessions' => function ($q) {
+            $q->orderBy('id', 'asc');
+        }])
+        ->firstOrFail();
+
+    if (! $race->is_published) {
+        if (! auth()->check()) {
+            abort(404);
+        }
+
+        $u = auth()->user();
+        if (! $u->isAdmin() && (int) $race->created_by !== (int) $u->id) {
+            abort(404);
+        }
+    }
+
+    $joinedBySession = [];
+    if (auth()->check()) {
+        $joinedBySession = \App\Models\RaceSessionParticipant::query()
+            ->where('race_id', $race->id)
+            ->where('user_id', auth()->id())
+            ->get()
+            ->keyBy('race_session_id')
+            ->all();
+    }
+
+    return view('races.show', [
+        'race' => $race,
+        'joinedBySession' => $joinedBySession,
+    ]);
+})->name('races.show');
+
+Route::middleware(['auth', 'role:runner'])->post('/races/{slug}/categories/{session}/join', function (\Illuminate\Http\Request $request, string $slug, string $session) {
+    $race = \App\Models\Race::query()
+        ->where('slug', $slug)
+        ->where('is_published', true)
+        ->firstOrFail();
+
+    $raceSession = \App\Models\RaceSession::query()
+        ->where('id', $session)
+        ->where('race_id', $race->id)
+        ->firstOrFail();
+
+    $existing = \App\Models\RaceSessionParticipant::query()
+        ->where('race_session_id', $raceSession->id)
+        ->where('user_id', auth()->id())
+        ->first();
+
+    if ($existing) {
+        return redirect()->route('races.show', ['slug' => $race->slug])->with('success', 'Kamu sudah terdaftar di kategori ini. BIB: '.$existing->bib_number);
+    }
+
+    $created = \Illuminate\Support\Facades\DB::transaction(function () use ($race, $raceSession) {
+        $max = \App\Models\RaceSessionParticipant::query()
+            ->where('race_id', $race->id)
+            ->selectRaw('MAX(CAST(bib_number AS UNSIGNED)) as max_bib')
+            ->value('max_bib');
+
+        $next = (int) ($max ?: 1000) + 1;
+
+        $tries = 0;
+        while (\App\Models\RaceSessionParticipant::query()->where('race_id', $race->id)->where('bib_number', (string) $next)->exists()) {
+            $next++;
+            $tries++;
+            if ($tries > 5000) {
+                throw new \RuntimeException('Gagal menentukan BIB.');
+            }
+        }
+
+        return \App\Models\RaceSessionParticipant::create([
+            'race_id' => $race->id,
+            'race_session_id' => $raceSession->id,
+            'participant_id' => null,
+            'user_id' => auth()->id(),
+            'bib_number' => (string) $next,
+            'name' => auth()->user()->name ?? 'Runner',
+            'predicted_time_ms' => null,
+            'result_time_ms' => null,
+            'rank' => null,
+            'finished_at' => null,
+        ]);
+    }, 3);
+
+    return redirect()->route('races.show', ['slug' => $race->slug])->with('success', 'Berhasil join! BIB kamu: '.$created->bib_number);
+})->name('races.join');
 
 Route::middleware('auth')->get('/tools/race-master/certificates/{certificate}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'downloadCertificate'])
     ->name('tools.race-master.certificates.download');
@@ -614,6 +701,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     });
 
+    // Race Master Management (Admin / EO)
+    Route::middleware('role:admin|eo')->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('races', App\Http\Controllers\Admin\RaceController::class);
+        Route::post('races/{race}/participants', [App\Http\Controllers\Admin\RaceParticipantController::class, 'store'])->name('races.participants.store');
+        Route::put('races/{race}/participants/{raceSessionParticipant}', [App\Http\Controllers\Admin\RaceParticipantController::class, 'update'])->name('races.participants.update');
+        Route::delete('races/{race}/participants/{raceSessionParticipant}', [App\Http\Controllers\Admin\RaceParticipantController::class, 'destroy'])->name('races.participants.destroy');
+
+        Route::post('races/{race}/sessions', [App\Http\Controllers\Admin\RaceController::class, 'storeSession'])->name('races.sessions.store');
+        Route::post('races/{race}/sessions/{session}/start', [App\Http\Controllers\Admin\RaceController::class, 'startSession'])->name('races.sessions.start');
+        Route::post('races/{race}/sessions/{session}/finish', [App\Http\Controllers\Admin\RaceController::class, 'finishSession'])->name('races.sessions.finish');
+        Route::post('races/{race}/sessions/{session}/reset', [App\Http\Controllers\Admin\RaceController::class, 'resetSession'])->name('races.sessions.reset');
+        Route::delete('races/{race}/sessions/{session}', [App\Http\Controllers\Admin\RaceController::class, 'destroySession'])->name('races.sessions.destroy');
+    });
+
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
@@ -639,12 +740,6 @@ Route::middleware('auth')->group(function () {
         Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
         Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
         Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
-
-        // Race Master Management
-        Route::resource('races', App\Http\Controllers\Admin\RaceController::class);
-        Route::post('races/{race}/participants', [App\Http\Controllers\Admin\RaceParticipantController::class, 'store'])->name('races.participants.store');
-        Route::put('races/{race}/participants/{raceSessionParticipant}', [App\Http\Controllers\Admin\RaceParticipantController::class, 'update'])->name('races.participants.update');
-        Route::delete('races/{race}/participants/{raceSessionParticipant}', [App\Http\Controllers\Admin\RaceParticipantController::class, 'destroy'])->name('races.participants.destroy');
 
         Route::get('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'index'])->name('marketplace.settings');
         Route::post('/marketplace/settings', [App\Http\Controllers\Admin\MarketplaceSettingsController::class, 'update'])->name('marketplace.settings.update');

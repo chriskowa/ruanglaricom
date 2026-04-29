@@ -12,8 +12,23 @@ class Race extends Model
     protected $fillable = [
         'event_id',
         'name',
+        'slug',
         'logo_path',
         'created_by',
+        'is_published',
+        'published_at',
+        'description',
+        'location_name',
+        'start_at',
+        'end_at',
+        'banner_path',
+    ];
+
+    protected $casts = [
+        'is_published' => 'boolean',
+        'published_at' => 'datetime',
+        'start_at' => 'datetime',
+        'end_at' => 'datetime',
     ];
 
     protected static function booted(): void

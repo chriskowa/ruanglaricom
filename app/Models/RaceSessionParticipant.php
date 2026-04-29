@@ -11,7 +11,9 @@ class RaceSessionParticipant extends Model
 {
     protected $fillable = [
         'race_id',
+        'race_session_id',
         'participant_id',
+        'user_id',
         'bib_number',
         'name',
         'predicted_time_ms',

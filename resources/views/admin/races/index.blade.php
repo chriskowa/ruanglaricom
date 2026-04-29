@@ -74,7 +74,7 @@
                                         </div>
                                         <div>
                                             <div class="text-white font-bold">{{ $race->name }}</div>
-                                            <div class="text-xs text-slate-500">#{{ $race->id }}</div>
+                                            <div class="text-xs text-slate-500">#{{ $race->id }} @if($race->slug) • /races/{{ $race->slug }} @endif</div>
                                         </div>
                                     </div>
                                 </td>
@@ -91,6 +91,9 @@
                                 <td class="px-4 py-3 text-sm text-slate-400">{{ $race->created_at?->format('Y-m-d H:i') }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex justify-end gap-2">
+                                        @if ($race->slug)
+                                            <a href="{{ route('races.show', ['slug' => $race->slug]) }}" target="_blank" class="px-3 py-2 rounded-lg bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-200 text-sm font-bold">Landing</a>
+                                        @endif
                                         <a href="{{ route('admin.races.show', $race) }}" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-bold">Open</a>
                                         <a href="{{ route('admin.races.edit', $race) }}" class="px-3 py-2 rounded-lg bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-200 text-sm font-bold">Edit</a>
                                         <form method="POST" action="{{ route('admin.races.destroy', $race) }}" onsubmit="return confirm('Hapus race ini? Semua participant, session, lap, dan certificate akan ikut terhapus.')">
@@ -116,4 +119,3 @@
     </div>
 </div>
 @endsection
-

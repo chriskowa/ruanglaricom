@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Log;
 class OpenAiService
 {
     protected $apiKey;
-    protected $baseUrl = 'https://api.openai.com/v1/chat/completions';
+    protected $chatCompletionsUrl = 'https://api.openai.com/v1/chat/completions';
+    protected $responsesUrl = 'https://api.openai.com/v1/responses';
 
     public function __construct()
     {
@@ -30,7 +31,7 @@ class OpenAiService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->post($this->baseUrl, [
+            ])->timeout(90)->post($this->chatCompletionsUrl, [
                 'model' => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemMessage],
@@ -51,6 +52,104 @@ class OpenAiService
             Log::error('OpenAI Exception: ' . $e->getMessage());
             return null;
         }
+    }
+
+    public function getAiResponseOrThrow(string $prompt, string $systemMessage = 'You are a helpful assistant.', ?string $model = null): string
+    {
+        $model = $model ?: (config('services.openai.model') ?: 'gpt-4o');
+        $endpoint = config('services.openai.endpoint') ?: 'responses';
+
+        if (empty($this->apiKey)) {
+            throw new \RuntimeException('OpenAI API Key is not set.');
+        }
+
+        if ($endpoint === 'chat_completions') {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ])->timeout(90)->post($this->chatCompletionsUrl, [
+                'model' => $model,
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemMessage],
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+                'temperature' => 0.7,
+            ]);
+
+            if (! $response->successful()) {
+                $message = null;
+                $json = $response->json();
+                if (is_array($json)) {
+                    $message = data_get($json, 'error.message') ?: data_get($json, 'message');
+                }
+                $message = $message ?: trim((string) $response->body());
+                $message = mb_substr($message, 0, 800);
+                throw new \RuntimeException("OpenAI API error ({$response->status()}): {$message}");
+            }
+
+            $data = $response->json();
+            $content = $data['choices'][0]['message']['content'] ?? null;
+            if (! is_string($content) || trim($content) === '') {
+                throw new \RuntimeException('OpenAI returned empty content.');
+            }
+
+            return $content;
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->timeout(90)->post($this->responsesUrl, [
+            'model' => $model,
+            'instructions' => $systemMessage,
+            'input' => $prompt,
+            'temperature' => 0.7,
+        ]);
+
+        if (! $response->successful()) {
+            $message = null;
+            $json = $response->json();
+            if (is_array($json)) {
+                $message = data_get($json, 'error.message') ?: data_get($json, 'message');
+            }
+            $message = $message ?: trim((string) $response->body());
+            $message = mb_substr($message, 0, 800);
+            throw new \RuntimeException("OpenAI API error ({$response->status()}): {$message}");
+        }
+
+        $data = $response->json();
+        if (! is_array($data)) {
+            throw new \RuntimeException('OpenAI returned invalid JSON.');
+        }
+
+        $content = $data['output_text'] ?? null;
+        if (is_string($content) && trim($content) !== '') {
+            return $content;
+        }
+
+        $out = $data['output'] ?? null;
+        if (is_array($out)) {
+            $texts = [];
+            foreach ($out as $item) {
+                $contentArr = $item['content'] ?? null;
+                if (! is_array($contentArr)) continue;
+                foreach ($contentArr as $part) {
+                    if (! is_array($part)) continue;
+                    $type = $part['type'] ?? null;
+                    if ($type === 'output_text' || $type === 'text') {
+                        $t = $part['text'] ?? null;
+                        if (is_string($t) && $t !== '') $texts[] = $t;
+                    }
+                }
+            }
+            if ($texts) {
+                return trim(implode("\n", $texts));
+            }
+        }
+
+        throw new \RuntimeException('OpenAI returned empty content.');
     }
 
     /**

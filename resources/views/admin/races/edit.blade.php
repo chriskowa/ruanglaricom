@@ -34,6 +34,38 @@
                 <input type="text" name="name" value="{{ old('name', $race->name) }}" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-200 mb-2">Slug (untuk landing)</label>
+                    <input type="text" name="slug" value="{{ old('slug', $race->slug) }}" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none" placeholder="contoh: track-day-2026">
+                </div>
+                <div class="flex items-end">
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-200">
+                        <input type="checkbox" name="is_published" value="1" class="rounded border-slate-600 bg-slate-900 text-red-500 focus:ring-red-500" @checked(old('is_published', $race->is_published))>
+                        Publish (aktifkan landing publik)
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-200 mb-2">Lokasi (opsional)</label>
+                    <input type="text" name="location_name" value="{{ old('location_name', $race->location_name) }}" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none" placeholder="Contoh: GBK Senayan">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-200 mb-2">Tanggal Mulai (opsional)</label>
+                    <input type="datetime-local" name="start_at" value="{{ old('start_at', $race->start_at?->format('Y-m-d\\TH:i')) }}" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-200 mb-2">Tanggal Selesai (opsional)</label>
+                    <input type="datetime-local" name="end_at" value="{{ old('end_at', $race->end_at?->format('Y-m-d\\TH:i')) }}" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-bold text-slate-200 mb-2">Deskripsi (opsional)</label>
+                    <textarea name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none" placeholder="Info race, aturan, dll...">{{ old('description', $race->description) }}</textarea>
+                </div>
+            </div>
+
             <div>
                 <label class="block text-sm font-bold text-slate-200 mb-2">Owner (opsional)</label>
                 <select name="created_by" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white focus:ring-2 focus:ring-red-500 outline-none">
@@ -76,4 +108,3 @@
     </div>
 </div>
 @endsection
-

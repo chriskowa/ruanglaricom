@@ -14,9 +14,21 @@ class RaceMasterApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function actingAsAdmin(): User
+    {
+        $user = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($user);
+
+        return $user;
+    }
+
     public function test_docs_endpoint_available(): void
     {
         $this->withoutMiddleware(VerifyCsrfToken::class);
+        $this->actingAsAdmin();
 
         $this->get('/api/tools/race-master/docs')
             ->assertStatus(200)
@@ -30,6 +42,7 @@ class RaceMasterApiTest extends TestCase
         Storage::fake('local');
 
         $this->withoutMiddleware(VerifyCsrfToken::class);
+        $this->actingAsAdmin();
 
         $logo = UploadedFile::fake()->image('logo.jpg', 300, 300)->size(500);
 
@@ -78,6 +91,7 @@ class RaceMasterApiTest extends TestCase
         Storage::fake('public');
         Storage::fake('local');
         $this->withoutMiddleware(VerifyCsrfToken::class);
+        $admin = $this->actingAsAdmin();
 
         $raceResp = $this->post('/api/tools/race-master/races', [
             'name' => 'Race Download Test',
@@ -100,10 +114,10 @@ class RaceMasterApiTest extends TestCase
         $downloadUrl = $certs[0]['download_url'] ?? null;
         $this->assertNotNull($downloadUrl);
 
+        $this->post('/logout');
         $this->get($downloadUrl)->assertRedirect();
 
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($admin);
         $download = $this->get($downloadUrl);
         $download->assertStatus(200);
         $this->assertStringContainsString('application/pdf', (string) $download->headers->get('content-type'));
@@ -114,6 +128,7 @@ class RaceMasterApiTest extends TestCase
         Storage::fake('public');
         Storage::fake('local');
         $this->withoutMiddleware(VerifyCsrfToken::class);
+        $this->actingAsAdmin();
 
         $raceId = $this->post('/api/tools/race-master/races', [
             'name' => 'Race Poster Test',
@@ -149,6 +164,7 @@ class RaceMasterApiTest extends TestCase
         Storage::fake('public');
         Storage::fake('local');
         $this->withoutMiddleware(VerifyCsrfToken::class);
+        $this->actingAsAdmin();
 
         $raceId = $this->post('/api/tools/race-master/races', [
             'name' => 'Race Public Test',

@@ -379,6 +379,96 @@ class RaceMasterApiController extends Controller
         ]);
     }
 
+    public function storeLapsBulk(Request $request, RaceSession $session)
+    {
+        $validated = $request->validate([
+            'laps' => 'required|array|min:1|max:200',
+            'laps.*.bib_number' => 'required|string|max:32',
+            'laps.*.total_time_ms' => 'required|integer|min:0|max:86400000',
+            'laps.*.recorded_at' => 'nullable|date',
+        ]);
+
+        $items = collect($validated['laps'])
+            ->map(function ($x) {
+                return [
+                    'bib_number' => trim((string) $x['bib_number']),
+                    'total_time_ms' => (int) $x['total_time_ms'],
+                    'recorded_at' => isset($x['recorded_at']) ? Carbon::parse($x['recorded_at']) : now(),
+                ];
+            })
+            ->filter(fn ($x) => $x['bib_number'] !== '')
+            ->values();
+
+        $ok = 0;
+        $ignored = 0;
+
+        DB::transaction(function () use ($session, $items, &$ok, &$ignored) {
+            foreach ($items as $it) {
+                $rsp = RaceSessionParticipant::query()
+                    ->where('race_id', $session->race_id)
+                    ->where('bib_number', $it['bib_number'])
+                    ->first();
+
+                if (! $rsp) {
+                    $ignored++;
+                    continue;
+                }
+
+                $lastLap = RaceSessionLap::query()
+                    ->where('race_session_id', $session->id)
+                    ->where('race_session_participant_id', $rsp->id)
+                    ->orderByDesc('lap_number')
+                    ->first();
+
+                $total = (int) $it['total_time_ms'];
+                $prevTotal = $lastLap ? (int) $lastLap->total_time_ms : 0;
+                if ($total < $prevTotal) {
+                    $ignored++;
+                    continue;
+                }
+
+                $lapNumber = $lastLap ? ($lastLap->lap_number + 1) : 1;
+                $lapTime = max(0, $total - $prevTotal);
+                $prevLapTime = $lastLap ? (int) $lastLap->lap_time_ms : null;
+                $delta = $prevLapTime === null ? null : ($lapTime - $prevLapTime);
+
+                $lap = RaceSessionLap::create([
+                    'race_id' => $session->race_id,
+                    'race_session_id' => $session->id,
+                    'race_session_participant_id' => $rsp->id,
+                    'participant_id' => $rsp->participant_id,
+                    'lap_number' => $lapNumber,
+                    'lap_time_ms' => $lapTime,
+                    'total_time_ms' => $total,
+                    'delta_ms' => $delta,
+                    'position' => null,
+                    'recorded_at' => $it['recorded_at'],
+                ]);
+
+                $position = RaceSessionLap::query()
+                    ->where('race_session_id', $session->id)
+                    ->where('lap_number', $lapNumber)
+                    ->where(function ($q) use ($lap) {
+                        $q->where('recorded_at', '<', $lap->recorded_at)
+                            ->orWhere(function ($q2) use ($lap) {
+                                $q2->where('recorded_at', '=', $lap->recorded_at)->where('id', '<', $lap->id);
+                            });
+                    })
+                    ->count() + 1;
+
+                $lap->position = $position;
+                $lap->save();
+                $ok++;
+            }
+        }, 3);
+
+        return response()->json([
+            'success' => true,
+            'stored' => $ok,
+            'ignored' => $ignored,
+        ]);
+    }
+
     public function finishSession(Request $request, RaceSession $session)
     {
         if (! $session->ended_at) {

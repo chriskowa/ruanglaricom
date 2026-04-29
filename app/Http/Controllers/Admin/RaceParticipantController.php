@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Race;
 use App\Models\RaceSessionParticipant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -13,6 +14,7 @@ class RaceParticipantController extends Controller
 {
     public function store(Request $request, Race $race)
     {
+        $this->ensureCanManageRace($race);
         $validated = $request->validate([
             'bib_number' => [
                 'required',
@@ -39,6 +41,7 @@ class RaceParticipantController extends Controller
 
     public function update(Request $request, Race $race, RaceSessionParticipant $raceSessionParticipant)
     {
+        $this->ensureCanManageRace($race);
         if ((int) $raceSessionParticipant->race_id !== (int) $race->id) {
             abort(404);
         }
@@ -87,6 +90,7 @@ class RaceParticipantController extends Controller
 
     public function destroy(Race $race, RaceSessionParticipant $raceSessionParticipant)
     {
+        $this->ensureCanManageRace($race);
         if ((int) $raceSessionParticipant->race_id !== (int) $race->id) {
             abort(404);
         }
@@ -94,6 +98,14 @@ class RaceParticipantController extends Controller
         $raceSessionParticipant->delete();
 
         return back()->with('success', 'Participant berhasil dihapus.');
+    }
+
+    private function ensureCanManageRace(Race $race): void
+    {
+        $u = Auth::user();
+        if (! $u) abort(403);
+        if ($u->isAdmin()) return;
+        if ((int) $race->created_by !== (int) $u->id) abort(403);
     }
 
     private function parseTimeToMs($raw, $field = 'predicted_time'): ?int

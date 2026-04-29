@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Race;
+use App\Models\RaceCertificate;
+use App\Models\RaceSession;
+use App\Models\RaceSessionLap;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Illuminate\Support\Str;
 
 class RaceController extends Controller
 {
@@ -22,13 +26,19 @@ class RaceController extends Controller
             ->withCount(['participants', 'sessions'])
             ->orderByDesc('id');
 
+        if (! Auth::user()?->isAdmin()) {
+            $query->where('created_by', Auth::id());
+        }
+
         if ($request->filled('q')) {
             $q = trim((string) $request->get('q'));
             $query->where('name', 'like', "%{$q}%");
         }
 
         if ($request->filled('created_by')) {
-            $query->where('created_by', $request->integer('created_by'));
+            if (Auth::user()?->isAdmin()) {
+                $query->where('created_by', $request->integer('created_by'));
+            }
         }
 
         $races = $query->paginate(20)->withQueryString();
@@ -38,11 +48,14 @@ class RaceController extends Controller
 
     public function create()
     {
-        $users = User::query()
-            ->select(['id', 'name', 'email'])
-            ->latest()
-            ->limit(50)
-            ->get();
+        $users = collect();
+        if (Auth::user()?->isAdmin()) {
+            $users = User::query()
+                ->select(['id', 'name', 'email'])
+                ->latest()
+                ->limit(50)
+                ->get();
+        }
 
         return view('admin.races.create', compact('users'));
     }
@@ -52,14 +65,29 @@ class RaceController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:100',
             'created_by' => 'nullable|integer|exists:users,id',
+            'slug' => 'nullable|string|min:3|max:120|unique:races,slug',
+            'is_published' => 'nullable|boolean',
+            'description' => 'nullable|string|max:5000',
+            'location_name' => 'nullable|string|max:255',
+            'start_at' => 'nullable|date',
+            'end_at' => 'nullable|date',
             'logo' => 'nullable|file|mimes:png,jpg,jpeg|max:2048',
         ]);
 
         $race = DB::transaction(function () use ($validated, $request) {
             $race = new Race;
             $race->name = trim($validated['name']);
-            $race->created_by = $validated['created_by'] ?? Auth::id();
+            $race->created_by = Auth::user()?->isAdmin()
+                ? ($validated['created_by'] ?? Auth::id())
+                : Auth::id();
             $race->logo_path = null;
+            $race->slug = $this->resolveUniqueSlug($validated['slug'] ?? null, $race->name, null);
+            $race->is_published = (bool) ($validated['is_published'] ?? false);
+            $race->published_at = $race->is_published ? now() : null;
+            $race->description = $validated['description'] ?? null;
+            $race->location_name = $validated['location_name'] ?? null;
+            $race->start_at = $validated['start_at'] ?? null;
+            $race->end_at = $validated['end_at'] ?? null;
             $race->save();
 
             if ($request->hasFile('logo')) {
@@ -77,11 +105,12 @@ class RaceController extends Controller
 
     public function show(Race $race)
     {
+        $this->ensureCanManageRace($race);
         $race->load(['creator:id,name,email']);
         $race->loadCount(['participants', 'sessions']);
 
         $sessions = $race->sessions()
-            ->select(['id', 'race_id', 'slug', 'category', 'distance_km', 'started_at', 'ended_at', 'created_at'])
+            ->select(['id', 'race_id', 'slug', 'category', 'distance_km', 'quota', 'bib_start', 'bib_prefix', 'started_at', 'ended_at', 'created_at'])
             ->orderByDesc('id')
             ->limit(50)
             ->get();
@@ -98,11 +127,16 @@ class RaceController extends Controller
 
     public function edit(Race $race)
     {
-        $users = User::query()
-            ->select(['id', 'name', 'email'])
-            ->latest()
-            ->limit(50)
-            ->get();
+        $this->ensureCanManageRace($race);
+
+        $users = collect();
+        if (Auth::user()?->isAdmin()) {
+            $users = User::query()
+                ->select(['id', 'name', 'email'])
+                ->latest()
+                ->limit(50)
+                ->get();
+        }
 
         $race->load(['creator:id,name,email']);
 
@@ -111,16 +145,41 @@ class RaceController extends Controller
 
     public function update(Request $request, Race $race)
     {
+        $this->ensureCanManageRace($race);
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:100',
             'created_by' => 'nullable|integer|exists:users,id',
+            'slug' => 'nullable|string|min:3|max:120|unique:races,slug,'.$race->id,
+            'is_published' => 'nullable|boolean',
+            'description' => 'nullable|string|max:5000',
+            'location_name' => 'nullable|string|max:255',
+            'start_at' => 'nullable|date',
+            'end_at' => 'nullable|date',
             'remove_logo' => 'nullable|boolean',
             'logo' => 'nullable|file|mimes:png,jpg,jpeg|max:2048',
         ]);
 
         DB::transaction(function () use ($validated, $request, $race) {
             $race->name = trim($validated['name']);
-            $race->created_by = $validated['created_by'] ?? $race->created_by;
+            if (Auth::user()?->isAdmin() && array_key_exists('created_by', $validated) && $validated['created_by']) {
+                $race->created_by = $validated['created_by'];
+            }
+
+            $race->slug = $this->resolveUniqueSlug($validated['slug'] ?? null, $race->name, $race->id);
+
+            $newPublished = (bool) ($validated['is_published'] ?? false);
+            if ($newPublished && ! $race->is_published) {
+                $race->published_at = now();
+            }
+            if (! $newPublished) {
+                $race->published_at = null;
+            }
+            $race->is_published = $newPublished;
+
+            $race->description = $validated['description'] ?? null;
+            $race->location_name = $validated['location_name'] ?? null;
+            $race->start_at = $validated['start_at'] ?? null;
+            $race->end_at = $validated['end_at'] ?? null;
 
             $removeLogo = (bool) ($validated['remove_logo'] ?? false);
             if ($removeLogo && $race->logo_path) {
@@ -145,11 +204,144 @@ class RaceController extends Controller
 
     public function destroy(Race $race)
     {
+        $this->ensureCanManageRace($race);
         $race->delete();
 
         return redirect()
             ->route('admin.races.index')
             ->with('success', 'Race berhasil dihapus.');
+    }
+
+    public function storeSession(Request $request, Race $race)
+    {
+        $this->ensureCanManageRace($race);
+
+        $validated = $request->validate([
+            'category' => 'required|string|min:1|max:100',
+            'distance_km' => 'nullable|numeric|min:0.1|max:999.999',
+            'quota' => 'nullable|integer|min:1|max:200000',
+            'bib_start' => 'nullable|integer|min:1|max:9999999',
+            'bib_prefix' => 'nullable|string|max:12',
+        ]);
+
+        $slug = null;
+        for ($i = 0; $i < 5; $i++) {
+            $candidate = Str::lower(Str::random(10));
+            if (! RaceSession::query()->where('slug', $candidate)->exists()) {
+                $slug = $candidate;
+                break;
+            }
+        }
+
+        RaceSession::create([
+            'race_id' => $race->id,
+            'slug' => $slug,
+            'category' => trim((string) $validated['category']),
+            'distance_km' => array_key_exists('distance_km', $validated) ? (float) $validated['distance_km'] : null,
+            'quota' => $validated['quota'] ?? null,
+            'bib_start' => $validated['bib_start'] ?? null,
+            'bib_prefix' => $validated['bib_prefix'] ?? null,
+            'started_at' => null,
+            'ended_at' => null,
+            'created_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Kategori berhasil dibuat.');
+    }
+
+    public function startSession(Race $race, RaceSession $session)
+    {
+        $this->ensureCanManageRace($race);
+        $this->ensureSessionBelongsToRace($race, $session);
+
+        $session->update([
+            'started_at' => $session->started_at ?: now(),
+            'ended_at' => null,
+        ]);
+
+        return back()->with('success', 'Kategori dimulai.');
+    }
+
+    public function finishSession(Race $race, RaceSession $session)
+    {
+        $this->ensureCanManageRace($race);
+        $this->ensureSessionBelongsToRace($race, $session);
+
+        if (! $session->started_at) {
+            $session->started_at = now();
+        }
+        if (! $session->slug) {
+            for ($i = 0; $i < 5; $i++) {
+                $candidate = Str::lower(Str::random(10));
+                if (! RaceSession::query()->where('slug', $candidate)->exists()) {
+                    $session->slug = $candidate;
+                    break;
+                }
+            }
+        }
+        $session->ended_at = $session->ended_at ?: now();
+        $session->save();
+
+        return back()->with('success', 'Kategori diselesaikan.');
+    }
+
+    public function resetSession(Race $race, RaceSession $session)
+    {
+        $this->ensureCanManageRace($race);
+        $this->ensureSessionBelongsToRace($race, $session);
+
+        DB::transaction(function () use ($race, $session) {
+            RaceCertificate::query()->where('race_id', $race->id)->where('race_session_id', $session->id)->delete();
+            RaceSessionLap::query()->where('race_id', $race->id)->where('race_session_id', $session->id)->delete();
+        }, 3);
+
+        return back()->with('success', 'Leaderboard kategori direset.');
+    }
+
+    public function destroySession(Race $race, RaceSession $session)
+    {
+        $this->ensureCanManageRace($race);
+        $this->ensureSessionBelongsToRace($race, $session);
+
+        $session->delete();
+
+        return back()->with('success', 'Kategori dihapus.');
+    }
+
+    private function ensureCanManageRace(Race $race): void
+    {
+        $u = Auth::user();
+        if (! $u) abort(403);
+        if ($u->isAdmin()) return;
+        if ((int) $race->created_by !== (int) $u->id) abort(403);
+    }
+
+    private function ensureSessionBelongsToRace(Race $race, RaceSession $session): void
+    {
+        if ((int) $session->race_id !== (int) $race->id) {
+            abort(404);
+        }
+    }
+
+    private function resolveUniqueSlug(?string $slug, string $name, ?int $ignoreId): ?string
+    {
+        $base = trim((string) ($slug ?: ''));
+        $base = $base !== '' ? Str::slug($base) : Str::slug($name);
+        if ($base === '') {
+            return null;
+        }
+
+        $candidate = $base;
+        for ($i = 0; $i < 50; $i++) {
+            $q = Race::query()->where('slug', $candidate);
+            if ($ignoreId) $q->where('id', '!=', $ignoreId);
+            if (! $q->exists()) {
+                return $candidate;
+            }
+            $candidate = $base.'-'.($i + 2);
+        }
+
+        return $base.'-'.time();
     }
 
     private function storeLogo($file): string

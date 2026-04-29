@@ -556,6 +556,55 @@
                 return data;
             };
 
+            const lapQueue = ref([]);
+            const queueFlushBusy = ref(false);
+            const queueFlushInterval = ref(null);
+            const QUEUE_STORAGE_KEY = STORAGE_KEY + ':lap-queue';
+
+            const queueLoad = () => {
+                try {
+                    const raw = localStorage.getItem(QUEUE_STORAGE_KEY);
+                    if (!raw) return;
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) lapQueue.value = parsed;
+                } catch (e) {}
+            };
+
+            const queueSave = () => {
+                try { localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(lapQueue.value.slice(-2000))); } catch (e) {}
+            };
+
+            const queueEnqueueLap = (bib, totalTimeMs, recordedAtIso) => {
+                lapQueue.value.push({
+                    bib_number: String(bib ?? '').trim(),
+                    total_time_ms: Math.max(0, Math.floor(totalTimeMs || 0)),
+                    recorded_at: recordedAtIso || new Date().toISOString(),
+                });
+                queueSave();
+            };
+
+            const queueFlush = async () => {
+                if (queueFlushBusy.value) return;
+                if (!currentSessionId.value) return;
+                if (!lapQueue.value.length) return;
+                if (!navigator.onLine) return;
+
+                queueFlushBusy.value = true;
+                try {
+                    const batch = lapQueue.value.slice(0, 50);
+                    await apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(currentSessionId.value))}/laps/bulk`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ laps: batch }),
+                    });
+                    lapQueue.value = lapQueue.value.slice(batch.length);
+                    queueSave();
+                } catch (e) {
+                } finally {
+                    queueFlushBusy.value = false;
+                }
+            };
+
             const apiFetchBlob = async (url, options = {}) => {
                 const headers = options.headers ? { ...options.headers } : {};
                 if (csrf) headers['X-CSRF-TOKEN'] = csrf;
@@ -992,6 +1041,11 @@
                                 timer.value.elapsed = Date.now() - timer.value.startTime;
                             }, 50); // 50ms update rate
 
+                            if (queueFlushInterval.value) clearInterval(queueFlushInterval.value);
+                            queueFlushInterval.value = setInterval(() => {
+                                queueFlush();
+                            }, 2000);
+
                             participants.value.forEach(p => {
                                 if (p.status === 'ready') p.status = 'running';
                             });
@@ -1005,6 +1059,10 @@
                 if (timer.value.running) {
                     clearInterval(timer.value.interval);
                     timer.value.running = false;
+                    if (queueFlushInterval.value) {
+                        clearInterval(queueFlushInterval.value);
+                        queueFlushInterval.value = null;
+                    }
                     saveState();
                 }
             };
@@ -1013,6 +1071,8 @@
                 if (!confirm('Selesaikan sesi balapan ini? Aksi ini akan menyimpan hasil akhir dan tidak dapat dilanjutkan.')) return;
                 
                 pauseRace(); // Stop timer first
+
+                queueFlush();
 
                 if (currentSessionId.value) {
                     apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(currentSessionId.value))}/finish`, { method: 'POST' })
@@ -1169,15 +1229,8 @@
                 p.totalTime = timer.value.elapsed;
 
                 if (currentSessionId.value) {
-                    apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(currentSessionId.value))}/laps`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            bib_number: String(p.bib ?? '').trim(),
-                            total_time_ms: Math.max(0, Math.floor(p.totalTime || 0)),
-                            recorded_at: new Date(now).toISOString(),
-                        }),
-                    }).catch(() => {});
+                    queueEnqueueLap(String(p.bib ?? '').trim(), Math.max(0, Math.floor(p.totalTime || 0)), new Date(now).toISOString());
+                    queueFlush();
                 }
                 
                 // Highlight effect
@@ -1553,6 +1606,7 @@
 
             onMounted(() => {
                 loadState();
+                queueLoad();
                 loadExistingRaces();
                 window.addEventListener('keydown', onKeydown);
                 // initTesseract(); // Tesseract not defined
@@ -1561,6 +1615,7 @@
             onBeforeUnmount(() => {
                 stopAutoMultiScan();
                 window.removeEventListener('keydown', onKeydown);
+                if (queueFlushInterval.value) clearInterval(queueFlushInterval.value);
                 if (ocrWorker) {
                     ocrWorker.terminate();
                     ocrWorker = null;
