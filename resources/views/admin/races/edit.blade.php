@@ -100,6 +100,63 @@
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-200 mb-2">Banner saat ini</label>
+                    <div class="w-full aspect-[16/9] rounded-2xl bg-slate-950 border border-slate-700 overflow-hidden flex items-center justify-center">
+                        @if ($race->banner_path)
+                            <img src="{{ Storage::disk('public')->url($race->banner_path) }}" class="w-full h-full object-cover" />
+                        @else
+                            <div class="text-slate-500 font-bold">Tidak ada banner</div>
+                        @endif
+                    </div>
+                    @if ($race->banner_path)
+                        <label class="mt-3 inline-flex items-center gap-2 text-sm text-slate-300">
+                            <input type="checkbox" name="remove_banner" value="1" class="rounded border-slate-600 bg-slate-900 text-red-500 focus:ring-red-500">
+                            Hapus banner
+                        </label>
+                    @endif
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-200 mb-2">Upload banner baru (opsional)</label>
+                    <input type="file" name="banner" accept="image/png,image/jpeg" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    <div class="text-xs text-slate-500 mt-2">PNG/JPG max 4MB, rekomendasi minimal 900x400.</div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-200 mb-2">Gallery saat ini</label>
+                @php($gallery = is_array($race->gallery_paths) ? $race->gallery_paths : [])
+                @if (count($gallery))
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        @foreach ($gallery as $p)
+                            <div class="bg-slate-950 border border-slate-700 rounded-xl overflow-hidden">
+                                <div class="aspect-square">
+                                    <img src="{{ Storage::disk('public')->url($p) }}" class="w-full h-full object-cover" loading="lazy" />
+                                </div>
+                                <label class="flex items-center gap-2 p-3 text-xs text-slate-300">
+                                    <input type="checkbox" name="remove_gallery[]" value="{{ $p }}" class="rounded border-slate-600 bg-slate-900 text-red-500 focus:ring-red-500">
+                                    Hapus
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-slate-500 font-bold">Belum ada foto.</div>
+                @endif
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-200 mb-2">Tambah foto gallery (opsional)</label>
+                <input type="file" name="gallery[]" multiple accept="image/png,image/jpeg" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                <div class="text-xs text-slate-500 mt-2">Bisa pilih beberapa foto. PNG/JPG max 4MB per file.</div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-200 mb-2">Prize (opsional)</label>
+                <textarea name="prize_info" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none" placeholder="Contoh: Juara 1: ...&#10;Juara 2: ...">{{ old('prize_info', $race->prize_info) }}</textarea>
+            </div>
+
             <div class="flex flex-col sm:flex-row gap-3">
                 <button type="submit" class="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black">Save</button>
                 <a href="{{ route('admin.races.show', $race) }}" class="px-5 py-3 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-200 font-bold text-center">Cancel</a>

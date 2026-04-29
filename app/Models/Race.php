@@ -22,6 +22,8 @@ class Race extends Model
         'start_at',
         'end_at',
         'banner_path',
+        'gallery_paths',
+        'prize_info',
     ];
 
     protected $casts = [
@@ -29,6 +31,7 @@ class Race extends Model
         'published_at' => 'datetime',
         'start_at' => 'datetime',
         'end_at' => 'datetime',
+        'gallery_paths' => 'array',
     ];
 
     protected static function booted(): void
@@ -36,6 +39,19 @@ class Race extends Model
         static::deleting(function (Race $race) {
             if ($race->logo_path) {
                 Storage::disk('public')->delete($race->logo_path);
+            }
+
+            if ($race->banner_path) {
+                Storage::disk('public')->delete($race->banner_path);
+            }
+
+            $gallery = collect($race->gallery_paths ?: [])
+                ->filter(fn ($p) => is_string($p) && trim($p) !== '')
+                ->values()
+                ->all();
+
+            if (! empty($gallery)) {
+                Storage::disk('public')->delete($gallery);
             }
 
             $paths = $race->certificates()

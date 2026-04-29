@@ -71,7 +71,11 @@ class RaceController extends Controller
             'location_name' => 'nullable|string|max:255',
             'start_at' => 'nullable|date',
             'end_at' => 'nullable|date',
+            'prize_info' => 'nullable|string|max:8000',
             'logo' => 'nullable|file|mimes:png,jpg,jpeg|max:2048',
+            'banner' => 'nullable|file|mimes:png,jpg,jpeg|max:4096',
+            'gallery' => 'nullable|array',
+            'gallery.*' => 'file|mimes:png,jpg,jpeg|max:4096',
         ]);
 
         $race = DB::transaction(function () use ($validated, $request) {
@@ -88,10 +92,28 @@ class RaceController extends Controller
             $race->location_name = $validated['location_name'] ?? null;
             $race->start_at = $validated['start_at'] ?? null;
             $race->end_at = $validated['end_at'] ?? null;
+            $race->prize_info = $validated['prize_info'] ?? null;
+            $race->banner_path = null;
+            $race->gallery_paths = null;
             $race->save();
 
             if ($request->hasFile('logo')) {
                 $race->logo_path = $this->storeLogo($request->file('logo'));
+                $race->save();
+            }
+
+            if ($request->hasFile('banner')) {
+                $race->banner_path = $this->storeBanner($request->file('banner'));
+                $race->save();
+            }
+
+            if ($request->hasFile('gallery')) {
+                $galleryPaths = [];
+                foreach ((array) $request->file('gallery') as $file) {
+                    if (! $file) continue;
+                    $galleryPaths[] = $this->storeGalleryImage($file);
+                }
+                $race->gallery_paths = $galleryPaths;
                 $race->save();
             }
 
@@ -155,8 +177,15 @@ class RaceController extends Controller
             'location_name' => 'nullable|string|max:255',
             'start_at' => 'nullable|date',
             'end_at' => 'nullable|date',
+            'prize_info' => 'nullable|string|max:8000',
             'remove_logo' => 'nullable|boolean',
             'logo' => 'nullable|file|mimes:png,jpg,jpeg|max:2048',
+            'remove_banner' => 'nullable|boolean',
+            'banner' => 'nullable|file|mimes:png,jpg,jpeg|max:4096',
+            'remove_gallery' => 'nullable|array',
+            'remove_gallery.*' => 'string',
+            'gallery' => 'nullable|array',
+            'gallery.*' => 'file|mimes:png,jpg,jpeg|max:4096',
         ]);
 
         DB::transaction(function () use ($validated, $request, $race) {
@@ -180,6 +209,7 @@ class RaceController extends Controller
             $race->location_name = $validated['location_name'] ?? null;
             $race->start_at = $validated['start_at'] ?? null;
             $race->end_at = $validated['end_at'] ?? null;
+            $race->prize_info = $validated['prize_info'] ?? null;
 
             $removeLogo = (bool) ($validated['remove_logo'] ?? false);
             if ($removeLogo && $race->logo_path) {
@@ -193,6 +223,38 @@ class RaceController extends Controller
                 }
                 $race->logo_path = $this->storeLogo($request->file('logo'));
             }
+
+            $removeBanner = (bool) ($validated['remove_banner'] ?? false);
+            if ($removeBanner && $race->banner_path) {
+                Storage::disk('public')->delete($race->banner_path);
+                $race->banner_path = null;
+            }
+
+            if ($request->hasFile('banner')) {
+                if ($race->banner_path) {
+                    Storage::disk('public')->delete($race->banner_path);
+                }
+                $race->banner_path = $this->storeBanner($request->file('banner'));
+            }
+
+            $currentGallery = collect($race->gallery_paths ?: []);
+            $removeGallery = collect($validated['remove_gallery'] ?? [])
+                ->filter(fn ($p) => is_string($p) && trim($p) !== '')
+                ->values();
+
+            if ($removeGallery->isNotEmpty()) {
+                Storage::disk('public')->delete($removeGallery->all());
+                $currentGallery = $currentGallery->reject(fn ($p) => $removeGallery->contains($p))->values();
+            }
+
+            if ($request->hasFile('gallery')) {
+                foreach ((array) $request->file('gallery') as $file) {
+                    if (! $file) continue;
+                    $currentGallery->push($this->storeGalleryImage($file));
+                }
+            }
+
+            $race->gallery_paths = $currentGallery->values()->all();
 
             $race->save();
         });
@@ -365,6 +427,56 @@ class RaceController extends Controller
         $fullPath = Storage::disk('public')->path($path);
 
         $image->toPng()->save($fullPath);
+
+        return $path;
+    }
+
+    private function storeBanner($file): string
+    {
+        $manager = new ImageManager(new Driver);
+        $image = $manager->read($file);
+
+        if ($image->width() < 900 || $image->height() < 400) {
+            throw ValidationException::withMessages([
+                'banner' => 'Resolusi banner minimal 900x400 pixel.',
+            ]);
+        }
+
+        $folder = 'race-banners';
+        if (! Storage::disk('public')->exists($folder)) {
+            Storage::disk('public')->makeDirectory($folder);
+        }
+
+        $filename = uniqid().'_'.time().'.jpg';
+        $path = $folder.'/'.$filename;
+        $fullPath = Storage::disk('public')->path($path);
+
+        $image->toJpeg(82)->save($fullPath);
+
+        return $path;
+    }
+
+    private function storeGalleryImage($file): string
+    {
+        $manager = new ImageManager(new Driver);
+        $image = $manager->read($file);
+
+        if ($image->width() < 300 || $image->height() < 300) {
+            throw ValidationException::withMessages([
+                'gallery' => 'Resolusi gallery minimal 300x300 pixel.',
+            ]);
+        }
+
+        $folder = 'race-galleries';
+        if (! Storage::disk('public')->exists($folder)) {
+            Storage::disk('public')->makeDirectory($folder);
+        }
+
+        $filename = uniqid().'_'.time().'.jpg';
+        $path = $folder.'/'.$filename;
+        $fullPath = Storage::disk('public')->path($path);
+
+        $image->toJpeg(82)->save($fullPath);
 
         return $path;
     }

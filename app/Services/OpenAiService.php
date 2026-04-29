@@ -64,18 +64,29 @@ class OpenAiService
         }
 
         if ($endpoint === 'chat_completions') {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ])->timeout(90)->post($this->chatCompletionsUrl, [
+            $payload = [
                 'model' => $model,
                 'messages' => [
                     ['role' => 'system', 'content' => $systemMessage],
                     ['role' => 'user', 'content' => $prompt],
                 ],
                 'temperature' => 0.7,
-            ]);
+            ];
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ])->timeout(90)->post($this->chatCompletionsUrl, $payload);
+
+            if (! $response->successful() && $this->isUnsupportedTemperatureError($response) && array_key_exists('temperature', $payload)) {
+                unset($payload['temperature']);
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])->timeout(90)->post($this->chatCompletionsUrl, $payload);
+            }
 
             if (! $response->successful()) {
                 $message = null;
@@ -97,16 +108,27 @@ class OpenAiService
             return $content;
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->apiKey,
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ])->timeout(90)->post($this->responsesUrl, [
+        $payload = [
             'model' => $model,
             'instructions' => $systemMessage,
             'input' => $prompt,
             'temperature' => 0.7,
-        ]);
+        ];
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->timeout(90)->post($this->responsesUrl, $payload);
+
+        if (! $response->successful() && $this->isUnsupportedTemperatureError($response) && array_key_exists('temperature', $payload)) {
+            unset($payload['temperature']);
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ])->timeout(90)->post($this->responsesUrl, $payload);
+        }
 
         if (! $response->successful()) {
             $message = null;
@@ -150,6 +172,23 @@ class OpenAiService
         }
 
         throw new \RuntimeException('OpenAI returned empty content.');
+    }
+
+    private function isUnsupportedTemperatureError($response): bool
+    {
+        $json = $response->json();
+        if (! is_array($json)) {
+            return str_contains((string) $response->body(), "Unsupported parameter: 'temperature'")
+                || str_contains((string) $response->body(), 'temperature is not supported');
+        }
+
+        $message = data_get($json, 'error.message') ?: data_get($json, 'message') ?: '';
+        if (! is_string($message)) {
+            $message = '';
+        }
+
+        return str_contains($message, "Unsupported parameter: 'temperature'")
+            || str_contains($message, 'temperature is not supported');
     }
 
     /**

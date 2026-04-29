@@ -83,6 +83,23 @@
                 <div class="text-xs text-slate-500 mt-2">PNG/JPG max 2MB, minimal 200x200.</div>
             </div>
 
+            <div>
+                <label class="block text-sm font-bold text-slate-200 mb-2">Banner (opsional)</label>
+                <input type="file" name="banner" accept="image/png,image/jpeg" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                <div class="text-xs text-slate-500 mt-2">PNG/JPG max 4MB, rekomendasi minimal 900x400.</div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-200 mb-2">Gallery (opsional)</label>
+                <input type="file" name="gallery[]" multiple accept="image/png,image/jpeg" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                <div class="text-xs text-slate-500 mt-2">Bisa pilih beberapa foto. PNG/JPG max 4MB per file.</div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-200 mb-2">Prize (opsional)</label>
+                <textarea name="prize_info" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-red-500 outline-none" placeholder="Contoh: Juara 1: ...&#10;Juara 2: ...">{{ old('prize_info') }}</textarea>
+            </div>
+
             <div class="flex flex-col sm:flex-row gap-3">
                 <button type="submit" class="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black">Create</button>
                 <a href="{{ route('admin.races.index') }}" class="px-5 py-3 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-700 text-slate-200 font-bold text-center">Cancel</a>
