@@ -41,6 +41,20 @@
     if (count($galleryUrls) === 0) {
         $galleryUrls[] = $heroImage;
     }
+    $rawSponsors = is_array($event->sponsors ?? null) ? $event->sponsors : [];
+    $sponsorUrls = [];
+    foreach ($rawSponsors as $img) {
+        $img = is_string($img) ? trim($img) : '';
+        if ($img === '') {
+            continue;
+        }
+        if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+            $sponsorUrls[] = $img;
+        } else {
+            $sponsorUrls[] = asset('storage/'.$img);
+        }
+    }
+    $sponsorUrls = array_values(array_unique($sponsorUrls));
     $logoImage = $event->logo_image ? asset('storage/'.$event->logo_image) : null;
     $faviconImage = $logoImage ?? $heroImage;
     $canonicalUrl = route('events.show', $event->slug);
@@ -125,6 +139,8 @@
         body { background:linear-gradient(180deg,#f8fbff 0%,#f5f7fb 100%); color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; }
         .glass { background:rgba(255,255,255,.85); backdrop-filter:blur(18px); }
         .soft-card { border:1px solid rgba(148,163,184,.18); box-shadow:0 10px 40px rgba(15,23,42,.08); border-radius:28px; background:#fff; }
+        .no-scrollbar { scrollbar-width:none; }
+        .no-scrollbar::-webkit-scrollbar { display:none; }
         .field { width:100%; border:1px solid #dbe4f0; border-radius:18px; padding:15px 16px; font-weight:600; color:#0f172a; background:#fff; outline:none; transition:.18s ease; }
         .field:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(241,99,30,.12); }
         .pill { display:inline-flex; align-items:center; gap:.5rem; border-radius:999px; padding:.55rem .9rem; font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
@@ -138,6 +154,8 @@
         .hero-overlay { background:linear-gradient(110deg, rgba(15,23,42,.72) 0%, rgba(15,23,42,.48) 35%, rgba(255,255,255,.05) 100%); }
         .ql-gallery-dot { width:8px; height:8px; border-radius:999px; background:rgba(255,255,255,.45); transition:transform .15s ease, background .15s ease; }
         .ql-gallery-dot[data-active="1"] { background:#fff; transform:scale(1.25); }
+        #qlSponsorDots .ql-gallery-dot { background:rgba(15,23,42,.18); }
+        #qlSponsorDots .ql-gallery-dot[data-active="1"] { background:var(--primary); }
         @if(env('RECAPTCHA_SITE_KEY_v3'))
         .grecaptcha-badge { visibility:hidden !important; }
         @endif
@@ -217,6 +235,34 @@
     </section>
 
     <main class="max-w-7xl mx-auto px-5 sm:px-6 md:px-8 -mt-12 pb-16 relative z-10 w-full">
+        @if(count($sponsorUrls) > 0)
+            <section class="soft-card p-5 md:p-6 mb-6">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Sponsors</div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="qlSponsorPrev" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-900 hover:bg-slate-50 transition" aria-label="Sebelumnya">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button type="button" id="qlSponsorNext" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-900 hover:bg-slate-50 transition" aria-label="Berikutnya">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="qlSponsorTrack" class="mt-4 flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 no-scrollbar">
+                    @foreach($sponsorUrls as $logo)
+                        <div class="snap-start flex-none w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+                            <div class="h-20 md:h-24 rounded-2xl border border-slate-200 bg-white flex items-center justify-center p-4">
+                                <img src="{{ $logo }}" alt="Sponsor {{ $event->name }}" class="max-h-full max-w-full object-contain" loading="lazy" decoding="async">
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div id="qlSponsorDots" class="mt-3 flex items-center justify-center gap-2"></div>
+            </section>
+        @endif
+
         @if(request('payment') === 'pending')
             <div class="soft-card p-5 md:p-6 mb-6 border-yellow-200 bg-yellow-50">
                 <div class="flex items-start gap-4">
@@ -719,6 +765,83 @@
 
             renderDots();
             preload(1);
+        })();
+    </script>
+
+    <script>
+        (function () {
+            const track = document.getElementById('qlSponsorTrack');
+            const prevBtn = document.getElementById('qlSponsorPrev');
+            const nextBtn = document.getElementById('qlSponsorNext');
+            const dotsEl = document.getElementById('qlSponsorDots');
+            if (!track || !prevBtn || !nextBtn || !dotsEl) return;
+
+            const items = Array.from(track.children);
+            if (items.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                dotsEl.style.display = 'none';
+                return;
+            }
+
+            let itemStep = 1;
+            let index = 0;
+
+            function computeStep() {
+                const first = items[0];
+                if (!first) return;
+                const style = window.getComputedStyle(track);
+                const gap = parseFloat(style.columnGap || style.gap || '0') || 0;
+                const w = first.getBoundingClientRect().width || 1;
+                itemStep = w + gap;
+                if (!itemStep || itemStep < 1) itemStep = w || 1;
+            }
+
+            function clamp(n) {
+                return Math.max(0, Math.min(items.length - 1, n));
+            }
+
+            function setActiveDot() {
+                Array.from(dotsEl.querySelectorAll('[data-dot]')).forEach(function (btn) {
+                    const b = parseInt(btn.getAttribute('data-dot') || '0', 10);
+                    btn.setAttribute('data-active', b === index ? '1' : '0');
+                });
+            }
+
+            function go(i) {
+                computeStep();
+                index = clamp(i);
+                track.scrollTo({ left: index * itemStep, behavior: 'smooth' });
+                setActiveDot();
+            }
+
+            function renderDots() {
+                dotsEl.innerHTML = items.map(function (_, i) {
+                    return '<button type="button" class="ql-gallery-dot" data-dot="' + i + '" data-active="' + (i === index ? '1' : '0') + '"></button>';
+                }).join('');
+            }
+
+            function syncFromScroll() {
+                if (!itemStep) computeStep();
+                const i = clamp(Math.round(track.scrollLeft / (itemStep || 1)));
+                if (i === index) return;
+                index = i;
+                setActiveDot();
+            }
+
+            prevBtn.addEventListener('click', function () { go(index - 1); });
+            nextBtn.addEventListener('click', function () { go(index + 1); });
+            dotsEl.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-dot]');
+                if (!btn) return;
+                go(parseInt(btn.getAttribute('data-dot') || '0', 10));
+            });
+            track.addEventListener('scroll', function () { window.requestAnimationFrame(syncFromScroll); }, { passive: true });
+            window.addEventListener('resize', function () { computeStep(); syncFromScroll(); });
+
+            computeStep();
+            renderDots();
+            syncFromScroll();
         })();
     </script>
 
