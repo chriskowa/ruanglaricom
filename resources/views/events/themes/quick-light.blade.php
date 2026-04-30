@@ -58,7 +58,11 @@
     $logoImage = $event->logo_image ? asset('storage/'.$event->logo_image) : null;
     $faviconImage = $logoImage ?? $heroImage;
     $canonicalUrl = route('events.show', $event->slug);
-    $shortDescription = trim(strip_tags((string) ($event->short_description ?? '')));
+    $rawShortDescription = (string) ($event->short_description ?? '');
+    $rawShortDescription = html_entity_decode($rawShortDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $rawShortDescription = str_replace(["\u{00A0}", "\xc2\xa0"], ' ', $rawShortDescription);
+    $rawShortDescription = str_replace('&nbsp;', ' ', $rawShortDescription);
+    $shortDescription = trim(preg_replace('/\s+/u', ' ', strip_tags($rawShortDescription)));
     $platformFee = (int) ($event->platform_fee ?? 0);
     $defaultJersey = collect($event->jersey_sizes ?? [])->filter()->first() ?? 'L';
     $schemaDescription = $shortDescription !== '' ? $shortDescription : trim(strip_tags((string) ($event->full_description ?? '')));
@@ -658,6 +662,23 @@
                                     </div>
                                 </div>
 
+                                <div class="rounded-3xl border border-slate-200 bg-white p-5">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div>
+                                            <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Kupon</div>
+                                            <div class="text-sm text-slate-600 mt-1">Masukkan kode kupon jika ada.</div>
+                                        </div>
+                                        <div class="text-xs font-bold text-slate-400">Opsional</div>
+                                    </div>
+                                    <div class="mt-4 flex gap-2">
+                                        <input id="qlCouponInput" type="text" class="field" placeholder="Contoh: PROMO2026" autocomplete="off" />
+                                        <button id="qlCouponApplyBtn" type="button" class="px-4 py-3 rounded-2xl bg-slate-900 text-white font-black hover:bg-slate-800 transition">Apply</button>
+                                        <button id="qlCouponClearBtn" type="button" class="hidden px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-700 font-black hover:bg-slate-50 transition">Clear</button>
+                                    </div>
+                                    <input type="hidden" name="coupon_code" id="qlCouponCodeHidden" />
+                                    <div id="qlCouponMessage" class="hidden mt-2 text-xs font-bold"></div>
+                                </div>
+
                                 <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
                                     <div class="flex items-center justify-between text-sm text-slate-600">
                                         <span>Tiket</span>
@@ -666,6 +687,10 @@
                                     <div class="mt-2 flex items-center justify-between text-sm text-slate-600">
                                         <span>Add-on</span>
                                         <span id="ql-addon-price" class="font-bold text-slate-900">Rp 0</span>
+                                    </div>
+                                    <div id="qlCouponRow" class="hidden mt-2 flex items-center justify-between text-sm text-slate-600">
+                                        <span>Diskon <span id="qlCouponLabel" class="font-bold text-slate-700"></span></span>
+                                        <span id="qlDiscountAmount" class="font-bold text-emerald-700">-Rp 0</span>
                                     </div>
                                     <div class="mt-2 flex items-center justify-between text-sm text-slate-600">
                                         <span>Platform fee</span>
@@ -899,8 +924,38 @@
             const platformFee = {{ $platformFee }};
             const originalSubmitText = submitBtn ? submitBtn.innerHTML : '';
 
+            const couponInputEl = document.getElementById('qlCouponInput');
+            const couponHiddenEl = document.getElementById('qlCouponCodeHidden');
+            const couponApplyBtn = document.getElementById('qlCouponApplyBtn');
+            const couponClearBtn = document.getElementById('qlCouponClearBtn');
+            const couponMessageEl = document.getElementById('qlCouponMessage');
+            const couponRowEl = document.getElementById('qlCouponRow');
+            const couponLabelEl = document.getElementById('qlCouponLabel');
+            const discountAmountEl = document.getElementById('qlDiscountAmount');
+            const couponUrl = '{{ route('events.register.coupon', $event->slug) }}';
+            const eventId = {{ $event->id }};
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            let coupon = null;
+            let discountAmount = 0;
+            let couponAppliedOnSubTotal = null;
+
             function formatCurrency(value) {
                 return 'Rp ' + new Intl.NumberFormat('id-ID').format(Number(value || 0));
+            }
+
+            function setCouponMessage(text, type) {
+                if (!couponMessageEl) return;
+                if (!text) {
+                    couponMessageEl.textContent = '';
+                    couponMessageEl.classList.add('hidden');
+                    return;
+                }
+                couponMessageEl.textContent = text;
+                couponMessageEl.classList.remove('hidden');
+                couponMessageEl.classList.toggle('text-emerald-700', type === 'success');
+                couponMessageEl.classList.toggle('text-rose-600', type === 'error');
+                couponMessageEl.classList.toggle('text-slate-600', type === 'info');
             }
 
             function getParticipantItems() {
@@ -918,19 +973,119 @@
                 }, 0);
             }
 
-            function updateSummary() {
+            function computeBaseTotals() {
                 const items = getParticipantItems();
                 const ticket = items.reduce(function(sum, item) { return sum + selectedCategoryPrice(item); }, 0);
                 const addons = items.reduce(function(sum, item) { return sum + selectedAddonPrice(item); }, 0);
                 const participantCount = items.length;
                 const subTotal = ticket + addons;
-                const fee = subTotal > 0 ? platformFee * participantCount : 0;
-                const total = subTotal + fee;
+                return { ticket, addons, participantCount, subTotal };
+            }
+
+            function clearCoupon(reason) {
+                coupon = null;
+                discountAmount = 0;
+                couponAppliedOnSubTotal = null;
+                if (couponHiddenEl) couponHiddenEl.value = '';
+                if (couponRowEl) couponRowEl.classList.add('hidden');
+                if (couponClearBtn) couponClearBtn.classList.add('hidden');
+                if (couponLabelEl) couponLabelEl.textContent = '';
+                if (discountAmountEl) discountAmountEl.textContent = '-Rp 0';
+                setCouponMessage(reason || '', reason ? 'info' : null);
+            }
+
+            async function applyCoupon() {
+                if (!couponInputEl || !couponHiddenEl) return;
+
+                const code = String(couponInputEl.value || '').trim().toUpperCase();
+                couponInputEl.value = code;
+                if (!code) {
+                    clearCoupon('');
+                    updateSummary();
+                    return;
+                }
+
+                const totals = computeBaseTotals();
+                const subTotal = totals.subTotal;
+                if (subTotal <= 0) {
+                    clearCoupon('Total tiket masih 0, kupon belum bisa diterapkan.');
+                    updateSummary();
+                    return;
+                }
+
+                setCouponMessage('Memverifikasi kupon...', 'info');
+
+                let res;
+                try {
+                    const r = await fetch(couponUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({
+                            event_id: eventId,
+                            coupon_code: code,
+                            total_amount: subTotal,
+                        }),
+                    });
+                    res = await r.json().catch(function () { return null; });
+                    if (!r.ok || !res || !res.success) {
+                        throw new Error((res && res.message) ? res.message : 'Kupon tidak valid.');
+                    }
+                } catch (e) {
+                    clearCoupon('Kupon gagal: ' + (e && e.message ? e.message : 'Terjadi kesalahan.'));
+                    updateSummary();
+                    return;
+                }
+
+                coupon = res.coupon || null;
+                discountAmount = Math.max(0, Math.min(subTotal, Number(res.discount_amount || 0)));
+                couponAppliedOnSubTotal = subTotal;
+                couponHiddenEl.value = coupon && coupon.code ? coupon.code : code;
+
+                if (couponRowEl) couponRowEl.classList.remove('hidden');
+                if (couponClearBtn) couponClearBtn.classList.remove('hidden');
+                if (couponLabelEl) couponLabelEl.textContent = '(' + (couponHiddenEl.value || code) + ')';
+                if (discountAmountEl) discountAmountEl.textContent = '-' + formatCurrency(discountAmount);
+
+                setCouponMessage('Kupon diterapkan: ' + (couponHiddenEl.value || code), 'success');
+                updateSummary();
+            }
+
+            function updateSummary() {
+                const totals = computeBaseTotals();
+                const ticket = totals.ticket;
+                const addons = totals.addons;
+                const participantCount = totals.participantCount;
+                const subTotal = totals.subTotal;
+
+                if (couponHiddenEl && couponHiddenEl.value && couponAppliedOnSubTotal !== null && couponAppliedOnSubTotal !== subTotal) {
+                    clearCoupon('Kupon direset karena total berubah. Silakan apply lagi.');
+                }
+
+                const discount = (couponHiddenEl && couponHiddenEl.value) ? discountAmount : 0;
+                const fee = (subTotal - discount) > 0 ? platformFee * participantCount : 0;
+                const total = (subTotal - discount) + fee;
                 if (ticketPriceEl) ticketPriceEl.textContent = formatCurrency(ticket);
                 if (addonPriceEl) addonPriceEl.textContent = formatCurrency(addons);
                 if (platformFeeEl) platformFeeEl.textContent = formatCurrency(fee);
                 if (totalPriceEl) totalPriceEl.textContent = formatCurrency(total);
+
+                if (couponRowEl) couponRowEl.classList.toggle('hidden', ! (couponHiddenEl && couponHiddenEl.value));
+                if (couponLabelEl && couponHiddenEl && couponHiddenEl.value) couponLabelEl.textContent = '(' + couponHiddenEl.value + ')';
+                if (discountAmountEl) discountAmountEl.textContent = discount > 0 ? '-' + formatCurrency(discount) : '-Rp 0';
             }
+
+            if (couponApplyBtn) couponApplyBtn.addEventListener('click', function () { applyCoupon(); });
+            if (couponClearBtn) couponClearBtn.addEventListener('click', function () { clearCoupon(''); updateSummary(); });
+            if (couponInputEl) couponInputEl.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyCoupon();
+                }
+            });
 
             function normalizePhone(phone) {
                 return String(phone || '').replace(/[^0-9]/g, '');
