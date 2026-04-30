@@ -379,8 +379,8 @@
                 <p class="text-slate-400 font-bold tracking-widest text-sm mt-1 uppercase">Route Builder</p>
             </div>
             <div class="text-right">
-                <div class="text-5xl font-black text-white tracking-tighter" id="rl-export-dist">0.00</div>
-                <div class="text-xl font-bold text-slate-400 uppercase tracking-wider">Kilometers</div>
+                <div class="text-5xl font-black text-white tracking-tighter leading-snug" id="rl-export-dist">0.00</div>
+                <div class="text-xl font-bold text-slate-400 uppercase tracking-wider leading-snug mt-2">Kilometers</div>
             </div>
         </div>
 
@@ -422,10 +422,10 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4 text-[10px] font-mono text-slate-500 border-t border-slate-800 pt-4 mt-2">
                         <div>
-                            <span class="text-[#22c55e] font-bold">START</span> <span id="rl-export-start">0,0</span>
+                            <span id="rl-export-start-label" class="font-bold">START</span> <span id="rl-export-start">0,0</span>
                         </div>
                         <div>
-                            <span class="text-[#ef4444] font-bold">FINISH</span> <span id="rl-export-finish">0,0</span>
+                            <span id="rl-export-finish-label" class="font-bold">FINISH</span> <span id="rl-export-finish">0,0</span>
                         </div>
                     </div>
                 </div>
@@ -2308,13 +2308,34 @@
                 }
                 
                 setStatus('Generating image...');
-                
+
+                var style = getStyle();
+
                 document.getElementById('rl-export-dist').textContent = document.getElementById('rl-distance-km').textContent;
                 document.getElementById('rl-export-time').textContent = document.getElementById('rl-est-time').textContent;
                 document.getElementById('rl-export-name').textContent = els.name.value || 'Untitled Route';
-                
+
+                var startLabel = document.getElementById('rl-export-start-label');
+                var finishLabel = document.getElementById('rl-export-finish-label');
+                if (startLabel) startLabel.style.color = style.start;
+                if (finishLabel) finishLabel.style.color = style.finish;
+
+                var exportSvgEl = document.getElementById('rl-export-svg');
+                if (exportSvgEl) {
+                    function hexToRgba(hex, a) {
+                        var m = String(hex || '').match(/^#([0-9a-f]{6})$/i);
+                        if (!m) return 'rgba(204,255,0,' + (a || 0.4) + ')';
+                        var h = m[1];
+                        var r = parseInt(h.substring(0, 2), 16);
+                        var g = parseInt(h.substring(2, 4), 16);
+                        var b = parseInt(h.substring(4, 6), 16);
+                        return 'rgba(' + r + ',' + g + ',' + b + ',' + (a || 0.4) + ')';
+                    }
+                    exportSvgEl.style.filter = 'drop-shadow(0 0 15px ' + hexToRgba(style.route, 0.4) + ')';
+                }
+
                 var mainElevSvg = els.elevSvg.querySelector('path[fill="url(#rlElevFill)"]');
-                var mainElevLine = els.elevSvg.querySelector('path[stroke="#ccff00"]');
+                var mainElevLine = els.elevSvg.querySelector('path[stroke="' + style.route + '"]') || els.elevSvg.querySelector('path[stroke="#ccff00"]');
                 var exportElevSvg = document.getElementById('rl-export-elev-svg');
                 exportElevSvg.innerHTML = '';
                 
@@ -2349,17 +2370,34 @@
                         colorLight : "#ffffff",
                         correctLevel : QRCode.CorrectLevel.L
                     });
+
+                    setTimeout(function () {
+                        var qrCanvas = qrContainer.querySelector('canvas');
+                        var qrImg = qrContainer.querySelector('img');
+
+                        if (qrCanvas && qrCanvas.toDataURL) {
+                            try {
+                                var url = qrCanvas.toDataURL('image/png');
+                                qrContainer.innerHTML = '';
+                                var img = document.createElement('img');
+                                img.width = 70;
+                                img.height = 70;
+                                img.src = url;
+                                img.style.display = 'block';
+                                img.style.imageRendering = 'pixelated';
+                                qrContainer.appendChild(img);
+                                return;
+                            } catch (e) {}
+                        }
+
+                        if (qrImg) {
+                            qrImg.style.display = 'block';
+                            qrImg.style.imageRendering = 'pixelated';
+                        }
+                    }, 50);
                 } catch(e) {
                     console.error("QR Code Error:", e);
                 }
-
-                // Wait for QR code image to be generated
-                setTimeout(function() {
-                    var qrImg = qrContainer.querySelector('img');
-                    if (qrImg) {
-                        qrImg.style.display = 'block'; // Ensure it's visible
-                    }
-                }, 100);
 
                 document.getElementById('rl-export-finish').textContent = endP.lat.toFixed(4) + ', ' + endP.lng.toFixed(4);
 
@@ -2412,7 +2450,7 @@
                 var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 path.setAttribute("d", pathData);
                 path.setAttribute("fill", "none");
-                path.setAttribute("stroke", "#ccff00");
+                path.setAttribute("stroke", style.route);
                 path.setAttribute("stroke-width", "8");
                 path.setAttribute("stroke-linecap", "round");
                 path.setAttribute("stroke-linejoin", "round");
@@ -2440,7 +2478,7 @@
                             var arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
                             arrow.setAttribute("d", "M-6,-6 L6,0 L-6,6"); // Simple arrowhead
                             arrow.setAttribute("fill", "none");
-                            arrow.setAttribute("stroke", "#ccff00");
+                            arrow.setAttribute("stroke", style.route);
                             arrow.setAttribute("stroke-width", "3");
                             arrow.setAttribute("stroke-linecap", "round");
                             arrow.setAttribute("stroke-linejoin", "round");
@@ -2462,7 +2500,7 @@
                 var startG = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 var startDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 startDot.setAttribute("cx", startX); startDot.setAttribute("cy", startY); startDot.setAttribute("r", "14"); 
-                startDot.setAttribute("fill", "#22c55e"); startDot.setAttribute("stroke", "#ffffff"); startDot.setAttribute("stroke-width", "3");
+                startDot.setAttribute("fill", style.start); startDot.setAttribute("stroke", style.marker); startDot.setAttribute("stroke-width", "3");
                 
                 var startText = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 startText.setAttribute("x", startX); startText.setAttribute("y", startY); startText.setAttribute("dy", "5");
@@ -2478,7 +2516,7 @@
                 var endG = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 var endDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 endDot.setAttribute("cx", endX); endDot.setAttribute("cy", endY); endDot.setAttribute("r", "14"); 
-                endDot.setAttribute("fill", "#ef4444"); endDot.setAttribute("stroke", "#ffffff"); endDot.setAttribute("stroke-width", "3");
+                endDot.setAttribute("fill", style.finish); endDot.setAttribute("stroke", style.marker); endDot.setAttribute("stroke-width", "3");
                 
                 var endText = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 endText.setAttribute("x", endX); endText.setAttribute("y", endY); endText.setAttribute("dy", "5");
