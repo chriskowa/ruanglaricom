@@ -379,8 +379,8 @@
                 <p class="text-slate-400 font-bold tracking-widest text-sm mt-1 uppercase">Route Builder</p>
             </div>
             <div class="text-right">
-                <div class="text-5xl font-black text-white tracking-tighter leading-snug" id="rl-export-dist">0.00</div>
-                <div class="text-xl font-bold text-slate-400 uppercase tracking-wider leading-snug">Kilometers</div>
+                <div class="text-5xl font-black text-white tracking-tighter" id="rl-export-dist">0.00</div>
+                <div class="text-xl font-bold text-slate-400 uppercase tracking-wider">Kilometers</div>
             </div>
         </div>
 
@@ -408,7 +408,7 @@
                 <div class="space-y-6">
                     <div>
                         <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>
-                        <div class="mt-2 text-2xl font-black text-white leading-snug line-clamp-3 break-words" id="rl-export-name"> Untitled Route </div>
+                        <div class="mt-2 text-2xl font-black text-white leading-[1.35] line-clamp-3 break-words min-h-[6.5rem] py-0.5" id="rl-export-name"> Untitled Route </div>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
