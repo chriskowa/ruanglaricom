@@ -396,7 +396,9 @@
                         var li = document.createElement('div');
                         li.className = 'p-3 hover:bg-slate-800 cursor-pointer flex items-center gap-1';
                         var avatar = getAvatarUrl(conv.user_avatar);
-                        li.innerHTML = '<img src="'+avatar+'" class="w-8 h-8 rounded-full border border-slate-700"><div class="flex-1"><div class="text-sm text-white font-bold">'+conv.user_name+'</div><div class="text-[11px] text-slate-400">'+(conv.last_message||'')+'</div></div>'+(conv.unread_count>0?'<span class="text-[10px] px-2 py-0.5 rounded bg-red-500 text-white">'+conv.unread_count+'</span>':'');
+                        var last = String(conv.last_message || '').replace(/\s+/g, ' ').trim();
+                        var preview = last.length > 30 ? (last.substring(0, 30) + '...') : last;
+                        li.innerHTML = '<img src="'+avatar+'" class="w-8 h-8 rounded-full border border-slate-700"><div class="flex-1 min-w-0"><div class="text-sm text-white font-bold">'+conv.user_name+'</div><div class="text-[11px] text-slate-400 truncate">'+preview+'</div></div>'+(conv.unread_count>0?'<span class="text-[10px] px-2 py-0.5 rounded bg-red-500 text-white">'+conv.unread_count+'</span>':'');
                         li.addEventListener('click', function(){ openChat(conv.user_id, conv.user_name, conv.user_avatar); });
                         convList.appendChild(li);
                     });
@@ -495,7 +497,9 @@
             msgBody.addEventListener('scroll', function(){ if(currentUserId){ sessionStorage.setItem('phChatScroll:'+currentUserId, String(msgBody.scrollTop)); } });
             document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ hideBox(); } });
             var reopen = getOpen();
-            if(reopen && isAuthenticated){ fetch(baseUrl+'/api/chat/'+reopen+'/messages', { headers:{'Accept':'application/json'} }).then(function(r){ if(r.ok){ r.json().then(function(j){ openChat(Number(reopen), (j && j.user && j.user.name) ? j.user.name : 'Chat', (j && j.user && j.user.avatar) ? j.user.avatar : null); }); } }); }
+            var canAutoOpen = false;
+            try { canAutoOpen = window.matchMedia && window.matchMedia('(min-width: 768px)').matches; } catch (e) { canAutoOpen = false; }
+            if(reopen && isAuthenticated && canAutoOpen){ fetch(baseUrl+'/api/chat/'+reopen+'/messages', { headers:{'Accept':'application/json'} }).then(function(r){ if(r.ok){ r.json().then(function(j){ openChat(Number(reopen), (j && j.user && j.user.name) ? j.user.name : 'Chat', (j && j.user && j.user.avatar) ? j.user.avatar : null); }); } }); }
         })();
     </script>
     <script>

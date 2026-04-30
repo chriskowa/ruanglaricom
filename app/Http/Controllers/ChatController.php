@@ -27,7 +27,10 @@ class ChatController extends Controller
 
     private function getConversationsList()
     {
-        $aiCoach = $this->getAiCoach();
+        $aiCoach = null;
+        if (Auth::user()?->isRunner()) {
+            $aiCoach = $this->getAiCoach();
+        }
 
         $conversations = Message::where('sender_id', Auth::id())
             ->orWhere('receiver_id', Auth::id())
@@ -40,8 +43,7 @@ class ChatController extends Controller
                     : $message->sender_id;
             });
 
-        // Ensure AI Coach is in the list even if no messages yet
-        if (!$conversations->has($aiCoach->id)) {
+        if ($aiCoach && ! $conversations->has($aiCoach->id)) {
             $conversations->put($aiCoach->id, collect());
         }
 
@@ -59,6 +61,10 @@ class ChatController extends Controller
 
     public function show(User $user)
     {
+        if ($user->email === 'ai-coach@ruanglari.com' && ! Auth::user()?->isRunner()) {
+            abort(403);
+        }
+
         $conversations = $this->getConversationsList();
 
         $messages = Message::where(function ($query) use ($user) {
@@ -90,6 +96,10 @@ class ChatController extends Controller
 
     public function store(Request $request, User $user)
     {
+        if ($user->email === 'ai-coach@ruanglari.com' && ! Auth::user()?->isRunner()) {
+            abort(403);
+        }
+
         $request->validate([
             'message' => 'required|string|max:1000',
         ]);
@@ -140,7 +150,7 @@ class ChatController extends Controller
 
     public function getConversations()
     {
-        $aiCoach = $this->getAiCoach();
+        $aiCoach = Auth::user()?->isRunner() ? $this->getAiCoach() : null;
 
         $conversations = Message::where('sender_id', Auth::id())
             ->orWhere('receiver_id', Auth::id())
@@ -164,6 +174,10 @@ class ChatController extends Controller
 
                 if (!$otherUser) return null;
 
+                if ($otherUser->email === 'ai-coach@ruanglari.com' && ! Auth::user()?->isRunner()) {
+                    return null;
+                }
+
                 $unreadCount = Message::where('sender_id', $otherUser->id)
                     ->where('receiver_id', Auth::id())
                     ->where('is_read', false)
@@ -182,18 +196,19 @@ class ChatController extends Controller
             ->filter()
             ->values();
 
-        // Ensure AI Coach is in the list
-        $hasAiCoach = $formattedConversations->contains('user_id', $aiCoach->id);
-        if (!$hasAiCoach) {
-            $formattedConversations->prepend([
-                'user_id' => $aiCoach->id,
-                'user_name' => $aiCoach->name,
-                'user_avatar' => $aiCoach->avatar_url,
-                'user_email' => $aiCoach->email,
-                'last_message' => 'Halo! Saya Coach AI Anda. Ada yang bisa saya bantu?',
-                'last_message_time' => now()->toISOString(),
-                'unread_count' => 0,
-            ]);
+        if ($aiCoach) {
+            $hasAiCoach = $formattedConversations->contains('user_id', $aiCoach->id);
+            if (! $hasAiCoach) {
+                $formattedConversations->prepend([
+                    'user_id' => $aiCoach->id,
+                    'user_name' => $aiCoach->name,
+                    'user_avatar' => $aiCoach->avatar_url,
+                    'user_email' => $aiCoach->email,
+                    'last_message' => 'Halo! Saya Coach AI Anda. Ada yang bisa saya bantu?',
+                    'last_message_time' => now()->toISOString(),
+                    'unread_count' => 0,
+                ]);
+            }
         }
 
         return response()->json([
@@ -204,6 +219,10 @@ class ChatController extends Controller
     public function getMessages($userId)
     {
         $user = User::findOrFail($userId);
+
+        if ($user->email === 'ai-coach@ruanglari.com' && ! Auth::user()?->isRunner()) {
+            abort(403);
+        }
 
         $messages = Message::where(function ($query) use ($user) {
             $query->where('sender_id', Auth::id())

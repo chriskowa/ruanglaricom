@@ -379,15 +379,15 @@
                 <p class="text-slate-400 font-bold tracking-widest text-sm mt-1 uppercase">Route Builder</p>
             </div>
             <div class="text-right">
-                <div class="text-5xl font-black text-white tracking-tighter" id="rl-export-dist">0.00</div>
-                <div class="text-xl font-bold text-slate-400 uppercase tracking-wider">Kilometers</div>
+                <div class="text-5xl font-black text-white tracking-tighter leading-snug" id="rl-export-dist">0.00</div>
+                <div class="text-xl font-bold text-slate-400 uppercase tracking-wider leading-snug">Kilometers</div>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="absolute bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-black via-black/90 to-transparent pt-32 z-10">
             <div class="grid grid-cols-2 gap-12">
-                <div>
+                <div class="space-y-6">
                     <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Elevation Profile</div>
                     <!-- Mini Elevation Graph -->
                     <div class="h-24 w-full relative">
@@ -399,16 +399,16 @@
                         <span id="rl-export-min-elev">0m</span>
                         <span id="rl-export-max-elev">0m</span>
                     </div>
+
+                    <div>
+                        <div class="text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Scan Start</div>
+                        <div id="rl-export-qr" class="p-1 bg-white inline-block rounded-lg"></div>
+                    </div>
                 </div>
                 <div class="space-y-6">
                     <div>
-                        <div class="flex flex-col gap-2">
-                            <div id="rl-export-qr" class="p-1 bg-white inline-block rounded-lg self-start"></div>
-                            <div>
-                                <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>                        
-                                <div class="text-2xl font-black text-white leading-tight line-clamp-2 h-[3.5rem]" id="rl-export-name"> Untitled Route </div>
-                            </div>
-                        </div>
+                        <div class="text-xs font-bold text-slate-600 uppercase tracking-widest">Route Name</div>
+                        <div class="mt-2 text-2xl font-black text-white leading-snug line-clamp-3 break-words" id="rl-export-name"> Untitled Route </div>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
                         <div>
