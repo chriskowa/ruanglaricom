@@ -1520,6 +1520,15 @@
 
             function applyFromQuery() {
                 var qs = new URLSearchParams(window.location.search || '');
+                function scrollToMap() {
+                    if (window.matchMedia && !window.matchMedia('(max-width: 1023px)').matches) return;
+                    var el = document.getElementById('rl-route-map');
+                    if (!el) return;
+                    var y = el.getBoundingClientRect().top + window.pageYOffset - 90;
+                    if (!Number.isFinite(y)) return;
+                    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                }
+
                 if (els.followRoad) {
                     if (qs.has('snap')) {
                         els.followRoad.checked = qs.get('snap') === '1';
@@ -1579,7 +1588,10 @@
                             updateStats();
                             updateElevation();
                             setStatus('Rute dari link');
-                            setTimeout(fitRoute, 250);
+                            setTimeout(function () {
+                                fitRoute();
+                                scrollToMap();
+                            }, 250);
                             pushState();
                         });
                 }
@@ -2358,9 +2370,77 @@
                 var endP = routePoints[routePoints.length-1];
                 document.getElementById('rl-export-start').textContent = startP.lat.toFixed(4) + ', ' + startP.lng.toFixed(4);
 
-                // Generate QR Code for Start Location
                 var qrContainer = document.getElementById('rl-export-qr');
                 qrContainer.innerHTML = '';
+                qrContainer.style.width = '72px';
+                qrContainer.style.height = '72px';
+
+                function canvasHasInk(c) {
+                    if (!c || !c.getContext || c.width < 10 || c.height < 10) return false;
+                    try {
+                        var ctx = c.getContext('2d');
+                        if (!ctx) return false;
+                        var w = c.width;
+                        var h = c.height;
+                        var sample = ctx.getImageData(0, 0, w, h).data;
+                        for (var i = 0; i < 25; i++) {
+                            var x = Math.floor((i % 5) * (w / 5) + (w / 10));
+                            var y = Math.floor(Math.floor(i / 5) * (h / 5) + (h / 10));
+                            var idx = (y * w + x) * 4;
+                            var r = sample[idx];
+                            var g = sample[idx + 1];
+                            var b = sample[idx + 2];
+                            var a = sample[idx + 3];
+                            if (a > 0 && (r < 240 || g < 240 || b < 240)) return true;
+                        }
+                        return false;
+                    } catch (e) {
+                        return true;
+                    }
+                }
+
+                function normalizeQrToImage() {
+                    var qrCanvas = qrContainer.querySelector('canvas');
+                    if (qrCanvas && qrCanvas.toDataURL && canvasHasInk(qrCanvas)) {
+                        try {
+                            var url = qrCanvas.toDataURL('image/png');
+                            if (typeof url === 'string' && url.indexOf('data:image') === 0) {
+                                qrContainer.innerHTML = '';
+                                var img = document.createElement('img');
+                                img.width = 70;
+                                img.height = 70;
+                                img.src = url;
+                                img.style.display = 'block';
+                                img.style.imageRendering = 'pixelated';
+                                qrContainer.appendChild(img);
+                                return true;
+                            }
+                        } catch (e) {}
+                    }
+                    var qrImg = qrContainer.querySelector('img');
+                    if (qrImg) {
+                        qrImg.style.display = 'block';
+                        qrImg.style.imageRendering = 'pixelated';
+                        return (qrImg.complete && qrImg.naturalWidth > 0);
+                    }
+                    return false;
+                }
+
+                function waitForQrReady(done) {
+                    var started = Date.now();
+                    (function tick() {
+                        if (normalizeQrToImage()) {
+                            done();
+                            return;
+                        }
+                        if (Date.now() - started > 3000) {
+                            done();
+                            return;
+                        }
+                        setTimeout(tick, 80);
+                    })();
+                }
+
                 try {
                     new QRCode(qrContainer, {
                         text: "https://www.google.com/maps/search/?api=1&query=" + startP.lat + "," + startP.lng,
@@ -2370,31 +2450,7 @@
                         colorLight : "#ffffff",
                         correctLevel : QRCode.CorrectLevel.L
                     });
-
-                    setTimeout(function () {
-                        var qrCanvas = qrContainer.querySelector('canvas');
-                        var qrImg = qrContainer.querySelector('img');
-
-                        if (qrCanvas && qrCanvas.toDataURL) {
-                            try {
-                                var url = qrCanvas.toDataURL('image/png');
-                                qrContainer.innerHTML = '';
-                                var img = document.createElement('img');
-                                img.width = 70;
-                                img.height = 70;
-                                img.src = url;
-                                img.style.display = 'block';
-                                img.style.imageRendering = 'pixelated';
-                                qrContainer.appendChild(img);
-                                return;
-                            } catch (e) {}
-                        }
-
-                        if (qrImg) {
-                            qrImg.style.display = 'block';
-                            qrImg.style.imageRendering = 'pixelated';
-                        }
-                    }, 50);
+                    setTimeout(normalizeQrToImage, 120);
                 } catch(e) {
                     console.error("QR Code Error:", e);
                 }
@@ -2529,28 +2585,32 @@
                 svg.appendChild(endG);
                 
                 var card = document.getElementById('rl-export-card');
-                
-                // Delay export to ensure QR code renders
+
                 setTimeout(function() {
-                    // Force layout recalc
                     var _ = card.offsetHeight;
-                    
-                    html2canvas(card, {
-                        scale: 2, 
-                        backgroundColor: '#0f172a',
-                        useCORS: true,
-                        allowTaint: true
-                    }).then(function(canvas) {
-                        var link = document.createElement('a');
-                        link.download = 'ruanglari-route-' + Date.now() + '.png';
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                        setStatus('Export selesai');
-                    }).catch(function(err) {
-                        console.error(err);
-                        setStatus('Export gagal');
+
+                    waitForQrReady(function () {
+                        requestAnimationFrame(function () {
+                            requestAnimationFrame(function () {
+                                html2canvas(card, {
+                                    scale: 2,
+                                    backgroundColor: '#0f172a',
+                                    useCORS: true,
+                                    allowTaint: true
+                                }).then(function(canvas) {
+                                    var link = document.createElement('a');
+                                    link.download = 'ruanglari-route-' + Date.now() + '.png';
+                                    link.href = canvas.toDataURL('image/png');
+                                    link.click();
+                                    setStatus('Export selesai');
+                                }).catch(function(err) {
+                                    console.error(err);
+                                    setStatus('Export gagal');
+                                });
+                            });
+                        });
                     });
-                }, 1500);
+                }, 250);
             });
 
         })();
