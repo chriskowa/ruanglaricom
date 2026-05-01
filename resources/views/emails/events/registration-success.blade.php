@@ -95,6 +95,17 @@
                         <td class="ticket-value" style="padding-bottom: 8px;">{{ $participant->jersey_size ?? '-' }}</td>
                     </tr>
                     <tr>
+                        <td class="ticket-label" style="padding-bottom: 8px;">Addon</td>
+                        <td class="ticket-value" style="padding-bottom: 8px;">
+                            @php($addons = is_array($participant->addons) ? $participant->addons : [])
+                            @if(count($addons) > 0)
+                                {{ collect($addons)->map(function ($a) { if (is_string($a)) { $name = trim($a); return $name !== '' ? $name : null; } if (! is_array($a)) return null; $name = $a['name'] ?? null; $price = $a['price'] ?? null; if (! is_string($name) || trim($name) === '') return null; $name = trim($name); if ($price === null || $price === '') return $name; return $name.' (Rp '.number_format((int) $price, 0, ',', '.').')'; })->filter()->implode(', ') }}
+                            @else
+                                -
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
                         <td class="ticket-label" style="padding-bottom: 8px;">Status Pembayaran</td>
                         <td class="ticket-value" style="padding-bottom: 8px; color: {{ $transaction->payment_status == 'paid' ? '#10b981' : '#f59e0b' }}">
                             {{ strtoupper($transaction->payment_status) }}

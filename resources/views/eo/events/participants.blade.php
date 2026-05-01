@@ -181,6 +181,10 @@
                      <option value="regular">Regular</option>
                      <option value="late">Late</option>
                  </select>
+                 <select id="reportSortDir" class="bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-2 focus:ring-neon-cyan focus:border-neon-cyan">
+                     <option value="desc">Transaksi Terbaru</option>
+                     <option value="asc">Transaksi Terlama</option>
+                 </select>
                  <button onclick="refreshReport()" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                  <button onclick="exportReportCSV()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> Excel
@@ -214,6 +218,26 @@
                          <span class="text-slate-400 text-sm print:text-gray-600">Pending Slots</span>
                          <span class="text-yellow-400 font-bold print:text-black" id="repPendingSlots">{{ $eventReport['pending_slots'] ?? 0 }}</span>
                      </div>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Failed Slots</span>
+                         <span class="text-red-400 font-bold print:text-black" id="repFailedSlots">{{ $eventReport['failed_slots'] ?? 0 }}</span>
+                     </div>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Expired Slots</span>
+                         <span class="text-slate-200 font-bold print:text-black" id="repExpiredSlots">{{ $eventReport['expired_slots'] ?? 0 }}</span>
+                     </div>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">COD Slots</span>
+                         <span class="text-indigo-300 font-bold print:text-black" id="repCodSlots">{{ $eventReport['cod_slots'] ?? 0 }}</span>
+                     </div>
+                     <div class="flex justify-between items-center mb-2 pt-2 border-t border-slate-700 border-dashed print:border-gray-300">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Coupon Used (Paid)</span>
+                         <span class="text-yellow-400 font-mono text-sm print:text-black" id="repCouponUsed">{{ $eventReport['coupon_usage'] ?? 0 }}</span>
+                     </div>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Coupon Used (Active)</span>
+                         <span class="text-yellow-300 font-mono text-sm print:text-black" id="repCouponUsedActive">{{ $eventReport['coupon_usage_active'] ?? 0 }}</span>
+                     </div>
                      
                      @php 
                         $used = ($eventReport['sold_slots'] + ($eventReport['pending_slots'] ?? 0));
@@ -233,27 +257,84 @@
                         Warning: Less than 10% slots remaining!
                      </div>
                  </div>
+                 <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
+                     <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Pickup Status (Paid)</h4>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Picked Up</span>
+                         <span class="text-neon-green font-bold print:text-black" id="repPickupPicked">{{ $eventReport['pickup']['picked_up'] ?? 0 }}</span>
+                     </div>
+                     <div class="flex justify-between items-center mb-2">
+                         <span class="text-slate-400 text-sm print:text-gray-600">Not Picked Up</span>
+                         <span class="text-yellow-400 font-bold print:text-black" id="repPickupNotPicked">{{ $eventReport['pickup']['not_picked_up'] ?? 0 }}</span>
+                     </div>
+                 </div>
             </div>
 
             <!-- Breakdown -->
-            <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
-                <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Category Breakdown</h4>
-                <div id="repBreakdown" class="space-y-3">
-                    @foreach($eventReport['breakdown'] as $type => $count)
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-400 capitalize print:text-gray-600">{{ str_replace('_', ' ', $type) }}</span>
-                        <div class="flex items-center gap-3">
-                            <div class="w-24 bg-slate-700 rounded-full h-1.5 print:hidden">
-                                <div class="bg-neon-cyan h-1.5 rounded-full" style="width: {{ $eventReport['percentages'][$type] ?? 0 }}%"></div>
+            <div class="space-y-4">
+                <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
+                    <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Category Breakdown</h4>
+                    <div id="repBreakdown" class="space-y-3">
+                        @foreach($eventReport['breakdown'] as $type => $count)
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400 capitalize print:text-gray-600">{{ str_replace('_', ' ', $type) }}</span>
+                            <div class="flex items-center gap-3">
+                                <div class="w-24 bg-slate-700 rounded-full h-1.5 print:hidden">
+                                    <div class="bg-neon-cyan h-1.5 rounded-full" style="width: {{ $eventReport['percentages'][$type] ?? 0 }}%"></div>
+                                </div>
+                                <span class="text-white font-mono text-sm print:text-black">{{ $count }} ({{ $eventReport['percentages'][$type] ?? 0 }}%)</span>
                             </div>
-                            <span class="text-white font-mono text-sm print:text-black">{{ $count }} ({{ $eventReport['percentages'][$type] ?? 0 }}%)</span>
+                        </div>
+                        @endforeach
+                         <div class="flex items-center justify-between mt-4 pt-2 border-t border-slate-700 border-dashed print:border-gray-300">
+                            <span class="text-slate-400 capitalize print:text-gray-600">Coupon Used</span>
+                            <span class="text-yellow-400 font-mono text-sm print:text-black">{{ $eventReport['coupon_usage'] }}</span>
                         </div>
                     </div>
-                    @endforeach
-                     <div class="flex items-center justify-between mt-4 pt-2 border-t border-slate-700 border-dashed print:border-gray-300">
-                        <span class="text-slate-400 capitalize print:text-gray-600">Coupon Used</span>
-                        <span class="text-yellow-400 font-mono text-sm print:text-black">{{ $eventReport['coupon_usage'] }}</span>
+                </div>
+                <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
+                    <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Jersey Size</h4>
+                    <div id="repJerseySizes" class="space-y-2">
+                        @php($js = $eventReport['jersey_sizes'] ?? [])
+                        @forelse($js as $size => $count)
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400 text-sm print:text-gray-600">{{ $size ?: '-' }}</span>
+                                <span class="text-white font-mono text-sm print:text-black">{{ $count }}</span>
+                            </div>
+                        @empty
+                            <div class="text-xs text-slate-500">-</div>
+                        @endforelse
                     </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
+                <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Transactions (Filtered)</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-slate-400 print:text-gray-600">
+                                <th class="py-2 pr-3">Tanggal</th>
+                                <th class="py-2 pr-3">Ref</th>
+                                <th class="py-2 pr-3">Status</th>
+                                <th class="py-2 pr-3">Coupon</th>
+                                <th class="py-2 pr-3 text-right">Slots</th>
+                                <th class="py-2 pr-0 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="repTransactions" class="divide-y divide-slate-800 print:divide-gray-200">
+                            @foreach(($eventReport['transactions'] ?? []) as $t)
+                                <tr>
+                                    <td class="py-2 pr-3 text-slate-300 print:text-black">{{ $t['created_at'] ?? '-' }}</td>
+                                    <td class="py-2 pr-3 text-slate-200 font-mono print:text-black">{{ $t['public_ref'] ?? '-' }}</td>
+                                    <td class="py-2 pr-3 text-slate-300 print:text-black">{{ strtoupper($t['payment_status'] ?? '-') }}</td>
+                                    <td class="py-2 pr-3 text-yellow-300 font-mono print:text-black">{{ $t['coupon_code'] ?? '-' }}</td>
+                                    <td class="py-2 pr-3 text-right text-slate-200 font-mono print:text-black">{{ $t['slots'] ?? 0 }}</td>
+                                    <td class="py-2 pr-0 text-right text-slate-200 font-mono print:text-black">Rp {{ number_format((int) ($t['final_amount'] ?? 0), 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -301,6 +382,14 @@
                         @foreach($event->categories as $cat)
                             <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                         @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Addon</label>
+                    <select name="addon" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                        <option value="">All</option>
+                        <option value="with" {{ request('addon') === 'with' ? 'selected' : '' }}>With Addon</option>
+                        <option value="without" {{ request('addon') === 'without' ? 'selected' : '' }}>Without Addon</option>
                     </select>
                 </div>
                 <div>
@@ -353,6 +442,7 @@
                 <input type="hidden" name="is_picked_up" value="{{ request('is_picked_up') }}">
                 <input type="hidden" name="gender" value="{{ request('gender') }}">
                 <input type="hidden" name="category_id" value="{{ request('category_id') }}">
+                <input type="hidden" name="addon" value="{{ request('addon') }}">
                 <input type="hidden" name="age_group" value="{{ request('age_group') }}">
                 <input type="hidden" name="search" value="{{ request('search') }}">
                 <input type="hidden" name="sort_by" value="{{ request('sort_by', 'created_at') }}">
@@ -381,6 +471,7 @@
                         </th>
                         <th class="px-6 py-4">PIC Info</th>
                         <th class="px-6 py-4">Jersey Size</th>
+                        <th class="px-6 py-4">Addon</th>
                         <th class="px-6 py-4">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="bib_number" onclick="setTableSort('bib_number')">
                                 Category & BIB
@@ -461,6 +552,15 @@
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
                                 {{ $participant->jersey_size ?? '-' }}
                             </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            @php $addons = is_array($participant->addons) ? $participant->addons : []; @endphp
+                            @if(count($addons) > 0)
+                                <div class="text-xs font-bold text-white">{{ count($addons) }} Addon</div>
+                                <div class="text-xs text-slate-400">{{ collect($addons)->pluck('name')->filter()->implode(', ') }}</div>
+                            @else
+                                <span class="text-xs text-slate-500">-</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col gap-1">
@@ -1292,6 +1392,7 @@
                     '<td class="px-6 py-4 text-white font-mono text-xs">'+ (p.id_card || '-') +'</td>'+
                     '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
+                    (function(){ var ads = Array.isArray(p.addons) ? p.addons : []; var names = ads.map(function(a){ return a && a.name ? a.name : ''; }).filter(Boolean); if (names.length === 0) { return '<td class="px-6 py-4"><span class="text-xs text-slate-500">-</span></td>'; } return '<td class="px-6 py-4"><div class="text-xs font-bold text-white">'+ names.length +' Addon</div><div class="text-xs text-slate-400">'+ names.join(', ') +'</div></td>'; })()+
                     '<td class="px-6 py-4"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
                     '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div>'+ couponHtml +'</td>'+
@@ -1473,6 +1574,7 @@
             var start = document.getElementById('reportStartDate').value;
             var end = document.getElementById('reportEndDate').value;
             var type = document.getElementById('reportTicketType').value;
+            var sortDir = document.getElementById('reportSortDir') ? document.getElementById('reportSortDir').value : 'desc';
             
             var btn = document.querySelector('button[onclick="refreshReport()"]');
             var originalContent = btn.innerHTML;
@@ -1483,7 +1585,8 @@
                 action: 'get_report',
                 report_start_date: start,
                 report_end_date: end,
-                report_ticket_type: type
+                report_ticket_type: type,
+                report_sort_dir: sortDir
             });
 
             fetch(window.location.pathname + '?' + params.toString(), {
@@ -1513,6 +1616,13 @@
             if(document.getElementById('repPendingSlots')) {
                 document.getElementById('repPendingSlots').innerText = report.pending_slots || 0;
             }
+            if (document.getElementById('repFailedSlots')) document.getElementById('repFailedSlots').innerText = report.failed_slots || 0;
+            if (document.getElementById('repExpiredSlots')) document.getElementById('repExpiredSlots').innerText = report.expired_slots || 0;
+            if (document.getElementById('repCodSlots')) document.getElementById('repCodSlots').innerText = report.cod_slots || 0;
+            if (document.getElementById('repCouponUsed')) document.getElementById('repCouponUsed').innerText = report.coupon_usage || 0;
+            if (document.getElementById('repCouponUsedActive')) document.getElementById('repCouponUsedActive').innerText = report.coupon_usage_active || 0;
+            if (document.getElementById('repPickupPicked')) document.getElementById('repPickupPicked').innerText = (report.pickup && report.pickup.picked_up) ? report.pickup.picked_up : 0;
+            if (document.getElementById('repPickupNotPicked')) document.getElementById('repPickupNotPicked').innerText = (report.pickup && report.pickup.not_picked_up) ? report.pickup.not_picked_up : 0;
             
             var used = report.sold_slots + (report.pending_slots || 0);
             var percent = report.is_unlimited ? 0 : (report.total_slots > 0 ? (used / report.total_slots * 100) : 0);
@@ -1546,6 +1656,49 @@
                 </div>`;
             
             document.getElementById('repBreakdown').innerHTML = breakdownHtml;
+
+            var jerseyEl = document.getElementById('repJerseySizes');
+            if (jerseyEl) {
+                var js = report.jersey_sizes || {};
+                var keys = Object.keys(js || {});
+                if (keys.length === 0) {
+                    jerseyEl.innerHTML = '<div class="text-xs text-slate-500">-</div>';
+                } else {
+                    var jerseyHtml = '';
+                    keys.forEach(function (k) {
+                        var label2 = (k === '' || k === null || typeof k === 'undefined') ? '-' : k;
+                        jerseyHtml += '<div class="flex items-center justify-between"><span class="text-slate-400 text-sm print:text-gray-600">' + label2 + '</span><span class="text-white font-mono text-sm print:text-black">' + js[k] + '</span></div>';
+                    });
+                    jerseyEl.innerHTML = jerseyHtml;
+                }
+            }
+
+            var txEl = document.getElementById('repTransactions');
+            if (txEl) {
+                var txs = Array.isArray(report.transactions) ? report.transactions : [];
+                if (txs.length === 0) {
+                    txEl.innerHTML = '<tr><td colspan="6" class="py-3 text-xs text-slate-500">-</td></tr>';
+                } else {
+                    var txHtml = '';
+                    txs.forEach(function (t) {
+                        var date = t.created_at || '-';
+                        var ref = t.public_ref || '-';
+                        var st = (t.payment_status || '-').toString().toUpperCase();
+                        var cc = t.coupon_code || '-';
+                        var slots = (typeof t.slots === 'number') ? t.slots : (parseInt(t.slots || '0', 10) || 0);
+                        var amt = (typeof t.final_amount === 'number') ? t.final_amount : (parseFloat(t.final_amount || '0') || 0);
+                        txHtml += '<tr>'
+                            + '<td class="py-2 pr-3 text-slate-300 print:text-black">' + date + '</td>'
+                            + '<td class="py-2 pr-3 text-slate-200 font-mono print:text-black">' + ref + '</td>'
+                            + '<td class="py-2 pr-3 text-slate-300 print:text-black">' + st + '</td>'
+                            + '<td class="py-2 pr-3 text-yellow-300 font-mono print:text-black">' + cc + '</td>'
+                            + '<td class="py-2 pr-3 text-right text-slate-200 font-mono print:text-black">' + slots + '</td>'
+                            + '<td class="py-2 pr-0 text-right text-slate-200 font-mono print:text-black">Rp ' + Math.round(amt).toLocaleString('id-ID') + '</td>'
+                            + '</tr>';
+                    });
+                    txEl.innerHTML = txHtml;
+                }
+            }
         }
 
         window.exportReportCSV = function() {

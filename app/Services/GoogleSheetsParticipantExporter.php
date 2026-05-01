@@ -15,6 +15,7 @@ class GoogleSheetsParticipantExporter
         'Kategori',
         'BIB Number',
         'Jersey Size',
+        'Addons',
         'Target Time',
         'Status Pembayaran',
         'Status Pengambilan',

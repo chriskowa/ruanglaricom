@@ -802,6 +802,18 @@ class EventController extends Controller
             $query->where('race_category_id', request()->category_id);
         }
 
+        // Filter by addons
+        if (request()->filled('addon')) {
+            $addonFilter = request()->query('addon');
+            if ($addonFilter === 'with') {
+                $query->whereNotNull('addons')->whereJsonLength('addons', '>', 0);
+            } elseif ($addonFilter === 'without') {
+                $query->where(function ($q) {
+                    $q->whereNull('addons')->orWhereJsonLength('addons', 0);
+                });
+            }
+        }
+
         // Filter by Age Group
         if (request()->has('age_group') && request()->age_group) {
             $group = request()->age_group;
@@ -890,6 +902,7 @@ class EventController extends Controller
                     'start_date' => request('report_start_date'),
                     'end_date' => request('report_end_date'),
                     'ticket_type' => request('report_ticket_type'),
+                    'sort_dir' => request('report_sort_dir'),
                 ];
                 $eventReport = $this->reportService->getEventReport($event, $reportFilters);
 
@@ -1051,6 +1064,17 @@ class EventController extends Controller
 
         if ($request->filled('category_id')) {
             $query->where('race_category_id', $request->query('category_id'));
+        }
+
+        if ($request->filled('addon')) {
+            $addonFilter = $request->query('addon');
+            if ($addonFilter === 'with') {
+                $query->whereNotNull('addons')->whereJsonLength('addons', '>', 0);
+            } elseif ($addonFilter === 'without') {
+                $query->where(function ($q) {
+                    $q->whereNull('addons')->orWhereJsonLength('addons', 0);
+                });
+            }
         }
 
         if ($request->filled('age_group')) {
@@ -1442,6 +1466,7 @@ class EventController extends Controller
             'is_picked_up' => request()->is_picked_up,
             'gender' => request()->gender,
             'category_id' => request()->category_id,
+            'addon' => request()->query('addon'),
         ]);
 
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
@@ -1468,6 +1493,17 @@ class EventController extends Controller
         // Filter by category
         if (request()->has('category_id') && request()->category_id) {
             $query->where('race_category_id', request()->category_id);
+        }
+
+        if (request()->filled('addon')) {
+            $addonFilter = request()->query('addon');
+            if ($addonFilter === 'with') {
+                $query->whereNotNull('addons')->whereJsonLength('addons', '>', 0);
+            } elseif ($addonFilter === 'without') {
+                $query->where(function ($q) {
+                    $q->whereNull('addons')->orWhereJsonLength('addons', 0);
+                });
+            }
         }
 
         $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.csv';
@@ -1504,6 +1540,7 @@ class EventController extends Controller
                         $participant->category ? $participant->category->name : '-',
                         $participant->bib_number ?? '-',
                         $participant->jersey_size ?? '-',
+                        (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
                         $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
@@ -1530,6 +1567,7 @@ class EventController extends Controller
             'is_picked_up' => request()->is_picked_up,
             'gender' => request()->gender,
             'category_id' => request()->category_id,
+            'addon' => request()->query('addon'),
         ]);
 
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
@@ -1553,6 +1591,17 @@ class EventController extends Controller
 
         if (request()->has('category_id') && request()->category_id) {
             $query->where('race_category_id', request()->category_id);
+        }
+
+        if (request()->filled('addon')) {
+            $addonFilter = request()->query('addon');
+            if ($addonFilter === 'with') {
+                $query->whereNotNull('addons')->whereJsonLength('addons', '>', 0);
+            } elseif ($addonFilter === 'without') {
+                $query->where(function ($q) {
+                    $q->whereNull('addons')->orWhereJsonLength('addons', 0);
+                });
+            }
         }
 
         $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.xlsx';
@@ -1581,6 +1630,7 @@ class EventController extends Controller
                         $participant->category ? $participant->category->name : '-',
                         $participant->bib_number ?? '-',
                         $participant->jersey_size ?? '-',
+                        (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
                         $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
