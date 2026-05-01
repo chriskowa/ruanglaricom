@@ -21,6 +21,7 @@ class DashboardController extends Controller
 
         $tierTextMap = [
             'elite' => 'ELITE',
+            'premium' => 'PREMIUM',
             'pro' => 'PRO',
             'lite' => 'LITE',
             'basic' => 'BASIC',
@@ -28,6 +29,7 @@ class DashboardController extends Controller
 
         $tierClassMap = [
             'elite' => 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]',
+            'premium' => 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]',
             'pro' => 'bg-neon-yellow shadow-[0_0_10px_rgba(234,179,8,0.5)]',
             'lite' => 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]',
             'basic' => 'bg-slate-500 shadow-[0_0_10px_rgba(100,116,139,0.35)]',
