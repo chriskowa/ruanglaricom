@@ -430,9 +430,11 @@
             <form method="GET" action="{{ route('eo.events.participants', $event) }}" class="flex items-center gap-2 text-xs">
                 <span class="text-slate-400">Show</span>
                 <select name="per_page" class="bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-2 py-1 focus:border-yellow-400 focus:outline-none" onchange="this.form.submit()">
-                    @foreach([10, 20, 50, 100, 200] as $size)
-                        <option value="{{ $size }}" {{ (int) request('per_page', $participants->perPage()) === $size ? 'selected' : '' }}>{{ $size }}</option>
-                    @endforeach
+                    <option value="10" {{ (int) request('per_page', $participants->perPage()) === 10 ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ (int) request('per_page', $participants->perPage()) === 20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ (int) request('per_page', $participants->perPage()) === 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ (int) request('per_page', $participants->perPage()) === 100 ? 'selected' : '' }}>100</option>
+                    <option value="200" {{ (int) request('per_page', $participants->perPage()) === 200 ? 'selected' : '' }}>200</option>
                 </select>
                 <span class="text-slate-400">per page</span>
                 <input type="hidden" name="payment_status" value="{{ request('payment_status') }}">
