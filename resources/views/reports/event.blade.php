@@ -51,6 +51,30 @@
         </div>
     </div>
 
+    <div class="mt-4 bg-card border border-slate-700 rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="text-lg font-bold">Jersey Breakdown</div>
+                <div class="text-xs text-slate-400">Distribusi ukuran jersey (active)</div>
+            </div>
+        </div>
+        @php
+            $jerseyCounts = $report['jersey_sizes'] ?? [];
+            $jerseySizes = ['XS','S','M','L','XL','2XL','3XL'];
+        @endphp
+        <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+            @foreach($jerseySizes as $size)
+                @php
+                    $count = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
+                @endphp
+                <div class="rounded-xl border border-slate-700 bg-slate-900/30 px-3 py-2 flex items-center justify-between">
+                    <div class="text-xs text-slate-400 font-bold">{{ $size }}</div>
+                    <div class="text-sm font-mono font-bold text-white" id="stat-jersey-{{ $size }}">{{ number_format($count) }}</div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 bg-card border border-slate-700 rounded-2xl p-4">
             <div class="flex items-center justify-between gap-3">
@@ -128,9 +152,10 @@
                         <tr>
                             <th class="text-left font-semibold px-4 py-3">Nama</th>
                             <th class="text-left font-semibold px-4 py-3">Email</th>
+                            <th class="text-left font-semibold px-4 py-3">No Telp</th>
+                            <th class="text-left font-semibold px-4 py-3">Jersey</th>
+                            <th class="text-left font-semibold px-4 py-3">Addons</th>
                             <th class="text-left font-semibold px-4 py-3">Tanggal Registrasi</th>
-                            <th class="text-left font-semibold px-4 py-3">Target Time</th>
-                            <th class="text-left font-semibold px-4 py-3">Approved</th>
                             <th class="text-left font-semibold px-4 py-3">Status Pembayaran</th>
                             <th class="text-left font-semibold px-4 py-3">Aksi</th>
                         </tr>
@@ -147,27 +172,33 @@
                                     <span class="text-right md:text-left break-all">{{ $p->email }}</span>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
-                                    <span class="text-right md:text-left">{{ \Illuminate\Support\Carbon::parse($p->created_at)->format('d M Y H:i') }}</span>
+                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No Telp</span>
+                                    <span class="text-right md:text-left font-mono">{{ $p->phone ?? '-' }}</span>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Target Time</span>
-                                    <span class="text-right md:text-left">{{ $p->target_time ?? '-' }}</span>
+                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Jersey</span>
+                                    <span class="text-right md:text-left font-mono">{{ $p->jersey_size ?? '-' }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Approved</span>
+                                <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
+                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Addons</span>
+                                    @php $addons = is_array($p->addons) ? $p->addons : []; @endphp
                                     <span class="text-right md:text-left">
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" 
-                                                onchange="handleToggle({{ $p->id }}, this)" 
-                                                class="sr-only peer" 
-                                                @checked($p->isApproved)>
-                                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neon"></div>
-                                            <span id="status-label-{{ $p->id }}" class="ml-2 text-xs font-bold {{ $p->isApproved ? 'text-neon' : 'text-slate-400' }}">
-                                                {{ $p->isApproved ? 'Yes' : 'No' }}
+                                        @if(count($addons) > 0)
+                                            <span class="inline-flex flex-wrap gap-1 justify-end md:justify-start">
+                                                @foreach($addons as $a)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-200">
+                                                        {{ is_array($a) ? ($a['name'] ?? '-') : ($a->name ?? '-') }}
+                                                    </span>
+                                                @endforeach
                                             </span>
-                                        </label>
+                                        @else
+                                            <span class="text-slate-400">-</span>
+                                        @endif
                                     </span>
+                                </td>
+                                <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
+                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
+                                    <span class="text-right md:text-left">{{ \Illuminate\Support\Carbon::parse($p->created_at)->format('d M Y H:i') }}</span>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Status</span>
@@ -191,7 +222,7 @@
                         @endforeach
                         @if($participants->isEmpty())
                             <tr>
-                                <td colspan="4" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td>
+                                <td colspan="8" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td>
                             </tr>
                         @endif
                     </tbody>
@@ -434,21 +465,18 @@
         function renderParticipants(paginator) {
             const rows = (paginator && paginator.data) ? paginator.data : [];
             if (!rows.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td></tr>`;
             } else {
                 tbody.innerHTML = rows.map((p) => {
-                    const approvedBadge = `
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" 
-                                onchange="handleToggle(${p.id}, this)" 
-                                class="sr-only peer" 
-                                ${p.isApproved ? 'checked' : ''}>
-                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neon"></div>
-                            <span id="status-label-${p.id}" class="ml-2 text-xs font-bold ${p.isApproved ? 'text-neon' : 'text-slate-400'}">
-                                ${p.isApproved ? 'Yes' : 'No'}
-                            </span>
-                        </label>
-                    `;
+                    const addons = Array.isArray(p.addons) ? p.addons : [];
+                    const addonsHtml = addons.length
+                        ? `<span class="inline-flex flex-wrap gap-1 justify-end md:justify-start">${
+                            addons.map((a) => {
+                                const name = (a && (a.name || a['name'])) || '-';
+                                return `<span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-200">${name}</span>`;
+                            }).join('')
+                        }</span>`
+                        : `<span class="text-slate-400">-</span>`;
 
                     // Escape JSON for onclick to avoid syntax errors with quotes
                     const jsonP = JSON.stringify(p).replace(/"/g, '&quot;');
@@ -464,16 +492,20 @@
                                 <span class="text-right md:text-left break-all">${(p.email || '-')}</span>
                             </td>
                             <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
-                                <span class="text-right md:text-left">${formatDateTime(p.created_at)}</span>
+                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No Telp</span>
+                                <span class="text-right md:text-left font-mono">${(p.phone || '-')}</span>
                             </td>
                             <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Target Time</span>
-                                <span class="text-right md:text-left">${p.target_time || '-'}</span>
+                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Jersey</span>
+                                <span class="text-right md:text-left font-mono">${(p.jersey_size || '-')}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Approved</span>
-                                <span class="text-right md:text-left">${approvedBadge}</span>
+                            <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
+                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Addons</span>
+                                <span class="text-right md:text-left">${addonsHtml}</span>
+                            </td>
+                            <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
+                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
+                                <span class="text-right md:text-left">${formatDateTime(p.created_at)}</span>
                             </td>
                             <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Status</span>
@@ -565,6 +597,16 @@
             statSold.textContent = formatNumber(report.sold_slots);
             statPending.textContent = formatNumber(report.pending_slots);
             statRemaining.textContent = (typeof report.remaining_slots === 'string') ? report.remaining_slots : formatNumber(report.remaining_slots);
+
+            const jersey = report.jersey_sizes || {};
+            ['XS','S','M','L','XL','2XL','3XL'].forEach((size) => {
+                const el = document.getElementById('stat-jersey-' + size);
+                if (!el) return;
+                let v = jersey[size];
+                if (v === undefined || v === null) v = jersey[String(size).toLowerCase()];
+                if (v === undefined || v === null) v = jersey[String(size).toUpperCase()];
+                el.textContent = formatNumber(v || 0);
+            });
         }
 
         async function fetchReport(payload) {
@@ -644,4 +686,3 @@
     })();
 </script>
 @endpush
-

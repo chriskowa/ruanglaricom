@@ -91,10 +91,13 @@ class PublicEventReportController extends Controller
                     'participants.id',
                     'participants.name',
                     'participants.email',
+                    'participants.phone',
                     'participants.created_at',
                     'participants.target_time',
                     'participants.isApproved',
                     'participants.photo',
+                    'participants.jersey_size',
+                    'participants.addons',
                     'transactions.payment_status',
                     DB::raw('COALESCE(coupons.code, "") as coupon_code'),
                 ]);

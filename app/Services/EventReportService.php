@@ -125,6 +125,142 @@ class EventReportService
             ->pluck('total', 'participants.jersey_size')
             ->toArray();
 
+        $jerseySizeTotalActive = 0;
+        foreach ($jerseySizeCounts as $cnt) {
+            $jerseySizeTotalActive += (int) $cnt;
+        }
+
+        $couponTxQuery = Transaction::query()
+            ->join('coupons', 'coupons.id', '=', 'transactions.coupon_id')
+            ->where('transactions.event_id', $event->id)
+            ->whereNotNull('transactions.coupon_id')
+            ->whereIn('transactions.payment_status', $activeStatuses)
+            ->select([
+                'coupons.code as code',
+                DB::raw('count(*) as total_transactions'),
+                DB::raw('COALESCE(sum(transactions.discount_amount), 0) as total_discount'),
+                DB::raw('COALESCE(sum(transactions.total_original), 0) as total_original'),
+                DB::raw('COALESCE(sum(transactions.final_amount), 0) as total_final'),
+            ])
+            ->groupBy('coupons.code')
+            ->orderByDesc('total_transactions');
+
+        if (! empty($filters['start_date'])) {
+            $couponTxQuery->whereDate('transactions.created_at', '>=', $filters['start_date']);
+        }
+        if (! empty($filters['end_date'])) {
+            $couponTxQuery->whereDate('transactions.created_at', '<=', $filters['end_date']);
+        }
+        if (! empty($filters['ticket_type'])) {
+            $ticketType = (string) $filters['ticket_type'];
+            $couponTxQuery->whereHas('participants', function ($q) use ($ticketType) {
+                $q->where('price_type', $ticketType);
+            });
+        }
+
+        $couponTxAgg = $couponTxQuery->get();
+
+        $couponParticipantAgg = Participant::query()
+            ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+            ->join('coupons', 'coupons.id', '=', 'transactions.coupon_id')
+            ->where('transactions.event_id', $event->id)
+            ->whereNotNull('transactions.coupon_id')
+            ->whereIn('transactions.payment_status', $activeStatuses)
+            ->select([
+                'coupons.code as code',
+                DB::raw('count(participants.id) as participants_count'),
+            ])
+            ->groupBy('coupons.code');
+
+        if (! empty($filters['start_date'])) {
+            $couponParticipantAgg->whereDate('transactions.created_at', '>=', $filters['start_date']);
+        }
+        if (! empty($filters['end_date'])) {
+            $couponParticipantAgg->whereDate('transactions.created_at', '<=', $filters['end_date']);
+        }
+        if (! empty($filters['ticket_type'])) {
+            $couponParticipantAgg->where('participants.price_type', (string) $filters['ticket_type']);
+        }
+
+        $couponParticipantAgg = $couponParticipantAgg
+            ->pluck('participants_count', 'code')
+            ->toArray();
+
+        $couponUsageByCode = $couponTxAgg
+            ->map(function ($row) use ($couponParticipantAgg) {
+                $code = (string) ($row->code ?? '');
+
+                return [
+                    'code' => $code,
+                    'total_transactions' => (int) ($row->total_transactions ?? 0),
+                    'participants_count' => (int) ($couponParticipantAgg[$code] ?? 0),
+                    'total_discount' => (float) ($row->total_discount ?? 0),
+                    'total_original' => (float) ($row->total_original ?? 0),
+                    'total_final' => (float) ($row->total_final ?? 0),
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        $couponTotals = [
+            'total_transactions' => (int) $couponTxAgg->sum('total_transactions'),
+            'participants_count' => (int) array_sum(array_map('intval', $couponParticipantAgg)),
+            'total_discount' => (float) $couponTxAgg->sum('total_discount'),
+        ];
+
+        $addonsSummary = [
+            'participants_with_addons' => 0,
+            'addon_items' => 0,
+            'total_amount' => 0,
+            'by_name' => [],
+        ];
+
+        $addonsQuery = (clone $baseQuery)
+            ->whereIn('transactions.payment_status', $soldStatuses)
+            ->select(['participants.id', 'participants.addons'])
+            ->orderBy('participants.id');
+
+        $addonsQuery->chunk(500, function ($rows) use (&$addonsSummary) {
+            foreach ($rows as $p) {
+                $addons = is_array($p->addons) ? $p->addons : [];
+                if (! $addons || count($addons) === 0) {
+                    continue;
+                }
+
+                $addonsSummary['participants_with_addons']++;
+
+                foreach ($addons as $a) {
+                    if (! is_array($a)) {
+                        continue;
+                    }
+
+                    $name = (string) ($a['name'] ?? '');
+                    if ($name === '') {
+                        $name = 'Unknown';
+                    }
+
+                    $price = (int) ($a['price'] ?? 0);
+
+                    $addonsSummary['addon_items']++;
+                    $addonsSummary['total_amount'] += $price;
+
+                    if (! isset($addonsSummary['by_name'][$name])) {
+                        $addonsSummary['by_name'][$name] = [
+                            'count' => 0,
+                            'total_amount' => 0,
+                        ];
+                    }
+
+                    $addonsSummary['by_name'][$name]['count'] += 1;
+                    $addonsSummary['by_name'][$name]['total_amount'] += $price;
+                }
+            }
+        });
+
+        uasort($addonsSummary['by_name'], function ($a, $b) {
+            return ((int) ($b['count'] ?? 0)) <=> ((int) ($a['count'] ?? 0));
+        });
+
         $sortDir = strtolower((string) ($filters['sort_dir'] ?? 'desc'));
         if (! in_array($sortDir, ['asc', 'desc'], true)) {
             $sortDir = 'desc';
@@ -198,11 +334,15 @@ class EventReportService
                 'not_picked_up' => $notPickedUpCount,
             ],
             'jersey_sizes' => $jerseySizeCounts,
+            'jersey_sizes_total_active' => $jerseySizeTotalActive,
             'payment_counts' => $paymentCounts,
             'percentages' => $percentages,
             'show_warning' => $warning,
             'sort_dir' => $sortDir,
             'transactions' => $transactions,
+            'coupon_usage_by_code' => $couponUsageByCode,
+            'coupon_totals' => $couponTotals,
+            'addons_report' => $addonsSummary,
             'generated_at' => now()->format('Y-m-d H:i:s'),
         ];
     }

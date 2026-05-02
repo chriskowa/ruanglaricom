@@ -235,44 +235,24 @@
                  </div>
             </div>
 
-            <div class="space-y-4">
-                <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
-                    <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Category Breakdown</h4>
-                    <div id="repBreakdown" class="space-y-3">
-                        @foreach($eventReport['breakdown'] as $type => $count)
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-400 capitalize print:text-gray-600">{{ str_replace('_', ' ', $type) }}</span>
-                            <div class="flex items-center gap-3">
-                                <div class="w-24 bg-slate-700 rounded-full h-1.5 print:hidden">
-                                    <div class="bg-neon-cyan h-1.5 rounded-full" style="width: {{ $eventReport['percentages'][$type] ?? 0 }}%"></div>
-                                </div>
-                                <span class="text-white font-mono text-sm print:text-black">{{ $count }} ({{ $eventReport['percentages'][$type] ?? 0 }}%)</span>
+            <!-- Breakdown -->
+            <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
+                <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Category Breakdown</h4>
+                <div id="repBreakdown" class="space-y-3">
+                    @foreach($eventReport['breakdown'] as $type => $count)
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 capitalize print:text-gray-600">{{ str_replace('_', ' ', $type) }}</span>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 bg-slate-700 rounded-full h-1.5 print:hidden">
+                                <div class="bg-neon-cyan h-1.5 rounded-full" style="width: {{ $eventReport['percentages'][$type] ?? 0 }}%"></div>
                             </div>
-                        </div>
-                        @endforeach
-                        <div class="flex items-center justify-between mt-4 pt-2 border-t border-slate-700 border-dashed print:border-gray-300">
-                            <span class="text-slate-400 capitalize print:text-gray-600">Coupon Used</span>
-                            <span class="text-yellow-400 font-mono text-sm print:text-black">{{ $eventReport['coupon_usage'] }}</span>
+                            <span class="text-white font-mono text-sm print:text-black">{{ $count }} ({{ $eventReport['percentages'][$type] ?? 0 }}%)</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
-                    <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Jersey Breakdown</h4>
-                    @php
-                        $jerseyCounts = $eventReport['jersey_sizes'] ?? [];
-                        $jerseySizes = ['XS','S','M','L','XL','2XL','3XL'];
-                    @endphp
-                    <div class="grid grid-cols-2 gap-2">
-                        @foreach($jerseySizes as $size)
-                            @php
-                                $count = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
-                            @endphp
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-slate-400 print:text-gray-600">{{ $size }}</span>
-                                <span class="text-white font-mono print:text-black" id="repJerseySize_{{ $size }}">{{ $count }}</span>
-                            </div>
-                        @endforeach
+                    @endforeach
+                     <div class="flex items-center justify-between mt-4 pt-2 border-t border-slate-700 border-dashed print:border-gray-300">
+                        <span class="text-slate-400 capitalize print:text-gray-600">Coupon Used</span>
+                        <span class="text-yellow-400 font-mono text-sm print:text-black">{{ $eventReport['coupon_usage'] }}</span>
                     </div>
                 </div>
             </div>
@@ -401,7 +381,6 @@
                         </th>
                         <th class="px-6 py-4">PIC Info</th>
                         <th class="px-6 py-4">Jersey Size</th>
-                        <th class="px-6 py-4">Addons</th>
                         <th class="px-6 py-4">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="bib_number" onclick="setTableSort('bib_number')">
                                 Category & BIB
@@ -482,20 +461,6 @@
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
                                 {{ $participant->jersey_size ?? '-' }}
                             </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            @php $addons = is_array($participant->addons) ? $participant->addons : []; @endphp
-                            @if(count($addons) > 0)
-                                <div class="flex flex-col gap-1">
-                                    @foreach($addons as $a)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">
-                                            {{ is_array($a) ? ($a['name'] ?? '-') : ($a->name ?? '-') }}: {{ is_array($a) ? ($a['value'] ?? ($a['price'] ?? '-')) : ($a->value ?? ($a->price ?? '-')) }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @else
-                                <span class="text-xs text-slate-500 italic">-</span>
-                            @endif
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col gap-1">
@@ -587,7 +552,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="11" class="px-6 py-12 text-center">
+                        <td colspan="9" class="px-6 py-12 text-center">
                             <p class="text-slate-500">No participants found matching your criteria.</p>
                         </td>
                     </tr>
@@ -1244,32 +1209,9 @@
             return digits.replace(/^0/, '62');
         }
 
-        function escapeHtml(s) {
-            return String(s == null ? '' : s)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        function renderAddonsCell(addonsRaw) {
-            var addons = Array.isArray(addonsRaw) ? addonsRaw : [];
-            if (!addons.length) {
-                return '<span class="text-xs text-slate-500 italic">-</span>';
-            }
-            return '<div class="flex flex-col gap-1">' + addons.map(function(a){
-                var name = (a && (a.name || a['name'])) || '-';
-                var value = (a && (a.value || a['value'] || a.price || a['price'])) || '-';
-                return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">' +
-                    escapeHtml(name) + ': ' + escapeHtml(value) +
-                '</span>';
-            }).join('') + '</div>';
-        }
-
         function renderRows(items) {
             if (!items || items.length === 0) {
-                return '<tr><td colspan="11" class="px-6 py-12 text-center"><p class="text-slate-500">No participants found matching your criteria.</p></td></tr>';
+                return '<tr><td colspan="10" class="px-6 py-12 text-center"><p class="text-slate-500">No participants found matching your criteria.</p></td></tr>';
             }
             var html = '';
             items.forEach(function(p){
@@ -1350,7 +1292,6 @@
                     '<td class="px-6 py-4 text-white font-mono text-xs">'+ (p.id_card || '-') +'</td>'+
                     '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
-                    '<td class="px-6 py-4">'+ renderAddonsCell(p.addons) +'</td>'+
                     '<td class="px-6 py-4"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
                     '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div>'+ couponHtml +'</td>'+
@@ -1605,16 +1546,6 @@
                 </div>`;
             
             document.getElementById('repBreakdown').innerHTML = breakdownHtml;
-
-            var jersey = report.jersey_sizes || {};
-            ['XS','S','M','L','XL','2XL','3XL'].forEach(function(size){
-                var el = document.getElementById('repJerseySize_' + size);
-                if (!el) return;
-                var v = jersey[size];
-                if (v === undefined || v === null) v = jersey[String(size).toLowerCase()];
-                if (v === undefined || v === null) v = jersey[String(size).toUpperCase()];
-                el.innerText = Number(v || 0);
-            });
         }
 
         window.exportReportCSV = function() {
