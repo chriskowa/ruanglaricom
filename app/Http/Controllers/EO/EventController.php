@@ -1766,7 +1766,8 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         // Verify participant belongs to this event
-        if ($participant->transaction->event_id !== $event->id) {
+        $participantEventId = (int) ($participant?->transaction?->event_id ?? 0);
+        if ($participantEventId !== (int) $event->id) {
             abort(403, 'Unauthorized');
         }
 
