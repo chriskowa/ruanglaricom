@@ -169,6 +169,10 @@
         toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image',
         skin: 'oxide-dark',
         content_css: 'dark',
+        document_base_url: '{{ url('/') }}/',
+        relative_urls: false,
+        remove_script_host: false,
+        convert_urls: true,
         images_upload_url: '{{ route("admin.blog.images.upload") }}',
         automatic_uploads: true,
         file_picker_types: 'image',
@@ -179,6 +183,18 @@
                     callback(url, { alt: alt });
                 });
             }
+        },
+        setup: (editor) => {
+            editor.on('init', () => {
+                const imgs = editor.getBody().querySelectorAll('img[src]');
+                imgs.forEach((img) => {
+                    const raw = (img.getAttribute('src') || '').trim();
+                    if (!raw) return;
+                    if (/^storage\//i.test(raw)) {
+                        img.setAttribute('src', '/' + raw.replace(/^\/+/, ''));
+                    }
+                });
+            });
         },
         images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();

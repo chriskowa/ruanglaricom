@@ -48,4 +48,8 @@ return [
         'endpoint' => env('OPENAI_ENDPOINT', 'responses'),
     ],
 
+    'tinymce' => [
+        'api_key' => env('TINYMCE_API_KEY'),
+    ],
+
 ];

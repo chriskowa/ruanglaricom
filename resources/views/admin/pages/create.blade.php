@@ -152,15 +152,103 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.tiny.cloud/1/jmsd06m7clya0xqmr43culaqsx8b77z5djnmhavamejsiypc/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+@php($tinymceKey = config('services.tinymce.api_key') ?: 'jmsd06m7clya0xqmr43culaqsx8b77z5djnmhavamejsiypc')
+<script src="https://cdn.tiny.cloud/1/{{ $tinymceKey }}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
     tinymce.init({
         selector: '#editor',
-        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+        height: 500,
+        plugins: 'advlist autolink lists link image charmap preview anchor pagebreak',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image',
         skin: 'oxide-dark',
-        content_css: 'dark'
+        content_css: 'dark',
+        images_upload_url: '{{ route("admin.blog.images.upload") }}',
+        automatic_uploads: true,
+        file_picker_types: 'image',
+        file_picker_callback: (callback, value, meta) => {
+            if (meta.filetype === 'image') {
+                openMediaModal((url, alt) => {
+                    callback(url, { alt: alt });
+                });
+            }
+        },
+        images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.open('POST', '{{ route("admin.blog.images.upload") }}');
+            xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+
+            xhr.upload.onprogress = (e) => {
+                progress(e.loaded / e.total * 100);
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 403) {
+                    reject({ message: 'HTTP Error: ' + xhr.status, remove: true });
+                    return;
+                }
+
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    reject('HTTP Error: ' + xhr.status);
+                    return;
+                }
+
+                const json = JSON.parse(xhr.responseText);
+
+                if (!json || typeof json.location != 'string') {
+                    reject('Invalid JSON: ' + xhr.responseText);
+                    return;
+                }
+
+                resolve(json.location);
+            };
+
+            xhr.onerror = () => {
+                reject('Image upload failed due to a XHR Transport error. Code: ' + xhr.status);
+            };
+
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+            xhr.send(formData);
+        })
     });
+
+    function openMediaModal(onSelectCallback) {
+        let modalId = 'media-library-modal';
+        let modal = document.getElementById(modalId);
+        
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 hidden';
+            modal.innerHTML = `
+                <div class="bg-slate-900 w-11/12 h-5/6 rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden">
+                    <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
+                        <h3 class="text-white font-bold">Select Media</h3>
+                        <button onclick="document.getElementById('${modalId}').classList.add('hidden')" class="text-slate-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-hidden relative">
+                        <iframe src="{{ route('admin.blog.media.index') }}?picker=true" class="w-full h-full border-0"></iframe>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        modal.classList.remove('hidden');
+
+        const messageHandler = (event) => {
+            if (event.data && event.data.mceAction === 'insertMedia') {
+                onSelectCallback(event.data.url, event.data.alt);
+                modal.classList.add('hidden');
+                window.removeEventListener('message', messageHandler);
+            }
+        };
+        window.addEventListener('message', messageHandler);
+    }
 
     function previewImage(input) {
         if (input.files && input.files[0]) {
