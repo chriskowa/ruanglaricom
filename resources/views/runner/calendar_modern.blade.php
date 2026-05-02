@@ -1266,6 +1266,10 @@
                     <div v-else-if="aiAnalysisError" class="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">@{{ aiAnalysisError }}</div>
                     <div v-else-if="detail.ai_analysis" class="space-y-3 text-sm">
                         <div v-if="detail.ai_analysis.summary" class="text-slate-200 leading-relaxed">@{{ detail.ai_analysis.summary }}</div>
+                        <div class="text-xs text-slate-300">
+                            <span class="text-slate-400">Junk Miles Risk:</span>
+                            <span class="font-bold">@{{ detail.ai_analysis.junk_miles_risk?.level || 'unknown' }}</span>
+                        </div>
 
                         <div v-if="detail.ai_analysis.what_went_well?.length">
                             <div class="text-[11px] font-bold text-green-300 uppercase mb-2">Yang Sudah Bagus</div>

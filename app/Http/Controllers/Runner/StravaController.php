@@ -687,6 +687,10 @@ class StravaController extends Controller
             }
 
             $decoded = $this->normalizeAiAnalysis($decoded);
+            $decoded['junk_miles_risk'] = data_get($metrics, 'recent_training_context.junk_miles_risk', [
+                'level' => 'unknown',
+                'evidence' => [],
+            ]);
             $raw['ai_analysis'] = [
                 'model' => 'gpt-4o',
                 'created_at' => now()->toIso8601String(),
@@ -1111,6 +1115,10 @@ class StravaController extends Controller
             'workout_classification' => [
                 'type' => (string) data_get($decoded, 'workout_classification.type', ''),
                 'evidence' => array_values(array_filter(data_get($decoded, 'workout_classification.evidence', []), fn ($item) => is_string($item) && trim($item) !== '')),
+            ],
+            'junk_miles_risk' => [
+                'level' => (string) data_get($decoded, 'junk_miles_risk.level', 'unknown'),
+                'evidence' => array_values(array_filter(data_get($decoded, 'junk_miles_risk.evidence', []), fn ($item) => is_string($item) && trim($item) !== '')),
             ],
             'summary' => (string) ($decoded['summary'] ?? ''),
             'what_went_well' => array_values(array_filter($decoded['what_went_well'] ?? [], fn ($item) => is_string($item) && trim($item) !== '')),
