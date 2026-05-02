@@ -1775,10 +1775,25 @@ class EventController extends Controller
             'picked_up_by' => 'nullable|string|max:255',
         ]);
 
+        $isPickedUp = (bool) $validated['is_picked_up'];
+        if ($isPickedUp) {
+            $paymentStatus = (string) ($participant->transaction->payment_status ?? '');
+            if (! in_array($paymentStatus, ['paid', 'cod'], true)) {
+                $message = 'Tidak bisa pickup: status pembayaran belum paid.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                    ], 422);
+                }
+                return back()->with('error', $message);
+            }
+        }
+
         $participant->update([
-            'is_picked_up' => $validated['is_picked_up'],
-            'picked_up_at' => $validated['is_picked_up'] ? now() : null,
-            'picked_up_by' => $validated['is_picked_up'] ? ($validated['picked_up_by'] ?? null) : null,
+            'is_picked_up' => $isPickedUp,
+            'picked_up_at' => $isPickedUp ? now() : null,
+            'picked_up_by' => $isPickedUp ? (($validated['picked_up_by'] ?? null) ?: (auth()->user()->name ?? null)) : null,
         ]);
 
         if ($request->ajax() || $request->wantsJson()) {
