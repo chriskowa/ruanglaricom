@@ -616,7 +616,7 @@ class StravaController extends Controller
             $activity->update(['raw' => $raw]);
 
             $profile = app(RunningProfileService::class)->getProfile($user);
-            $context = $this->buildRecentTrainingContext($user->id, $activity);
+            $context = $this->buildRecentTrainingContext($user->id, $activity, $profile);
             $metrics = $this->buildAiWorkoutPayload($activity, $details, $streams, $profile, $context, $api);
             $inputHash = md5(json_encode($metrics));
 
@@ -640,6 +640,7 @@ class StravaController extends Controller
 
             $userPrompt = "Analisis workout berikut dan berikan insight pelatihan.\n"
                 ."Wajib identifikasi jenis sesi berdasarkan variasi pace (split/stream) dan konteks pace latihan runner.\n"
+                ."Jika konteks menyebut 'junk_miles_risk.level' = medium/high, tambahkan 1 item ke risk_flags dengan format: \"Junk miles risk: <level> - <alasan singkat>\".\n"
                 ."Summary WAJIB diawali dengan 'Jenis sesi: <type>.'\n"
                 ."Format output JSON:\n"
                 ."{\n"
@@ -707,41 +708,91 @@ class StravaController extends Controller
         }
     }
 
-    private function buildRecentTrainingContext(int $userId, StravaActivity $currentActivity): array
+    private function buildRecentTrainingContext(int $userId, StravaActivity $currentActivity, array $profile): array
     {
         $end = $currentActivity->local_start_date ?: $currentActivity->start_date ?: now();
-        $start = $end->copy()->subDays(7);
+        $start7 = $end->copy()->subDays(7);
+        $start14 = $end->copy()->subDays(14);
 
         $recentActivities = StravaActivity::query()
             ->where('user_id', $userId)
             ->where('id', '!=', $currentActivity->id)
-            ->whereBetween('start_date', [$start, $end])
+            ->whereBetween('start_date', [$start14, $end])
             ->orderByDesc('start_date')
             ->get();
 
-        $totalDistanceKm = round($recentActivities->sum(fn ($item) => ((float) ($item->distance_m ?? 0)) / 1000), 2);
-        $runCount = 0;
-        $hardSessions = 0;
+        $runCount7 = 0;
+        $runCount14 = 0;
+        $totalDistanceKm7 = 0.0;
+        $totalDistanceKm14 = 0.0;
+        $hardSessions7 = 0;
+
+        $minutes14 = 0;
+        $easyMinutes14 = 0;
+        $greyMinutes14 = 0;
+        $qualityMinutes14 = 0;
+        $unknownMinutes14 = 0;
 
         foreach ($recentActivities as $item) {
             $type = strtolower((string) $item->type);
             if (in_array($type, ['run', 'virtualrun', 'trailrun', 'treadmill'], true)) {
-                $runCount++;
-            }
+                $runCount14++;
+                $distanceKm = ((float) ($item->distance_m ?? 0)) / 1000;
+                $totalDistanceKm14 += $distanceKm;
 
-            $details = is_array($item->raw) ? data_get($item->raw, 'details', []) : [];
-            $avgHr = (float) data_get($details, 'average_heartrate', 0);
-            $distanceKm = ((float) ($item->distance_m ?? 0)) / 1000;
-            if ($avgHr >= 160 || $distanceKm >= 15) {
-                $hardSessions++;
+                if ($item->start_date && $item->start_date->gte($start7)) {
+                    $runCount7++;
+                    $totalDistanceKm7 += $distanceKm;
+                }
+
+                $details = is_array($item->raw) ? data_get($item->raw, 'details', []) : [];
+                $avgHr = (float) data_get($details, 'average_heartrate', 0);
+                if ($item->start_date && $item->start_date->gte($start7) && ($avgHr >= 160 || $distanceKm >= 15)) {
+                    $hardSessions7++;
+                }
+
+                $movingMinutes = (int) round(((int) ($item->moving_time_s ?? 0)) / 60);
+                if ($movingMinutes > 0) {
+                    $minutes14 += $movingMinutes;
+                    $paceSec = null;
+                    if (is_numeric($item->average_speed) && (float) $item->average_speed > 0) {
+                        $paceSec = (1000 / (float) $item->average_speed);
+                    }
+                    $bucket = $this->inferPaceBucket($paceSec, $profile);
+                    $bucketType = (string) data_get($bucket, 'bucket', 'unknown');
+                    if ($bucketType === 'easy') {
+                        $easyMinutes14 += $movingMinutes;
+                    } elseif ($bucketType === 'grey') {
+                        $greyMinutes14 += $movingMinutes;
+                    } elseif (in_array($bucketType, ['threshold', 'tempo', 'interval'], true)) {
+                        $qualityMinutes14 += $movingMinutes;
+                    } else {
+                        $unknownMinutes14 += $movingMinutes;
+                    }
+                }
             }
         }
 
+        $totalDistanceKm7 = round($totalDistanceKm7, 2);
+        $totalDistanceKm14 = round($totalDistanceKm14, 2);
+
+        $junk = $this->inferJunkMilesRisk($minutes14, $easyMinutes14, $greyMinutes14, $qualityMinutes14, $unknownMinutes14);
+
         return [
-            'lookback_days' => 7,
-            'recent_runs' => $runCount,
-            'recent_distance_km' => $totalDistanceKm,
-            'estimated_hard_sessions' => $hardSessions,
+            'lookback_days' => 14,
+            'recent_runs_7d' => $runCount7,
+            'recent_runs_14d' => $runCount14,
+            'recent_distance_km_7d' => $totalDistanceKm7,
+            'recent_distance_km_14d' => $totalDistanceKm14,
+            'estimated_hard_sessions_7d' => $hardSessions7,
+            'intensity_minutes_14d' => [
+                'total' => $minutes14,
+                'easy' => $easyMinutes14,
+                'grey' => $greyMinutes14,
+                'quality' => $qualityMinutes14,
+                'unknown' => $unknownMinutes14,
+            ],
+            'junk_miles_risk' => $junk,
         ];
     }
 
@@ -760,6 +811,7 @@ class StravaController extends Controller
         $splitPaceSeconds = $this->extractSplitPaceSeconds($splits);
         $splitStats = $this->summarizeSeconds($splitPaceSeconds);
         $hint = $this->inferWorkoutTypeHint($distanceKm, $splitStats, $profile);
+        $paceBucket = $this->inferPaceBucket($avgPaceSeconds, $profile);
 
         return [
             'activity' => [
@@ -783,6 +835,8 @@ class StravaController extends Controller
                 'split_pace_stats' => $splitStats,
                 'workout_type_hint' => (string) data_get($hint, 'type', 'unknown'),
                 'workout_type_hint_evidence' => data_get($hint, 'evidence', []),
+                'pace_bucket' => (string) data_get($paceBucket, 'bucket', 'unknown'),
+                'pace_bucket_evidence' => data_get($paceBucket, 'evidence', []),
             ],
             'stream_summary' => [
                 'heartrate' => $this->summarizeStream(data_get($streams, 'heartrate.data', []), 0),
@@ -989,6 +1043,66 @@ class StravaController extends Controller
         }
         $t = (int) round($secondsPerKm);
         return sprintf('%d:%02d', intdiv($t, 60), $t % 60);
+    }
+
+    private function inferPaceBucket(?float $paceSeconds, array $profile): array
+    {
+        if (! $paceSeconds || $paceSeconds <= 0) {
+            return ['bucket' => 'unknown', 'evidence' => ['Pace tidak tersedia.']];
+        }
+
+        $paces = is_array($profile['paces'] ?? null) ? $profile['paces'] : [];
+        $easySec = $this->minutesPerKmToSeconds(data_get($paces, 'E'));
+        $thresholdSec = $this->minutesPerKmToSeconds(data_get($paces, 'T'));
+        $intervalSec = $this->minutesPerKmToSeconds(data_get($paces, 'I'));
+
+        if ($intervalSec && $paceSeconds <= ($intervalSec * 1.06)) {
+            return ['bucket' => 'interval', 'evidence' => ['Pace mendekati/lebih cepat dari I pace.']];
+        }
+
+        if ($thresholdSec && $paceSeconds <= ($thresholdSec * 1.06)) {
+            return ['bucket' => 'threshold', 'evidence' => ['Pace mendekati T pace.']];
+        }
+
+        if ($easySec && $paceSeconds >= ($easySec * 0.92)) {
+            return ['bucket' => 'easy', 'evidence' => ['Pace berada di sekitar easy pace.']];
+        }
+
+        if ($easySec && $thresholdSec && $paceSeconds < ($easySec * 0.92) && $paceSeconds > ($thresholdSec * 1.06)) {
+            return ['bucket' => 'grey', 'evidence' => ['Pace berada di antara easy dan threshold (grey zone).']];
+        }
+
+        return ['bucket' => 'unknown', 'evidence' => ['Tidak cukup data untuk menentukan zona pace.']];
+    }
+
+    private function inferJunkMilesRisk(int $totalMinutes, int $easyMinutes, int $greyMinutes, int $qualityMinutes, int $unknownMinutes): array
+    {
+        if ($totalMinutes <= 0) {
+            return ['level' => 'unknown', 'evidence' => ['Tidak ada data durasi latihan.']];
+        }
+
+        if ($totalMinutes < 120) {
+            return ['level' => 'unknown', 'evidence' => ['Data 14 hari masih terlalu sedikit untuk menilai junk miles.']];
+        }
+
+        $greyShare = $greyMinutes / $totalMinutes;
+        $qualityShare = $qualityMinutes / $totalMinutes;
+
+        $level = 'low';
+        if ($greyShare >= 0.45 && $qualityShare < 0.25) {
+            $level = 'high';
+        } elseif ($greyShare >= 0.30 && $qualityShare < 0.30) {
+            $level = 'medium';
+        }
+
+        return [
+            'level' => $level,
+            'evidence' => [
+                'Grey zone ' . round($greyShare * 100) . '% dari total durasi 14 hari.',
+                'Quality ' . round($qualityShare * 100) . '% dari total durasi 14 hari.',
+                'Total durasi 14 hari: ' . $totalMinutes . ' menit.',
+            ],
+        ];
     }
 
     private function normalizeAiAnalysis(array $decoded): array
