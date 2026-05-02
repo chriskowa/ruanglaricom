@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\StravaActivity;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -48,6 +50,36 @@ class OpenAiService
             Log::error('OpenAI API Error: ' . $response->body());
             return null;
 
+        } catch (\Exception $e) {
+            Log::error('OpenAI Exception: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getChatResponse(array $messages, string $model = 'gpt-4o'): ?string
+    {
+        if (empty($this->apiKey)) {
+            Log::error('OpenAI API Key is not set.');
+            return null;
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(90)->post($this->chatCompletionsUrl, [
+                'model' => $model,
+                'messages' => $messages,
+                'temperature' => 0.7,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return $data['choices'][0]['message']['content'] ?? null;
+            }
+
+            Log::error('OpenAI API Error: ' . $response->body());
+            return null;
         } catch (\Exception $e) {
             Log::error('OpenAI Exception: ' . $e->getMessage());
             return null;
@@ -194,7 +226,7 @@ class OpenAiService
     /**
      * Get response from AI Coach based on runner profile and message.
      */
-    public function getCoachResponse(User $runner, string $userMessage): ?string
+    public function getCoachResponse(User $runner, string $userMessage, array $history = []): ?string
     {
         if (empty($this->apiKey)) {
             Log::error('OpenAI API Key is not set.');
@@ -207,7 +239,17 @@ class OpenAiService
 
         $systemPrompt = $this->buildSystemPrompt($runner, $profileData);
 
-        $response = $this->getAiResponse($userMessage, $systemPrompt, 'gpt-4o');
+        $messages = array_merge(
+            [
+                ['role' => 'system', 'content' => $systemPrompt],
+            ],
+            $this->normalizeChatHistory($history),
+            [
+                ['role' => 'user', 'content' => $userMessage],
+            ]
+        );
+
+        $response = $this->getChatResponse($messages, 'gpt-4o');
         
         return $response ?: 'Maaf, Coach sedang beristirahat sejenak. Silakan coba lagi nanti.';
     }
@@ -219,10 +261,17 @@ class OpenAiService
     {
         $pb = $profile['pb'] ?? [];
         $paces = $profile['paces'] ?? [];
+        $recent = $this->buildRecentTrainingSummary($user);
         
         $prompt = "Anda adalah 'Coach AI' dari Ruang Lari, asisten lari profesional yang ahli, ramah, dan memotivasi. ";
         $prompt .= "Konteks chat harus selalu seputar dunia lari (teknik, nutrisi, recovery, jadwal latihan, sepatu, apparel lari, dll). ";
         $prompt .= "Jika user bertanya di luar konteks lari, jawab dengan sopan bahwa Anda hanya fokus pada perkembangan lari mereka.\n\n";
+        $prompt .= "Gaya jawaban:\n";
+        $prompt .= "- Selalu mulai dengan 1-2 kalimat ringkasan situasi pelari (berdasarkan data yang tersedia).\n";
+        $prompt .= "- Tanyakan maksimal 2 pertanyaan klarifikasi jika data kurang.\n";
+        $prompt .= "- Berikan rekomendasi yang actionable (contoh: durasi, pace/effort, tujuan sesi, recovery).\n";
+        $prompt .= "- Jika user minta rencana, berikan rencana 7 hari yang realistis dan mudah diikuti.\n";
+        $prompt .= "- Jangan mengarang metrik yang tidak ada. Jika data latihan kosong, bilang tidak ada data latihan.\n\n";
         
         $prompt .= "Profil Pelari:\n";
         $prompt .= "- Nama: {$user->name}\n";
@@ -241,8 +290,124 @@ class OpenAiService
             $prompt .= "- Rekomendasi Pace Latihan: Easy (" . ($paces['easy'] ?? '-') . "), Tempo (" . ($paces['threshold'] ?? '-') . "), Interval (" . ($paces['interval'] ?? '-') . ")\n";
         }
 
-        $prompt .= "\nGunakan Bahasa Indonesia yang kasual namun profesional (gaya 'Coach Gaul'). Berikan saran yang spesifik berdasarkan data profil di atas jika memungkinkan.";
+        if (! empty($profile['weekly_km_target'])) {
+            $prompt .= "- Target KM Mingguan: {$profile['weekly_km_target']} km\n";
+        }
+
+        $prompt .= "\nRingkasan Latihan Terakhir:\n";
+        $prompt .= $this->formatRecentTrainingForPrompt($recent);
+
+        $prompt .= "\nGunakan Bahasa Indonesia yang kasual namun profesional (gaya 'Coach Gaul'). Berikan saran yang spesifik berdasarkan data profil & ringkasan latihan di atas jika memungkinkan.";
         
         return $prompt;
+    }
+
+    protected function normalizeChatHistory(array $history): array
+    {
+        $out = [];
+        foreach ($history as $item) {
+            if (! is_array($item)) continue;
+            $role = $item['role'] ?? null;
+            $content = $item['content'] ?? null;
+            if (! in_array($role, ['user', 'assistant'], true)) continue;
+            if (! is_string($content) || trim($content) === '') continue;
+            $out[] = ['role' => $role, 'content' => $content];
+        }
+        return $out;
+    }
+
+    protected function buildRecentTrainingSummary(User $user): array
+    {
+        $now = Carbon::now();
+        $start14 = $now->copy()->subDays(14);
+        $start7 = $now->copy()->subDays(7);
+
+        $activities = StravaActivity::query()
+            ->where('user_id', $user->id)
+            ->whereNotNull('start_date')
+            ->whereBetween('start_date', [$start14, $now])
+            ->orderByDesc('start_date')
+            ->limit(30)
+            ->get();
+
+        $runTypes = ['run', 'virtualrun', 'trailrun', 'treadmill'];
+        $runs = $activities->filter(function (StravaActivity $a) use ($runTypes) {
+            $t = strtolower((string) ($a->type ?? ''));
+            return in_array($t, $runTypes, true);
+        })->values();
+
+        $sumKm14 = round($runs->sum(fn (StravaActivity $a) => ((float) ($a->distance_m ?? 0)) / 1000), 2);
+        $sumKm7 = round($runs->filter(fn (StravaActivity $a) => $a->start_date && $a->start_date->gte($start7))
+            ->sum(fn (StravaActivity $a) => ((float) ($a->distance_m ?? 0)) / 1000), 2);
+
+        $longest = $runs->sortByDesc('distance_m')->first();
+        $longestKm = $longest ? round(((float) ($longest->distance_m ?? 0)) / 1000, 2) : 0;
+
+        $recentRuns = $runs->take(6)->map(function (StravaActivity $a) {
+            $km = ((float) ($a->distance_m ?? 0)) / 1000;
+            $pace = null;
+            if ($km > 0 && (int) ($a->moving_time_s ?? 0) > 0) {
+                $pace = ($a->moving_time_s / $km);
+            }
+            return [
+                'date' => $a->local_start_date?->toDateString() ?: $a->start_date?->toDateString(),
+                'name' => $a->name,
+                'type' => $a->type,
+                'distance_km' => round($km, 2),
+                'moving_time_min' => round(((int) ($a->moving_time_s ?? 0)) / 60, 1),
+                'avg_pace' => $pace ? $this->formatPaceFromSeconds((float) $pace) : null,
+                'avg_hr' => data_get(is_array($a->raw) ? $a->raw : [], 'details.average_heartrate'),
+            ];
+        })->values()->all();
+
+        return [
+            'has_strava_data' => $activities->isNotEmpty(),
+            'lookback_days' => 14,
+            'run_count_14d' => $runs->count(),
+            'total_km_7d' => $sumKm7,
+            'total_km_14d' => $sumKm14,
+            'longest_run_km_14d' => $longestKm,
+            'recent_runs' => $recentRuns,
+        ];
+    }
+
+    protected function formatRecentTrainingForPrompt(array $recent): string
+    {
+        if (($recent['has_strava_data'] ?? false) !== true) {
+            return "- Data latihan tidak tersedia (Strava belum tersambung / belum ada aktivitas).\n";
+        }
+
+        $out = '';
+        $out .= "- Total 7 hari: " . ($recent['total_km_7d'] ?? 0) . " km\n";
+        $out .= "- Total 14 hari: " . ($recent['total_km_14d'] ?? 0) . " km\n";
+        $out .= "- Jumlah lari 14 hari: " . ($recent['run_count_14d'] ?? 0) . " sesi\n";
+        $out .= "- Long run 14 hari: " . ($recent['longest_run_km_14d'] ?? 0) . " km\n";
+
+        $runs = $recent['recent_runs'] ?? [];
+        if (is_array($runs) && ! empty($runs)) {
+            $out .= "- Aktivitas terbaru:\n";
+            foreach ($runs as $r) {
+                if (! is_array($r)) continue;
+                $date = $r['date'] ?? '-';
+                $km = $r['distance_km'] ?? 0;
+                $pace = $r['avg_pace'] ?? null;
+                $hr = $r['avg_hr'] ?? null;
+                $line = "  - {$date}: {$km} km";
+                if ($pace) $line .= " @ {$pace}/km";
+                if ($hr) $line .= " (avg HR {$hr})";
+                $out .= $line . "\n";
+            }
+        }
+
+        return $out;
+    }
+
+    protected function formatPaceFromSeconds(float $secondsPerKm): string
+    {
+        if ($secondsPerKm <= 0) return '-';
+        $total = (int) round($secondsPerKm);
+        $m = intdiv($total, 60);
+        $s = $total % 60;
+        return sprintf('%d:%02d', $m, $s);
     }
 }

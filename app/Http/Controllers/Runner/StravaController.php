@@ -639,8 +639,14 @@ class StravaController extends Controller
                 ."Return HARUS JSON valid tanpa markdown dan tanpa teks lain.";
 
             $userPrompt = "Analisis workout berikut dan berikan insight pelatihan.\n"
+                ."Wajib identifikasi jenis sesi berdasarkan variasi pace (split/stream) dan konteks pace latihan runner.\n"
+                ."Summary WAJIB diawali dengan 'Jenis sesi: <type>.'\n"
                 ."Format output JSON:\n"
                 ."{\n"
+                ."  \"workout_classification\": {\n"
+                ."    \"type\": \"easy|interval|tempo|threshold|mixed|unknown\",\n"
+                ."    \"evidence\": [\"...\"]\n"
+                ."  },\n"
                 ."  \"summary\": \"...\",\n"
                 ."  \"what_went_well\": [\"...\"],\n"
                 ."  \"what_to_improve\": [\"...\"],\n"
@@ -750,6 +756,10 @@ class StravaController extends Controller
         $avgSpeed = (float) data_get($details, 'average_speed', $activity->average_speed);
         $distanceKm = round(((float) data_get($details, 'distance', $activity->distance_m ?? 0)) / 1000, 2);
         $splits = data_get($details, 'splits_metric', []);
+        $avgPaceSeconds = $avgSpeed > 0 ? round((float) (1000 / $avgSpeed), 1) : null;
+        $splitPaceSeconds = $this->extractSplitPaceSeconds($splits);
+        $splitStats = $this->summarizeSeconds($splitPaceSeconds);
+        $hint = $this->inferWorkoutTypeHint($distanceKm, $splitStats, $profile);
 
         return [
             'activity' => [
@@ -761,6 +771,7 @@ class StravaController extends Controller
                 'moving_time_minutes' => round(((int) data_get($details, 'moving_time', $activity->moving_time_s ?? 0)) / 60, 1),
                 'elapsed_time_minutes' => round(((int) data_get($details, 'elapsed_time', $activity->elapsed_time_s ?? 0)) / 60, 1),
                 'average_pace' => $api->formatPaceFromSpeed($avgSpeed),
+                'average_pace_seconds' => $avgPaceSeconds,
                 'average_heartrate' => data_get($details, 'average_heartrate'),
                 'max_heartrate' => data_get($details, 'max_heartrate'),
                 'average_cadence' => data_get($details, 'average_cadence'),
@@ -768,6 +779,10 @@ class StravaController extends Controller
                 'split_count' => is_array($splits) ? count($splits) : 0,
                 'first_split_pace' => $this->extractSplitPace($splits, 0, $api),
                 'last_split_pace' => $this->extractSplitPace($splits, -1, $api),
+                'split_pace_seconds' => array_slice($splitPaceSeconds, 0, 30),
+                'split_pace_stats' => $splitStats,
+                'workout_type_hint' => (string) data_get($hint, 'type', 'unknown'),
+                'workout_type_hint_evidence' => data_get($hint, 'evidence', []),
             ],
             'stream_summary' => [
                 'heartrate' => $this->summarizeStream(data_get($streams, 'heartrate.data', []), 0),
@@ -840,9 +855,149 @@ class StravaController extends Controller
         return $speed ? $api->formatPaceFromSpeed((float) $speed) : null;
     }
 
+    private function extractSplitPaceSeconds($splits): array
+    {
+        if (! is_array($splits) || empty($splits)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($splits as $s) {
+            if (! is_array($s)) {
+                continue;
+            }
+            $speed = data_get($s, 'average_speed');
+            if (! is_numeric($speed)) {
+                continue;
+            }
+            $speed = (float) $speed;
+            if ($speed <= 0) {
+                continue;
+            }
+            $out[] = (1000 / $speed);
+        }
+
+        return $out;
+    }
+
+    private function summarizeSeconds(array $values): ?array
+    {
+        $numbers = array_values(array_filter($values, fn ($v) => is_numeric($v) && (float) $v > 0));
+        if (! $numbers) {
+            return null;
+        }
+
+        sort($numbers);
+        $count = count($numbers);
+        $avg = array_sum($numbers) / $count;
+        $median = $numbers[(int) floor(($count - 1) / 2)];
+        $min = $numbers[0];
+        $max = $numbers[$count - 1];
+
+        $variance = 0.0;
+        foreach ($numbers as $n) {
+            $variance += pow(((float) $n) - $avg, 2);
+        }
+        $std = $count > 1 ? sqrt($variance / ($count - 1)) : 0.0;
+        $cv = $avg > 0 ? ($std / $avg) : 0.0;
+        $ratio = $min > 0 ? ($max / $min) : null;
+
+        return [
+            'count' => $count,
+            'min_pace' => $this->formatPaceSeconds((float) $min),
+            'median_pace' => $this->formatPaceSeconds((float) $median),
+            'avg_pace' => $this->formatPaceSeconds((float) $avg),
+            'max_pace' => $this->formatPaceSeconds((float) $max),
+            'cv' => round((float) $cv, 3),
+            'slowest_to_fastest_ratio' => $ratio ? round((float) $ratio, 3) : null,
+        ];
+    }
+
+    private function inferWorkoutTypeHint(float $distanceKm, ?array $splitStats, array $profile): array
+    {
+        $type = 'unknown';
+        $evidence = [];
+
+        $count = (int) data_get($splitStats, 'count', 0);
+        $cv = (float) data_get($splitStats, 'cv', 0);
+        $ratio = (float) data_get($splitStats, 'slowest_to_fastest_ratio', 0);
+
+        $paces = is_array($profile['paces'] ?? null) ? $profile['paces'] : [];
+        $easySec = $this->minutesPerKmToSeconds(data_get($paces, 'E'));
+        $thresholdSec = $this->minutesPerKmToSeconds(data_get($paces, 'T'));
+        $medianSec = $this->paceStringToSeconds(data_get($splitStats, 'median_pace'));
+
+        if ($splitStats && $count >= 6 && ($ratio >= 1.22 || $cv >= 0.12)) {
+            return [
+                'type' => 'interval',
+                'evidence' => ["Variasi pace split tinggi (ratio {$ratio}, cv {$cv})."],
+            ];
+        }
+
+        if ($thresholdSec && $medianSec) {
+            $diff = abs($medianSec - $thresholdSec) / $thresholdSec;
+            if ($diff <= 0.04) {
+                $type = 'threshold';
+                $evidence[] = 'Median pace mendekati T pace runner.';
+            } elseif ($medianSec > $thresholdSec && (($medianSec - $thresholdSec) / $thresholdSec) <= 0.12) {
+                $type = 'tempo';
+                $evidence[] = 'Median pace sedikit lebih lambat dari T pace (tempo).';
+            }
+        }
+
+        if ($type === 'unknown' && $easySec && $medianSec) {
+            $diff = abs($medianSec - $easySec) / $easySec;
+            if ($diff <= 0.12) {
+                $type = 'easy';
+                $evidence[] = 'Median pace berada di sekitar easy pace runner.';
+            }
+        }
+
+        if ($type === 'unknown' && $distanceKm >= 14) {
+            $type = 'mixed';
+            $evidence[] = 'Jarak cukup panjang; kemungkinan sesi campuran.';
+        }
+
+        return ['type' => $type, 'evidence' => $evidence];
+    }
+
+    private function minutesPerKmToSeconds($minutesPerKm): ?float
+    {
+        if (! is_numeric($minutesPerKm)) {
+            return null;
+        }
+        $m = (float) $minutesPerKm;
+        return $m > 0 ? $m * 60 : null;
+    }
+
+    private function paceStringToSeconds($pace): ?float
+    {
+        if (! is_string($pace)) {
+            return null;
+        }
+        $pace = trim($pace);
+        if (! preg_match('/^(\d+):(\d{2})$/', $pace, $m)) {
+            return null;
+        }
+        return ((int) $m[1] * 60) + (int) $m[2];
+    }
+
+    private function formatPaceSeconds(float $secondsPerKm): string
+    {
+        if ($secondsPerKm <= 0) {
+            return '-';
+        }
+        $t = (int) round($secondsPerKm);
+        return sprintf('%d:%02d', intdiv($t, 60), $t % 60);
+    }
+
     private function normalizeAiAnalysis(array $decoded): array
     {
         return [
+            'workout_classification' => [
+                'type' => (string) data_get($decoded, 'workout_classification.type', ''),
+                'evidence' => array_values(array_filter(data_get($decoded, 'workout_classification.evidence', []), fn ($item) => is_string($item) && trim($item) !== '')),
+            ],
             'summary' => (string) ($decoded['summary'] ?? ''),
             'what_went_well' => array_values(array_filter($decoded['what_went_well'] ?? [], fn ($item) => is_string($item) && trim($item) !== '')),
             'what_to_improve' => array_values(array_filter($decoded['what_to_improve'] ?? [], fn ($item) => is_string($item) && trim($item) !== '')),

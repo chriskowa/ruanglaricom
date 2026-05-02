@@ -115,7 +115,32 @@ class ChatController extends Controller
         // AI Coach Auto-reply
         if ($user->email === 'ai-coach@ruanglari.com') {
             $openAiService = app(OpenAiService::class);
-            $aiResponse = $openAiService->getCoachResponse(Auth::user(), $request->message);
+            $historyMessages = Message::query()
+                ->where('id', '!=', $message->id)
+                ->where(function ($query) use ($user) {
+                    $query->where(function ($q) use ($user) {
+                        $q->where('sender_id', Auth::id())
+                            ->where('receiver_id', $user->id);
+                    })->orWhere(function ($q) use ($user) {
+                        $q->where('sender_id', $user->id)
+                            ->where('receiver_id', Auth::id());
+                    });
+                })
+                ->orderByDesc('created_at')
+                ->limit(16)
+                ->get()
+                ->reverse()
+                ->values();
+
+            $history = $historyMessages->map(function ($m) {
+                $isUser = (int) $m->sender_id === (int) Auth::id();
+                return [
+                    'role' => $isUser ? 'user' : 'assistant',
+                    'content' => (string) $m->message,
+                ];
+            })->all();
+
+            $aiResponse = $openAiService->getCoachResponse(Auth::user(), $request->message, $history);
 
             if ($aiResponse) {
                 Message::create([
