@@ -141,7 +141,7 @@ class CalendarController extends Controller
                 $colors = $this->getEventColors($difficulty, $phase);
 
                 $sessionType = $session['type'] ?? 'Run';
-                $paceInfo = $this->getPaceForSessionType($sessionType, $paces);
+                $paceInfo = $session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces);
 
                 $freeWeeks = max(1, floor($totalWeeks / 2));
                 $currentWeek = $session['week'] ?? floor(((int) $session['day'] - 1) / 7) + 1;

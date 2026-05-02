@@ -6,6 +6,7 @@ use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Services\DanielsRunningService;
 use App\Services\MidtransService;
+use App\Services\OpenAiService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,11 +21,13 @@ class SelfGeneratedProgramController extends Controller
 {
     protected $danielsService;
     protected $midtransService;
+    protected $openAiService;
 
-    public function __construct(DanielsRunningService $danielsService, MidtransService $midtransService)
+    public function __construct(DanielsRunningService $danielsService, MidtransService $midtransService, OpenAiService $openAiService)
     {
         $this->danielsService = $danielsService;
         $this->midtransService = $midtransService;
+        $this->openAiService = $openAiService;
     }
 
     public function index()
@@ -164,8 +167,25 @@ class SelfGeneratedProgramController extends Controller
                 'initial_vdot' => $currentVdot,
                 'target_vdot' => $safeTargetVdot,
                 'runner_level' => $validated['runner_level'],
-                'long_run_day' => $validated['long_run_day']
+                'long_run_day' => $validated['long_run_day'],
             ]);
+
+            $sessions = $programData['sessions'] ?? [];
+
+            $useAi = $request->boolean('use_ai', auth()->check());
+            if ($useAi && is_array($sessions) && $sessions) {
+                $sessions = $this->improveProgramSessionsWithAi($sessions, [
+                    'target_distance' => $validated['target_distance'],
+                    'weeks' => $weeksUntilRace,
+                    'weekly_mileage' => (float) $validated['weekly_mileage'],
+                    'frequency' => (int) $validated['frequency'],
+                    'runner_level' => $validated['runner_level'],
+                    'long_run_day' => $validated['long_run_day'],
+                    'initial_vdot' => (float) $currentVdot,
+                    'target_vdot' => (float) $safeTargetVdot,
+                    'paces' => $this->danielsService->calculateTrainingPaces($currentVdot),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
@@ -173,14 +193,14 @@ class SelfGeneratedProgramController extends Controller
                     'vdot' => round($currentVdot, 1),
                     'paces' => $this->danielsService->calculateTrainingPaces($currentVdot),
                     'weeks' => $weeksUntilRace,
-                    'sessions' => $programData['sessions'],
+                    'sessions' => $sessions,
                     'summary' => [
                         'total_weeks' => $weeksUntilRace,
                         'target' => strtoupper($validated['target_distance']),
                         'vdot' => round($currentVdot, 1),
-                        'target_vdot' => round($safeTargetVdot, 1)
-                    ]
-                ]
+                        'target_vdot' => round($safeTargetVdot, 1),
+                    ],
+                ],
             ]);
 
         } catch (\Exception $e) {
@@ -480,19 +500,25 @@ class SelfGeneratedProgramController extends Controller
         $p2 = (int)($weeks * 0.25);
         $p3 = (int)($weeks * 0.40);
 
+        $deltaVdot = $targetVdot - $initialVdot;
+        $strengthStart = $p1 + 1;
+        $strengthEnd = $p1 + $p2;
+        $speedStart = $strengthEnd + 1;
+        $speedEnd = $strengthEnd + $p3;
+
         for ($w = 1; $w <= $weeks; $w++) {
             $phase = 'Base';
             $currentVdot = $initialVdot;
 
-            if ($w > $p1) {
+            if ($w >= $strengthStart && $w <= $strengthEnd) {
                 $phase = 'Strength';
-                $currentVdot = $initialVdot + (($targetVdot - $initialVdot) * 0.3);
-            }
-            if ($w > ($p1 + $p2)) {
+                $t = ($w - $strengthStart + 1) / max(1, $p2);
+                $currentVdot = $initialVdot + ($deltaVdot * 0.5 * $t);
+            } elseif ($w >= $speedStart && $w <= $speedEnd) {
                 $phase = 'Speed';
-                $currentVdot = $initialVdot + (($targetVdot - $initialVdot) * 0.7);
-            }
-            if ($w > ($p1 + $p2 + $p3)) {
+                $t = ($w - $speedStart + 1) / max(1, $p3);
+                $currentVdot = ($initialVdot + ($deltaVdot * 0.5)) + ($deltaVdot * 0.5 * $t);
+            } elseif ($w > $speedEnd) {
                 $phase = 'Taper';
                 $currentVdot = $targetVdot;
             }
@@ -505,6 +531,7 @@ class SelfGeneratedProgramController extends Controller
 
             $longRunRatio = $profile['long_run'][$phase] ?? 0.24;
             $longRunDistance = round($currentMileage * $longRunRatio * $longRunFactor, 1);
+            $longRunDistance = min($longRunDistance, round($currentMileage * 0.35, 1));
 
             $qualityType = null;
             $qualityDistance = 0;
@@ -547,8 +574,21 @@ class SelfGeneratedProgramController extends Controller
             if (in_array($targetDistance, ['21k', '42k'], true) && $phase !== 'Base' && $phase !== 'Taper' && $frequency >= 5) {
                 $secondaryType = 'marathon';
                 $secondaryDistance = round($currentMileage * ($profile['secondary'] ?? 0.12) * $qualityFactor, 1);
+                $secondaryDistance = min($secondaryDistance, round($currentMileage * 0.18, 1));
                 $secondaryPace = 'M';
                 $secondaryDescription = 'Marathon Pace Run - Daya tahan lomba';
+            }
+
+            if ($qualityDistance > 0) {
+                $qualityDistance = min($qualityDistance, round($currentMileage * 0.22, 1));
+            }
+
+            $fixedDistance = $longRunDistance + max(0, $qualityDistance) + max(0, $secondaryDistance);
+            if ($fixedDistance > $currentMileage && $fixedDistance > 0) {
+                $scale = $currentMileage / $fixedDistance;
+                $longRunDistance = round($longRunDistance * $scale, 1);
+                $qualityDistance = round($qualityDistance * $scale, 1);
+                $secondaryDistance = round($secondaryDistance * $scale, 1);
             }
 
             $trainingDays = [];
@@ -630,6 +670,85 @@ class SelfGeneratedProgramController extends Controller
     {
         $m = floor($minPerKm);
         $s = round(($minPerKm - $m) * 60);
-        return sprintf('%d:%02d', $m, $s);
+        return sprintf('@ %d:%02d/km', $m, $s);
+    }
+
+    private function improveProgramSessionsWithAi(array $sessions, array $context): array
+    {
+        $hasKey = (bool) (config('services.openai.api_key') ?: env('OPENAI_API_KEY'));
+        if (! $hasKey) {
+            return $sessions;
+        }
+
+        $types = [];
+        foreach ($sessions as $s) {
+            if (! is_array($s)) continue;
+            $t = $s['type'] ?? null;
+            if (is_string($t) && $t !== '') $types[$t] = true;
+        }
+        $types = array_values(array_keys($types));
+        if (! $types) {
+            return $sessions;
+        }
+
+        $paces = $context['paces'] ?? [];
+        $paceLines = [];
+        foreach (['E', 'M', 'T', 'I', 'R'] as $k) {
+            $v = $paces[$k] ?? null;
+            if (is_numeric($v)) {
+                $paceLines[] = $k.': '.$this->formatPace((float) $v);
+            }
+        }
+
+        $system = 'Anda adalah coach lari. Tugas Anda: memperbaiki kualitas deskripsi latihan agar jelas, realistis, dan aman tanpa mengubah struktur program.';
+        $prompt = "Konteks program:\n".
+            "- Target distance: ".($context['target_distance'] ?? '-')."\n".
+            "- Weeks: ".($context['weeks'] ?? '-')."\n".
+            "- Weekly mileage: ".($context['weekly_mileage'] ?? '-')." km\n".
+            "- Frequency: ".($context['frequency'] ?? '-')."/week\n".
+            "- Runner level: ".($context['runner_level'] ?? '-')."\n".
+            "- Long run day: ".($context['long_run_day'] ?? '-')."\n".
+            "- Initial VDOT: ".($context['initial_vdot'] ?? '-')."\n".
+            "- Target VDOT: ".($context['target_vdot'] ?? '-')."\n\n".
+            "Training paces (min/km):\n".implode("\n", $paceLines)."\n\n".
+            "Session types yang dipakai:\n".implode(', ', $types)."\n\n".
+            "Buat JSON murni (tanpa markdown) dengan format:\n".
+            "{\"templates\":{\"TYPE\":\"template\"}}\n\n".
+            "Aturan template:\n".
+            "- Jangan mengubah type, jarak, atau pace; hanya deskripsi.\n".
+            "- Gunakan Bahasa Indonesia.\n".
+            "- Pakai placeholder {distance_km} dan {target_pace}.\n".
+            "- Maks 5 baris, tiap baris singkat.\n".
+            "- Untuk rest: fokus recovery (mobility/strength ringan).\n".
+            "- Untuk interval/repetition/threshold/marathon: sertakan warmup + main set + cooldown yang masuk akal.\n";
+
+        try {
+            $raw = $this->openAiService->getAiResponseOrThrow($prompt, $system);
+            $decoded = json_decode($raw, true);
+            $templates = is_array($decoded) ? ($decoded['templates'] ?? null) : null;
+            if (! is_array($templates) || ! $templates) {
+                return $sessions;
+            }
+
+            foreach ($sessions as $i => $s) {
+                if (! is_array($s)) continue;
+                $type = $s['type'] ?? null;
+                if (! is_string($type) || $type === '') continue;
+                $tpl = $templates[$type] ?? null;
+                if (! is_string($tpl) || trim($tpl) === '') continue;
+
+                $repl = [
+                    '{distance_km}' => (string) ($s['distance'] ?? ''),
+                    '{target_pace}' => (string) ($s['target_pace'] ?? ''),
+                ];
+                $s['description'] = trim(strtr($tpl, $repl));
+                $sessions[$i] = $s;
+            }
+
+            return $sessions;
+        } catch (\Throwable $e) {
+            Log::warning('AI refine generator_v2 failed: '.$e->getMessage());
+            return $sessions;
+        }
     }
 }

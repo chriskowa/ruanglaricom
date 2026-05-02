@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Runner;
 use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\ProgramEnrollment;
+use App\Models\StravaActivity;
 use App\Services\DanielsRunningService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -30,6 +32,7 @@ class GenerateProgramController extends Controller
             'weekly_mileage' => 'required|numeric|min:0|max:300',
             'training_frequency' => 'required|integer|min:2|max:7',
             'goal_distance' => 'required|in:5k,10k,21k,42k',
+            'goal_time' => 'nullable|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
             'duration_weeks' => 'nullable|integer|min:6|max:12', // Flexible short duration
         ]);
 
@@ -45,13 +48,36 @@ class GenerateProgramController extends Controller
 
         DB::beginTransaction();
         try {
+            $adaptive = $this->buildAdaptiveInputs($user->id, $validated);
+            $effectiveWeeklyMileage = (float) ($adaptive['weekly_mileage'] ?? $validated['weekly_mileage']);
+            $effectiveFrequency = (int) ($adaptive['training_frequency'] ?? $validated['training_frequency']);
+
+            $targetVdot = null;
+            if (! empty($validated['goal_time'])) {
+                $targetVdot = $this->danielsService->calculateVDOT($validated['goal_time'], $validated['goal_distance']);
+            }
+            $safeTargetVdot = $targetVdot ? min($targetVdot, $vdot + 3.0) : $vdot;
+
             // Generate program using VDOT directly
             $programData = $this->danielsService->generateProgramFromVDOT($vdot, [
                 'goal_distance' => $validated['goal_distance'],
-                'weekly_mileage' => $validated['weekly_mileage'],
-                'training_frequency' => $validated['training_frequency'],
+                'weekly_mileage' => $effectiveWeeklyMileage,
+                'training_frequency' => $effectiveFrequency,
                 'duration_weeks' => $validated['duration_weeks'] ?? 8,
+                'initial_vdot' => $vdot,
+                'target_vdot' => $safeTargetVdot,
+                'pace_progression' => true,
+                'max_vdot_delta' => 3.0,
             ]);
+
+            if (isset($programData['sessions']) && is_array($programData['sessions'])) {
+                $programData['sessions'] = $this->injectStrengthSessions(
+                    $programData['sessions'],
+                    $effectiveWeeklyMileage,
+                    $effectiveFrequency,
+                    $adaptive['recent'] ?? []
+                );
+            }
 
             // Create program
             $program = Program::create([
@@ -75,10 +101,14 @@ class GenerateProgramController extends Controller
                 'daniels_params' => [
                     'age' => $validated['age'],
                     'gender' => $validated['gender'],
-                    'weekly_mileage' => $validated['weekly_mileage'],
-                    'training_frequency' => $validated['training_frequency'],
+                    'weekly_mileage' => $effectiveWeeklyMileage,
+                    'training_frequency' => $effectiveFrequency,
                     'goal_distance' => $validated['goal_distance'],
+                    'goal_time' => $validated['goal_time'] ?? null,
                     'training_paces' => $programData['training_paces'],
+                    'initial_vdot' => $programData['initial_vdot'] ?? $vdot,
+                    'target_vdot' => $programData['target_vdot'] ?? $vdot,
+                    'adaptive' => $adaptive,
                 ],
                 'generated_vdot' => $programData['vdot'],
             ]);
@@ -156,5 +186,198 @@ class GenerateProgramController extends Controller
         } else {
             return 'advanced';
         }
+    }
+
+    private function buildAdaptiveInputs(int $userId, array $validated): array
+    {
+        $recent = $this->getRecentTrainingSummary($userId);
+
+        $weeklyMileageInput = (float) ($validated['weekly_mileage'] ?? 0);
+        $frequencyInput = (int) ($validated['training_frequency'] ?? 4);
+
+        $weeklyMileageEffective = max(5, $weeklyMileageInput);
+        $frequencyEffective = max(2, min(7, $frequencyInput));
+
+        $recentWeeklyKm = (float) data_get($recent, 'weekly_km_estimate', 0);
+        if ($recentWeeklyKm > 0) {
+            $upCap = max(5, round($recentWeeklyKm * 1.20, 1));
+            if ($weeklyMileageEffective > $upCap) {
+                $weeklyMileageEffective = $upCap;
+            }
+
+            $recentRunDays = (int) data_get($recent, 'run_days_14d', 0);
+            if ($recentRunDays > 0) {
+                $maxFreq = min(7, max(3, $recentRunDays + 1));
+                if ($frequencyEffective > $maxFreq) {
+                    $frequencyEffective = $maxFreq;
+                }
+            }
+        }
+
+        return [
+            'weekly_mileage' => $weeklyMileageEffective,
+            'training_frequency' => $frequencyEffective,
+            'recent' => $recent,
+        ];
+    }
+
+    private function getRecentTrainingSummary(int $userId): array
+    {
+        $end = Carbon::now();
+        $start = $end->copy()->subDays(14);
+
+        $activities = StravaActivity::query()
+            ->where('user_id', $userId)
+            ->whereNotNull('start_date')
+            ->whereBetween('start_date', [$start, $end])
+            ->whereIn('type', ['Run', 'VirtualRun', 'TrailRun', 'Treadmill', 'run', 'virtualrun', 'trailrun', 'treadmill'])
+            ->orderByDesc('start_date')
+            ->get(['start_date', 'distance_m']);
+
+        $totalKm14 = round($activities->sum(fn ($a) => ((float) ($a->distance_m ?? 0)) / 1000), 2);
+        $weeklyKmEstimate = round($totalKm14 / 2, 2);
+        $dayKeys = $activities->map(function ($a) {
+            try {
+                return Carbon::parse($a->start_date)->toDateString();
+            } catch (\Throwable $e) {
+                return null;
+            }
+        })->filter()->unique()->values();
+
+        return [
+            'lookback_days' => 14,
+            'total_km_14d' => $totalKm14,
+            'weekly_km_estimate' => $weeklyKmEstimate,
+            'run_days_14d' => $dayKeys->count(),
+        ];
+    }
+
+    private function injectStrengthSessions(array $sessions, float $weeklyMileage, int $frequency, array $recent): array
+    {
+        $perWeek = 2;
+        if ($weeklyMileage < 15 || $frequency <= 3) {
+            $perWeek = 1;
+        }
+
+        $level = 'base';
+        if ($weeklyMileage >= 45) {
+            $level = 'maintenance';
+        } elseif ((float) data_get($recent, 'weekly_km_estimate', 0) <= 12) {
+            $level = 'beginner';
+        }
+
+        $out = $sessions;
+        $byWeek = [];
+        foreach ($out as $idx => $s) {
+            $week = (int) data_get($s, 'week', 0);
+            if ($week <= 0) continue;
+            $byWeek[$week][] = $idx;
+        }
+
+        foreach ($byWeek as $week => $indexes) {
+            $picked = [];
+            $candidatesPreferred = [];
+            $candidatesFallback = [];
+
+            foreach ($indexes as $idx) {
+                $s = $out[$idx] ?? null;
+                if (! is_array($s)) continue;
+                if (($s['type'] ?? null) !== 'rest') continue;
+
+                $day = (int) data_get($s, 'day', 0);
+                if ($day <= 0) continue;
+                $dow = (($day - 1) % 7) + 1; // 1=Mon ... 7=Sun
+
+                if (in_array($dow, [2, 4], true)) {
+                    $candidatesPreferred[] = $idx;
+                } elseif (! in_array($dow, [1, 7], true)) {
+                    $candidatesFallback[] = $idx;
+                }
+            }
+
+            $candidates = array_merge($candidatesPreferred, $candidatesFallback);
+            foreach ($candidates as $idx) {
+                if (count($picked) >= $perWeek) break;
+                $picked[] = $idx;
+            }
+
+            foreach ($picked as $i => $idx) {
+                $focus = ($i % 2 === 0) ? 'Lower + Core' : 'Core + Mobility';
+                $out[$idx] = $this->makeStrengthSession($out[$idx], $level, $focus);
+            }
+        }
+
+        return $out;
+    }
+
+    private function makeStrengthSession(array $session, string $level, string $focus): array
+    {
+        $plan = [];
+        $duration = '00:30:00';
+        $difficulty = 'moderate';
+
+        if ($level === 'maintenance') {
+            $duration = '00:25:00';
+            $difficulty = 'easy';
+            $plan = [
+                ['name' => 'Glute Bridge', 'sets' => 3, 'reps' => 12, 'notes' => '2s squeeze at top'],
+                ['name' => 'Single-leg RDL (Bodyweight)', 'sets' => 3, 'reps' => 8, 'notes' => 'Each leg'],
+                ['name' => 'Calf Raise (Slow Eccentric)', 'sets' => 3, 'reps' => 12, 'notes' => '3s down'],
+                ['name' => 'Side Plank', 'sets' => 3, 'reps' => '30s', 'notes' => 'Each side'],
+                ['name' => 'Hip Mobility Flow', 'sets' => 1, 'reps' => '5 min', 'notes' => '90/90 + pigeon stretch'],
+            ];
+        } elseif ($level === 'beginner') {
+            $duration = '00:20:00';
+            $difficulty = 'easy';
+            $plan = [
+                ['name' => 'Bodyweight Squat', 'sets' => 3, 'reps' => 10, 'notes' => 'Controlled tempo'],
+                ['name' => 'Reverse Lunge', 'sets' => 3, 'reps' => 8, 'notes' => 'Each leg'],
+                ['name' => 'Calf Raise', 'sets' => 3, 'reps' => 12, 'notes' => 'Full range'],
+                ['name' => 'Dead Bug', 'sets' => 2, 'reps' => 10, 'notes' => 'Each side'],
+                ['name' => 'Plank', 'sets' => 2, 'reps' => '30s', 'notes' => 'Neutral spine'],
+            ];
+        } else {
+            $plan = [
+                ['name' => 'Goblet Squat', 'sets' => 3, 'reps' => 12, 'notes' => 'RPE 6-7'],
+                ['name' => 'Romanian Deadlift', 'sets' => 3, 'reps' => 10, 'notes' => 'Hip hinge'],
+                ['name' => 'Split Squat', 'sets' => 3, 'reps' => 8, 'notes' => 'Each leg'],
+                ['name' => 'Calf Raise (Slow Eccentric)', 'sets' => 3, 'reps' => 15, 'notes' => '3s down'],
+                ['name' => 'Side Plank', 'sets' => 3, 'reps' => '30s', 'notes' => 'Each side'],
+            ];
+        }
+
+        if ($focus === 'Core + Mobility') {
+            $plan = array_values(array_merge(
+                [
+                    ['name' => 'Hip Mobility Flow', 'sets' => 1, 'reps' => '6 min', 'notes' => '90/90 + hamstring stretch'],
+                    ['name' => 'Dead Bug', 'sets' => 3, 'reps' => 10, 'notes' => 'Each side'],
+                    ['name' => 'Plank', 'sets' => 3, 'reps' => '30s', 'notes' => 'Nasal breathing'],
+                ],
+                array_slice($plan, 0, 2)
+            ));
+        }
+
+        $descLines = [];
+        $descLines[] = 'Warmup: 5 min mobility (hips/ankles) + activation';
+        foreach ($plan as $p) {
+            $sets = $p['sets'] ?? 3;
+            $reps = $p['reps'] ?? 10;
+            $name = $p['name'] ?? 'Exercise';
+            $descLines[] = "{$sets}x{$reps} {$name}";
+        }
+        $descLines[] = 'Cooldown: 3-5 min stretching';
+
+        $session['type'] = 'strength';
+        $session['distance'] = 0;
+        $session['duration'] = $duration;
+        $session['difficulty'] = $difficulty;
+        $session['description'] = implode("\n", $descLines);
+        $session['strength'] = [
+            'category' => $focus,
+            'equipment' => 'Bodyweight / Dumbbells / Mat',
+            'plan' => $plan,
+        ];
+
+        return $session;
     }
 }

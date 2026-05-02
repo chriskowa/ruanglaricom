@@ -388,7 +388,22 @@ class DanielsRunningService
      */
     public function generateProgramFromVDOT(float $vdot, array $params): array
     {
-        $paces = $this->calculateTrainingPaces($vdot);
+        $initialVdot = (float) ($params['initial_vdot'] ?? $vdot);
+        $targetVdot = (float) ($params['target_vdot'] ?? $initialVdot);
+        $maxDelta = (float) ($params['max_vdot_delta'] ?? 3.0);
+
+        if ($targetVdot > $initialVdot + $maxDelta) {
+            $targetVdot = $initialVdot + $maxDelta;
+        }
+        if ($targetVdot < $initialVdot) {
+            $targetVdot = $initialVdot;
+        }
+
+        $paceProgression = array_key_exists('pace_progression', $params)
+            ? (bool) $params['pace_progression']
+            : true;
+
+        $paces = $this->calculateTrainingPaces($initialVdot);
 
         // Format paces for descriptions
         $paceStr = [
@@ -415,8 +430,51 @@ class DanielsRunningService
         $dayCounter = 1;
 
         // --- Helper to add session ---
-        $addSession = function ($type, $dist, $desc) use (&$sessions, &$dayCounter, $paces) {
+        $vdotByWeek = [];
+        $pacesByWeek = [];
+
+        $getWeekVdot = function (int $week) use (&$vdotByWeek, $paceProgression, $initialVdot, $targetVdot, $phase1Weeks, $phase2Weeks, $phase3Weeks) {
+            if (isset($vdotByWeek[$week])) {
+                return $vdotByWeek[$week];
+            }
+
+            if (! $paceProgression || $targetVdot <= $initialVdot) {
+                return $vdotByWeek[$week] = $initialVdot;
+            }
+
+            $delta = $targetVdot - $initialVdot;
+            $phase1End = $phase1Weeks;
+            $phase2End = $phase1Weeks + $phase2Weeks;
+            $phase3End = $phase2End + $phase3Weeks;
+
+            if ($week <= $phase1End) {
+                return $vdotByWeek[$week] = $initialVdot;
+            }
+
+            if ($week <= $phase2End) {
+                $t = ($week - $phase1End) / max(1, $phase2Weeks);
+                return $vdotByWeek[$week] = $initialVdot + ($delta * 0.5 * $t);
+            }
+
+            if ($week <= $phase3End) {
+                $t = ($week - $phase2End) / max(1, $phase3Weeks);
+                return $vdotByWeek[$week] = ($initialVdot + ($delta * 0.5)) + ($delta * 0.5 * $t);
+            }
+
+            return $vdotByWeek[$week] = $targetVdot;
+        };
+
+        $getWeekPaces = function (int $week) use (&$pacesByWeek, $getWeekVdot) {
+            if (isset($pacesByWeek[$week])) {
+                return $pacesByWeek[$week];
+            }
+            $vdotW = (float) $getWeekVdot($week);
+            return $pacesByWeek[$week] = $this->calculateTrainingPaces($vdotW);
+        };
+
+        $addSession = function ($type, $dist, $desc) use (&$sessions, &$dayCounter, $getWeekPaces) {
             $week = (int) ceil($dayCounter / 7);
+            $pacesW = $getWeekPaces($week);
             $paceType = 'E';
             if ($type == 'interval') {
                 $paceType = 'I';
@@ -424,18 +482,18 @@ class DanielsRunningService
                 $paceType = 'T';
             } elseif ($type == 'repetition') {
                 $paceType = 'R';
-            } elseif ($type == 'long_run') {
-                $paceType = 'E';
+            } elseif ($type == 'race') {
+                $paceType = 'T';
             }
 
             // Calculate estimated duration based on mixed paces if description contains details,
             // but for simplicity we use the main pace type or Easy pace for mixed.
-            $mainPace = $paces[$paceType] ?? $paces['E'];
+            $mainPace = $pacesW[$paceType] ?? $pacesW['E'];
 
             // If it's a mixed workout (e.g. Warmup + Tempo + Cooldown), average pace is slightly faster than E but slower than T
             // This is just an estimation for the total duration field
             if (strpos($desc, 'Warmup') !== false) {
-                $mainPace = ($paces['E'] + $mainPace) / 2;
+                $mainPace = (($pacesW['E'] ?? $mainPace) + $mainPace) / 2;
             }
 
             $sessions[] = [
@@ -444,6 +502,7 @@ class DanielsRunningService
                 'type' => $type,
                 'distance' => round($dist, 2),
                 'duration' => $this->timeFromPace($dist, $mainPace),
+                'target_pace' => $this->formatPace($mainPace).'/km',
                 'description' => $desc,
             ];
         };
@@ -451,11 +510,12 @@ class DanielsRunningService
         $addRest = function () use (&$sessions, &$dayCounter) {
             $week = (int) ceil($dayCounter / 7);
             $sessions[] = [
-                'day' => $dayCounter++, 
+                'day' => $dayCounter++,
                 'week' => $week,
-                'type' => 'rest', 
-                'distance' => 0, 
-                'duration' => '00:00:00', 
+                'type' => 'rest',
+                'distance' => 0,
+                'duration' => '00:00:00',
+                'target_pace' => null,
                 'description' => 'Rest Day. Recover for the next session.'
             ];
         };
@@ -635,7 +695,9 @@ class DanielsRunningService
         return [
             'sessions' => $sessions,
             'duration_weeks' => $durationWeeks,
-            'vdot' => $vdot,
+            'vdot' => $initialVdot,
+            'initial_vdot' => $initialVdot,
+            'target_vdot' => $targetVdot,
             'training_paces' => $paces,
         ];
     }
