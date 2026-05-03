@@ -128,7 +128,7 @@
     <input id="eoReportLink" type="hidden" value="{{ $reportLink }}">
 
     <!-- Stats Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 relative z-10 print:hidden">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 relative z-10 print:hidden">
         <div class="bg-slate-800/50 backdrop-blur border border-slate-700 rounded-xl p-4">
             <p class="text-slate-400 text-xs font-bold uppercase mb-1">Total Registered</p>
             <h3 id="statTotalRegistered" class="text-2xl font-black text-white">{{ $participants->total() }}</h3>
@@ -144,6 +144,13 @@
         <div class="bg-yellow-900/20 backdrop-blur border border-yellow-500/30 rounded-xl p-4">
             <p class="text-yellow-400 text-xs font-bold uppercase mb-1">Pending Pickup</p>
             <h3 id="statPendingPickup" class="text-2xl font-black text-white">{{ \App\Models\Participant::whereHas('transaction', function($q) use ($event) { $q->where('event_id', $event->id)->where('payment_status', 'paid'); })->where('is_picked_up', false)->count() }}</h3>
+        </div>
+        <div class="bg-purple-900/20 backdrop-blur border border-purple-500/30 rounded-xl p-4">
+            <p class="text-purple-300 text-xs font-bold uppercase mb-1">Kunjungan Halaman</p>
+            <h3 class="text-2xl font-black text-white">{{ number_format($eventDetailAnalytics['last30']['unique'] ?? 0) }}</h3>
+            <p class="text-xs text-slate-400 mt-1">
+                Today: {{ number_format($eventDetailAnalytics['today']['unique'] ?? 0) }} • Views 30d: {{ number_format($eventDetailAnalytics['last30']['views'] ?? 0) }}
+            </p>
         </div>
     </div>
 

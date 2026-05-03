@@ -8,7 +8,9 @@ use App\Services\EventCacheService;
 use App\Services\MootaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\Snap;
@@ -94,6 +96,9 @@ class PublicEventController extends Controller
                 $q->where('event_id', $event->id)
                     ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
             })->exists();
+
+            $this->trackEventDetailView($event);
+
             if ($event->hardcoded === 'latbarkamis') {
                 $participants = $this->getLatbarParticipants($event);
                 $stats = $this->getLatbarStats($event);
@@ -144,6 +149,8 @@ class PublicEventController extends Controller
                 ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod']);
         })->exists();
 
+        $this->trackEventDetailView($event);
+
         if ($event->hardcoded === 'latbarkamis') {
                 $participants = $this->getLatbarParticipants($event);
                 $stats = $this->getLatbarStats($event);
@@ -168,6 +175,53 @@ class PublicEventController extends Controller
             'seo' => $seo,
             'hasPaidParticipants' => $hasPaidParticipants,
         ]);
+    }
+
+    private function trackEventDetailView(Event $event): void
+    {
+        $request = request();
+        if (! $request->isMethod('get') || $request->ajax() || $request->wantsJson()) {
+            return;
+        }
+
+        if (! Schema::hasTable('eo_page_stats')) {
+            return;
+        }
+
+        $page = 'public_event_detail';
+        $today = now()->toDateString();
+        $visitorHash = sha1(implode('|', [
+            (string) session()->getId(),
+            (string) $request->ip(),
+            (string) $request->userAgent(),
+        ]));
+
+        $uniqueCacheKey = "page_unique:{$page}:{$event->id}:{$today}:{$visitorHash}";
+        $isUnique = Cache::add($uniqueCacheKey, 1, now()->addDays(2));
+
+        DB::table('eo_page_stats')->insertOrIgnore([
+            'event_id' => $event->id,
+            'page' => $page,
+            'stat_date' => $today,
+            'views' => 0,
+            'unique_views' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $update = [
+            'views' => DB::raw('views + 1'),
+            'updated_at' => now(),
+        ];
+        if ($isUnique) {
+            $update['unique_views'] = DB::raw('unique_views + 1');
+        }
+
+        DB::table('eo_page_stats')
+            ->where('event_id', $event->id)
+            ->where('page', $page)
+            ->where('stat_date', $today)
+            ->update($update);
     }
 
     private function buildSeo(Event $event): array

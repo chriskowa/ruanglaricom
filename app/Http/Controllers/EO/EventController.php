@@ -775,6 +775,8 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
+        $eventDetailAnalytics = $this->getPublicEventDetailAnalytics($event);
+
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
@@ -1027,7 +1029,7 @@ class EventController extends Controller
             ->orderBy('code')
             ->get();
 
-        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink', 'nextBibNumber', 'coupons'));
+        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink', 'nextBibNumber', 'coupons', 'eventDetailAnalytics'));
     }
 
     public function participantsApi(Request $request, Event $event)
@@ -1861,6 +1863,44 @@ class EventController extends Controller
         }
 
         abort(403, 'Kamu tidak punya akses untuk mengelola event ini.');
+    }
+
+    private function getPublicEventDetailAnalytics(Event $event): array
+    {
+        if (! Schema::hasTable('eo_page_stats')) {
+            return [
+                'today' => ['views' => 0, 'unique' => 0],
+                'last30' => ['views' => 0, 'unique' => 0],
+            ];
+        }
+
+        $today = now()->toDateString();
+        $page = 'public_event_detail';
+
+        $todayRow = DB::table('eo_page_stats')
+            ->where('event_id', $event->id)
+            ->where('page', $page)
+            ->where('stat_date', $today)
+            ->first();
+
+        $from = now()->subDays(29)->startOfDay()->toDateString();
+        $last30 = DB::table('eo_page_stats')
+            ->where('event_id', $event->id)
+            ->where('page', $page)
+            ->where('stat_date', '>=', $from)
+            ->selectRaw('COALESCE(SUM(views),0) as views, COALESCE(SUM(unique_views),0) as unique_views')
+            ->first();
+
+        return [
+            'today' => [
+                'views' => (int) ($todayRow->views ?? 0),
+                'unique' => (int) ($todayRow->unique_views ?? 0),
+            ],
+            'last30' => [
+                'views' => (int) ($last30->views ?? 0),
+                'unique' => (int) ($last30->unique_views ?? 0),
+            ],
+        ];
     }
 
     private function duplicateName(string $name): string
