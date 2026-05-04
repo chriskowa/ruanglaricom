@@ -444,7 +444,7 @@
                             'name' => $participant->name,
                             'gender' => $participant->gender,
                             'gender_label' => ucfirst($participant->gender),
-                            'date_of_birth' => $participant->date_of_birth,
+                            'date_of_birth' => $participant->date_of_birth ? $participant->date_of_birth->toDateString() : null,
                             'email' => $participant->email,
                             'phone' => $participant->phone,
                             'id_card' => $participant->id_card,
