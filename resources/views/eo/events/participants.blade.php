@@ -1370,7 +1370,12 @@
             setQrMsg('Memproses pickup…', null);
             return updatePickupByParticipantId(participantId).then(function(res){
                 if (res && res.success) {
-                    setQrMsg(res.message || ('Berhasil update pickup #' + participantId), 'success');
+                    var p = res.participant || null;
+                    var name = (p && p.name) ? String(p.name) : '';
+                    var bib = (p && p.bib_number) ? String(p.bib_number) : '-';
+                    var jersey = (p && p.jersey_size) ? String(p.jersey_size) : '-';
+                    var msg = name ? (`Berhasil pickup: ${name} • BIB ${bib} • Jersey ${jersey}`) : (res.message || ('Berhasil update pickup #' + participantId));
+                    setQrMsg(msg, 'success');
                     fetchParticipants(currentParticipantsPage || 1);
                     qrLastOkAt = Date.now();
                 } else {

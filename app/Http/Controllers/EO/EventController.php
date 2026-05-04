@@ -1803,6 +1803,15 @@ class EventController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Status pengambilan berhasil diperbarui',
+                'participant' => [
+                    'id' => $participant->id,
+                    'name' => $participant->name,
+                    'bib_number' => $participant->bib_number,
+                    'jersey_size' => $participant->jersey_size,
+                    'is_picked_up' => (bool) $participant->is_picked_up,
+                    'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
+                    'picked_up_by' => $participant->picked_up_by,
+                ],
             ]);
         }
 
