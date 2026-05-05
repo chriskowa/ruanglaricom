@@ -271,7 +271,7 @@
                 <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
                     <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Jersey Breakdown</h4>
                     @php
-                        $jerseyCounts = $eventReport['jersey_sizes'] ?? [];
+                        $jerseyCounts = $eventReport['jersey_sizes_pending_pickup'] ?? ($eventReport['jersey_sizes'] ?? []);
                         $jerseySizes = ['XS','S','M','L','XL','2XL','3XL'];
                     @endphp
                     <div class="grid grid-cols-2 gap-2">
@@ -1376,6 +1376,9 @@
                     var jersey = (p && p.jersey_size) ? String(p.jersey_size) : '-';
                     var msg = name ? (`Berhasil pickup: ${name} • BIB ${bib} • Jersey ${jersey}`) : (res.message || ('Berhasil update pickup #' + participantId));
                     setQrMsg(msg, 'success');
+                    if (res.jersey_sizes_pending_pickup) {
+                        updateJerseyBreakdown(res.jersey_sizes_pending_pickup);
+                    }
                     fetchParticipants(currentParticipantsPage || 1);
                     qrLastOkAt = Date.now();
                 } else {
@@ -1655,6 +1658,31 @@
             if (statPaid) statPaid.textContent = stats.paid_confirmed;
             if (statPicked) statPicked.textContent = stats.race_pack_picked_up;
             if (statPending) statPending.textContent = stats.pending_pickup;
+            if (stats && stats.jersey_sizes_pending_pickup) {
+                updateJerseyBreakdown(stats.jersey_sizes_pending_pickup);
+            }
+        }
+
+        function normalizeJerseySizeKey(size) {
+            var s = String(size || '').trim().toUpperCase();
+            if (!s) return '';
+            if (s === 'XXL') return '2XL';
+            if (s === 'XXXL') return '3XL';
+            return s;
+        }
+
+        function updateJerseyBreakdown(counts) {
+            var jersey = counts || {};
+            ['XS','S','M','L','XL','2XL','3XL'].forEach(function(size){
+                var el = document.getElementById('repJerseySize_' + size);
+                if (!el) return;
+                var v = jersey[size];
+                if (v === undefined || v === null) v = jersey[String(size).toLowerCase()];
+                if (v === undefined || v === null) v = jersey[String(size).toUpperCase()];
+                if (v === undefined || v === null && size === '2XL') v = jersey['XXL'];
+                if (v === undefined || v === null && size === '3XL') v = jersey['XXXL'];
+                el.innerText = Number(v || 0);
+            });
         }
 
         function updateExportLink(data) {
@@ -1892,13 +1920,15 @@
             
             document.getElementById('repBreakdown').innerHTML = breakdownHtml;
 
-            var jersey = report.jersey_sizes || {};
+            var jersey = report.jersey_sizes_pending_pickup || report.jersey_sizes || {};
             ['XS','S','M','L','XL','2XL','3XL'].forEach(function(size){
                 var el = document.getElementById('repJerseySize_' + size);
                 if (!el) return;
                 var v = jersey[size];
                 if (v === undefined || v === null) v = jersey[String(size).toLowerCase()];
                 if (v === undefined || v === null) v = jersey[String(size).toUpperCase()];
+                if (v === undefined || v === null && size === '2XL') v = jersey['XXL'];
+                if (v === undefined || v === null && size === '3XL') v = jersey['XXXL'];
                 el.innerText = Number(v || 0);
             });
         }

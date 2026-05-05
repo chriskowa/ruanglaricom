@@ -907,6 +907,7 @@ class EventController extends Controller
                     'sort_dir' => request('report_sort_dir'),
                 ];
                 $eventReport = $this->reportService->getEventReport($event, $reportFilters);
+                $eventReport['jersey_sizes_pending_pickup'] = $this->getJerseyPendingPickupCounts($event);
 
                 return response()->json([
                     'success' => true,
@@ -960,6 +961,7 @@ class EventController extends Controller
                 'pending_pickup' => \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                     $q->where('event_id', $event->id)->where('payment_status', 'paid');
                 })->where('is_picked_up', false)->count(),
+                'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($event),
             ];
 
             return response()->json([
@@ -984,6 +986,7 @@ class EventController extends Controller
             'end_date' => request('report_end_date'),
             'ticket_type' => request('report_ticket_type'),
         ]);
+        $eventReport['jersey_sizes_pending_pickup'] = $this->getJerseyPendingPickupCounts($event);
 
         $reportLink = URL::signedRoute('report.show', ['event' => $event->id]);
 
@@ -1030,6 +1033,36 @@ class EventController extends Controller
             ->get();
 
         return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink', 'nextBibNumber', 'coupons', 'eventDetailAnalytics'));
+    }
+
+    private function getJerseyPendingPickupCounts(Event $event): array
+    {
+        $soldStatuses = ['paid', 'settlement', 'capture', 'cod'];
+
+        $raw = \App\Models\Participant::query()
+            ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+            ->where('transactions.event_id', $event->id)
+            ->whereIn('transactions.payment_status', $soldStatuses)
+            ->where('participants.is_picked_up', false)
+            ->whereNotNull('participants.jersey_size')
+            ->where('participants.jersey_size', '!=', '')
+            ->selectRaw('UPPER(participants.jersey_size) as jersey_size, COUNT(*) as total')
+            ->groupBy('jersey_size')
+            ->pluck('total', 'jersey_size')
+            ->toArray();
+
+        $normalized = [];
+        foreach ($raw as $size => $total) {
+            $key = strtoupper(trim((string) $size));
+            if ($key === 'XXL') {
+                $key = '2XL';
+            } elseif ($key === 'XXXL') {
+                $key = '3XL';
+            }
+            $normalized[$key] = (int) ($normalized[$key] ?? 0) + (int) $total;
+        }
+
+        return $normalized;
     }
 
     public function participantsApi(Request $request, Event $event)
@@ -1778,6 +1811,7 @@ class EventController extends Controller
             'picked_up_by' => 'nullable|string|max:255',
         ]);
 
+        $wasPickedUp = (bool) $participant->is_picked_up;
         $isPickedUp = (bool) $validated['is_picked_up'];
         if ($isPickedUp) {
             $paymentStatus = (string) ($participant->transaction->payment_status ?? '');
@@ -1803,6 +1837,7 @@ class EventController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Status pengambilan berhasil diperbarui',
+                'pickup_changed' => $wasPickedUp !== $isPickedUp,
                 'participant' => [
                     'id' => $participant->id,
                     'name' => $participant->name,
@@ -1812,6 +1847,7 @@ class EventController extends Controller
                     'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
                     'picked_up_by' => $participant->picked_up_by,
                 ],
+                'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($event),
             ]);
         }
 
