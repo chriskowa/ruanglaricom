@@ -81,7 +81,7 @@
                     <a href="{{ route('blog.show', $heroArticle->slug) }}" class="group block mt-10 rounded-3xl overflow-hidden border border-slate-700/60 hover:border-neon/40 transition-all bg-card/40">
                         <div class="relative h-[320px] md:h-[420px] overflow-hidden">
                             @if($heroImg)
-                                <img src="{{ $heroImg }}" alt="{{ $heroArticle->title }}" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700">
+                                <img src="{{ $heroImg }}" alt="{{ $heroArticle->localized_title }}" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700">
                             @else
                                 <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900"></div>
                             @endif
@@ -101,10 +101,10 @@
                                     </span>
                                 </div>
                                 <h2 class="mt-4 text-2xl md:text-4xl font-black leading-tight tracking-tight group-hover:text-neon transition-colors">
-                                    {{ $heroArticle->title }}
+                                    {{ $heroArticle->localized_title }}
                                 </h2>
                                 <p class="mt-3 text-slate-200/90 max-w-3xl leading-relaxed line-clamp-2">
-                                    {{ $heroArticle->excerpt ?: Str::limit(strip_tags((string) $heroArticle->content), 160) }}
+                                    {{ $heroArticle->localized_excerpt ?: Str::limit(strip_tags((string) $heroArticle->localized_content), 160) }}
                                 </p>
                             </div>
                         </div>
@@ -162,7 +162,7 @@
                                 <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-neon font-black">#{{ $loop->iteration }}</div>
                                 <div class="flex-1 min-w-0">
                                     <div class="text-sm font-bold text-white leading-snug line-clamp-2 group-hover:text-neon transition-colors">
-                                        {{ $t->title }}
+                                        {{ $t->localized_title }}
                                     </div>
                                     <div class="mt-1 text-[11px] font-mono text-slate-400 flex items-center gap-3">
                                         @if($t->category)

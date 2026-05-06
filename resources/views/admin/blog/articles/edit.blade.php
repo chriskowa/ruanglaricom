@@ -26,52 +26,99 @@
             
             <!-- Main Content -->
             <div class="lg:col-span-2 space-y-6">
-                <!-- Title & Slug -->
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Title</label>
-                            <input type="text" name="title" value="{{ old('title', $article->title) }}" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="Article Title">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div class="inline-flex rounded-2xl bg-slate-900/70 border border-slate-700 p-1">
+                            <button type="button" data-lang-tab="id" class="lang-tab px-4 py-2 rounded-xl text-sm font-bold transition-colors bg-neon/15 text-neon">Indonesia</button>
+                            <button type="button" data-lang-tab="en" class="lang-tab px-4 py-2 rounded-xl text-sm font-bold transition-colors text-slate-300 hover:text-white">English</button>
                         </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Slug</label>
-                            <input type="text" name="slug" value="{{ old('slug', $article->slug) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="article-title-slug">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Excerpt</label>
-                            <textarea name="excerpt" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="Short summary for listings...">{{ old('excerpt', $article->excerpt) }}</textarea>
+                        <div class="w-full md:w-auto">
+                            <label class="block text-sm font-bold text-slate-300 mb-2">Slug (Shared)</label>
+                            <input type="text" name="slug" value="{{ old('slug', $article->slug) }}" class="w-full md:w-[360px] bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="article-title-slug">
                         </div>
                     </div>
-                </div>
 
-                <!-- Editor -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <label class="block text-sm font-bold text-slate-300 mb-2">Content</label>
-                    <textarea id="editor" name="content">{{ old('content', $article->content) }}</textarea>
-                </div>
+                    <div class="mt-6 space-y-6">
+                        <div data-lang-panel="id" class="lang-panel space-y-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Title (ID)</label>
+                                <input type="text" name="title" value="{{ old('title', $article->title) }}" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="Judul artikel Indonesia">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Excerpt (ID)</label>
+                                <textarea name="excerpt" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="Ringkasan untuk listing...">{{ old('excerpt', $article->excerpt) }}</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Content (ID)</label>
+                                <textarea id="editor_id" class="js-editor" name="content">{{ old('content', $article->content) }}</textarea>
+                            </div>
+                            <div class="border-t border-slate-700/60 pt-6">
+                                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                    SEO (ID)
+                                </h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Meta Title (ID)</label>
+                                        <input type="text" name="meta_title" value="{{ old('meta_title', $article->meta_title) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Meta Description (ID)</label>
+                                        <textarea name="meta_description" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">{{ old('meta_description', $article->meta_description) }}</textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Meta Keywords (ID)</label>
+                                        <input type="text" name="meta_keywords" value="{{ old('meta_keywords', $article->meta_keywords) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="run, marathon, training">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Canonical URL (ID)</label>
+                                        <input type="url" name="canonical_url" value="{{ old('canonical_url', $article->canonical_url) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="https://...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- SEO -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
-                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        SEO Optimization (Yoast Style)
-                    </h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Meta Title</label>
-                            <input type="text" name="meta_title" value="{{ old('meta_title', $article->meta_title) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Meta Description</label>
-                            <textarea name="meta_description" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">{{ old('meta_description', $article->meta_description) }}</textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Meta Keywords</label>
-                            <input type="text" name="meta_keywords" value="{{ old('meta_keywords', $article->meta_keywords) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="run, marathon, training">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Canonical URL</label>
-                            <input type="url" name="canonical_url" value="{{ old('canonical_url', $article->canonical_url) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="https://...">
+                        <div data-lang-panel="en" class="lang-panel hidden space-y-6">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <div class="text-sm font-mono text-slate-400">Opsional, akan fallback ke ID jika kosong.</div>
+                                <button type="button" id="btn-copy-id-to-en" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold text-sm">Copy ID → EN</button>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Title (EN)</label>
+                                <input type="text" name="title_en" value="{{ old('title_en', $article->title_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="English title">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Excerpt (EN)</label>
+                                <textarea name="excerpt_en" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="English summary...">{{ old('excerpt_en', $article->excerpt_en) }}</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">Content (EN)</label>
+                                <textarea id="editor_en" class="js-editor" name="content_en">{{ old('content_en', $article->content_en) }}</textarea>
+                            </div>
+                            <div class="border-t border-slate-700/60 pt-6">
+                                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                    SEO (EN)
+                                </h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Meta Title (EN)</label>
+                                        <input type="text" name="meta_title_en" value="{{ old('meta_title_en', $article->meta_title_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Meta Description (EN)</label>
+                                        <textarea name="meta_description_en" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">{{ old('meta_description_en', $article->meta_description_en) }}</textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Meta Keywords (EN)</label>
+                                        <input type="text" name="meta_keywords_en" value="{{ old('meta_keywords_en', $article->meta_keywords_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="run, marathon, training">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-300 mb-2">Canonical URL (EN)</label>
+                                        <input type="url" name="canonical_url_en" value="{{ old('canonical_url_en', $article->canonical_url_en) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="https://...">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -163,7 +210,7 @@
 <script src="https://cdn.tiny.cloud/1/jmsd06m7clya0xqmr43culaqsx8b77z5djnmhavamejsiypc/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
     tinymce.init({
-        selector: '#editor',
+        selector: '.js-editor',
         height: 500,
         plugins: 'advlist autolink lists link image charmap preview anchor pagebreak',
         toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image',
@@ -237,6 +284,62 @@
             xhr.send(formData);
         })
     });
+
+    const setLangTab = (lang) => {
+        const tabs = Array.from(document.querySelectorAll('.lang-tab'));
+        const panels = Array.from(document.querySelectorAll('.lang-panel'));
+        tabs.forEach((t) => {
+            const isActive = t.getAttribute('data-lang-tab') === lang;
+            t.classList.toggle('bg-neon/15', isActive);
+            t.classList.toggle('text-neon', isActive);
+            t.classList.toggle('text-slate-300', !isActive);
+        });
+        panels.forEach((p) => {
+            const isTarget = p.getAttribute('data-lang-panel') === lang;
+            p.classList.toggle('hidden', !isTarget);
+        });
+    };
+
+    document.querySelectorAll('.lang-tab').forEach((btn) => {
+        btn.addEventListener('click', () => setLangTab(btn.getAttribute('data-lang-tab')));
+    });
+
+    const copyIdToEn = () => {
+        const titleId = document.querySelector('input[name="title"]')?.value || '';
+        const excerptId = document.querySelector('textarea[name="excerpt"]')?.value || '';
+        const metaTitleId = document.querySelector('input[name="meta_title"]')?.value || '';
+        const metaDescId = document.querySelector('textarea[name="meta_description"]')?.value || '';
+        const metaKeywordsId = document.querySelector('input[name="meta_keywords"]')?.value || '';
+        const canonicalId = document.querySelector('input[name="canonical_url"]')?.value || '';
+
+        const titleEn = document.querySelector('input[name="title_en"]');
+        const excerptEn = document.querySelector('textarea[name="excerpt_en"]');
+        const metaTitleEn = document.querySelector('input[name="meta_title_en"]');
+        const metaDescEn = document.querySelector('textarea[name="meta_description_en"]');
+        const metaKeywordsEn = document.querySelector('input[name="meta_keywords_en"]');
+        const canonicalEn = document.querySelector('input[name="canonical_url_en"]');
+
+        if (titleEn && !titleEn.value) titleEn.value = titleId;
+        if (excerptEn && !excerptEn.value) excerptEn.value = excerptId;
+        if (metaTitleEn && !metaTitleEn.value) metaTitleEn.value = metaTitleId;
+        if (metaDescEn && !metaDescEn.value) metaDescEn.value = metaDescId;
+        if (metaKeywordsEn && !metaKeywordsEn.value) metaKeywordsEn.value = metaKeywordsId;
+        if (canonicalEn && !canonicalEn.value) canonicalEn.value = canonicalId;
+
+        const idEditor = tinymce.get('editor_id');
+        const enEditor = tinymce.get('editor_en');
+        if (idEditor && enEditor && !enEditor.getContent()) {
+            enEditor.setContent(idEditor.getContent());
+        }
+    };
+
+    const copyBtn = document.getElementById('btn-copy-id-to-en');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            copyIdToEn();
+            setLangTab('en');
+        });
+    }
 
     function openMediaModal(onSelectCallback) {
         let modalId = 'media-library-modal';

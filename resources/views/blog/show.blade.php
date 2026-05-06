@@ -1,9 +1,9 @@
 @extends('layouts.pacerhub')
 
 @php
-    $canonicalUrl = $article->canonical_url ?: route('blog.show', $article->slug);
-    $metaTitle = $article->meta_title ?: $article->title . ' | Ruang Lari';
-    $metaDescription = $article->meta_description ?: ($article->excerpt ?: Str::limit(preg_replace('/\s+/', ' ', trim(strip_tags($article->content))), 160));
+    $canonicalUrl = $article->localized_canonical_url ?: route('blog.show', $article->slug);
+    $metaTitle = $article->localized_meta_title ?: $article->localized_title . ' | Ruang Lari';
+    $metaDescription = $article->localized_meta_description ?: ($article->localized_excerpt ?: Str::limit(preg_replace('/\s+/', ' ', trim(strip_tags($article->localized_content))), 160));
     $publishedAtIso = optional($article->published_at ?: $article->created_at)?->toIso8601String();
     $modifiedAtIso = optional($article->updated_at ?: $article->created_at)?->toIso8601String();
 @endphp
@@ -11,7 +11,7 @@
 @section('title', $metaTitle)
 @section('meta_title', $metaTitle)
 @section('meta_description', $metaDescription)
-@section('meta_keywords', $article->meta_keywords ?? '')
+@section('meta_keywords', $article->localized_meta_keywords ?? '')
 @section('canonical_url', $canonicalUrl)
 @section('og_type', 'article')
 @section('og_url', $canonicalUrl)
@@ -67,7 +67,7 @@
     $breadcrumbItems[] = [
         '@type' => 'ListItem',
         'position' => count($breadcrumbItems) + 1,
-        'name' => $article->title,
+        'name' => $article->localized_title,
         'item' => $canonicalUrl,
     ];
 
@@ -78,7 +78,7 @@
             '@type' => 'WebPage',
             '@id' => $canonicalUrl,
         ],
-        'headline' => $article->title,
+        'headline' => $article->localized_title,
         'description' => $schemaDescription,
         'image' => [$schemaImage],
         'datePublished' => $publishedAtIso,
@@ -116,7 +116,7 @@
         <div class="flex items-center justify-between md:hidden">
             <a href="{{ route('home') }}" class="inline-flex items-center text-xs text-slate-400 hover:text-neon transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>
-                <span class="truncate max-w-[220px]">{{ $article->title }}</span>
+                        <span class="truncate max-w-[220px]">{{ $article->localized_title }}</span>
             </a>
         </div>
         <nav class="hidden md:flex text-sm text-slate-400 font-mono" aria-label="Breadcrumb">
@@ -144,7 +144,7 @@
                 <li aria-current="page">
                     <div class="flex items-center">
                         <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
-                        <span class="text-slate-200 font-bold truncate max-w-[200px] md:max-w-xs">{{ $article->title }}</span>
+                        <span class="text-slate-200 font-bold truncate max-w-[200px] md:max-w-xs">{{ $article->localized_title }}</span>
                     </div>
                 </li>
             </ol>
@@ -155,10 +155,10 @@
         <div class="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
             <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/20 to-transparent z-10"></div>
             @if($bgImage)
-                <img src="{{ $bgImage }}" alt="{{ $article->title }}" class="w-full h-full object-cover">
+                <img src="{{ $bgImage }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
             @else
                 {{-- Replaced gradient div with fallback image as requested --}}
-                <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $article->title }}" class="w-full h-full object-cover">
+                <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
             @endif
             
             <div class="absolute bottom-0 left-0 w-full z-20 pb-6 md:pb-16 pl-8 md:pl-12">
@@ -169,7 +169,7 @@
                         </span>
                     @endif
                     <h1 class="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight tracking-tight drop-shadow-lg">
-                        {{ $article->title }}
+                        {{ $article->localized_title }}
                     </h1>
                     <div class="flex items-center gap-6 text-sm text-slate-200 font-mono">
                         <span class="flex items-center gap-2 backdrop-blur-sm px-2 py-1 rounded-lg bg-black/30">
@@ -192,9 +192,9 @@
         <div class="container mx-auto px-4 md:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
                 <div class="lg:col-span-8 lg:col-start-3">
-                    @if($article->excerpt)
+                    @if($article->localized_excerpt)
                         <div class="text-xl md:text-2xl text-slate-300 leading-relaxed font-light mb-10 border-l-4 border-neon pl-6 italic">
-                            {{ $article->excerpt }}
+                            {{ $article->localized_excerpt }}
                         </div>
                     @endif
 
@@ -209,13 +209,13 @@
                         prose-img:rounded-2xl prose-img:shadow-lg prose-img:border prose-img:border-slate-700/50
                         prose-hr:border-slate-700">
                         
-                        {!! $article->content !!}
+                        {!! $article->localized_content !!}
                         
                     </article>
 
                     @php
                         $shareUrl = urlencode(url()->current());
-                        $shareText = urlencode($article->title);
+                        $shareText = urlencode($article->localized_title);
                     @endphp
 
                     <div class="mt-16 pt-8 border-t border-slate-700/50 flex justify-between items-center">

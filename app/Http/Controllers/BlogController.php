@@ -39,9 +39,18 @@ class BlogController extends Controller
 
         if ($search !== '') {
             $articlesQuery->where(function ($q) use ($search) {
-                $q->where('title', 'like', '%'.$search.'%')
-                    ->orWhere('excerpt', 'like', '%'.$search.'%')
-                    ->orWhere('content', 'like', '%'.$search.'%');
+                if (app()->getLocale() === 'en') {
+                    $q->where('title_en', 'like', '%'.$search.'%')
+                        ->orWhere('excerpt_en', 'like', '%'.$search.'%')
+                        ->orWhere('content_en', 'like', '%'.$search.'%')
+                        ->orWhere('title', 'like', '%'.$search.'%')
+                        ->orWhere('excerpt', 'like', '%'.$search.'%')
+                        ->orWhere('content', 'like', '%'.$search.'%');
+                } else {
+                    $q->where('title', 'like', '%'.$search.'%')
+                        ->orWhere('excerpt', 'like', '%'.$search.'%')
+                        ->orWhere('content', 'like', '%'.$search.'%');
+                }
             });
         }
 

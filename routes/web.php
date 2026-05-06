@@ -530,6 +530,18 @@ Route::get('/event-organizer', function () {
 // Public Pages
 Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
 
+Route::get('/lang/{locale}', function (Illuminate\Http\Request $request, string $locale) {
+    $locale = strtolower(trim($locale));
+    if (! in_array($locale, ['id', 'en'], true)) {
+        $locale = 'id';
+    }
+
+    $request->session()->put('locale', $locale);
+    app()->setLocale($locale);
+
+    return redirect()->back();
+})->name('lang.switch');
+
 // Public Blog
 Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/kategori/{slug}', [App\Http\Controllers\BlogController::class, 'category'])->name('blog.category');
@@ -605,12 +617,12 @@ Route::get('/api/blog/latest', function () {
                 $dt = $a->published_at ?: $a->created_at;
 
                 return [
-                    'title' => $a->title,
+                    'title' => $a->localized_title,
                     'slug' => $a->slug,
-                    'excerpt' => $a->excerpt,
+                    'excerpt' => $a->localized_excerpt,
                     'date' => optional($dt)->format('Y-m-d'),
                     'image' => $img,
-                    'url' => $a->canonical_url ?: route('blog.show', $a->slug),
+                    'url' => $a->localized_canonical_url ?: route('blog.show', $a->slug),
                 ];
             });
     } catch (\Throwable $e) {

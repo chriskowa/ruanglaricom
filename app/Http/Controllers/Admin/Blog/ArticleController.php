@@ -120,10 +120,13 @@ class ArticleController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255|unique:articles,slug',
             'category_id' => 'nullable|exists:blog_categories,id',
             'excerpt' => 'nullable|string',
+            'excerpt_en' => 'nullable|string',
             'content' => 'required|string',
+            'content_en' => 'nullable|string',
             'featured_image' => 'nullable|image|max:2048',
             'featured_image_url' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',
@@ -134,9 +137,13 @@ class ArticleController extends Controller
 
             // SEO
             'meta_title' => 'nullable|string|max:255',
+            'meta_title_en' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
+            'meta_description_en' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:255',
+            'meta_keywords_en' => 'nullable|string|max:255',
             'canonical_url' => 'nullable|url',
+            'canonical_url_en' => 'nullable|url',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -199,10 +206,13 @@ class ArticleController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255|unique:articles,slug,'.$article->id,
             'category_id' => 'nullable|exists:blog_categories,id',
             'excerpt' => 'nullable|string',
+            'excerpt_en' => 'nullable|string',
             'content' => 'required|string',
+            'content_en' => 'nullable|string',
             'featured_image' => 'nullable|image|max:2048',
             'featured_image_url' => 'nullable|string',
             'status' => 'required|in:draft,published,archived',
@@ -213,9 +223,13 @@ class ArticleController extends Controller
 
             // SEO
             'meta_title' => 'nullable|string|max:255',
+            'meta_title_en' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
+            'meta_description_en' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:255',
+            'meta_keywords_en' => 'nullable|string|max:255',
             'canonical_url' => 'nullable|url',
+            'canonical_url_en' => 'nullable|url',
         ]);
 
         if ($request->filled('slug')) {

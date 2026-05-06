@@ -16,17 +16,24 @@ class Article extends Model
         'user_id',
         'category_id',
         'title',
+        'title_en',
         'slug',
         'excerpt',
+        'excerpt_en',
         'content',
+        'content_en',
         'featured_image',
         'status',
         'is_featured',
         'published_at',
         'meta_title',
+        'meta_title_en',
         'meta_description',
+        'meta_description_en',
         'meta_keywords',
+        'meta_keywords_en',
         'canonical_url',
+        'canonical_url_en',
         'views_count',
     ];
 
@@ -71,5 +78,68 @@ class Article extends Model
     {
         return $query->where('status', 'published')
             ->where('published_at', '<=', now());
+    }
+
+    public function getLocalizedTitleAttribute(): string
+    {
+        if (app()->getLocale() === 'en' && $this->title_en) {
+            return (string) $this->title_en;
+        }
+
+        return (string) $this->title;
+    }
+
+    public function getLocalizedExcerptAttribute(): ?string
+    {
+        if (app()->getLocale() === 'en' && $this->excerpt_en) {
+            return $this->excerpt_en;
+        }
+
+        return $this->excerpt;
+    }
+
+    public function getLocalizedContentAttribute(): string
+    {
+        if (app()->getLocale() === 'en' && $this->content_en) {
+            return (string) $this->content_en;
+        }
+
+        return (string) $this->content;
+    }
+
+    public function getLocalizedMetaTitleAttribute(): ?string
+    {
+        if (app()->getLocale() === 'en' && $this->meta_title_en) {
+            return $this->meta_title_en;
+        }
+
+        return $this->meta_title;
+    }
+
+    public function getLocalizedMetaDescriptionAttribute(): ?string
+    {
+        if (app()->getLocale() === 'en' && $this->meta_description_en) {
+            return $this->meta_description_en;
+        }
+
+        return $this->meta_description;
+    }
+
+    public function getLocalizedMetaKeywordsAttribute(): ?string
+    {
+        if (app()->getLocale() === 'en' && $this->meta_keywords_en) {
+            return $this->meta_keywords_en;
+        }
+
+        return $this->meta_keywords;
+    }
+
+    public function getLocalizedCanonicalUrlAttribute(): ?string
+    {
+        if (app()->getLocale() === 'en' && $this->canonical_url_en) {
+            return $this->canonical_url_en;
+        }
+
+        return $this->canonical_url;
     }
 }

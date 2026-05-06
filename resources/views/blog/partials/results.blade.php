@@ -12,7 +12,7 @@
         <a href="{{ route('blog.show', $a->slug) }}" class="group block bg-card/60 border border-slate-700/60 rounded-2xl overflow-hidden hover:border-neon/40 hover:shadow-lg hover:shadow-neon/10 transition-all">
             <div class="relative h-44 overflow-hidden">
                 @if($img)
-                    <img src="{{ $img }}" alt="{{ $a->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <img src="{{ $img }}" alt="{{ $a->localized_title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 @else
                     <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900"></div>
                 @endif
@@ -21,7 +21,7 @@
                     @if($a->category)
                         <div class="text-xs font-mono text-neon/90 mb-2 truncate">{{ $a->category->name }}</div>
                     @endif
-                    <div class="text-white font-bold leading-snug line-clamp-2">{{ $a->title }}</div>
+                    <div class="text-white font-bold leading-snug line-clamp-2">{{ $a->localized_title }}</div>
                     <div class="mt-2 text-[11px] font-mono text-slate-300 flex items-center gap-3">
                         <span class="inline-flex items-center gap-2"><i class="far fa-calendar-alt text-neon"></i>{{ optional($dt)->format('d M Y') }}</span>
                         <span class="inline-flex items-center gap-2"><i class="far fa-eye text-neon"></i>{{ number_format((int) ($a->views_count ?? 0)) }}</span>
@@ -30,7 +30,7 @@
             </div>
             <div class="p-5">
                 <div class="text-sm text-slate-300 leading-relaxed line-clamp-3">
-                    {{ $a->excerpt ?: Str::limit(strip_tags((string) $a->content), 140) }}
+                    {{ $a->localized_excerpt ?: Str::limit(strip_tags((string) $a->localized_content), 140) }}
                 </div>
             </div>
         </a>
