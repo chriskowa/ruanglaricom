@@ -51,7 +51,7 @@ class EoEmailBlastController extends Controller
             'subject_template' => 'required|string|max:255',
             'html_template' => 'required|string',
             'source_type' => 'required|in:single,csv',
-            'to_email' => 'required_if:source_type,single|nullable|email',
+            'to_emails' => 'required_if:source_type,single|nullable|string|max:2000',
             'to_name' => 'nullable|string|max:255',
             'csv_file' => 'required_if:source_type,csv|nullable|file|mimes:csv,txt|max:10240',
             'email_column' => 'required_if:source_type,csv|nullable|string',
@@ -85,64 +85,115 @@ class EoEmailBlastController extends Controller
         $blast->save();
 
         if ($blast->source_type === 'single') {
-            $blast->target_count = 1;
-            $blast->sent_count = 0;
-            $blast->failed_count = 0;
-            $blast->status = 'processing';
-            $blast->save();
+            $rawEmails = (string) $request->input('to_emails', '');
+            $tokens = preg_split('/[,\r\n]+/', $rawEmails) ?: [];
 
-            $payload = [
-                'email' => $request->to_email,
-                'name' => $request->to_name,
-            ];
+            $emails = [];
+            foreach ($tokens as $t) {
+                $email = trim((string) $t);
+                if ($email === '') {
+                    continue;
+                }
+                $emails[] = $email;
+            }
 
-            $subject = $this->replacePlaceholders($blast->subject_template, $payload);
-            $htmlBody = $this->replacePlaceholders($blast->html_template, $payload);
+            $emails = array_values(array_unique($emails));
 
-            $delivery = EoEmailBlastDelivery::create([
-                'eo_email_blast_id' => $blast->id,
-                'to_email' => $request->to_email,
-                'to_name' => $request->to_name,
-                'payload' => $payload,
-                'status' => 'queued',
+            $validEmails = [];
+            $invalidCount = 0;
+            foreach ($emails as $email) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $validEmails[] = $email;
+                } else {
+                    $invalidCount++;
+                }
+            }
+
+            $ignoredExtraCount = max(0, count($validEmails) - 10);
+            $validEmails = array_slice($validEmails, 0, 10);
+
+            if (count($validEmails) === 0) {
+                $blast->update([
+                    'status' => 'failed',
+                    'target_count' => 0,
+                    'sent_count' => 0,
+                    'failed_count' => 0,
+                ]);
+
+                return redirect()->back()->withInput()->with('error', 'Tidak ada email valid untuk dikirim.');
+            }
+
+            $blast->update([
+                'status' => 'processing',
+                'target_count' => count($validEmails),
+                'sent_count' => 0,
+                'failed_count' => 0,
             ]);
 
-            try {
-                Mail::to($delivery->to_email)->send(new EoCustomBlastEmail($subject, $htmlBody));
+            $sentCount = 0;
+            $failedCount = 0;
+            $defaultName = $request->input('to_name');
 
-                $delivery->update([
-                    'status' => 'sent',
-                    'rendered_subject' => $subject,
-                    'sent_at' => now(),
-                    'error_message' => null,
+            foreach ($validEmails as $email) {
+                $payload = [
+                    'email' => $email,
+                    'name' => $defaultName,
+                ];
+
+                $subject = $this->replacePlaceholders($blast->subject_template, $payload);
+                $htmlBody = $this->replacePlaceholders($blast->html_template, $payload);
+
+                $delivery = EoEmailBlastDelivery::create([
+                    'eo_email_blast_id' => $blast->id,
+                    'to_email' => $email,
+                    'to_name' => $defaultName,
+                    'payload' => $payload,
+                    'status' => 'queued',
                 ]);
 
-                $blast->update([
-                    'sent_count' => 1,
-                    'failed_count' => 0,
-                    'status' => 'completed',
-                ]);
+                try {
+                    Mail::to($delivery->to_email)->send(new EoCustomBlastEmail($subject, $htmlBody));
 
-                return redirect()->route('eo.blasts.show', ['blast' => $blast->id, 'event' => $event ? $event->id : null])
-                    ->with('success', 'Email berhasil dikirim.');
-            } catch (\Throwable $e) {
-                report($e);
+                    $delivery->update([
+                        'status' => 'sent',
+                        'rendered_subject' => $subject,
+                        'sent_at' => now(),
+                        'error_message' => null,
+                    ]);
 
-                $delivery->update([
-                    'status' => 'failed',
-                    'rendered_subject' => $subject,
-                    'error_message' => $e->getMessage(),
-                ]);
+                    $sentCount++;
+                } catch (\Throwable $e) {
+                    report($e);
 
-                $blast->update([
-                    'sent_count' => 0,
-                    'failed_count' => 1,
-                    'status' => 'failed',
-                ]);
+                    $delivery->update([
+                        'status' => 'failed',
+                        'rendered_subject' => $subject,
+                        'error_message' => $e->getMessage(),
+                    ]);
 
-                return redirect()->route('eo.blasts.show', ['blast' => $blast->id, 'event' => $event ? $event->id : null])
-                    ->with('error', 'Gagal mengirim email.');
+                    $failedCount++;
+                }
             }
+
+            $blast->update([
+                'sent_count' => $sentCount,
+                'failed_count' => $failedCount,
+                'status' => $sentCount > 0 ? 'completed' : 'failed',
+            ]);
+
+            $msg = "Terkirim {$sentCount} dari {$blast->target_count}.";
+            if ($failedCount > 0) {
+                $msg .= " Gagal: {$failedCount}.";
+            }
+            if ($invalidCount > 0) {
+                $msg .= " Email tidak valid diabaikan: {$invalidCount}.";
+            }
+            if ($ignoredExtraCount > 0) {
+                $msg .= " Melebihi batas (10) diabaikan: {$ignoredExtraCount}.";
+            }
+
+            return redirect()->route('eo.blasts.show', ['blast' => $blast->id, 'event' => $event ? $event->id : null])
+                ->with($sentCount > 0 ? 'success' : 'error', $msg);
         }
 
         ProcessEoEmailBlast::dispatch($blast);

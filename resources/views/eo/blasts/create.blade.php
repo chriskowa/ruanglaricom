@@ -50,10 +50,11 @@
 
                             <div id="singleFields" class="{{ old('source_type', 'single') == 'single' ? '' : 'hidden' }} md:col-span-2">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">To Email</label>
-                                        <input type="email" name="to_email" value="{{ old('to_email') }}" class="w-full bg-slate-900/60 border border-slate-700 text-white text-sm rounded-xl px-3 py-3 focus:border-neon focus:outline-none @error('to_email') border-red-500 @enderror">
-                                        @error('to_email')<div class="text-red-300 text-xs mt-1">{{ $message }}</div>@enderror
+                                    <div class="md:col-span-2">
+                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Emails (max 10)</label>
+                                        <textarea name="to_emails" rows="4" class="w-full bg-slate-900/60 border border-slate-700 text-white text-sm rounded-xl px-3 py-3 focus:border-neon focus:outline-none font-mono @error('to_emails') border-red-500 @enderror" placeholder="email1@domain.com, email2@domain.com&#10;email3@domain.com">{{ old('to_emails') }}</textarea>
+                                        @error('to_emails')<div class="text-red-300 text-xs mt-1">{{ $message }}</div>@enderror
+                                        <div class="text-slate-400 text-xs mt-1">Pisahkan dengan koma atau enter. Email tidak valid akan diabaikan.</div>
                                     </div>
                                     <div>
                                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">To Name (Opsional)</label>
@@ -268,8 +269,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sourceCsv.checked && previewRowSelect.value !== '') {
             payload = sampleRowsData[previewRowSelect.value] || {};
         } else if (sourceSingle.checked) {
+            const emailsRaw = (document.querySelector('textarea[name="to_emails"]')?.value || '');
+            const tokens = emailsRaw.split(/[,\\r\\n]+/).map(s => s.trim()).filter(Boolean);
+            const firstEmail = tokens.find(e => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(e)) || '';
             payload = {
-                email: document.querySelector('input[name="to_email"]').value,
+                email: firstEmail,
                 name: document.querySelector('input[name="to_name"]').value
             };
         }
