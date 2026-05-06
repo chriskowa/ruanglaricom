@@ -1,5 +1,5 @@
 @extends('layouts.pacerhub')
-@php($withSidebar = true)
+@php $withSidebar = true; @endphp
 
 @section('title', 'Email Campaigns - ' . $event->name)
 
@@ -24,6 +24,12 @@
     @if(session('success'))
         <div class="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700">
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+            {{ session('error') }}
         </div>
     @endif
 

@@ -989,6 +989,14 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/campaigns/preview', [\App\Http\Controllers\EO\EventEmailCampaignController::class, 'preview'])->name('events.campaigns.preview');
         Route::get('events/{event}/campaigns/{campaign}', [\App\Http\Controllers\EO\EventEmailCampaignController::class, 'show'])->name('events.campaigns.show');
 
+        // Email Blasts (Custom HTML to Single/CSV)
+        Route::get('blasts', [\App\Http\Controllers\EO\EoEmailBlastController::class, 'index'])->name('blasts.index');
+        Route::get('blasts/create', [\App\Http\Controllers\EO\EoEmailBlastController::class, 'create'])->name('blasts.create');
+        Route::post('blasts', [\App\Http\Controllers\EO\EoEmailBlastController::class, 'store'])->name('blasts.store');
+        Route::post('blasts/preview', [\App\Http\Controllers\EO\EoEmailBlastController::class, 'preview'])->name('blasts.preview');
+        Route::post('blasts/parse-csv', [\App\Http\Controllers\EO\EoEmailBlastController::class, 'parseCsvHeader'])->name('blasts.parse_csv');
+        Route::get('blasts/{blast}', [\App\Http\Controllers\EO\EoEmailBlastController::class, 'show'])->name('blasts.show');
+
         // Race results management
         Route::get('events/{event}/results', [App\Http\Controllers\EO\RaceResultController::class, 'index'])->name('events.results');
         Route::post('events/{event}/results', [App\Http\Controllers\EO\RaceResultController::class, 'store'])->name('events.results.store');
