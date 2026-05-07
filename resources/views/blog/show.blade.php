@@ -118,37 +118,47 @@
                 <i class="fas fa-arrow-left mr-2"></i>
                         <span class="truncate max-w-[220px]">{{ $article->localized_title }}</span>
             </a>
+            <div class="inline-flex rounded-2xl bg-slate-900/70 border border-slate-700 p-1">
+                <a href="{{ route('lang.switch', 'id') }}" class="px-3 py-2 rounded-xl text-xs font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">ID</a>
+                <a href="{{ route('lang.switch', 'en') }}" class="px-3 py-2 rounded-xl text-xs font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">EN</a>
+            </div>
         </div>
-        <nav class="hidden md:flex text-sm text-slate-400 font-mono" aria-label="Breadcrumb">
-            <ol class="flex flex-wrap items-center gap-1 md:space-x-3">
-                <li class="inline-flex items-center">
-                    <a href="{{ route('home') }}" class="inline-flex items-center hover:text-neon transition-colors">
-                        <i class="fas fa-home mr-2"></i>
-                        Home
-                    </a>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
-                        <span class="text-slate-400">Blog</span>
-                    </div>
-                </li>
-                @if($article->category)
-                <li>
-                    <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
-                        <span class="text-slate-400">{{ $article->category->name }}</span>
-                    </div>
-                </li>
-                @endif
-                <li aria-current="page">
-                    <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
-                        <span class="text-slate-200 font-bold truncate max-w-[200px] md:max-w-xs">{{ $article->localized_title }}</span>
-                    </div>
-                </li>
-            </ol>
-        </nav>
+        <div class="hidden md:flex items-center justify-between gap-4">
+            <nav class="text-sm text-slate-400 font-mono" aria-label="Breadcrumb">
+                <ol class="flex flex-wrap items-center gap-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <a href="{{ route('home') }}" class="inline-flex items-center hover:text-neon transition-colors">
+                            <i class="fas fa-home mr-2"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
+                            <span class="text-slate-400">Blog</span>
+                        </div>
+                    </li>
+                    @if($article->category)
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
+                            <span class="text-slate-400">{{ $article->category->name }}</span>
+                        </div>
+                    </li>
+                    @endif
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-slate-600 mx-2 text-xs"></i>
+                            <span class="text-slate-200 font-bold truncate max-w-[200px] md:max-w-xs">{{ $article->localized_title }}</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+            <div class="inline-flex rounded-2xl bg-slate-900/70 border border-slate-700 p-1">
+                <a href="{{ route('lang.switch', 'id') }}" class="px-4 py-2 rounded-xl text-sm font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">ID</a>
+                <a href="{{ route('lang.switch', 'en') }}" class="px-4 py-2 rounded-xl text-sm font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-neon/15 text-neon' : 'text-slate-300 hover:text-white' }}">EN</a>
+            </div>
+        </div>
     </div>
 
     <div class="relative w-full h-[40vh] md:h-[50vh] lg:h-[60vh] overflow-hidden rounded-3xl mx-auto container px-4 md:px-8 mt-4">
