@@ -234,7 +234,7 @@
     @include('layouts.components.auth-modal')
 
     @auth
-    @if(!isset($hideChat) || !$hideChat)
+    @if((!isset($hideChat) || !$hideChat) && auth()->user()->role !== 'eo')
     <button id="chatbox-toggle" class="fixed bottom-5 right-6 z-50 w-14 h-14 rounded-full bg-neon text-dark font-black shadow-lg shadow-neon/30 flex items-center justify-center hover:bg-lime-400 transition">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-7 8l4-4h8a4 4 0 004-4V6a4 4 0 00-4-4H7a4 4 0 00-4 4v10a4 4 0 004 4z"/></svg>
         <span id="ph-chat-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>

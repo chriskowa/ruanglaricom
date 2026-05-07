@@ -1008,6 +1008,54 @@
                             </div>
                         </div>
 
+                        <div v-if="(detail.workout_structure && detail.workout_structure.length > 0) || detail.description" class="mb-4 bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-neon flex items-center justify-center text-dark font-bold text-xs">AI</div>
+                                    <div class="min-w-0">
+                                        <div class="text-sm font-bold text-white truncate">AI Coach</div>
+                                        <div class="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Personal guidance</div>
+                                    </div>
+                                </div>
+                                <button v-if="!trainingProfile?.paces?.E && !trainingProfile?.paces?.T && !trainingProfile?.paces?.I" type="button" class="px-3 py-1.5 rounded-lg bg-slate-900/60 text-slate-200 border border-slate-700 text-xs font-black hover:border-neon/40 transition" @click="openVdotModal">
+                                    Set Pace
+                                </button>
+                            </div>
+
+                            <div class="mt-3 text-sm text-slate-200 leading-relaxed">@{{ aiCoachSummary }}</div>
+
+                            <div v-if="aiCoachCues.length" class="mt-3">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Coaching Cues</div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    <div v-for="(c, idx) in aiCoachCues" :key="'cue-' + idx" class="text-xs text-slate-200 bg-slate-900/60 border border-slate-700 rounded-xl px-3 py-2">
+                                        @{{ c }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="trainingProfile?.paces?.E || trainingProfile?.paces?.T || trainingProfile?.paces?.I || trainingProfile?.paces?.R" class="mt-3">
+                                <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Pace Cheat Sheet</div>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    <div v-if="trainingProfile?.paces?.E" class="rounded-xl bg-slate-900/60 border border-slate-700 px-3 py-2">
+                                        <div class="text-[10px] text-slate-400 uppercase">Easy (E)</div>
+                                        <div class="text-white font-black text-sm">@{{ formatPace(trainingProfile.paces.E) }}/km</div>
+                                    </div>
+                                    <div v-if="trainingProfile?.paces?.M" class="rounded-xl bg-slate-900/60 border border-slate-700 px-3 py-2">
+                                        <div class="text-[10px] text-slate-400 uppercase">Marathon (M)</div>
+                                        <div class="text-white font-black text-sm">@{{ formatPace(trainingProfile.paces.M) }}/km</div>
+                                    </div>
+                                    <div v-if="trainingProfile?.paces?.T" class="rounded-xl bg-slate-900/60 border border-slate-700 px-3 py-2">
+                                        <div class="text-[10px] text-slate-400 uppercase">Tempo (T)</div>
+                                        <div class="text-white font-black text-sm">@{{ formatPace(trainingProfile.paces.T) }}/km</div>
+                                    </div>
+                                    <div v-if="trainingProfile?.paces?.I" class="rounded-xl bg-slate-900/60 border border-slate-700 px-3 py-2">
+                                        <div class="text-[10px] text-slate-400 uppercase">Interval (I)</div>
+                                        <div class="text-white font-black text-sm">@{{ formatPace(trainingProfile.paces.I) }}/km</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     <div v-if="stravaDetailsLoading" class="mb-4 bg-slate-900/40 border border-slate-700/60 rounded-xl p-3 text-xs text-slate-300">
                         Fetching Strava details…
                     </div>
@@ -1192,17 +1240,35 @@
                         </div>
                     </div>
 
-                    <div v-if="detail.workout_structure && detail.workout_structure.length > 0" class="mt-2 border-t border-slate-700 pt-3">
-                        <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Workout Steps</div>
+                    <div v-if="guidedSteps.length > 0" class="mt-2 border-t border-slate-700 pt-3">
+                        <div class="flex items-center justify-between gap-3 mb-2">
+                            <div class="text-[11px] font-bold text-slate-400 uppercase">Workout Steps</div>
+                            <div class="text-[11px] text-slate-500 font-mono">@{{ guidedStepsDoneCount }}/@{{ guidedSteps.length }}</div>
+                        </div>
+                        <div class="h-2 rounded-full bg-slate-800 border border-slate-700 overflow-hidden mb-3">
+                            <div class="h-full bg-neon" :style="{ width: guidedStepsProgressPct + '%' }"></div>
+                        </div>
                         <div class="space-y-1">
-                            <div v-for="(step, idx) in detail.workout_structure" :key="idx" class="flex justify-between items-center text-xs p-2 rounded-xl bg-slate-800 border border-slate-700">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full" :class="{'bg-green-400': step.type==='warmup', 'bg-blue-400': step.type==='run', 'bg-orange-400': step.type==='interval', 'bg-yellow-400': step.type==='recovery', 'bg-purple-400': step.type==='cool_down'}"></span>
-                                    <span class="font-bold uppercase text-slate-300">@{{ step.type.replace('_', ' ') }}</span>
+                            <button v-for="(step, idx) in guidedSteps" :key="step.id" type="button" class="w-full flex justify-between items-center text-xs p-2 rounded-xl border transition"
+                                    :class="guidedStepChecked(step) ? 'bg-green-500/10 border-green-500/30' : 'bg-slate-800 border-slate-700 hover:border-neon/30'"
+                                    @click="toggleGuidedStep(step)">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0"
+                                         :class="guidedStepChecked(step) ? 'bg-green-500 border-green-500 text-white' : 'bg-slate-900 border-slate-600 text-slate-400'">
+                                        @{{ guidedStepChecked(step) ? '✓' : '' }}
+                                    </div>
+                                    <div class="min-w-0 text-left">
+                                        <div class="flex items-center gap-2">
+                                            <span v-if="step.badge" class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                                                  :class="step.badgeClass">@{{ step.badge }}</span>
+                                            <span class="font-bold text-slate-200 truncate">@{{ step.title }}</span>
+                                        </div>
+                                        <div v-if="step.subtitle" class="text-[10px] text-slate-500 truncate">@{{ step.subtitle }}</div>
+                                    </div>
                                 </div>
-                                <div class="text-right">
-                                    <div class="text-white font-mono">@{{ step.value }} @{{ step.unit }}</div>
-                                    <div v-if="step.notes" class="text-[10px] text-slate-500">@{{ step.notes }}</div>
+                                <div class="text-right flex-shrink-0 pl-3">
+                                    <div v-if="step.valueText" class="text-white font-mono">@{{ step.valueText }}</div>
+                                    <div v-if="step.paceText" class="text-[10px] text-slate-400">@{{ step.paceText }}</div>
                                 </div>
                             </div>
                         </div>
@@ -3609,6 +3675,249 @@ createApp({
             return val ? (formatPace(val) + ' /km') : null;
         };
 
+        const guidedStepChecks = ref({});
+        const getGuidedStorageKey = () => {
+            const base =
+                (detail.session && detail.session.id ? `session:${detail.session.id}` : null) ||
+                (detail.workout_id ? `workout:${detail.workout_id}` : null) ||
+                (detail.strava_activity_id ? `strava:${detail.strava_activity_id}` : null) ||
+                `date:${detail.date || ''}|title:${detailTitle.value || ''}`;
+            return `runner_guided_steps:${base}`;
+        };
+
+        const loadGuidedStepChecks = () => {
+            try {
+                const key = getGuidedStorageKey();
+                const raw = localStorage.getItem(key);
+                if (!raw) {
+                    guidedStepChecks.value = {};
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                guidedStepChecks.value = parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (e) {
+                guidedStepChecks.value = {};
+            }
+        };
+
+        const saveGuidedStepChecks = () => {
+            try {
+                const key = getGuidedStorageKey();
+                localStorage.setItem(key, JSON.stringify(guidedStepChecks.value || {}));
+            } catch (e) {
+            }
+        };
+
+        const normalizeTextLine = (line) => {
+            try {
+                return String(line || '')
+                    .replace(/\r/g, '')
+                    .replace(/^\s*[-*•]+\s*/, '')
+                    .trim();
+            } catch (e) {
+                return '';
+            }
+        };
+
+        const stepBadgeMeta = (type) => {
+            const t = String(type || '').toLowerCase();
+            const label = t.replace('_', ' ') || 'step';
+            const map = {
+                warmup: 'bg-green-500/10 border-green-500/30 text-green-300',
+                run: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
+                interval: 'bg-orange-500/10 border-orange-500/30 text-orange-300',
+                repetition: 'bg-pink-500/10 border-pink-500/30 text-pink-300',
+                recovery: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300',
+                cool_down: 'bg-purple-500/10 border-purple-500/30 text-purple-300',
+            };
+            return {
+                badge: label.toUpperCase(),
+                badgeClass: map[t] || 'bg-slate-900/60 border-slate-700 text-slate-300',
+            };
+        };
+
+        const paceTypeForStep = (stepType) => {
+            const t = String(stepType || '').toLowerCase();
+            if (t === 'warmup' || t === 'recovery' || t === 'cool_down') return 'easy_run';
+            if (t === 'interval') return 'interval';
+            if (t === 'repetition') return 'repetition';
+            if (t === 'run') {
+                if (['tempo', 'threshold'].includes(String(detail.type || '').toLowerCase())) return 'tempo';
+                if (['interval', 'repetition'].includes(String(detail.type || '').toLowerCase())) return String(detail.type || 'run').toLowerCase();
+                if (String(detail.type || '').toLowerCase() === 'long_run') return 'long_run';
+                return 'run';
+            }
+            return null;
+        };
+
+        const paceTextForStep = (step) => {
+            try {
+                const type = paceTypeForStep(step.type);
+                if (!type) return null;
+                let distKm = null;
+                const valueNum = parseFloat(step.value);
+                if (!isNaN(valueNum)) {
+                    const unit = String(step.unit || '').toLowerCase();
+                    if (unit === 'km') distKm = valueNum;
+                    if (unit === 'm') distKm = valueNum / 1000;
+                }
+                return calculateRecommendedPace(type, distKm);
+            } catch (e) {
+                return null;
+            }
+        };
+
+        const guidedSteps = computed(() => {
+            const steps = [];
+            if (detail.workout_structure && Array.isArray(detail.workout_structure) && detail.workout_structure.length > 0) {
+                detail.workout_structure.forEach((s, idx) => {
+                    const meta = stepBadgeMeta(s.type);
+                    const valueText = (s.value !== null && s.value !== undefined && String(s.value) !== '')
+                        ? `${s.value} ${s.unit || ''}`.trim()
+                        : null;
+                    const paceText = paceTextForStep(s);
+                    steps.push({
+                        id: `ws:${idx}:${s.type || 'step'}:${valueText || ''}`,
+                        title: (String(s.type || 'Step').replace('_', ' ')).replace(/\b\w/g, m => m.toUpperCase()),
+                        subtitle: s.notes ? String(s.notes) : null,
+                        valueText,
+                        paceText,
+                        badge: meta.badge,
+                        badgeClass: meta.badgeClass,
+                    });
+                });
+                return steps;
+            }
+
+            const lines = String(detail.description || '').split('\n').map(normalizeTextLine).filter(Boolean);
+            lines.slice(0, 12).forEach((line, idx) => {
+                steps.push({
+                    id: `d:${idx}`,
+                    title: line,
+                    subtitle: null,
+                    valueText: null,
+                    paceText: null,
+                    badge: 'NOTE',
+                    badgeClass: 'bg-slate-900/60 border-slate-700 text-slate-300',
+                });
+            });
+            return steps;
+        });
+
+        const guidedStepsDoneCount = computed(() => {
+            try {
+                const checks = guidedStepChecks.value || {};
+                return guidedSteps.value.reduce((acc, s) => acc + (checks[s.id] ? 1 : 0), 0);
+            } catch (e) {
+                return 0;
+            }
+        });
+
+        const guidedStepsProgressPct = computed(() => {
+            const total = guidedSteps.value.length || 0;
+            if (!total) return 0;
+            return Math.round((guidedStepsDoneCount.value / total) * 100);
+        });
+
+        const guidedStepChecked = (step) => {
+            try {
+                return !!(guidedStepChecks.value && guidedStepChecks.value[step.id]);
+            } catch (e) {
+                return false;
+            }
+        };
+
+        const toggleGuidedStep = (step) => {
+            if (!step || !step.id) return;
+            const next = { ...(guidedStepChecks.value || {}) };
+            next[step.id] = !next[step.id];
+            guidedStepChecks.value = next;
+            saveGuidedStepChecks();
+        };
+
+        watch(showDetailModal, (val) => {
+            if (val) loadGuidedStepChecks();
+        });
+
+        watch(() => [detail.session?.id, detail.workout_id, detail.strava_activity_id, detail.date, detailTitle.value], () => {
+            if (showDetailModal.value) loadGuidedStepChecks();
+        });
+
+        const aiCoachSummary = computed(() => {
+            const t = String(detail.type || '').toLowerCase();
+            const focusMap = {
+                easy_run: 'Fokusnya easy aerobic + recovery. Bikin napas stabil dan kaki terasa ringan.',
+                recovery: 'Fokusnya recovery. Jaga effort super easy supaya badan pulih.',
+                long_run: 'Fokusnya endurance. Jaga ritme stabil dari awal sampai akhir.',
+                tempo: 'Fokusnya threshold/tempo. Cari effort “comfortably hard”, bukan all-out.',
+                interval: 'Fokusnya speed/VO2. Kualitas penting, tapi tetap kontrol.',
+                repetition: 'Fokusnya speed + teknik. Cepat tapi rapi, recovery cukup.',
+                run: 'Fokusnya konsistensi. Ikuti panduan pace dan rasakan effort yang pas.',
+                program_session: 'Fokusnya eksekusi rapi sesuai program.',
+                rest: 'Ini hari rest. Recovery juga bagian dari progres.',
+                yoga: 'Fokusnya mobilitas dan recovery.',
+                cycling: 'Fokusnya aerobic tanpa impact besar di kaki.',
+                strength: 'Fokusnya strength dan stabilitas. Jaga form, bukan buru-buru.',
+                race: 'Fokusnya eksekusi hari H. Mulai terkontrol, finish kuat.',
+            };
+            const base = focusMap[t] || 'Fokusnya eksekusi rapi dan konsisten.';
+            const pace = detail.target_pace || detail.recommended_pace || null;
+            const extra = pace ? ` Pace panduan: ${pace}.` : '';
+            const interactive = guidedSteps.value.length ? ' Centang step saat selesai biar progresnya terasa.' : '';
+            return `${base}${extra}${interactive}`;
+        });
+
+        const aiCoachCues = computed(() => {
+            const t = String(detail.type || '').toLowerCase();
+            const cues = {
+                easy_run: [
+                    'Kalau ragu pace, pilih yang lebih pelan. Harus bisa ngobrol.',
+                    'Jaga cadence nyaman, langkah pendek, bahu rileks.',
+                    'Selesai latihan: 3–5 menit jalan + minum.',
+                ],
+                recovery: [
+                    'Tujuan utamanya pulih, bukan mengejar angka.',
+                    'Kalau ada pegal tajam, stop dan ganti jalan.',
+                    'Pilih rute datar biar effort stabil.',
+                ],
+                long_run: [
+                    'Mulai pelan 10–15 menit pertama, baru stabil.',
+                    'Minum sedikit-sedikit; kalau >75 menit, pertimbangkan gel.',
+                    'Jangan ngegas di tengah; finish kuat lebih penting.',
+                ],
+                tempo: [
+                    'Effort harus stabil; kalau makin cepat tiap km, turunkan sedikit pace.',
+                    'Fokus napas ritmis dan postur tegak.',
+                    'Kalau mulai “meledak”, tambah recovery singkat dan lanjutkan.',
+                ],
+                interval: [
+                    'Rep 1–2 terkontrol, kualitas dijaga sampai rep terakhir.',
+                    'Recovery itu bagian workout—jog pelan saja.',
+                    'Prioritas teknik: badan tegak, langkah cepat tapi ringan.',
+                ],
+                repetition: [
+                    'Cepat tapi rileks; stop kalau form mulai berantakan.',
+                    'Recovery cukup supaya rep berikutnya tetap berkualitas.',
+                    'Fokus dorongan kaki dan ayunan tangan rapi.',
+                ],
+                strength: [
+                    'Utamakan range of motion dan form.',
+                    'Kalau ragu beban, turunkan beban tapi gerakan rapi.',
+                    'Istirahat 60–120 detik di set berat.',
+                ],
+                rest: [
+                    'Jalan santai 10–20 menit membantu recovery.',
+                    'Tidur cukup dan hidrasi jadi prioritas.',
+                    'Stretch ringan kalau terasa kaku.',
+                ],
+            };
+            return cues[t] || [
+                'Mulai terkontrol, stabilkan napas.',
+                'Ikuti pace panduan dan fokus ke teknik.',
+                'Catat RPE/feeling setelah selesai untuk feedback ke coach.',
+            ];
+        });
+
         const showEventDetail = (info) => {
             resetDetail();
             
@@ -3941,6 +4250,7 @@ createApp({
             resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
             trainingProfile, formatPace, showPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
             stravaLinkInput, notesInput, rpeInput, feelingInput, finishActivityWithLink, profileTab, chatCoach,
+            aiCoachSummary, aiCoachCues, guidedSteps, guidedStepsDoneCount, guidedStepsProgressPct, guidedStepChecked, toggleGuidedStep,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, isSyncingStrava, syncStrava, weeklyVolume, maxVolume,
             assetStorage, assetProfile, runnerUrl, chatUrl, 
             showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,

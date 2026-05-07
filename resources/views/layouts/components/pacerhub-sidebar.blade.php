@@ -113,7 +113,9 @@
                     
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Community</li>
                     <li><a href="{{ route('feed.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Community</a></li>
-                    <li><a href="{{ route('chat.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Messages</a></li>
+                    @if(auth()->user()->role !== 'eo')
+                        <li><a href="{{ route('chat.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Messages</a></li>
+                    @endif
                     <li><a href="{{ route('notifications.index') }}" class="flex items-center px-3 py-2 rounded-lg {{ $lightMode ? 'text-slate-700 hover:text-primary hover:bg-slate-50' : 'text-slate-200 hover:text-primary hover:bg-slate-800' }}">Notifications</a></li>
                     
                     <li class="px-3 py-2 text-xs font-mono text-slate-500 uppercase tracking-wider">Account</li>

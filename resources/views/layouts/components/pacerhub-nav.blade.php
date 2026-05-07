@@ -83,9 +83,11 @@
 
                 <!-- Chat / Messages -->
                 @auth
+                @if(auth()->user()->role !== 'eo')
                 <a href="{{ route('chat.index') }}" class="hidden md:block p-1 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300' }} transition-colors relative" title="Messages">
                     @include('layouts.components.svg-chat')
                 </a>
+                @endif
                 @endauth
                 
                 <!-- Notifications -->

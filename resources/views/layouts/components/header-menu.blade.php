@@ -35,24 +35,28 @@
         </div>
     </li>
     <li class="nav-item dropdown notification_dropdown">
-        <a class="nav-link bell bell-link" href="javascript:void(0)" aria-label="Chat" id="chatbox-toggle">
-            @include('layouts.components.svg-chat')
-            <div class="pulse-css"></div>
-            <span class="badge badge-danger badge-xs" id="chat-total-unread" style="position: absolute; top: 0px; right: 0px; display: none; padding: 2px 5px; font-size: 10px;">0</span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-end rounded">
-            <div id="DZ_W_TimeLine11Home" class="widget-timeline dz-scroll style-1 p-3 height370">
-                <ul class="timeline">
-                    <li>
-                        <div class="timeline-badge primary"></div>
-                        <a class="timeline-panel text-muted" href="#">
-                            <span>10 minutes ago</span>
-                            <h6 class="mb-0">Youtube, a video-sharing website, goes live <strong class="text-primary">$500</strong>.</h6>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        @auth
+            @if(auth()->user()->role !== 'eo')
+                <a class="nav-link bell bell-link" href="javascript:void(0)" aria-label="Chat" id="chatbox-toggle">
+                    @include('layouts.components.svg-chat')
+                    <div class="pulse-css"></div>
+                    <span class="badge badge-danger badge-xs" id="chat-total-unread" style="position: absolute; top: 0px; right: 0px; display: none; padding: 2px 5px; font-size: 10px;">0</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end rounded">
+                    <div id="DZ_W_TimeLine11Home" class="widget-timeline dz-scroll style-1 p-3 height370">
+                        <ul class="timeline">
+                            <li>
+                                <div class="timeline-badge primary"></div>
+                                <a class="timeline-panel text-muted" href="#">
+                                    <span>10 minutes ago</span>
+                                    <h6 class="mb-0">Youtube, a video-sharing website, goes live <strong class="text-primary">$500</strong>.</h6>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            @endif
+        @endauth
     </li>
     @auth
     <li class="nav-item dropdown header-profile">
@@ -68,10 +72,12 @@
                 @include('layouts.components.svg-user')
                 <span class="ms-2">Profile</span>
             </a>
-            <a href="{{ route('chat.index') }}" class="dropdown-item ai-icon">
-                @include('layouts.components.svg-inbox')
-                <span class="ms-2">Inbox</span>
-            </a>
+            @if(auth()->user()->role !== 'eo')
+                <a href="{{ route('chat.index') }}" class="dropdown-item ai-icon">
+                    @include('layouts.components.svg-inbox')
+                    <span class="ms-2">Inbox</span>
+                </a>
+            @endif
             <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-header').submit();" class="dropdown-item ai-icon">
                 @include('layouts.components.svg-logout')
                 <span class="ms-2">Logout</span>

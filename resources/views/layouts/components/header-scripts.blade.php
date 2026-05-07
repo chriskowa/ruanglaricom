@@ -9,6 +9,7 @@
     const authAvatar = @json(auth()->user() ? auth()->user()->avatar_url : asset('images/avatar/1.jpg'));
     const authName = @json(auth()->user() ? auth()->user()->name : '');
     const authRole = @json(auth()->user() ? auth()->user()->role : '');
+    const chatEnabled = isAuthenticated && authRole !== 'eo';
 
     // Chatbox toggle
     document.getElementById('chatbox-toggle')?.addEventListener('click', function() {
@@ -157,6 +158,8 @@
     let currentChatUserId = null;
     let chatMessageInterval = null;
     let lastMessageId = null;
+
+    if (chatEnabled) {
 
     // Format time for messages
     function formatMessageTime(dateString) {
@@ -432,8 +435,9 @@
         }, 100);
     });
 
-    // Initial load (always load to update badge)
-    loadConversations();
+        // Initial load (always load to update badge)
+        loadConversations();
+    }
     
     let gPressedAt = 0;
     document.addEventListener('keydown', function(e) {
@@ -464,10 +468,12 @@
                 return;
             }
             if (e.key.toLowerCase() === 'm') {
-                e.preventDefault();
-                window.location.href = @json(route('chat.index'));
-                gPressedAt = 0;
-                return;
+                if (chatEnabled) {
+                    e.preventDefault();
+                    window.location.href = @json(route('chat.index'));
+                    gPressedAt = 0;
+                    return;
+                }
             }
         }
     });

@@ -691,11 +691,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/unfollow/{user}', [App\Http\Controllers\FollowController::class, 'unfollow'])->name('unfollow');
 
     // Chat routes
-    Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
-    Route::get('/chat/{user}', [App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
-    Route::post('/chat/{user}', [App\Http\Controllers\ChatController::class, 'store'])->name('chat.store');
-    Route::get('/api/chat/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('chat.conversations');
-    Route::get('/api/chat/{userId}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::middleware('role:runner|coach|admin')->group(function () {
+        Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
+        Route::get('/chat/{user}', [App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
+        Route::post('/chat/{user}', [App\Http\Controllers\ChatController::class, 'store'])->name('chat.store');
+        Route::get('/api/chat/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('chat.conversations');
+        Route::get('/api/chat/{userId}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+    });
 
     // Feed routes
     Route::get('/feed', [App\Http\Controllers\FeedController::class, 'index'])->name('feed.index');

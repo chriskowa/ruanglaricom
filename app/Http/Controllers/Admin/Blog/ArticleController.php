@@ -174,25 +174,48 @@ class ArticleController extends Controller
         $article = Article::create($validated);
         $article->categories()->sync($categoryIds);
 
-        // Handle Tags
-        $tagIds = $validated['tags'] ?? [];
+        $tagIds = array_values(array_unique(array_map('intval', $validated['tags'] ?? [])));
 
-        // Handle new tags
         if ($request->filled('new_tags')) {
-            $newTagNames = explode(',', $request->new_tags);
-            foreach ($newTagNames as $tagName) {
-                $tagName = trim($tagName);
-                if ($tagName) {
-                    $tag = BlogTag::firstOrCreate(
-                        ['slug' => Str::slug($tagName)],
-                        ['name' => $tagName]
-                    );
-                    $tagIds[] = $tag->id;
+            $rawNames = collect(explode(',', (string) $request->new_tags))
+                ->map(fn ($v) => trim((string) $v))
+                ->filter(fn ($v) => $v !== '')
+                ->values();
+
+            if ($rawNames->isNotEmpty()) {
+                $slugToName = $rawNames
+                    ->mapWithKeys(fn ($name) => [Str::slug($name) => $name])
+                    ->filter(fn ($name, $slug) => $slug !== '');
+
+                $slugs = $slugToName->keys()->values()->all();
+
+                if ($slugs) {
+                    $existing = BlogTag::query()->whereIn('slug', $slugs)->pluck('id', 'slug')->all();
+
+                    $now = now();
+                    $toInsert = [];
+                    foreach ($slugToName as $slug => $name) {
+                        if (! isset($existing[$slug])) {
+                            $toInsert[] = [
+                                'name' => $name,
+                                'slug' => $slug,
+                                'created_at' => $now,
+                                'updated_at' => $now,
+                            ];
+                        }
+                    }
+
+                    if ($toInsert) {
+                        BlogTag::query()->insertOrIgnore($toInsert);
+                        $existing = BlogTag::query()->whereIn('slug', $slugs)->pluck('id', 'slug')->all();
+                    }
+
+                    $tagIds = array_merge($tagIds, array_values($existing));
                 }
             }
         }
 
-        $article->tags()->sync(array_unique($tagIds));
+        $article->tags()->sync(array_values(array_unique($tagIds)));
 
         \Illuminate\Support\Facades\Cache::forget('home.featured_articles');
 
@@ -248,15 +271,19 @@ class ArticleController extends Controller
         }
 
         if ($request->hasFile('featured_image')) {
-            // Delete old image
-            if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
+            if ($article->featured_image
+                && ! Str::startsWith($article->featured_image, ['http://', 'https://'])
+                && Storage::disk('public')->exists($article->featured_image)
+            ) {
                 Storage::disk('public')->delete($article->featured_image);
             }
             $path = $request->file('featured_image')->store('blog/featured', 'public');
             $validated['featured_image'] = $path;
         } elseif ($request->filled('featured_image_url')) {
-            // If switching to URL, we might want to delete the old local file if it exists
-            if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
+            if ($article->featured_image
+                && ! Str::startsWith($article->featured_image, ['http://', 'https://'])
+                && Storage::disk('public')->exists($article->featured_image)
+            ) {
                 Storage::disk('public')->delete($article->featured_image);
             }
             $validated['featured_image'] = $request->featured_image_url;
@@ -275,24 +302,48 @@ class ArticleController extends Controller
         $article->update($validated);
         $article->categories()->sync($categoryIds);
 
-        // Handle Tags
-        $tagIds = $validated['tags'] ?? [];
+        $tagIds = array_values(array_unique(array_map('intval', $validated['tags'] ?? [])));
 
         if ($request->filled('new_tags')) {
-            $newTagNames = explode(',', $request->new_tags);
-            foreach ($newTagNames as $tagName) {
-                $tagName = trim($tagName);
-                if ($tagName) {
-                    $tag = BlogTag::firstOrCreate(
-                        ['slug' => Str::slug($tagName)],
-                        ['name' => $tagName]
-                    );
-                    $tagIds[] = $tag->id;
+            $rawNames = collect(explode(',', (string) $request->new_tags))
+                ->map(fn ($v) => trim((string) $v))
+                ->filter(fn ($v) => $v !== '')
+                ->values();
+
+            if ($rawNames->isNotEmpty()) {
+                $slugToName = $rawNames
+                    ->mapWithKeys(fn ($name) => [Str::slug($name) => $name])
+                    ->filter(fn ($name, $slug) => $slug !== '');
+
+                $slugs = $slugToName->keys()->values()->all();
+
+                if ($slugs) {
+                    $existing = BlogTag::query()->whereIn('slug', $slugs)->pluck('id', 'slug')->all();
+
+                    $now = now();
+                    $toInsert = [];
+                    foreach ($slugToName as $slug => $name) {
+                        if (! isset($existing[$slug])) {
+                            $toInsert[] = [
+                                'name' => $name,
+                                'slug' => $slug,
+                                'created_at' => $now,
+                                'updated_at' => $now,
+                            ];
+                        }
+                    }
+
+                    if ($toInsert) {
+                        BlogTag::query()->insertOrIgnore($toInsert);
+                        $existing = BlogTag::query()->whereIn('slug', $slugs)->pluck('id', 'slug')->all();
+                    }
+
+                    $tagIds = array_merge($tagIds, array_values($existing));
                 }
             }
         }
 
-        $article->tags()->sync(array_unique($tagIds));
+        $article->tags()->sync(array_values(array_unique($tagIds)));
 
         \Illuminate\Support\Facades\Cache::forget('home.featured_articles');
 
@@ -301,7 +352,10 @@ class ArticleController extends Controller
 
     public function destroy(Article $article)
     {
-        if ($article->featured_image && Storage::disk('public')->exists($article->featured_image)) {
+        if ($article->featured_image
+            && ! Str::startsWith($article->featured_image, ['http://', 'https://'])
+            && Storage::disk('public')->exists($article->featured_image)
+        ) {
             Storage::disk('public')->delete($article->featured_image);
         }
         $article->tags()->detach();

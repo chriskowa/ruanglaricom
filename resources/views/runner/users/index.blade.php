@@ -56,9 +56,11 @@
                             </form>
                         @endif
                         
-                        <a href="{{ route('chat.show', $user) }}" class="btn btn-success btn-sm">
-                            <i class="fa fa-comment"></i> Chat
-                        </a>
+                        @if(auth()->user()->role !== 'eo')
+                            <a href="{{ route('chat.show', $user) }}" class="btn btn-success btn-sm">
+                                <i class="fa fa-comment"></i> Chat
+                            </a>
+                        @endif
                     @endif
                     
                     <a href="{{ route('profile.show') }}?user={{ $user->id }}" class="btn btn-info btn-sm">
