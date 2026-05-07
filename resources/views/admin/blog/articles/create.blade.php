@@ -196,13 +196,40 @@
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Taxonomy</h3>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Category</label>
-                            <select name="category_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
-                                <option value="">Uncategorized</option>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-bold text-slate-300">Categories</label>
+                                <button type="button" id="btn-toggle-category-form" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-colors text-xs font-bold">Add</button>
+                            </div>
+
+                            <div id="category-form" class="hidden mb-3 rounded-xl bg-slate-900 border border-slate-700 p-3 space-y-3">
+                                <input type="hidden" id="cat-edit-id" value="">
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 mb-1">Name</label>
+                                        <input type="text" id="cat-name" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-neon transition-colors" placeholder="e.g., Training">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 mb-1">Slug (optional)</label>
+                                        <input type="text" id="cat-slug" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-neon transition-colors" placeholder="training">
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 justify-end">
+                                    <button type="button" id="btn-cancel-category" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-colors text-xs font-bold">Cancel</button>
+                                    <button type="button" id="btn-save-category" class="px-3 py-2 rounded-lg bg-neon text-dark hover:bg-neon/90 transition-colors text-xs font-black">Save</button>
+                                </div>
+                            </div>
+
+                            <div id="category-list" data-store-url="{{ route('admin.blog.categories.store') }}" data-update-template="{{ route('admin.blog.categories.update', ['category' => 0]) }}" class="max-h-56 overflow-y-auto bg-slate-900 border border-slate-700 rounded-xl p-3 space-y-2">
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                    <div data-row-cat-id="{{ $category->id }}" class="flex items-center justify-between gap-2">
+                                        <label class="flex items-center gap-2 min-w-0">
+                                            <input type="checkbox" name="categories[]" value="{{ $category->id }}" class="rounded bg-slate-800 border-slate-600 text-neon focus:ring-0" {{ in_array($category->id, old('categories', [])) ? 'checked' : '' }}>
+                                            <span class="text-sm text-slate-300 truncate cat-name" data-cat-id="{{ $category->id }}">{{ $category->name }}</span>
+                                        </label>
+                                        <button type="button" class="btn-edit-category px-2 py-1 rounded-lg bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-colors text-[11px] font-bold" data-cat-id="{{ $category->id }}" data-cat-name="{{ $category->name }}" data-cat-slug="{{ $category->slug }}">Edit</button>
+                                    </div>
                                 @endforeach
-                            </select>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">Tags</label>
@@ -526,6 +553,152 @@ function openMediaModal(onSelectCallback) {
             
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    const catList = document.getElementById('category-list');
+    const catForm = document.getElementById('category-form');
+    const catToggleBtn = document.getElementById('btn-toggle-category-form');
+    const catCancelBtn = document.getElementById('btn-cancel-category');
+    const catSaveBtn = document.getElementById('btn-save-category');
+    const catEditId = document.getElementById('cat-edit-id');
+    const catName = document.getElementById('cat-name');
+    const catSlug = document.getElementById('cat-slug');
+
+    const resetCategoryForm = () => {
+        if (catEditId) catEditId.value = '';
+        if (catName) catName.value = '';
+        if (catSlug) catSlug.value = '';
+    };
+
+    const showCategoryForm = (show) => {
+        if (!catForm) return;
+        catForm.classList.toggle('hidden', !show);
+    };
+
+    if (catToggleBtn) {
+        catToggleBtn.addEventListener('click', () => {
+            const willShow = catForm ? catForm.classList.contains('hidden') : false;
+            if (willShow) resetCategoryForm();
+            showCategoryForm(willShow);
+        });
+    }
+
+    if (catCancelBtn) {
+        catCancelBtn.addEventListener('click', () => {
+            resetCategoryForm();
+            showCategoryForm(false);
+        });
+    }
+
+    const csrfToken = '{{ csrf_token() }}';
+    const storeUrl = catList?.getAttribute('data-store-url');
+    const updateTemplate = catList?.getAttribute('data-update-template');
+
+    const buildUpdateUrl = (id) => {
+        if (!updateTemplate) return null;
+        return updateTemplate.replace(/\/0$/, `/${id}`);
+    };
+
+    const bindEditButtons = () => {
+        document.querySelectorAll('.btn-edit-category').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                if (!catEditId || !catName || !catSlug) return;
+                catEditId.value = btn.getAttribute('data-cat-id') || '';
+                catName.value = btn.getAttribute('data-cat-name') || '';
+                catSlug.value = btn.getAttribute('data-cat-slug') || '';
+                showCategoryForm(true);
+                catName.focus();
+            });
+        });
+    };
+
+    bindEditButtons();
+
+    const upsertCategoryRow = (cat, shouldCheck) => {
+        if (!catList) return;
+        const id = String(cat.id);
+        let row = catList.querySelector(`[data-row-cat-id="${id}"]`);
+
+        if (!row) {
+            row = document.createElement('div');
+            row.setAttribute('data-row-cat-id', id);
+            row.className = 'flex items-center justify-between gap-2';
+            row.innerHTML = `
+                <label class="flex items-center gap-2 min-w-0">
+                    <input type="checkbox" name="categories[]" value="${id}" class="rounded bg-slate-800 border-slate-600 text-neon focus:ring-0">
+                    <span class="text-sm text-slate-300 truncate cat-name" data-cat-id="${id}"></span>
+                </label>
+                <button type="button" class="btn-edit-category px-2 py-1 rounded-lg bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-colors text-[11px] font-bold">Edit</button>
+            `;
+            catList.prepend(row);
+        }
+
+        const nameEl = row.querySelector('.cat-name');
+        if (nameEl) nameEl.textContent = cat.name || '';
+
+        const editBtn = row.querySelector('.btn-edit-category');
+        if (editBtn) {
+            editBtn.setAttribute('data-cat-id', id);
+            editBtn.setAttribute('data-cat-name', cat.name || '');
+            editBtn.setAttribute('data-cat-slug', cat.slug || '');
+        }
+
+        if (shouldCheck) {
+            const cb = row.querySelector('input[type="checkbox"]');
+            if (cb) cb.checked = true;
+        }
+
+        bindEditButtons();
+    };
+
+    if (catSaveBtn) {
+        catSaveBtn.addEventListener('click', async () => {
+            if (!catName || !catSlug) return;
+            const name = (catName.value || '').trim();
+            const slug = (catSlug.value || '').trim();
+            const editId = (catEditId?.value || '').trim();
+
+            if (!name) {
+                alert('Nama kategori wajib diisi.');
+                return;
+            }
+
+            const url = editId ? buildUpdateUrl(editId) : storeUrl;
+            const method = editId ? 'PUT' : 'POST';
+
+            if (!url) {
+                alert('URL kategori tidak ditemukan.');
+                return;
+            }
+
+            catSaveBtn.disabled = true;
+
+            try {
+                const resp = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: JSON.stringify({ name, slug }),
+                });
+
+                const data = await resp.json().catch(() => null);
+                if (!resp.ok || !data || !data.success) {
+                    alert('Gagal menyimpan kategori.');
+                    return;
+                }
+
+                upsertCategoryRow(data.category, !editId);
+                resetCategoryForm();
+                showCategoryForm(false);
+            } catch (e) {
+                alert('Gagal menyimpan kategori.');
+            } finally {
+                catSaveBtn.disabled = false;
+            }
+        });
     }
 </script>
 @endpush

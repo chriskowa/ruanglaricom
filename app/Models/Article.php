@@ -74,6 +74,11 @@ class Article extends Model
         return $this->belongsToMany(BlogTag::class, 'article_tag', 'article_id', 'tag_id');
     }
 
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(BlogCategory::class, 'article_blog_category', 'article_id', 'blog_category_id');
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', 'published')

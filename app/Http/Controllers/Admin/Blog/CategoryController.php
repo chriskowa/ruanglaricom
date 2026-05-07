@@ -32,7 +32,18 @@ class CategoryController extends Controller
             $validated['slug'] = Str::slug($validated['slug']);
         }
 
-        BlogCategory::create($validated);
+        $category = BlogCategory::create($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'category' => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                ],
+            ]);
+        }
 
         return redirect()->route('admin.blog.categories.index')->with('success', 'Category created successfully.');
     }
@@ -54,6 +65,17 @@ class CategoryController extends Controller
         }
 
         $category->update($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'category' => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                ],
+            ]);
+        }
 
         return redirect()->route('admin.blog.categories.index')->with('success', 'Category updated successfully.');
     }

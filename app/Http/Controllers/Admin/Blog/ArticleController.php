@@ -122,7 +122,8 @@ class ArticleController extends Controller
             'title' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255|unique:articles,slug',
-            'category_id' => 'nullable|exists:blog_categories,id',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:blog_categories,id',
             'excerpt' => 'nullable|string',
             'excerpt_en' => 'nullable|string',
             'content' => 'required|string',
@@ -166,7 +167,12 @@ class ArticleController extends Controller
             $validated['published_at'] = now();
         }
 
+        $categoryIds = array_values(array_unique(array_map('intval', $validated['categories'] ?? [])));
+        $validated['category_id'] = $categoryIds[0] ?? null;
+        unset($validated['categories']);
+
         $article = Article::create($validated);
+        $article->categories()->sync($categoryIds);
 
         // Handle Tags
         $tagIds = $validated['tags'] ?? [];
@@ -199,7 +205,9 @@ class ArticleController extends Controller
         $tags = BlogTag::all();
         $articleTags = $article->tags->pluck('id')->toArray();
 
-        return view('admin.blog.articles.edit', compact('article', 'categories', 'tags', 'articleTags'));
+        $articleCategoryIds = $article->categories()->pluck('blog_categories.id')->toArray();
+
+        return view('admin.blog.articles.edit', compact('article', 'categories', 'tags', 'articleTags', 'articleCategoryIds'));
     }
 
     public function update(Request $request, Article $article)
@@ -208,7 +216,8 @@ class ArticleController extends Controller
             'title' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255|unique:articles,slug,'.$article->id,
-            'category_id' => 'nullable|exists:blog_categories,id',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:blog_categories,id',
             'excerpt' => 'nullable|string',
             'excerpt_en' => 'nullable|string',
             'content' => 'required|string',
@@ -259,7 +268,12 @@ class ArticleController extends Controller
 
         $validated['is_featured'] = $request->boolean('is_featured');
 
+        $categoryIds = array_values(array_unique(array_map('intval', $validated['categories'] ?? [])));
+        $validated['category_id'] = $categoryIds[0] ?? null;
+        unset($validated['categories']);
+
         $article->update($validated);
+        $article->categories()->sync($categoryIds);
 
         // Handle Tags
         $tagIds = $validated['tags'] ?? [];

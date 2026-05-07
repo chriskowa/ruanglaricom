@@ -33,7 +33,9 @@ class BlogController extends Controller
         if ($categorySlug) {
             $activeCategory = $categories->firstWhere('slug', $categorySlug);
             if ($activeCategory) {
-                $articlesQuery->where('category_id', $activeCategory->id);
+                $articlesQuery->whereHas('categories', function ($q) use ($activeCategory) {
+                    $q->where('blog_categories.id', $activeCategory->id);
+                });
             }
         }
 

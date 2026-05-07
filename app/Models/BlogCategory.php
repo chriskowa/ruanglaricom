@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 
 class BlogCategory extends Model
@@ -30,9 +30,9 @@ class BlogCategory extends Model
         });
     }
 
-    public function articles(): HasMany
+    public function articles(): BelongsToMany
     {
-        return $this->hasMany(Article::class, 'category_id');
+        return $this->belongsToMany(Article::class, 'article_blog_category', 'blog_category_id', 'article_id');
     }
 
     public function parent()
