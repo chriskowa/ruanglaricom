@@ -1165,9 +1165,21 @@
 
                                 <h4 class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3 mt-6">PIC Info</h4>
                                 <div class="space-y-3">
-                                    <div><div class="text-xs text-slate-500">PIC Name</div><div class="text-white" id="dm_pic_name"></div></div>
-                                    <div><div class="text-xs text-slate-500">PIC Phone</div><div class="text-white" id="dm_pic_phone"></div></div>
-                                    <div><div class="text-xs text-slate-500">PIC Email</div><div class="text-white" id="dm_pic_email"></div></div>
+                                    <div>
+                                        <div class="text-xs text-slate-500">PIC Name</div>
+                                        <div class="view-mode text-white" id="dm_pic_name"></div>
+                                        <input type="text" name="pic_name" id="edit_pic_name" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500" placeholder="PIC Name">
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-slate-500">PIC Phone</div>
+                                        <div class="view-mode text-white" id="dm_pic_phone"></div>
+                                        <input type="text" name="pic_phone" id="edit_pic_phone" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500" placeholder="PIC Phone">
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-slate-500">PIC Email</div>
+                                        <div class="view-mode text-white" id="dm_pic_email"></div>
+                                        <input type="email" name="pic_email" id="edit_pic_email" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500" placeholder="PIC Email">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1193,7 +1205,11 @@
                                 </div>
                                 <div class="space-y-3">
                                     <div><div class="text-xs text-slate-500">Status</div><div id="dm_payment_status"></div></div>
-                                    <div><div class="text-xs text-slate-500">Addons</div><div id="dm_addons" class="space-y-1"></div></div>
+                                    <div>
+                                        <div class="text-xs text-slate-500">Addons</div>
+                                        <div id="dm_addons" class="view-mode space-y-1"></div>
+                                        <textarea name="addons" id="edit_addons_json" rows="6" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs focus:border-blue-500 focus:outline-none font-mono placeholder-slate-500" placeholder='[{"name":"Jersey Extra","value":"M"}]'></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2055,6 +2071,9 @@
         setValue('edit_email', d.email);
         setValue('edit_phone', d.phone);
         setValue('edit_gender', d.gender || 'male');
+        setValue('edit_pic_name', d.pic_name);
+        setValue('edit_pic_phone', d.pic_phone);
+        setValue('edit_pic_email', d.pic_email);
         
         // Handle Date Format for Input (YYYY-MM-DD)
         var dob = d.date_of_birth;
@@ -2078,6 +2097,8 @@
         setValue('edit_target_time', d.target_time);
 
         setValue('edit_coupon_id', d.coupon_id);
+        var addons = Array.isArray(d.addons) ? d.addons : [];
+        setValue('edit_addons_json', JSON.stringify(addons, null, 2));
         
         // Handle attendance badge update if needed or specific logic
         togglePickedByField();
@@ -2156,7 +2177,10 @@
             bib_number: document.getElementById('edit_bib_number').value.trim(),
             jersey_size: document.getElementById('edit_jersey_size').value.trim(),
             target_time: document.getElementById('edit_target_time').value.trim(),
-            coupon_id: document.getElementById('edit_coupon_id').value
+            coupon_id: document.getElementById('edit_coupon_id').value,
+            pic_name: document.getElementById('edit_pic_name').value.trim(),
+            pic_phone: document.getElementById('edit_pic_phone').value.trim(),
+            pic_email: document.getElementById('edit_pic_email').value.trim()
         };
 
         // Client-side Validation
@@ -2170,6 +2194,22 @@
         
         if (!formData.gender) errors.push('Jenis kelamin wajib dipilih');
         if (!formData.race_category_id) errors.push('Kategori lomba wajib dipilih');
+
+        var addonsText = document.getElementById('edit_addons_json').value.trim();
+        var addonsPayload = [];
+        if (addonsText) {
+            try {
+                addonsPayload = JSON.parse(addonsText);
+            } catch (e) {
+                errors.push('Format Addons JSON tidak valid');
+            }
+        }
+        if (!Array.isArray(addonsPayload)) {
+            errors.push('Addons harus berupa array JSON');
+        } else if (addonsPayload.length > 50) {
+            errors.push('Addons maksimal 50 item');
+        }
+        formData.addons = Array.isArray(addonsPayload) ? addonsPayload : [];
 
         if (errors.length > 0) {
             notification.className = 'px-6 pt-4 text-sm text-red-400 font-bold';
@@ -2222,7 +2262,11 @@
                         is_picked_up: res.data.is_picked_up,
                         picked_up_by: res.data.picked_up_by,
                         coupon_id: res.data.coupon_id,
-                        coupon_code: res.data.coupon_code
+                        coupon_code: res.data.coupon_code,
+                        pic_name: res.data.pic_name,
+                        pic_phone: res.data.pic_phone,
+                        pic_email: res.data.pic_email,
+                        addons: res.data.addons
                     });
                 }
 
@@ -2243,6 +2287,10 @@
                 document.getElementById('dm_jersey').textContent = res.data.jersey_size || '-';
                 document.getElementById('dm_target_time').textContent = res.data.target_time || '-';
                 document.getElementById('dm_age_group').textContent = res.data.age_group || '-';
+
+                document.getElementById('dm_pic_name').textContent = res.data.pic_name || '-';
+                document.getElementById('dm_pic_phone').textContent = res.data.pic_phone || '-';
+                document.getElementById('dm_pic_email').textContent = res.data.pic_email || '-';
                 
                 // Update Attendance Badge
                 var attendanceBadge = document.getElementById('dm_attendance_badge');
@@ -2258,6 +2306,17 @@
                     couponEl.innerHTML = '<span class="text-yellow-400 font-bold">' + res.data.coupon_code + '</span>';
                 } else {
                     couponEl.textContent = '-';
+                }
+
+                var addonsContainer = document.getElementById('dm_addons');
+                if (res.data.addons && res.data.addons.length > 0) {
+                    addonsContainer.innerHTML = res.data.addons.map(function(a){
+                        var name = (a && (a.name || a['name'])) || '-';
+                        var value = (a && (a.value || a['value'] || a.price || a['price'])) || '-';
+                        return '<div class="flex justify-between text-sm"><span class="text-slate-400">'+name+'</span><span class="text-white">'+value+'</span></div>';
+                    }).join('');
+                } else {
+                    addonsContainer.innerHTML = '<div class="text-slate-500 text-sm italic">No additional data</div>';
                 }
 
                 // Show Success Message

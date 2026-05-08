@@ -1384,6 +1384,13 @@ class EventController extends Controller
             'is_picked_up' => 'nullable|boolean',
             'coupon_id' => 'nullable|exists:coupons,id',
             'target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],
+            'pic_name' => 'nullable|string|max:255',
+            'pic_email' => 'nullable|email|max:255',
+            'pic_phone' => 'nullable|string|min:8|max:20',
+            'addons' => 'nullable|array|max:50',
+            'addons.*' => 'array',
+            'addons.*.name' => 'nullable|string|max:100',
+            'addons.*.value' => 'nullable',
         ]);
 
         // If is_picked_up is toggled, handle timestamp
@@ -1405,10 +1412,40 @@ class EventController extends Controller
             ]);
         }
 
-        $participant->update($validated);
+        if ($participant->transaction && ($request->has('pic_name') || $request->has('pic_email') || $request->has('pic_phone'))) {
+            $pic = is_array($participant->transaction->pic_data) ? $participant->transaction->pic_data : [];
+
+            $picName = trim((string) $request->input('pic_name', ''));
+            $picEmail = trim((string) $request->input('pic_email', ''));
+            $picPhone = trim((string) $request->input('pic_phone', ''));
+
+            if ($picName === '') {
+                unset($pic['name']);
+            } else {
+                $pic['name'] = $picName;
+            }
+            if ($picEmail === '') {
+                unset($pic['email']);
+            } else {
+                $pic['email'] = $picEmail;
+            }
+            if ($picPhone === '') {
+                unset($pic['phone']);
+            } else {
+                $pic['phone'] = $picPhone;
+            }
+
+            $participant->transaction->update([
+                'pic_data' => empty($pic) ? null : $pic,
+            ]);
+        }
+
+        $participantData = $validated;
+        unset($participantData['coupon_id'], $participantData['pic_name'], $participantData['pic_email'], $participantData['pic_phone']);
+        $participant->update($participantData);
 
         // Refresh to get relationship data if needed (e.g. category name)
-        $participant->load(['category', 'transaction.coupon']);
+        $participant->load(['category', 'transaction.coupon', 'transaction.user']);
 
         return response()->json([
             'success' => true,
@@ -1435,6 +1472,10 @@ class EventController extends Controller
                 'picked_up_by' => $participant->picked_up_by,
                 'coupon_id' => $participant->transaction->coupon_id ?? null,
                 'coupon_code' => $participant->transaction->coupon->code ?? null,
+                'pic_name' => $participant->pic_name,
+                'pic_phone' => $participant->pic_phone,
+                'pic_email' => $participant->pic_email,
+                'addons' => $participant->addons,
             ],
         ]);
     }
