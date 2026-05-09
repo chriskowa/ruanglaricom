@@ -327,6 +327,62 @@ class EventPaymentRecoveryController extends Controller
         ]);
     }
 
+    public function ticket(Request $request, string $slug, string $transaction)
+    {
+        $event = Event::query()->where('slug', $slug)->firstOrFail();
+
+        $tx = is_numeric($transaction)
+            ? Transaction::find($transaction)
+            : Transaction::where('public_ref', $transaction)->first();
+
+        if (! $tx) {
+            return response()->json(['success' => false, 'message' => 'Transaksi tidak ditemukan.'], 404);
+        }
+
+        if ($tx->event_id != $event->id) {
+            return response()->json(['success' => false, 'message' => 'Transaksi tidak valid untuk event ini.'], 404);
+        }
+
+        $validated = $request->validate([
+            'phone' => 'required|string|min:6|max:32',
+        ]);
+
+        $normalizedPhone = $this->normalizePhone($validated['phone']);
+        if (! $this->phoneMatchesTransaction($normalizedPhone, $tx)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak cocok.',
+            ], 403);
+        }
+
+        $paymentStatus = (string) ($tx->payment_status ?? 'pending');
+        $paymentGateway = (string) ($tx->payment_gateway ?? '');
+        if ($paymentStatus !== 'paid' && $paymentGateway !== 'cod') {
+            return response()->json([
+                'success' => false,
+                'message' => 'E-ticket belum tersedia. Status pembayaran: '.$paymentStatus,
+            ], 409);
+        }
+
+        $tx->load(['participants.category']);
+
+        $participants = $tx->participants->map(function ($p) {
+            return [
+                'participant_name' => (string) ($p->name ?? ''),
+                'jersey_size_label' => (string) ($p->jersey_size ?? ''),
+                'category_label' => (string) ($p->category->name ?? ''),
+                'phone' => (string) ($p->phone ?? ''),
+                'id_card' => (string) ($p->id_card ?? ''),
+            ];
+        })->values()->all();
+
+        return response()->json([
+            'success' => true,
+            'registration_id' => $tx->public_ref,
+            'participants' => $participants,
+        ]);
+    }
+
     private function mapMidtransStatusToInternal(string $status): ?string
     {
         $s = strtolower(trim($status));

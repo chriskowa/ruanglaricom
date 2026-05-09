@@ -64,6 +64,9 @@ class PublicEventReportController extends Controller
             'category_id' => ['nullable', 'integer'],
             'per_page' => ['nullable', 'integer', 'min:10', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
+            'sales_group' => ['nullable', 'in:day,month'],
+            'sales_start_date' => ['nullable', 'date'],
+            'sales_end_date' => ['nullable', 'date'],
         ]);
 
         $filters = [
@@ -74,11 +77,44 @@ class PublicEventReportController extends Controller
             'category_id' => isset($validated['category_id']) ? (int) $validated['category_id'] : null,
             'per_page' => (int) ($validated['per_page'] ?? 25),
             'page' => (int) ($validated['page'] ?? 1),
+            'sales_group' => (string) ($validated['sales_group'] ?? 'day'),
+            'sales_start_date' => (string) ($validated['sales_start_date'] ?? ''),
+            'sales_end_date' => (string) ($validated['sales_end_date'] ?? ''),
         ];
 
         if ($filters['category_id'] && ! $eventModel->categories->contains('id', $filters['category_id'])) {
             $filters['category_id'] = null;
         }
+
+        $salesStart = $filters['sales_start_date'] ?: ($filters['start_date'] ?: '');
+        $salesEnd = $filters['sales_end_date'] ?: ($filters['end_date'] ?: '');
+        if ($salesStart === '' && $salesEnd === '') {
+            $salesEnd = now()->toDateString();
+            $salesStart = now()->subDays(29)->toDateString();
+        } elseif ($salesStart !== '' && $salesEnd === '') {
+            $salesEnd = now()->toDateString();
+        } elseif ($salesStart === '' && $salesEnd !== '') {
+            $salesStart = \Carbon\Carbon::parse($salesEnd)->subDays(29)->toDateString();
+        }
+
+        try {
+            $salesStartCarbon = \Carbon\Carbon::parse($salesStart)->startOfDay();
+            $salesEndCarbon = \Carbon\Carbon::parse($salesEnd)->endOfDay();
+            if ($salesEndCarbon->lt($salesStartCarbon)) {
+                [$salesStartCarbon, $salesEndCarbon] = [$salesEndCarbon->startOfDay(), $salesStartCarbon->endOfDay()];
+            }
+            if ($salesEndCarbon->diffInDays($salesStartCarbon) > 366) {
+                $salesStartCarbon = $salesEndCarbon->copy()->subDays(366)->startOfDay();
+            }
+            $salesStart = $salesStartCarbon->toDateString();
+            $salesEnd = $salesEndCarbon->toDateString();
+        } catch (\Exception $e) {
+            $salesEnd = now()->toDateString();
+            $salesStart = now()->subDays(29)->toDateString();
+        }
+
+        $filters['sales_start_date'] = $salesStart;
+        $filters['sales_end_date'] = $salesEnd;
 
         $cacheKey = 'public_event_report_'.$eventModel->id.'_'.md5(json_encode($filters));
 
@@ -164,6 +200,7 @@ class PublicEventReportController extends Controller
                 'report' => $report,
                 'coupon_usage' => $couponUsage,
                 'participants' => $participants,
+                'sales' => $this->buildSalesSeries($eventModel->id, $filters),
             ];
         });
 
@@ -180,6 +217,7 @@ class PublicEventReportController extends Controller
                     'report' => $payload['report'],
                     'coupon_usage' => $payload['coupon_usage'],
                     'participants' => $payload['participants'],
+                    'sales' => $payload['sales'],
                     'filters' => [
                         'payment_status' => $filters['payment_status'],
                         'start_date' => $filters['start_date'] ?: null,
@@ -187,6 +225,9 @@ class PublicEventReportController extends Controller
                         'category_id' => $filters['category_id'],
                         'search' => $filters['search'] ?: null,
                         'per_page' => $filters['per_page'],
+                        'sales_group' => $filters['sales_group'],
+                        'sales_start_date' => $filters['sales_start_date'] ?: null,
+                        'sales_end_date' => $filters['sales_end_date'] ?: null,
                     ],
                 ])
                 ->header('X-Robots-Tag', $noIndexHeader);
@@ -198,6 +239,7 @@ class PublicEventReportController extends Controller
                 'report' => $payload['report'],
                 'couponUsage' => $payload['coupon_usage'],
                 'participants' => $payload['participants'],
+                'sales' => $payload['sales'],
                 'filters' => $filters,
             ])
             ->header('X-Robots-Tag', $noIndexHeader);
@@ -245,5 +287,108 @@ class PublicEventReportController extends Controller
         }
         
         return back()->with('success', 'Peserta berhasil diperbarui.');
+    }
+
+    private function buildSalesSeries(int $eventId, array $filters): array
+    {
+        $group = ($filters['sales_group'] ?? 'day') === 'month' ? 'month' : 'day';
+        $start = (string) ($filters['sales_start_date'] ?? '');
+        $end = (string) ($filters['sales_end_date'] ?? '');
+
+        $startCarbon = $start ? \Carbon\Carbon::parse($start)->startOfDay() : now()->subDays(29)->startOfDay();
+        $endCarbon = $end ? \Carbon\Carbon::parse($end)->endOfDay() : now()->endOfDay();
+        if ($endCarbon->lt($startCarbon)) {
+            [$startCarbon, $endCarbon] = [$endCarbon->startOfDay(), $startCarbon->endOfDay()];
+        }
+
+        $paidStatuses = ['paid', 'settlement', 'capture'];
+        $pendingStatuses = ['pending'];
+
+        $bucketExpr = $group === 'month'
+            ? DB::raw("DATE_FORMAT(participants.created_at, '%Y-%m') as bucket")
+            : DB::raw('DATE(participants.created_at) as bucket');
+
+        $rows = Participant::query()
+            ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+            ->where('transactions.event_id', $eventId)
+            ->whereBetween('participants.created_at', [$startCarbon, $endCarbon])
+            ->select([
+                $bucketExpr,
+                DB::raw('SUM(CASE WHEN transactions.payment_status IN ("'.implode('","', $paidStatuses).'") THEN 1 ELSE 0 END) as paid_slots'),
+                DB::raw('SUM(CASE WHEN transactions.payment_status IN ("'.implode('","', $pendingStatuses).'") THEN 1 ELSE 0 END) as pending_slots'),
+                DB::raw('COUNT(*) as total_slots'),
+            ])
+            ->groupBy('bucket')
+            ->orderBy('bucket')
+            ->get();
+
+        $map = [];
+        foreach ($rows as $r) {
+            $key = (string) ($r->bucket ?? '');
+            if ($key === '') {
+                continue;
+            }
+            $map[$key] = [
+                'paid' => (int) ($r->paid_slots ?? 0),
+                'pending' => (int) ($r->pending_slots ?? 0),
+                'total' => (int) ($r->total_slots ?? 0),
+            ];
+        }
+
+        $labels = [];
+        if ($group === 'month') {
+            $cursor = $startCarbon->copy()->startOfMonth();
+            $last = $endCarbon->copy()->startOfMonth();
+            while ($cursor->lte($last)) {
+                $labels[] = $cursor->format('Y-m');
+                $cursor->addMonthNoOverflow();
+            }
+        } else {
+            $cursor = $startCarbon->copy()->startOfDay();
+            $last = $endCarbon->copy()->startOfDay();
+            while ($cursor->lte($last)) {
+                $labels[] = $cursor->toDateString();
+                $cursor->addDay();
+            }
+        }
+
+        $paid = [];
+        $pending = [];
+        $total = [];
+        $cumulativePaid = [];
+
+        $sumPaid = 0;
+        $sumPending = 0;
+        $runningPaid = 0;
+
+        foreach ($labels as $label) {
+            $v = $map[$label] ?? ['paid' => 0, 'pending' => 0, 'total' => 0];
+            $paid[] = (int) $v['paid'];
+            $pending[] = (int) $v['pending'];
+            $total[] = (int) $v['total'];
+
+            $sumPaid += (int) $v['paid'];
+            $sumPending += (int) $v['pending'];
+            $runningPaid += (int) $v['paid'];
+            $cumulativePaid[] = $runningPaid;
+        }
+
+        return [
+            'group' => $group,
+            'start_date' => $startCarbon->toDateString(),
+            'end_date' => $endCarbon->toDateString(),
+            'labels' => $labels,
+            'series' => [
+                'paid' => $paid,
+                'pending' => $pending,
+                'total' => $total,
+                'cumulative_paid' => $cumulativePaid,
+            ],
+            'totals' => [
+                'paid' => $sumPaid,
+                'pending' => $sumPending,
+                'total' => $sumPaid + $sumPending,
+            ],
+        ];
     }
 }

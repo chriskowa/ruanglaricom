@@ -52,6 +52,43 @@
     </div>
 
     <div class="mt-4 bg-card border border-slate-700 rounded-2xl p-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <div class="text-lg font-bold">Penjualan Slot</div>
+                <div class="text-xs text-slate-400">Trend paid vs pending</div>
+            </div>
+            <form id="sales-filters" class="flex flex-wrap items-end gap-2">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Periode</label>
+                    <select id="sales_group" name="sales_group" class="mt-1 rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                        <option value="day" @selected(($filters['sales_group'] ?? 'day') === 'day')>Harian</option>
+                        <option value="month" @selected(($filters['sales_group'] ?? 'day') === 'month')>Bulanan</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Mulai</label>
+                    <input id="sales_start_date" type="date" name="sales_start_date" value="{{ $filters['sales_start_date'] ?? '' }}" class="mt-1 rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Akhir</label>
+                    <input id="sales_end_date" type="date" name="sales_end_date" value="{{ $filters['sales_end_date'] ?? '' }}" class="mt-1 rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                </div>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-neon text-dark font-bold hover:bg-lime-300 transition">Apply</button>
+                <button type="button" id="sales-reset" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 transition">Reset</button>
+            </form>
+        </div>
+        <div class="mt-4 grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div class="lg:col-span-3 border border-slate-700 rounded-2xl bg-slate-900/30 p-3">
+                <canvas id="salesChart" height="110"></canvas>
+            </div>
+            <div class="border border-slate-700 rounded-2xl bg-slate-900/30 p-4">
+                <div class="text-xs text-slate-400 font-bold uppercase">Insight</div>
+                <div id="sales-insights" class="mt-2 space-y-2 text-sm text-slate-200"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 bg-card border border-slate-700 rounded-2xl p-4">
         <div class="flex items-center justify-between">
             <div>
                 <div class="text-lg font-bold">Jersey Breakdown</div>
@@ -328,6 +365,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
         const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";
         const csrfTokenVal = "{{ csrf_token() }}";
@@ -406,6 +444,13 @@
     (function () {
         const form = document.getElementById('report-filters');
         const resetBtn = document.getElementById('report-reset');
+        const salesForm = document.getElementById('sales-filters');
+        const salesResetBtn = document.getElementById('sales-reset');
+        const salesGroupEl = document.getElementById('sales_group');
+        const salesStartEl = document.getElementById('sales_start_date');
+        const salesEndEl = document.getElementById('sales_end_date');
+        const salesInsightsEl = document.getElementById('sales-insights');
+        const salesChartCanvas = document.getElementById('salesChart');
         const loadingEl = document.getElementById('report-loading');
         const tbody = document.getElementById('participants-tbody');
         const metaEl = document.getElementById('participants-meta');
@@ -416,6 +461,8 @@
         const statSold = document.getElementById('stat-sold');
         const statPending = document.getElementById('stat-pending');
         const statRemaining = document.getElementById('stat-remaining');
+        const initialSales = @json($sales ?? null);
+        let salesChart = null;
 
         function csrfToken() {
             const meta = document.querySelector('meta[name="csrf-token"]');
@@ -455,6 +502,121 @@
                 obj[k] = typeof v === 'string' ? v.trim() : v;
             }
             return obj;
+        }
+
+        function serializeSales() {
+            return {
+                sales_group: salesGroupEl ? salesGroupEl.value : '',
+                sales_start_date: salesStartEl ? salesStartEl.value : '',
+                sales_end_date: salesEndEl ? salesEndEl.value : '',
+            };
+        }
+
+        function serializeAll() {
+            return Object.assign({}, serializeForm(), serializeSales());
+        }
+
+        function setSalesInsights(sales) {
+            if (!salesInsightsEl) return;
+            const totals = sales && sales.totals ? sales.totals : { paid: 0, pending: 0, total: 0 };
+            const paid = Number(totals.paid || 0);
+            const pending = Number(totals.pending || 0);
+            const total = Number(totals.total || 0);
+            const conversion = total > 0 ? (paid / total) * 100 : 0;
+
+            const labels = sales && Array.isArray(sales.labels) ? sales.labels : [];
+            const paidSeries = sales && sales.series && Array.isArray(sales.series.paid) ? sales.series.paid : [];
+            const days = labels.length || 0;
+            const avgPaid = days > 0 ? paid / days : 0;
+
+            let bestIdx = -1;
+            let bestVal = 0;
+            paidSeries.forEach((v, i) => {
+                const n = Number(v || 0);
+                if (n > bestVal) {
+                    bestVal = n;
+                    bestIdx = i;
+                }
+            });
+            const bestLabel = bestIdx >= 0 && labels[bestIdx] ? labels[bestIdx] : '-';
+
+            salesInsightsEl.innerHTML = [
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Paid</span><span class="font-mono font-bold">${formatNumber(paid)}</span></div>`,
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Pending</span><span class="font-mono font-bold">${formatNumber(pending)}</span></div>`,
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Conversion</span><span class="font-mono font-bold">${conversion.toFixed(1)}%</span></div>`,
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Avg/day</span><span class="font-mono font-bold">${avgPaid.toFixed(2)}</span></div>`,
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Best</span><span class="font-mono font-bold">${bestVal ? formatNumber(bestVal) : '-'}</span></div>`,
+                `<div class="text-xs text-slate-500">${bestVal ? `Tanggal: ${bestLabel}` : ''}</div>`,
+            ].join('');
+        }
+
+        function renderSalesChart(sales) {
+            if (!salesChartCanvas || typeof Chart === 'undefined') return;
+
+            const labels = sales && Array.isArray(sales.labels) ? sales.labels : [];
+            const series = sales && sales.series ? sales.series : {};
+            const paid = Array.isArray(series.paid) ? series.paid : [];
+            const pending = Array.isArray(series.pending) ? series.pending : [];
+
+            const datasetPaid = {
+                label: 'Paid',
+                data: paid,
+                borderColor: '#22c55e',
+                backgroundColor: 'rgba(34, 197, 94, 0.25)',
+                tension: 0.25,
+                fill: true,
+                pointRadius: 2,
+            };
+
+            const datasetPending = {
+                label: 'Pending',
+                data: pending,
+                borderColor: '#eab308',
+                backgroundColor: 'rgba(234, 179, 8, 0.18)',
+                tension: 0.25,
+                fill: true,
+                pointRadius: 2,
+            };
+
+            if (!salesChart) {
+                salesChart = new Chart(salesChartCanvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [datasetPaid, datasetPending],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#e2e8f0' }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#94a3b8', maxRotation: 0, autoSkip: true },
+                                grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                            },
+                            y: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                                beginAtZero: true,
+                            }
+                        }
+                    }
+                });
+            } else {
+                salesChart.data.labels = labels;
+                salesChart.data.datasets = [datasetPaid, datasetPending];
+                salesChart.update();
+            }
+
+            setSalesInsights(sales);
         }
 
         function paymentPill(status) {
@@ -642,6 +804,7 @@
                 renderCoupons(data.coupon_usage);
                 renderParticipants(data.participants);
                 renderPagination(data.participants, payload);
+                renderSalesChart(data.sales);
             } catch (e) {
                 alert(e.message || 'Terjadi kesalahan');
             } finally {
@@ -652,7 +815,7 @@
         if (form) {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                const payload = serializeForm();
+                const payload = serializeAll();
                 payload.page = 1;
                 fetchReport(payload);
             });
@@ -668,7 +831,27 @@
                     }
                     el.value = '';
                 });
-                const payload = serializeForm();
+                const payload = serializeAll();
+                payload.page = 1;
+                fetchReport(payload);
+            });
+        }
+
+        if (salesForm) {
+            salesForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const payload = serializeAll();
+                payload.page = 1;
+                fetchReport(payload);
+            });
+        }
+
+        if (salesResetBtn) {
+            salesResetBtn.addEventListener('click', function () {
+                if (salesGroupEl) salesGroupEl.value = 'day';
+                if (salesStartEl) salesStartEl.value = '';
+                if (salesEndEl) salesEndEl.value = '';
+                const payload = serializeAll();
                 payload.page = 1;
                 fetchReport(payload);
             });
@@ -682,7 +865,8 @@
         // So line 394 in original calls renderPagination.
         
         const initialParticipants = @json($participants);
-        renderPagination(initialParticipants, serializeForm());
+        renderPagination(initialParticipants, serializeAll());
+        renderSalesChart(initialSales);
     })();
 </script>
 @endpush

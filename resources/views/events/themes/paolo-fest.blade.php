@@ -3584,26 +3584,34 @@
                                 }
                             });
 
-                            if (participants.length > 0) {
-                                const eventId = '{{ $event->id }}';
-                                const payload = {
-                                    participants: participants,
-                                    registration_id: data.registration_id || null
-                                };
-                                localStorage.setItem('ruanglari_last_ticket_' + eventId, JSON.stringify(payload));
-                            }
+                            const eventId = '{{ $event->id }}';
+                            const cacheKey = 'ruanglari_last_ticket_' + eventId;
+                            const picPhoneEl = form.querySelector('[name="pic_phone"]');
+
+                            const payload = {
+                                participants: participants,
+                                registration_id: data.registration_id || null,
+                                transaction_id: data.transaction_id || null,
+                                pic_phone: picPhoneEl ? picPhoneEl.value : ''
+                            };
+
+                            localStorage.setItem(cacheKey, JSON.stringify(payload));
                         } catch (e) {}
 
                         if(window.clearAutoSave) window.clearAutoSave();
                         
                         if (data.snap_token) {
+                            const qs = new URLSearchParams();
+                            if (data.transaction_id) qs.set('tx', String(data.transaction_id));
+                            if (data.registration_id) qs.set('ref', String(data.registration_id));
+
                             snap.pay(data.snap_token, {
-                                onSuccess: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
-                                onPending: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; },
+                                onSuccess: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&` + qs.toString(); },
+                                onPending: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&` + qs.toString(); },
                                 onError: function(result) { alert("Pembayaran gagal"); btn.disabled = false; btn.innerHTML = originalText; },
                                 onClose: function() { 
                                     // Redirect to pending page to avoid double submission error (422) if user tries to submit form again
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; 
+                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&` + qs.toString(); 
                                 }
                             });
                         } else if (data.payment_gateway === 'moota' || data.redirect_url) {
@@ -4118,6 +4126,7 @@
             let cachedParticipants = [];
             let cacheLoaded = false;
             let ticketNumber = '';
+            let ticketPhone = '';
 
             function cleanupUrl() {
                 try {
@@ -4134,12 +4143,15 @@
                 cleanupUrl();
             }
 
-            function openModal() {
+            async function openModal() {
                 modal.classList.remove('hidden');
                 if (canvas) {
                     canvas.classList.remove('hidden');
                 }
                 ensureTicketCache();
+                if (!cachedParticipants.length) {
+                    await hydrateTicketFromServer();
+                }
                 if (cachedParticipants.length > 0) {
                     currentParticipantIndex = 0;
                     updateParticipantControls();
@@ -4176,15 +4188,78 @@
                     const raw = localStorage.getItem(cacheKey);
                     if (!raw) return;
                     const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed.participants)) {
-                        cachedParticipants = parsed.participants;
+                    if (parsed && typeof parsed.registration_id === 'string') {
                         ticketNumber = parsed.registration_id || '';
+                    }
+                    if (parsed && typeof parsed.pic_phone === 'string') {
+                        ticketPhone = parsed.pic_phone || '';
+                    }
+
+                    if (Array.isArray(parsed?.participants)) {
+                        cachedParticipants = parsed.participants;
                     } else if (parsed && (parsed.participant_name || parsed.jersey_size_label || parsed.category_label)) {
                         cachedParticipants = [parsed];
-                        ticketNumber = parsed.registration_id || '';
                     }
                 } catch (e) {
                     cachedParticipants = [];
+                }
+            }
+
+            async function hydrateTicketFromServer() {
+                ensureTicketCache();
+
+                if (cachedParticipants.length > 0) {
+                    return true;
+                }
+
+                if (!ticketNumber) {
+                    return false;
+                }
+
+                let phone = String(ticketPhone || '').trim();
+                if (!phone) {
+                    phone = prompt('Masukkan nomor HP PIC untuk memuat e-ticket:', '') || '';
+                    phone = String(phone).trim();
+                }
+                if (!phone) {
+                    return false;
+                }
+
+                try {
+                    const baseUrl = '{{ url('/api/events/' . $event->slug . '/tickets') }}';
+                    const url = baseUrl + '/' + encodeURIComponent(ticketNumber) + '?phone=' + encodeURIComponent(phone);
+
+                    const r = await fetch(url, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' },
+                        credentials: 'same-origin'
+                    });
+
+                    const data = await r.json().catch(() => null);
+                    if (!r.ok || !data || !data.success) {
+                        return false;
+                    }
+
+                    const participants = Array.isArray(data.participants) ? data.participants : [];
+                    if (!participants.length) {
+                        return false;
+                    }
+
+                    cachedParticipants = participants;
+                    ticketNumber = data.registration_id || ticketNumber;
+                    ticketPhone = phone;
+
+                    const eventId = container?.dataset.eventId || '{{ $event->id }}';
+                    const cacheKey = 'ruanglari_last_ticket_' + eventId;
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        participants: cachedParticipants,
+                        registration_id: ticketNumber,
+                        pic_phone: ticketPhone
+                    }));
+
+                    return true;
+                } catch (e) {
+                    return false;
                 }
             }
 
@@ -4475,8 +4550,11 @@
                 drawFittedText(ctx, 'Tunjukkan e-ticket ini saat pengambilan race pack atau masuk area event.', ticketX + 32, footerY, ticketW - 64, ctx.font);
             }
 
-            function downloadEticket() {
+            async function downloadEticket() {
                 if (!canvas) return;
+                if (!cachedParticipants.length) {
+                    await hydrateTicketFromServer();
+                }
                 drawEticket();
                 const dataUrl = canvas.toDataURL('image/png');
                 const a = document.createElement('a');
@@ -4492,6 +4570,9 @@
 
             const params = new URLSearchParams(window.location.search);
             if (params.get('payment') === 'success') {
+                if (!ticketNumber) {
+                    ticketNumber = params.get('ref') || params.get('registration_id') || params.get('ticket') || '';
+                }
                 openModal();
             } else if (params.get('payment') === 'failed') {
                 window.openFailModal(params.get('error_message'));

@@ -521,6 +521,7 @@ Route::prefix('/event/{slug}/latbar-race')->group(function () {
 Route::post('/api/events/{slug}/payments/pending', [App\Http\Controllers\EventPaymentRecoveryController::class, 'pending'])->middleware('throttle:20,1')->name('api.events.payments.pending');
 Route::get('/api/events/{slug}/payments/{transaction}/status', [App\Http\Controllers\EventPaymentRecoveryController::class, 'status'])->middleware('throttle:30,1')->name('api.events.payments.status');
 Route::post('/api/events/{slug}/payments/{transaction}/resume', [App\Http\Controllers\EventPaymentRecoveryController::class, 'resume'])->middleware('throttle:20,1')->name('api.events.payments.resume');
+Route::get('/api/events/{slug}/tickets/{transaction}', [App\Http\Controllers\EventPaymentRecoveryController::class, 'ticket'])->middleware('throttle:30,1')->name('api.events.tickets.show');
 
 // EO Landing Page
 Route::get('/event-organizer', function () {
