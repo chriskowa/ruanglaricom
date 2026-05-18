@@ -350,4 +350,14 @@ class Event extends Model
         // 5. Fallback (Admin/Aggregator/Listing) -> Listing View (/event-lari/)
         return route('running-event.detail', $this->slug);
     }
+
+    public function photoTaggingPhotos(): HasMany
+    {
+        return $this->hasMany(PhotoTaggingPhoto::class, 'event_id');
+    }
+
+    public function photoTaggingPhotoTags(): HasMany
+    {
+        return $this->hasMany(PhotoTaggingPhotoTag::class, 'event_id');
+    }
 }

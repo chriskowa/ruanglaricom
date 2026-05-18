@@ -944,7 +944,7 @@ class EventController extends Controller
                     'pic_email' => $p->transaction->pic_data['email'] ?? '-',
                     'transaction_date' => $p->transaction->created_at ? $p->transaction->created_at->format('d M Y H:i') : '-',
                     'payment_method' => $p->transaction->payment_gateway ?? '-',
-                    'coupon_code' => $p->transaction->coupon->code ?? null,
+                    'coupon_code' => $p->transaction->coupon?->code ?? null,
                     'coupon_id' => $p->transaction->coupon_id ?? null,
                     'addons' => $p->addons,
                 ];
@@ -1471,7 +1471,7 @@ class EventController extends Controller
                 'picked_up_at' => $participant->picked_up_at,
                 'picked_up_by' => $participant->picked_up_by,
                 'coupon_id' => $participant->transaction->coupon_id ?? null,
-                'coupon_code' => $participant->transaction->coupon->code ?? null,
+                'coupon_code' => $participant->transaction->coupon?->code ?? null,
                 'pic_name' => $participant->pic_name,
                 'pic_phone' => $participant->pic_phone,
                 'pic_email' => $participant->pic_email,

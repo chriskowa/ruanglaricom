@@ -798,6 +798,14 @@ Route::middleware('auth')->group(function () {
             return response()->json(['ok' => true]);
         })->name('leaderboard.sync');
 
+        // Photo Tagging Management
+        Route::get('photo-tagging/events', [\App\Http\Controllers\Admin\PhotoTaggingEventController::class, 'index'])->name('photo-tagging.events.index');
+        Route::get('photo-tagging/events/{event}/photos', [\App\Http\Controllers\Admin\PhotoTaggingPhotoController::class, 'index'])->name('photo-tagging.photos.index');
+        Route::post('photo-tagging/events/{event}/photos/upload', [\App\Http\Controllers\Admin\PhotoTaggingPhotoController::class, 'upload'])->name('photo-tagging.photos.upload');
+        Route::post('photo-tagging/photos/{photo}/tags', [\App\Http\Controllers\Admin\PhotoTaggingPhotoController::class, 'tags'])->name('photo-tagging.photos.tags');
+        Route::post('photo-tagging/photos/{photo}/publish', [\App\Http\Controllers\Admin\PhotoTaggingPhotoController::class, 'publish'])->name('photo-tagging.photos.publish');
+        Route::delete('photo-tagging/photos/{photo}', [\App\Http\Controllers\Admin\PhotoTaggingPhotoController::class, 'destroy'])->name('photo-tagging.photos.destroy');
+
         // Transaction Management
         Route::get('transactions', [App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('transactions.index');
         Route::post('transactions/withdrawals/{withdrawal}/approve', [App\Http\Controllers\Admin\TransactionController::class, 'approveWithdrawal'])->name('transactions.withdrawals.approve');
@@ -1083,6 +1091,10 @@ Route::get('/run-queue-worker', function () {
 
     return 'Worker executed. Output: '.Illuminate\Support\Facades\Artisan::output();
 });
+
+// Photo Tagging Public Routes
+Route::get('/photo-tagging', [\App\Http\Controllers\PhotoTaggingController::class, 'index'])->name('photo-tagging.index');
+Route::get('/photo-tagging/{event_slug}', [\App\Http\Controllers\PhotoTaggingController::class, 'show'])->name('photo-tagging.show');
 
 // Dynamic pages with template support (must be at the end)
 Route::get('/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('page.show');
