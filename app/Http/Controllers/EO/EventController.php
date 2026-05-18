@@ -1887,6 +1887,7 @@ class EventController extends Controller
                     'is_picked_up' => (bool) $participant->is_picked_up,
                     'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
                     'picked_up_by' => $participant->picked_up_by,
+                    'payment_status' => $participant->transaction->payment_status ?? 'pending',
                 ],
                 'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($event),
             ]);

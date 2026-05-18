@@ -438,7 +438,7 @@
                 <tbody id="participantsTableBody" class="divide-y divide-slate-800">
                     @forelse($participants as $participant)
                     <tr class="hover:bg-slate-800/50 transition-colors cursor-pointer"
-                        onclick="if(!event.target.closest('button') && !event.target.closest('a')) openDetailModalFromRow(this)"
+                        onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('.no-click')) openDetailModalFromRow(this)"
                         data-json="{{ json_encode([
                             'id' => $participant->id,
                             'name' => $participant->name,
@@ -556,19 +556,22 @@
                         </td>
                         <td class="px-6 py-4">
                             @if($status == 'paid')
-                                <button onclick="openPickupModal({{ $participant->id }}, '{{ addslashes($participant->name) }}', {{ $participant->is_picked_up ? 'true' : 'false' }}, '{{ addslashes($participant->picked_up_by ?? '') }}')" class="hover:opacity-80 transition-opacity text-left">
-                                    @if($participant->is_picked_up)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30">
-                                            <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                            Picked Up
-                                        </span>
-                                        <div class="text-xs text-slate-500 mt-1">By: {{ Str::limit($participant->picked_up_by, 15) }}</div>
-                                    @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">
-                                            Not Picked Up
-                                        </span>
+                                <div class="flex flex-col items-start gap-1">
+                                    <div class="flex items-center gap-2">
+                                        <label class="relative inline-flex items-center cursor-pointer no-click" onclick="event.stopPropagation()">
+                                            <input type="checkbox" class="sr-only peer" {{ $participant->is_picked_up ? 'checked' : '' }} onchange="togglePickupQuick({{ $participant->id }}, this, '{{ addslashes($participant->name) }}')">
+                                            <div class="relative shrink-0 w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                        <button type="button" class="text-xs font-medium no-click hover:underline {{ $participant->is_picked_up ? 'text-blue-400' : 'text-slate-400' }}" onclick="event.stopPropagation(); openPickupModal({{ $participant->id }}, '{{ addslashes($participant->name) }}', {{ $participant->is_picked_up ? 'true' : 'false' }}, '{{ addslashes($participant->picked_up_by ?? '') }}')">
+                                            {{ $participant->is_picked_up ? 'Picked Up' : 'Not Picked Up' }} <span class="opacity-50 inline-block ml-0.5">✎</span>
+                                        </button>
+                                    </div>
+                                    @if($participant->is_picked_up && $participant->picked_up_by)
+                                        <div class="text-xs text-slate-500 cursor-pointer no-click hover:text-white" onclick="event.stopPropagation(); openPickupModal({{ $participant->id }}, '{{ addslashes($participant->name) }}', true, '{{ addslashes($participant->picked_up_by ?? '') }}')">
+                                            By: {{ Str::limit($participant->picked_up_by, 15) }}
+                                        </div>
                                     @endif
-                                </button>
+                                </div>
                             @else
                                 <span class="text-xs text-slate-500 italic">Payment required</span>
                             @endif
@@ -1390,7 +1393,8 @@
                     var name = (p && p.name) ? String(p.name) : '';
                     var bib = (p && p.bib_number) ? String(p.bib_number) : '-';
                     var jersey = (p && p.jersey_size) ? String(p.jersey_size) : '-';
-                    var msg = name ? (`Berhasil pickup: ${name} • BIB ${bib} • Jersey ${jersey}`) : (res.message || ('Berhasil update pickup #' + participantId));
+                    var payment = (p && p.payment_status) ? String(p.payment_status).toUpperCase() : 'UNKNOWN';
+                    var msg = name ? (`Berhasil pickup: ${name} • BIB ${bib} • Jersey ${jersey} • Payment ${payment}`) : (res.message || ('Berhasil update pickup #' + participantId));
                     setQrMsg(msg, 'success');
                     if (res.jersey_sizes_pending_pickup) {
                         updateJerseyBreakdown(res.jersey_sizes_pending_pickup);
@@ -1580,15 +1584,24 @@
                 var status = p.payment_status || 'pending';
                 var pickedBadge = '';
                 if (status === 'paid') {
-                    var badgeContent = '';
-                    if (p.is_picked_up) {
-                        badgeContent = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span><div class="text-xs text-slate-500 mt-1">By: ' + (p.picked_up_by ? p.picked_up_by.substring(0, 15) : '') + '</div>';
-                    } else {
-                        badgeContent = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
-                    }
                     var safeName = (p.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     var safePickedBy = (p.picked_up_by || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    pickedBadge = '<button onclick="openPickupModal('+ p.id +', \''+ safeName +'\', '+ (p.is_picked_up ? 'true' : 'false') +', \''+ safePickedBy +'\')" class="hover:opacity-80 transition-opacity text-left">' + badgeContent + '</button>';
+                    
+                    pickedBadge = '<div class="flex flex-col items-start gap-1">' +
+                        '<div class="flex items-center gap-2">' +
+                            '<label class="relative inline-flex items-center cursor-pointer no-click" onclick="event.stopPropagation()">' +
+                                '<input type="checkbox" class="sr-only peer" ' + (p.is_picked_up ? 'checked' : '') + ' onchange="togglePickupQuick('+ p.id +', this, \''+ safeName +'\')">' +
+                                '<div class="relative shrink-0 w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>' +
+                            '</label>' +
+                            '<button type="button" class="text-xs font-medium no-click hover:underline ' + (p.is_picked_up ? 'text-blue-400' : 'text-slate-400') + '" onclick="event.stopPropagation(); openPickupModal('+ p.id +', \''+ safeName +'\', '+ (p.is_picked_up ? 'true' : 'false') +', \''+ safePickedBy +'\')">' +
+                                (p.is_picked_up ? 'Picked Up' : 'Not Picked Up') + ' <span class="opacity-50 inline-block ml-0.5">✎</span>' +
+                            '</button>' +
+                        '</div>';
+                        
+                    if (p.is_picked_up && p.picked_up_by) {
+                        pickedBadge += '<div class="text-xs text-slate-500 cursor-pointer no-click hover:text-white" onclick="event.stopPropagation(); openPickupModal('+ p.id +', \''+ safeName +'\', true, \''+ safePickedBy +'\')">By: '+ String(p.picked_up_by).substring(0, 15) +'</div>';
+                    }
+                    pickedBadge += '</div>';
                 } else {
                     pickedBadge = '<span class="text-xs text-slate-500 italic">Payment required</span>';
                 }
@@ -2066,6 +2079,41 @@
     function closePickupModal() {
         document.getElementById('pickupModal').classList.add('hidden');
     }
+
+    window.togglePickupQuick = function(id, checkbox, runnerName) {
+        const isPickedUp = checkbox.checked ? 1 : 0;
+        const url = `{{ url('/eo/events/' . $event->id . '/participants') }}/${id}/status`;
+        
+        checkbox.disabled = true;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrf(),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                is_picked_up: isPickedUp,
+                picked_up_by: isPickedUp ? runnerName : ''
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            checkbox.disabled = false;
+            if (res.success) {
+                fetchParticipants(currentParticipantsPage || 1);
+            } else {
+                checkbox.checked = !isPickedUp;
+                alert(res.message || 'Gagal update status');
+            }
+        })
+        .catch(err => {
+            checkbox.disabled = false;
+            checkbox.checked = !isPickedUp;
+            alert('Terjadi kesalahan network');
+        });
+    };
 
         function populateEditForm() {
             
