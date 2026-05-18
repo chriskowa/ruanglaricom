@@ -243,6 +243,14 @@
                                         <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-200">
                                             {{ $p->payment_status }}
                                         </span>
+                                        @if($p->coupon_code)
+                                            <div class="mt-1 text-[10px] text-yellow-400 font-mono" title="Kupon dipakai">
+                                                🏷️ {{ $p->coupon_code }}
+                                            </div>
+                                            <div class="text-[10px] text-slate-400 mt-0.5">
+                                                Net: Rp {{ number_format((float) $p->final_amount, 0, ',', '.') }}
+                                            </div>
+                                        @endif
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
@@ -619,9 +627,14 @@
             setSalesInsights(sales);
         }
 
-        function paymentPill(status) {
+        function paymentPill(status, couponCode, finalAmount) {
             const text = (status || '').toString();
-            return `<span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-200">${text}</span>`;
+            let html = `<span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-200">${text}</span>`;
+            if (couponCode) {
+                html += `<div class="mt-1 text-[10px] text-yellow-400 font-mono" title="Kupon dipakai">🏷️ ${couponCode}</div>`;
+                html += `<div class="text-[10px] text-slate-400 mt-0.5">Net: Rp ${formatCurrency(finalAmount)}</div>`;
+            }
+            return html;
         }
 
         function renderParticipants(paginator) {
@@ -671,7 +684,7 @@
                             </td>
                             <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Status</span>
-                                <span class="text-right md:text-left">${paymentPill(p.payment_status)}</span>
+                                <span class="text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount)}</span>
                             </td>
                             <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Aksi</span>

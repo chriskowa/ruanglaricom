@@ -135,6 +135,8 @@ class PublicEventReportController extends Controller
                     'participants.jersey_size',
                     'participants.addons',
                     'transactions.payment_status',
+                    'transactions.final_amount',
+                    'transactions.discount_amount',
                     DB::raw('COALESCE(coupons.code, "") as coupon_code'),
                 ]);
 
