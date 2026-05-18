@@ -1763,27 +1763,34 @@
             var current = Number(meta.current_page || 1);
             var last = Number(meta.last_page || 1);
 
-            var firstLink = pagination.querySelector('a[data-role="first"]');
-            var prevLink = pagination.querySelector('a[data-role="prev"]');
-            var nextLink = pagination.querySelector('a[data-role="next"]');
-            var lastLink = pagination.querySelector('a[data-role="last"]');
+            var html = `
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div class="text-xs text-slate-400">
+                    Page <span class="font-semibold text-slate-200">${current}</span> of <span class="font-semibold text-slate-200">${last}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <a href="?page=1" data-role="first" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 ${current <= 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">« First</a>
+                    <a href="?page=${current - 1}" data-role="prev" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 ${current <= 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">‹ Prev</a>
+            `;
 
-            setDisabled(firstLink, current <= 1);
-            setDisabled(prevLink, current <= 1);
-            setDisabled(nextLink, current >= last);
-            setDisabled(lastLink, current >= last);
+            var startPage = Math.max(1, current - 2);
+            var endPage = Math.min(last, current + 2);
 
-            var pageLinks = pagination.querySelectorAll('a[data-page]');
-            pageLinks.forEach(function(a){
-                var p = Number(a.getAttribute('data-page') || '0');
-                if (p === current) {
-                    a.classList.add('border-yellow-500', 'bg-yellow-500', 'text-black', 'font-bold');
-                    a.classList.remove('border-slate-700', 'text-slate-300');
+            for (var i = startPage; i <= endPage; i++) {
+                if (i === current) {
+                    html += `<a href="?page=${i}" data-page="${i}" class="px-3 py-1 text-xs rounded-lg border border-yellow-500 bg-yellow-500 text-black font-bold">${i}</a>`;
                 } else {
-                    a.classList.remove('border-yellow-500', 'bg-yellow-500', 'text-black', 'font-bold');
-                    a.classList.add('border-slate-700', 'text-slate-300');
+                    html += `<a href="?page=${i}" data-page="${i}" class="px-3 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">${i}</a>`;
                 }
-            });
+            }
+
+            html += `
+                    <a href="?page=${current + 1}" data-role="next" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 ${current >= last ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">Next ›</a>
+                    <a href="?page=${last}" data-role="last" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 ${current >= last ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">Last »</a>
+                </div>
+            </div>`;
+            
+            pagination.innerHTML = html;
         }
 
         function handleResponse(res) {
