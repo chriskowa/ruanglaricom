@@ -489,64 +489,128 @@ class EventController extends Controller
     {
         try {
             $response = Http::withoutVerifying()
-                ->withHeaders(['ruangLariKey' => 'Thinkpadx390'])
-                ->get('https://ruanglari.com/wp-json/ruanglari/v1/events');
+                ->get('https://jadwallari.id/wp-json/wp/v2/pages?per_page=50');
 
             if (! $response->successful()) {
-                return back()->with('error', 'Failed to fetch events from source.');
+                return back()->with('error', 'Failed to fetch events from JadwalLari.id.');
             }
 
-            $events = $response->json();
+            $pages = $response->json();
             $count = 0;
             $updated = 0;
 
-            foreach ($events as $item) {
-                try {
-                    $date = Carbon::createFromFormat('m/d/Y', $item['date']);
-                } catch (\Exception $e) {
+            $months = [
+                'januari' => '01', 'februari' => '02', 'maret' => '03', 'april' => '04',
+                'mei' => '05', 'juni' => '06', 'juli' => '07', 'agustus' => '08',
+                'september' => '09', 'oktober' => '10', 'november' => '11', 'desember' => '12'
+            ];
+
+            foreach ($pages as $item) {
+                // Only import pages that are running events
+                if (!isset($item['link']) || !str_contains($item['link'], '/events/')) {
                     continue;
                 }
 
-                $name = html_entity_decode($item['title']);
+                $name = html_entity_decode(trim(str_replace("\xE2\x80\x8B", "", $item['title']['rendered'])));
+                if (empty($name)) {
+                    continue;
+                }
+
+                $ogDesc = html_entity_decode($item['yoast_head_json']['og_description'] ?? '');
+                $parts = explode('|', $ogDesc);
+                $parts = array_map('trim', $parts);
+
+                $date = null;
+                $locationName = 'Lihat deskripsi';
+
+                if (count($parts) >= 4) {
+                    $datePart = $parts[1]; // e.g. "Minggu, 9 Agustus 2026"
+                    $locationName = $parts[3]; // e.g. "Gelora Bung Karno (GBK), Senayan, Jakarta Pusat, DKI Jakarta"
+
+                    // Parse date
+                    $cleanDate = preg_replace('/^[a-zA-Z\s]+,\s*/', '', $datePart); // Remove day prefix like "Minggu, "
+                    $dateParts = explode(' ', $cleanDate);
+                    if (count($dateParts) === 3) {
+                        $day = str_pad($dateParts[0], 2, '0', STR_PAD_LEFT);
+                        $monthName = strtolower($dateParts[1]);
+                        $year = $dateParts[2];
+                        $month = $months[$monthName] ?? '01';
+                        try {
+                            $date = Carbon::parse("$year-$month-$day");
+                        } catch (\Exception $e) {
+                            $date = null;
+                        }
+                    }
+                }
+
+                // Fallback date to post modified/published date if parsing failed
+                if (!$date) {
+                    try {
+                        $date = Carbon::parse($item['date']);
+                    } catch (\Exception $e) {
+                        continue; // Skip if no valid date can be determined
+                    }
+                }
 
                 $existing = Event::where('name', $name)
                     ->whereDate('start_at', $date->toDateString())
                     ->first();
 
                 if ($existing) {
-                    if (empty($existing->registration_link) && ! empty($item['link'])) {
-                        $existing->update(['registration_link' => $item['link']]);
+                    if (empty($existing->external_registration_link) && ! empty($item['link'])) {
+                        $existing->update(['external_registration_link' => $item['link']]);
                         $updated++;
                     }
-
                     continue;
                 }
 
                 $city = null;
-                if (! empty($item['location'])) {
-                    $location = trim($item['location']);
-                    $city = City::where('name', 'like', "%{$location}%")
-                        ->orWhere('name', 'like', "Kota {$location}%")
-                        ->orWhere('name', 'like', "Kabupaten {$location}%")
-                        ->first();
+                if (! empty($locationName) && $locationName !== 'Lihat deskripsi') {
+                    $segments = array_map('trim', explode(',', $locationName));
+                    foreach ($segments as $segment) {
+                        if (empty($segment)) continue;
+
+                        $cleanSegment = trim(str_ireplace([
+                            'Kec.', 'Kab.', 'Kecamatan', 'Kabupaten', 'Kota', 'Provinsi', 'Prov.', 'Prov'
+                        ], '', $segment));
+
+                        if (empty($cleanSegment)) continue;
+
+                        $found = City::where('name', 'like', "%{$cleanSegment}%")
+                            ->orWhere('name', 'like', "Kota %{$cleanSegment}%")
+                            ->orWhere('name', 'like', "Kabupaten %{$cleanSegment}%")
+                            ->first();
+                        if ($found) {
+                            $city = $found;
+                            break;
+                        }
+                    }
                 }
+
+                $heroImageUrl = $item['better_featured_image']['source_url'] ?? null;
+                $excerpt = strip_tags($item['excerpt']['rendered'] ?? '');
+                $content = $item['content']['rendered'] ?? '';
 
                 Event::create([
                     'name' => $name,
                     'slug' => $this->generateSlug($name),
-                    'start_at' => $date, // Time defaults to 00:00:00
-                    'location_name' => $item['location'],
+                    'start_at' => $date,
+                    'end_at' => $date->copy()->addHours(6),
+                    'location_name' => $locationName,
                     'city_id' => $city ? $city->id : null,
-                    'registration_link' => $item['link'],
-                    'status' => 'published',
-                    'description' => 'Imported from RuangLari.com',
+                    'external_registration_link' => $item['link'],
+                    'status' => 'draft',
+                    'event_kind' => 'directory',
+                    'short_description' => $excerpt,
+                    'full_description' => $content,
+                    'hero_image_url' => $heroImageUrl,
                     'user_id' => 1,
                 ]);
                 $count++;
             }
 
             return redirect()->route('admin.events.index')
-                ->with('success', "Synced successfully. Added {$count} new events, updated {$updated} events.");
+                ->with('success', "Synced successfully. Added {$count} new draft events, updated {$updated} events.");
 
         } catch (\Exception $e) {
             return back()->with('error', 'Sync failed: '.$e->getMessage());

@@ -11,14 +11,18 @@ class OCRController extends Controller
     public function scanKTP(Request $request)
     {
         $request->validate([
-            'image' => ['required', 'image', 'max:5120'], // Max 5MB
+            'image' => ['nullable', 'image', 'max:5120'],
+            'text'  => ['nullable', 'string'],
         ]);
 
-        try {
-            $imagePath = $request->file('image')->getRealPath();
-            $mimeType = $request->file('image')->getMimeType();
-            $base64Image = base64_encode(file_get_contents($imagePath));
+        if (!$request->hasFile('image') && !$request->filled('text')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Harap sertakan gambar KTP atau teks hasil OCR.'
+            ], 422);
+        }
 
+        try {
             $apiKey = env('OPENAI_API_KEY');
             
             if (!$apiKey) {
@@ -28,16 +32,42 @@ class OCRController extends Controller
                 ], 500);
             }
 
-            $prompt = 'Anda adalah sistem ekstraksi OCR (Optical Character Recognition) khusus untuk KTP (Kartu Tanda Penduduk) Indonesia.
-Tugas Anda adalah membaca gambar KTP ini dan mengekstrak datanya ke dalam format JSON yang valid dan baku. 
+            $prompt = 'Anda adalah sistem ekstraksi data khusus untuk KTP (Kartu Tanda Penduduk) Indonesia.
+Tugas Anda adalah membaca data KTP ini dan mengekstraknya ke dalam format JSON yang valid dan baku. 
 
 Aturan ekstraksi:
-1. "nik": Ambil 16 digit angka NIK. Pastikan akurat.
+1. "nik": Ambil 16 digit angka NIK. Koreksi typo umum (misal O/o jadi 0, I/l jadi 1). Pastikan akurat.
 2. "name": Ambil nama lengkap sesuai KTP. Abaikan gelar jika memungkinkan.
 3. "date_of_birth": Ambil tanggal lahir (Tempat/Tgl Lahir). Formatkan menjadi MM-DD-YYYY. (Contoh jika tertulis JAKARTA, 17-08-1990 -> maka jadikan 08-17-1990).
 4. "gender": Ambil jenis kelamin. Jika tertulis LAKI-LAKI kembalikan "male", jika PEREMPUAN kembalikan "female".
+5. "address": Ambil alamat lengkap beserta RT/RW, Kel/Desa, dan Kecamatan. Gabungkan menjadi satu kalimat string.
 
-HANYA KEMBALIKAN OUTPUT JSON SAJA. Jika gambar bukan KTP atau buram, berikan respons JSON dengan key "error" bernilai pesan kesalahannya.';
+HANYA KEMBALIKAN OUTPUT JSON SAJA. Jika teks sama sekali tidak menyerupai data KTP yang masuk akal, berikan respons JSON dengan key "error" bernilai pesan kesalahannya.';
+
+            $messagesContent = [];
+
+            if ($request->filled('text')) {
+                // Gunakan mode Text Completion (Sangat murah token)
+                $messagesContent = $prompt . "\n\nBERIKUT ADALAH TEKS KASAR HASIL SCAN OCR LOKAL:\n---\n" . $request->input('text') . "\n---\n";
+            } else {
+                // Fallback: Gunakan mode Vision (Lebih mahal)
+                $imagePath = $request->file('image')->getRealPath();
+                $mimeType = $request->file('image')->getMimeType();
+                $base64Image = base64_encode(file_get_contents($imagePath));
+
+                $messagesContent = [
+                    [
+                        'type' => 'text',
+                        'text' => $prompt
+                    ],
+                    [
+                        'type' => 'image_url',
+                        'image_url' => [
+                            'url' => "data:{$mimeType};base64,{$base64Image}"
+                        ]
+                    ]
+                ];
+            }
 
             $response = Http::withToken($apiKey)
                 ->timeout(30)
@@ -51,18 +81,7 @@ HANYA KEMBALIKAN OUTPUT JSON SAJA. Jika gambar bukan KTP atau buram, berikan res
                         ],
                         [
                             'role' => 'user',
-                            'content' => [
-                                [
-                                    'type' => 'text',
-                                    'text' => $prompt
-                                ],
-                                [
-                                    'type' => 'image_url',
-                                    'image_url' => [
-                                        'url' => "data:{$mimeType};base64,{$base64Image}"
-                                    ]
-                                ]
-                            ]
+                            'content' => $messagesContent
                         ]
                     ],
                     'max_tokens' => 300,

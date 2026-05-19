@@ -3059,15 +3059,51 @@
                 }
                 try {
                     if (ktpLoading) ktpLoading.classList.remove('hidden');
-                    setKtpStatus('Menyiapkan gambar dan mengirim ke AI...');
                     
-                    // Convert DataURL to Blob
-                    const response = await fetch(ktpImageData);
-                    const blob = await response.blob();
                     const formData = new FormData();
-                    formData.append('image', blob, 'ktp.jpg');
+                    let useFallback = false;
 
-                    setKtpStatus('AI sedang membaca KTP Anda...');
+                    // Compress Image
+                    const img = await loadImage(ktpImageData);
+                    const baseCanvas = drawToCanvas(img, 1024);
+                    const compressedDataUrl = baseCanvas.toDataURL('image/jpeg', 0.6);
+
+                    // Try Local Tesseract
+                    if (window.Tesseract) {
+                        setKtpStatus('Membaca KTP secara lokal (Tahap 1)...');
+                        try {
+                            const cleanCanvas = preprocessCanvas(baseCanvas, 'clean');
+                            const worker = await getKtpWorker();
+                            let text = '';
+                            if (worker) {
+                                const result = await worker.recognize(cleanCanvas);
+                                text = result?.data?.text || '';
+                            } else {
+                                const result = await window.Tesseract.recognize(cleanCanvas, 'ind');
+                                text = result?.data?.text || '';
+                            }
+                            
+                            if (text && text.trim().length > 10) {
+                                formData.append('text', text);
+                                setKtpStatus('Mengoreksi data dengan AI (Tahap 2)...');
+                            } else {
+                                useFallback = true;
+                            }
+                        } catch (err) {
+                            console.error('[Tesseract Error]', err);
+                            useFallback = true;
+                        }
+                    } else {
+                        useFallback = true;
+                    }
+
+                    if (useFallback) {
+                        setKtpStatus('Mengirim KTP ke AI Vision (Mode Presisi)...');
+                        const response = await fetch(compressedDataUrl);
+                        const blob = await response.blob();
+                        formData.append('image', blob, 'ktp.jpg');
+                    }
+
                     const res = await fetch('/ocr/ktp', {
                         method: 'POST',
                         headers: {
