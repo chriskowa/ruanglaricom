@@ -131,7 +131,7 @@
             <!-- Sidebar -->
             <div class="space-y-6">
                 <!-- Template Event -->
-                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                <div id="template-card" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Template Event</h3>
                     <div class="space-y-4">
                         <div>
@@ -155,6 +155,13 @@
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Publish</h3>
                     <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">Jenis Event</label>
+                            <select name="event_kind" id="event_kind_select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
+                                <option value="directory" {{ old('event_kind', $event->event_kind) == 'directory' ? 'selected' : '' }}>Directory (Listing Saja)</option>
+                                <option value="managed" {{ old('event_kind', $event->event_kind) == 'managed' ? 'selected' : '' }}>Managed (Dikelola Ruang Lari)</option>
+                            </select>
+                        </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">Status</label>
                             <select name="status" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors">
@@ -248,6 +255,23 @@
     // Init preview if value exists
     const initialUrl = document.getElementById('banner-input').value;
     if (initialUrl) updateBannerPreview(initialUrl);
+
+    // Toggle template card based on event kind
+    const eventKindSelect = document.getElementById('event_kind_select');
+    const templateCard = document.getElementById('template-card');
+    function toggleTemplateCard() {
+        if (eventKindSelect && templateCard) {
+            if (eventKindSelect.value === 'managed') {
+                templateCard.style.display = 'block';
+            } else {
+                templateCard.style.display = 'none';
+            }
+        }
+    }
+    if (eventKindSelect) {
+        eventKindSelect.addEventListener('change', toggleTemplateCard);
+        toggleTemplateCard();
+    }
 </script>
 @endpush
 @endsection

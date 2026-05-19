@@ -42,7 +42,7 @@ Aturan ekstraksi:
 4. "gender": Ambil jenis kelamin. Jika tertulis LAKI-LAKI kembalikan "male", jika PEREMPUAN kembalikan "female".
 5. "address": Ambil alamat lengkap beserta RT/RW, Kel/Desa, dan Kecamatan. Gabungkan menjadi satu kalimat string.
 
-HANYA KEMBALIKAN OUTPUT JSON SAJA. Jika teks sama sekali tidak menyerupai data KTP yang masuk akal, berikan respons JSON dengan key "error" bernilai pesan kesalahannya.';
+HANYA KEMBALIKAN OUTPUT JSON SAJA. Ekstrak data yang Anda temukan semaksimal mungkin. Jika data NIK, nama, atau alamat kurang lengkap, tetap kembalikan data yang berhasil diekstrak dan biarkan field lainnya kosong (null). Hanya kembalikan key "error" jika input benar-benar kosong atau sama sekali tidak berisi teks yang berkaitan dengan KTP Indonesia.';
 
             $messagesContent = [];
 

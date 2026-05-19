@@ -3104,7 +3104,7 @@
                         formData.append('image', blob, 'ktp.jpg');
                     }
 
-                    const res = await fetch('/ocr/ktp', {
+                    let res = await fetch('/ocr/ktp', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -3113,12 +3113,39 @@
                         body: formData
                     });
 
-                    const contentType = res.headers.get("content-type");
+                    let contentType = res.headers.get("content-type");
                     if (!contentType || !contentType.includes("application/json")) {
                         throw new Error(`Koneksi gagal atau server error (HTTP ${res.status}). Silakan coba lagi.`);
                     }
 
-                    const json = await res.json();
+                    let json = await res.json();
+
+                    if (!json.success && !useFallback) {
+                        console.log('Local text-based OCR failed, retrying with Vision API...');
+                        setKtpStatus('Mencoba membaca gambar KTP secara langsung...');
+                        
+                        const retryFormData = new FormData();
+                        const response = await fetch(compressedDataUrl);
+                        const blob = await response.blob();
+                        retryFormData.append('image', blob, 'ktp.jpg');
+                        
+                        const retryRes = await fetch('/ocr/ktp', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: retryFormData
+                        });
+                        
+                        contentType = retryRes.headers.get("content-type");
+                        if (!contentType || !contentType.includes("application/json")) {
+                            throw new Error(`Koneksi gagal atau server error saat retry (HTTP ${retryRes.status}).`);
+                        }
+                        
+                        json = await retryRes.json();
+                        res = retryRes;
+                    }
                     
                     if (!res.ok || !json.success) {
                         throw new Error(json.message || 'Gagal membaca KTP.');

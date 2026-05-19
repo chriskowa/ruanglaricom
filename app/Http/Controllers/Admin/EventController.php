@@ -120,6 +120,7 @@ class EventController extends Controller
             'organizer_contact' => 'nullable|string|max:255',
             'contributor_contact' => 'nullable|string|max:255',
             'template' => 'nullable|string|max:255',
+            'event_kind' => 'required|in:directory,managed',
             'status' => 'required|in:draft,published,archived',
         ]);
 
@@ -151,7 +152,7 @@ class EventController extends Controller
             'organizer_contact' => $validated['organizer_contact'] ?? null,
             'contributor_contact' => $validated['contributor_contact'] ?? null,
             'template' => $validated['template'] ?? 'paolo-fest',
-            'event_kind' => 'directory', // Force directory type
+            'event_kind' => $validated['event_kind'],
             'status' => $validated['status'],
             'is_active' => true,
         ]);
@@ -192,6 +193,7 @@ class EventController extends Controller
             'organizer_contact' => 'nullable|string|max:255',
             'contributor_contact' => 'nullable|string|max:255',
             'template' => 'nullable|string|max:255',
+            'event_kind' => 'required|in:directory,managed',
             'status' => 'required|in:draft,published,archived',
         ]);
 
@@ -217,7 +219,7 @@ class EventController extends Controller
             'organizer_contact' => $validated['organizer_contact'] ?? null,
             'contributor_contact' => $validated['contributor_contact'] ?? null,
             'template' => $validated['template'] ?? null,
-            'event_kind' => 'directory', // Force directory type
+            'event_kind' => $validated['event_kind'],
             'status' => $validated['status'],
         ]);
 
