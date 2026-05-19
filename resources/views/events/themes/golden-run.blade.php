@@ -2112,6 +2112,13 @@
                                     </label>
                                     <button type="button" id="ktpRunOcr" class="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition">Scan OCR</button>
                                 </div>
+                                <div id="ktpOcrLoading" class="hidden mt-3 flex items-center gap-3 text-xs text-brand-400">
+                                    <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-brand-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Memproses OCR...</span>
+                                </div>
                                 <div id="ktpOcrStatus" class="text-xs text-slate-400"></div>
                             </div>
                             <div class="space-y-4">
@@ -2694,6 +2701,7 @@
             const ktpUpload = document.getElementById('ktpUpload');
             const ktpRunOcr = document.getElementById('ktpRunOcr');
             const ktpApply = document.getElementById('ktpApply');
+            const ktpLoading = document.getElementById('ktpOcrLoading');
             const ktpStatus = document.getElementById('ktpOcrStatus');
             const ktpFieldName = document.getElementById('ktpFieldName');
             const ktpFieldNik = document.getElementById('ktpFieldNik');
@@ -3049,85 +3057,52 @@
                     setKtpStatus('Pilih foto KTP terlebih dahulu.', true);
                     return;
                 }
-                if (!window.Tesseract) {
-                    setKtpStatus('OCR belum siap. Coba beberapa saat lagi.', true);
-                    return;
-                }
                 try {
-                    setKtpStatus('Menyiapkan gambar...');
-                    const img = await loadImage(ktpImageData);
-                    const baseCanvas = drawToCanvas(img, 1600);
-                    const cleanCanvas = preprocessCanvas(baseCanvas, 'clean');
-                    const thresholdCanvas = preprocessCanvas(baseCanvas, 'threshold');
+                    if (ktpLoading) ktpLoading.classList.remove('hidden');
+                    setKtpStatus('Menyiapkan gambar dan mengirim ke AI...');
                     
-                    // Area khusus alamat (sekitar kiri-tengah-bawah KTP)
-                    const addrX = 0;
-                    const addrY = Math.round(baseCanvas.height * 0.32);
-                    const addrW = Math.round(baseCanvas.width * 0.65);
-                    const addrH = Math.round(baseCanvas.height * 0.40);
-                    const addressCanvas = cropCanvas(cleanCanvas, addrX, addrY, addrW, addrH);
+                    // Convert DataURL to Blob
+                    const response = await fetch(ktpImageData);
+                    const blob = await response.blob();
+                    const formData = new FormData();
+                    formData.append('image', blob, 'ktp.jpg');
 
-                    const focusScore = blurScore(cleanCanvas);
-                    if (focusScore < 120) {
-                        setKtpStatus('Foto terlihat blur. Coba ulang dengan pencahayaan lebih baik.', true);
-                    } else {
-                        setKtpStatus('Memproses OCR...');
+                    setKtpStatus('AI sedang membaca KTP Anda...');
+                    const res = await fetch('/ocr/ktp', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+
+                    const contentType = res.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        throw new Error(`Koneksi gagal atau server error (HTTP ${res.status}). Silakan coba lagi.`);
                     }
-                    const worker = await getKtpWorker();
-                    let textMain = '';
-                    let textAlt = '';
-                    let digitsOnly = '';
-                    let addressOnly = '';
 
-                    if (worker) {
-                        const main = await worker.recognize(cleanCanvas);
-                        textMain = main?.data?.text || '';
-                        
-                        const alt = await worker.recognize(thresholdCanvas);
-                        textAlt = alt?.data?.text || '';
-
-                        // OCR khusus area alamat
-                        const addrRes = await worker.recognize(addressCanvas);
-                        addressOnly = addrRes?.data?.text || '';
-
-                        await worker.setParameters({
-                            tessedit_char_whitelist: '0123456789',
-                            tessedit_pageseg_mode: '6'
-                        });
-                        const digitRes = await worker.recognize(thresholdCanvas);
-                        digitsOnly = digitRes?.data?.text || '';
-                        
-                        await worker.setParameters({
-                            tessedit_char_whitelist: '',
-                            tessedit_pageseg_mode: '6',
-                            preserve_interword_spaces: '1',
-                            user_defined_dpi: '300'
-                        });
-                    } else {
-                        const main = await window.Tesseract.recognize(cleanCanvas, 'ind+eng');
-                        textMain = main?.data?.text || '';
-                        const alt = await window.Tesseract.recognize(thresholdCanvas, 'ind+eng');
-                        textAlt = alt?.data?.text || '';
-                        const digitRes = await window.Tesseract.recognize(thresholdCanvas, 'eng');
-                        digitsOnly = digitRes?.data?.text || '';
+                    const json = await res.json();
+                    
+                    if (!res.ok || !json.success) {
+                        throw new Error(json.message || 'Gagal membaca KTP.');
                     }
-                    const text = textAlt.length > textMain.length ? textAlt : textMain;
-                    const parsedMain = parseKtpText(text);
-                    const parsedDigits = parseKtpText(digitsOnly);
-                    const parsedAddress = parseAddressText(addressOnly);
 
                     ktpResult = {
-                        name: parsedMain.name,
-                        gender: parsedMain.gender,
-                        address: parsedAddress || parsedMain.address,
-                        dob: parsedMain.dob,
-                        nik: parsedDigits.nik || parsedMain.nik
+                        name: json.data.name || '',
+                        gender: json.data.gender || '',
+                        address: json.data.address || '',
+                        dob: json.data.date_of_birth || '',
+                        nik: json.data.nik || ''
                     };
+
                     updateKtpFields(ktpResult);
                     setKtpStatus('OCR selesai. Periksa hasil sebelum digunakan.');
                 } catch (e) {
                     console.error('[OCR Error]', e);
-                    setKtpStatus('OCR gagal. Coba foto lebih jelas.', true);
+                    setKtpStatus(e.message || 'OCR gagal. Coba foto lebih jelas.', true);
+                } finally {
+                    if (ktpLoading) ktpLoading.classList.add('hidden');
                 }
             };
 
@@ -3573,13 +3548,17 @@
                         if(window.clearAutoSave) window.clearAutoSave();
                         
                         if (data.snap_token) {
+                            const qs = new URLSearchParams();
+                            if (data.transaction_id) qs.set('tx', String(data.transaction_id));
+                            if (data.registration_id) qs.set('ref', String(data.registration_id));
+
                             snap.pay(data.snap_token, {
-                                onSuccess: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
-                                onPending: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; },
+                                onSuccess: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&` + qs.toString(); },
+                                onPending: function(result) { window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&` + qs.toString(); },
                                 onError: function(result) { alert("Pembayaran gagal"); btn.disabled = false; btn.innerHTML = originalText; },
                                 onClose: function() { 
                                     // Redirect to pending page to avoid double submission error (422) if user tries to submit form again
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; 
+                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&` + qs.toString(); 
                                 }
                             });
                         } else if (data.payment_gateway === 'moota' || data.redirect_url) {

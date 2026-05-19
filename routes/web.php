@@ -503,6 +503,7 @@ Route::post('/event/{slug}/register', [App\Http\Controllers\EventRegistrationCon
 Route::post('/event/{slug}/register/coupon', [App\Http\Controllers\EventRegistrationController::class, 'applyCoupon'])->name('events.register.coupon');
 Route::post('/event/{slug}/register/quota', [App\Http\Controllers\EventRegistrationController::class, 'checkQuota'])->name('events.register.quota');
 
+Route::post('/ocr/ktp', [App\Http\Controllers\OCRController::class, 'scanKTP'])->name('ocr.ktp')->middleware('throttle:10,1');
 Route::post('/event/{slug}/support', [App\Http\Controllers\PublicEventController::class, 'storeSupport'])->name('events.support.store');
 
 Route::prefix('/event/{slug}/latbar-race')->group(function () {

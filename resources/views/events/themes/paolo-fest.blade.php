@@ -3010,119 +3010,50 @@
                     setKtpStatus('Pilih foto KTP terlebih dahulu.', true);
                     return;
                 }
-                if (!window.Tesseract) {
-                    setKtpStatus('OCR belum siap. Coba beberapa saat lagi.', true);
-                    return;
-                }
                 try {
                     if (ktpLoading) ktpLoading.classList.remove('hidden');
-                    setKtpStatus('Menyiapkan gambar...');
-                    const img = await loadImage(ktpImageData);
-                    const baseCanvas = drawToCanvas(img, 1280);
-                    const cleanCanvas = preprocessCanvas(baseCanvas, 'clean');
-                    const thresholdCanvas = preprocessCanvas(baseCanvas, 'threshold');
+                    setKtpStatus('Menyiapkan gambar dan mengirim ke AI...');
                     
-                    // Area khusus alamat (sekitar kiri-tengah-bawah KTP)
-                    const addrX = 0;
-                    const addrY = Math.round(baseCanvas.height * 0.32);
-                    const addrW = Math.round(baseCanvas.width * 0.65);
-                    const addrH = Math.round(baseCanvas.height * 0.40);
-                    const addressCanvas = cropCanvas(cleanCanvas, addrX, addrY, addrW, addrH);
+                    // Convert DataURL to Blob
+                    const response = await fetch(ktpImageData);
+                    const blob = await response.blob();
+                    const formData = new FormData();
+                    formData.append('image', blob, 'ktp.jpg');
 
-                    const focusScore = blurScore(cleanCanvas);
-                    if (focusScore < 120) {
-                        setKtpStatus('Foto terlihat blur. Coba ulang dengan pencahayaan lebih baik.', true);
-                    } else {
-                        setKtpStatus('Memproses OCR...');
+                    setKtpStatus('AI sedang membaca KTP Anda...');
+                    const res = await fetch('/ocr/ktp', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+
+                    const contentType = res.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        throw new Error(`Koneksi gagal atau server error (HTTP ${res.status}). Silakan coba lagi.`);
                     }
-                    const worker = await getKtpWorker();
-                    let textMain = '';
-                    let textFallback = '';
-                    let digitsOnly = '';
-                    let addressOnly = '';
 
-                    if (worker) {
-                        const main = await worker.recognize(cleanCanvas);
-                        textMain = main?.data?.text || '';
-
-                        let parsedMain = parseKtpText(textMain);
-
-                        if (!parsedMain.name || !parsedMain.dob || !parsedMain.gender) {
-                            const alt = await worker.recognize(thresholdCanvas);
-                            textFallback = alt?.data?.text || '';
-                            if (textFallback) {
-                                const parsedAlt = parseKtpText(textFallback);
-                                parsedMain = {
-                                    nik: parsedMain.nik || parsedAlt.nik,
-                                    name: parsedMain.name || parsedAlt.name,
-                                    gender: parsedMain.gender || parsedAlt.gender,
-                                    dob: parsedMain.dob || parsedAlt.dob,
-                                    address: parsedMain.address || parsedAlt.address
-                                };
-                            }
-                        }
-
-                        if (!parsedMain.address) {
-                            const addrRes = await worker.recognize(addressCanvas);
-                            addressOnly = addrRes?.data?.text || '';
-                        }
-
-                        if (!parsedMain.nik) {
-                            await worker.setParameters({
-                                tessedit_char_whitelist: '0123456789',
-                                tessedit_pageseg_mode: '6'
-                            });
-                            const digitRes = await worker.recognize(thresholdCanvas);
-                            digitsOnly = digitRes?.data?.text || '';
-                            await worker.setParameters({
-                                tessedit_char_whitelist: '',
-                                tessedit_pageseg_mode: '6',
-                                preserve_interword_spaces: '1',
-                                user_defined_dpi: '200'
-                            });
-                        }
-
-                        const parsedDigits = parseKtpText(digitsOnly);
-                        const parsedAddress = parseAddressText(addressOnly);
-
-                        ktpResult = {
-                            name: parsedMain.name,
-                            gender: parsedMain.gender,
-                            address: parsedAddress || parsedMain.address,
-                            dob: parsedMain.dob,
-                            nik: parsedDigits.nik || parsedMain.nik
-                        };
-                    } else {
-                        const main = await window.Tesseract.recognize(cleanCanvas, 'ind');
-                        textMain = main?.data?.text || '';
-                        const parsedMain = parseKtpText(textMain);
-
-                        if (!parsedMain.address) {
-                            const addrRes = await window.Tesseract.recognize(addressCanvas, 'ind');
-                            addressOnly = addrRes?.data?.text || '';
-                        }
-
-                        if (!parsedMain.nik) {
-                            const digitRes = await window.Tesseract.recognize(thresholdCanvas, 'eng');
-                            digitsOnly = digitRes?.data?.text || '';
-                        }
-
-                        const parsedDigits = parseKtpText(digitsOnly);
-                        const parsedAddress = parseAddressText(addressOnly);
-
-                        ktpResult = {
-                            name: parsedMain.name,
-                            gender: parsedMain.gender,
-                            address: parsedAddress || parsedMain.address,
-                            dob: parsedMain.dob,
-                            nik: parsedDigits.nik || parsedMain.nik
-                        };
+                    const json = await res.json();
+                    
+                    if (!res.ok || !json.success) {
+                        throw new Error(json.message || 'Gagal membaca KTP.');
                     }
+
+                    ktpResult = {
+                        name: json.data.name || '',
+                        gender: json.data.gender || '',
+                        address: json.data.address || '',
+                        dob: json.data.date_of_birth || '',
+                        nik: json.data.nik || ''
+                    };
+
                     updateKtpFields(ktpResult);
                     setKtpStatus('OCR selesai. Periksa hasil sebelum digunakan.');
                 } catch (e) {
                     console.error('[OCR Error]', e);
-                    setKtpStatus('OCR gagal. Coba foto lebih jelas.', true);
+                    setKtpStatus(e.message || 'OCR gagal. Coba foto lebih jelas.', true);
                 } finally {
                     if (ktpLoading) ktpLoading.classList.add('hidden');
                 }
