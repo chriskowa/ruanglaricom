@@ -63,7 +63,9 @@
 
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">Deskripsi Event</label>
-                            <textarea name="description" rows="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="Penjelasan singkat tentang event...">{{ old('description') }}</textarea>
+                            <div class="text-slate-900">
+                                <textarea name="description" id="description" rows="5" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon transition-colors" placeholder="Penjelasan singkat tentang event...">{{ old('description') }}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -271,6 +273,17 @@
         eventKindSelect.addEventListener('change', toggleTemplateCard);
         toggleTemplateCard();
     }
+<script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        ClassicEditor
+            .create(document.querySelector('#description'), {
+                toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'undo', 'redo' ]
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    });
 </script>
 @endpush
 @endsection
