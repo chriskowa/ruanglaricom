@@ -68,6 +68,17 @@ class SitemapController extends Controller
             }
         });
 
+        // 3.3 Category Event Archives
+        $seoCategories = ['5k', '10k', 'half-marathon', 'marathon', 'trail-run', 'fun-run', 'virtual-run', 'ultra-marathon'];
+        foreach ($seoCategories as $cat) {
+            $urls[] = [
+                'loc' => route('events.category', $cat),
+                'lastmod' => now()->toIso8601String(),
+                'priority' => '0.8',
+                'changefreq' => 'daily',
+            ];
+        }
+
         // 4. Marketplace Products (Active)
         \App\Models\Marketplace\MarketplaceProduct::where('is_active', true)->chunk(100, function ($products) use (&$urls) {
             foreach ($products as $product) {

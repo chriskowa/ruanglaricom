@@ -206,4 +206,123 @@ class PublicRunningEventController extends Controller
 
         return view('events.city-archive', compact('city', 'upcomingEvents', 'pastEvents'));
     }
+
+    public function categoryArchive(Request $request, $categorySlug)
+    {
+        $categorySlug = Str::lower($categorySlug);
+        
+        $categoryMeta = [
+            '5k' => [
+                'title' => 'Jadwal Lari 5K 2026 Indonesia | Event Lari Terbaru',
+                'meta_title' => 'Jadwal Lari 5K 2026 Indonesia | Event Lari Terbaru',
+                'meta_description' => 'Daftar lengkap jadwal event lari 5K di Indonesia tahun 2026. Temukan info pendaftaran fun run, road run, dan charity run 5K terdekat lengkap dengan tanggal dan lokasi.',
+                'h1' => 'Jadwal Lari 5K 2026 Indonesia',
+                'description' => 'Temukan jadwal lari 5K 2026 di Indonesia terupdate. Dapatkan info lengkap tentang event fun run 5K, rute jalan raya (road run), pendaftaran online, biaya, lokasi, dan tanggal pelaksanaan.',
+                'filter_type' => 'distance',
+                'filter_id' => 1 // 5K
+            ],
+            '10k' => [
+                'title' => 'Jadwal Lari 10K 2026 Indonesia | Kalender Event Lari',
+                'meta_title' => 'Jadwal Lari 10K 2026 Indonesia | Kalender Event Lari',
+                'meta_description' => 'Daftar lengkap jadwal lari 10K di Indonesia tahun 2026. Cek jadwal lomba lari 10K terdekat, tanggal, lokasi, biaya pendaftaran, dan informasi race pack.',
+                'h1' => 'Jadwal Lari 10K 2026 Indonesia',
+                'description' => 'Temukan jadwal lari 10K 2026 di Indonesia terupdate. Dapatkan info lengkap tentang event lomba lari 10K, rute jalan raya (road run), pendaftaran online, biaya, lokasi, dan tanggal pelaksanaan.',
+                'filter_type' => 'distance',
+                'filter_id' => 2 // 10K
+            ],
+            'half-marathon' => [
+                'title' => 'Jadwal Half Marathon 2026 Indonesia | Event Lari 21K Terbaru',
+                'meta_title' => 'Jadwal Half Marathon 2026 Indonesia | Event Lari 21K Terbaru',
+                'meta_description' => 'Daftar lengkap jadwal event lari Half Marathon (21K) di Indonesia tahun 2026. Temukan jadwal lomba lari HM terdekat lengkap dengan rute, lokasi, dan tanggal.',
+                'h1' => 'Jadwal Half Marathon 2026 Indonesia',
+                'description' => 'Temukan jadwal Half Marathon (21K) 2026 di Indonesia terupdate. Dapatkan info lengkap tentang event lomba lari HM, rute jalan raya, pendaftaran online, biaya, lokasi, dan tanggal pelaksanaan.',
+                'filter_type' => 'distance',
+                'filter_id' => 3 // Half Marathon (21K)
+            ],
+            'marathon' => [
+                'title' => 'Jadwal Marathon 2026 Indonesia | Event Full Marathon 42K',
+                'meta_title' => 'Jadwal Marathon 2026 Indonesia | Event Full Marathon 42K',
+                'meta_description' => 'Daftar lengkap jadwal event lari Full Marathon (42K) di Indonesia tahun 2026. Cek tanggal, lokasi, biaya pendaftaran, dan rute lomba lari FM terbaru.',
+                'h1' => 'Jadwal Marathon 2026 Indonesia',
+                'description' => 'Temukan jadwal Full Marathon (42K) 2026 di Indonesia terupdate. Dapatkan info lengkap tentang event lomba lari FM, rute jalan raya, pendaftaran online, biaya, lokasi, dan tanggal pelaksanaan.',
+                'filter_type' => 'distance',
+                'filter_id' => 4 // Marathon (42K)
+            ],
+            'ultra-marathon' => [
+                'title' => 'Jadwal Ultra Marathon 2026 Indonesia | Event Lari Ultra',
+                'meta_title' => 'Jadwal Ultra Marathon 2026 Indonesia | Event Lari Ultra',
+                'meta_description' => 'Daftar lengkap jadwal event lari Ultra Marathon (di atas 42K) di Indonesia tahun 2026. Temukan event ultra road & trail lari terdekat lengkap dengan info pendaftaran.',
+                'h1' => 'Jadwal Ultra Marathon 2026 Indonesia',
+                'description' => 'Temukan jadwal Ultra Marathon 2026 di Indonesia terupdate. Dapatkan info lengkap tentang event lomba lari ultra, rute jalan raya dan trail, pendaftaran online, biaya, lokasi, dan tanggal pelaksanaan.',
+                'filter_type' => 'type',
+                'filter_id' => 3 // Ultra Marathon
+            ],
+            'trail-run' => [
+                'title' => 'Jadwal Trail Run 2026 Indonesia | Event Lari Lintas Alam',
+                'meta_title' => 'Jadwal Trail Run 2026 Indonesia | Event Lari Lintas Alam',
+                'meta_description' => 'Daftar lengkap jadwal event lari Trail Run (lintas alam) di Indonesia tahun 2026. Cek tanggal, lokasi gunung/hutan, kategori jarak, dan link pendaftaran trail run terbaru.',
+                'h1' => 'Jadwal Trail Run 2026 Indonesia',
+                'description' => 'Temukan jadwal Trail Run 2026 di Indonesia terupdate. Dapatkan info lengkap tentang event lomba lari lintas alam (trail run), rute pegunungan/hutan, pendaftaran online, biaya, lokasi, dan tanggal pelaksanaan.',
+                'filter_type' => 'type',
+                'filter_id' => 2 // Trail Run
+            ],
+            'fun-run' => [
+                'title' => 'Jadwal Fun Run 2026 Indonesia | Event Lari Santai Terbaru',
+                'meta_title' => 'Jadwal Fun Run 2026 Indonesia | Event Lari Santai Terbaru',
+                'meta_description' => 'Daftar lengkap jadwal event Fun Run (lari santai/keluarga) di Indonesia tahun 2026. Temukan jadwal lari gembira terdekat lengkap dengan info registrasi dan lokasi.',
+                'h1' => 'Jadwal Fun Run 2026 Indonesia',
+                'description' => 'Temukan jadwal Fun Run 2026 di Indonesia terupdate. Dapatkan info lengkap tentang event lomba lari santai (fun run), rute jalan raya, pendaftaran online, biaya, lokasi, dan tanggal pelaksanaan.',
+                'filter_type' => 'type',
+                'filter_id' => 4 // Fun Run
+            ],
+            'virtual-run' => [
+                'title' => 'Jadwal Virtual Run 2026 Indonesia | Event Lari Online',
+                'meta_title' => 'Jadwal Virtual Run 2026 Indonesia | Event Lari Online',
+                'meta_description' => 'Daftar lengkap jadwal event Virtual Run di Indonesia tahun 2026. Temukan jadwal lari virtual terdekat lengkap dengan info pendaftaran, submisi lari, dan medali.',
+                'h1' => 'Jadwal Virtual Run 2026 Indonesia',
+                'description' => 'Temukan jadwal Virtual Run 2026 di Indonesia terupdate. Dapatkan info lengkap tentang event lomba lari online (virtual run), pendaftaran online, biaya, lokasi, dan tanggal pelaksanaan.',
+                'filter_type' => 'type',
+                'filter_id' => 5 // Virtual Run
+            ],
+        ];
+
+        if (!isset($categoryMeta[$categorySlug])) {
+            abort(404);
+        }
+
+        $meta = $categoryMeta[$categorySlug];
+
+        $query = Event::whereIn('event_kind', ['directory', 'managed'])
+            ->published()
+            ->upcoming()
+            ->with(['city', 'raceType', 'raceDistances', 'categories']);
+
+        if ($meta['filter_type'] === 'distance') {
+            $query->whereHas('raceDistances', function ($q) use ($meta) {
+                $q->where('event_distances.race_distance_id', $meta['filter_id']);
+            });
+        } else {
+            $query->where('race_type_id', $meta['filter_id']);
+        }
+
+        // Sorting
+        $query->orderBy('start_at', 'asc');
+
+        if ($request->ajax()) {
+            $events = $query->paginate(10);
+
+            return response()->json([
+                'html' => view('events.partials.list', compact('events'))->render(),
+                'pagination' => (string) $events->links(),
+            ]);
+        }
+
+        $cities = City::whereHas('events', fn ($q) => $q->directory())->orderBy('name')->get();
+        $raceTypes = RaceType::whereHas('events', fn ($q) => $q->directory())->get();
+        $raceDistances = RaceDistance::whereHas('events', fn ($q) => $q->directory())->get();
+
+        $events = $query->paginate(10);
+
+        return view('events.category-archive', compact('events', 'cities', 'raceTypes', 'raceDistances', 'meta', 'categorySlug'));
+    }
 }

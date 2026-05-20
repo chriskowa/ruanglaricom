@@ -214,6 +214,7 @@
 </div>
 
 @push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
 <script>
     function openMediaLibrary() {
         const frame = document.getElementById('media-frame');
@@ -274,8 +275,7 @@
         eventKindSelect.addEventListener('change', toggleTemplateCard);
         toggleTemplateCard();
     }
-<script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
-<script>
+
     document.addEventListener("DOMContentLoaded", function() {
         ClassicEditor
             .create(document.querySelector('#description'), {

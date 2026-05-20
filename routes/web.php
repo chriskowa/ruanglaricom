@@ -444,6 +444,9 @@ Route::get('/jadwal-lari', [App\Http\Controllers\PublicRunningEventController::c
 Route::post('/jadwal-lari/submissions/request-otp', [App\Http\Controllers\PublicRunningEventSubmissionController::class, 'requestOtp'])->middleware('throttle:3,1')->name('events.submissions.request-otp');
 Route::post('/jadwal-lari/submissions', [App\Http\Controllers\PublicRunningEventSubmissionController::class, 'store'])->middleware('throttle:5,1')->name('events.submissions.store');
 Route::get('/event-lari-di-{city}', [App\Http\Controllers\PublicRunningEventController::class, 'cityArchive'])->name('events.city');
+Route::get('/jadwal-{category}', [App\Http\Controllers\PublicRunningEventController::class, 'categoryArchive'])
+    ->where('category', '(5k|10k|half-marathon|marathon|trail-run|fun-run|virtual-run|ultra-marathon)')
+    ->name('events.category');
 Route::get('/event-category/event-lari-{city}', function (Request $request, $city) {
     $to = route('events.city', ['city' => $city]);
     $qs = $request->getQueryString();

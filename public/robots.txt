@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /report/
+
+Sitemap: https://ruanglari.com/sitemap.xml

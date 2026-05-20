@@ -450,3 +450,72 @@
     })();
 </script>
 @endpush
+
+@push('structured_data')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@type": "SportsEvent",
+  "name": "{{ e($event->name) }}",
+  "description": "{{ e(Str::limit(strip_tags($event->short_description ?? $event->full_description), 250)) }}",
+  "startDate": "{{ $event->start_at->toIso8601String() }}",
+  "endDate": "{{ $event->end_at ? $event->end_at->toIso8601String() : $event->start_at->addHours(5)->toIso8601String() }}",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "location": {
+    "@type": "Place",
+    "name": "{{ e($event->location_name ?? ($event->city ? $event->city->name : 'TBA')) }}",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "{{ e($event->city ? $event->city->name : 'TBA') }}",
+      "addressCountry": "ID"
+    }
+  },
+  @if($event->hero_image_url)
+  "image": [
+    "{{ $event->hero_image_url }}"
+  ],
+  @endif
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ $event->public_url }}",
+    "priceCurrency": "IDR",
+    "price": "0",
+    "availability": "https://schema.org/InStock"
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": "{{ e($event->organizer_name ?? 'Ruang Lari') }}",
+    "url": "https://ruanglari.com"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Beranda",
+      "item": "https://ruanglari.com"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Jadwal Lari",
+      "item": "https://ruanglari.com/jadwal-lari"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ e($event->name) }}",
+      "item": "{{ $event->public_url }}"
+    }
+  ]
+}
+</script>
+@endpush
+

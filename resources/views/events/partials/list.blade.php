@@ -1,5 +1,23 @@
 @forelse($events as $event)
-<div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 hover:border-neon/50 transition-all group">
+@php
+    $regStatus = 'Tutup';
+    $regClass = 'bg-red-950/30 text-red-400 border-red-900/50';
+    $now = now();
+    if ($event->registration_open_at && $now < $event->registration_open_at) {
+        $regStatus = 'Segera Dibuka';
+        $regClass = 'bg-blue-950/30 text-blue-400 border-blue-900/50';
+    } elseif ($event->registration_close_at && $now > $event->registration_close_at) {
+        $regStatus = 'Ditutup';
+        $regClass = 'bg-red-950/30 text-red-400 border-red-900/50';
+    } elseif ($event->registration_open_at || $event->registration_close_at) {
+        $regStatus = 'Dibuka';
+        $regClass = 'bg-green-950/30 text-neon border-neon/30';
+    } else {
+        $regStatus = 'Dibuka';
+        $regClass = 'bg-green-950/30 text-neon border-neon/30';
+    }
+@endphp
+<article class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 hover:border-neon/50 transition-all group event-card">
     <div class="flex flex-col md:flex-row gap-4 md:items-center">
         <!-- Date Badge -->
         <div class="flex-shrink-0 flex md:flex-col items-center justify-center bg-slate-800 rounded-xl p-3 md:w-20 md:h-20 border border-slate-700">
@@ -20,6 +38,9 @@
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300 uppercase tracking-wide border border-slate-600">
                     {{ $event->city ? $event->city->name : $event->location_name }}
                 </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wide {{ $regClass }}">
+                    {{ $regStatus }}
+                </span>
             </div>
             
             <a href="{{ $event->public_url }}" class="block group-hover:text-neon transition-colors">
@@ -27,6 +48,9 @@
             </a>
             
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400 mb-2">
+                <div class="flex items-center gap-1">
+                    <span class="font-semibold text-slate-300">Tanggal:</span> {{ $event->event_date->format('d M Y') }}
+                </div>
                 @if($event->start_time)
                     <div class="flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -34,13 +58,16 @@
                     </div>
                 @endif
                 <div class="flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    {{ $event->location_name ?? ($event->city ? $event->city->name : 'TBA') }}
+                    <span class="font-semibold text-slate-300">Lokasi:</span> {{ $event->location_name ?? ($event->city ? $event->city->name : 'TBA') }}
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="font-semibold text-slate-300">Status:</span> <span class="{{ $regStatus === 'Dibuka' ? 'text-neon' : ($regStatus === 'Segera Dibuka' ? 'text-blue-400' : 'text-red-400') }} font-semibold">{{ $regStatus }}</span>
                 </div>
             </div>
 
             <!-- Distances -->
-            <div class="flex flex-wrap gap-2 mt-3">
+            <div class="flex flex-wrap items-center gap-2 mt-3">
+                <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kategori:</span>
                 @foreach($event->raceDistances as $distance)
                     <span class="px-2 py-1 rounded bg-slate-800 text-xs text-neon font-mono border border-slate-700">
                         {{ $distance->name }}
@@ -76,7 +103,7 @@
             </a>
         </div>
     </div>
-</div>
+</article>
 @empty
 <div class="text-center py-16 bg-card/30 rounded-2xl border border-dashed border-slate-700">
     <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-500">

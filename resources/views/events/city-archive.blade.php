@@ -1,20 +1,20 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Jadwal Lari di ' . $city->name . ' ' . date('Y') . ' - Kalender Event Lari Terbaru')
-@section('meta_title', 'Jadwal Lari di ' . $city->name . ' ' . date('Y') . ' - Kalender Event Lari Terbaru')
-@section('meta_description', 'Daftar lengkap jadwal event lari di ' . $city->name . ' tahun ' . date('Y') . '. Temukan info pendaftaran lari 5K, 10K, Half Marathon, dan Marathon terbaru di ' . $city->name . '.')
-@section('meta_keywords', 'lari di ' . $city->name . ', event lari ' . $city->name . ', jadwal lari ' . $city->name . ', kalender lari ' . $city->name . ', lomba lari ' . $city->name . ', ' . date('Y'))
+@section('title', 'Jadwal Lari di ' . $city->name . ' 2026 | Event 5K, 10K & Marathon')
+@section('meta_title', 'Jadwal Lari di ' . $city->name . ' 2026 | Event 5K, 10K & Marathon')
+@section('meta_description', 'Daftar jadwal lari di ' . $city->name . ' 2026. Temukan event fun run, 5K, 10K, half marathon, marathon, dan trail run terbaru lengkap dengan tanggal, lokasi, kategori, dan link pendaftaran.')
+@section('meta_keywords', 'lari di ' . $city->name . ', event lari ' . $city->name . ', jadwal lari ' . $city->name . ', kalender lari ' . $city->name . ', lomba lari ' . $city->name . ', 2026')
 
 @section('content')
 <div class="min-h-screen pt-24 pb-16 px-4 md:px-8 bg-dark relative overflow-hidden font-sans">
     
     <!-- Hero Section -->
     <div class="max-w-7xl mx-auto mb-12 text-center relative z-10" data-aos="fade-down">
-        <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tighter mb-4">
-            LARI DI <span class="text-neon uppercase">{{ $city->name }}</span>
+        <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tighter mb-4 uppercase">
+            Jadwal Lari di {{ $city->name }} 2026
         </h1>
-        <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto">
-            Temukan jadwal event lari terbaru dan terlengkap yang diselenggarakan di {{ $city->name }}.
+        <p class="text-slate-400 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+            Temukan jadwal lari di {{ $city->name }} 2026 mulai dari fun run, 5K, 10K, half marathon, marathon, hingga trail run. Halaman ini membantu pelari menemukan event lari terbaru di {{ $city->name }} lengkap dengan tanggal pelaksanaan, lokasi, kategori jarak, status pendaftaran, dan tautan menuju halaman detail event.
         </p>
     </div>
 

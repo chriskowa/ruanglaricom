@@ -1,29 +1,130 @@
+@php
+    $pageSuffix = request()->has('page') && request('page') > 1 ? ' - Halaman ' . request('page') : '';
+    $title = 'Jadwal Lari 2026 Indonesia | Event 5K, 10K & Marathon' . $pageSuffix;
+    $metaDescription = 'Temukan jadwal lari 2026 di Indonesia mulai dari fun run, 5K, 10K, half marathon, marathon, trail run, hingga virtual run. Cek tanggal, lokasi, kategori, dan link pendaftaran event lari terbaru di Ruang Lari.';
+    
+    $canonicalUrl = request()->url();
+    if (request()->has('page') && request('page') > 1) {
+        $canonicalUrl .= '?page=' . request('page');
+    }
+@endphp
+
 @extends('layouts.pacerhub')
 
-@section('title', 'Jadwal Lari & Kalender Event Lari Indonesia ' . date('Y'))
-@section('description', 'Temukan jadwal event lari terbaru di Indonesia tahun ' . date('Y') . '. Kalender lari lengkap dengan filter kota, kategori jarak (5K, 10K, HM, FM), dan jenis lomba.')
+@section('title', $title)
+@section('meta_title', $title)
+@section('meta_description', $metaDescription)
+@section('canonical_url', $canonicalUrl)
+@section('og_image', 'https://ruanglari.com/images/og/jadwal-lari-2026.jpg')
 
 @section('content')
 <div class="min-h-screen pt-24 pb-16 px-4 md:px-8 bg-dark relative overflow-hidden font-sans">
     
     <!-- Hero Section -->
-    <div class="max-w-7xl mx-auto mb-12 text-center relative z-10" data-aos="fade-down">
-        <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tighter mb-4">
-            KALENDER <span class="text-neon">LARI</span>
-        </h1>
-        <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto">
-            Jadwal event lari terlengkap di Indonesia. Temukan race impianmu berikutnya, dari Fun Run hingga Ultra Marathon.
-        </p>
-        
-        <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3" data-aos="fade-up" data-aos-delay="50">
-            <a href="{{ url('/calendar') }}" class="px-8 py-3 rounded-full bg-slate-800 border border-slate-700 text-white font-bold hover:bg-neon hover:text-dark hover:border-neon transition-all inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-neon/20">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                Kelola Kalender Lari Saya
-            </a>
-            <button type="button" id="btn-open-submit-event" class="px-8 py-3 rounded-full bg-neon text-dark font-extrabold hover:bg-lime-300 transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-neon/20">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                Submit Event Lari
-            </button>
+    <div class="max-w-7xl mx-auto mb-12 relative z-10" data-aos="fade-down">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <!-- Hero Text -->
+            <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+                    Jadwal Lari <span class="text-neon">2026</span> Indonesia
+                </h1>
+                <div class="text-slate-400 text-base md:text-lg space-y-4 leading-relaxed max-w-3xl mx-auto lg:mx-0">
+                    <p>
+                        Temukan jadwal lari 2026 di Indonesia dalam satu kalender lengkap. Ruang Lari menyajikan informasi event lari terbaru, mulai dari fun run, 5K, 10K, half marathon, marathon, trail run, ultra run, hingga virtual run. Setiap event dilengkapi dengan tanggal pelaksanaan, lokasi, kategori jarak, status pendaftaran, dan tautan menuju halaman resmi pendaftaran.
+                    </p>
+                    <p class="text-xs md:text-sm text-slate-500">
+                        Kalender ini diperbarui secara berkala agar pelari dapat lebih mudah memilih event berdasarkan kota, bulan, jenis lomba, dan kategori jarak. Gunakan fitur pencarian dan filter untuk menemukan event lari terdekat di Jakarta, Bandung, Surabaya, Malang, Yogyakarta, Bali, Makassar, dan berbagai kota lainnya di Indonesia.
+                    </p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-3">
+                    <a href="{{ url('/calendar') }}" class="px-8 py-3 rounded-full bg-slate-800 border border-slate-700 text-white font-bold hover:bg-neon hover:text-dark hover:border-neon transition-all inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-neon/20">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        Kelola Kalender Lari Saya
+                    </a>
+                    <button type="button" id="btn-open-submit-event" class="px-8 py-3 rounded-full bg-neon text-dark font-extrabold hover:bg-lime-300 transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-neon/20">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        Submit Event Lari
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hero Image/Banner -->
+            <div class="lg:col-span-5 relative group" data-aos="zoom-in" data-aos-delay="100">
+                <div class="absolute -inset-1.5 bg-gradient-to-r from-neon to-lime-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div class="relative bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+                    <img 
+                        src="{{ asset('images/hero/jadwal-lari.webp') }}" 
+                        alt="Jadwal Lari 2026 Indonesia - Kalender Event Lari Ruang Lari" 
+                        class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                        width="800"
+                        height="450"
+                        loading="eager"
+                        fetchpriority="high"
+                    >
+                    <!-- Glassmorphism overlay card at the bottom of the image -->
+                    <div class="absolute bottom-0 inset-x-0 bg-slate-950/70 backdrop-blur-md border-t border-slate-800/80 p-4 flex justify-between items-center">
+                        <div class="text-left">
+                            <p class="text-[10px] font-bold text-neon uppercase tracking-widest">Update Berkala</p>
+                            <p class="text-xs font-black text-white italic tracking-tight uppercase">Kalender Lari Indonesia</p>
+                        </div>
+                        <div class="px-2.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-bold text-slate-300 uppercase">
+                            2026 Edition
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Onboarding Guide Banner (First-time visitors) -->
+    <div id="onboarding-tour-card" class="max-w-7xl mx-auto mb-6 relative z-10 hidden" data-aos="fade-up">
+        <div class="relative bg-gradient-to-r from-slate-900 to-slate-950 border border-neon/30 rounded-2xl p-5 md:p-6 shadow-[0_0_20px_rgba(204,255,0,0.05)] overflow-hidden">
+            <!-- Decorative light ray effect -->
+            <div class="absolute -right-16 -top-16 w-48 h-48 bg-neon/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                <div class="space-y-3 flex-grow">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neon/20 text-neon uppercase tracking-wider animate-pulse">Panduan Fitur</span>
+                        <h2 class="text-lg md:text-xl font-black text-white italic uppercase tracking-tight text-left">Temukan Event Lari Impianmu Lebih Cepat! ⚡</h2>
+                    </div>
+                    <p class="text-sm text-slate-400 max-w-4xl text-left">
+                        Selamat datang di Kalender Event Lari Indonesia terupdate. Gunakan fitur-fitur berikut untuk mempermudah perencanaan latihan dan pendaftaran lomba lari Anda:
+                    </p>
+                    
+                    <!-- Feature Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                        <div class="flex gap-3 items-start text-left">
+                            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 text-neon font-bold text-sm">1</div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-1">Multi Filter & Pencarian</h4>
+                                <p class="text-xs text-slate-400 leading-relaxed">Cari kata kunci atau saring berdasarkan Bulan, Lokasi Kota, Jenis Lomba, hingga Kategori Jarak secara instan.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 items-start text-left">
+                            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 text-neon font-bold text-sm">2</div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-1">Pendaftaran Mudah</h4>
+                                <p class="text-xs text-slate-400 leading-relaxed">Klik detail event untuk info status pendaftaran (Dibuka/Ditutup) dan tombol langsung menuju formulir resmi penyelenggara.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 items-start text-left">
+                            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 text-neon font-bold text-sm">3</div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-1">Kontribusi Event</h4>
+                                <p class="text-xs text-slate-400 leading-relaxed">Punya info event lari baru? Tambahkan secara gratis via tombol "Submit Event Lari" untuk membantu pelari lainnya.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-shrink-0 lg:self-center">
+                    <button type="button" id="btn-close-onboarding" class="w-full md:w-auto px-6 py-3 rounded-xl bg-neon text-dark font-extrabold hover:bg-lime-300 transition-all shadow-lg shadow-neon/10 hover:shadow-neon/20 flex items-center justify-center gap-2">
+                        Saya Mengerti, Mulai Cari
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -122,6 +223,10 @@
 
     <!-- Event List -->
     <div class="max-w-7xl mx-auto relative z-10">
+        <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter mb-6 uppercase">
+            Kalender Event Lari Terbaru
+        </h2>
+
         <div id="events-container" class="space-y-4">
             @include('events.partials.list', ['events' => $events])
         </div>
@@ -135,6 +240,156 @@
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-neon"></div>
             <p class="mt-2 text-slate-400 text-sm">Memuat jadwal...</p>
         </div>
+    </div>
+
+    <!-- SEO Content Sections -->
+    <div class="max-w-7xl mx-auto mt-16 pt-16 border-t border-slate-800 relative z-10 space-y-12">
+        
+        <!-- Jadwal Lari Berdasarkan Bulan -->
+        <div class="space-y-6">
+            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+                Jadwal Lari Berdasarkan Bulan
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                @php
+                    $months = [
+                        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                    ];
+                @endphp
+                @foreach($months as $num => $monthName)
+                    @php
+                        $mVal = sprintf('%04d-%02d', 2026, $num);
+                    @endphp
+                    <a href="{{ route('events.index') }}?month={{ $mVal }}" class="p-4 bg-slate-900 border border-slate-800 hover:border-neon hover:text-neon rounded-xl text-center transition group">
+                        <h3 class="font-bold text-slate-300 group-hover:text-neon text-sm transition">Jadwal Lari {{ $monthName }} 2026</h3>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Jadwal Lari Berdasarkan Kota -->
+        <div class="space-y-6">
+            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+                Jadwal Lari Berdasarkan Kota
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                @php
+                    $seoCities = [
+                        'jakarta' => 'Jakarta',
+                        'bandung' => 'Bandung',
+                        'surabaya' => 'Surabaya',
+                        'yogyakarta' => 'Yogyakarta',
+                        'malang' => 'Malang',
+                        'bali' => 'Bali',
+                        'semarang' => 'Semarang',
+                        'bogor' => 'Bogor',
+                        'makassar' => 'Makassar',
+                        'medan' => 'Medan',
+                        'balikpapan' => 'Balikpapan',
+                        'batam' => 'Batam'
+                    ];
+                @endphp
+                @foreach($seoCities as $slug => $cityName)
+                    <a href="/event-lari-di-{{ $slug }}" class="p-4 bg-slate-900 border border-slate-800 hover:border-neon hover:text-neon rounded-xl text-center transition group">
+                        <h3 class="font-bold text-slate-300 group-hover:text-neon text-sm transition">
+                            @if($slug == 'surabaya')
+                                Jadwal lari di Surabaya 2026
+                            @elseif($slug == 'jakarta' || $slug == 'semarang' || $slug == 'bogor' || $slug == 'makassar' || $slug == 'medan' || $slug == 'balikpapan' || $slug == 'batam' || $slug == 'yogyakarta')
+                                Jadwal lari di {{ $cityName }}
+                            @else
+                                Event lari di {{ $cityName }}
+                            @endif
+                        </h3>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Jadwal Lari Berdasarkan Kategori -->
+        <div class="space-y-6">
+            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+                Jadwal Lari Berdasarkan Kategori
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                @php
+                    $seoCategories = [
+                        '5k' => 'Jadwal lari 5K',
+                        '10k' => 'Jadwal lari 10K',
+                        'half-marathon' => 'Jadwal half marathon',
+                        'marathon' => 'Jadwal marathon',
+                        'trail-run' => 'Jadwal trail run',
+                        'fun-run' => 'Jadwal fun run',
+                        'virtual-run' => 'Jadwal virtual run',
+                        'ultra-marathon' => 'Jadwal ultra marathon'
+                    ];
+                @endphp
+                @foreach($seoCategories as $slug => $label)
+                    <a href="/jadwal-{{ $slug }}" class="p-4 bg-slate-900 border border-slate-800 hover:border-neon hover:text-neon rounded-xl text-center transition group">
+                        <h3 class="font-bold text-slate-300 group-hover:text-neon text-sm transition">{{ $label }}</h3>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Cara Memilih Event Lari -->
+        <div class="bg-card/40 border border-slate-800/80 rounded-2xl p-6 md:p-8 space-y-4">
+            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+                Cara Memilih Event Lari yang Tepat
+            </h2>
+            <div class="text-slate-300 space-y-4 leading-relaxed">
+                <p>Sebelum mendaftar event lari, pelari sebaiknya menyesuaikan pilihan lomba dengan tingkat kebugaran, target latihan, jarak tempuh, lokasi, dan waktu persiapan. Pelari pemula dapat memulai dari fun run atau 5K, sedangkan pelari yang sudah terbiasa dapat memilih 10K, half marathon, marathon, atau trail run.</p>
+                <p>Perhatikan juga informasi teknis seperti cut-off time, rute, elevasi, fasilitas race pack, medali, hidrasi, dan reputasi penyelenggara. Dengan memilih event yang sesuai, pengalaman mengikuti lomba akan lebih aman, nyaman, dan menyenangkan.</p>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="space-y-6">
+            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+                Pertanyaan Umum tentang Jadwal Lari
+            </h2>
+            <div class="space-y-4" x-data="{ active: null }">
+                @php
+                    $faqs = [
+                        [
+                            'q' => 'Apa itu jadwal lari?',
+                            'a' => 'Jadwal lari adalah daftar event lari yang disusun berdasarkan tanggal, lokasi, kategori jarak, dan jenis lomba seperti fun run, 5K, 10K, half marathon, marathon, trail run, dan virtual run.'
+                        ],
+                        [
+                            'q' => 'Bagaimana cara mencari event lari terdekat?',
+                            'a' => 'Gunakan filter kota, bulan, dan kategori jarak pada kalender Ruang Lari untuk menemukan event lari yang sesuai dengan lokasi dan target latihan Anda.'
+                        ],
+                        [
+                            'q' => 'Apa saja kategori event lari yang tersedia?',
+                            'a' => 'Kategori event lari yang umum tersedia meliputi 5K, 10K, half marathon, marathon, ultra marathon, trail run, fun run, charity run, dan virtual run.'
+                        ],
+                        [
+                            'q' => 'Apakah jadwal lari di Ruang Lari diperbarui?',
+                            'a' => 'Ya, kalender event lari di Ruang Lari diperbarui secara berkala berdasarkan informasi terbaru dari penyelenggara event dan kanal pendaftaran resmi.'
+                        ],
+                        [
+                            'q' => 'Bagaimana cara mendaftarkan event lari ke Ruang Lari?',
+                            'a' => 'Penyelenggara dapat menghubungi tim Ruang Lari untuk mengirimkan informasi event, seperti nama event, tanggal, lokasi, kategori jarak, poster, dan tautan pendaftaran resmi.'
+                        ]
+                    ];
+                @endphp
+                @foreach($faqs as $i => $faq)
+                    <div class="border border-slate-800 rounded-2xl bg-slate-900/50 overflow-hidden">
+                        <button @click="active = active === {{ $i }} ? null : {{ $i }}" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-slate-800/40 transition">
+                            <span class="font-bold text-white text-base md:text-lg">{{ $faq['q'] }}</span>
+                            <svg class="w-5 h-5 text-neon transition-transform" :class="active === {{ $i }} ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="active === {{ $i }}" x-collapse x-cloak class="px-6 pb-5 pt-2 text-slate-400 border-t border-slate-800/50 leading-relaxed text-sm md:text-base">
+                            <p>{{ $faq['a'] }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -278,6 +533,27 @@
 @endif
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Onboarding Tour check for first-time visitors
+        const onboardingCard = document.getElementById('onboarding-tour-card');
+        const closeOnboardingBtn = document.getElementById('btn-close-onboarding');
+        
+        if (onboardingCard) {
+            const hasSeenTour = localStorage.getItem('ruanglari_calendar_tour_seen');
+            if (!hasSeenTour) {
+                onboardingCard.classList.remove('hidden');
+            }
+            
+            if (closeOnboardingBtn) {
+                closeOnboardingBtn.addEventListener('click', function() {
+                    localStorage.setItem('ruanglari_calendar_tour_seen', 'true');
+                    onboardingCard.classList.add('transition-all', 'duration-500', 'opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        onboardingCard.remove();
+                    }, 500);
+                });
+            }
+        }
+
         const form = document.getElementById('filter-form');
         const container = document.getElementById('events-container');
         const paginationContainer = document.getElementById('pagination-container');
@@ -600,4 +876,61 @@
     })();
 </script>
 @endpush
+
+@push('structured_data')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Jadwal Lari 2026 Indonesia",
+  "description": "Kalender event lari Indonesia 2026 berisi jadwal fun run, 5K, 10K, half marathon, marathon, trail run, dan virtual run.",
+  "url": "https://ruanglari.com/jadwal-lari",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Ruang Lari",
+    "url": "https://ruanglari.com"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Daftar Jadwal Lari 2026 Indonesia",
+  "itemListElement": [
+    @foreach($events as $index => $event)
+    {
+      "@type": "ListItem",
+      "position": {{ $index + 1 }},
+      "url": "{{ $event->public_url }}",
+      "name": "{{ e($event->name) }}"
+    }{{ !$loop->last ? ',' : '' }}
+    @endforeach
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Beranda",
+      "item": "https://ruanglari.com"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Jadwal Lari",
+      "item": "https://ruanglari.com/jadwal-lari"
+    }
+  ]
+}
+</script>
+@endpush
+
 @endsection
