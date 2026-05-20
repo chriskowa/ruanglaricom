@@ -25,7 +25,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <!-- Hero Text -->
             <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase leading-none">
                     Jadwal Lari <span class="text-neon">2026</span> Indonesia
                 </h1>
                 <div class="text-slate-400 text-base md:text-lg space-y-4 leading-relaxed max-w-3xl mx-auto lg:mx-0">
@@ -66,7 +66,7 @@
                     <div class="absolute bottom-0 inset-x-0 bg-slate-950/70 backdrop-blur-md border-t border-slate-800/80 p-4 flex justify-between items-center">
                         <div class="text-left">
                             <p class="text-[10px] font-bold text-neon uppercase tracking-widest">Update Berkala</p>
-                            <p class="text-xs font-black text-white italic tracking-tight uppercase">Kalender Lari Indonesia</p>
+                            <p class="text-xs font-black text-white tracking-tight uppercase">Kalender Lari Indonesia</p>
                         </div>
                         <div class="px-2.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-bold text-slate-300 uppercase">
                             2026 Edition
@@ -76,57 +76,7 @@
             </div>
         </div>
     </div>
-    <!-- Onboarding Guide Banner (First-time visitors) -->
-    <div id="onboarding-tour-card" class="max-w-7xl mx-auto mb-6 relative z-10 hidden" data-aos="fade-up">
-        <div class="relative bg-gradient-to-r from-slate-900 to-slate-950 border border-neon/30 rounded-2xl p-5 md:p-6 shadow-[0_0_20px_rgba(204,255,0,0.05)] overflow-hidden">
-            <!-- Decorative light ray effect -->
-            <div class="absolute -right-16 -top-16 w-48 h-48 bg-neon/10 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-                <div class="space-y-3 flex-grow">
-                    <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neon/20 text-neon uppercase tracking-wider animate-pulse">Panduan Fitur</span>
-                        <h2 class="text-lg md:text-xl font-black text-white italic uppercase tracking-tight text-left">Temukan Event Lari Impianmu Lebih Cepat! ⚡</h2>
-                    </div>
-                    <p class="text-sm text-slate-400 max-w-4xl text-left">
-                        Selamat datang di Kalender Event Lari Indonesia terupdate. Gunakan fitur-fitur berikut untuk mempermudah perencanaan latihan dan pendaftaran lomba lari Anda:
-                    </p>
-                    
-                    <!-- Feature Grid -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                        <div class="flex gap-3 items-start text-left">
-                            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 text-neon font-bold text-sm">1</div>
-                            <div>
-                                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-1">Multi Filter & Pencarian</h4>
-                                <p class="text-xs text-slate-400 leading-relaxed">Cari kata kunci atau saring berdasarkan Bulan, Lokasi Kota, Jenis Lomba, hingga Kategori Jarak secara instan.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-3 items-start text-left">
-                            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 text-neon font-bold text-sm">2</div>
-                            <div>
-                                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-1">Pendaftaran Mudah</h4>
-                                <p class="text-xs text-slate-400 leading-relaxed">Klik detail event untuk info status pendaftaran (Dibuka/Ditutup) dan tombol langsung menuju formulir resmi penyelenggara.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-3 items-start text-left">
-                            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 text-neon font-bold text-sm">3</div>
-                            <div>
-                                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-1">Kontribusi Event</h4>
-                                <p class="text-xs text-slate-400 leading-relaxed">Punya info event lari baru? Tambahkan secara gratis via tombol "Submit Event Lari" untuk membantu pelari lainnya.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex-shrink-0 lg:self-center">
-                    <button type="button" id="btn-close-onboarding" class="w-full md:w-auto px-6 py-3 rounded-xl bg-neon text-dark font-extrabold hover:bg-lime-300 transition-all shadow-lg shadow-neon/10 hover:shadow-neon/20 flex items-center justify-center gap-2">
-                        Saya Mengerti, Mulai Cari
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Filter Section -->
     <div class="max-w-7xl mx-auto mb-8 relative z-10" data-aos="fade-up" data-aos-delay="100">
@@ -221,9 +171,34 @@
         </div>
     </div>
 
+    <!-- Horizontal Scroll Quick Filters -->
+    <div class="max-w-7xl mx-auto mb-6 relative z-10 overflow-x-auto no-scrollbar py-2">
+        <div class="flex gap-2 min-w-max pb-1">
+            <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-neon text-dark border-neon shadow-sm shadow-neon/10" data-filter-type="distance" data-value="">
+                Semua Jarak
+            </button>
+            @foreach($raceDistances as $distance)
+                <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white" data-filter-type="distance" data-value="{{ $distance->id }}">
+                    {{ $distance->name }}
+                </button>
+            @endforeach
+            
+            <div class="h-6 w-px bg-slate-800 self-center mx-2"></div>
+            
+            <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white" data-filter-type="type" data-value="">
+                Semua Jenis
+            </button>
+            @foreach($raceTypes as $type)
+                <button type="button" class="quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white" data-filter-type="type" data-value="{{ $type->id }}">
+                    {{ $type->name }}
+                </button>
+            @endforeach
+        </div>
+    </div>
+
     <!-- Event List -->
     <div class="max-w-7xl mx-auto relative z-10">
-        <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter mb-6 uppercase">
+        <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter mb-6 uppercase">
             Kalender Event Lari Terbaru
         </h2>
 
@@ -247,7 +222,7 @@
         
         <!-- Jadwal Lari Berdasarkan Bulan -->
         <div class="space-y-6">
-            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase">
                 Jadwal Lari Berdasarkan Bulan
             </h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -271,7 +246,7 @@
 
         <!-- Jadwal Lari Berdasarkan Kota -->
         <div class="space-y-6">
-            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase">
                 Jadwal Lari Berdasarkan Kota
             </h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -309,7 +284,7 @@
 
         <!-- Jadwal Lari Berdasarkan Kategori -->
         <div class="space-y-6">
-            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase">
                 Jadwal Lari Berdasarkan Kategori
             </h2>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -335,7 +310,7 @@
 
         <!-- Cara Memilih Event Lari -->
         <div class="bg-card/40 border border-slate-800/80 rounded-2xl p-6 md:p-8 space-y-4">
-            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase">
                 Cara Memilih Event Lari yang Tepat
             </h2>
             <div class="text-slate-300 space-y-4 leading-relaxed">
@@ -346,7 +321,7 @@
 
         <!-- FAQ Section -->
         <div class="space-y-6">
-            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase">
                 Pertanyaan Umum tentang Jadwal Lari
             </h2>
             <div class="space-y-4" x-data="{ active: null }">
@@ -400,7 +375,7 @@
             <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
                 <div>
                     <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Submit Event</div>
-                    <div class="text-lg font-black text-white italic tracking-tighter">AJUKAN EVENT LARI</div>
+                    <div class="text-lg font-black text-white tracking-tighter">AJUKAN EVENT LARI</div>
                 </div>
                 <button type="button" id="btn-close-submit-event" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -501,11 +476,7 @@
                         </div>
                     </div>
 
-                    @if(env('RECAPTCHA_SITE_KEY'))
-                    <div class="flex justify-center">
-                        <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}" data-theme="dark"></div>
-                    </div>
-                    @endif
+
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                         <div class="md:col-span-2 space-y-1">
@@ -527,33 +498,43 @@
     </div>
 </div>
 
+@push('styles')
+<style>
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+@endpush
+
 @push('scripts')
-@if(env('RECAPTCHA_SITE_KEY'))
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+@php
+    $siteKeyV3 = env('RECAPTCHA_SITE_KEY_v3');
+@endphp
+@if($siteKeyV3)
+    <script src="https://www.google.com/recaptcha/api.js?render={{ $siteKeyV3 }}"></script>
 @endif
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Onboarding Tour check for first-time visitors
-        const onboardingCard = document.getElementById('onboarding-tour-card');
-        const closeOnboardingBtn = document.getElementById('btn-close-onboarding');
-        
-        if (onboardingCard) {
-            const hasSeenTour = localStorage.getItem('ruanglari_calendar_tour_seen');
-            if (!hasSeenTour) {
-                onboardingCard.classList.remove('hidden');
-            }
-            
-            if (closeOnboardingBtn) {
-                closeOnboardingBtn.addEventListener('click', function() {
-                    localStorage.setItem('ruanglari_calendar_tour_seen', 'true');
-                    onboardingCard.classList.add('transition-all', 'duration-500', 'opacity-0', 'scale-95');
-                    setTimeout(() => {
-                        onboardingCard.remove();
-                    }, 500);
-                });
-            }
+    function getV3Token(action, callback) {
+        const siteKey = "{{ env('RECAPTCHA_SITE_KEY_v3') }}";
+        if (!siteKey || typeof grecaptcha === 'undefined') {
+            callback('');
+            return;
         }
+        grecaptcha.ready(function() {
+            grecaptcha.execute(siteKey, { action: action }).then(function(token) {
+                callback(token);
+            }).catch(function(err) {
+                console.error('reCAPTCHA v3 error:', err);
+                callback('');
+            });
+        });
+    }
 
+    document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('filter-form');
         const container = document.getElementById('events-container');
         const paginationContainer = document.getElementById('pagination-container');
@@ -561,26 +542,15 @@
         let timeout = null;
 
         function fetchEvents(url = "{{ route('events.index') }}") {
-            // Show loading
             container.classList.add('opacity-50');
             loading.classList.remove('hidden');
 
             const formData = new FormData(form);
             const params = new URLSearchParams(formData);
 
-            // If url already has params (pagination), append filter params
             if (url.includes('?')) {
-                // Extract base url and existing params
                 const [baseUrl, existingQuery] = url.split('?');
                 const existingParams = new URLSearchParams(existingQuery);
-                
-                // Merge params (filter params override pagination params if needed, but usually we want to keep page if only paginating, reset page if filtering)
-                // Actually, usually when filtering, we want to reset to page 1.
-                // But if clicking pagination link, we want to keep filter params.
-                
-                // Case 1: Filter changed -> url is base route -> use params
-                // Case 2: Pagination clicked -> url has ?page=X -> merge params
-                
                 for(let [key, value] of existingParams) {
                     if(key === 'page') params.set('page', value);
                 }
@@ -595,8 +565,6 @@
             .then(data => {
                 container.innerHTML = data.html;
                 paginationContainer.innerHTML = data.pagination;
-                
-                // Re-attach pagination listeners
                 attachPaginationListeners();
             })
             .finally(() => {
@@ -615,35 +583,58 @@
             });
         }
 
-        // Filter change events
         form.querySelectorAll('select').forEach(select => {
             select.addEventListener('change', () => fetchEvents());
         });
 
-        // Search debounce
         form.querySelector('input[name="search"]').addEventListener('input', () => {
             clearTimeout(timeout);
             timeout = setTimeout(() => fetchEvents(), 500);
         });
 
-        // Mobile Filter Toggle
         const mobileToggle = document.getElementById('mobile-filter-toggle');
         if (mobileToggle) {
             mobileToggle.addEventListener('click', function() {
                 document.querySelectorAll('.mobile-filter-item').forEach(el => {
                     el.classList.toggle('hidden');
                 });
-                
-                // Toggle active state styling on button
                 this.classList.toggle('text-neon');
                 this.classList.toggle('text-white');
             });
         }
 
-        // Initial listeners
+        // Quick Filters Handling
+        const quickBtns = document.querySelectorAll('.quick-filter-btn');
+        quickBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-filter-type');
+                const value = this.getAttribute('data-value');
+                
+                if (type === 'distance') {
+                    const select = form.querySelector('select[name="race_distance_id"]');
+                    if (select) {
+                        select.value = value;
+                    }
+                    document.querySelectorAll('.quick-filter-btn[data-filter-type="distance"]').forEach(b => {
+                        b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white";
+                    });
+                } else if (type === 'type') {
+                    const select = form.querySelector('select[name="race_type_id"]');
+                    if (select) {
+                        select.value = value;
+                    }
+                    document.querySelectorAll('.quick-filter-btn[data-filter-type="type"]').forEach(b => {
+                        b.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-slate-900 border-slate-850 text-slate-400 hover:border-slate-600 hover:text-white";
+                    });
+                }
+                
+                this.className = "quick-filter-btn px-5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 bg-neon text-dark border-neon shadow-sm shadow-neon/10";
+                fetchEvents();
+            });
+        });
+
         attachPaginationListeners();
 
-        // Trigger initial fetch if query parameters exist (from homepage or direct link)
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('city') || urlParams.has('month') || urlParams.has('category') || urlParams.has('search') || urlParams.has('city_id')) {
             fetchEvents();
@@ -701,23 +692,6 @@
             document.body.style.overflow = '';
         }
 
-        function getCaptchaResponse() {
-            try {
-                if (typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) {
-                    return grecaptcha.getResponse();
-                }
-            } catch (e) {}
-            return '';
-        }
-
-        function resetCaptcha() {
-            try {
-                if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
-                    grecaptcha.reset();
-                }
-            } catch (e) {}
-        }
-
         function getPayload() {
             var formData = new FormData();
             var els = form.querySelectorAll('input, select, textarea');
@@ -749,11 +723,6 @@
                 formData.append(el.name, el.value);
             });
 
-            var captcha = getCaptchaResponse();
-            if (captcha) {
-                formData.append('g-recaptcha-response', captcha);
-            }
-
             return formData;
         }
 
@@ -781,41 +750,43 @@
                     return;
                 }
 
-                var captcha = getCaptchaResponse();
-                if ({{ env('RECAPTCHA_SITE_KEY') ? 'true' : 'false' }} && !captcha) {
-                    showAlert('error', 'Mohon selesaikan verifikasi reCAPTCHA.');
-                    return;
-                }
-
                 setBusy(sendOtpBtn, true, 'Mengirim...');
-                fetch(@json(route('events.submissions.request-otp')), {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrf,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        website: '',
-                        'g-recaptcha-response': captcha
-                    })
-                })
-                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
-                .then(function (res) {
-                    if (!res.ok || !res.data || !res.data.success) {
-                        showAlert('error', (res.data && res.data.message) ? res.data.message : 'Gagal mengirim OTP.');
+
+                getV3Token('request_otp', function(token) {
+                    if ({{ env('RECAPTCHA_SITE_KEY_v3') ? 'true' : 'false' }} && !token) {
+                        showAlert('error', 'Gagal memverifikasi reCAPTCHA. Silakan muat ulang halaman.');
+                        setBusy(sendOtpBtn, false, 'Kirim OTP');
                         return;
                     }
-                    otpIdEl.value = res.data.otp_id || '';
-                    showAlert('success', res.data.message || 'OTP terkirim. Cek email kamu.');
-                    resetCaptcha();
-                })
-                .catch(function () {
-                    showAlert('error', 'Terjadi kesalahan saat mengirim OTP.');
-                })
-                .finally(function () {
-                    setBusy(sendOtpBtn, false, 'Kirim OTP');
+
+                    fetch(@json(route('events.submissions.request-otp')), {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            website: '',
+                            'g-recaptcha-response': token
+                        })
+                    })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
+                    .then(function (res) {
+                        if (!res.ok || !res.data || !res.data.success) {
+                            showAlert('error', (res.data && res.data.message) ? res.data.message : 'Gagal mengirim OTP.');
+                            return;
+                        }
+                        otpIdEl.value = res.data.otp_id || '';
+                        showAlert('success', res.data.message || 'OTP terkirim. Cek email kamu.');
+                    })
+                    .catch(function () {
+                        showAlert('error', 'Terjadi kesalahan saat mengirim OTP.');
+                    })
+                    .finally(function () {
+                        setBusy(sendOtpBtn, false, 'Kirim OTP');
+                    });
                 });
             });
         }
@@ -836,40 +807,46 @@
                     return;
                 }
 
-                if ({{ env('RECAPTCHA_SITE_KEY') ? 'true' : 'false' }} && !payload.get('g-recaptcha-response')) {
-                    showAlert('error', 'Mohon selesaikan verifikasi reCAPTCHA.');
-                    return;
-                }
-
                 setBusy(submitBtn, true, 'Memproses...');
-                fetch(@json(route('events.submissions.store')), {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrf,
-                        'Accept': 'application/json'
-                    },
-                    body: payload
-                })
-                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
-                .then(function (res) {
-                    if (!res.ok || !res.data || !res.data.success) {
-                        showAlert('error', (res.data && res.data.message) ? res.data.message : 'Submit gagal.');
-                        if (res.status === 422) resetCaptcha();
+
+                getV3Token('submit_event', function(token) {
+                    if ({{ env('RECAPTCHA_SITE_KEY_v3') ? 'true' : 'false' }} && !token) {
+                        showAlert('error', 'Gagal memverifikasi reCAPTCHA. Silakan muat ulang halaman.');
+                        setBusy(submitBtn, false, 'Submit Event');
                         return;
                     }
-                    showAlert('success', res.data.message || 'Submit berhasil.');
-                    form.reset();
-                    otpIdEl.value = '';
-                    otpCodeEl.value = '';
-                    startedAtEl.value = String(Date.now());
-                    resetCaptcha();
-                    setTimeout(closeModal, 800);
-                })
-                .catch(function () {
-                    showAlert('error', 'Terjadi kesalahan saat submit.');
-                })
-                .finally(function () {
-                    setBusy(submitBtn, false, 'Submit Event');
+
+                    if (token) {
+                        payload.set('g-recaptcha-response', token);
+                    }
+
+                    fetch(@json(route('events.submissions.store')), {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json'
+                        },
+                        body: payload
+                    })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
+                    .then(function (res) {
+                        if (!res.ok || !res.data || !res.data.success) {
+                            showAlert('error', (res.data && res.data.message) ? res.data.message : 'Submit gagal.');
+                            return;
+                        }
+                        showAlert('success', res.data.message || 'Submit berhasil.');
+                        form.reset();
+                        otpIdEl.value = '';
+                        otpCodeEl.value = '';
+                        startedAtEl.value = String(Date.now());
+                        setTimeout(closeModal, 800);
+                    })
+                    .catch(function () {
+                        showAlert('error', 'Terjadi kesalahan saat submit.');
+                    })
+                    .finally(function () {
+                        setBusy(submitBtn, false, 'Submit Event');
+                    });
                 });
             });
         }

@@ -22,7 +22,7 @@
     
     <!-- Hero Section -->
     <div class="max-w-7xl mx-auto mb-12 text-center relative z-10" data-aos="fade-down">
-        <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tighter mb-4 uppercase">
+        <h1 class="text-4xl md:text-6xl font-black text-white tracking-tighter mb-4 uppercase">
             {{ $meta['h1'] }}
         </h1>
         <div class="text-slate-400 text-base md:text-lg max-w-3xl mx-auto space-y-4 leading-relaxed mb-6">
@@ -41,7 +41,7 @@
 
     <!-- Event List -->
     <div class="max-w-7xl mx-auto relative z-10">
-        <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter mb-6 uppercase">
+        <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter mb-6 uppercase">
             Daftar Event Lari {{ strtoupper($categorySlug) }} Terbaru
         </h2>
 
@@ -58,7 +58,7 @@
     <div class="max-w-7xl mx-auto mt-16 pt-16 border-t border-slate-800 relative z-10 space-y-12">
         <!-- Jadwal Lari Berdasarkan Kota -->
         <div class="space-y-6">
-            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase">
                 Jadwal Lari Berdasarkan Kota
             </h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -90,7 +90,7 @@
 
         <!-- Jadwal Lari Berdasarkan Kategori Lain -->
         <div class="space-y-6">
-            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase">
                 Jadwal Lari Berdasarkan Kategori Lainnya
             </h2>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">

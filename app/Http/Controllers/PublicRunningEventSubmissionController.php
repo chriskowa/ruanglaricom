@@ -25,9 +25,9 @@ class PublicRunningEventSubmissionController extends Controller
         $validated = $request->validate([
             'email' => 'required|email|max:255',
             'g-recaptcha-response' => [
-                env('RECAPTCHA_SECRET_KEY') ? 'required' : 'nullable',
+                (env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY')) ? 'required' : 'nullable',
                 function ($attribute, $value, $fail) use ($request) {
-                    $secret = env('RECAPTCHA_SECRET_KEY');
+                    $secret = env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY');
                     if (! $secret) {
                         return;
                     }
@@ -44,8 +44,15 @@ class PublicRunningEventSubmissionController extends Controller
                         'remoteip' => $request->ip(),
                     ]);
 
-                    if (! $response->json('success')) {
+                    $resJson = $response->json();
+                    if (! ($resJson['success'] ?? false)) {
                         $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+
+                        return;
+                    }
+
+                    if (isset($resJson['score']) && $resJson['score'] < 0.5) {
+                        $fail('Keamanan mendeteksi aktivitas mencurigakan. Silakan coba lagi.');
                     }
                 },
             ],
@@ -132,9 +139,9 @@ class PublicRunningEventSubmissionController extends Controller
             'started_at' => 'required|integer|min:0',
 
             'g-recaptcha-response' => [
-                env('RECAPTCHA_SECRET_KEY') ? 'required' : 'nullable',
+                (env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY')) ? 'required' : 'nullable',
                 function ($attribute, $value, $fail) use ($request) {
-                    $secret = env('RECAPTCHA_SECRET_KEY');
+                    $secret = env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY');
                     if (! $secret) {
                         return;
                     }
@@ -151,8 +158,15 @@ class PublicRunningEventSubmissionController extends Controller
                         'remoteip' => $request->ip(),
                     ]);
 
-                    if (! $response->json('success')) {
+                    $resJson = $response->json();
+                    if (! ($resJson['success'] ?? false)) {
                         $fail('Verifikasi reCAPTCHA gagal. Silakan coba lagi.');
+
+                        return;
+                    }
+
+                    if (isset($resJson['score']) && $resJson['score'] < 0.5) {
+                        $fail('Keamanan mendeteksi aktivitas mencurigakan. Silakan coba lagi.');
                     }
                 },
             ],

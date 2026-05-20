@@ -104,7 +104,7 @@
                 @if($event->raceDistances->count() > 0)
                     <div class="pt-8">
                         <div class="flex items-center gap-4 mb-8">
-                            <h3 class="text-2xl font-black text-white italic">KATEGORI JARAK</h3>
+                            <h3 class="text-2xl font-black text-white">KATEGORI JARAK</h3>
                             <div class="h-px flex-1 bg-slate-800"></div>
                         </div>
                         
@@ -127,7 +127,7 @@
                     @if(isset($relatedEvents) && $relatedEvents->count() > 0)
                         <div>
                             <div class="flex items-center gap-4 mb-6">
-                                <h3 class="text-2xl font-black text-white italic uppercase">Event Serupa</h3>
+                                <h3 class="text-2xl font-black text-white uppercase">Event Serupa</h3>
                                 <div class="h-px flex-1 bg-slate-800"></div>
                                 <a href="{{ route('events.index') }}" class="text-xs font-bold text-neon hover:underline">LIHAT SEMUA</a>
                             </div>
@@ -162,7 +162,7 @@
                     @if(isset($sameDateEvents) && $sameDateEvents->count() > 0)
                         <div>
                             <div class="flex items-center gap-4 mb-6">
-                                <h3 class="text-2xl font-black text-white italic uppercase">Event di Tanggal Sama</h3>
+                                <h3 class="text-2xl font-black text-white uppercase">Event di Tanggal Sama</h3>
                                 <div class="h-px flex-1 bg-slate-800"></div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

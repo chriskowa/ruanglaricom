@@ -35,7 +35,7 @@
                 <div class="w-2 h-6 bg-neon skew-x-[-12deg]"></div>
                 <span class="text-neon font-mono text-sm tracking-widest uppercase">PAYMENT GATEWAY</span>
             </div>
-            <h1 class="text-3xl md:text-5xl font-black italic tracking-tighter text-white uppercase mb-4">
+            <h1 class="text-3xl md:text-5xl font-black tracking-tighter text-white uppercase mb-4">
                 {{ $event->name }}
             </h1>
             <p class="text-slate-400 max-w-xl mx-auto">

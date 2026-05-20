@@ -27,7 +27,7 @@
                         <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-dark uppercase tracking-wide">Featured</span>
                     @endif
                 </div>
-                <h1 class="text-3xl md:text-5xl font-black text-white italic tracking-tighter mb-4 leading-tight">
+                <h1 class="text-3xl md:text-5xl font-black text-white tracking-tighter mb-4 leading-tight">
                     {{ $event->name }}
                 </h1>
                 <div class="flex flex-wrap items-center gap-6 text-slate-300">

@@ -10,7 +10,7 @@
     
     <!-- Hero Section -->
     <div class="max-w-7xl mx-auto mb-12 text-center relative z-10" data-aos="fade-down">
-        <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tighter mb-4 uppercase">
+        <h1 class="text-4xl md:text-6xl font-black text-white tracking-tighter mb-4 uppercase">
             Jadwal Lari di {{ $city->name }} 2026
         </h1>
         <p class="text-slate-400 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
@@ -21,7 +21,7 @@
     <!-- Upcoming Events -->
     <div class="max-w-7xl mx-auto mb-16 relative z-10">
         <div class="flex items-center gap-4 mb-8">
-            <h2 class="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">
                 EVENT <span class="text-neon">MENDATANG</span>
             </h2>
             <div class="h-px bg-slate-800 flex-grow"></div>
@@ -46,7 +46,7 @@
     @if($pastEvents->count() > 0)
     <div class="max-w-7xl mx-auto relative z-10">
         <div class="flex items-center gap-4 mb-8">
-            <h2 class="text-2xl md:text-3xl font-black text-slate-500 italic tracking-tight">
+            <h2 class="text-2xl md:text-3xl font-black text-slate-500 tracking-tight">
                 ARSIP <span class="text-slate-600">EVENT</span>
             </h2>
             <div class="h-px bg-slate-800 flex-grow"></div>
