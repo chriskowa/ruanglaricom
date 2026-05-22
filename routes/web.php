@@ -747,6 +747,8 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/toggle-featured', [App\Http\Controllers\Admin\EventController::class, 'toggleFeatured'])->name('events.toggle-featured');
         Route::post('events/{event}/toggle-active', [App\Http\Controllers\Admin\EventController::class, 'toggleActive'])->name('events.toggle-active');
         Route::post('events/{event}/set-status', [App\Http\Controllers\Admin\EventController::class, 'setStatus'])->name('events.set-status');
+        Route::post('events/{event}/download-banner', [App\Http\Controllers\Admin\EventController::class, 'downloadBannerToGallery'])->name('events.download-banner');
+        Route::post('events/{event}/remove-gallery-image', [App\Http\Controllers\Admin\EventController::class, 'removeGalleryImage'])->name('events.remove-gallery-image');
         Route::get('event-submissions', [App\Http\Controllers\Admin\EventSubmissionController::class, 'index'])->name('event-submissions.index');
         Route::get('event-submissions/{submission}', [App\Http\Controllers\Admin\EventSubmissionController::class, 'show'])->name('event-submissions.show');
         Route::post('event-submissions/{submission}/approve', [App\Http\Controllers\Admin\EventSubmissionController::class, 'approve'])->name('event-submissions.approve');

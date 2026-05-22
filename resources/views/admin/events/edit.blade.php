@@ -190,7 +190,34 @@
                             </div>
                         </div>
                         <input type="hidden" name="banner_image" id="banner-input" value="{{ old('banner_image', $event->hero_image_url) }}">
-                        <input type="text" value="{{ old('banner_image', $event->hero_image_url) }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-400 focus:outline-none focus:border-neon transition-colors" placeholder="Or paste URL here..." oninput="updateBannerPreview(this.value)">
+                        <div class="flex gap-2">
+                            <input type="text" id="banner-url-visible" value="{{ old('banner_image', $event->hero_image_url) }}" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-400 focus:outline-none focus:border-neon transition-colors" placeholder="Or paste URL here..." oninput="updateBannerPreview(this.value)">
+                            <button type="button" id="btn-process-banner" onclick="downloadBannerToGallery()" class="px-3 py-2 rounded-xl bg-neon text-dark text-xs font-bold hover:bg-neon/90 transition-colors whitespace-nowrap flex items-center gap-1 shadow-lg shadow-neon/10 disabled:opacity-50 disabled:pointer-events-none">
+                                <svg id="download-icon" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                <svg id="loading-icon" class="w-3.5 h-3.5 animate-spin hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.306 7H18" /></svg>
+                                <span>Unduh ke Galeri</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Gallery -->
+                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center justify-between">
+                        <span>Galeri Event</span>
+                        <span id="gallery-count" class="text-xs bg-slate-800 text-neon px-2 py-0.5 rounded-full">{{ count($event->gallery ?? []) }}</span>
+                    </h3>
+                    <div id="gallery-container" class="grid grid-cols-3 gap-2">
+                        @forelse($event->gallery ?? [] as $image)
+                            <div class="relative aspect-square bg-slate-900 border border-slate-700 rounded-xl overflow-hidden group/gallery-item" data-path="{{ $image }}">
+                                <img src="{{ asset('storage/' . $image) }}" class="w-full h-full object-cover">
+                                <button type="button" onclick="deleteGalleryImage(this, '{{ $image }}')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center opacity-0 group-hover/gallery-item:opacity-100 transition-opacity">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+                        @empty
+                            <p id="gallery-empty-text" class="col-span-3 text-center text-xs text-slate-500 py-4">Belum ada gambar galeri.</p>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -243,16 +270,135 @@
         const preview = document.getElementById('banner-preview');
         const placeholder = document.getElementById('banner-placeholder');
         const input = document.getElementById('banner-input');
+        const visibleInput = document.getElementById('banner-url-visible');
         
         if (url) {
             preview.src = url;
             preview.classList.remove('hidden');
             placeholder.classList.add('hidden');
             input.value = url;
+            if (visibleInput && visibleInput.value !== url) {
+                visibleInput.value = url;
+            }
         } else {
             preview.classList.add('hidden');
             placeholder.classList.remove('hidden');
         }
+    }
+
+    function downloadBannerToGallery() {
+        const urlInput = document.getElementById('banner-url-visible');
+        const url = urlInput.value.trim();
+        
+        if (!url) {
+            alert('Silakan masukkan URL banner event terlebih dahulu.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-process-banner');
+        const downloadIcon = document.getElementById('download-icon');
+        const loadingIcon = document.getElementById('loading-icon');
+        
+        btn.disabled = true;
+        downloadIcon.classList.add('hidden');
+        loadingIcon.classList.remove('hidden');
+
+        fetch("{{ route('admin.events.download-banner', $event) }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ url: url })
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            downloadIcon.classList.remove('hidden');
+            loadingIcon.classList.add('hidden');
+
+            if (data.success) {
+                // Remove empty text if present
+                const emptyText = document.getElementById('gallery-empty-text');
+                if (emptyText) {
+                    emptyText.remove();
+                }
+
+                // Add to gallery container
+                const container = document.getElementById('gallery-container');
+                const imagePath = data.path;
+                const imageUrl = data.url;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "relative aspect-square bg-slate-900 border border-slate-700 rounded-xl overflow-hidden group/gallery-item";
+                itemDiv.dataset.path = imagePath;
+                itemDiv.innerHTML = `
+                    <img src="${imageUrl}" class="w-full h-full object-cover">
+                    <button type="button" onclick="deleteGalleryImage(this, '${imagePath}')" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center opacity-0 group-hover/gallery-item:opacity-100 transition-opacity">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                `;
+                container.appendChild(itemDiv);
+
+                // Update count
+                document.getElementById('gallery-count').innerText = data.gallery.length;
+
+                alert(data.message);
+            } else {
+                alert(data.message || 'Terjadi kesalahan saat mengunduh banner.');
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            downloadIcon.classList.remove('hidden');
+            loadingIcon.classList.add('hidden');
+            console.error('Error:', error);
+            alert('Gagal menghubungi server.');
+        });
+    }
+
+    function deleteGalleryImage(btn, path) {
+        if (!confirm('Apakah Anda yakin ingin menghapus gambar ini dari galeri?')) {
+            return;
+        }
+
+        btn.disabled = true;
+
+        fetch("{{ route('admin.events.remove-gallery-image', $event) }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ path: path })
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            if (data.success) {
+                // Find element and remove it
+                const itemDiv = btn.closest('[data-path]');
+                if (itemDiv) {
+                    itemDiv.remove();
+                }
+
+                // Update count
+                document.getElementById('gallery-count').innerText = data.gallery.length;
+
+                // Show empty text if gallery is now empty
+                if (data.gallery.length === 0) {
+                    const container = document.getElementById('gallery-container');
+                    container.innerHTML = `<p id="gallery-empty-text" class="col-span-3 text-center text-xs text-slate-500 py-4">Belum ada gambar galeri.</p>`;
+                }
+            } else {
+                alert(data.message || 'Gagal menghapus gambar.');
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            console.error('Error:', error);
+            alert('Gagal menghubungi server.');
+        });
     }
 
     // Init preview if value exists

@@ -13,7 +13,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class EventController extends Controller
 {
@@ -630,5 +633,117 @@ class EventController extends Controller
         }
 
         return $slug;
+    }
+
+    public function downloadBannerToGallery(Request $request, Event $event)
+    {
+        $request->validate([
+            'url' => 'required|url',
+        ]);
+
+        $url = $request->input('url');
+
+        try {
+            $response = Http::withoutVerifying()->get($url);
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengunduh gambar dari URL yang diberikan.',
+                ], 422);
+            }
+
+            $imageContent = $response->body();
+            
+            // process and save image as webp
+            $manager = new ImageManager(new Driver);
+            $image = $manager->read($imageContent);
+
+            // Generate unique filename
+            $filename = uniqid().'_'.time().'.webp';
+            $folder = 'events/gallery';
+            $path = $folder.'/'.$filename;
+
+            // Resize if too large (e.g. max width 1920)
+            if ($image->width() > 1920) {
+                $image->scale(width: 1920);
+            }
+
+            // Convert to WebP
+            $webpImage = $image->toWebp(85);
+
+            // Ensure directory exists
+            if (!Storage::disk('public')->exists($folder)) {
+                Storage::disk('public')->makeDirectory($folder);
+            }
+
+            // Save image
+            $fullPath = Storage::disk('public')->path($path);
+            $webpImage->save($fullPath);
+
+            // Add to event gallery
+            $gallery = $event->gallery ?? [];
+            if (!is_array($gallery)) {
+                $gallery = [];
+            }
+            $gallery[] = $path;
+
+            $event->update([
+                'gallery' => $gallery,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Gambar berhasil diunduh, dikonversi ke WebP, dan dimasukkan ke galeri.',
+                'path' => $path,
+                'url' => Storage::url($path),
+                'gallery' => $gallery,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function removeGalleryImage(Request $request, Event $event)
+    {
+        $request->validate([
+            'path' => 'required|string',
+        ]);
+
+        $path = $request->input('path');
+        $gallery = $event->gallery ?? [];
+        if (!is_array($gallery)) {
+            $gallery = [];
+        }
+
+        // Find and remove the path
+        if (($key = array_search($path, $gallery)) !== false) {
+            unset($gallery[$key]);
+            // Re-index array
+            $gallery = array_values($gallery);
+
+            $event->update([
+                'gallery' => $gallery,
+            ]);
+
+            // Delete the file from storage
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Gambar berhasil dihapus dari galeri.',
+                'gallery' => $gallery,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gambar tidak ditemukan di galeri.',
+        ], 422);
     }
 }
