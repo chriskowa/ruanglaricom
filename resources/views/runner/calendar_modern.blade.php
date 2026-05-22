@@ -366,8 +366,35 @@
             <!-- content hidden -->
         </div>
 
+        <!-- Mobile Navigation Tabs (Only visible on mobile) -->
+        <div class="block md:hidden mb-6 bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800/80 backdrop-blur-md">
+            <div class="grid grid-cols-3 gap-1">
+                <button type="button" 
+                        class="py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5"
+                        :class="activeMobileTab === 'calendar' ? 'bg-neon text-dark font-black shadow-md' : 'text-slate-400 hover:text-white'"
+                        @click="activeMobileTab = 'calendar'">
+                    <i class="fa-solid fa-calendar-days text-xs" :class="activeMobileTab === 'calendar' ? 'text-dark' : 'text-slate-400'"></i>
+                    <span>Jadwal</span>
+                </button>
+                <button type="button" 
+                        class="py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5"
+                        :class="activeMobileTab === 'programs' ? 'bg-neon text-dark font-black shadow-md' : 'text-slate-400 hover:text-white'"
+                        @click="activeMobileTab = 'programs'">
+                    <i class="fa-solid fa-route text-xs" :class="activeMobileTab === 'programs' ? 'text-dark' : 'text-slate-400'"></i>
+                    <span>Program</span>
+                </button>
+                <button type="button" 
+                        class="py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5"
+                        :class="activeMobileTab === 'profile' ? 'bg-neon text-dark font-black shadow-md' : 'text-slate-400 hover:text-white'"
+                        @click="activeMobileTab = 'profile'">
+                    <i class="fa-solid fa-gauge-high text-xs" :class="activeMobileTab === 'profile' ? 'text-dark' : 'text-slate-400'"></i>
+                    <span>Training Pace</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Programs Row (Active & Bag) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8" :class="activeMobileTab === 'programs' ? 'grid' : 'hidden md:grid'">
             <!-- Active Programs -->
             <div class="glass-panel rounded-2xl p-4 md:p-6">
                 <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -449,7 +476,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-8">
-                <div class="glass-panel rounded-2xl p-4 md:p-6 relative overflow-hidden">
+                <div class="glass-panel rounded-2xl p-4 md:p-6 relative overflow-hidden" :class="activeMobileTab === 'profile' ? 'block' : 'hidden lg:block'">
                     <div class="absolute top-0 right-0 p-4 opacity-10">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -624,7 +651,7 @@
                 </div>
 
                 <!-- Global Unlock Banner -->
-                <div v-if="hasUnpaidGenerator" class="mb-8 p-6 rounded-3xl bg-slate-900/80 border border-cyan-500/30 backdrop-blur-xl shadow-2xl overflow-hidden relative group">
+                <div v-if="hasUnpaidGenerator" class="mb-8 p-6 rounded-3xl bg-slate-900/80 border border-cyan-500/30 backdrop-blur-xl shadow-2xl overflow-hidden relative group" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
                     <!-- Background Accent -->
                     <div class="absolute -right-20 -top-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all duration-700"></div>
                     
@@ -683,14 +710,14 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-calendar-section">
+                <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-calendar-section" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
                     <div id="calendar"></div>
                 </div>
             </div>
 
             <div class="space-y-6">
                 <!-- Plan List moved to sidebar for better UX -->
-                <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-plans-section">
+                <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-plans-section" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
                     <div class="flex flex-col sm:flex-row items-end justify-between mb-4 gap-4">
                         <div>
                             <h3 class="text-white font-bold text-lg tracking-tight italic uppercase">Plan List</h3>
@@ -1008,7 +1035,41 @@
                             </div>
                         </div>
 
-                        <div v-if="(detail.workout_structure && detail.workout_structure.length > 0) || detail.description" class="mb-4 bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                        <!-- Description Section at the Top -->
+                        <div v-if="detail.description" class="mb-4 bg-slate-800/40 border border-slate-700/60 rounded-xl p-4 text-sm text-slate-300">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="text-[11px] text-slate-400 uppercase font-bold tracking-wider">Deskripsi Aktivitas</div>
+                                <button v-if="ttsSupported" @click="speakDetailDescription" class="w-7 h-7 rounded-full bg-slate-900/60 hover:bg-slate-800 flex items-center justify-center text-slate-300 hover:text-neon border border-slate-700 transition" type="button">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M5 9v6h4l5 5V4L9 9H5z" />
+                                        <path d="M16.5 8.11a5 5 0 010 7.78v-1.74a3.25 3.25 0 000-4.3V8.11z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="whitespace-pre-line leading-relaxed text-slate-200">@{{ detail.description }}</div>
+                        </div>
+
+                        <!-- Goals & Effects Section -->
+                        <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'threshold', 'interval', 'repetition', 'speed', 'strength', 'rest', 'yoga', 'cycling', 'race'].includes(String(detail.type || '').toLowerCase())"
+                             class="mb-4 bg-slate-800/40 rounded-xl p-4 border border-slate-700/60">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fa-solid fa-bullseye text-neon text-xs"></i>
+                                <span class="text-[11px] font-bold text-white uppercase tracking-wider">Tujuan & Efek Latihan</span>
+                            </div>
+                            <div class="space-y-3 text-xs">
+                                <div>
+                                    <span class="text-slate-400 block font-semibold mb-1">🎯 Goal Utama:</span>
+                                    <span class="text-slate-200 leading-relaxed">@{{ workoutGoalText }}</span>
+                                </div>
+                                <div class="pt-2.5 border-t border-slate-700/50">
+                                    <span class="text-slate-400 block font-semibold mb-1">🧬 Efek bagi Tubuh:</span>
+                                    <span class="text-slate-200 leading-relaxed">@{{ workoutEffectText }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Coach Card -->
+                        <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'threshold', 'interval', 'repetition', 'speed', 'race'].includes(String(detail.type || '').toLowerCase())" class="mb-4 bg-slate-800/50 rounded-xl p-4 border border-slate-700">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="flex items-center gap-2">
                                     <div class="w-6 h-6 rounded-full bg-neon flex items-center justify-center text-dark font-bold text-xs">AI</div>
@@ -1274,18 +1335,7 @@
                         </div>
                     </div>
 
-                    <div v-if="detail.description" class="mt-3 text-sm text-slate-300">
-                        <div class="flex items-center justify-between mb-1">
-                            <div class="text-[11px] text-slate-400 uppercase font-bold">Description</div>
-                            <button v-if="ttsSupported" @click="speakDetailDescription" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-neon transition" type="button">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M5 9v6h4l5 5V4L9 9H5z" />
-                                    <path d="M16.5 8.11a5 5 0 010 7.78v-1.74a3.25 3.25 0 000-4.3V8.11z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div>@{{ detail.description }}</div>
-                    </div>
+
                     <div v-if="detail.strava_link" class="mt-3 text-sm">
                         <a :href="detail.strava_link" target="_blank" class="text-neon hover:underline">View Strava Activity</a>
                     </div>
@@ -1930,6 +1980,7 @@ createApp({
         const showHeaderActions = ref(false);
         const showMobileAddSheet = ref(false);
         const activeDock = ref('today');
+        const activeMobileTab = ref('calendar');
 
         const showNotification = (message, type = 'success') => {
             notification.value = { message, type };
@@ -1951,15 +2002,18 @@ createApp({
 
         const scrollToSection = (key) => {
             try {
-                if (key === 'calendar') {
-                    const el = document.getElementById('calendar') || document.getElementById('runner-calendar-section');
+                activeMobileTab.value = 'calendar';
+                nextTick(() => {
+                    if (key === 'calendar') {
+                        const el = document.getElementById('calendar') || document.getElementById('runner-calendar-section');
+                        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        activeDock.value = 'calendar';
+                        return;
+                    }
+                    const el = document.getElementById('runner-plans-section');
                     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    activeDock.value = 'calendar';
-                    return;
-                }
-                const el = document.getElementById('runner-plans-section');
-                el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                activeDock.value = 'today';
+                    activeDock.value = 'today';
+                });
             } catch (e) {
             }
         };
@@ -2429,6 +2483,16 @@ createApp({
         };
 
         let calendar = null;
+
+        watch(activeMobileTab, (newTab) => {
+            if (newTab === 'calendar') {
+                nextTick(() => {
+                    if (calendar) {
+                        calendar.updateSize();
+                    }
+                });
+            }
+        });
 
         // ... existing methods ...
 
@@ -3635,8 +3699,13 @@ createApp({
                 strength: null, rest: null, yoga: null, cycling: null
             };
             
-            const key = map[t]; 
+            let key = map[t]; 
             if (!key) return null;
+
+            // Logic override: If Interval (I) and distance is <= 800m (0.805 km), use Repetition (R) pace instead
+            if (key === 'I' && distance && parseFloat(distance) <= 0.805) {
+                key = 'R';
+            }
 
             // Check for specific Track times (Interval, Repetition, Threshold)
             // User requested specific logic for 0.1-2km to take from track tab
@@ -3644,12 +3713,6 @@ createApp({
                 const distKm = parseFloat(distance);
                 // Check if distance is between 0.1 and 2.0 km (approx)
                 if (distKm >= 0.1 && distKm <= 2.0) {
-                    // Logic override: If Interval (I) and distance 100-400m, use Repetition (R) pace
-                    let useKey = key;
-                    if (key === 'I' && distKm >= 0.1 && distKm <= 0.405) { // 0.405 to cover slightly over 400m due to float precision
-                        useKey = 'R';
-                    }
-
                     // Try to match standard track distances
                     const m = Math.round(distKm * 1000);
                     
@@ -3659,8 +3722,8 @@ createApp({
                     if (trainingProfile.value.track_times[trackKey]) {
                         const trackData = trainingProfile.value.track_times[trackKey];
                         // Get the specific pace type from trackData (I, R, or T)
-                        const splitTime = trackData[useKey]; 
-                        const pacePerKm = trackData['pace_' + useKey];
+                        const splitTime = trackData[key]; 
+                        const pacePerKm = trackData['pace_' + key];
                         
                         if (splitTime) {
                             return `${splitTime} (${pacePerKm} /km)`;
@@ -3916,6 +3979,48 @@ createApp({
                 'Ikuti pace panduan dan fokus ke teknik.',
                 'Catat RPE/feeling setelah selesai untuk feedback ke coach.',
             ];
+        });
+
+        const workoutGoalText = computed(() => {
+            const t = String(detail.type || '').toLowerCase();
+            const goals = {
+                easy_run: 'Membangun basis aerobik, melatih jantung bekerja efisien pada intensitas rendah, dan melancarkan aliran darah untuk pemulihan otot.',
+                recovery: 'Mempercepat pemulihan tubuh dengan meningkatkan sirkulasi darah tanpa menambah stres atau kerusakan serat otot baru.',
+                run: 'Memelihara kebugaran aerobik umum dan memperkuat konsistensi volume mingguan.',
+                long_run: 'Meningkatkan daya tahan kardiovaskular dan muskular (endurance), serta melatih tubuh agar lebih efisien menggunakan lemak sebagai bahan bakar.',
+                tempo: 'Meningkatkan ambang batas laktat (lactate threshold) agar Anda dapat berlari lebih cepat dengan akumulasi asam laktat yang lebih minim.',
+                threshold: 'Meningkatkan ambang batas laktat (lactate threshold) agar Anda dapat berlari lebih cepat dengan akumulasi asam laktat yang lebih minim.',
+                interval: 'Meningkatkan kapasitas VO2Max (penyerapan oksigen maksimum), toleransi asam laktat tinggi, dan daya dorong jantung.',
+                repetition: 'Meningkatkan kecepatan murni, koordinasi saraf-otot (neuromuscular), dan efisiensi biomekanika langkah lari (running economy).',
+                speed: 'Meningkatkan kecepatan murni, koordinasi saraf-otot (neuromuscular), dan efisiensi biomekanika langkah lari (running economy).',
+                strength: 'Memperkuat otot-otot pendukung (core, glutes, hamstrings) untuk meningkatkan stabilitas lari dan mengurangi risiko cedera.',
+                rest: 'Memberikan waktu istirahat total bagi serat otot untuk memperbaiki diri dan memulihkan cadangan glikogen tubuh.',
+                yoga: 'Meningkatkan fleksibilitas otot, mobilitas sendi, serta melatih kesadaran napas dan ketenangan pikiran.',
+                cycling: 'Membangun kapasitas aerobik alternatif (cross-training) tanpa memberikan benturan fisik (impact) pada sendi kaki.',
+                race: 'Menguji performa terbaik Anda, menerapkan strategi paceline yang matang, dan menyelesaikan target waktu perlombaan.'
+            };
+            return goals[t] || 'Membangun kebugaran fisik dan memelihara konsistensi latihan.';
+        });
+
+        const workoutEffectText = computed(() => {
+            const t = String(detail.type || '').toLowerCase();
+            const hints = {
+                easy_run: 'Memperbanyak jumlah kapiler darah dan mitokondria pada sel otot, sehingga otot menjadi lebih andal menyerap oksigen.',
+                recovery: 'Membuang sisa metabolisme (seperti asam laktat) lebih cepat, meredakan kekakuan otot, dan menurunkan denyut jantung istirahat.',
+                run: 'Menjaga keaktifan kapiler darah dan metabolisme aerobik tanpa membebani sistem saraf pusat.',
+                long_run: 'Meningkatkan kapasitas penyimpanan glikogen di otot, memperkuat tendon, ligamen, serta otot kaki menghadapi kelelahan jangka panjang.',
+                tempo: 'Meningkatkan kemampuan sel otot untuk mendaur ulang asam laktat kembali menjadi energi, menunda sensasi "kaki terbakar" saat pace cepat.',
+                threshold: 'Meningkatkan kemampuan sel otot untuk mendaur ulang asam laktat kembali menjadi energi, menunda sensasi "kaki terbakar" saat pace cepat.',
+                interval: 'Memperbesar volume sekuncup jantung (stroke volume), mempercepat pemulihan denyut jantung (HR recovery), dan merangsang serat otot cepat.',
+                repetition: 'Langkah lari terasa lebih ringan dan rileks pada kecepatan tinggi karena refleks otot-saraf menjadi lebih terlatih dan hemat energi.',
+                speed: 'Langkah lari terasa lebih ringan dan rileks pada kecepatan tinggi karena refleks otot-saraf menjadi lebih terlatih dan hemat energi.',
+                strength: 'Meningkatkan kekuatan rekrutmen serat otot, memperbaiki postur berlari agar tegak di kilometer akhir, dan memperkokoh persendian.',
+                rest: 'Terjadinya proses superkompensasi di mana otot pulih lebih kuat dibanding kondisi sebelum dirusak oleh latihan berat.',
+                yoga: 'Meregangkan otot yang kaku, meredakan ketegangan sistem saraf (simpatik), dan membantu detoksifikasi tubuh.',
+                cycling: 'Merangsang sirkulasi jantung tanpa beban impak berat, membantu regenerasi sendi lutut dan pergelangan kaki.',
+                race: 'Memberikan stimulus adaptasi maksimal bagi seluruh sistem energi tubuh, sekaligus memperkuat ketangguhan mental pelari.'
+            };
+            return hints[t] || 'Meningkatkan kesegaran jasmani dan kesiapan adaptasi tubuh untuk sesi latihan berikutnya.';
         });
 
         const showEventDetail = (info) => {
@@ -4250,7 +4355,7 @@ createApp({
             resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
             trainingProfile, formatPace, showPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
             stravaLinkInput, notesInput, rpeInput, feelingInput, finishActivityWithLink, profileTab, chatCoach,
-            aiCoachSummary, aiCoachCues, guidedSteps, guidedStepsDoneCount, guidedStepsProgressPct, guidedStepChecked, toggleGuidedStep,
+            aiCoachSummary, aiCoachCues, workoutGoalText, workoutEffectText, guidedSteps, guidedStepsDoneCount, guidedStepsProgressPct, guidedStepChecked, toggleGuidedStep,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, isSyncingStrava, syncStrava, weeklyVolume, maxVolume,
             assetStorage, assetProfile, runnerUrl, chatUrl, 
             showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,
@@ -4267,7 +4372,7 @@ createApp({
             payDonation, donationLoading, donationAmount,
             hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek,
             promoCode, promoApplied, promoError, checkingPromo, applyPromo, handleUnlockAction,
-            notification, showNotification, showHeaderActions, showMobileAddSheet, openMobileAddSheet, activeDock, scrollToSection
+            notification, showNotification, showHeaderActions, showMobileAddSheet, openMobileAddSheet, activeDock, scrollToSection, activeMobileTab
         };
     }
 

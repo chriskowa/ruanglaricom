@@ -84,10 +84,14 @@
                                         </div>
                                     @endif
                                 </div>
-                                <div class="mt-1 text-sm text-slate-400 truncate">
-                                    {{ (string) ($todayWorkout['program_title'] ?? 'Training') }}
+                                <div class="mt-1 text-xs text-slate-400 flex items-center gap-2">
+                                    <span class="font-bold text-slate-300">{{ (string) ($todayWorkout['program_title'] ?? 'Training') }}</span>
+                                    @if(!empty($todayWorkout['week_number']) && !empty($todayWorkout['session_day']))
+                                        <span class="text-slate-600">•</span>
+                                        <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 font-mono">Week {{ $todayWorkout['week_number'] }} • Day {{ $todayWorkout['session_day'] }}</span>
+                                    @endif
                                 </div>
-                                <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                                <div class="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-slate-400">
                                     @if(!empty($todayWorkout['distance']))
                                         <span class="inline-flex items-center gap-1">
                                             <span class="text-slate-500">Distance</span>
@@ -106,6 +110,17 @@
                                         </a>
                                     @endif
                                 </div>
+
+                                @if(!empty($todayWorkout['target_pace']))
+                                    <div class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neon/10 border border-neon/30 text-neon font-black text-xs font-mono">
+                                        ⚡ Target Pace: {{ $todayWorkout['target_pace'] }}
+                                    </div>
+                                @endif
+                                @if(!empty($todayWorkout['description']))
+                                    <div class="mt-3 text-xs text-slate-300 bg-slate-950/40 border border-slate-800/80 rounded-xl p-3 leading-relaxed whitespace-pre-line max-w-xl">
+                                        {{ $todayWorkout['description'] }}
+                                    </div>
+                                @endif
                             </div>
                             <div class="grid grid-cols-2 gap-2 w-full md:w-auto">
                                 <a href="{{ route('runner.calendar') }}" class="px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all text-center">
@@ -130,10 +145,13 @@
                             <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5">
                                 <div class="text-sm font-bold text-white">Rest day / tidak ada jadwal hari ini.</div>
                                 <div class="text-xs text-slate-400 mt-1">Cek jadwal 7 hari ke depan atau reschedule dari calendar.</div>
-                                <div class="mt-4">
-                                    <a href="{{ route('runner.calendar') }}" class="inline-flex items-center gap-2 text-sm text-neon hover:underline font-bold">
+                                <div class="mt-4 flex flex-wrap gap-2">
+                                    <a href="{{ route('runner.calendar') }}" class="inline-flex items-center gap-2 text-sm text-neon hover:underline font-bold mr-4">
                                         Buka Training Calendar
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                    </a>
+                                    <a href="{{ route('runner.calendar') }}?action=add_custom" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-neon hover:text-neon text-xs font-bold transition text-slate-300">
+                                        ➕ Tambah Latihan Kustom
                                     </a>
                                 </div>
                             </div>
@@ -232,6 +250,66 @@
                         @php($pct = $planned > 0 ? min(100, max(0, ($done / $planned) * 100)) : 0)
                         <div class="bg-neon h-full rounded-full" style="width: {{ $pct }}%"></div>
                     </div>
+                </div>
+
+                <!-- VDOT & Paces Card -->
+                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Training Science</div>
+                            <h3 class="text-lg font-black text-white italic tracking-tight mt-1">VDOT & Target Pace</h3>
+                        </div>
+                        @if(auth()->user()->vdot)
+                            <div class="px-2.5 py-1 rounded-full bg-neon text-dark font-black text-xs flex items-center gap-1 font-mono">
+                                ⚡ VDOT {{ round(auth()->user()->vdot, 1) }}
+                            </div>
+                        @endif
+                    </div>
+
+                    @if(auth()->user()->vdot && auth()->user()->training_paces)
+                        @php($p = auth()->user()->training_paces)
+                        <div class="mt-4 space-y-2.5">
+                            <div class="flex items-center justify-between border-b border-slate-850 pb-2">
+                                <span class="text-xs text-slate-400">Easy (E) Pace</span>
+                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
+                                    {{ sprintf('%d:%02d', floor($p['E']), round(($p['E'] - floor($p['E'])) * 60)) }} /km
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between border-b border-slate-850 pb-2">
+                                <span class="text-xs text-slate-400">Marathon (M) Pace</span>
+                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
+                                    {{ sprintf('%d:%02d', floor($p['M']), round(($p['M'] - floor($p['M'])) * 60)) }} /km
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between border-b border-slate-850 pb-2">
+                                <span class="text-xs text-slate-400">Threshold (T) Pace</span>
+                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
+                                    {{ sprintf('%d:%02d', floor($p['T']), round(($p['T'] - floor($p['T'])) * 60)) }} /km
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between border-b border-slate-850 pb-2">
+                                <span class="text-xs text-slate-400">Interval (I) Pace</span>
+                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
+                                    {{ sprintf('%d:%02d', floor($p['I']), round(($p['I'] - floor($p['I'])) * 60)) }} /km
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-400">Repetition (R) Pace</span>
+                                <span class="text-xs font-bold text-white font-mono bg-slate-900/60 px-2 py-1 rounded">
+                                    {{ sprintf('%d:%02d', floor($p['R']), round(($p['R'] - floor($p['R'])) * 60)) }} /km
+                                </span>
+                            </div>
+                        </div>
+                    @else
+                        <div class="mt-4 bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 text-center">
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Personal Best (PB) belum diatur. Atur PB Anda untuk memunculkan target pace latihan terpersonalisasi.
+                            </p>
+                            <a href="{{ route('runner.calendar') }}" class="mt-3 inline-block w-full py-2 rounded-xl bg-neon/10 border border-neon/20 hover:bg-neon/15 text-neon font-bold text-xs transition text-center">
+                                Atur Personal Best
+                            </a>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">

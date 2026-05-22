@@ -192,6 +192,9 @@ class DashboardController extends Controller
                     'source' => 'program',
                     'enrollment_id' => $enrollment->id,
                     'session_day' => $day,
+                    'week_number' => $session['week'] ?? floor(($day - 1) / 7) + 1,
+                    'target_pace' => $session['target_pace'] ?? $this->getPaceForSessionType($session['type'] ?? 'Run', $user->training_paces),
+                    'description' => $session['description'] ?? null,
                 ];
 
                 $upcoming[] = $item;
@@ -224,6 +227,9 @@ class DashboardController extends Controller
                 'strava_link' => null,
                 'source' => 'custom',
                 'custom_workout_id' => $cw->id,
+                'week_number' => null,
+                'target_pace' => null,
+                'description' => $cw->description,
             ];
 
             $upcoming[] = $item;
@@ -323,5 +329,45 @@ class DashboardController extends Controller
             'todayWorkoutCount' => count($todayWorkouts),
             'greeting' => $greeting,
         ]);
+    }
+
+    /**
+     * Helper to get pace string based on session type
+     */
+    private function getPaceForSessionType($type, $paces)
+    {
+        if (! $paces) {
+            return null;
+        }
+
+        $type = strtolower($type);
+        $pace = null;
+        $label = '';
+
+        if (str_contains($type, 'easy') || str_contains($type, 'long') || str_contains($type, 'recovery') || str_contains($type, 'warmup') || str_contains($type, 'cool')) {
+            $pace = $paces['E'] ?? null;
+            $label = 'E';
+        } elseif (str_contains($type, 'tempo') || str_contains($type, 'threshold')) {
+            $pace = $paces['T'] ?? null;
+            $label = 'T';
+        } elseif (str_contains($type, 'interval')) {
+            $pace = $paces['I'] ?? null;
+            $label = 'I';
+        } elseif (str_contains($type, 'repetition')) {
+            $pace = $paces['R'] ?? null;
+            $label = 'R';
+        } elseif (str_contains($type, 'marathon')) {
+            $pace = $paces['M'] ?? null;
+            $label = 'M';
+        }
+
+        if ($pace) {
+            $m = floor($pace);
+            $s = round(($pace - $m) * 60);
+
+            return sprintf('@ %d:%02d/km', $m, $s);
+        }
+
+        return null;
     }
 }

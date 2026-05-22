@@ -16,6 +16,9 @@ class BlogController extends Controller
 
         $categories = BlogCategory::query()
             ->select(['id', 'name', 'slug'])
+            ->whereHas('articles', function ($q) {
+                $q->published();
+            })
             ->withCount([
                 'articles as published_articles_count' => function ($q) {
                     $q->published();
