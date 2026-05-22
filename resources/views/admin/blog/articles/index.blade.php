@@ -16,9 +16,9 @@
         </div>
         
         <div class="flex gap-3">
-            <a href="{{ route('admin.blog.import') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold text-sm flex items-center gap-2">
+            <button type="button" onclick="openImportModal()" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold text-sm flex items-center gap-2">
                 <i class="fab fa-wordpress"></i> Import WP
-            </a>
+            </button>
             <a href="{{ route('admin.blog.categories.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 transition-all font-bold text-sm">
                 Manage Categories
             </a>
@@ -117,6 +117,57 @@
         <div class="px-6 py-4 border-t border-slate-700/50">
             {{ $articles->links() }}
         </div>
+    <!-- Import WP Modal -->
+    <div id="wp-import-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4 transition-all duration-300">
+        <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative ring-1 ring-white/10">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 class="text-lg font-black text-white flex items-center gap-2">
+                    <i class="fab fa-wordpress text-[#21759b]"></i>
+                    IMPORT ARTIKEL WORDPRESS
+                </h3>
+                <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <form action="{{ route('admin.blog.import.store') }}" method="POST" onsubmit="submitImportForm(event)">
+                @csrf
+                <div class="p-6 space-y-6">
+                    <div class="bg-blue-950/30 border border-blue-800/30 p-4 rounded-xl flex gap-3 text-slate-300 text-sm">
+                        <svg class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            Masukkan tautan JSON REST API posts WordPress untuk mengimpor post sebagai <strong>Draft</strong>.
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="wordpress_url" class="block text-xs font-bold uppercase tracking-wider text-slate-400">URL JSON WordPress</label>
+                        <input type="url" id="wordpress_url" name="wordpress_url" required 
+                               class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 text-sm focus:outline-none focus:border-neon focus:ring-1 focus:ring-neon transition-all"
+                               placeholder="https://runnersconnect.net/wp-json/wp/v2/posts"
+                               value="https://runnersconnect.net/wp-json/wp/v2/posts">
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 border-t border-slate-800 bg-slate-900/50 flex justify-end gap-3">
+                    <button type="button" onclick="closeImportModal()" 
+                            class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-bold text-sm">
+                        Batal
+                    </button>
+                    <button type="submit" id="btn-submit-import"
+                            class="px-5 py-2.5 rounded-xl bg-neon text-dark hover:bg-neon/90 hover:scale-[1.02] transition-all font-bold text-sm flex items-center gap-2">
+                        <span>Mulai Import</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endsection
@@ -163,6 +214,53 @@ function toggleFeatured(id) {
             icon.setAttribute('fill', 'none');
         }
         alert('Gagal mengubah status featured.');
+    });
+}
+
+const importModal = document.getElementById('wp-import-modal');
+const importInput = document.getElementById('wordpress_url');
+const submitBtn = document.getElementById('btn-submit-import');
+
+function openImportModal() {
+    if (!importModal) return;
+    importModal.classList.remove('hidden');
+    importModal.classList.add('flex');
+    if (importInput) {
+        importInput.focus();
+    }
+}
+
+function closeImportModal() {
+    if (!importModal) return;
+    importModal.classList.remove('flex');
+    importModal.classList.add('hidden');
+}
+
+function submitImportForm(event) {
+    if (!submitBtn) return;
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+    submitBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-dark" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Mengimpor...</span>
+    `;
+}
+
+// Close modal on escape key or clicking outside
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeImportModal();
+    }
+});
+
+if (importModal) {
+    importModal.addEventListener('click', (e) => {
+        if (e.target === importModal) {
+            closeImportModal();
+        }
     });
 }
 </script>
