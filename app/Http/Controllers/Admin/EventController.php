@@ -660,7 +660,7 @@ class EventController extends Controller
 
             // Generate unique filename
             $filename = uniqid().'_'.time().'.webp';
-            $folder = 'events/gallery';
+            $folder = 'blog/media';
             $path = $folder.'/'.$filename;
 
             // Resize if too large (e.g. max width 1920)
@@ -680,6 +680,19 @@ class EventController extends Controller
             $fullPath = Storage::disk('public')->path($path);
             $webpImage->save($fullPath);
 
+            $fileSize = Storage::disk('public')->size($path);
+
+            // Create entry in blog_media (Media Library)
+            \App\Models\BlogMedia::create([
+                'user_id' => auth()->id() ?? 1,
+                'filename' => $filename,
+                'path' => $path,
+                'disk' => 'public',
+                'mime_type' => 'image/webp',
+                'size' => $fileSize,
+                'alt_text' => pathinfo($filename, PATHINFO_FILENAME),
+            ]);
+
             // Add to event gallery
             $gallery = $event->gallery ?? [];
             if (!is_array($gallery)) {
@@ -693,7 +706,7 @@ class EventController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Gambar berhasil diunduh, dikonversi ke WebP, dan dimasukkan ke galeri.',
+                'message' => 'Gambar berhasil diunduh, dikonversi ke WebP, dimasukkan ke galeri, dan didaftarkan ke media library.',
                 'path' => $path,
                 'url' => Storage::url($path),
                 'gallery' => $gallery,
@@ -729,14 +742,22 @@ class EventController extends Controller
                 'gallery' => $gallery,
             ]);
 
-            // Delete the file from storage
-            if (Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
+            // Delete the BlogMedia entry and the file
+            $blogMedia = \App\Models\BlogMedia::where('path', $path)->first();
+            if ($blogMedia) {
+                if (Storage::disk($blogMedia->disk)->exists($blogMedia->path)) {
+                    Storage::disk($blogMedia->disk)->delete($blogMedia->path);
+                }
+                $blogMedia->delete();
+            } else {
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Gambar berhasil dihapus dari galeri.',
+                'message' => 'Gambar berhasil dihapus dari galeri dan media library.',
                 'gallery' => $gallery,
             ]);
         }
