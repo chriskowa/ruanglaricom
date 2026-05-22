@@ -96,7 +96,7 @@
                         prose-strong:text-white prose-strong:font-black
                         prose-ul:list-disc prose-ul:pl-6 prose-li:text-slate-300
                         prose-img:rounded-2xl prose-img:shadow-xl">
-                        {!! nl2br(e($event->full_description)) !!}
+                        {!! $event->sanitized_description_html !!}
                     </article>
                 </div>
 

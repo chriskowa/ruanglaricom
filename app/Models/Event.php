@@ -360,4 +360,96 @@ class Event extends Model
     {
         return $this->hasMany(PhotoTaggingPhotoTag::class, 'event_id');
     }
+
+    public function getSanitizedDescriptionHtmlAttribute()
+    {
+        $html = $this->full_description;
+        if (empty($html)) {
+            return '';
+        }
+
+        $dom = new \DOMDocument();
+        // Disable error reporting for malformed HTML
+        libxml_use_internal_errors(true);
+        
+        // Load HTML with UTF-8 encoding wrapped in a single root element
+        $dom->loadHTML('<?xml encoding="utf-8" ?><div>' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $allowedTags = ['p', 'a', 'b', 'i', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
+
+        // Recursively clean DOM elements
+        $cleanNode = function(\DOMNode $node) use (&$cleanNode, $allowedTags) {
+            if ($node->nodeType === XML_ELEMENT_NODE) {
+                $tagName = strtolower($node->tagName);
+                
+                // Allow our container div wrapper
+                if ($tagName !== 'div' || $node->parentNode->nodeName !== '#document') {
+                    if (!in_array($tagName, $allowedTags)) {
+                        // Dangerous/unwanted tags are removed entirely or replaced by their text content
+                        if (in_array($tagName, ['script', 'iframe', 'style', 'object', 'embed', 'applet', 'meta', 'link'])) {
+                            $node->parentNode->removeChild($node);
+                            return;
+                        } else {
+                            // Replace node with text content
+                            $textNode = $node->ownerDocument->createTextNode($node->nodeValue);
+                            $node->parentNode->replaceChild($textNode, $node);
+                            return;
+                        }
+                    }
+                }
+
+                // Clean attributes
+                $attributes = [];
+                foreach ($node->attributes as $attr) {
+                    $attributes[] = $attr->name;
+                }
+
+                foreach ($attributes as $attrName) {
+                    $attrNameLower = strtolower($attrName);
+                    
+                    // Strip on* events (onclick, onload, etc.)
+                    if (str_starts_with($attrNameLower, 'on')) {
+                        $node->removeAttribute($attrName);
+                        continue;
+                    }
+
+                    // Strip href or src if they start with javascript: or data: (except data:image)
+                    if (in_array($attrNameLower, ['href', 'src'])) {
+                        $val = strtolower(trim($node->getAttribute($attrName)));
+                        if (str_starts_with($val, 'javascript:') || (str_starts_with($val, 'data:') && !str_starts_with($val, 'data:image'))) {
+                            $node->removeAttribute($attrName);
+                        }
+                    }
+                }
+            }
+
+            // Clean children recursively (copying nodes to a list since childNodes array changes dynamically)
+            if ($node->hasChildNodes()) {
+                $children = [];
+                foreach ($node->childNodes as $child) {
+                    $children[] = $child;
+                }
+                foreach ($children as $child) {
+                    if ($child->parentNode) {
+                        $cleanNode($child);
+                    }
+                }
+            }
+        };
+
+        // Clean container div and its children
+        if ($dom->documentElement) {
+            $cleanNode($dom->documentElement);
+            
+            // Extract inner HTML of container div
+            $innerHtml = '';
+            foreach ($dom->documentElement->childNodes as $child) {
+                $innerHtml .= $dom->saveHTML($child);
+            }
+            return $innerHtml;
+        }
+
+        return '';
+    }
 }
