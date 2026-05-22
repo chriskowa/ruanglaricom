@@ -193,7 +193,7 @@ class DashboardController extends Controller
                     'enrollment_id' => $enrollment->id,
                     'session_day' => $day,
                     'week_number' => $session['week'] ?? floor(($day - 1) / 7) + 1,
-                    'target_pace' => $session['target_pace'] ?? $this->getPaceForSessionType($session['type'] ?? 'Run', $user->training_paces),
+                    'target_pace' => $session['target_pace'] ?? $this->getPaceForSessionType($session['type'] ?? 'Run', $user->training_paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null),
                     'description' => $session['description'] ?? null,
                 ];
 
@@ -334,31 +334,51 @@ class DashboardController extends Controller
     /**
      * Helper to get pace string based on session type
      */
-    private function getPaceForSessionType($type, $paces)
+    private function getPaceForSessionType($type, $paces, $title = '', $description = '', $distance = null)
     {
         if (! $paces) {
             return null;
         }
 
-        $type = strtolower($type);
-        $pace = null;
-        $label = '';
+        $typeLower = strtolower($type);
+        $key = null;
 
-        if (str_contains($type, 'easy') || str_contains($type, 'long') || str_contains($type, 'recovery') || str_contains($type, 'warmup') || str_contains($type, 'cool')) {
+        if (str_contains($typeLower, 'easy') || str_contains($typeLower, 'recovery') || str_contains($typeLower, 'warmup') || str_contains($typeLower, 'cool')) {
+            $key = 'E';
+        } elseif (str_contains($typeLower, 'long')) {
+            $key = 'M';
+        } elseif (str_contains($typeLower, 'tempo') || str_contains($typeLower, 'threshold')) {
+            $key = 'T';
+        } elseif (str_contains($typeLower, 'interval') || str_contains($typeLower, 'vo2max')) {
+            $key = 'I';
+        } elseif (str_contains($typeLower, 'repetition') || str_contains($typeLower, 'speed')) {
+            $key = 'R';
+        } elseif (str_contains($typeLower, 'marathon')) {
+            $key = 'M';
+        } else {
+            $key = 'E';
+        }
+
+        // Logic override: If Interval (I) and matches short distance patterns (e.g. 100m, 200m, 400m, 800m)
+        if ($key === 'I') {
+            $combined = strtolower($title . ' ' . $description);
+            $isShort = false;
+            if ($distance !== null && is_numeric($distance) && floatval($distance) <= 0.805) {
+                $isShort = true;
+            } elseif (preg_match('/\b(55|50|100|200|300|400|500|600|800)\s*m\b/i', $combined)) {
+                $isShort = true;
+            } elseif (preg_match('/\b0\.[1-8]\s*km\b/i', $combined)) {
+                $isShort = true;
+            }
+
+            if ($isShort) {
+                $key = 'R';
+            }
+        }
+
+        $pace = $paces[$key] ?? null;
+        if (! $pace && $key === 'M') {
             $pace = $paces['E'] ?? null;
-            $label = 'E';
-        } elseif (str_contains($type, 'tempo') || str_contains($type, 'threshold')) {
-            $pace = $paces['T'] ?? null;
-            $label = 'T';
-        } elseif (str_contains($type, 'interval')) {
-            $pace = $paces['I'] ?? null;
-            $label = 'I';
-        } elseif (str_contains($type, 'repetition')) {
-            $pace = $paces['R'] ?? null;
-            $label = 'R';
-        } elseif (str_contains($type, 'marathon')) {
-            $pace = $paces['M'] ?? null;
-            $label = 'M';
         }
 
         if ($pace) {

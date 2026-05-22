@@ -505,10 +505,31 @@
 
                         <!-- VDOT & Weekly Target -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center">
+                            <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center relative overflow-hidden group cursor-pointer" @click="openVdotModal">
+                                <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-neon opacity-60"></div>
                                 <div class="text-xs text-slate-400 uppercase tracking-wider mb-1">VDOT Score</div>
                                 <div class="text-4xl font-black text-white">@{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
                                 <div class="text-[10px] text-slate-500 mt-1">VO2Max Approx: @{{ trainingProfile.vdot ? Number(trainingProfile.vdot).toFixed(1) : '-' }}</div>
+                                <!-- Runner Level Badge -->
+                                <div v-if="trainingProfile.vdot" class="mt-2 inline-block">
+                                    <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
+                                          :class="{
+                                              'bg-yellow-500/20 text-yellow-300 border-yellow-500/40': trainingProfile.vdot >= 75,
+                                              'bg-purple-500/20 text-purple-300 border-purple-500/40': trainingProfile.vdot >= 60 && trainingProfile.vdot < 75,
+                                              'bg-orange-500/20 text-orange-300 border-orange-500/40': trainingProfile.vdot >= 50 && trainingProfile.vdot < 60,
+                                              'bg-blue-500/20 text-blue-300 border-blue-500/40': trainingProfile.vdot >= 40 && trainingProfile.vdot < 50,
+                                              'bg-green-500/20 text-green-300 border-green-500/40': trainingProfile.vdot < 40
+                                          }">
+                                        <span v-if="trainingProfile.vdot >= 75">🏆 Elite</span>
+                                        <span v-else-if="trainingProfile.vdot >= 60">⭐ Sub-Elite</span>
+                                        <span v-else-if="trainingProfile.vdot >= 50">🔥 Advanced</span>
+                                        <span v-else-if="trainingProfile.vdot >= 40">💪 Intermediate</span>
+                                        <span v-else-if="trainingProfile.vdot >= 30">🌱 Beginner+</span>
+                                        <span v-else>🚶 Beginner</span>
+                                    </span>
+                                </div>
+                                <!-- Hint -->
+                                <div class="text-[9px] text-purple-400 mt-1.5 opacity-0 group-hover:opacity-100 transition">Klik untuk generate program ↗</div>
                             </div>
                             <div class="bg-slate-800/50 rounded-xl p-4 border border-slate-700 text-center relative group">
                                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
@@ -1014,7 +1035,11 @@
                         </div>
                     </div>
                     <div>
-                        <div class="text-center text-white font-bold mb-2">@{{ detailTitle }}</div>
+                        <div class="text-center mb-2">
+                            <div v-if="detail.session?.title" class="text-lg font-black text-white leading-tight mb-0.5">@{{ detail.session.title }}</div>
+                            <div v-else-if="detail.workout_structure?.race_name" class="text-lg font-black text-white leading-tight mb-0.5">@{{ detail.workout_structure.race_name }}</div>
+                            <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">@{{ detailTitle }}</div>
+                        </div>
                         <div class="text-center text-[12px] text-slate-400 mb-4">@{{ detail.date_formatted || formatDate(detail.date) }}</div>
 
                         <div class="grid grid-cols-3 gap-2 mb-4">
@@ -1673,6 +1698,222 @@
                         <button type="button" @click="updateWeeklyTarget" class="px-6 py-2 rounded-xl bg-neon text-dark font-black text-sm hover:bg-neon/90 shadow-lg shadow-neon/20 flex items-center gap-2" :disabled="weeklyTargetLoading">
                             <span v-if="weeklyTargetLoading" class="animate-spin">⟳</span>
                             Save Target
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- PERFORMANCE IMPROVEMENT INSIGHT MODAL                          -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div v-if="showInsightModal && insightData" class="fixed inset-0 z-[1200] overflow-y-auto flex items-center justify-center p-4" style="backdrop-filter: blur(8px); background: rgba(0,0,0,0.85);">
+            <div class="relative w-full max-w-2xl mx-auto">
+                <!-- Glow Effect -->
+                <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 via-neon/30 to-blue-600 rounded-3xl blur-lg opacity-50 pointer-events-none"></div>
+                <div class="relative bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
+
+                    <!-- Header -->
+                    <div class="relative bg-gradient-to-r from-slate-900 via-purple-900/40 to-slate-900 px-6 py-5 border-b border-slate-700/60">
+                        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background: radial-gradient(ellipse at top, #a855f7, transparent)"></div>
+                        <div class="flex justify-between items-start relative z-10">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-lg">🚀</span>
+                                    <h3 class="text-white font-black text-xl tracking-tight">
+                                        <span v-if="insightType === 'generate'">Program Performance Projection</span>
+                                        <span v-else>PB Update — Performance Analysis</span>
+                                    </h3>
+                                </div>
+                                <p class="text-slate-400 text-xs">
+                                    <span v-if="insightType === 'generate'">Berdasarkan VDOT & Jack Daniels' Running Formula</span>
+                                    <span v-else>Perubahan fitness level berdasarkan Personal Best terbaru</span>
+                                </p>
+                            </div>
+                            <button @click="showInsightModal = false; window.location.reload()" class="text-slate-400 hover:text-white w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center transition hover:bg-slate-700">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+
+                        <!-- ── VDOT Comparison Banner ── -->
+                        <div class="rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 p-4">
+                            <div class="flex items-center justify-between gap-4 flex-wrap">
+                                <!-- Current VDOT -->
+                                <div class="text-center">
+                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">
+                                        <span v-if="insightType === 'generate'">VDOT Saat Ini</span>
+                                        <span v-else>VDOT Sebelumnya</span>
+                                    </div>
+                                    <div class="text-3xl font-black text-slate-300">
+                                        @{{ insightType === 'generate' ? insightData.initial_vdot : insightData.old_vdot }}
+                                    </div>
+                                </div>
+
+                                <!-- Arrow & Delta -->
+                                <div class="flex-1 flex flex-col items-center gap-1">
+                                    <div class="flex items-center gap-2 w-full">
+                                        <div class="h-px flex-1 bg-gradient-to-r from-slate-700 to-purple-500"></div>
+                                        <div class="px-3 py-1.5 rounded-full text-sm font-black border"
+                                             :class="insightData.vdot_diff >= 0
+                                                ? 'bg-green-500/20 text-green-300 border-green-500/40'
+                                                : 'bg-red-500/20 text-red-300 border-red-500/40'">
+                                            <span v-text="(insightData.vdot_diff >= 0 ? '+' : '') + insightData.vdot_diff"></span>
+                                        </div>
+                                        <div class="h-px flex-1 bg-gradient-to-r from-purple-500 to-neon"></div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-500">VDOT ≈ VO2Max</div>
+                                </div>
+
+                                <!-- Target VDOT -->
+                                <div class="text-center">
+                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">
+                                        <span v-if="insightType === 'generate'">Target VDOT</span>
+                                        <span v-else>VDOT Baru</span>
+                                    </div>
+                                    <div class="text-3xl font-black text-neon">
+                                        @{{ insightType === 'generate' ? insightData.target_vdot : insightData.new_vdot }}
+                                    </div>
+                                    <div class="text-[10px] mt-1 font-bold"
+                                         :class="(insightType === 'generate' ? insightData.vdot_pct : insightData.vdot_pct) >= 0 ? 'text-green-400' : 'text-red-400'">
+                                        @{{ (insightType === 'generate' ? insightData.vdot_pct : insightData.vdot_pct) >= 0 ? '+' : '' }}@{{ insightType === 'generate' ? insightData.vdot_pct : insightData.vdot_pct }}% VO2Max
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Duration info for generate type -->
+                            <div v-if="insightType === 'generate'" class="mt-3 pt-3 border-t border-purple-500/20 text-center">
+                                <p class="text-xs text-slate-400">
+                                    Program <strong class="text-white">@{{ insightData.duration_weeks }} Minggu</strong> untuk
+                                    <strong class="text-neon">@{{ insightData.goal_distance?.toUpperCase() }}</strong>
+                                    <span v-if="insightData.goal_time_input"> — Goal Time: <strong class="text-white">@{{ insightData.goal_time_input }}</strong></span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- ── Projected Race Time Improvements ── -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                    <span v-if="insightType === 'generate'">📊 Proyeksi Waktu Lomba (Setelah Program)</span>
+                                    <span v-else>📊 Perubahan Equivalent Race Times</span>
+                                </span>
+                                <div class="h-px bg-slate-700 flex-1"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <template v-if="insightType === 'generate'">
+                                    <div v-for="(imp, distKey) in insightData.time_improvements" :key="distKey"
+                                         class="bg-slate-800/60 border rounded-xl p-3 relative overflow-hidden"
+                                         :class="imp.diff_seconds > 0 ? 'border-green-500/30' : 'border-slate-700'">
+                                        <div v-if="imp.diff_seconds > 0" class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-green-400 to-neon"></div>
+                                        <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">@{{ imp.label }}</div>
+                                        <div class="flex items-end gap-2">
+                                            <div>
+                                                <div class="text-[10px] text-slate-500 line-through">@{{ imp.current_time }}</div>
+                                                <div class="text-base font-black text-white font-mono">@{{ imp.projected_time }}</div>
+                                            </div>
+                                            <div v-if="imp.improvement_pct > 0" class="ml-auto text-right">
+                                                <div class="text-green-400 font-black text-sm">-@{{ imp.improvement_pct }}%</div>
+                                                <div class="text-[10px] text-green-500">lebih cepat</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <div v-for="(imp, distKey) in insightData.time_improvements" :key="distKey"
+                                         class="bg-slate-800/60 border rounded-xl p-3 relative overflow-hidden"
+                                         :class="imp.improved ? 'border-green-500/30' : 'border-red-500/20'">
+                                        <div class="absolute top-0 left-0 right-0 h-0.5"
+                                             :class="imp.improved ? 'bg-gradient-to-r from-green-400 to-neon' : 'bg-red-500'"></div>
+                                        <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">@{{ imp.label }}</div>
+                                        <div class="flex items-end gap-2">
+                                            <div>
+                                                <div class="text-[10px] text-slate-500 line-through">@{{ imp.old_time }}</div>
+                                                <div class="text-base font-black font-mono" :class="imp.improved ? 'text-green-300' : 'text-red-300'">@{{ imp.new_time }}</div>
+                                            </div>
+                                            <div class="ml-auto text-right">
+                                                <div class="font-black text-sm" :class="imp.improved ? 'text-green-400' : 'text-red-400'">
+                                                    @{{ imp.improved ? '-' : '+' }}@{{ imp.improvement_pct }}%
+                                                </div>
+                                                <div class="text-[10px]" :class="imp.improved ? 'text-green-500' : 'text-red-500'">
+                                                    @{{ imp.improved ? 'lebih cepat' : 'lebih lambat' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- ── Pace Rationale (Why these paces lead to improvement) ── -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">⚡ Kenapa Pace Ini Meningkatkan Performamu?</span>
+                                <div class="h-px bg-slate-700 flex-1"></div>
+                            </div>
+                            <div class="space-y-2">
+                                <div v-for="(p, idx) in (insightType === 'generate' ? insightData.pace_rationale : insightData.pace_insights)" :key="idx"
+                                     class="flex items-start gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/50">
+                                    <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                                         :class="{
+                                             'bg-green-400': p.color === 'green',
+                                             'bg-yellow-400': p.color === 'yellow',
+                                             'bg-orange-400': p.color === 'orange',
+                                             'bg-red-400': p.color === 'red'
+                                         }"></div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="text-xs font-black text-white">@{{ p.type }}</span>
+                                            <span v-if="p.pace" class="text-[10px] font-mono bg-slate-700 px-2 py-0.5 rounded text-neon">@{{ p.pace }}/km</span>
+                                            <span class="text-[10px] text-slate-500 ml-auto">@{{ p.contribution }}</span>
+                                        </div>
+                                        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">@{{ p.purpose }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── Runner Level Badge (for PB update) ── -->
+                        <div v-if="insightType === 'pb' && insightData.level" class="flex items-center gap-3 p-4 rounded-xl bg-slate-800/40 border border-slate-700">
+                            <div class="text-3xl">@{{ insightData.level.icon }}</div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 uppercase tracking-wider">Level Baru Kamu</div>
+                                <div class="text-lg font-black text-white">@{{ insightData.level.label }}</div>
+                                <div class="text-xs text-slate-400">VDOT @{{ insightData.new_vdot }} (@{{ insightData.change_label }})</div>
+                            </div>
+                        </div>
+
+                        <!-- ── Key Insight Box ── -->
+                        <div class="bg-neon/5 border border-neon/20 rounded-xl p-4">
+                            <div class="flex gap-3">
+                                <span class="text-neon text-lg flex-shrink-0">💡</span>
+                                <div class="text-xs text-slate-300 leading-relaxed">
+                                    <span v-if="insightType === 'generate'">
+                                        Program ini dirancang agar pace latihanmu secara bertahap <strong class="text-white">meningkatkan VDOT +@{{ insightData.vdot_diff }}</strong> dalam @{{ insightData.duration_weeks }} minggu.
+                                        Setiap sesi Easy Run membangun aerobic base, Threshold memperkuat daya tahan kecepatan, dan Interval mendorong VO2Max — ketiganya bekerja sinergis untuk menghasilkan peningkatan performa yang terukur.
+                                    </span>
+                                    <span v-else>
+                                        PB-mu yang baru menunjukkan fitness level yang lebih akurat.
+                                        <span v-if="insightData.vdot_diff > 0">VDOT naik <strong class="text-neon">+@{{ insightData.vdot_diff }}</strong> — training paces-mu otomatis disesuaikan agar tetap melatih pada intensitas yang tepat untuk terus berkembang.</span>
+                                        <span v-else-if="insightData.vdot_diff < 0">VDOT turun @{{ insightData.vdot_diff }} — training paces disesuaikan ke level yang sesuai kondisi saat ini. Ini wajar dan penting agar kamu tidak overtraining.</span>
+                                        <span v-else>VDOT tidak berubah — training paces tetap sama. Pertahankan konsistensi latihan!</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer CTA -->
+                    <div class="px-6 py-4 border-t border-slate-700 bg-slate-900/80 flex gap-3 justify-end">
+                        <button v-if="insightType === 'generate'"
+                                @click="showInsightModal = false; window.location.reload()"
+                                class="px-6 py-2.5 rounded-xl bg-neon text-slate-900 font-black text-sm hover:bg-[#b3e600] transition shadow-lg shadow-neon/20">
+                            🏃 Mulai Latihan!
+                        </button>
+                        <button v-else
+                                @click="showInsightModal = false"
+                                class="px-6 py-2.5 rounded-xl bg-neon text-slate-900 font-black text-sm hover:bg-[#b3e600] transition shadow-lg shadow-neon/20">
+                            ✓ Mengerti!
                         </button>
                     </div>
                 </div>
@@ -2464,6 +2705,11 @@ createApp({
             goal_time: ''
         });
 
+        // Performance Improvement Insight Modal State
+        const showInsightModal = ref(false);
+        const insightData = ref(null);
+        const insightType = ref('generate'); // 'generate' | 'pb'
+
         const openVdotModal = async () => {
             console.log('Button Clicked: openVdotModal');
             try {
@@ -2851,7 +3097,12 @@ createApp({
                         trainingProfile.value.equivalent_race_times = data.equivalent_race_times;
                     }
                     showPbModal.value = false;
-                    alert('PB updated! Training paces and equivalent race times recalculated.');
+                    // Show improvement insight modal if analysis available
+                    if (data.improvement_analysis) {
+                        insightData.value = data.improvement_analysis;
+                        insightType.value = 'pb';
+                        showInsightModal.value = true;
+                    }
                 } else {
                     alert(data.message || 'Failed to update PB');
                 }
@@ -2895,9 +3146,15 @@ createApp({
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('Program generated successfully! It has been added to your Program Bag.');
                     showVdotModal.value = false;
-                    window.location.reload();
+                    // Show improvement insight modal if data available
+                    if (data.improvement_projection) {
+                        insightData.value = data.improvement_projection;
+                        insightType.value = 'generate';
+                        showInsightModal.value = true;
+                    } else {
+                        window.location.reload();
+                    }
                 } else {
                     alert(data.message || 'Failed to generate program');
                 }
@@ -3687,7 +3944,7 @@ createApp({
         };
 
         // Helper to calculate recommended pace
-        const calculateRecommendedPace = (type, distance = null) => {
+        const calculateRecommendedPace = (type, distance = null, title = '', description = '') => {
             if (!type) return null;
             const t = type.toLowerCase();
             const map = { 
@@ -3702,15 +3959,45 @@ createApp({
             let key = map[t]; 
             if (!key) return null;
 
-            // Logic override: If Interval (I) and distance is <= 800m (0.805 km), use Repetition (R) pace instead
-            if (key === 'I' && distance && parseFloat(distance) <= 0.805) {
-                key = 'R';
+            const combined = ((title || '') + ' ' + (description || '')).toLowerCase();
+
+            // Logic override: If Interval (I) and matches short distance patterns (e.g. 100m, 200m, 400m, 800m)
+            if (key === 'I') {
+                let isShort = false;
+                if (distance && parseFloat(distance) <= 0.805) {
+                    isShort = true;
+                } else if (/\b(55|50|100|200|300|400|500|600|800)\s*m\b/i.test(combined)) {
+                    isShort = true;
+                } else if (/\b0\.[1-8]\s*km\b/i.test(combined)) {
+                    isShort = true;
+                }
+
+                if (isShort) {
+                    key = 'R';
+                }
+            }
+
+            // Determine lookup distance for track times tab
+            let lookupDistance = distance;
+            if (['I', 'R', 'T'].includes(key)) {
+                const distKm = distance ? parseFloat(distance) : null;
+                if (!distKm || distKm > 2.0) {
+                    const matchMeters = combined.match(/\b(55|50|100|200|300|400|500|600|800)\s*m\b/i);
+                    if (matchMeters) {
+                        lookupDistance = parseFloat(matchMeters[1]) / 1000;
+                    } else {
+                        const matchKm = combined.match(/\b(0\.[1-8])\s*km\b/i);
+                        if (matchKm) {
+                            lookupDistance = parseFloat(matchKm[1]);
+                        }
+                    }
+                }
             }
 
             // Check for specific Track times (Interval, Repetition, Threshold)
             // User requested specific logic for 0.1-2km to take from track tab
-            if (['I', 'R', 'T'].includes(key) && distance && trainingProfile.value?.track_times) {
-                const distKm = parseFloat(distance);
+            if (['I', 'R', 'T'].includes(key) && lookupDistance && trainingProfile.value?.track_times) {
+                const distKm = parseFloat(lookupDistance);
                 // Check if distance is between 0.1 and 2.0 km (approx)
                 if (distKm >= 0.1 && distKm <= 2.0) {
                     // Try to match standard track distances
@@ -4053,7 +4340,7 @@ createApp({
                 if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
                     detail.target_pace = null;
                 }
-                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance);
+                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
             } else if (type === 'custom_workout') {
                 const w = props.workout || {};
                 detailTitle.value = w.type === 'race' ? (w.workout_structure?.race_name || 'Race Event') : 'Custom Workout';
@@ -4072,7 +4359,7 @@ createApp({
                 if (['strength', 'rest', 'yoga', 'cycling'].includes(detail.type)) {
                     detail.target_pace = null;
                 }
-                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance);
+                detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
             } else if (type === 'strava_activity') {
                 detailTitle.value = 'Strava Activity';
                 detail.date = info.event.startStr;
@@ -4127,7 +4414,7 @@ createApp({
                 detail.target_pace = null;
             }
 
-            detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance);
+            detail.recommended_pace = calculateRecommendedPace(detail.type, detail.distance, detailTitle.value, detail.description);
 
             detail.coach_feedback = plan.coach_feedback || null;
             detail.coach_rating = plan.coach_rating || null;
@@ -4372,7 +4659,8 @@ createApp({
             payDonation, donationLoading, donationAmount,
             hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek,
             promoCode, promoApplied, promoError, checkingPromo, applyPromo, handleUnlockAction,
-            notification, showNotification, showHeaderActions, showMobileAddSheet, openMobileAddSheet, activeDock, scrollToSection, activeMobileTab
+            notification, showNotification, showHeaderActions, showMobileAddSheet, openMobileAddSheet, activeDock, scrollToSection, activeMobileTab,
+            showInsightModal, insightData, insightType
         };
     }
 

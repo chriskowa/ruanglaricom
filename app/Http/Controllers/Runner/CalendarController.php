@@ -7,6 +7,7 @@ use App\Models\CustomWorkout;
 use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
 use App\Models\StravaActivity;
+use App\Services\DanielsRunningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Notification;
@@ -141,7 +142,7 @@ class CalendarController extends Controller
                 $colors = $this->getEventColors($difficulty, $phase);
 
                 $sessionType = $session['type'] ?? 'Run';
-                $paceInfo = $session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces);
+                $paceInfo = $session['target_pace'] ?? $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null);
 
                 $freeWeeks = max(1, floor($totalWeeks / 2));
                 $currentWeek = $session['week'] ?? floor(((int) $session['day'] - 1) / 7) + 1;
@@ -291,31 +292,51 @@ class CalendarController extends Controller
     /**
      * Helper to get pace string based on session type
      */
-    private function getPaceForSessionType($type, $paces)
+    private function getPaceForSessionType($type, $paces, $title = '', $description = '', $distance = null)
     {
         if (! $paces) {
             return null;
         }
 
-        $type = strtolower($type);
-        $pace = null;
-        $label = '';
+        $typeLower = strtolower($type);
+        $key = null;
 
-        if (str_contains($type, 'easy') || str_contains($type, 'long') || str_contains($type, 'recovery') || str_contains($type, 'warmup') || str_contains($type, 'cool')) {
+        if (str_contains($typeLower, 'easy') || str_contains($typeLower, 'recovery') || str_contains($typeLower, 'warmup') || str_contains($typeLower, 'cool')) {
+            $key = 'E';
+        } elseif (str_contains($typeLower, 'long')) {
+            $key = 'M';
+        } elseif (str_contains($typeLower, 'tempo') || str_contains($typeLower, 'threshold')) {
+            $key = 'T';
+        } elseif (str_contains($typeLower, 'interval') || str_contains($typeLower, 'vo2max')) {
+            $key = 'I';
+        } elseif (str_contains($typeLower, 'repetition') || str_contains($typeLower, 'speed')) {
+            $key = 'R';
+        } elseif (str_contains($typeLower, 'marathon')) {
+            $key = 'M';
+        } else {
+            $key = 'E';
+        }
+
+        // Logic override: If Interval (I) and matches short distance patterns (e.g. 100m, 200m, 400m, 800m)
+        if ($key === 'I') {
+            $combined = strtolower($title . ' ' . $description);
+            $isShort = false;
+            if ($distance !== null && is_numeric($distance) && floatval($distance) <= 0.805) {
+                $isShort = true;
+            } elseif (preg_match('/\b(55|50|100|200|300|400|500|600|800)\s*m\b/i', $combined)) {
+                $isShort = true;
+            } elseif (preg_match('/\b0\.[1-8]\s*km\b/i', $combined)) {
+                $isShort = true;
+            }
+
+            if ($isShort) {
+                $key = 'R';
+            }
+        }
+
+        $pace = $paces[$key] ?? null;
+        if (! $pace && $key === 'M') {
             $pace = $paces['E'] ?? null;
-            $label = 'E';
-        } elseif (str_contains($type, 'tempo') || str_contains($type, 'threshold')) {
-            $pace = $paces['T'] ?? null;
-            $label = 'T';
-        } elseif (str_contains($type, 'interval')) {
-            $pace = $paces['I'] ?? null;
-            $label = 'I';
-        } elseif (str_contains($type, 'repetition')) {
-            $pace = $paces['R'] ?? null;
-            $label = 'R';
-        } elseif (str_contains($type, 'marathon')) {
-            $pace = $paces['M'] ?? null;
-            $label = 'M';
         }
 
         if ($pace) {
@@ -450,7 +471,7 @@ class CalendarController extends Controller
                     }
 
                     $sessionType = $session['type'] ?? 'run';
-                    $paceInfo = $this->getPaceForSessionType($sessionType, $paces);
+                    $paceInfo = $this->getPaceForSessionType($sessionType, $paces, $session['title'] ?? '', $session['description'] ?? '', $session['distance'] ?? null);
                     $description = $session['description'] ?? null;
                     if ($paceInfo) {
                         $description = ($description ? $description."\n" : '').'Target Pace: '.$paceInfo;
@@ -1249,7 +1270,90 @@ class CalendarController extends Controller
         ]);
 
         $user = auth()->user();
+
+        // Capture old VDOT for improvement analysis
+        $oldVdot = (float) ($user->vdot ?? 0);
+        $oldEquivTimes = $user->equivalent_race_times ?? [];
+
         $user->update($validated);
+        $user->refresh();
+
+        $newVdot = (float) ($user->vdot ?? 0);
+        $newEquivTimes = $user->equivalent_race_times ?? [];
+
+        // Build improvement analysis
+        $improvementAnalysis = null;
+        if ($oldVdot > 0 && $newVdot > 0) {
+            $daniels = app(DanielsRunningService::class);
+            $vdotDiff = $newVdot - $oldVdot;
+            $vdotPct = $oldVdot > 0 ? round(($vdotDiff / $oldVdot) * 100, 1) : 0;
+
+            // Time improvements per distance
+            $timeImprovements = [];
+            $distLabels = ['5k' => '5K', '10k' => '10K', '21k' => 'Half Marathon', '42k' => 'Marathon'];
+            foreach ($distLabels as $key => $label) {
+                $oldTime = $oldEquivTimes[$key]['time'] ?? null;
+                $newTime = $newEquivTimes[$key]['time'] ?? null;
+                if ($oldTime && $newTime) {
+                    $oldSec = $this->timeToSeconds($oldTime);
+                    $newSec = $this->timeToSeconds($newTime);
+                    $diffSec = $oldSec - $newSec; // positive = improvement (faster)
+                    $pct = $oldSec > 0 ? round(abs($diffSec / $oldSec) * 100, 1) : 0;
+                    $timeImprovements[$key] = [
+                        'label' => $label,
+                        'old_time' => $oldTime,
+                        'new_time' => $newTime,
+                        'diff_seconds' => $diffSec,
+                        'improvement_pct' => $pct,
+                        'improved' => $diffSec > 0,
+                    ];
+                }
+            }
+
+            // Determine performance level
+            $level = $this->getVdotLevel($newVdot);
+            $changeLabel = $vdotDiff > 0 ? '⬆ Meningkat' : ($vdotDiff < 0 ? '⬇ Menurun' : '→ Tidak Berubah');
+
+            // Training pace descriptions
+            $newPaces = $user->training_paces;
+            $paceInsights = [
+                [
+                    'type' => 'Easy (E)',
+                    'purpose' => 'Membangun aerobic base & pemulihan aktif',
+                    'contribution' => '80% dari total latihan',
+                    'color' => 'green',
+                ],
+                [
+                    'type' => 'Threshold (T)',
+                    'purpose' => 'Meningkatkan lactate threshold — kunci utama peningkatan kecepatan',
+                    'contribution' => '10-15% dari total latihan',
+                    'color' => 'yellow',
+                ],
+                [
+                    'type' => 'Interval (I)',
+                    'purpose' => 'Meningkatkan VO2Max — kapasitas aerobik maksimal',
+                    'contribution' => '5-8% dari total latihan',
+                    'color' => 'orange',
+                ],
+                [
+                    'type' => 'Repetition (R)',
+                    'purpose' => 'Meningkatkan speed economy & running form',
+                    'contribution' => '2-5% dari total latihan',
+                    'color' => 'red',
+                ],
+            ];
+
+            $improvementAnalysis = [
+                'old_vdot' => round($oldVdot, 1),
+                'new_vdot' => round($newVdot, 1),
+                'vdot_diff' => round($vdotDiff, 1),
+                'vdot_pct' => $vdotPct,
+                'change_label' => $changeLabel,
+                'level' => $level,
+                'time_improvements' => $timeImprovements,
+                'pace_insights' => $paceInsights,
+            ];
+        }
 
         return response()->json([
             'success' => true,
@@ -1257,7 +1361,35 @@ class CalendarController extends Controller
             'vdot' => $user->vdot,
             'paces' => $user->training_paces,
             'equivalent_race_times' => $user->equivalent_race_times,
+            'improvement_analysis' => $improvementAnalysis,
         ]);
+    }
+
+    /**
+     * Convert HH:MM:SS time string to total seconds
+     */
+    private function timeToSeconds(string $time): int
+    {
+        $parts = explode(':', $time);
+        if (count($parts) === 3) {
+            return (int)$parts[0] * 3600 + (int)$parts[1] * 60 + (int)$parts[2];
+        } elseif (count($parts) === 2) {
+            return (int)$parts[0] * 60 + (int)$parts[1];
+        }
+        return 0;
+    }
+
+    /**
+     * Get runner level label based on VDOT score
+     */
+    private function getVdotLevel(float $vdot): array
+    {
+        if ($vdot >= 75) return ['label' => 'Elite', 'icon' => '🏆', 'color' => 'yellow'];
+        if ($vdot >= 60) return ['label' => 'Sub-Elite', 'icon' => '⭐', 'color' => 'purple'];
+        if ($vdot >= 50) return ['label' => 'Advanced', 'icon' => '🔥', 'color' => 'orange'];
+        if ($vdot >= 40) return ['label' => 'Intermediate', 'icon' => '💪', 'color' => 'blue'];
+        if ($vdot >= 30) return ['label' => 'Beginner+', 'icon' => '🌱', 'color' => 'green'];
+        return ['label' => 'Beginner', 'icon' => '🚶', 'color' => 'slate'];
     }
 
     /**

@@ -125,12 +125,89 @@ class GenerateProgramController extends Controller
 
             DB::commit();
 
+            // Build improvement projection
+            $initialVdot = (float) ($programData['initial_vdot'] ?? $vdot);
+            $targetVdot  = (float) ($programData['target_vdot'] ?? $vdot);
+            $vdotDiff = round($targetVdot - $initialVdot, 1);
+            $vdotPct  = $initialVdot > 0 ? round(($vdotDiff / $initialVdot) * 100, 1) : 0;
+
+            $initialEquiv = $this->danielsService->calculateEquivalentRaceTimes($initialVdot);
+            $targetEquiv  = $this->danielsService->calculateEquivalentRaceTimes($targetVdot);
+
+            $distLabels = ['5k' => '5K', '10k' => '10K', '21k' => 'Half Marathon', '42k' => 'Marathon'];
+            $timeImprovements = [];
+            foreach ($distLabels as $key => $label) {
+                $oldTime = $initialEquiv[$key]['time'] ?? null;
+                $newTime = $targetEquiv[$key]['time'] ?? null;
+                if ($oldTime && $newTime) {
+                    $oldSec = $this->secFromTime($oldTime);
+                    $newSec = $this->secFromTime($newTime);
+                    $diffSec = $oldSec - $newSec;
+                    $pct = $oldSec > 0 ? round(abs($diffSec / $oldSec) * 100, 1) : 0;
+                    $timeImprovements[$key] = [
+                        'label'           => $label,
+                        'current_time'    => $oldTime,
+                        'projected_time'  => $newTime,
+                        'diff_seconds'    => $diffSec,
+                        'improvement_pct' => $pct,
+                    ];
+                }
+            }
+
+            $trainingPaces = $programData['training_paces'];
+            $paceRationale = [
+                [
+                    'type'         => 'Easy (E)',
+                    'pace'         => $this->formatPace($trainingPaces['E'] ?? 0),
+                    'purpose'      => 'Membangun aerobic base yang kuat — fondasi dari semua peningkatan',
+                    'contribution' => '~80% volume latihan',
+                    'color'        => 'green',
+                ],
+                [
+                    'type'         => 'Threshold (T)',
+                    'pace'         => $this->formatPace($trainingPaces['T'] ?? 0),
+                    'purpose'      => 'Meningkatkan lactate threshold — kunci utama lari lebih cepat lebih lama',
+                    'contribution' => '~10-15% volume latihan',
+                    'color'        => 'yellow',
+                ],
+                [
+                    'type'         => 'Interval (I)',
+                    'pace'         => $this->formatPace($trainingPaces['I'] ?? 0),
+                    'purpose'      => 'Meningkatkan VO2Max — kapasitas aerobik maksimal Anda',
+                    'contribution' => '~5-8% volume latihan',
+                    'color'        => 'orange',
+                ],
+                [
+                    'type'         => 'Repetition (R)',
+                    'pace'         => $this->formatPace($trainingPaces['R'] ?? 0),
+                    'purpose'      => 'Meningkatkan speed economy & running form — efisiensi lari',
+                    'contribution' => '~2-5% volume latihan',
+                    'color'        => 'red',
+                ],
+            ];
+
+            $goalTimeProjected = !empty($validated['goal_time']) && !empty($validated['goal_distance'])
+                ? $targetEquiv[$validated['goal_distance']] ?? null
+                : null;
+
             return response()->json([
-                'success' => true,
-                'message' => 'Program berhasil di-generate! Program telah ditambahkan ke Program Bag Anda.',
-                'program_id' => $program->id,
-                'vdot' => $programData['vdot'],
-                'training_paces' => $programData['training_paces'],
+                'success'              => true,
+                'message'              => 'Program berhasil di-generate! Program telah ditambahkan ke Program Bag Anda.',
+                'program_id'           => $program->id,
+                'vdot'                 => $programData['vdot'],
+                'training_paces'       => $programData['training_paces'],
+                'improvement_projection' => [
+                    'initial_vdot'     => round($initialVdot, 1),
+                    'target_vdot'      => round($targetVdot, 1),
+                    'vdot_diff'        => $vdotDiff,
+                    'vdot_pct'         => $vdotPct,
+                    'duration_weeks'   => $programData['duration_weeks'],
+                    'goal_distance'    => $validated['goal_distance'],
+                    'goal_time_input'  => $validated['goal_time'] ?? null,
+                    'goal_projected'   => $goalTimeProjected,
+                    'time_improvements'=> $timeImprovements,
+                    'pace_rationale'   => $paceRationale,
+                ],
             ]);
 
         } catch (\Exception $e) {
@@ -141,6 +218,20 @@ class GenerateProgramController extends Controller
                 'message' => 'Gagal generate program: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Convert HH:MM:SS time string to total seconds
+     */
+    private function secFromTime(string $time): int
+    {
+        $parts = explode(':', $time);
+        if (count($parts) === 3) {
+            return (int)$parts[0] * 3600 + (int)$parts[1] * 60 + (int)$parts[2];
+        } elseif (count($parts) === 2) {
+            return (int)$parts[0] * 60 + (int)$parts[1];
+        }
+        return 0;
     }
 
     /**
