@@ -34,8 +34,8 @@ class DashboardController extends Controller
         })
             ->where('status', 'active')
             ->with([
-                'runner:id,name,avatar',
-                'program:id,coach_id,title,program_json',
+                'runner:id,name,avatar,email,weekly_km_target',
+                'program:id,coach_id,title,program_json,difficulty',
             ])
             ->get();
 
@@ -323,10 +323,65 @@ class DashboardController extends Controller
 
         $weeklyCompletionRate = $weekScheduled > 0 ? round(($weekCompleted / $weekScheduled) * 100) : 0;
 
+        $myPrograms = \App\Models\Program::where('coach_id', $user->id)
+            ->withCount(['enrollments' => function ($q) {
+                $q->where('status', 'active');
+            }])
+            ->latest()
+            ->get();
+
+        $riskRunnerIds = array_keys($riskRunners);
+        $needsReviewRunnerIds = array_keys($needsReviewRunners);
+        $unreadCountsArray = $unreadCounts->toArray();
+
+        $mappedAthletes = $enrollments->map(function($en) use ($riskRunnerIds, $needsReviewRunnerIds, $unreadCountsArray) {
+            $totalDays = ($en->program->duration_weeks ?? 12) * 7;
+            $daysPassed = $en->start_date ? now()->diffInDays($en->start_date) : 0;
+            $progress = $totalDays > 0 ? min(100, max(0, ($daysPassed / $totalDays) * 100)) : 0;
+            $currentWeek = ceil(($daysPassed + 1) / 7);
+            
+            return [
+                'id' => $en->id,
+                'runner_id' => $en->runner_id,
+                'runner_name' => $en->runner->name,
+                'runner_email' => $en->runner->email,
+                'runner_avatar' => $en->runner->avatar_url,
+                'program_id' => $en->program_id,
+                'program_title' => $en->program->title,
+                'program_difficulty' => $en->program->difficulty,
+                'start_date_formatted' => $en->start_date ? $en->start_date->format('d M Y') : 'Not Started',
+                'progress_pct' => round($progress),
+                'current_week' => (int) $currentWeek,
+                'weekly_km_target' => $en->runner->weekly_km_target,
+                'is_risk' => in_array($en->runner_id, $riskRunnerIds),
+                'needs_review' => in_array($en->runner_id, $needsReviewRunnerIds),
+                'unread_count' => (int) ($unreadCountsArray[$en->runner_id] ?? 0),
+            ];
+        });
+
+        $mappedPrograms = $myPrograms->map(function($p) {
+            return [
+                'id' => $p->id,
+                'title' => $p->title,
+                'difficulty' => $p->difficulty,
+                'distance_target' => $p->distance_target,
+                'price' => $p->price,
+                'duration_weeks' => $p->duration_weeks,
+                'is_published' => (bool) $p->is_published,
+                'enrollments_count' => $p->enrollments_count,
+                'publish_url' => route('coach.programs.publish', $p->id),
+                'unpublish_url' => route('coach.programs.unpublish', $p->id),
+            ];
+        });
+
         return view('coach.dashboard', [
             'walletBalance' => $user->wallet ? $user->wallet->balance : 0,
             'totalEarnings' => $totalEarnings,
             'queueItems' => $queueItems,
+            'myPrograms' => $myPrograms,
+            'enrollments' => $enrollments,
+            'mappedAthletes' => $mappedAthletes,
+            'mappedPrograms' => $mappedPrograms,
             'coachMetrics' => [
                 'due_today' => count($dueTodayRunners),
                 'needs_review' => count($needsReviewRunners),

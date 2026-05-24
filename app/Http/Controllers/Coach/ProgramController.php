@@ -301,6 +301,60 @@ class ProgramController extends Controller
     }
 
     /**
+     * Import JSON program and save it directly to database as a new draft
+     */
+    public function importAndSaveJson(Request $request)
+    {
+        $request->validate([
+            'json_file' => 'required|file|max:2048',
+        ]);
+
+        $file = $request->file('json_file');
+        $content = file_get_contents($file->getRealPath());
+        $json = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The uploaded file is not a valid JSON file.'
+            ], 422);
+        }
+
+        // Validate structure: can be either flat {sessions: [...]} or nested {program_json: {sessions: [...]}}
+        $programJson = isset($json['program_json']) ? $json['program_json'] : (isset($json['sessions']) ? $json : null);
+        if (!$programJson || !isset($programJson['sessions']) || !is_array($programJson['sessions'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid JSON structure: Missing "sessions" array.'
+            ], 422);
+        }
+
+        $title = $json['title'] ?? 'Imported Program ' . date('Y-m-d H:i');
+        $slug = Str::slug($title) . '-' . uniqid();
+
+        $program = Program::create([
+            'coach_id' => auth()->id(),
+            'title' => $title,
+            'slug' => $slug,
+            'description' => $json['description'] ?? 'Imported from JSON.',
+            'difficulty' => $json['difficulty'] ?? 'beginner',
+            'distance_target' => $json['distance_target'] ?? '5k',
+            'price' => 0.00,
+            'program_json' => $programJson,
+            'duration_weeks' => $json['duration_weeks'] ?? 12,
+            'is_published' => false,
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Program imported successfully as draft!',
+            'program' => $program
+        ]);
+    }
+
+
+    /**
      * Export program as JSON
      */
     public function exportJson(Program $program)

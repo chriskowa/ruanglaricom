@@ -154,6 +154,18 @@
                                 @click="profileTab = 'track'">
                                 Track
                             </button>
+                            <button 
+                                class="text-sm font-bold pb-2 transition border-b-2"
+                                :class="profileTab === 'analytics' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                @click="profileTab = 'analytics'">
+                                Analytics
+                            </button>
+                            <button 
+                                class="text-sm font-bold pb-2 transition border-b-2"
+                                :class="profileTab === 'predictions' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                @click="profileTab = 'predictions'">
+                                Race Predictor
+                            </button>
                         </div>
 
                         <!-- Training Tab -->
@@ -259,6 +271,122 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+
+                        <!-- Analytics Tab -->
+                        <div v-if="profileTab === 'analytics'" class="space-y-6">
+                            <!-- Fatigue & Health Status -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 shadow-lg">
+                                    <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 font-mono">Fatigue & Recovery</div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-md"
+                                             :class="healthSummary.fatigueLevel === 'High Fatigue' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : (healthSummary.fatigueLevel === 'Moderate Fatigue' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30')">
+                                            @{{ healthSummary.fatigueEmoji }}
+                                        </div>
+                                        <div>
+                                            <div class="text-lg font-black text-white italic leading-tight">@{{ healthSummary.fatigueLevel }}</div>
+                                            <div class="text-[11px] text-slate-400 mt-0.5">Avg RPE: <span class="text-white font-bold">@{{ healthSummary.avgRpe }}</span> (Last 5 runs)</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 text-xs text-slate-300 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80">
+                                        @{{ healthSummary.advice }}
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50 shadow-lg">
+                                    <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 font-mono">Injury & Burnout Risk</div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shadow-md"
+                                             :class="healthSummary.riskLevel === 'HIGH RISK' ? 'bg-red-600/30 text-red-500 border border-red-500/50 animate-pulse' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'">
+                                            ⚠
+                                        </div>
+                                        <div>
+                                            <div class="text-lg font-black text-white italic leading-tight" :class="healthSummary.riskLevel === 'HIGH RISK' ? 'text-red-400' : 'text-emerald-400'">@{{ healthSummary.riskLevel }}</div>
+                                            <div class="text-[11px] text-slate-400 mt-0.5">Subjective Feeling: <span class="text-white font-bold capitalize">@{{ healthSummary.feelingStatus }}</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 text-xs text-slate-300 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80">
+                                        @{{ healthSummary.riskMessage }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Weekly Mileage Chart -->
+                            <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50 shadow-inner">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">Weekly Mileage (Target vs Actual)</div>
+                                    <div class="flex gap-4 text-[9px] font-mono">
+                                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-slate-600 rounded"></span> Target</span>
+                                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 bg-neon rounded"></span> Completed</span>
+                                    </div>
+                                </div>
+                                <div class="h-44 relative">
+                                    <canvas id="weeklyVolumeChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Pace Compliance Analytics -->
+                            <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/50">
+                                <div class="text-[10px] font-bold text-slate-400 uppercase mb-3 font-mono tracking-wider">Pace Compliance & Accuracy</div>
+                                <div v-if="paceComplianceList.length === 0" class="text-center py-6 text-xs text-slate-500 italic">
+                                    No completed workouts found in calendar events to analyze.
+                                </div>
+                                <div v-else class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                                    <div v-for="item in paceComplianceList" :key="item.date" class="p-3 bg-slate-900/50 rounded-xl border border-slate-800 flex flex-col md:flex-row justify-between md:items-center gap-2">
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs font-bold text-white font-mono">@{{ item.dateFormatted }}</span>
+                                                <span class="px-2 py-0.5 rounded text-[8px] font-black uppercase" :class="item.typeClass">@{{ item.typeName }}</span>
+                                            </div>
+                                            <div class="text-[10px] text-slate-400 mt-1">
+                                                Target: <span class="text-white font-mono">@{{ item.targetPace }}</span> • Actual: <span class="text-neon font-mono font-bold">@{{ item.actualPace }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="text-left md:text-right">
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider" :class="item.complianceClass">
+                                                    @{{ item.complianceStatus }}
+                                                </span>
+                                                <div class="text-[9px] text-slate-500 mt-1 font-mono">@{{ item.diffText }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Predictions Tab -->
+                        <div v-if="profileTab === 'predictions'" class="space-y-6">
+                            <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700/50">
+                                <h4 class="text-sm font-black text-white italic tracking-tight mb-1 flex items-center gap-1.5">
+                                    <span>🏆</span> Race Finish Time Predictor
+                                </h4>
+                                <p class="text-[10px] text-slate-400 leading-normal mb-4">
+                                    Predict finish times for custom distances using standard scaling formulas (Riegel's formula) based on current VDOT.
+                                </p>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Target Distance (KM)</label>
+                                        <div class="flex gap-2">
+                                            <input type="number" step="0.1" v-model.number="predictor.distance" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon outline-none" placeholder="e.g. 15">
+                                            <button type="button" @click="predictor.distance = 15" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-[10px] font-black text-slate-300 rounded-xl">15K</button>
+                                            <button type="button" @click="predictor.distance = 30" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-[10px] font-black text-slate-300 rounded-xl">30K</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Reference VDOT Score</label>
+                                        <input type="number" step="0.1" v-model.number="predictor.vdot" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon outline-none">
+                                    </div>
+                                </div>
+
+                                <div class="mt-5 p-4 bg-slate-950/40 rounded-xl border border-slate-850 text-center">
+                                    <div class="text-[9px] text-slate-500 uppercase tracking-widest font-mono">Predicted Finish Time</div>
+                                    <div class="text-3xl font-black text-neon italic mt-1 font-mono">@{{ predictedTime.time }}</div>
+                                    <div class="text-[10px] text-slate-400 mt-1">Target Pace: <span class="text-white font-bold font-mono">@{{ predictedTime.pace }} /km</span></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -930,7 +1058,65 @@
             </div>
             <div class="flex-grow relative bg-slate-900/50 rounded-xl border border-slate-800 p-4">
                 <canvas id="coachStravaMetricsChartFullscreen" class="w-full h-full"></canvas>
+        </div>
+    </div>
+
+    <!-- Floating Chat Widget -->
+    <div class="fixed bottom-6 right-6 z-[1000] font-sans">
+        <!-- Chat Bubble Button -->
+        <button @click="toggleChatDrawer" class="w-14 h-14 rounded-full bg-neon text-dark font-black flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-transform duration-200 relative border-2 border-slate-900">
+            <span class="text-xl">💬</span>
+            <!-- Unread Badge if any -->
+            <span v-if="chatState.unreadCount > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce">
+                @{{ chatState.unreadCount }}
+            </span>
+        </button>
+
+        <!-- Chat Drawer/Panel -->
+        <div v-if="chatState.isOpen" class="fixed bottom-24 right-6 w-[330px] sm:w-[380px] h-[480px] bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-3xl flex flex-col shadow-2xl shadow-neon/10 overflow-hidden transition-all duration-300">
+            <!-- Header -->
+            <div class="bg-slate-800/80 border-b border-slate-700/50 px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-slate-700 border border-slate-600 flex items-center justify-center font-bold text-white text-xs">
+                        {{ substr($enrollment->runner->name, 0, 1) }}
+                    </div>
+                    <div>
+                        <div class="text-xs font-black text-white truncate max-w-[180px]">{{ $enrollment->runner->name }}</div>
+                        <div class="text-[9px] text-neon flex items-center gap-1 font-mono uppercase tracking-wider">
+                            <span class="w-1.5 h-1.5 bg-neon rounded-full animate-ping"></span> Active Chat
+                        </div>
+                    </div>
+                </div>
+                <button @click="chatState.isOpen = false" class="text-slate-400 hover:text-white font-bold text-sm bg-slate-800/50 p-1.5 rounded-lg">✕</button>
             </div>
+
+            <!-- Messages Area -->
+            <div ref="chatContainer" class="flex-grow p-4 overflow-y-auto space-y-3 bg-slate-950/20">
+                <div v-if="chatState.loading" class="text-center text-xs text-slate-500 py-16">
+                    <i class="fa-solid fa-circle-notch animate-spin text-neon mr-2"></i> Loading conversation…
+                </div>
+                <div v-else-if="chatState.messages.length === 0" class="text-center text-xs text-slate-500 py-16">
+                    No messages yet. Send a message below to start coaching!
+                </div>
+                <div v-else v-for="msg in chatState.messages" :key="msg.id" class="flex flex-col"
+                     :class="msg.sender_id === {{ auth()->id() }} ? 'items-end' : 'items-start'">
+                    <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed shadow"
+                         :class="msg.sender_id === {{ auth()->id() }} ? 'bg-neon text-dark rounded-tr-none font-bold' : 'bg-slate-800 text-white rounded-tl-none'">
+                        @{{ msg.message }}
+                    </div>
+                    <span class="text-[8px] text-slate-500 mt-1 font-mono">@{{ formatChatTime(msg.created_at) }}</span>
+                </div>
+            </div>
+
+            <!-- Footer / Input Form -->
+            <form @submit.prevent="sendChatMessage" class="bg-slate-800/80 border-t border-slate-700/50 p-2.5 flex items-center gap-2">
+                <input v-model="chatState.inputMessage" type="text" class="flex-grow bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:ring-1 focus:ring-neon outline-none" placeholder="Type a message…">
+                <button type="submit" :disabled="!chatState.inputMessage.trim() || chatState.sending" class="p-2.5 rounded-xl bg-neon text-dark hover:bg-neon/90 transition disabled:opacity-50 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 fill-current transform rotate-45" viewBox="0 0 24 24">
+                        <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+                    </svg>
+                </button>
+            </form>
         </div>
     </div>
 
@@ -2014,6 +2200,341 @@ createApp({
             }
         };
 
+        // Race Predictor State & Logic
+        const predictor = reactive({
+            distance: 15,
+            vdot: trainingProfile.vdot || 40
+        });
+
+        const predictedTime = computed(() => {
+            const timeStr = trainingProfile.equivalent_race_times?.['10k']?.time || '00:50:00';
+            const parts = timeStr.split(':');
+            let baselineSeconds = 0;
+            if (parts.length === 3) {
+                baselineSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+            } else if (parts.length === 2) {
+                baselineSeconds = (+parts[0]) * 60 + (+parts[1]);
+            }
+            if (!baselineSeconds) baselineSeconds = 3000;
+            
+            const baselineVdot = trainingProfile.vdot || 40;
+            const chosenVdot = predictor.vdot || 40;
+            const adjustedBaselineSeconds = baselineSeconds * (baselineVdot / chosenVdot);
+
+            const predictedSeconds = adjustedBaselineSeconds * Math.pow(predictor.distance / 10, 1.06);
+            
+            const hours = Math.floor(predictedSeconds / 3600);
+            const minutes = Math.floor((predictedSeconds % 3600) / 60);
+            const seconds = Math.floor(predictedSeconds % 60);
+            
+            let timeFormatted = '';
+            if (hours > 0) {
+                timeFormatted += String(hours).padStart(2, '0') + ':';
+            }
+            timeFormatted += String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+
+            const paceMin = (predictedSeconds / 60) / predictor.distance;
+            const paceM = Math.floor(paceMin);
+            const paceS = Math.floor((paceMin - paceM) * 60);
+            const paceFormatted = String(paceM).padStart(2, '0') + ':' + String(paceS).padStart(2, '0');
+
+            return { time: timeFormatted, pace: paceFormatted };
+        });
+
+        // Chat Widget State & Logic
+        const chatContainer = ref(null);
+        const chatState = reactive({
+            isOpen: false,
+            loading: false,
+            messages: [],
+            unreadCount: 0,
+            inputMessage: '',
+            sending: false
+        });
+
+        const toggleChatDrawer = () => {
+            chatState.isOpen = !chatState.isOpen;
+            if (chatState.isOpen) {
+                loadChatMessages();
+            }
+        };
+
+        const loadChatMessages = async () => {
+            chatState.loading = true;
+            try {
+                const runnerId = trainingProfile.user_id || @json($enrollment->runner_id);
+                const res = await fetch(`/api/chat/${runnerId}/messages`);
+                const data = await res.json();
+                chatState.messages = data.messages || [];
+                chatState.unreadCount = 0;
+                scrollToBottom();
+            } catch (e) {
+                console.error('Failed to load chat messages:', e);
+            } finally {
+                chatState.loading = false;
+            }
+        };
+
+        const sendChatMessage = async () => {
+            if (!chatState.inputMessage.trim() || chatState.sending) return;
+            chatState.sending = true;
+            try {
+                const runnerId = trainingProfile.user_id || @json($enrollment->runner_id);
+                const res = await fetch(`/chat/${runnerId}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: chatState.inputMessage })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    chatState.messages.push(data.message);
+                    chatState.inputMessage = '';
+                    scrollToBottom();
+                }
+            } catch (e) {
+                console.error('Failed to send chat message:', e);
+            } finally {
+                chatState.sending = false;
+            }
+        };
+
+        const scrollToBottom = () => {
+            Vue.nextTick(() => {
+                if (chatContainer.value) {
+                    chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
+                }
+            });
+        };
+
+        const formatChatTime = (isoStr) => {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        };
+
+        // Analytics State & Logic
+        const paceComplianceList = ref([]);
+        const healthSummary = reactive({
+            fatigueLevel: 'Healthy / Low Fatigue',
+            fatigueEmoji: '🟢',
+            avgRpe: '-',
+            advice: 'Excellent recovery. Body is fully adapting. Athlete is ready for mileage or intensity progression.',
+            riskLevel: 'Low Risk',
+            feelingStatus: 'Stable',
+            riskMessage: 'Runner shows stable wellness responses. Continue current progression.'
+        });
+
+        let weeklyVolumeChartInstance = null;
+
+        const initWeeklyVolumeChart = (labels, targetData, completedData) => {
+            Vue.nextTick(() => {
+                const canvasEl = document.getElementById('weeklyVolumeChart');
+                if (!canvasEl) return;
+                const ctx = canvasEl.getContext('2d');
+                if (weeklyVolumeChartInstance) {
+                    weeklyVolumeChartInstance.destroy();
+                }
+                weeklyVolumeChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Target',
+                                data: targetData,
+                                backgroundColor: '#475569',
+                                borderRadius: 4,
+                                barThickness: 12
+                            },
+                            {
+                                label: 'Completed',
+                                data: completedData,
+                                backgroundColor: '#ccff00',
+                                borderRadius: 4,
+                                barThickness: 12
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                grid: { color: '#334155' },
+                                ticks: { color: '#94a3b8', font: { family: 'monospace', size: 9 } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#94a3b8', font: { family: 'monospace', size: 9 } }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            });
+        };
+
+        const calculateAnalytics = (events) => {
+            const weeks = {};
+            const getMonday = (dStr) => {
+                const date = new Date(dStr);
+                const day = date.getDay();
+                const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+                const monday = new Date(date.setDate(diff));
+                return monday.toISOString().split('T')[0];
+            };
+
+            events.forEach(ev => {
+                if (!ev.start) return;
+                const monday = getMonday(ev.start);
+                if (!weeks[monday]) {
+                    weeks[monday] = { target: 0, completed: 0 };
+                }
+                const dist = parseFloat(ev.extendedProps?.distance || ev.distance || 0);
+                const isCustom = ev.extendedProps?.is_custom;
+                const isStrava = ev.extendedProps?.is_strava;
+                const status = ev.extendedProps?.status;
+                const type = ev.extendedProps?.type;
+
+                if (isStrava || status === 'completed') {
+                    weeks[monday].completed += dist;
+                } else if (!isCustom && type !== 'rest' && status !== 'missed') {
+                    weeks[monday].target += dist;
+                }
+            });
+
+            const sortedMondays = Object.keys(weeks).sort();
+            const labels = sortedMondays.map(m => {
+                const d = new Date(m);
+                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+            });
+            const targetData = sortedMondays.map(m => weeks[m].target);
+            const completedData = sortedMondays.map(m => weeks[m].completed);
+
+            initWeeklyVolumeChart(labels, targetData, completedData);
+
+            // Compute Pace Compliance
+            const complianceList = [];
+            events.forEach(ev => {
+                const isCompleted = ev.extendedProps?.status === 'completed' || ev.extendedProps?.event_type === 'strava_activity';
+                if (!isCompleted) return;
+
+                const type = ev.extendedProps?.type;
+                if (!type || type === 'rest' || type === 'strength' || type === 'yoga') return;
+
+                const actualPaceStr = ev.extendedProps?.pace || (ev.extendedProps?.tracking?.strava_link ? '05:00' : null);
+                if (!actualPaceStr) return;
+
+                let targetPaceStr = '-';
+                if (type === 'easy_run' && trainingProfile.paces?.E) targetPaceStr = trainingProfile.paces.E;
+                else if (type === 'tempo' && trainingProfile.paces?.T) targetPaceStr = trainingProfile.paces.T;
+                else if (type === 'interval' && trainingProfile.paces?.I) targetPaceStr = trainingProfile.paces.I;
+                else if (type === 'long_run' && trainingProfile.paces?.M) targetPaceStr = trainingProfile.paces.M;
+
+                if (targetPaceStr === '-') return;
+
+                const paceToSeconds = (str) => {
+                    const p = str.split(':');
+                    return p.length === 2 ? (+p[0]) * 60 + (+p[1]) : 0;
+                };
+
+                const actSec = paceToSeconds(actualPaceStr);
+                const tgtSec = paceToSeconds(targetPaceStr);
+
+                if (!actSec || !tgtSec) return;
+
+                const diff = tgtSec - actSec; // positive means actual is faster
+                let complianceStatus = 'On Target';
+                let complianceClass = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                let diffText = 'Perfect pace match';
+
+                if (diff > 15) {
+                    complianceStatus = 'Too Fast';
+                    complianceClass = 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                    diffText = `${Math.abs(diff)}s faster than target`;
+                } else if (diff < -15) {
+                    complianceStatus = 'Too Slow';
+                    complianceClass = 'bg-red-500/20 text-red-400 border border-red-500/30';
+                    diffText = `${Math.abs(diff)}s slower than target`;
+                }
+
+                complianceList.push({
+                    date: ev.start,
+                    dateFormatted: new Date(ev.start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+                    typeName: type.replace('_', ' '),
+                    typeClass: type === 'interval' ? 'bg-red-500/20 text-red-400' : (type === 'tempo' ? 'bg-orange-500/20 text-orange-400' : 'bg-green-500/20 text-green-400'),
+                    targetPace: targetPaceStr,
+                    actualPace: actualPaceStr,
+                    complianceStatus,
+                    complianceClass,
+                    diffText
+                });
+            });
+
+            paceComplianceList.value = complianceList.slice(0, 5);
+
+            // Compute Fatigue & Health Summary
+            const rpes = [];
+            const feelings = [];
+            events.forEach(ev => {
+                const tracking = ev.extendedProps?.tracking;
+                if (tracking) {
+                    if (tracking.rpe) rpes.push(parseInt(tracking.rpe));
+                    if (tracking.feeling) feelings.push(tracking.feeling.toLowerCase());
+                }
+            });
+
+            const avgRpeVal = rpes.length > 0 ? (rpes.reduce((a, b) => a + b, 0) / rpes.length).toFixed(1) : '-';
+            healthSummary.avgRpe = avgRpeVal;
+
+            if (avgRpeVal !== '-') {
+                const avg = parseFloat(avgRpeVal);
+                if (avg >= 7.5) {
+                    healthSummary.fatigueLevel = 'High Fatigue';
+                    healthSummary.fatigueEmoji = '🥵';
+                    healthSummary.advice = 'Athlete shows signs of high strain. Advise reduced training volume by 20% or add an extra rest day.';
+                } else if (avg >= 5.0) {
+                    healthSummary.fatigueLevel = 'Moderate Fatigue';
+                    healthSummary.fatigueEmoji = '🏃';
+                    healthSummary.advice = 'Normal training strain. Athlete is responding well. Maintain current calendar parameters.';
+                } else {
+                    healthSummary.fatigueLevel = 'Healthy / Low Fatigue';
+                    healthSummary.fatigueEmoji = '🟢';
+                    healthSummary.advice = 'Excellent recovery. Body is fully adapting. Athlete is ready for mileage or intensity progression.';
+                }
+            }
+
+            if (feelings.length > 0) {
+                const lastFeeling = feelings[feelings.length - 1];
+                healthSummary.feelingStatus = lastFeeling;
+                if (lastFeeling === 'terrible' || lastFeeling === 'weak' || (rpes.length > 0 && rpes[rpes.length - 1] >= 9)) {
+                    healthSummary.riskLevel = 'HIGH RISK';
+                    healthSummary.riskMessage = 'WARNING: Last run logged high exertion or poor wellness. High risk of overtraining.';
+                } else {
+                    healthSummary.riskLevel = 'Low Risk';
+                    healthSummary.riskMessage = 'Wellness metrics stable. Runner shows normal adaptive responses.';
+                }
+            }
+        };
+
+        const fetchAnalyticsData = async () => {
+            try {
+                const res = await fetch(`{{ route("coach.athletes.events", $enrollment->id) }}`);
+                const data = await res.json();
+                calculateAnalytics(data);
+            } catch (e) {
+                console.error('Error fetching calendar events for analytics:', e);
+            }
+        };
+
+        watch(profileTab, (newTab) => {
+            if (newTab === 'analytics') {
+                fetchAnalyticsData();
+            }
+        });
+
         watch(selectedSession, (ev) => {
             resetStravaState();
             if (!ev || !ev.extendedProps) {
@@ -2101,7 +2622,11 @@ createApp({
             showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance, deleteCustomWorkout,
             // Advanced Builder
             builderVisible, builderForm, openBuilder, submitBuilder, builderSummary, builderTotalDistance, strengthOptions, addStrengthExercise, removeStrengthExercise,
-            showStravaGraphModal
+            showStravaGraphModal,
+            // New Features
+            predictor, predictedTime,
+            chatContainer, chatState, toggleChatDrawer, loadChatMessages, sendChatMessage, formatChatTime,
+            paceComplianceList, healthSummary
         };
     }
 }).mount('#coach-monitor-app');

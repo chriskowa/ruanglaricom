@@ -354,8 +354,560 @@
                     </a>
                 </div>
             </div>
+            </div>
         </div>
 
     </div>
+
+    <!-- Coach Command Center Workspace -->
+    <div class="mt-12 relative z-10" x-data="commandWorkspace()" data-aos="fade-up">
+        <div class="bg-card/40 backdrop-blur-md border border-slate-700/50 rounded-3xl p-6 md:p-8">
+            
+            <!-- Header & Tabs -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-700/50 pb-6">
+                <div>
+                    <h2 class="text-2xl font-black text-white italic tracking-tight">Interactive Command Workspace</h2>
+                    <p class="text-xs text-slate-400 mt-1">Manage all your training programs and runner progress in real-time.</p>
+                </div>
+                
+                <div class="flex bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800 self-stretch md:self-auto">
+                    <button @click="activeTab = 'athletes'" :class="activeTab === 'athletes' ? 'bg-neon text-dark font-black shadow-lg shadow-neon/15' : 'text-slate-400 hover:text-white font-bold'" class="flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm transition-all">
+                        <i class="fa-solid fa-users mr-2"></i> My Athletes
+                    </button>
+                    <button @click="activeTab = 'programs'" :class="activeTab === 'programs' ? 'bg-neon text-dark font-black shadow-lg shadow-neon/15' : 'text-slate-400 hover:text-white font-bold'" class="flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm transition-all">
+                        <i class="fa-solid fa-person-running mr-2"></i> My Programs
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Athletes Management -->
+            <div x-show="activeTab === 'athletes'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                <!-- Search & Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <!-- Search Input -->
+                    <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 group-focus-within:text-neon transition-colors">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" x-model="athleteSearch" placeholder="Search athlete by name or email..." class="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-neon focus:border-neon transition-all">
+                    </div>
+                    <!-- Program Filter -->
+                    <div class="relative">
+                        <select x-model="athleteProgramFilter" class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-neon focus:border-neon appearance-none cursor-pointer">
+                            <option value="">All Programs</option>
+                            @foreach($myPrograms as $p)
+                                <option value="{{ $p->id }}">{{ $p->title }}</option>
+                            @endforeach
+                        </select>
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </span>
+                    </div>
+                    <!-- Risk / Status Filter -->
+                    <div class="relative">
+                        <select x-model="athleteRiskFilter" class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-neon focus:border-neon appearance-none cursor-pointer">
+                            <option value="">All Statuses</option>
+                            <option value="risk">High Risk Athletes Only</option>
+                            <option value="needs_review">Needs Review Only</option>
+                        </select>
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Athletes Table/Cards Grid -->
+                <div class="overflow-x-auto rounded-2xl border border-slate-700/40">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900/40 text-slate-400 text-xs font-mono uppercase tracking-wider border-b border-slate-700/50">
+                                <th class="py-4 px-6">Athlete / Contact</th>
+                                <th class="py-4 px-6">Current Training Plan</th>
+                                <th class="py-4 px-6">Weekly Progress</th>
+                                <th class="py-4 px-6">Target Volume</th>
+                                <th class="py-4 px-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-300 divide-y divide-slate-800/60">
+                            <template x-for="ath in filteredAthletes" :key="ath.id">
+                                <tr class="hover:bg-slate-800/20 transition-colors">
+                                    <!-- Avatar & Name -->
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div class="relative">
+                                                <template x-if="ath.runner_avatar">
+                                                    <img :src="ath.runner_avatar" alt="" class="w-11 h-11 rounded-full object-cover border border-slate-700">
+                                                </template>
+                                                <template x-if="!ath.runner_avatar">
+                                                    <div class="w-11 h-11 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-bold text-sm" x-text="ath.runner_name.substring(0, 1).toUpperCase()"></div>
+                                                </template>
+                                                <!-- Risk Badge Dot -->
+                                                <template x-if="ath.is_risk">
+                                                    <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 border-2 border-dark rounded-full animate-pulse"></span>
+                                                </template>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-white text-sm flex items-center gap-1.5">
+                                                    <span x-text="ath.runner_name"></span>
+                                                    <template x-if="ath.is_risk">
+                                                        <span class="px-1.5 py-0.5 bg-red-900/40 text-red-400 border border-red-800/40 rounded text-[9px] font-mono font-bold tracking-tight uppercase">High Risk</span>
+                                                    </template>
+                                                </div>
+                                                <div class="text-xs text-slate-500 font-mono" x-text="ath.runner_email"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <!-- Program Info -->
+                                    <td class="py-4 px-6">
+                                        <div>
+                                            <div class="font-bold text-white text-sm" x-text="ath.program_title"></div>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="{
+                                                    'bg-green-500/10 text-green-400 border border-green-500/20': ath.program_difficulty === 'beginner',
+                                                    'bg-blue-500/10 text-blue-400 border border-blue-500/20': ath.program_difficulty === 'intermediate',
+                                                    'bg-purple-500/10 text-purple-400 border border-purple-500/20': ath.program_difficulty === 'advanced',
+                                                }" x-text="ath.program_difficulty"></span>
+                                                <span class="text-slate-500 text-xs font-mono" x-text="'Started ' + ath.start_date_formatted"></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <!-- Progress Bar -->
+                                    <td class="py-4 px-6">
+                                        <div class="w-36">
+                                            <div class="flex justify-between text-xs font-mono mb-1 text-slate-400">
+                                                <span x-text="'Week ' + ath.current_week"></span>
+                                                <span class="font-bold text-white" x-text="ath.progress_pct + '%'"></span>
+                                            </div>
+                                            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                                <div class="h-full bg-neon transition-all duration-500" :style="'width: ' + ath.progress_pct + '%'"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <!-- Weekly KM Target -->
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-2">
+                                            <div class="text-sm font-mono font-bold text-white" x-text="ath.weekly_km_target ? (ath.weekly_km_target + ' km') : 'Not set'"></div>
+                                            <button @click="openTargetModal(ath)" class="p-1.5 text-slate-500 hover:text-cyan-400 transition-colors" title="Adjust Weekly Target">
+                                                <i class="fa-solid fa-pencil text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <!-- Actions -->
+                                    <td class="py-4 px-6 text-right">
+                                        <div class="inline-flex gap-2">
+                                            <button @click="triggerChat(ath.runner_id, ath.runner_name, ath.runner_avatar)" class="px-3.5 py-2 bg-slate-900 border border-slate-700/80 hover:border-neon hover:text-neon rounded-xl text-xs text-white font-bold transition flex items-center gap-1.5">
+                                                <i class="fa-solid fa-comment"></i> Chat
+                                                <template x-if="ath.unread_count > 0">
+                                                    <span class="ml-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                                </template>
+                                            </button>
+                                            <a :href="'/coach/athletes/' + ath.id" class="px-3.5 py-2 bg-neon text-dark hover:bg-neon/90 rounded-xl text-xs font-black transition flex items-center gap-1.5">
+                                                <i class="fa-solid fa-clipboard-check"></i> Monitor
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                            <!-- Empty State -->
+                            <tr x-show="filteredAthletes.length === 0">
+                                <td colspan="5" class="py-12 text-center text-slate-500">
+                                    <i class="fa-solid fa-user-slash text-3xl mb-3 block opacity-40"></i>
+                                    <span class="font-bold">No athletes found matching criteria.</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 2: Programs Management -->
+            <div x-show="activeTab === 'programs'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                <!-- Program Search & Actions -->
+                <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                        <!-- Search Input -->
+                        <div class="relative group">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 group-focus-within:text-neon transition-colors">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" x-model="programSearch" placeholder="Search program by title..." class="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-neon focus:border-neon transition-all">
+                        </div>
+                        <!-- Difficulty Filter -->
+                        <div class="relative">
+                            <select x-model="programDifficultyFilter" class="w-full px-4 py-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-neon focus:border-neon appearance-none cursor-pointer">
+                                <option value="">All Difficulties</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <button @click="openImportModal = true" class="px-5 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white font-bold text-xs transition flex items-center gap-2">
+                            <i class="fa-solid fa-file-import"></i> Import JSON
+                        </button>
+                        <a href="{{ route('coach.programs.create') }}" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-black text-xs hover:scale-[1.02] transition shadow-lg flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Create Plan
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Programs Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <template x-for="prog in filteredPrograms" :key="prog.id">
+                        <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-5 hover:border-slate-700 transition flex flex-col justify-between group">
+                            <div>
+                                <!-- Top Bar -->
+                                <div class="flex justify-between items-start mb-4">
+                                    <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider" :class="{
+                                        'bg-green-500/10 text-green-400 border border-green-500/20': prog.difficulty === 'beginner',
+                                        'bg-blue-500/10 text-blue-400 border border-blue-500/20': prog.difficulty === 'intermediate',
+                                        'bg-purple-500/10 text-purple-400 border border-purple-500/20': prog.difficulty === 'advanced',
+                                    }" x-text="prog.difficulty"></span>
+                                    
+                                    <!-- Publish Status Badge -->
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full" :class="prog.is_published ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]' : 'bg-slate-500'"></span>
+                                        <span class="text-xs font-mono uppercase font-bold" :class="prog.is_published ? 'text-green-400' : 'text-slate-400'" x-text="prog.is_published ? 'Published' : 'Draft'"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Title & Details -->
+                                <h3 class="text-lg font-black text-white italic group-hover:text-cyan-400 transition-colors" x-text="prog.title"></h3>
+                                <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400 font-mono">
+                                    <span x-text="'Target: ' + prog.distance_target.toUpperCase()"></span>
+                                    <span>·</span>
+                                    <span x-text="prog.duration_weeks + ' Weeks'"></span>
+                                    <span>·</span>
+                                    <span class="font-bold text-slate-300" x-text="prog.price > 0 ? formatIDR(prog.price) : 'FREE'"></span>
+                                </div>
+
+                                <div class="mt-4 flex items-center gap-3 p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
+                                    <i class="fa-solid fa-graduation-cap text-cyan-400 text-lg"></i>
+                                    <div>
+                                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Active Students</div>
+                                        <div class="text-sm font-bold text-white" x-text="prog.enrollments_count + ' Runners'"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="mt-6 pt-4 border-t border-slate-800/60 flex flex-col gap-2">
+                                <div class="flex gap-2">
+                                    <!-- Toggle Publish Status Form -->
+                                    <button @click="togglePublish(prog)" class="flex-1 py-2.5 rounded-xl font-bold text-xs text-center border transition" :class="prog.is_published ? 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white' : 'bg-green-950/20 border-green-800/40 text-green-400 hover:bg-green-950/40'">
+                                        <span x-text="prog.is_published ? 'Unpublish' : 'Publish'"></span>
+                                    </button>
+                                    <a :href="'/coach/programs/' + prog.id + '/export-json'" class="px-3.5 py-2.5 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:text-white text-slate-400 rounded-xl text-xs font-bold transition flex items-center justify-center" title="Export as JSON">
+                                        <i class="fa-solid fa-file-export"></i>
+                                    </a>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a :href="'/coach/programs/' + prog.id + '/edit'" class="flex-1 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs text-center hover:border-cyan-400/40 hover:text-cyan-300 transition">
+                                        <i class="fa-solid fa-pen-to-square mr-1"></i> Edit Plan
+                                    </a>
+                                    <a :href="'/coach/programs/' + prog.id" class="px-4 py-2.5 bg-cyan-600/10 border border-cyan-500/20 text-cyan-400 font-bold text-xs rounded-xl hover:bg-cyan-600/20 transition flex items-center justify-center">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <!-- Empty State -->
+                    <div x-show="filteredPrograms.length === 0" class="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center bg-slate-900/20 border border-dashed border-slate-800 rounded-3xl">
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-600 mb-3 block"></i>
+                        <h4 class="text-white font-bold">No Programs Found</h4>
+                        <p class="text-xs text-slate-500 mt-1">Start by creating a new workout program or importing a JSON template.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Adjust Weekly Target Modal -->
+    <div x-show="targetModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="targetModalOpen = false"></div>
+        <div class="relative bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl transition-all" x-show="targetModalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+            <h3 class="text-xl font-black text-white italic tracking-tight mb-2">Adjust Weekly Target</h3>
+            <p class="text-xs text-slate-400 mb-6">Update the weekly target volume (in kilometers) for <span class="font-bold text-cyan-400" x-text="targetAthlete?.runner_name"></span>.</p>
+            
+            <form @submit.prevent="submitWeeklyTarget">
+                <div class="mb-6">
+                    <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest font-bold">Target Volume (KM)</label>
+                    <div class="relative group">
+                        <input type="number" step="0.1" min="0" max="999.9" x-model="targetValue" class="w-full px-4 py-3 bg-slate-800 border border-slate-700 text-white rounded-2xl focus:outline-none focus:ring-1 focus:ring-neon focus:border-neon font-mono text-lg" placeholder="0.0">
+                        <span class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 font-mono font-bold">KM</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button type="button" @click="targetModalOpen = false" class="flex-1 py-3 border border-slate-700 rounded-2xl text-slate-300 hover:bg-slate-800 transition font-bold text-sm">Cancel</button>
+                    <button type="submit" class="flex-[2] py-3 bg-neon text-dark rounded-2xl font-black text-sm shadow-lg shadow-neon/15 hover:bg-neon/90 transition flex items-center justify-center gap-2">
+                        <template x-if="savingTarget">
+                            <span class="animate-spin inline-block w-4 h-4 border-2 border-dark border-t-transparent rounded-full mr-2"></span>
+                        </template>
+                        Save Target
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Import JSON Modal -->
+    <div x-show="openImportModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="openImportModal = false"></div>
+        <div class="relative bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl transition-all" x-show="openImportModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+            <h3 class="text-xl font-black text-white italic tracking-tight mb-2">Import Program JSON</h3>
+            <p class="text-xs text-slate-400 mb-6">Upload a valid training plan JSON file to instantiate or extend your catalog.</p>
+            
+            <form @submit.prevent="submitJsonImport" enctype="multipart/form-data">
+                <div class="mb-6">
+                    <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-widest font-bold">Select JSON File</label>
+                    <div class="relative border-2 border-dashed border-slate-700 hover:border-neon rounded-2xl p-6 text-center cursor-pointer transition-colors group">
+                        <input type="file" accept=".json" @change="handleImportFile" class="absolute inset-0 opacity-0 cursor-pointer">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500 group-hover:text-neon mb-2 transition-colors"></i>
+                        <p class="text-xs font-bold text-slate-300" x-text="importFileName || 'Drag and drop or click to upload'"></p>
+                        <p class="text-[10px] text-slate-500 mt-1 font-mono">Max size 2MB (.json)</p>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button type="button" @click="openImportModal = false" class="flex-1 py-3 border border-slate-700 rounded-2xl text-slate-300 hover:bg-slate-800 transition font-bold text-sm">Cancel</button>
+                    <button type="submit" class="flex-[2] py-3 bg-neon text-dark rounded-2xl font-black text-sm shadow-lg shadow-neon/15 hover:bg-neon/90 transition flex items-center justify-center gap-2" :disabled="!importFile">
+                        <template x-if="importing">
+                            <span class="animate-spin inline-block w-4 h-4 border-2 border-dark border-t-transparent rounded-full mr-2"></span>
+                        </template>
+                        Import Catalog
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('commandWorkspace', () => ({
+            activeTab: 'athletes',
+            
+            // Athletes Data
+            athletes: @json($mappedAthletes),
+
+            // Programs Data
+            programs: @json($mappedPrograms),
+
+            // Search & Filters state
+            athleteSearch: '',
+            athleteProgramFilter: '',
+            athleteRiskFilter: '',
+            
+            programSearch: '',
+            programDifficultyFilter: '',
+
+            // Weekly Target Modal State
+            targetModalOpen: false,
+            targetAthlete: null,
+            targetValue: '',
+            savingTarget: false,
+
+            // Import JSON State
+            openImportModal: false,
+            importFile: null,
+            importFileName: '',
+            importing: false,
+
+            get filteredAthletes() {
+                return this.athletes.filter(ath => {
+                    const matchesSearch = ath.runner_name.toLowerCase().includes(this.athleteSearch.toLowerCase()) || 
+                                          ath.runner_email.toLowerCase().includes(this.athleteSearch.toLowerCase());
+                    const matchesProgram = !this.athleteProgramFilter || String(ath.program_id) === String(this.athleteProgramFilter);
+                    let matchesRisk = true;
+                    if (this.athleteRiskFilter === 'risk') {
+                        matchesRisk = ath.is_risk;
+                    } else if (this.athleteRiskFilter === 'needs_review') {
+                        matchesRisk = ath.needs_review;
+                    }
+                    return matchesSearch && matchesProgram && matchesRisk;
+                });
+            },
+
+            get filteredPrograms() {
+                return this.programs.filter(prog => {
+                    const matchesSearch = prog.title.toLowerCase().includes(this.programSearch.toLowerCase());
+                    const matchesDifficulty = !this.programDifficultyFilter || prog.difficulty === this.programDifficultyFilter;
+                    return matchesSearch && matchesDifficulty;
+                });
+            },
+
+            formatIDR(value) {
+                return 'Rp ' + new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(value);
+            },
+
+            // Trigger Chat widget
+            triggerChat(runnerId, name, avatar) {
+                if (window.openChat) {
+                    window.openChat(runnerId, name, avatar);
+                } else {
+                    window.location.href = `/chat/${runnerId}`;
+                }
+            },
+
+            // Toggle program publish status using AJAX
+            togglePublish(prog) {
+                const url = prog.is_published ? prog.unpublish_url : prog.publish_url;
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => {
+                    prog.is_published = !prog.is_published;
+                    this.showToast(prog.is_published ? 'Program published successfully!' : 'Program unpublished.');
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Error changing program status.');
+                });
+            },
+
+            // Open target modal
+            openTargetModal(athlete) {
+                this.targetAthlete = athlete;
+                this.targetValue = athlete.weekly_km_target || '';
+                this.targetModalOpen = true;
+            },
+
+            // Submit Target adjusted
+            submitWeeklyTarget() {
+                if (!this.targetAthlete) return;
+                this.savingTarget = true;
+                
+                const url = `/coach/athletes/\${this.targetAthlete.id}/update-weekly-target`;
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        weekly_km_target: this.targetValue
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.targetAthlete.weekly_km_target = data.weekly_km_target;
+                        const index = this.athletes.findIndex(a => a.id === this.targetAthlete.id);
+                        if (index !== -1) {
+                            this.athletes[index].weekly_km_target = data.weekly_km_target;
+                        }
+                        this.targetModalOpen = false;
+                        this.showToast('Weekly target updated successfully!');
+                    } else {
+                        alert(data.message || 'Error updating target.');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Failed to save weekly target.');
+                })
+                .finally(() => {
+                    this.savingTarget = false;
+                });
+            },
+
+            // Handle import file selection
+            handleImportFile(e) {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    this.importFile = files[0];
+                    this.importFileName = this.importFile.name;
+                }
+            },
+
+            // Submit imported JSON file via AJAX
+            submitJsonImport() {
+                if (!this.importFile) return;
+                this.importing = true;
+                
+                const formData = new FormData();
+                formData.append('json_file', this.importFile);
+                
+                fetch('{{ route("coach.programs.import-and-save") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.openImportModal = false;
+                        this.importFile = null;
+                        this.importFileName = '';
+                        this.showToast('Program imported successfully as draft!');
+                        
+                        this.programs.unshift({
+                            id: data.program.id,
+                            title: data.program.title,
+                            difficulty: data.program.difficulty,
+                            distance_target: data.program.distance_target,
+                            price: parseFloat(data.program.price),
+                            duration_weeks: data.program.duration_weeks,
+                            is_published: data.program.is_published,
+                            enrollments_count: 0,
+                            publish_url: `/coach/programs/\${data.program.id}/publish`,
+                            unpublish_url: `/coach/programs/\${data.program.id}/unpublish`,
+                        });
+                    } else {
+                        alert(data.message || 'Error importing program.');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Import failed. Make sure the JSON format is valid.');
+                })
+                .finally(() => {
+                    this.importing = false;
+                });
+            },
+
+            // Helper to show custom toast
+            showToast(message) {
+                let toast = document.getElementById('ph-custom-toast');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'ph-custom-toast';
+                    toast.className = 'fixed bottom-5 left-6 z-[100] px-5 py-3.5 bg-slate-900 border border-cyan-500/30 text-white text-xs font-black rounded-2xl shadow-xl shadow-cyan-500/10 flex items-center gap-2.5 transition-all duration-300 transform translate-y-10 opacity-0';
+                    document.body.appendChild(toast);
+                }
+                toast.innerHTML = `<i class="fa-solid fa-circle-check text-neon"></i> \${message}`;
+                
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 50);
+
+                setTimeout(() => {
+                    toast.classList.add('translate-y-10', 'opacity-0');
+                }, 3000);
+            }
+        }));
+    });
+</script>
+@endpush

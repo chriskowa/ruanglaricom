@@ -1520,42 +1520,45 @@
         </div>
         </div>
 
-        <div v-if="showPbModal" class="fixed inset-0 z-[250] overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80"></div>
-            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 class="text-white font-bold text-lg">Update Personal Best</h3>
-                        <p class="text-xs text-slate-400">Update your PBs to recalculate VDOT</p>
+        <div v-if="showPbModal" class="fixed inset-0 z-[1100] flex items-center justify-center p-4" style="backdrop-filter: blur(8px); background: rgba(0,0,0,0.8);">
+            <div class="relative w-full max-w-md mx-auto">
+                <!-- Glow Effect -->
+                <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 via-neon/30 to-blue-600 rounded-3xl blur-lg opacity-30 pointer-events-none"></div>
+                <div class="relative bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-white font-bold text-lg">Update Personal Best</h3>
+                            <p class="text-xs text-slate-400">Update your PBs to recalculate VDOT</p>
+                        </div>
+                        <button class="text-slate-400 hover:text-white w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center transition hover:bg-slate-700" @click="showPbModal = false">✕</button>
                     </div>
-                    <button class="text-slate-400 hover:text-white" @click="showPbModal = false">×</button>
-                </div>
-                
-                <form @submit.prevent="updatePb" class="space-y-4">
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">5K (HH:MM:SS)</label>
-                        <input type="text" v-model="pbForm.pb_5k" placeholder="00:25:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">10K (HH:MM:SS)</label>
-                        <input type="text" v-model="pbForm.pb_10k" placeholder="00:50:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Half Marathon (HH:MM:SS)</label>
-                        <input type="text" v-model="pbForm.pb_hm" placeholder="01:50:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Full Marathon (HH:MM:SS)</label>
-                        <input type="text" v-model="pbForm.pb_fm" placeholder="03:50:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                    </div>
+                    
+                    <form @submit.prevent="updatePb" class="space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">5K (HH:MM:SS)</label>
+                            <input type="text" v-model="pbForm.pb_5k" placeholder="00:25:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-neon focus:outline-none transition">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">10K (HH:MM:SS)</label>
+                            <input type="text" v-model="pbForm.pb_10k" placeholder="00:50:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-neon focus:outline-none transition">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Half Marathon (HH:MM:SS)</label>
+                            <input type="text" v-model="pbForm.pb_hm" placeholder="01:50:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-neon focus:outline-none transition">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Full Marathon (HH:MM:SS)</label>
+                            <input type="text" v-model="pbForm.pb_fm" placeholder="03:50:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-neon focus:outline-none transition">
+                        </div>
 
-                    <div class="pt-4 border-t border-slate-700 flex justify-end gap-3">
-                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm" @click="showPbModal = false">Cancel</button>
-                        <button type="submit" :disabled="pbLoading" class="px-6 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition text-sm disabled:opacity-50">
-                            @{{ pbLoading ? 'Updating...' : 'Save Changes' }}
-                        </button>
-                    </div>
-                </form>
+                        <div class="pt-4 border-t border-slate-700/60 flex justify-end gap-3">
+                            <button type="button" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:bg-slate-700 transition" @click="showPbModal = false">Cancel</button>
+                            <button type="submit" :disabled="pbLoading" class="px-6 py-2.5 rounded-xl bg-neon text-slate-900 font-black hover:bg-[#b3e600] transition text-sm disabled:opacity-50 shadow-lg shadow-neon/20">
+                                @{{ pbLoading ? 'Updating...' : 'Save Changes' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -1737,52 +1740,50 @@
                     <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
 
                         <!-- ── VDOT Comparison Banner ── -->
-                        <div class="rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 p-4">
-                            <div class="flex items-center justify-between gap-4 flex-wrap">
+                        <div class="rounded-2xl bg-gradient-to-r from-purple-950/40 to-slate-900/60 border border-purple-500/20 p-5 shadow-inner">
+                            <div class="grid grid-cols-3 gap-2 items-center">
                                 <!-- Current VDOT -->
                                 <div class="text-center">
-                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">
+                                    <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-widest mb-1 leading-tight">
                                         <span v-if="insightType === 'generate'">VDOT Saat Ini</span>
-                                        <span v-else>VDOT Sebelumnya</span>
+                                        <span v-else>Sebelumnya</span>
                                     </div>
-                                    <div class="text-3xl font-black text-slate-300">
+                                    <div class="text-2xl sm:text-3xl font-black text-slate-400 font-mono">
                                         @{{ insightType === 'generate' ? insightData.initial_vdot : insightData.old_vdot }}
                                     </div>
                                 </div>
 
-                                <!-- Arrow & Delta -->
-                                <div class="flex-1 flex flex-col items-center gap-1">
-                                    <div class="flex items-center gap-2 w-full">
-                                        <div class="h-px flex-1 bg-gradient-to-r from-slate-700 to-purple-500"></div>
-                                        <div class="px-3 py-1.5 rounded-full text-sm font-black border"
-                                             :class="insightData.vdot_diff >= 0
-                                                ? 'bg-green-500/20 text-green-300 border-green-500/40'
-                                                : 'bg-red-500/20 text-red-300 border-red-500/40'">
-                                            <span v-text="(insightData.vdot_diff >= 0 ? '+' : '') + insightData.vdot_diff"></span>
-                                        </div>
-                                        <div class="h-px flex-1 bg-gradient-to-r from-purple-500 to-neon"></div>
+                                <!-- Delta Indicator -->
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="px-2.5 py-1 rounded-full text-xs sm:text-sm font-black border font-mono tracking-tight shadow-sm"
+                                         :class="insightData.vdot_diff > 0
+                                            ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                                            : (insightData.vdot_diff < 0
+                                                ? 'bg-red-500/10 text-red-400 border-red-500/30'
+                                                : 'bg-slate-800 text-slate-400 border-slate-700/60')">
+                                        <span v-text="(insightData.vdot_diff > 0 ? '+' : '') + insightData.vdot_diff"></span>
                                     </div>
-                                    <div class="text-[10px] text-slate-500">VDOT ≈ VO2Max</div>
+                                    <div class="text-[8px] sm:text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-1.5 whitespace-nowrap text-center">VDOT Delta</div>
                                 </div>
 
-                                <!-- Target VDOT -->
+                                <!-- Target/New VDOT -->
                                 <div class="text-center">
-                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">
+                                    <div class="text-[9px] sm:text-[10px] text-neon uppercase tracking-widest mb-1 leading-tight">
                                         <span v-if="insightType === 'generate'">Target VDOT</span>
                                         <span v-else>VDOT Baru</span>
                                     </div>
-                                    <div class="text-3xl font-black text-neon">
+                                    <div class="text-2xl sm:text-3xl font-black text-neon font-mono">
                                         @{{ insightType === 'generate' ? insightData.target_vdot : insightData.new_vdot }}
                                     </div>
-                                    <div class="text-[10px] mt-1 font-bold"
-                                         :class="(insightType === 'generate' ? insightData.vdot_pct : insightData.vdot_pct) >= 0 ? 'text-green-400' : 'text-red-400'">
-                                        @{{ (insightType === 'generate' ? insightData.vdot_pct : insightData.vdot_pct) >= 0 ? '+' : '' }}@{{ insightType === 'generate' ? insightData.vdot_pct : insightData.vdot_pct }}% VO2Max
+                                    <div class="text-[9px] sm:text-[10px] mt-0.5 font-bold font-mono whitespace-nowrap"
+                                         :class="insightData.vdot_diff > 0 ? 'text-green-400' : (insightData.vdot_diff < 0 ? 'text-red-400' : 'text-slate-400')">
+                                        @{{ insightData.vdot_diff > 0 ? '+' : '' }}@{{ (insightType === 'generate' ? insightData.vdot_pct : insightData.vdot_pct) || 0 }}% VO2Max
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Duration info for generate type -->
-                            <div v-if="insightType === 'generate'" class="mt-3 pt-3 border-t border-purple-500/20 text-center">
+                            <div v-if="insightType === 'generate'" class="mt-4 pt-3 border-t border-purple-500/20 text-center">
                                 <p class="text-xs text-slate-400">
                                     Program <strong class="text-white">@{{ insightData.duration_weeks }} Minggu</strong> untuk
                                     <strong class="text-neon">@{{ insightData.goal_distance?.toUpperCase() }}</strong>
@@ -1803,40 +1804,75 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <template v-if="insightType === 'generate'">
                                     <div v-for="(imp, distKey) in insightData.time_improvements" :key="distKey"
-                                         class="bg-slate-800/60 border rounded-xl p-3 relative overflow-hidden"
-                                         :class="imp.diff_seconds > 0 ? 'border-green-500/30' : 'border-slate-700'">
-                                        <div v-if="imp.diff_seconds > 0" class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-green-400 to-neon"></div>
-                                        <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">@{{ imp.label }}</div>
-                                        <div class="flex items-end gap-2">
+                                         class="bg-slate-800/60 border rounded-xl p-3 relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:bg-slate-800"
+                                         :class="imp.diff_seconds > 0 
+                                            ? 'border-green-500/30 shadow-sm shadow-green-500/5' 
+                                            : 'border-slate-700/50'">
+                                        <!-- Top indicator line -->
+                                        <div class="absolute top-0 left-0 right-0 h-0.5"
+                                             :class="imp.diff_seconds > 0 ? 'bg-gradient-to-r from-green-400 to-neon' : 'bg-slate-600'"></div>
+                                        
+                                        <div class="text-[10px] text-slate-400 uppercase font-black tracking-wider mb-1">@{{ imp.label }}</div>
+                                        
+                                        <div class="flex items-center justify-between gap-2">
                                             <div>
-                                                <div class="text-[10px] text-slate-500 line-through">@{{ imp.current_time }}</div>
-                                                <div class="text-base font-black text-white font-mono">@{{ imp.projected_time }}</div>
+                                                <div class="text-[10px] text-slate-500 font-mono line-through">@{{ imp.current_time }}</div>
+                                                <div class="text-sm sm:text-base font-black text-white font-mono">@{{ imp.projected_time }}</div>
                                             </div>
-                                            <div v-if="imp.improvement_pct > 0" class="ml-auto text-right">
-                                                <div class="text-green-400 font-black text-sm">-@{{ imp.improvement_pct }}%</div>
-                                                <div class="text-[10px] text-green-500">lebih cepat</div>
+                                            <div v-if="imp.improvement_pct > 0" class="text-right">
+                                                <div class="text-green-400 font-black text-xs sm:text-sm font-mono leading-none">-@{{ imp.improvement_pct }}%</div>
+                                                <div class="text-[9px] text-green-500 font-medium mt-0.5 leading-none whitespace-nowrap">lebih cepat</div>
                                             </div>
                                         </div>
                                     </div>
                                 </template>
                                 <template v-else>
                                     <div v-for="(imp, distKey) in insightData.time_improvements" :key="distKey"
-                                         class="bg-slate-800/60 border rounded-xl p-3 relative overflow-hidden"
-                                         :class="imp.improved ? 'border-green-500/30' : 'border-red-500/20'">
+                                         class="bg-slate-800/60 border rounded-xl p-3 relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:bg-slate-800"
+                                         :class="imp.diff_seconds > 0 
+                                            ? 'border-green-500/30 shadow-sm shadow-green-500/5' 
+                                            : (imp.diff_seconds < 0 
+                                                ? 'border-red-500/20' 
+                                                : 'border-slate-700/50')">
+                                        <!-- Top indicator line -->
                                         <div class="absolute top-0 left-0 right-0 h-0.5"
-                                             :class="imp.improved ? 'bg-gradient-to-r from-green-400 to-neon' : 'bg-red-500'"></div>
-                                        <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">@{{ imp.label }}</div>
-                                        <div class="flex items-end gap-2">
+                                             :class="imp.diff_seconds > 0 
+                                                ? 'bg-gradient-to-r from-green-400 to-neon' 
+                                                : (imp.diff_seconds < 0 
+                                                    ? 'bg-red-500' 
+                                                    : 'bg-slate-600')"></div>
+                                        
+                                        <div class="text-[10px] text-slate-400 uppercase font-black tracking-wider mb-1">@{{ imp.label }}</div>
+                                        
+                                        <div class="flex items-center justify-between gap-2">
                                             <div>
-                                                <div class="text-[10px] text-slate-500 line-through">@{{ imp.old_time }}</div>
-                                                <div class="text-base font-black font-mono" :class="imp.improved ? 'text-green-300' : 'text-red-300'">@{{ imp.new_time }}</div>
-                                            </div>
-                                            <div class="ml-auto text-right">
-                                                <div class="font-black text-sm" :class="imp.improved ? 'text-green-400' : 'text-red-400'">
-                                                    @{{ imp.improved ? '-' : '+' }}@{{ imp.improvement_pct }}%
+                                                <div class="text-[10px] text-slate-500 font-mono line-through">@{{ imp.old_time }}</div>
+                                                <div class="text-sm sm:text-base font-black font-mono" 
+                                                     :class="imp.diff_seconds > 0 
+                                                        ? 'text-green-300' 
+                                                        : (imp.diff_seconds < 0 
+                                                            ? 'text-red-300' 
+                                                            : 'text-slate-300')">
+                                                    @{{ imp.new_time }}
                                                 </div>
-                                                <div class="text-[10px]" :class="imp.improved ? 'text-green-500' : 'text-red-500'">
-                                                    @{{ imp.improved ? 'lebih cepat' : 'lebih lambat' }}
+                                            </div>
+                                            
+                                            <div class="text-right">
+                                                <div class="font-black text-xs sm:text-sm font-mono leading-none" 
+                                                     :class="imp.diff_seconds > 0 
+                                                        ? 'text-green-400' 
+                                                        : (imp.diff_seconds < 0 
+                                                            ? 'text-red-400' 
+                                                            : 'text-slate-400')">
+                                                    @{{ imp.diff_seconds > 0 ? '-' : (imp.diff_seconds < 0 ? '+' : '') }}@{{ imp.improvement_pct }}%
+                                                </div>
+                                                <div class="text-[9px] font-medium mt-0.5 leading-none whitespace-nowrap" 
+                                                     :class="imp.diff_seconds > 0 
+                                                        ? 'text-green-500' 
+                                                        : (imp.diff_seconds < 0 
+                                                            ? 'text-red-500' 
+                                                            : 'text-slate-500')">
+                                                    @{{ imp.diff_seconds > 0 ? 'lebih cepat' : (imp.diff_seconds < 0 ? 'lebih lambat' : 'stabil') }}
                                                 </div>
                                             </div>
                                         </div>

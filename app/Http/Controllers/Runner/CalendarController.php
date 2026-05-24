@@ -317,15 +317,22 @@ class CalendarController extends Controller
             $key = 'E';
         }
 
-        // Logic override: If Interval (I) and matches short distance patterns (e.g. 100m, 200m, 400m, 800m)
+        // Logic override: If Interval (I) and matches short distance patterns (e.g. 100m, 200m, 400m)
         if ($key === 'I') {
             $combined = strtolower($title . ' ' . $description);
+            // Replace common separators/slashes with spaces to ease regex matching
+            $combined = str_replace(['/', ',', ';', '-'], ' ', $combined);
+            
+            // Remove rest/recovery patterns so recovery jog distances are not misidentified as work distances
+            $cleanText = preg_replace('/\b\d+(?:\s*(?:m|km|min|minutes|s|sec|seconds))?\s*(?:jog|rec|walk|rest|easy|active|recovery)\b/i', '', $combined);
+            $cleanText = preg_replace('/\b(?:jog|rec|walk|rest|easy|active|recovery)\s*\d+(?:\s*(?:m|km|min|minutes|s|sec|seconds))?\b/i', '', $cleanText);
+
             $isShort = false;
-            if ($distance !== null && is_numeric($distance) && floatval($distance) <= 0.805) {
+            if ($distance !== null && is_numeric($distance) && floatval($distance) <= 0.605) {
                 $isShort = true;
-            } elseif (preg_match('/\b(55|50|100|200|300|400|500|600|800)\s*m\b/i', $combined)) {
+            } elseif (preg_match('/\b(100|200|300|400|500|600)\s*m\b/i', $cleanText)) {
                 $isShort = true;
-            } elseif (preg_match('/\b0\.[1-8]\s*km\b/i', $combined)) {
+            } elseif (preg_match('/\b0\.[1-6]\s*km\b/i', $cleanText)) {
                 $isShort = true;
             }
 
