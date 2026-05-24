@@ -205,7 +205,12 @@
                 <!-- Week Navigation -->
                 <div class="flex items-center justify-between mb-4 bg-slate-900/50 p-2 rounded-xl">
                     <button type="button" @click="currentWeek = Math.max(1, currentWeek - 1)" class="p-2 hover:text-white text-slate-400 transition" :disabled="currentWeek === 1">← Prev Week</button>
-                    <span class="font-bold text-white">Week @{{ currentWeek }} of @{{ form.duration_weeks }}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-white">Week @{{ currentWeek }} of @{{ form.duration_weeks }}</span>
+                        <button type="button" @click="addWeek" class="px-3 py-1 rounded-lg bg-neon text-dark font-black text-xs hover:bg-[#b3e600] transition-colors shadow-md shadow-neon/10">
+                            + Add Week
+                        </button>
+                    </div>
                     <button type="button" @click="currentWeek = Math.min(form.duration_weeks, currentWeek + 1)" class="p-2 hover:text-white text-slate-400 transition" :disabled="currentWeek === form.duration_weeks">Next Week →</button>
                 </div>
 
@@ -1203,6 +1208,12 @@ createApp({
             currentWeek.value = nextWeek;
         };
         
+        const addWeek = () => {
+            form.duration_weeks = Number(form.duration_weeks) + 1;
+            updateWeeks();
+            currentWeek.value = form.duration_weeks;
+        };
+        
         const updateWeeks = () => {
             // Trim sessions beyond new duration
             const maxDay = form.duration_weeks * 7;
@@ -1344,7 +1355,7 @@ createApp({
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleDragStart, handleSessionDragStart,
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
             deleteWorkout, duplicateWorkout, builderIsEditing, builderSessionId,
-            copyWeek, updateWeeks, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
+            copyWeek, updateWeeks, addWeek, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes,
             masterWorkouts, cwForm, cwSummary, cwTotalDistance,
             strengthOptions, addStrengthExercise, removeStrengthExercise
