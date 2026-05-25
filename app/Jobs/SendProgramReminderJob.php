@@ -58,7 +58,11 @@ class SendProgramReminderJob implements ShouldQueue
                 . "- Jangan gunakan panggilan kaku seperti 'Halo Atlet', sebut nama panggilan atlet secara langsung.";
             
             $message = $openAiService->getAiResponse($prompt, $systemMessage);
-            $calendarUrl = route('runner.calendar');
+            $calendarUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'login.token',
+                now()->addDays(7),
+                ['user' => $this->user->id, 'redirect' => route('runner.calendar')]
+            );
 
             if ($message) {
                 $message = str_replace('[LINK_CALENDAR]', $calendarUrl, $message);
@@ -68,7 +72,7 @@ class SendProgramReminderJob implements ShouldQueue
                 }
             } else {
                 // Fallback message if OpenAI fails
-                $message = $this->getFallbackMessage();
+                $message = $this->getFallbackMessage($calendarUrl);
             }
 
             // Send via WhatsApp
@@ -113,8 +117,10 @@ class SendProgramReminderJob implements ShouldQueue
             if ($duration) $prompt .= "Durasi: {$duration}\n";
             if ($targetPace) $prompt .= "Target Pace: {$targetPace}\n";
             
-            $prompt .= "Instruksi Khusus: Beri tahu jadwal besok dan beri motivasi singkat yang berapi-api agar dia semangat latihan besok pagi. Pastikan bahasanya natural seperti chat WhatsApp dari asisten pelatih yang akrab. Wajib sertakan placeholder '[LINK_CALENDAR]'.";
+            $prompt .= "Instruksi Khusus: Beri tahu jadwal besok and beri motivasi singkat yang berapi-api agar dia semangat latihan besok pagi. Pastikan bahasanya natural seperti chat WhatsApp dari asisten pelatih yang akrab. Wajib sertakan placeholder '[LINK_CALENDAR]'.";
         }
+
+        $prompt .= "\nTambahan: Ingatkan juga atlet untuk memperbarui data PB (Personal Best) mereka di aplikasi agar perhitungan pacing latihan yang diberikan pelatih tetap tepat dan sesuai.";
 
         return $prompt;
     }
@@ -122,20 +128,19 @@ class SendProgramReminderJob implements ShouldQueue
     /**
      * Fallback message if OpenAI fails
      */
-    private function getFallbackMessage(): string
+    private function getFallbackMessage(string $calendarUrl): string
     {
         $type = strtolower($this->sessionData['type'] ?? 'rest');
         $isRest = in_array($type, ['rest', 'rest day', 'libur']);
-        $calendarUrl = route('runner.calendar');
 
         if ($isRest) {
-            return "Halo {$this->user->name}! Besok jadwal program *{$this->program->title}* kamu itu *Rest Day* ya. Manfaatin waktu istirahat sebaik mungkin biar ototnya recovery dengan maksimal. Tetap semangat! 💪\n\nCek kalendermu di sini: {$calendarUrl}";
+            return "Halo {$this->user->name}! Besok jadwal program *{$this->program->title}* kamu itu *Rest Day* ya. Manfaatin waktu istirahat sebaik mungkin biar ototnya recovery dengan maksimal. Oya, jangan lupa update data PB (Personal Best) kamu di profil ya, biar pacing latihan berikutnya tetap pas dan akurat! Tetap semangat! 💪\n\nCek kalendermu di sini: {$calendarUrl}";
         }
 
         $detail = "";
         if (!empty($this->sessionData['distance'])) $detail .= " Jarak: {$this->sessionData['distance']}km.";
         if (!empty($this->sessionData['duration'])) $detail .= " Durasi: {$this->sessionData['duration']}.";
         
-        return "Halo {$this->user->name}! Mengingatkan saja, besok jadwal kamu adalah sesi *{$this->sessionData['type']}* untuk program *{$this->program->title}*.{$detail} Yuk, persiapkan sepatu dan kelengkapannya malam ini biar besok tinggal gas! Semangat! 🔥\n\nDetail kalender: {$calendarUrl}";
+        return "Halo {$this->user->name}! Mengingatkan saja, besok jadwal kamu adalah sesi *{$this->sessionData['type']}* untuk program *{$this->program->title}*.{$detail} Yuk, persiapkan sepatu dan kelengkapannya malam ini biar besok tinggal gas! Oh ya, pastikan data PB (Personal Best) kamu di profil sudah terupdate ya agar pacing latihan kamu selalu tepat dan sesuai. Semangat! 🔥\n\nDetail kalender: {$calendarUrl}";
     }
 }

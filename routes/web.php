@@ -669,6 +669,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/p/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('pages.show');
 });
 
+Route::get('/login/token/{user}', [App\Http\Controllers\Auth\AuthController::class, 'autoLogin'])
+    ->name('login.token')
+    ->middleware('signed');
+
 Route::middleware('auth')->group(function () {
     // Challenge / Leaderboard Routes
     // Route::get('/challenge/submit', [App\Http\Controllers\ChallengeController::class, 'create'])->name('challenge.create'); // Moved to public

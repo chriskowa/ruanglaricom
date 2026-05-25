@@ -423,4 +423,18 @@ class AuthController extends Controller
 
         return $code;
     }
+
+    public function autoLogin(Request $request, User $user)
+    {
+        // Log in the user
+        Auth::login($user);
+
+        // Regenerate session
+        $request->session()->regenerate();
+
+        // Redirect to intended or fallback
+        $redirectUrl = $request->get('redirect', route('runner.calendar'));
+
+        return redirect($redirectUrl);
+    }
 }
