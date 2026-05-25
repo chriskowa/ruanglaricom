@@ -6,6 +6,13 @@
 @section('content')
 <div id="admin-dashboard-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
     
+    @if (session('success'))
+        <div class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 flex items-center gap-3 relative z-10" data-aos="fade-down">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
     <!-- Hero Section -->
     <div class="mb-10 relative z-10" data-aos="fade-up">
         <div class="flex flex-col md:flex-row justify-between items-end gap-4">
@@ -29,7 +36,7 @@
     </div>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 relative z-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10 relative z-10">
         
         <!-- Total Users -->
         <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 hover:border-blue-400/50 transition-all group">
@@ -80,6 +87,25 @@
             </div>
             <h3 class="text-2xl font-bold text-white">Online</h3>
             <div class="mt-2 text-xs text-green-400 font-bold">All services operational</div>
+        </div>
+
+        <!-- WhatsApp Gateway Status Card -->
+        @php($waActive = (bool) \App\Models\AppSettings::get('whatsapp_is_active', false))
+        <div onclick="openWhatsappSettingsModal()" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 hover:border-green-400/50 transition-all group cursor-pointer relative overflow-hidden">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-green-400 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.253 8.477 3.52 2.262 2.268 3.51 5.28 3.507 8.483-.006 6.66-5.344 11.997-11.957 11.997a11.903 11.903 0 01-5.688-1.448L.057 24zm6.305-1.655a9.882 9.882 0 005.683 1.449h.005c5.46 0 9.902-4.443 9.907-9.908.002-2.65-1.03-5.14-2.898-7.01C17.19 5.006 14.7 3.972 12.05 3.972c-5.462 0-9.904 4.443-9.909 9.909-.001 2.09.547 4.12 1.588 5.925l-.235-.382-3.742.983.998-3.648-.214-.361a9.824 9.824 0 01-1.378-5.03c.004-4.887 3.51-8.91 8.413-9.81z"/>
+                    </svg>
+                </div>
+                <span class="text-xs font-mono text-slate-500 uppercase">WhatsApp Gateway</span>
+            </div>
+            <h3 class="text-2xl font-bold {{ $waActive ? 'text-green-400' : 'text-slate-400' }}">
+                {{ $waActive ? 'Active' : 'Disabled' }}
+            </h3>
+            <div class="mt-2 text-xs {{ $waActive ? 'text-green-400/70' : 'text-slate-500' }} font-bold">
+                {{ $waActive ? 'Click to configure' : 'Click to enable' }}
+            </div>
         </div>
     </div>
 
@@ -142,4 +168,83 @@
         </div>
     </div>
 </div>
+
+<!-- WhatsApp Gateway Settings Modal -->
+<div id="whatsapp-settings-modal" class="fixed inset-0 z-50 hidden">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeWhatsappSettingsModal()"></div>
+    
+    <!-- Modal Body -->
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl overflow-hidden">
+            <!-- Decorative Glow -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-green-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                        <svg class="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.536 0 1.52 1.115 2.988 1.264 3.186.149.198 2.19 3.361 5.27 4.69 2.151.928 2.988.94 3.518.865.592-.084 1.758-.717 2.006-1.41.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.381a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                        WHATSAPP GATEWAY
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Configure your WhatsApp Jitu Property keys.</p>
+                </div>
+                <button type="button" onclick="closeWhatsappSettingsModal()" class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('admin.integration.settings.update') }}" method="POST" class="space-y-5">
+                @csrf
+                
+                <!-- Toggle Switch -->
+                <div class="flex items-center justify-between p-4 bg-slate-950/40 border border-slate-800 rounded-xl">
+                    <div>
+                        <span class="text-sm font-bold text-white block">Status Integrasi</span>
+                        <span class="text-[11px] text-slate-400">Aktifkan pengiriman pesan WhatsApp</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="hidden" name="whatsapp_is_active" value="0">
+                        <input type="checkbox" name="whatsapp_is_active" value="1" class="sr-only peer" {{ \App\Models\AppSettings::get('whatsapp_is_active', false) ? 'checked' : '' }}>
+                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                    </label>
+                </div>
+
+                <!-- App Key -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">App Key</label>
+                    <input type="password" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-green-400 transition" 
+                        name="whatsapp_app_key" value="{{ \App\Models\AppSettings::get('whatsapp_app_key') }}" placeholder="App Key Jitu Property">
+                </div>
+
+                <!-- Auth Key -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Auth Key</label>
+                    <input type="password" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-green-400 transition" 
+                        name="whatsapp_auth_key" value="{{ \App\Models\AppSettings::get('whatsapp_auth_key') }}" placeholder="Auth Key Jitu Property">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeWhatsappSettingsModal()" class="px-4 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-bold transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-green-500 hover:bg-green-400 text-slate-950 font-black text-sm transition">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openWhatsappSettingsModal() {
+    const modal = document.getElementById('whatsapp-settings-modal');
+    modal.classList.remove('hidden');
+}
+
+function closeWhatsappSettingsModal() {
+    const modal = document.getElementById('whatsapp-settings-modal');
+    modal.classList.add('hidden');
+}
+</script>
 @endsection

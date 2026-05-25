@@ -6,8 +6,13 @@ class WhatsApp
 {
     public static function send(string $to, string $message): void
     {
-        $appkey = env('WHATSAPP_APPKEY');
-        $authkey = env('WHATSAPP_AUTHKEY');
+        $isActive = (bool) \App\Models\AppSettings::get('whatsapp_is_active', false);
+        if (! $isActive) {
+            return;
+        }
+
+        $appkey = \App\Models\AppSettings::get('whatsapp_app_key') ?: env('WHATSAPP_APPKEY');
+        $authkey = \App\Models\AppSettings::get('whatsapp_auth_key') ?: env('WHATSAPP_AUTHKEY');
         if (! $appkey || ! $authkey || ! $to) {
             return;
         }

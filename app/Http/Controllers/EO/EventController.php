@@ -2382,4 +2382,32 @@ class EventController extends Controller
             'message' => "Berhasil menjadwalkan {$count} reminder pembayaran."
         ]);
     }
+
+    public function sendCustomWaReminderBulk(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $request->validate([
+            'participant_ids' => 'required|array',
+            'participant_ids.*' => 'integer|exists:participants,id',
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $participants = \App\Models\Participant::whereIn('id', $request->participant_ids)
+            ->whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->get();
+
+        $count = 0;
+        foreach ($participants as $participant) {
+            \App\Jobs\SendCustomWhatsAppJob::dispatch($participant->id, $request->message);
+            $count++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil mengirim {$count} pesan reminder WhatsApp ke antrean."
+        ]);
+    }
 }

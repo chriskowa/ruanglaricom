@@ -663,6 +663,70 @@
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 Remind Pending
             </button>
+            <button onclick="openWaReminderModal()" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                WA Reminder
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- WA Reminder Modal -->
+<div id="waReminderModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeWaReminderModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-xl p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <svg class="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                            Kirim Kustom WA Reminder
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Kirim pesan WhatsApp kustom ke peserta terpilih.</p>
+                    </div>
+                    <button type="button" onclick="closeWaReminderModal()" class="text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-300 mb-2">Templat Pesan</label>
+                        <textarea id="waReminderMessage" rows="8" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 focus:outline-none focus:border-green-500 transition placeholder-slate-600 font-sans" placeholder="Tulis template pesan Anda di sini..."></textarea>
+                    </div>
+
+                    <!-- Placeholders list -->
+                    <div class="p-4 bg-slate-900 rounded-xl border border-slate-700/50 space-y-2">
+                        <span class="text-xs font-bold text-slate-400 block uppercase tracking-wider">Placeholder yang dapat digunakan:</span>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <span class="text-slate-300"><code class="text-green-400 font-mono bg-slate-950 px-1.5 py-0.5 rounded">{name}</code> : Nama Peserta</span>
+                            <span class="text-slate-300"><code class="text-green-400 font-mono bg-slate-950 px-1.5 py-0.5 rounded">{event}</code> : Nama Event</span>
+                            <span class="text-slate-300"><code class="text-green-400 font-mono bg-slate-950 px-1.5 py-0.5 rounded">{status}</code> : Status Transaksi</span>
+                            <span class="text-slate-300"><code class="text-green-400 font-mono bg-slate-950 px-1.5 py-0.5 rounded">{link}</code> : Link Pembayaran</span>
+                        </div>
+                    </div>
+
+                    <!-- Default Template suggestion buttons -->
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <button type="button" onclick="setWaTemplate('pending')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg text-xs font-bold transition">
+                            Template Pending
+                        </button>
+                        <button type="button" onclick="setWaTemplate('failed')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg text-xs font-bold transition">
+                            Template Failed
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-700/50">
+                    <button type="button" onclick="closeWaReminderModal()" class="px-4 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-bold transition">
+                        Batal
+                    </button>
+                    <button type="button" onclick="sendBulkWaReminder(this)" class="px-5 py-2 rounded-xl bg-green-500 hover:bg-green-400 text-slate-950 font-black text-sm transition flex items-center gap-2">
+                        Kirim Reminder
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -3027,6 +3091,80 @@
             }
         })
         .catch(err => {
+            console.error(err);
+            alert('Terjadi kesalahan saat mengirim reminder');
+        });
+    };
+
+    window.openWaReminderModal = function() {
+        const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) {
+            alert('Silakan pilih minimal 1 peserta terlebih dahulu.');
+            return;
+        }
+        
+        // Default to pending template
+        setWaTemplate('pending');
+        
+        document.getElementById('waReminderModal').classList.remove('hidden');
+    };
+
+    window.closeWaReminderModal = function() {
+        document.getElementById('waReminderModal').classList.add('hidden');
+    };
+
+    window.setWaTemplate = function(type) {
+        const textarea = document.getElementById('waReminderMessage');
+        if (type === 'pending') {
+            textarea.value = `Halo {name},\n\nKami mengingatkan bahwa pendaftaran Anda untuk event *{event}* masih berstatus *{status}*.\n\nMohon segera selesaikan pembayaran melalui link berikut agar tiket Anda aman:\n{link}\n\nTerima kasih! 🏃‍♂️`;
+        } else if (type === 'failed') {
+            textarea.value = `Halo {name},\n\nKami menginformasikan bahwa pembayaran pendaftaran Anda untuk event *{event}* terdeteksi *{status}* (Gagal/Kedaluwarsa).\n\nSilakan lakukan pendaftaran ulang atau lanjutkan pembayaran di link berikut:\n{link}\n\nJika butuh bantuan hubungi CS kami. Terima kasih!`;
+        }
+    };
+
+    window.sendBulkWaReminder = function(btn) {
+        const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);
+        const message = document.getElementById('waReminderMessage').value.trim();
+        
+        if (selected.length === 0) return;
+        if (!message) {
+            alert('Pesan reminder tidak boleh kosong.');
+            return;
+        }
+
+        if (!confirm(`Kirim kustom WhatsApp reminder ke ${selected.length} peserta terpilih?`)) return;
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-slate-950 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...`;
+
+        fetch(`{{ route('eo.events.remind-whatsapp-custom', $event) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                participant_ids: selected,
+                message: message
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            if (res.success) {
+                alert(res.message);
+                closeWaReminderModal();
+                window.location.reload();
+            } else {
+                alert(res.message || 'Gagal mengirim reminder');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
             console.error(err);
             alert('Terjadi kesalahan saat mengirim reminder');
         });

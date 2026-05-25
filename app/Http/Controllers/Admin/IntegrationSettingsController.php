@@ -38,6 +38,11 @@ class IntegrationSettingsController extends Controller
             'moota_bank_id' => AppSettings::get('moota_bank_id'),
             'moota_is_active' => AppSettings::get('moota_is_active', false),
             'moota_instructions' => AppSettings::get('moota_instructions'),
+
+            // WhatsApp Gateway
+            'whatsapp_is_active' => AppSettings::get('whatsapp_is_active', false),
+            'whatsapp_app_key' => AppSettings::get('whatsapp_app_key'),
+            'whatsapp_auth_key' => AppSettings::get('whatsapp_auth_key'),
         ];
 
         return view('admin.settings.integrations', compact('settings'));
@@ -73,6 +78,11 @@ class IntegrationSettingsController extends Controller
             'moota_bank_id' => 'nullable|string',
             'moota_is_active' => 'nullable|boolean',
             'moota_instructions' => 'nullable|string',
+
+            // WhatsApp Gateway
+            'whatsapp_is_active' => 'nullable|boolean',
+            'whatsapp_app_key' => 'nullable|string',
+            'whatsapp_auth_key' => 'nullable|string',
         ]);
 
         foreach ($data as $key => $value) {
