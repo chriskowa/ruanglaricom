@@ -1263,7 +1263,7 @@
                 // Update Displays
                 subtotalDisplay.textContent = formatCurrency(subtotal);
                 
-                const totalFee = selectedCount * platformFee;
+                const totalFee = (subtotal - discountAmount <= 0) ? 0 : (selectedCount * platformFee);
                 if(platformFeeDisplay) platformFeeDisplay.textContent = formatCurrency(totalFee);
                 
                 let grandTotal = subtotal + totalFee - discountAmount;

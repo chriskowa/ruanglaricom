@@ -3,12 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\AppSettings;
+use App\Models\Article;
 use Illuminate\Http\Request;
 
 class VCardController extends Controller
 {
     public function index(Request $request)
     {
+        $latestArticles = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('articles')) {
+            $latestArticles = Article::published()
+                ->orderByDesc('is_featured')
+                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->limit(3)
+                ->get();
+        }
+
         $title = AppSettings::get('vcard_title', 'Ruang Lari - Komunitas Lari & Challenge 40 Hari Indonesia');
         $description = AppSettings::get('vcard_description', 'Gabung Ruang Lari, komunitas lari terbesar di Indonesia. Ikuti 40 Days Challenge, program latihan gratis, kalkulator pace, dan temukan jadwal event lari terbaru disini.');
         $logoUrl = AppSettings::get('vcard_logo_url', 'https://res.cloudinary.com/dslfarxct/images/c_scale,w_248,h_66/f_auto,q_auto/v1765865897/logo-ruang-lari_57925c8f9/logo-ruang-lari_57925c8f9.webp?_i=AA');
@@ -77,7 +87,8 @@ class VCardController extends Controller
             'adsDescription',
             'bgColor',
             'accentColor',
-            'textColor'
+            'textColor',
+            'latestArticles'
         ));
     }
 }

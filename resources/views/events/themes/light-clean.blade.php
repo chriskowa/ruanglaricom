@@ -899,7 +899,7 @@
                 subtotal += price * paidQty;
             });
 
-            const totalFee = count * platformFee;
+            const totalFee = (subtotal - discountAmount <= 0) ? 0 : (count * platformFee);
             let finalTotal = subtotal + totalFee - discountAmount;
             if(finalTotal < 0) finalTotal = 0;
 

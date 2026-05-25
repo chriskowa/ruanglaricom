@@ -219,7 +219,13 @@
             display: inline-block;
         }
 
-        body { background-color: #09090b; color: #cbd5e1; overflow-x: hidden; }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        body { background-color: #09090b; color: #cbd5e1; }
+
+        /* Hide reCAPTCHA v3 badge */
+        .grecaptcha-badge {
+            visibility: hidden !important;
+        }
 
         /* Validation Styles */
         .input-error {
@@ -615,7 +621,7 @@
     @endif
     @endif
 
-    <nav class="fixed w-full z-50 transition-all duration-300 bg-white/0 border-b border-transparent" id="navbar">
+    <nav class="fixed w-full left-0 z-50 transition-all duration-300 bg-white/0 border-b border-transparent" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <a href="#top" class="flex items-center gap-3 group">
@@ -709,7 +715,7 @@
                         <span class="text-xs font-bold text-white uppercase tracking-wider">{{ $event->start_at->format('d F Y') }} • {{ $event->location_name }}</span>
                     </div>
                     
-                    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none mb-6 drop-shadow-lg">
+                    <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none mb-6 drop-shadow-lg">
                         <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-brand-500">{{ strtoupper($event->name) }}</span>
                     </h1>
                     <div class="text-white mb-10">
@@ -837,7 +843,7 @@
     </header>
 
     <!-- About Section -->
-    <section id="about" class="py-24 bg-dark-950 relative z-10">
+    <section id="about" class="py-24 bg-dark-950 relative z-10 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div class="reveal">
@@ -2546,7 +2552,7 @@
                 // Update Displays
                 subtotalDisplay.textContent = formatCurrency(subtotal);
                 
-                const totalFee = selectedCount * platformFee;
+                const totalFee = (subtotal - discountAmount <= 0) ? 0 : (selectedCount * platformFee);
                 if(platformFeeDisplay) platformFeeDisplay.textContent = formatCurrency(totalFee);
                 
                 let grandTotal = subtotal + totalFee - discountAmount;

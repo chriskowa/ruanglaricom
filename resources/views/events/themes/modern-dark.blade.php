@@ -1712,7 +1712,7 @@
                     subtotal += price * paidQty;
                 });
                 
-                const totalFee = count * platformFee;
+                const totalFee = (subtotal - discountAmount <= 0) ? 0 : (count * platformFee);
                 document.getElementById('subtotal').textContent = `Rp ${formatCurrency(subtotal)}`;
                 
                 if (platformFee > 0) {

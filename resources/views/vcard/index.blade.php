@@ -125,6 +125,50 @@
             </div>
         </div>
 
+        <!-- Latest Articles -->
+        @if(isset($latestArticles) && count($latestArticles) > 0)
+        <div class="w-full mb-6 animate-slide-up" style="animation-delay: 0.15s;">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <h2 class="text-xs font-black tracking-widest text-main-text/50 uppercase flex items-center gap-2">
+                    <i class="fas fa-book-open text-neon"></i> Artikel Terbaru
+                </h2>
+                <a href="https://ruanglari.com/blog" class="text-[10px] font-black text-neon uppercase tracking-wider hover:underline">Lihat Semua</a>
+            </div>
+            
+            <div class="space-y-3">
+                @foreach($latestArticles as $article)
+                @php
+                    $artImg = $article->featured_image;
+                    if ($artImg && ! str_starts_with($artImg, 'http')) {
+                        $artImg = asset('storage/'.ltrim($artImg, '/'));
+                    }
+                    $artUrl = $article->localized_canonical_url ?: route('blog.show', $article->slug);
+                @endphp
+                <a href="{{ $artUrl }}" class="block w-full glass rounded-xl p-3 flex gap-3 items-center group transition-all duration-300">
+                    @if($artImg)
+                    <div class="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-slate-800 border border-white/5 relative">
+                        <img src="{{ $artImg }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                    </div>
+                    @else
+                    <div class="w-16 h-16 rounded-lg bg-slate-800/80 border border-white/5 flex items-center justify-center shrink-0">
+                        <i class="fas fa-image text-slate-600 text-lg"></i>
+                    </div>
+                    @endif
+                    <div class="flex-grow min-w-0 text-left">
+                        <span class="text-[9px] font-mono font-bold text-neon/80 uppercase">
+                            {{ optional($article->published_at ?: $article->created_at)->format('d M Y') }}
+                        </span>
+                        <h3 class="font-bold text-xs text-main-text/90 group-hover:text-neon transition-colors line-clamp-2 leading-snug mt-0.5">
+                            {{ $article->localized_title }}
+                        </h3>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px] text-main-text/30 group-hover:text-neon group-hover:translate-x-0.5 transition-all"></i>
+                </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         <!-- Featured Links (Big Cards) -->
         <div class="w-full space-y-4 mb-6 animate-slide-up" style="animation-delay: 0.2s;">
             @foreach($featuredLinks as $link)

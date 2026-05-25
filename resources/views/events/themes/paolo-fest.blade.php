@@ -2455,7 +2455,7 @@
                 // Update Displays
                 subtotalDisplay.textContent = formatCurrency(subtotal);
                 
-                const totalFee = selectedCount * platformFee;
+                const totalFee = (subtotal - discountAmount <= 0) ? 0 : (selectedCount * platformFee);
                 if(platformFeeDisplay) platformFeeDisplay.textContent = formatCurrency(totalFee);
                 
                 // Auto-apply promo FAMILY for 4 participants

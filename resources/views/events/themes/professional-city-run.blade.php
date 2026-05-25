@@ -727,7 +727,7 @@
         function updatePrice() {
             const { subtotal, selectedCount } = computePayableSubtotalAndCount();
             
-            const fee = selectedCount * platformFee;
+            const fee = (subtotal - discountAmount <= 0) ? 0 : (selectedCount * platformFee);
             let total = subtotal + fee - discountAmount;
             if(total < 0) total = 0;
 
