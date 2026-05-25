@@ -50,11 +50,23 @@ class SendProgramReminderJob implements ShouldQueue
             $prompt = $this->buildPrompt($profileData);
 
             // Generate message using OpenAI
-            $systemMessage = "Anda adalah 'Coach AI' dari Ruang Lari, asisten pelatih lari yang ahli, ramah, dan sangat memotivasi. Jawablah maksimal 3-4 kalimat singkat untuk pesan WhatsApp. Gunakan bahasa Indonesia kasual ala 'Coach Gaul'.";
+            $systemMessage = "Anda adalah pelatih lari pribadi (Coach lari) dari Ruang Lari. Tulis pesan WhatsApp singkat yang super natural, hangat, akrab (gunakan sapaan santai kasual, seolah mengirim chat WhatsApp pribadi dari teman atau pelatih dekat), dan memotivasi atlet.\n\n"
+                . "ATURAN PENTING:\n"
+                . "- JANGAN gunakan format formal atau kaku. Gunakan bahasa Indonesia santai sehari-hari (casual Indonesian).\n"
+                . "- Batasi maksimal 2-3 kalimat agar tidak terlalu panjang.\n"
+                . "- Sisipkan placeholder '[LINK_CALENDAR]' di bagian akhir kalimat yang pas untuk mengarahkan atlet melihat detail kalender latihan mereka.\n"
+                . "- Jangan gunakan panggilan kaku seperti 'Halo Atlet', sebut nama panggilan atlet secara langsung.";
             
             $message = $openAiService->getAiResponse($prompt, $systemMessage);
+            $calendarUrl = route('runner.calendar');
 
-            if (!$message) {
+            if ($message) {
+                $message = str_replace('[LINK_CALENDAR]', $calendarUrl, $message);
+                // Fallback if AI forgot to include the calendar link
+                if (!str_contains($message, $calendarUrl)) {
+                    $message .= "\n\nCek kalendermu di sini ya: " . $calendarUrl;
+                }
+            } else {
                 // Fallback message if OpenAI fails
                 $message = $this->getFallbackMessage();
             }
@@ -94,14 +106,14 @@ class SendProgramReminderJob implements ShouldQueue
 
         if ($isRest) {
             $prompt .= "Jadwal Besok: REST DAY (Hari Istirahat/Pemulihan).\n";
-            $prompt .= "Instruksi Khusus: Ingatkan dia untuk istirahat, beri semangat, dan sarankan sedikit tips active recovery ringan atau penguatan (strengthening/mobility) karena besok jadwalnya kosong. Pastikan bahasanya natural seperti asisten pelatih yang peduli.";
+            $prompt .= "Instruksi Khusus: Ingatkan dia untuk istirahat, beri semangat, dan sarankan sedikit tips active recovery ringan atau penguatan (strengthening/mobility) karena besok jadwalnya kosong. Pastikan bahasanya natural seperti asisten pelatih yang peduli. Wajib sertakan placeholder '[LINK_CALENDAR]'.";
         } else {
             $prompt .= "Jadwal Besok: {$this->sessionData['type']}\n";
             if ($distance) $prompt .= "Jarak: {$distance} km\n";
             if ($duration) $prompt .= "Durasi: {$duration}\n";
             if ($targetPace) $prompt .= "Target Pace: {$targetPace}\n";
             
-            $prompt .= "Instruksi Khusus: Beri tahu jadwal besok dan beri motivasi singkat yang berapi-api agar dia semangat latihan besok pagi. Pastikan bahasanya natural seperti chat WhatsApp dari asisten pelatih yang akrab.";
+            $prompt .= "Instruksi Khusus: Beri tahu jadwal besok dan beri motivasi singkat yang berapi-api agar dia semangat latihan besok pagi. Pastikan bahasanya natural seperti chat WhatsApp dari asisten pelatih yang akrab. Wajib sertakan placeholder '[LINK_CALENDAR]'.";
         }
 
         return $prompt;
@@ -114,15 +126,16 @@ class SendProgramReminderJob implements ShouldQueue
     {
         $type = strtolower($this->sessionData['type'] ?? 'rest');
         $isRest = in_array($type, ['rest', 'rest day', 'libur']);
+        $calendarUrl = route('runner.calendar');
 
         if ($isRest) {
-            return "Halo {$this->user->name}! 🏃‍♂️\n\nBesok jadwal program *{$this->program->title}* kamu adalah *Rest Day*. Jangan lupa manfaatkan untuk istirahat maksimal, stretching, atau active recovery ringan ya biar otot siap buat sesi berikutnya! Tetap semangat! 💪";
+            return "Halo {$this->user->name}! Besok jadwal program *{$this->program->title}* kamu itu *Rest Day* ya. Manfaatin waktu istirahat sebaik mungkin biar ototnya recovery dengan maksimal. Tetap semangat! 💪\n\nCek kalendermu di sini: {$calendarUrl}";
         }
 
         $detail = "";
         if (!empty($this->sessionData['distance'])) $detail .= " Jarak: {$this->sessionData['distance']}km.";
         if (!empty($this->sessionData['duration'])) $detail .= " Durasi: {$this->sessionData['duration']}.";
         
-        return "Halo {$this->user->name}! 🏃‍♂️\n\nSekadar mengingatkan, besok kamu ada jadwal *{$this->sessionData['type']}* untuk program *{$this->program->title}*.{$detail} Yuk siapkan sepatu dan outfit terbaikmu malam ini. Semangat buat besok pagi! 🔥";
+        return "Halo {$this->user->name}! Mengingatkan saja, besok jadwal kamu adalah sesi *{$this->sessionData['type']}* untuk program *{$this->program->title}*.{$detail} Yuk, persiapkan sepatu dan kelengkapannya malam ini biar besok tinggal gas! Semangat! 🔥\n\nDetail kalender: {$calendarUrl}";
     }
 }

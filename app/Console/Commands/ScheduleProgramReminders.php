@@ -122,10 +122,11 @@ class ScheduleProgramReminders extends Command
             return 0;
         }
 
-        // Dispatch jobs dengan rate limit: 5 pesan per 30 menit
+        // Dispatch jobs dengan rate limit aman: 1 pesan setiap 5 menit (12 pesan per jam)
+        // Hal ini meminimalkan deteksi spam akibat ledakan pengiriman pesan (burst sending) pada detik/menit yang sama.
         foreach ($jobsToDispatch as $index => $data) {
-            // Perhitungan delay
-            $delayMinutes = floor($index / 5) * 30;
+            // Delay bertahap: Pelari ke-n akan dikirimi pengingat setelah n * 5 menit
+            $delayMinutes = $index * 5;
             
             SendProgramReminderJob::dispatch($data['runner'], $data['session'], $data['program'])
                 ->delay(now()->addMinutes($delayMinutes));

@@ -658,6 +658,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/runner-register', [App\Http\Controllers\Runner\RunnerRegistrationController::class, 'store'])->name('runner.register.store');
     Route::get('/forgot-password', [App\Http\Controllers\Auth\AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/forgot-password', [App\Http\Controllers\Auth\AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/reset-password', [App\Http\Controllers\Auth\AuthController::class, 'updatePassword'])->name('password.update');
 
     // Google Auth
     Route::get('auth/google', [App\Http\Controllers\Auth\AuthController::class, 'redirectToGoogle'])->name('auth.google');
