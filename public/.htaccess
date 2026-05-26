@@ -1,9 +1,13 @@
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
+        Options -MultiViews -Indexes +FollowSymLinks
     </IfModule>
 
     RewriteEngine On
+
+    # Redirect /public or /public/something to root (301 Redirect)
+    RewriteCond %{THE_REQUEST} \s/public([/\s?]) [NC]
+    RewriteRule ^(?:\/?public)?\/?(.*)$ /$1 [L,R=301]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

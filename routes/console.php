@@ -13,9 +13,9 @@ Schedule::command('withdrawals:process')
     ->dailyAt('02:00')
     ->timezone('Asia/Jakarta');
 
-// Schedule Program Reminders (daily at 9 PM)
+// Schedule Program Reminders (daily at 7 PM)
 Schedule::command('programs:schedule-reminders')
-    ->dailyAt('21:00')
+    ->dailyAt('19:00')
     ->timezone('Asia/Jakarta');
 
 // Process queue jobs automatically (Shared Hosting friendly)

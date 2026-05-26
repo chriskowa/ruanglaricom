@@ -30,6 +30,36 @@ class ScheduleProgramReminders extends Command
      */
     public function handle()
     {
+        $this->info("Membersihkan data pendaftaran program yang telah berakhir...");
+
+        // Auto-complete expired enrollments
+        $activeEnrollments = ProgramEnrollment::with(['program'])
+            ->where('status', 'active')
+            ->get();
+        
+        $completedCount = 0;
+        foreach ($activeEnrollments as $enrollment) {
+            $program = $enrollment->program;
+            if (!$program) continue;
+            
+            try {
+                $startDate = Carbon::parse($enrollment->start_date)->startOfDay();
+                $totalWeeks = $program->duration_weeks ?? 12;
+                $totalDays = $totalWeeks * 7;
+                $endDate = $startDate->copy()->addDays($totalDays - 1);
+                
+                if (Carbon::today()->gt($endDate)) {
+                    $enrollment->update(['status' => 'completed']);
+                    $completedCount++;
+                }
+            } catch (\Exception $e) {
+                Log::warning("Failed to auto-complete enrollment #{$enrollment->id}: " . $e->getMessage());
+            }
+        }
+        if ($completedCount > 0) {
+            $this->info("Berhasil menyelesaiakan {$completedCount} pendaftaran yang telah kedaluwarsa.");
+        }
+
         $this->info("Mencari pelari yang memiliki jadwal program besok...");
 
         $tomorrow = Carbon::tomorrow();
@@ -115,6 +145,19 @@ class ScheduleProgramReminders extends Command
             ];
         }
 
+        // Sort: Prioritaskan pengiriman pelari yang besok jadwalnya LARI/WORKOUT terlebih dahulu sebelum REST DAY
+        usort($jobsToDispatch, function($a, $b) {
+            $aType = strtolower($a['session']['type'] ?? 'rest');
+            $bType = strtolower($b['session']['type'] ?? 'rest');
+            $aIsRest = in_array($aType, ['rest', 'rest day', 'libur']);
+            $bIsRest = in_array($bType, ['rest', 'rest day', 'libur']);
+            
+            if ($aIsRest === $bIsRest) {
+                return 0;
+            }
+            return $aIsRest ? 1 : -1;
+        });
+
         $totalJobs = count($jobsToDispatch);
         $this->info("Ditemukan {$totalJobs} pelari yang akan diingatkan.");
 
@@ -122,11 +165,12 @@ class ScheduleProgramReminders extends Command
             return 0;
         }
 
-        // Dispatch jobs dengan rate limit aman: 1 pesan setiap 5 menit (12 pesan per jam)
-        // Hal ini meminimalkan deteksi spam akibat ledakan pengiriman pesan (burst sending) pada detik/menit yang sama.
+        // Dispatch jobs dengan rate limit aman: mengirim 5 pesan setiap 30 menit (batching).
+        // Setiap runner di dalam batch yang sama akan diberi jeda (stagger) 1 menit untuk keamanan API.
         foreach ($jobsToDispatch as $index => $data) {
-            // Delay bertahap: Pelari ke-n akan dikirimi pengingat setelah n * 5 menit
-            $delayMinutes = $index * 5;
+            $batchIndex = floor($index / 5);
+            $staggerMinutes = $index % 5;
+            $delayMinutes = ($batchIndex * 30) + $staggerMinutes;
             
             SendProgramReminderJob::dispatch($data['runner'], $data['session'], $data['program'])
                 ->delay(now()->addMinutes($delayMinutes));

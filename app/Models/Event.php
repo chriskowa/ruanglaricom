@@ -202,7 +202,18 @@ class Event extends Model
         }
 
         // Fallback to hero_image_url if no uploaded image
-        return $this->attributes['hero_image_url'] ?? null;
+        $url = $this->attributes['hero_image_url'] ?? null;
+
+        if ($url && ! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
+            return asset('storage/'.$url);
+        }
+
+        return $url;
+    }
+
+    public function getHeroImageUrlAttribute()
+    {
+        return $this->getHeroImageUrl();
     }
 
     /**

@@ -25,6 +25,17 @@ class WhatsApp
             'sandbox' => 'false',
         ];
 
+        $log = null;
+        try {
+            $log = \App\Models\WhatsAppLog::create([
+                'to' => $to,
+                'message' => $message,
+                'status' => 'pending',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to create WhatsApp DB log: ' . $e->getMessage());
+        }
+
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => 'https://wa.jituproperty.com/api/create-message',
@@ -45,12 +56,29 @@ class WhatsApp
                 'to' => $to,
                 'error' => $error,
             ]);
+            if ($log) {
+                try {
+                    $log->update([
+                        'status' => 'failed',
+                        'error_message' => $error,
+                    ]);
+                } catch (\Exception $e) {}
+            }
         } else {
             \Illuminate\Support\Facades\Log::info('WhatsApp API Response', [
                 'to' => $to,
                 'http_code' => $httpCode,
                 'response' => $response,
             ]);
+            if ($log) {
+                try {
+                    $log->update([
+                        'status' => 'sent',
+                        'http_code' => $httpCode,
+                        'response' => $response,
+                    ]);
+                } catch (\Exception $e) {}
+            }
         }
     }
 }
