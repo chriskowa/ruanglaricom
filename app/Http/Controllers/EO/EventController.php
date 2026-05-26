@@ -804,6 +804,13 @@ class EventController extends Controller
             $query->where('race_category_id', request()->category_id);
         }
 
+        // Filter by coupon
+        if (request()->has('coupon_id') && request()->coupon_id) {
+            $query->whereHas('transaction', function ($q) {
+                $q->where('coupon_id', request()->coupon_id);
+            });
+        }
+
         // Filter by addons
         if (request()->filled('addon')) {
             $addonFilter = request()->query('addon');
@@ -1571,6 +1578,13 @@ class EventController extends Controller
             $query->where('race_category_id', request()->category_id);
         }
 
+        // Filter by coupon
+        if (request()->has('coupon_id') && request()->coupon_id) {
+            $query->whereHas('transaction', function ($q) {
+                $q->where('coupon_id', request()->coupon_id);
+            });
+        }
+
         if (request()->filled('addon')) {
             $addonFilter = request()->query('addon');
             if ($addonFilter === 'with') {
@@ -1667,6 +1681,13 @@ class EventController extends Controller
 
         if (request()->has('category_id') && request()->category_id) {
             $query->where('race_category_id', request()->category_id);
+        }
+
+        // Filter by coupon
+        if (request()->has('coupon_id') && request()->coupon_id) {
+            $query->whereHas('transaction', function ($q) {
+                $q->where('coupon_id', request()->coupon_id);
+            });
         }
 
         if (request()->filled('addon')) {
