@@ -620,7 +620,7 @@
                                     </div>
                                 </template>
 
-                                <div>
+                                <div id="payment-methods-container">
                                     <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Metode Pembayaran</label>
                                     <div class="mt-3 grid gap-3">
                                         @if($showMidtrans)
@@ -1076,6 +1076,29 @@
                 if (couponRowEl) couponRowEl.classList.toggle('hidden', ! (couponHiddenEl && couponHiddenEl.value));
                 if (couponLabelEl && couponHiddenEl && couponHiddenEl.value) couponLabelEl.textContent = '(' + couponHiddenEl.value + ')';
                 if (discountAmountEl) discountAmountEl.textContent = discount > 0 ? '-' + formatCurrency(discount) : '-Rp 0';
+
+                // Handle payment method visibility and requirement dynamically
+                const paymentContainer = document.getElementById('payment-methods-container');
+                if (paymentContainer) {
+                    const radios = paymentContainer.querySelectorAll('input[name="payment_method"]');
+                    if (total <= 0) {
+                        paymentContainer.classList.add('hidden');
+                        radios.forEach(radio => {
+                            radio.required = false;
+                            radio.checked = false;
+                        });
+                    } else {
+                        paymentContainer.classList.remove('hidden');
+                        let checkedAny = false;
+                        radios.forEach(radio => {
+                            radio.required = true;
+                            if (radio.checked) checkedAny = true;
+                        });
+                        if (!checkedAny && radios.length > 0) {
+                            radios[0].checked = true;
+                        }
+                    }
+                }
             }
 
             if (couponApplyBtn) couponApplyBtn.addEventListener('click', function () { applyCoupon(); });
