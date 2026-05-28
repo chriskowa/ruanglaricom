@@ -143,52 +143,62 @@
                 </div>
 
                 <div class="lg:col-span-8 space-y-4">
-                    <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5">
-                        <div class="text-sm font-black tracking-wider text-slate-200 uppercase">Ringkasan</div>
-                        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
-                                <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Jarak</div>
-                                <div class="mt-1 text-2xl font-black text-white"><span id="rl-distance-km">0.00</span><span class="text-sm text-slate-400 font-bold ml-1">km</span></div>
+                    <div class="bg-card/90 backdrop-blur-md border border-slate-700/50 rounded-2xl p-3 md:p-5 sticky top-20 lg:relative lg:top-auto z-[999] shadow-2xl transition-all duration-300">
+                        <div class="text-sm font-black tracking-wider text-slate-200 uppercase mb-3">Ringkasan</div>
+                        <div class="grid grid-cols-4 gap-1.5 md:gap-3">
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
+                                <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Jarak</div>
+                                <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-distance-km">0.00</span><span class="text-xs md:text-sm text-slate-400 font-bold ml-0.5 md:ml-1">km</span></div>
                             </div>
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
-                                <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Estimasi</div>
-                                <div class="mt-1 text-2xl font-black text-white"><span id="rl-est-time">00:00:00</span></div>
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
+                                <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Estimasi</div>
+                                <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-est-time">00:00:00</span></div>
                             </div>
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
-                                <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Titik</div>
-                                <div class="mt-1 text-2xl font-black text-white"><span id="rl-points-count">0</span></div>
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
+                                <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Titik</div>
+                                <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-points-count">0</span></div>
                             </div>
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-3">
-                                <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Rata-rata</div>
-                                <div class="mt-1 text-2xl font-black text-white"><span id="rl-avg-seg">0.00</span><span class="text-sm text-slate-400 font-bold ml-1">km/seg</span></div>
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
+                                <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Rata-rata</div>
+                                <div class="mt-0.5 md:mt-1 text-base sm:text-lg md:text-2xl font-black text-white"><span id="rl-avg-seg">0.00</span><span class="text-xs md:text-sm text-slate-400 font-bold ml-0.5 md:ml-1">km/seg</span></div>
                             </div>
                         </div>
 
-                        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
-                            <button id="rl-undo" type="button" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
+                        <div class="mt-3 md:mt-4 grid grid-cols-3 md:grid-cols-4 gap-2">
+                            <button id="rl-undo" type="button" class="px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition text-sm">
                                 Undo
                             </button>
-                            <button id="rl-clear" type="button" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-red-500/60 hover:text-red-300 transition">
+                            <button id="rl-clear" type="button" class="px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-red-500/60 hover:text-red-300 transition text-sm">
                                 Reset
                             </button>
-                            <button id="rl-save" type="button" class="px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition">
-                                Simpan
+                            
+                            <!-- Toggle Button for Mobile Menu -->
+                            <button id="rl-toggle-menu" type="button" class="md:hidden px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:bg-slate-700 transition text-sm flex items-center justify-center gap-1.5">
+                                <span>Menu</span>
+                                <svg id="rl-toggle-menu-chevron" class="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                             </button>
-                            <button id="rl-load" type="button" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
-                                Muat
-                            </button>
-                            <button id="rl-share" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-500 transition">
-                                Share Link
-                            </button>
-                            <button id="rl-export-image" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-pink-600 text-white font-black hover:bg-pink-500 transition">
-                                Export IMG
-                            </button>
-                            <button id="rl-export-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
-                                Export GPX
-                            </button>
-                            <button id="rl-import-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition">
-                                Import GPX
-                            </button>
+
+                            <!-- Collapsible buttons container -->
+                            <div id="rl-collapsible-buttons" class="hidden md:contents col-span-3 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 md:mt-0">
+                                <button id="rl-save" type="button" class="col-span-1 px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition text-sm">
+                                    Simpan
+                                </button>
+                                <button id="rl-load" type="button" class="col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition text-sm">
+                                    Muat
+                                </button>
+                                <button id="rl-share" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-500 transition text-sm">
+                                    Share Link
+                                </button>
+                                <button id="rl-export-image" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-pink-600 text-white font-black hover:bg-pink-500 transition text-sm">
+                                    Export IMG
+                                </button>
+                                <button id="rl-export-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition text-sm">
+                                    Export GPX
+                                </button>
+                                <button id="rl-import-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition text-sm">
+                                    Import GPX
+                                </button>
+                            </div>
                             <input id="rl-import-gpx-file" type="file" accept=".gpx" class="hidden">
                         </div>
 
@@ -515,6 +525,9 @@
                 elevSub: document.getElementById('rl-elev-sub'),
                 elevMeta: document.getElementById('rl-elev-meta'),
                 elevSvg: document.getElementById('rl-elev-svg'),
+                toggleMenu: document.getElementById('rl-toggle-menu'),
+                collapsibleButtons: document.getElementById('rl-collapsible-buttons'),
+                toggleChevron: document.getElementById('rl-toggle-menu-chevron'),
             };
 
             function setStatus(text) {
@@ -2043,6 +2056,20 @@
 
             els.undo.addEventListener('click', undo);
             els.clear.addEventListener('click', clearAll);
+            
+            if (els.toggleMenu && els.collapsibleButtons) {
+                els.toggleMenu.addEventListener('click', function () {
+                    var isHidden = els.collapsibleButtons.classList.contains('hidden');
+                    if (isHidden) {
+                        els.collapsibleButtons.classList.remove('hidden');
+                        if (els.toggleChevron) els.toggleChevron.classList.add('rotate-180');
+                    } else {
+                        els.collapsibleButtons.classList.add('hidden');
+                        if (els.toggleChevron) els.toggleChevron.classList.remove('rotate-180');
+                    }
+                });
+            }
+
             els.save.addEventListener('click', saveCurrent);
             els.load.addEventListener('click', showLoadModal);
             els.center.addEventListener('click', centerToUser);
