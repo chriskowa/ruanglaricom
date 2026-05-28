@@ -292,6 +292,13 @@ class MidtransService
      */
     public function createEventTransaction(EventTransaction $transaction): array
     {
+        if ((float) $transaction->final_amount < 0.01) {
+            return [
+                'success' => false,
+                'message' => 'Gross amount must be equal to or greater than 0.01',
+            ];
+        }
+
         $event = $transaction->event;
         $picData = $transaction->pic_data;
 
@@ -442,6 +449,13 @@ class MidtransService
      */
     public function createMembershipTransaction(MembershipTransaction $transaction): array
     {
+        if ((float) $transaction->total_amount < 0.01) {
+            return [
+                'success' => false,
+                'message' => 'Gross amount must be equal to or greater than 0.01',
+            ];
+        }
+
         // Production/Sandbox mode: Use Midtrans
         // Prepare transaction parameters
         $params = [

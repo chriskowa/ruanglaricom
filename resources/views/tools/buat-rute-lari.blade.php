@@ -12,6 +12,27 @@
         .leaflet-control-attribution { font-size: 10px; opacity: .85; }
         .leaflet-container { background: #0b1220; }
         svg { height: auto; }
+        @media (max-width: 1024px) {
+            .rl-mobile-sticky-ringkasan {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 9999 !important;
+                border-top: 1px solid rgba(51, 65, 85, 0.5) !important;
+                border-radius: 24px 24px 0 0 !important;
+                background-color: rgba(15, 23, 42, 0.98) !important;
+                backdrop-filter: blur(12px) !important;
+                box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.3), 0 -8px 10px -6px rgba(0, 0, 0, 0.3) !important;
+                padding: 12px 16px !important;
+                padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+                max-height: 85vh !important;
+                overflow-y: auto !important;
+            }
+            #chatbox-toggle {
+                display: none !important;
+            }
+        }
     </style>
 @endpush
 
@@ -143,7 +164,8 @@
                 </div>
 
                 <div class="lg:col-span-8 space-y-4">
-                    <div class="bg-card/90 backdrop-blur-md border border-slate-700/50 rounded-2xl p-3 md:p-5 sticky top-20 lg:relative lg:top-auto z-[999] shadow-2xl transition-all duration-300">
+                    <div class="rl-mobile-sticky-ringkasan lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10 lg:rounded-2xl lg:border lg:border-slate-700/50 lg:bg-card/90 lg:p-5 lg:shadow-none transition-all duration-300">
+                        <div class="w-12 h-1 bg-slate-700/60 rounded-full mx-auto mb-3 lg:hidden"></div>
                         <div class="text-sm font-black tracking-wider text-slate-200 uppercase mb-3">Ringkasan</div>
                         <div class="grid grid-cols-4 gap-1.5 md:gap-3">
                             <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">

@@ -35,6 +35,24 @@ class MembershipController extends Controller
             return redirect()->route('eo.dashboard')->with('success', 'Membership sudah aktif.');
         }
 
+        $package = $transaction->package;
+        if ($package && $package->price == 0) {
+            $transaction->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+            ]);
+
+            $user = Auth::user();
+            $user->update([
+                'membership_status' => 'active',
+                'current_package_id' => $package->id,
+                'membership_expires_at' => now()->addDays($package->duration_days),
+                'package_tier' => $package->slug,
+            ]);
+
+            return redirect()->route('eo.dashboard')->with('success', 'Membership LITE berhasil diaktifkan.');
+        }
+
         // Generate Snap Token if not exists
         if (! $transaction->snap_token) {
             $result = $this->midtransService->createMembershipTransaction($transaction);
@@ -57,10 +75,31 @@ class MembershipController extends Controller
         ]);
 
         $package = Package::findOrFail($request->package_id);
+        $user = Auth::user();
+
+        if ($package->price == 0) {
+            $transaction = MembershipTransaction::create([
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+                'amount' => 0,
+                'total_amount' => 0,
+                'status' => 'paid',
+                'paid_at' => now(),
+            ]);
+
+            $user->update([
+                'membership_status' => 'active',
+                'current_package_id' => $package->id,
+                'membership_expires_at' => now()->addDays($package->duration_days),
+                'package_tier' => $package->slug,
+            ]);
+
+            return redirect()->route('eo.dashboard')->with('success', 'Paket LITE berhasil diaktifkan secara gratis.');
+        }
 
         // Create Transaction
         $transaction = MembershipTransaction::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'package_id' => $package->id,
             'amount' => $package->price,
             'total_amount' => $package->price,

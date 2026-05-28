@@ -294,6 +294,23 @@ class EventPaymentRecoveryController extends Controller
             ]);
         }
 
+        if ($tx->final_amount <= 0) {
+            $tx->update([
+                'payment_status' => 'paid',
+                'paid_at' => now(),
+            ]);
+
+            \App\Jobs\ProcessPaidEventTransaction::dispatch($tx);
+            app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($tx);
+
+            return response()->json([
+                'success' => true,
+                'transaction' => $this->serializeTransaction($tx->fresh()),
+                'snap_token' => null,
+                'message' => 'Pembayaran berhasil dikonfirmasi secara gratis.',
+            ]);
+        }
+
         if (! $tx->snap_token) {
             try {
                 $tx->load(['participants.category']);
