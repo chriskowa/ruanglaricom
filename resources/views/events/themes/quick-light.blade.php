@@ -789,7 +789,37 @@
                 </div>
                 
                 @php
-                    $gpxList = $event->masterGpxes()->where('is_published', true)->get();
+                    $gpxList = collect();
+                    if (isset($categories)) {
+                        foreach($categories as $category) {
+                            if ($category->masterGpx && $category->masterGpx->is_published && $category->masterGpx->gpx_path) {
+                                $gpxList->put($category->masterGpx->id, (object)[
+                                    'id' => $category->masterGpx->id,
+                                    'title' => $category->name,
+                                    'gpx_path' => $category->masterGpx->gpx_path,
+                                    'distance_km' => $category->masterGpx->distance_km ?: $category->distance_km,
+                                    'elevation_gain_m' => $category->masterGpx->elevation_gain_m,
+                                    'elevation_loss_m' => $category->masterGpx->elevation_loss_m,
+                                ]);
+                            }
+                        }
+                    }
+                    
+                    // Also include direct event-level GPX if any
+                    $eventGpxes = $event->masterGpxes()->where('is_published', true)->get();
+                    foreach($eventGpxes as $gpx) {
+                        if ($gpx->gpx_path) {
+                            $gpxList->put($gpx->id, (object)[
+                                'id' => $gpx->id,
+                                'title' => $gpx->title,
+                                'gpx_path' => $gpx->gpx_path,
+                                'distance_km' => $gpx->distance_km,
+                                'elevation_gain_m' => $gpx->elevation_gain_m,
+                                'elevation_loss_m' => $gpx->elevation_loss_m,
+                            ]);
+                        }
+                    }
+                    $gpxList = $gpxList->values();
                 @endphp
                 
                 @if($gpxList->isNotEmpty())
