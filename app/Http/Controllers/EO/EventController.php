@@ -1537,6 +1537,69 @@ class EventController extends Controller
     }
 
     /**
+     * Resend event registration email to multiple participants in bulk
+     */
+    public function resendEmailBulk(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $request->validate([
+            'participant_ids' => 'required|array',
+            'participant_ids.*' => 'exists:participants,id',
+        ]);
+
+        $participants = \App\Models\Participant::with('transaction')
+            ->whereIn('id', $request->participant_ids)
+            ->whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->get();
+
+        if ($participants->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada peserta valid yang ditemukan.',
+            ], 400);
+        }
+
+        $sentCount = 0;
+        $errors = [];
+
+        foreach ($participants as $participant) {
+            try {
+                Mail::to($participant->email)->send(
+                    new EventRegistrationSuccess(
+                        $event,
+                        $participant->transaction,
+                        collect([$participant]),
+                        $participant->name
+                    )
+                );
+                $sentCount++;
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Bulk Resend Email Error for ' . $participant->email . ': ' . $e->getMessage());
+                $errors[] = $participant->email;
+            }
+        }
+
+        if ($sentCount > 0) {
+            $msg = "Berhasil mengirim {$sentCount} email konfirmasi tiket.";
+            if (count($errors) > 0) {
+                $msg .= " Gagal mengirim ke: " . implode(', ', $errors);
+            }
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal mengirim email konfirmasi tiket ke semua peserta terpilih.',
+        ], 500);
+    }
+
+    /**
      * Export participants as CSV
      */
     public function exportParticipants(Event $event)
