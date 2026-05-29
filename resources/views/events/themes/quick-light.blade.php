@@ -346,6 +346,42 @@
                         <p class="mt-4 text-slate-700 leading-8">{{ $event->short_description }}</p>
                     </div>
                 @endif
+
+                {{-- Rute Section --}}
+                <div class="soft-card p-6 md:p-8">
+                    <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Rute</div>
+                    <div class="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-black text-slate-900">Peta Rute Lari</h3>
+                            <p class="text-sm text-slate-500 mt-1">Jelajahi jalur rute lari, check point, pos medis, dan detail elevasi event ini.</p>
+                        </div>
+                        <div>
+                            <button type="button" onclick="document.getElementById('routeModal').classList.remove('hidden')" class="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-[#f1631e] hover:bg-orange-100 transition whitespace-nowrap w-full md:w-auto justify-center">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                Lihat Peta Rute
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Terms & Conditions Section --}}
+                @if($event->terms_and_conditions)
+                    <div class="soft-card p-6 md:p-8">
+                        <div class="text-sm font-black uppercase tracking-[0.2em] text-[#f1631e]">Syarat & Ketentuan</div>
+                        <div class="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-black text-slate-900">Peraturan & Ketentuan Event</h3>
+                                <p class="text-sm text-slate-500 mt-1">Baca syarat, ketentuan, serta peraturan keselamatan sebelum mendaftar.</p>
+                            </div>
+                            <div>
+                                <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-[#f1631e] hover:bg-orange-100 transition whitespace-nowrap w-full md:w-auto justify-center">
+                                    <i class="fa-solid fa-file-shield"></i>
+                                    Lihat Syarat & Ketentuan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 
                 @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
                     <div class="soft-card p-6 md:p-8" id="participants-list">
@@ -729,6 +765,103 @@
     </main>
 
     @include('events.partials.moota-payment-modal')
+
+    {{-- Route Map Modal --}}
+    <div id="routeModal" class="fixed inset-0 z-[999] hidden">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('routeModal').classList.add('hidden')"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-[28px] border border-slate-200/50 w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-orange-50 text-[#f1631e] flex items-center justify-center">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-lg text-slate-900">Peta Rute Lari</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">{{ $event->name }}</p>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('routeModal').classList.add('hidden')" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center text-slate-500 transition-colors">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto">
+                    <div class="relative w-full h-[400px] bg-slate-100">
+                        @if($event->map_embed_url)
+                            <iframe src="{{ $event->map_embed_url }}" class="w-full h-full border-0" allowfullscreen="" loading="lazy"></iframe>
+                        @elseif($event->location_lat && $event->location_lng)
+                            <iframe src="https://maps.google.com/maps?q={{ $event->location_lat }},{{ $event->location_lng }}&hl=id&z=14&output=embed" class="w-full h-full border-0" allowfullscreen="" loading="lazy"></iframe>
+                        @else
+                            <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 bg-slate-50">
+                                <div class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-2xl text-slate-500 mb-4">
+                                    <i class="fa-solid fa-map-marked-alt"></i>
+                                </div>
+                                <span class="font-black text-slate-800">Peta Rute Belum Tersedia</span>
+                                <span class="text-xs text-slate-500 mt-1">Penyelenggara belum menyematkan peta rute untuk event ini.</span>
+                            </div>
+                        @endif
+                    </div>
+                    @php
+                        $gpxList = $event->masterGpxes()->where('is_published', true)->get();
+                    @endphp
+                    @if($gpxList->isNotEmpty())
+                        <div class="p-6 bg-slate-50 border-t border-slate-100">
+                            <h4 class="text-xs font-black uppercase tracking-[0.15em] text-slate-500 mb-3">Download File GPX Rute</h4>
+                            <div class="grid sm:grid-cols-2 gap-3">
+                                @foreach($gpxList as $gpx)
+                                    <a href="{{ asset('storage/' . $gpx->gpx_path) }}" download class="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200 hover:border-[#f1631e] hover:shadow-md transition text-left group">
+                                        <div>
+                                            <div class="text-sm font-black text-slate-900 group-hover:text-[#f1631e] transition">{{ $gpx->title }}</div>
+                                            <div class="text-xs text-slate-500 mt-1 font-semibold flex items-center gap-2">
+                                                @if($gpx->distance_km)
+                                                    <span><i class="fa-solid fa-route mr-1 text-slate-400"></i>{{ number_format($gpx->distance_km, 2) }} km</span>
+                                                @endif
+                                                @if($gpx->elevation_gain_m)
+                                                    <span>•</span>
+                                                    <span><i class="fa-solid fa-mountain mr-1 text-slate-400"></i>+{{ $gpx->elevation_gain_m }}m</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="w-10 h-10 rounded-2xl bg-slate-100 group-hover:bg-orange-50 text-slate-600 group-hover:text-[#f1631e] flex items-center justify-center transition-colors">
+                                            <i class="fa-solid fa-download"></i>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Terms & Conditions Modal --}}
+    @if($event->terms_and_conditions)
+        <div id="termsModal" class="fixed inset-0 z-[999] hidden">
+            <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="bg-white rounded-[28px] border border-slate-200/50 w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-orange-50 text-[#f1631e] flex items-center justify-center">
+                                <i class="fa-solid fa-file-shield"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-black text-lg text-slate-900">Syarat & Ketentuan</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">{{ $event->name }}</p>
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center text-slate-500 transition-colors">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="flex-1 p-6 md:p-8 overflow-y-auto content-html">
+                        {!! $event->terms_and_conditions !!}
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <script>
         (function () {
