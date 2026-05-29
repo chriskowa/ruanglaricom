@@ -130,6 +130,8 @@
     <meta name="twitter:image:alt" content="{{ $metaTitle }}">
     <script type="application/ld+json">{!! json_encode($schemaEvent, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.tailwindcss.com"></script>
     @if($showMidtrans && $midtransClientKey)
         <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
@@ -356,7 +358,7 @@
                             <p class="text-sm text-slate-500 mt-1">Jelajahi jalur rute lari, check point, pos medis, dan detail elevasi event ini.</p>
                         </div>
                         <div>
-                            <button type="button" onclick="document.getElementById('routeModal').classList.remove('hidden')" class="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-[#f1631e] hover:bg-orange-100 transition whitespace-nowrap w-full md:w-auto justify-center">
+                            <button type="button" onclick="openRouteModal()" class="inline-flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-[#f1631e] hover:bg-orange-100 transition whitespace-nowrap w-full md:w-auto justify-center">
                                 <i class="fa-solid fa-map-location-dot"></i>
                                 Lihat Peta Rute
                             </button>
@@ -768,7 +770,7 @@
 
     {{-- Route Map Modal --}}
     <div id="routeModal" class="fixed inset-0 z-[999] hidden">
-        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="document.getElementById('routeModal').classList.add('hidden')"></div>
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeRouteModal()"></div>
         <div class="absolute inset-0 flex items-center justify-center p-4">
             <div class="bg-white rounded-[28px] border border-slate-200/50 w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -781,56 +783,49 @@
                             <p class="text-xs text-slate-500 mt-0.5">{{ $event->name }}</p>
                         </div>
                     </div>
-                    <button onclick="document.getElementById('routeModal').classList.add('hidden')" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center text-slate-500 transition-colors">
+                    <button onclick="closeRouteModal()" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center text-slate-500 transition-colors">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto">
-                    <div class="relative w-full h-[400px] bg-slate-100">
+                
+                @php
+                    $gpxList = $event->masterGpxes()->where('is_published', true)->get();
+                @endphp
+                
+                @if($gpxList->isNotEmpty())
+                    {{-- GPX Tabs / Selector --}}
+                    <div class="flex flex-wrap gap-2 p-4 bg-slate-50 border-b border-slate-100">
+                        @foreach($gpxList as $idx => $gpx)
+                            <button type="button" 
+                                    class="gpx-tab-btn px-4 py-2 text-xs font-black rounded-2xl border transition-all"
+                                    data-gpx-url="{{ asset('storage/' . $gpx->gpx_path) }}" 
+                                    data-idx="{{ $idx }}"
+                                    onclick="selectGpxTrack(this)">
+                                {{ $gpx->title }} @if($gpx->distance_km) ({{ number_format($gpx->distance_km, 2) }} km) @endif
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="flex-1 min-h-[350px] md:min-h-[450px] relative">
+                    <div id="route-leaflet-map" class="w-full h-full min-h-[350px] md:min-h-[450px] z-10"></div>
+                    
+                    {{-- Fallback Iframe container if Leaflet has issues or fallback is needed --}}
+                    <div id="route-iframe-container" class="hidden w-full h-full min-h-[350px] md:min-h-[450px]">
                         @if($event->map_embed_url)
                             <iframe src="{{ $event->map_embed_url }}" class="w-full h-full border-0" allowfullscreen="" loading="lazy"></iframe>
-                        @elseif($event->location_lat && $event->location_lng)
-                            <iframe src="https://maps.google.com/maps?q={{ $event->location_lat }},{{ $event->location_lng }}&hl=id&z=14&output=embed" class="w-full h-full border-0" allowfullscreen="" loading="lazy"></iframe>
-                        @else
-                            <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 bg-slate-50">
-                                <div class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-2xl text-slate-500 mb-4">
-                                    <i class="fa-solid fa-map-marked-alt"></i>
-                                </div>
-                                <span class="font-black text-slate-800">Peta Rute Belum Tersedia</span>
-                                <span class="text-xs text-slate-500 mt-1">Penyelenggara belum menyematkan peta rute untuk event ini.</span>
-                            </div>
                         @endif
                     </div>
-                    @php
-                        $gpxList = $event->masterGpxes()->where('is_published', true)->get();
-                    @endphp
-                    @if($gpxList->isNotEmpty())
-                        <div class="p-6 bg-slate-50 border-t border-slate-100">
-                            <h4 class="text-xs font-black uppercase tracking-[0.15em] text-slate-500 mb-3">Download File GPX Rute</h4>
-                            <div class="grid sm:grid-cols-2 gap-3">
-                                @foreach($gpxList as $gpx)
-                                    <a href="{{ asset('storage/' . $gpx->gpx_path) }}" download class="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200 hover:border-[#f1631e] hover:shadow-md transition text-left group">
-                                        <div>
-                                            <div class="text-sm font-black text-slate-900 group-hover:text-[#f1631e] transition">{{ $gpx->title }}</div>
-                                            <div class="text-xs text-slate-500 mt-1 font-semibold flex items-center gap-2">
-                                                @if($gpx->distance_km)
-                                                    <span><i class="fa-solid fa-route mr-1 text-slate-400"></i>{{ number_format($gpx->distance_km, 2) }} km</span>
-                                                @endif
-                                                @if($gpx->elevation_gain_m)
-                                                    <span>•</span>
-                                                    <span><i class="fa-solid fa-mountain mr-1 text-slate-400"></i>+{{ $gpx->elevation_gain_m }}m</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="w-10 h-10 rounded-2xl bg-slate-100 group-hover:bg-orange-50 text-slate-600 group-hover:text-[#f1631e] flex items-center justify-center transition-colors">
-                                            <i class="fa-solid fa-download"></i>
-                                        </div>
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
                 </div>
+                
+                @if($gpxList->isNotEmpty())
+                    <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
+                        <span>Pilih kategori di atas untuk melihat rute lari pada peta.</span>
+                        <a id="gpx-download-link" href="#" download class="inline-flex items-center gap-1.5 text-[#f1631e] hover:underline font-bold">
+                            <i class="fa-solid fa-download"></i> Download GPX
+                        </a>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -862,6 +857,166 @@
             </div>
         </div>
     @endif
+
+    <script>
+        var routeMap = null;
+        var routePolyline = null;
+        var startMarker = null;
+        var finishMarker = null;
+        var gpxTracks = @json($gpxList);
+        var eventLat = {{ $event->location_lat ?: 'null' }};
+        var eventLng = {{ $event->location_lng ?: 'null' }};
+        var hasGpx = {{ $gpxList->isNotEmpty() ? 'true' : 'false' }};
+        var mapEmbedUrl = "{{ $event->map_embed_url ?: '' }}";
+
+        function openRouteModal() {
+            const modal = document.getElementById('routeModal');
+            modal.classList.remove('hidden');
+            
+            // Allow DOM to update and render layout, then init Leaflet
+            setTimeout(initRouteMap, 100);
+        }
+
+        function closeRouteModal() {
+            const modal = document.getElementById('routeModal');
+            modal.classList.add('hidden');
+        }
+
+        function initRouteMap() {
+            if (!window.L) {
+                // If Leaflet is not loaded, show fallback iframe
+                showIframeFallback();
+                return;
+            }
+
+            if (!routeMap) {
+                routeMap = L.map('route-leaflet-map', {
+                    zoomControl: true,
+                    attributionControl: true
+                });
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(routeMap);
+            } else {
+                routeMap.invalidateSize();
+            }
+
+            if (hasGpx && gpxTracks.length > 0) {
+                // Trigger first GPX file
+                const firstBtn = document.querySelector('.gpx-tab-btn');
+                if (firstBtn) {
+                    selectGpxTrack(firstBtn);
+                }
+            } else if (eventLat && eventLng) {
+                // Center map at event location and put a marker
+                routeMap.setView([eventLat, eventLng], 14);
+                
+                if (startMarker) {
+                    routeMap.removeLayer(startMarker);
+                }
+                
+                startMarker = L.marker([eventLat, eventLng], {
+                    icon: L.divIcon({
+                        className: '',
+                        html: '<div style="width:24px;height:24px;border-radius:999px;background:#f1631e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;"><i class="fa-solid fa-location-dot"></i></div>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    })
+                }).addTo(routeMap);
+                startMarker.bindPopup("<b>{{ $event->location_name }}</b>").openPopup();
+            } else {
+                // Fallback to Iframe
+                showIframeFallback();
+            }
+        }
+
+        function showIframeFallback() {
+            document.getElementById('route-leaflet-map').classList.add('hidden');
+            document.getElementById('route-iframe-container').classList.remove('hidden');
+        }
+
+        function selectGpxTrack(btn) {
+            // Update Tab styles
+            document.querySelectorAll('.gpx-tab-btn').forEach(b => {
+                b.classList.remove('bg-[#f1631e]', 'text-white', 'border-[#f1631e]');
+                b.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+            });
+            btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+            btn.classList.add('bg-[#f1631e]', 'text-white', 'border-[#f1631e]');
+
+            const gpxUrl = btn.getAttribute('data-gpx-url');
+            
+            // Update download link
+            const downloadLink = document.getElementById('gpx-download-link');
+            if (downloadLink) {
+                downloadLink.href = gpxUrl;
+            }
+
+            // Fetch and parse GPX
+            fetch(gpxUrl)
+                .then(response => response.text())
+                .then(gpxText => {
+                    const parser = new DOMParser();
+                    const xml = parser.parseFromString(gpxText, 'text/xml');
+                    const points = [];
+                    const trkpts = xml.querySelectorAll('trkpt, rtept');
+                    
+                    trkpts.forEach(pt => {
+                        const lat = parseFloat(pt.getAttribute('lat'));
+                        const lon = parseFloat(pt.getAttribute('lon'));
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            points.push([lat, lon]);
+                        }
+                    });
+
+                    if (points.length === 0) return;
+
+                    // Clear previous layers
+                    if (routePolyline) routeMap.removeLayer(routePolyline);
+                    if (startMarker) routeMap.removeLayer(startMarker);
+                    if (finishMarker) routeMap.removeLayer(finishMarker);
+
+                    // Draw route polyline
+                    routePolyline = L.polyline(points, {
+                        color: '#f1631e',
+                        weight: 5,
+                        opacity: 0.85
+                    }).addTo(routeMap);
+
+                    // Create start/finish markers
+                    const startPt = points[0];
+                    const finishPt = points[points.length - 1];
+
+                    // Start marker (Green Play / Dot)
+                    startMarker = L.marker(startPt, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: '<div style="width:24px;height:24px;border-radius:999px;background:#22c55e;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-play ml-0.5"></i></div>',
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        })
+                    }).addTo(routeMap).bindPopup('<b>Start</b>');
+
+                    // Finish marker (Red Checkered / Flag)
+                    finishMarker = L.marker(finishPt, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: '<div style="width:24px;height:24px;border-radius:999px;background:#ef4444;border:2px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;"><i class="fa-solid fa-flag-checkered"></i></div>',
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        })
+                    }).addTo(routeMap).bindPopup('<b>Finish</b>');
+
+                    // Fit map bounds
+                    routeMap.fitBounds(routePolyline.getBounds(), { padding: [30, 30] });
+                })
+                .catch(err => {
+                    console.error('Error loading GPX file:', err);
+                });
+        }
+    </script>
 
     <script>
         (function () {
