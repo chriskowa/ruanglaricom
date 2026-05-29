@@ -4,7 +4,13 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .rl-custom-icon-btn.active {
+            background-color: rgba(204, 255, 0, 0.15) !important;
+            border-color: #ccff00 !important;
+            box-shadow: 0 0 10px rgba(204, 255, 0, 0.25) !important;
+        }
         .leaflet-control{display: none;}
         #rl-route-map { height: calc(100vh - 190px); min-height: 520px; }
         @media (max-width: 1024px) { #rl-route-map { height: calc(100vh - 260px); min-height: 520px; } }
@@ -28,6 +34,14 @@
                 padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
                 max-height: 85vh !important;
                 overflow-y: auto !important;
+                transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+            .rl-mobile-sticky-ringkasan.rl-minimized {
+                max-height: 60px !important;
+                padding-top: 6px !important;
+                padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+                overflow: hidden !important;
+                border-radius: 16px 16px 0 0 !important;
             }
             #chatbox-toggle {
                 display: none !important;
@@ -129,12 +143,41 @@
                                 </label>
                             </div>
 
+                            <!-- Custom Markers Block -->
+                            <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
+                                <div class="text-xs font-black tracking-wider text-slate-200 uppercase">Tambah Marker Rute</div>
+                                <div class="mt-2 text-xs text-slate-400 leading-relaxed">Pilih marker di bawah, lalu klik/tap pada peta untuk menaruhnya. Klik marker di peta untuk menambah keterangan/hapus.</div>
+                                <div class="mt-3 grid grid-cols-6 gap-2">
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-sky-500 text-sky-400 text-center transition relative group" title="Water Station" data-type="water">
+                                        <i class="fa-solid fa-droplet text-lg"></i>
+                                    </button>
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-orange-500 text-orange-400 text-center transition relative group" title="Bahaya / Warning" data-type="warning">
+                                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                                    </button>
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-lime-500 text-lime-400 text-center transition relative group" title="Perempatan / Intersection" data-type="intersection">
+                                        <i class="fa-solid fa-arrows-split-up-and-left text-lg"></i>
+                                    </button>
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-pink-500 text-pink-400 text-center transition relative group" title="Foto Spot" data-type="photo">
+                                        <i class="fa-solid fa-camera text-lg"></i>
+                                    </button>
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-amber-500 text-amber-400 text-center transition relative group" title="Rest Stop / Cafe" data-type="rest">
+                                        <i class="fa-solid fa-mug-hot text-lg"></i>
+                                    </button>
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-purple-500 text-purple-400 text-center transition relative group" title="Toilet" data-type="toilet">
+                                        <i class="fa-solid fa-toilet text-lg"></i>
+                                    </button>
+                                </div>
+                                <div id="rl-custom-marker-hint" class="mt-3 text-[10px] font-black text-slate-500 tracking-wide uppercase hidden">
+                                    <span class="text-neon animate-pulse">●</span> Tap peta untuk menaruh marker
+                                </div>
+                            </div>
+
                             <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
                                 <div class="text-xs font-black tracking-wider text-slate-200 uppercase">Tampilan</div>
                                 <div class="mt-3 grid grid-cols-2 gap-3">
                                     <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
                                         <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Route</div>
-                                        <input id="rl-color-route" type="color" value="#ccff00" class="w-10 h-8 bg-transparent">
+                                        <input id="rl-color-route" type="color" value="#FC4C02" class="w-10 h-8 bg-transparent">
                                     </div>
                                     <div class="flex items-center justify-between gap-3 bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-3">
                                         <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Marker</div>
@@ -164,9 +207,30 @@
                 </div>
 
                 <div class="lg:col-span-8 space-y-4">
-                    <div class="rl-mobile-sticky-ringkasan lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10 lg:rounded-2xl lg:border lg:border-slate-700/50 lg:bg-card/90 lg:p-5 lg:shadow-none transition-all duration-300">
-                        <div class="w-12 h-1 bg-slate-700/60 rounded-full mx-auto mb-3 lg:hidden"></div>
-                        <div class="text-sm font-black tracking-wider text-slate-200 uppercase mb-3">Ringkasan</div>
+                    <div id="rl-summary-panel" class="rl-mobile-sticky-ringkasan lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10 lg:rounded-2xl lg:border lg:border-slate-700/50 lg:bg-card/90 lg:p-5 lg:shadow-none transition-all duration-300">
+                        <!-- Mobile Sheet Toggle / Compact Info Header -->
+                        <div id="rl-mobile-sheet-toggle" class="py-1 cursor-pointer lg:hidden flex flex-col items-center justify-center border-b border-slate-800/40 pb-2">
+                            <div class="w-12 h-1 bg-slate-700/60 rounded-full mb-2"></div>
+                            
+                            <!-- Compact View Info (shown when minimized) -->
+                            <div id="rl-compact-stats" class="hidden w-full flex items-center justify-between px-2">
+                                <div class="text-xs font-black text-slate-200 flex items-center gap-2.5">
+                                    <span>Jarak: <span id="rl-distance-km-compact" class="text-neon">0.00</span> km</span>
+                                    <span class="text-slate-700">|</span>
+                                    <span>Waktu: <span id="rl-est-time-compact" class="text-white">00:00:00</span></span>
+                                </div>
+                                <div class="text-[10px] font-black text-neon flex items-center gap-1 uppercase tracking-wider">
+                                    <span>Detail</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7" /></svg>
+                                </div>
+                            </div>
+                            
+                            <!-- Action hint when expanded -->
+                            <span id="rl-mobile-toggle-hint" class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Tap to Minimize</span>
+                        </div>
+
+                        <div id="rl-expanded-content" class="space-y-3 md:space-y-4">
+                            <div class="text-sm font-black tracking-wider text-slate-200 uppercase mb-3 hidden lg:block">Ringkasan</div>
                         <div class="grid grid-cols-4 gap-1.5 md:gap-3">
                             <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-1.5 md:p-3 text-center md:text-left">
                                 <div class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase tracking-wider">Jarak</div>
@@ -346,6 +410,7 @@
                         <div class="mt-4 text-xs text-slate-500 leading-relaxed">
                             Tips: titik bisa di-drag buat rapihin rute. Kalau mau cepat, zoom-in dulu baru tap.
                         </div>
+                        </div> <!-- End of rl-expanded-content -->
                     </div>
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
                         <div class="absolute top-3 right-3 z-[500] flex flex-col gap-2">
@@ -498,6 +563,8 @@
                 arrowIntervalLabel: document.getElementById('rl-arrow-interval-label'),
                 distanceKm: document.getElementById('rl-distance-km'),
                 estTime: document.getElementById('rl-est-time'),
+                distanceKmCompact: document.getElementById('rl-distance-km-compact'),
+                estTimeCompact: document.getElementById('rl-est-time-compact'),
                 pointsCount: document.getElementById('rl-points-count'),
                 avgSeg: document.getElementById('rl-avg-seg'),
                 undo: document.getElementById('rl-undo'),
@@ -567,14 +634,14 @@
                     var data = raw ? JSON.parse(raw) : null;
                     if (!data || typeof data !== 'object') data = {};
                     return {
-                        route: (data.route && /^#[0-9a-f]{6}$/i.test(data.route)) ? data.route : '#ccff00',
+                        route: (data.route && /^#[0-9a-f]{6}$/i.test(data.route)) ? data.route : '#FC4C02',
                         marker: (data.marker && /^#[0-9a-f]{6}$/i.test(data.marker)) ? data.marker : '#60a5fa',
                         start: (data.start && /^#[0-9a-f]{6}$/i.test(data.start)) ? data.start : '#22c55e',
                         finish: (data.finish && /^#[0-9a-f]{6}$/i.test(data.finish)) ? data.finish : '#ef4444',
                         arrowIntervalM: (typeof data.arrowIntervalM === 'number' && data.arrowIntervalM >= 30 && data.arrowIntervalM <= 300) ? data.arrowIntervalM : 80,
                     };
                 } catch (e) {
-                    return { route: '#ccff00', marker: '#60a5fa', start: '#22c55e', finish: '#ef4444', arrowIntervalM: 80 };
+                    return { route: '#FC4C02', marker: '#60a5fa', start: '#22c55e', finish: '#ef4444', arrowIntervalM: 80 };
                 }
             }
 
@@ -650,6 +717,23 @@
                     html: html,
                     iconSize: [18, 18],
                     iconAnchor: [9, 9],
+                });
+            }
+
+            function makeFaIcon(color, faClass) {
+                var extraStyle = '';
+                if (faClass.indexOf('fa-play') !== -1) {
+                    extraStyle = 'margin-left:2px;';
+                }
+                var html =
+                    '<div style="width:24px;height:24px;border-radius:999px;background:' + color + ';border:2px solid #0b1220;box-shadow:0 4px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#0b1220;font-size:11px;font-weight:900;">'
+                    + '<i class="' + faClass + '" style="' + extraStyle + '"></i>'
+                    + '</div>';
+                return L.divIcon({
+                    className: '',
+                    html: html,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12],
                 });
             }
 
@@ -767,10 +851,24 @@
             var historyIndex = -1;
             var isUndoing = false;
 
+            var customMarkers = []; // Array of {lat, lng, type, label, markerInstance}
+
             function pushState() {
                 if (isUndoing) return;
-                // Store points with their modes and segments
-                var state = JSON.stringify(points);
+                
+                var stateObj = {
+                    points: points,
+                    customMarkers: customMarkers.map(function(cm) {
+                        return {
+                            lat: cm.lat,
+                            lng: cm.lng,
+                            type: cm.type,
+                            label: cm.label
+                        };
+                    })
+                };
+                
+                var state = JSON.stringify(stateObj);
                 if (historyIndex < historyStack.length - 1) {
                     historyStack = historyStack.slice(0, historyIndex + 1);
                 }
@@ -778,36 +876,53 @@
                     historyStack.push(state);
                     historyIndex = historyStack.length - 1;
                 }
+
+                // AUTO-SAVE DRAFT TO LOCALSTORAGE
+                try {
+                    localStorage.setItem('rl.routeBuilder.v1.draft', state);
+                } catch(e) {
+                    console.error('Failed to auto-save draft:', e);
+                }
             }
 
             function loadState(idx) {
                 if (idx < 0 || idx >= historyStack.length) return;
                 isUndoing = true;
                 try {
-                    var loaded = JSON.parse(historyStack[idx]);
-                    // Migration: if loaded points don't have mode/segment, treat as legacy
-                    points = loaded.map(function(p, i) {
+                    var parsed = JSON.parse(historyStack[idx]);
+                    var loadedPoints = [];
+                    var loadedCustom = [];
+                    
+                    if (Array.isArray(parsed)) {
+                        loadedPoints = parsed;
+                    } else if (parsed && parsed.points) {
+                        loadedPoints = parsed.points;
+                        loadedCustom = parsed.customMarkers || [];
+                    }
+                    
+                    points = loadedPoints.map(function(p) {
                         if (typeof p.mode === 'undefined') {
-                            // Legacy point
                             return {
                                 lat: p.lat,
                                 lng: p.lng,
                                 mode: (els.followRoad && els.followRoad.checked) ? 'osrm' : 'direct',
-                                segment: null // Will be calculated
+                                segment: null,
+                                iconType: p.iconType || ''
                             };
                         }
                         return p;
                     });
                     
-                    // Re-calculate segments for legacy or missing segments
-                    // We need to do this async if OSRM is needed, but loadState is sync.
-                    // For now, if segment is missing, we might default to direct or trigger async update.
-                    // To ensure "Undo" works immediately, we hope segments are in history.
-                    // If legacy (no segments in history), we must rebuild.
+                    // Clear existing custom markers
+                    customMarkers.forEach(function(cm) {
+                        if (cm.markerInstance) map.removeLayer(cm.markerInstance);
+                    });
+                    customMarkers = [];
                     
-                    // For legacy support, we might need to fetch OSRM if mode is OSRM and segment is null.
-                    // But that makes loadState async. 
-                    // Strategy: If segment missing, use direct line temporarily and fetch OSRM.
+                    // Re-render custom markers
+                    loadedCustom.forEach(function(cm) {
+                        addCustomMarker(cm, cm.type, cm.label);
+                    });
                     
                     processLoadedPoints().then(function() {
                         rebuildLine();
@@ -896,8 +1011,34 @@
                 markers = [];
                 points.forEach(function (p, idx) {
                     var icon = makeDotIcon(style.marker, '');
-                    if (idx === 0) icon = makeDotIcon(style.start, 'S');
-                    if (idx === points.length - 1) icon = makeDotIcon(style.finish, 'F');
+                    if (idx === 0) {
+                        icon = makeFaIcon(style.start, 'fa-solid fa-play');
+                    } else if (idx === points.length - 1) {
+                        icon = makeFaIcon(style.finish, 'fa-solid fa-flag-checkered');
+                    } else if (p.iconType) {
+                        var faClass = 'fa-droplet';
+                        var iconColor = '#60a5fa';
+                        if (p.iconType === 'water') {
+                            faClass = 'fa-droplet';
+                            iconColor = '#38bdf8';
+                        } else if (p.iconType === 'warning') {
+                            faClass = 'fa-triangle-exclamation';
+                            iconColor = '#fb923c';
+                        } else if (p.iconType === 'intersection') {
+                            faClass = 'fa-arrows-split-up-and-left';
+                            iconColor = '#a3e635';
+                        } else if (p.iconType === 'photo') {
+                            faClass = 'fa-camera';
+                            iconColor = '#f472b6';
+                        } else if (p.iconType === 'rest') {
+                            faClass = 'fa-mug-hot';
+                            iconColor = '#fbbf24';
+                        } else if (p.iconType === 'toilet') {
+                            faClass = 'fa-toilet';
+                            iconColor = '#c084fc';
+                        }
+                        icon = makeFaIcon(iconColor, 'fa-solid ' + faClass);
+                    }
                     var m = L.marker([p.lat, p.lng], { draggable: true, icon: icon });
                     
                     m.on('drag', function (ev) {
@@ -959,7 +1100,50 @@
                         container.appendChild(btnMode);
                     }
 
-                    m.bindPopup(container, { minWidth: 120 });
+                    // Icon selector (only for intermediate points)
+                    if (idx > 0 && idx < points.length - 1) {
+                        var selectDiv = document.createElement('div');
+                        selectDiv.className = 'mt-2 text-left';
+                        
+                        var selectLabel = document.createElement('label');
+                        selectLabel.className = 'text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1';
+                        selectLabel.textContent = 'Ganti Icon Titik';
+                        selectDiv.appendChild(selectLabel);
+                        
+                        var select = document.createElement('select');
+                        select.className = 'w-full bg-slate-900 border border-slate-700 text-white text-[11px] px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-neon';
+                        
+                        var options = [
+                            { value: '', text: '● Dot Biasa' },
+                            { value: 'water', text: '💧 Water Station' },
+                            { value: 'warning', text: '⚠️ Warning' },
+                            { value: 'intersection', text: '🔀 Intersection' },
+                            { value: 'photo', text: '📷 Foto Spot' },
+                            { value: 'rest', text: '☕ Rest Stop' },
+                            { value: 'toilet', text: '🚽 Toilet' }
+                        ];
+                        
+                        options.forEach(function(opt) {
+                            var o = document.createElement('option');
+                            o.value = opt.value;
+                            o.textContent = opt.text;
+                            if (p.iconType === opt.value) {
+                                o.selected = true;
+                            }
+                            select.appendChild(o);
+                        });
+                        
+                        select.onchange = function() {
+                            points[idx].iconType = select.value;
+                            rebuildMarkers();
+                            pushState();
+                        };
+                        
+                        selectDiv.appendChild(select);
+                        container.appendChild(selectDiv);
+                    }
+
+                    m.bindPopup(container, { minWidth: 130 });
 
                     m.addTo(map);
                     markers.push(m);
@@ -1085,6 +1269,9 @@
                 els.pointsCount.textContent = String(points.length);
                 els.avgSeg.textContent = fmt2(segAvg);
                 els.estTime.textContent = fmtHMS(est);
+                
+                if (els.distanceKmCompact) els.distanceKmCompact.textContent = fmt2(dist);
+                if (els.estTimeCompact) els.estTimeCompact.textContent = fmtHMS(est);
             }
 
             // [Duplicate addPoint removed]
@@ -1104,12 +1291,17 @@
             function clearAll() {
                 points = [];
                 routePoints = [];
+                customMarkers.forEach(function(cm) {
+                    if (cm.markerInstance) map.removeLayer(cm.markerInstance);
+                });
+                customMarkers = [];
+                
                 rebuildLine();
                 rebuildMarkers();
                 updateStats();
                 updateElevation();
                 setStatus('Reset');
-                pushState(); // Save state
+                pushState();
             }
             
             // Initial state
@@ -1135,8 +1327,15 @@
             }
 
             function centerToUser() {
+                if (points.length > 0) {
+                    map.setView([points[0].lat, points[0].lng], 16);
+                    setStatus('Peta dipusatkan ke Start');
+                    return;
+                }
+
                 if (!navigator.geolocation) {
-                    setStatus('GPS tidak tersedia');
+                    setStatus('GPS tidak tersedia. Mencari via IP...');
+                    getIpLocation();
                     return;
                 }
                 setStatus('Mencari lokasi...');
@@ -1145,9 +1344,29 @@
                     var lng = pos.coords.longitude;
                     map.setView([lat, lng], 16);
                     setStatus('Lokasi ditemukan');
-                }, function () {
-                    setStatus('Gagal akses lokasi');
-                }, { enableHighAccuracy: true, timeout: 8000 });
+                }, function (err) {
+                    console.warn('Geolocation failed:', err);
+                    setStatus('Gagal akses GPS. Mencari via IP...');
+                    getIpLocation();
+                }, { enableHighAccuracy: false, timeout: 5000 });
+            }
+
+            function getIpLocation() {
+                fetch('https://ipapi.co/json/')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data && data.latitude && data.longitude) {
+                            map.setView([data.latitude, data.longitude], 13);
+                            setStatus('Lokasi IP ditemukan: ' + (data.city || ''));
+                        } else {
+                            throw new Error('invalid_data');
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('IP Geolocation failed:', err);
+                        map.setView([-6.200000, 106.816666], 12);
+                        setStatus('Lokasi default (Jakarta)');
+                    });
             }
 
             function buildShareUrl() {
@@ -1309,9 +1528,26 @@
                     return '<trkpt lat="' + p.lat.toFixed(6) + '" lon="' + p.lng.toFixed(6) + '"><time>' + now + '</time></trkpt>';
                 }).join('');
 
+                var wpts = customMarkers.map(function(cm) {
+                    var sym = 'Waypoint';
+                    if (cm.type === 'water') sym = 'Water Source';
+                    else if (cm.type === 'warning') sym = 'Danger Area';
+                    else if (cm.type === 'intersection') sym = 'Rally Point';
+                    else if (cm.type === 'rest') sym = 'Rest Area';
+                    else if (cm.type === 'toilet') sym = 'Restroom';
+                    
+                    var desc = cm.label ? '<desc>' + escapeXml(cm.label) + '</desc>' : '';
+                    return '<wpt lat="' + cm.lat.toFixed(6) + '" lon="' + cm.lng.toFixed(6) + '">' +
+                           '<name>' + escapeXml(cm.type.toUpperCase() + (cm.label ? ': ' + cm.label : '')) + '</name>' +
+                           desc +
+                           '<sym>' + sym + '</sym>' +
+                           '</wpt>';
+                }).join('');
+
                 var gpx = '<?xml version="1.0" encoding="UTF-8"?>' +
                     '<gpx version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1">' +
                     '<metadata><name>' + escapeXml(name) + '</name><time>' + now + '</time></metadata>' +
+                    wpts +
                     '<trk><name>' + escapeXml(name) + '</name><trkseg>' + seg + '</trkseg></trk>' +
                     '</gpx>';
 
@@ -1369,7 +1605,8 @@
                         lat: p.lat,
                         lng: p.lng,
                         mode: p.mode || (entry.snap ? 'osrm' : 'direct'),
-                        segment: p.segment || []
+                        segment: p.segment || [],
+                        iconType: p.iconType || ''
                     };
                 });
                 els.name.value = entry.name || '';
@@ -1799,6 +2036,7 @@
 
             var elevTimer = null;
             var elevAbortController = null;
+            var elevationHoverMarker = null;
             function updateElevation() {
                 if (elevTimer) clearTimeout(elevTimer);
                 if (els.elevSub) els.elevSub.textContent = 'Menunggu update elevasi...';
@@ -1822,6 +2060,10 @@
                     els.elevSub.textContent = 'Buat rute dulu untuk lihat grafik.';
                     els.elevMeta.textContent = '';
                     els.elevSvg.innerHTML = '';
+                    if (elevationHoverMarker) {
+                        map.removeLayer(elevationHoverMarker);
+                        elevationHoverMarker = null;
+                    }
                     return;
                 }
                 elevSeq += 1;
@@ -1997,13 +2239,59 @@
                     elX.setAttribute('x2', p.x.toFixed(2));
                     elDot.setAttribute('cx', p.x.toFixed(2));
                     elDot.setAttribute('cy', p.y.toFixed(2));
-                    elTip.textContent = fmt2(p.d) + ' km • ' + Math.round(p.e) + ' m';
+
+                    // Calculate slope / gradient %
+                    var gradient = 0;
+                    if (idx > 0) {
+                        var distChangeM = (pts[idx].d - pts[idx - 1].d) * 1000;
+                        var elevChangeM = pts[idx].e - pts[idx - 1].e;
+                        if (distChangeM > 0.1) {
+                            gradient = (elevChangeM / distChangeM) * 100;
+                        }
+                    } else if (idx < pts.length - 1) {
+                        var distChangeM = (pts[idx + 1].d - pts[idx].d) * 1000;
+                        var elevChangeM = pts[idx + 1].e - pts[idx].e;
+                        if (distChangeM > 0.1) {
+                            gradient = (elevChangeM / distChangeM) * 100;
+                        }
+                    }
+
+                    var gradText = ' (' + (gradient >= 0 ? '+' : '') + gradient.toFixed(1) + '%)';
+                    elTip.textContent = fmt2(p.d) + ' km • ' + Math.round(p.e) + ' m' + gradText;
+
+                    // Update synchronized hover marker on Leaflet map
+                    var samplePoint = samples[idx];
+                    if (samplePoint) {
+                        var style = getStyle();
+                        var hoverHtml = '<div style="width: 16px; height: 16px; border-radius: 999px; background: ' + style.route + '; border: 3px solid #ffffff; box-shadow: 0 0 10px rgba(0,0,0,0.5); transform: scale(1.1);"></div>';
+                        if (!elevationHoverMarker) {
+                            var hoverIcon = L.divIcon({
+                                className: '',
+                                html: hoverHtml,
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 8]
+                            });
+                            elevationHoverMarker = L.marker([samplePoint.lat, samplePoint.lng], { icon: hoverIcon, zIndexOffset: 1000 }).addTo(map);
+                        } else {
+                            elevationHoverMarker.setLatLng([samplePoint.lat, samplePoint.lng]);
+                            elevationHoverMarker.setIcon(L.divIcon({
+                                className: '',
+                                html: hoverHtml,
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 8]
+                            }));
+                        }
+                    }
                 }
 
                 function onLeave() {
                     elX.style.display = 'none';
                     elDot.style.display = 'none';
                     elTip.style.display = 'none';
+                    if (elevationHoverMarker) {
+                        map.removeLayer(elevationHoverMarker);
+                        elevationHoverMarker = null;
+                    }
                 }
 
                 els.elevSvg.onmousemove = onMove;
@@ -2088,6 +2376,31 @@
                     } else {
                         els.collapsibleButtons.classList.add('hidden');
                         if (els.toggleChevron) els.toggleChevron.classList.remove('rotate-180');
+                    }
+                });
+            }
+
+            // Mobile sheet collapse/expand toggle
+            var isMinimized = false;
+            var sheetToggle = document.getElementById('rl-mobile-sheet-toggle');
+            var summaryPanel = document.getElementById('rl-summary-panel');
+            var compactStats = document.getElementById('rl-compact-stats');
+            var toggleHint = document.getElementById('rl-mobile-toggle-hint');
+            var expandedContent = document.getElementById('rl-expanded-content');
+
+            if (sheetToggle && summaryPanel && compactStats && toggleHint && expandedContent) {
+                sheetToggle.addEventListener('click', function () {
+                    isMinimized = !isMinimized;
+                    if (isMinimized) {
+                        summaryPanel.classList.add('rl-minimized');
+                        compactStats.classList.remove('hidden');
+                        toggleHint.classList.add('hidden');
+                        expandedContent.classList.add('hidden');
+                    } else {
+                        summaryPanel.classList.remove('rl-minimized');
+                        compactStats.classList.add('hidden');
+                        toggleHint.classList.remove('hidden');
+                        expandedContent.classList.remove('hidden');
                     }
                 });
             }
@@ -2250,9 +2563,155 @@
                 pushState();
             }
 
+            // Custom Marker placement logic
+            var customMarkerMode = false;
+            var selectedCustomIcon = 'water';
+
+            var customBtns = document.querySelectorAll('.rl-custom-icon-btn');
+            var customHint = document.getElementById('rl-custom-marker-hint');
+
+            customBtns.forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var type = btn.getAttribute('data-type');
+                    
+                    if (customMarkerMode && selectedCustomIcon === type) {
+                        deactivateCustomMarkerMode();
+                    } else {
+                        customBtns.forEach(function (b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        selectedCustomIcon = type;
+                        customMarkerMode = true;
+                        if (customHint) customHint.classList.remove('hidden');
+                        setStatus('Klik pada peta untuk menaruh marker ' + type);
+                    }
+                });
+            });
+
+            function deactivateCustomMarkerMode() {
+                customMarkerMode = false;
+                customBtns.forEach(function (b) { b.classList.remove('active'); });
+                if (customHint) customHint.classList.add('hidden');
+                setStatus('Mode gambar rute aktif');
+            }
+
+            function addCustomMarker(latlng, type, label) {
+                label = label || '';
+                var faIcon = 'fa-droplet';
+                var colorClass = 'text-sky-400 border-sky-500 bg-sky-950/90';
+                
+                if (type === 'warning') {
+                    faIcon = 'fa-triangle-exclamation';
+                    colorClass = 'text-orange-400 border-orange-500 bg-orange-950/90';
+                } else if (type === 'intersection') {
+                    faIcon = 'fa-arrows-split-up-and-left';
+                    colorClass = 'text-lime-400 border-lime-500 bg-lime-950/90';
+                } else if (type === 'photo') {
+                    faIcon = 'fa-camera';
+                    colorClass = 'text-pink-400 border-pink-500 bg-pink-950/90';
+                } else if (type === 'rest') {
+                    faIcon = 'fa-mug-hot';
+                    colorClass = 'text-amber-400 border-amber-500 bg-amber-950/90';
+                } else if (type === 'toilet') {
+                    faIcon = 'fa-toilet';
+                    colorClass = 'text-purple-400 border-purple-500 bg-purple-950/90';
+                }
+
+                var html = '<div class="w-8 h-8 rounded-full border-2 flex items-center justify-center shadow-lg transition-transform duration-200 hover:scale-110 ' + colorClass + '">' +
+                           '<i class="fa-solid ' + faIcon + ' text-sm"></i>' +
+                           '</div>';
+                           
+                var customIcon = L.divIcon({
+                    html: html,
+                    className: '',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+
+                var m = L.marker([latlng.lat, latlng.lng], { icon: customIcon, draggable: true });
+                
+                var popupContent = document.createElement('div');
+                popupContent.className = 'p-2 text-center space-y-2';
+                
+                var title = document.createElement('div');
+                title.className = 'text-xs font-black text-white capitalize';
+                title.textContent = type + ' Marker';
+                popupContent.appendChild(title);
+                
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Keterangan...';
+                input.value = label;
+                input.className = 'w-full bg-slate-900 border border-slate-700 text-white text-[11px] px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-neon';
+                input.addEventListener('input', function() {
+                    var idx = findCustomMarkerIndex(m);
+                    if (idx !== -1) {
+                        customMarkers[idx].label = input.value;
+                        pushState();
+                    }
+                });
+                popupContent.appendChild(input);
+                
+                var delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'w-full px-2 py-1 bg-red-500 text-white rounded text-[10px] font-bold hover:bg-red-600 transition';
+                delBtn.textContent = 'Hapus';
+                delBtn.addEventListener('click', function() {
+                    map.closePopup();
+                    removeCustomMarker(m);
+                });
+                popupContent.appendChild(delBtn);
+
+                m.bindPopup(popupContent, { minWidth: 140 });
+                
+                m.on('dragend', function() {
+                    var ll = m.getLatLng();
+                    var idx = findCustomMarkerIndex(m);
+                    if (idx !== -1) {
+                        customMarkers[idx].lat = ll.lat;
+                        customMarkers[idx].lng = ll.lng;
+                        pushState();
+                    }
+                });
+
+                m.addTo(map);
+
+                customMarkers.push({
+                    lat: latlng.lat,
+                    lng: latlng.lng,
+                    type: type,
+                    label: label,
+                    markerInstance: m
+                });
+
+                pushState();
+            }
+
+            function findCustomMarkerIndex(markerInstance) {
+                for (var i = 0; i < customMarkers.length; i++) {
+                    if (customMarkers[i].markerInstance === markerInstance) return i;
+                }
+                return -1;
+            }
+
+            function removeCustomMarker(markerInstance) {
+                var idx = findCustomMarkerIndex(markerInstance);
+                if (idx !== -1) {
+                    map.removeLayer(markerInstance);
+                    customMarkers.splice(idx, 1);
+                    pushState();
+                }
+            }
+
             map.on('click', function (e) {
                 if (freehandActive) return;
-                addPoint(e.latlng);
+                if (customMarkerMode) {
+                    addCustomMarker(e.latlng, selectedCustomIcon);
+                    deactivateCustomMarkerMode();
+                } else {
+                    addPoint(e.latlng);
+                }
             });
             map.on('mousedown', onFreehandStart);
             map.on('mousemove', onFreehandMove);
@@ -2271,6 +2730,49 @@
 
             updateStats();
             rebuildLine();
+
+            // Restore draft if present
+            try {
+                var draftRaw = localStorage.getItem('rl.routeBuilder.v1.draft');
+                if (draftRaw) {
+                    var parsedDraft = JSON.parse(draftRaw);
+                    var draftPoints = [];
+                    var draftCustom = [];
+                    
+                    if (Array.isArray(parsedDraft)) {
+                        draftPoints = parsedDraft;
+                    } else if (parsedDraft && parsedDraft.points) {
+                        draftPoints = parsedDraft.points;
+                        draftCustom = parsedDraft.customMarkers || [];
+                    }
+                    
+                    if (draftPoints.length > 0 || draftCustom.length > 0) {
+                        points = draftPoints;
+                        
+                        // Clear existing custom markers
+                        customMarkers.forEach(function(cm) {
+                            if (cm.markerInstance) map.removeLayer(cm.markerInstance);
+                        });
+                        customMarkers = [];
+                        
+                        // Re-render custom markers
+                        draftCustom.forEach(function(cm) {
+                            addCustomMarker(cm, cm.type, cm.label);
+                        });
+                        
+                        processLoadedPoints().then(function() {
+                            rebuildLine();
+                            rebuildMarkers();
+                            updateStats();
+                            updateElevation();
+                            pushState();
+                        });
+                    }
+                }
+            } catch(e) {
+                console.error('Failed to restore draft:', e);
+            }
+
             applyFromQuery();
 
             // --- TEST SUITE ---

@@ -54,6 +54,31 @@
 
             <!-- Register Form -->
             <form x-show="tab === 'register'" @submit.prevent="submitRegister" class="space-y-4" x-cloak>
+                <!-- Role Selection -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">I am a...</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="runner" x-model="role" class="hidden">
+                            <div :class="role === 'runner' ? 'border-primary bg-primary/10' : 'border-slate-700'" class="border rounded-xl p-3 text-center hover:bg-slate-800 transition-all h-full flex flex-col items-center justify-center gap-2">
+                                <svg :class="role === 'runner' ? 'text-primary' : 'text-slate-400'" class="w-6 h-6 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span class="text-xs font-bold text-white">Runner</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="coach" x-model="role" class="hidden">
+                            <div :class="role === 'coach' ? 'border-primary bg-primary/10' : 'border-slate-700'" class="border rounded-xl p-3 text-center hover:bg-slate-800 transition-all h-full flex flex-col items-center justify-center gap-2">
+                                <svg :class="role === 'coach' ? 'text-primary' : 'text-slate-400'" class="w-6 h-6 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                <span class="text-xs font-bold text-white">Coach</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Full Name</label>
                     <input type="text" name="name" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="John Doe">
@@ -76,7 +101,6 @@
                         <input type="password" name="password_confirmation" required class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-primary transition-colors" placeholder="••••••••">
                     </div>
                 </div>
-                <input type="hidden" name="role" value="runner">
                 <input type="hidden" name="g-recaptcha-response" value="">
 
                 <button type="submit" :disabled="loading" class="w-full py-3 bg-primary hover:bg-white text-dark font-black rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
@@ -112,6 +136,7 @@
             tab: 'login',
             loading: false,
             errorMessage: '',
+            role: 'runner',
             
             init() {
                 window.openLoginModal = () => { 
