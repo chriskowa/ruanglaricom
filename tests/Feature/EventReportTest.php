@@ -231,4 +231,81 @@ class EventReportTest extends TestCase
 
         $this->assertEquals(5, $report['breakdown']['regular']); // 5 paid regulars
     }
+
+    public function test_public_report_export_csv_requires_session()
+    {
+        $response = $this->get(route('report.export', $this->event->id));
+        $response->assertStatus(403);
+    }
+
+    public function test_public_report_export_csv_with_session()
+    {
+        $participant = $this->createParticipant('paid');
+
+        $sessionKey = 'report_access_' . $this->event->id;
+        $response = $this->withSession([$sessionKey => true])
+            ->get(route('report.export', $this->event->id));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="participants_'.$this->event->slug.'_'.date('Y-m-d').'.csv"');
+        
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('John Doe', $content);
+        $this->assertStringContainsString('john@example.com', $content);
+    }
+
+    public function test_public_report_export_xlsx_with_session()
+    {
+        $participant = $this->createParticipant('paid');
+
+        $sessionKey = 'report_access_' . $this->event->id;
+        $response = $this->withSession([$sessionKey => true])
+            ->get(route('report.export.xlsx', $this->event->id));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->assertHeader('Content-Disposition', 'attachment; filename=participants_'.$this->event->slug.'_'.date('Y-m-d').'.xlsx');
+    }
+
+    public function test_public_report_update_pickup_status_requires_session()
+    {
+        $participant = $this->createParticipant('paid');
+
+        $response = $this->post(route('report.participant.status', [
+            'event' => $this->event->id,
+            'participant' => $participant->id
+        ]), [
+            'is_picked_up' => true,
+            'picked_up_by' => 'Staff'
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_public_report_update_pickup_status_with_session()
+    {
+        $participant = $this->createParticipant('paid');
+
+        $sessionKey = 'report_access_' . $this->event->id;
+        $response = $this->withSession([$sessionKey => true])
+            ->postJson(route('report.participant.status', [
+                'event' => $this->event->id,
+                'participant' => $participant->id
+            ]), [
+                'is_picked_up' => true,
+                'picked_up_by' => 'Scanner'
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'message' => 'Status pengambilan berhasil diperbarui',
+        ]);
+
+        $participant->refresh();
+        $this->assertTrue((bool)$participant->is_picked_up);
+        $this->assertEquals('Scanner', $participant->picked_up_by);
+        $this->assertNotNull($participant->picked_up_at);
+    }
 }

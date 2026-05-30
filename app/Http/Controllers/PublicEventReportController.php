@@ -393,4 +393,272 @@ class PublicEventReportController extends Controller
             ],
         ];
     }
+
+    public function exportParticipants(Request $request, $event)
+    {
+        if (! session('report_access_' . $event)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $eventModel = Event::query()
+            ->whereKey($event)
+            ->firstOrFail();
+
+        $query = Participant::whereHas('transaction', function ($q) use ($eventModel, $request) {
+            $q->where('event_id', $eventModel->id);
+            if ($request->has('payment_status') && $request->payment_status && $request->payment_status !== 'all') {
+                $q->where('payment_status', $request->payment_status);
+            }
+        })
+        ->with(['transaction', 'category']);
+
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('race_category_id', $request->category_id);
+        }
+
+        if ($request->has('search') && trim($request->search) !== '') {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->has('end_date') && $request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $filename = 'participants_'.$eventModel->slug.'_'.date('Y-m-d').'.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ];
+
+        $queryForStream = clone $query;
+
+        $callback = function () use ($queryForStream) {
+            $file = fopen('php://output', 'w');
+
+            // BOM for Excel UTF-8 support
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Header
+            fputcsv($file, \App\Services\GoogleSheetsParticipantExporter::OUTPUT_COLUMNS);
+
+            // Data
+            $rowNumber = 0;
+            $queryForStream->orderBy('id')->chunkById(1000, function ($participants) use ($file, &$rowNumber) {
+                foreach ($participants as $participant) {
+                    $rowNumber++;
+                    fputcsv($file, [
+                        $rowNumber,
+                        $participant->name,
+                        ucfirst($participant->gender ?? '-'),
+                        $participant->email,
+                        $participant->phone,
+                        $participant->id_card,
+                        $participant->address ?? '-',
+                        $participant->category ? $participant->category->name : '-',
+                        $participant->bib_number ?? '-',
+                        $participant->jersey_size ?? '-',
+                        (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
+                        $participant->target_time ?? '-',
+                        ucfirst($participant->transaction->payment_status ?? 'pending'),
+                        $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
+                        $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '-',
+                        $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : '-',
+                        $participant->picked_up_by ?? '-',
+                    ]);
+                }
+            });
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportParticipantsXlsx(Request $request, $event)
+    {
+        if (! session('report_access_' . $event)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $eventModel = Event::query()
+            ->whereKey($event)
+            ->firstOrFail();
+
+        $query = Participant::whereHas('transaction', function ($q) use ($eventModel, $request) {
+            $q->where('event_id', $eventModel->id);
+            if ($request->has('payment_status') && $request->payment_status && $request->payment_status !== 'all') {
+                $q->where('payment_status', $request->payment_status);
+            }
+        })
+        ->with(['transaction', 'category']);
+
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('race_category_id', $request->category_id);
+        }
+
+        if ($request->has('search') && trim($request->search) !== '') {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->has('end_date') && $request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $filename = 'participants_'.$eventModel->slug.'_'.date('Y-m-d').'.xlsx';
+
+        $queryForStream = clone $query;
+
+        return response()->streamDownload(function () use ($queryForStream) {
+            $writer = new \OpenSpout\Writer\XLSX\Writer;
+            $writer->openToFile('php://output');
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(\App\Services\GoogleSheetsParticipantExporter::OUTPUT_COLUMNS));
+
+            $rowNumber = 0;
+            $queryForStream->orderBy('id')->chunkById(1000, function ($participants) use (&$rowNumber, $writer) {
+                $rows = [];
+                foreach ($participants as $participant) {
+                    $rowNumber++;
+                    $rows[] = \OpenSpout\Common\Entity\Row::fromValues([
+                        $rowNumber,
+                        $participant->name,
+                        ucfirst($participant->gender ?? '-'),
+                        $participant->email,
+                        $participant->phone,
+                        $participant->id_card,
+                        $participant->address ?? '-',
+                        $participant->category ? $participant->category->name : '-',
+                        $participant->bib_number ?? '-',
+                        $participant->jersey_size ?? '-',
+                        (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
+                        $participant->target_time ?? '-',
+                        ucfirst($participant->transaction->payment_status ?? 'pending'),
+                        $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
+                        $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '-',
+                        $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : '-',
+                        $participant->picked_up_by ?? '-',
+                    ]);
+                }
+                if ($rows) {
+                    $writer->addRows($rows);
+                }
+            });
+
+            $writer->close();
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    public function updateParticipantStatus(Request $request, $event, Participant $participant)
+    {
+        if (! session('report_access_' . $event)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $eventModel = Event::query()
+            ->whereKey($event)
+            ->firstOrFail();
+
+        // Verify participant belongs to this event
+        $participantEventId = (int) ($participant?->transaction?->event_id ?? 0);
+        if ($participantEventId !== (int) $eventModel->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        $validated = $request->validate([
+            'is_picked_up' => 'required|boolean',
+            'picked_up_by' => 'nullable|string|max:255',
+        ]);
+
+        $wasPickedUp = (bool) $participant->is_picked_up;
+        $isPickedUp = (bool) $validated['is_picked_up'];
+        if ($isPickedUp) {
+            $paymentStatus = (string) ($participant->transaction->payment_status ?? '');
+            if (! in_array($paymentStatus, ['paid', 'cod'], true)) {
+                $message = 'Tidak bisa pickup: status pembayaran belum paid.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                    ], 422);
+                }
+                return back()->with('error', $message);
+            }
+        }
+
+        $participant->update([
+            'is_picked_up' => $isPickedUp,
+            'picked_up_at' => $isPickedUp ? now() : null,
+            'picked_up_by' => $isPickedUp ? (($validated['picked_up_by'] ?? null) ?: 'Public Report') : null,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status pengambilan berhasil diperbarui',
+                'pickup_changed' => $wasPickedUp !== $isPickedUp,
+                'participant' => [
+                    'id' => $participant->id,
+                    'name' => $participant->name,
+                    'bib_number' => $participant->bib_number,
+                    'jersey_size' => $participant->jersey_size,
+                    'is_picked_up' => (bool) $participant->is_picked_up,
+                    'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
+                    'picked_up_by' => $participant->picked_up_by,
+                    'payment_status' => $participant->transaction->payment_status ?? 'pending',
+                ],
+                'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($eventModel),
+            ]);
+        }
+
+        return back()->with('success', 'Status pengambilan berhasil diperbarui');
+    }
+
+    private function getJerseyPendingPickupCounts(Event $event): array
+    {
+        $soldStatuses = ['paid', 'settlement', 'capture', 'cod'];
+
+        $raw = Participant::query()
+            ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+            ->where('transactions.event_id', $event->id)
+            ->whereIn('transactions.payment_status', $soldStatuses)
+            ->where('participants.is_picked_up', false)
+            ->whereNotNull('participants.jersey_size')
+            ->where('participants.jersey_size', '!=', '')
+            ->selectRaw('UPPER(participants.jersey_size) as jersey_size, COUNT(*) as total')
+            ->groupBy('jersey_size')
+            ->pluck('total', 'jersey_size')
+            ->toArray();
+
+        $normalized = [];
+        foreach ($raw as $size => $total) {
+            $key = strtoupper(trim((string) $size));
+            if ($key === 'XXL') {
+                $key = '2XL';
+            } elseif ($key === 'XXXL') {
+                $key = '3XL';
+            }
+            $normalized[$key] = (int) ($normalized[$key] ?? 0) + (int) $total;
+        }
+
+        return $normalized;
+    }
 }

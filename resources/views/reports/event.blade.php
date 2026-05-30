@@ -173,13 +173,25 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm:col-span-2 flex items-center gap-2">
+                <div class="sm:col-span-2 flex flex-wrap items-center gap-2">
                     <button type="submit" class="px-4 py-2 rounded-xl bg-neon text-dark font-bold hover:bg-lime-300 transition">
                         Terapkan
                     </button>
                     <button id="report-reset" type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 transition">
                         Reset
                     </button>
+                    <button type="button" onclick="openQrScanModal()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center gap-2 transition">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3v3H7V7zm7 0h3v3h-3V7zM7 14h3v3H7v-3zm7 0h3v3h-3v-3z" /></svg>
+                        Scan QR
+                    </button>
+                    <a id="export-csv-btn" href="#" onclick="this.href=getExportUrl('csv')" class="px-4 py-2 rounded-xl bg-green-600 text-white font-bold hover:bg-green-500 transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Export CSV
+                    </a>
+                    <a id="export-xlsx-btn" href="#" onclick="this.href=getExportUrl('xlsx')" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Export XLSX
+                    </a>
                 </div>
             </form>
 
@@ -370,13 +382,296 @@
         </form>
     </div>
 </div>
+
+<!-- QR Scan Modal -->
+<div id="qrScanModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeQrScanModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-white">Scan QR Pickup</h3>
+                        <button type="button" onclick="closeQrScanModal()" class="text-slate-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+
+                    <div class="rounded-2xl overflow-hidden border border-slate-700 bg-black relative">
+                        <video id="qrVideo" class="w-full h-72 object-cover" playsinline muted></video>
+                        <div class="absolute inset-0 pointer-events-none">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-48 h-48 border-2 border-yellow-400/70 rounded-2xl"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 space-y-2">
+                        <div id="qrScanMsg" class="text-sm text-slate-300"></div>
+                        <div class="text-xs text-slate-500">Arahkan kamera ke QR dari email tiket (format: TICKET-...)</div>
+                    </div>
+                </div>
+                <div class="bg-slate-900/50 px-6 py-4 flex justify-end gap-3">
+                    <button type="button" id="btnQrStart" onclick="startQrScan()" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold">Start</button>
+                    <button type="button" id="btnQrStop" onclick="stopQrScan()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold">Stop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
         const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";
         const csrfTokenVal = "{{ csrf_token() }}";
+
+        var qrStream = null;
+        var qrRunning = false;
+        var qrBusy = false;
+        var qrLastOkAt = 0;
+        var qrLoopTimer = null;
+        var qrCanvas = null;
+        var qrCtx = null;
+        var qrDetector = null;
+
+        window.getExportUrl = function (format) {
+            const baseUrl = format === 'xlsx' ? "{{ route('report.export.xlsx', $event->id) }}" : "{{ route('report.export', $event->id) }}";
+            const currentParams = new URLSearchParams(window.location.search);
+            currentParams.delete('page');
+            currentParams.delete('per_page');
+            const qs = currentParams.toString();
+            return baseUrl + (qs ? '?' + qs : '');
+        };
+
+        function setQrMsg(text, type) {
+            var el = document.getElementById('qrScanMsg');
+            if (!el) return;
+            el.textContent = text || '';
+            if (type === 'error') {
+                el.className = 'text-sm text-red-300';
+            } else if (type === 'success') {
+                el.className = 'text-sm text-green-300';
+            } else {
+                el.className = 'text-sm text-slate-300';
+            }
+        }
+
+        function parseParticipantIdFromQr(raw) {
+            var s = String(raw || '').trim();
+            if (!s) return null;
+
+            try {
+                if (/^https?:\/\//i.test(s)) {
+                    var u = new URL(s);
+                    var d = u.searchParams.get('data') || u.searchParams.get('ticket') || u.searchParams.get('q') || '';
+                    if (d) s = String(d).trim();
+                }
+            } catch (e) {}
+
+            var m = s.match(/^TICKET-(\d+)-(\d+)$/);
+            if (m && m[1]) return parseInt(m[1], 10);
+
+            m = s.match(/TICKET-(\d+)-/);
+            if (m && m[1]) return parseInt(m[1], 10);
+
+            return null;
+        }
+
+        function updatePickupByParticipantId(participantId) {
+            var url = "{{ url('/reports/' . $event->id . '/participants') }}/" + participantId + "/status";
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfTokenVal,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    is_picked_up: true,
+                    picked_up_by: 'Public Report Scanner'
+                })
+            }).then(function(r) { return r.json(); });
+        }
+
+        function ensureQrDetector() {
+            if (qrDetector) return qrDetector;
+            try {
+                if (!('BarcodeDetector' in window)) return null;
+                qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
+                return qrDetector;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function drawVideoToCanvas(video) {
+            var w = video.videoWidth;
+            var h = video.videoHeight;
+            if (!qrCanvas) qrCanvas = document.createElement('canvas');
+            if (qrCanvas.width !== w) qrCanvas.width = w;
+            if (qrCanvas.height !== h) qrCanvas.height = h;
+            if (!qrCtx) qrCtx = qrCanvas.getContext('2d', { willReadFrequently: true });
+            qrCtx.drawImage(video, 0, 0, w, h);
+            return { w: w, h: h };
+        }
+
+        function decodeWithJsQR(video) {
+            if (typeof jsQR !== 'function') return null;
+            if (!video || !video.videoWidth || !video.videoHeight) return null;
+            var dims = drawVideoToCanvas(video);
+            try {
+                var size = Math.floor(Math.min(dims.w, dims.h) * 0.75);
+                var x = Math.floor((dims.w - size) / 2);
+                var y = Math.floor((dims.h - size) / 2);
+                var img = qrCtx.getImageData(x, y, size, size);
+                var code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+                if (code && code.data) return String(code.data).trim();
+            } catch (e) {}
+
+            try {
+                var full = qrCtx.getImageData(0, 0, dims.w, dims.h);
+                var code2 = jsQR(full.data, full.width, full.height, { inversionAttempts: 'attemptBoth' });
+                if (code2 && code2.data) return String(code2.data).trim();
+            } catch (e) {}
+
+            return null;
+        }
+
+        function decodeWithBarcodeDetector(video) {
+            var det = ensureQrDetector();
+            if (!det) return Promise.resolve(null);
+            if (!video || !video.videoWidth || !video.videoHeight) return Promise.resolve(null);
+            drawVideoToCanvas(video);
+            return det.detect(qrCanvas).then(function(dets){
+                if (!dets || !dets.length) return null;
+                var v = dets[0].rawValue || '';
+                v = String(v).trim();
+                return v || null;
+            }).catch(function(){ return null; });
+        }
+
+        function processQrPayload(payload) {
+            var participantId = parseParticipantIdFromQr(payload);
+            if (!participantId) {
+                setQrMsg('QR tidak dikenali. Pastikan QR dari email tiket.', 'error');
+                return Promise.resolve();
+            }
+
+            setQrMsg('Memproses pickup…', null);
+            return updatePickupByParticipantId(participantId).then(function(res){
+                if (res && res.success) {
+                    var p = res.participant || null;
+                    var name = (p && p.name) ? String(p.name) : '';
+                    var bib = (p && p.bib_number) ? String(p.bib_number) : '-';
+                    var jersey = (p && p.jersey_size) ? String(p.jersey_size) : '-';
+                    var payment = (p && p.payment_status) ? String(p.payment_status).toUpperCase() : 'UNKNOWN';
+                    var msg = name ? (`Berhasil pickup: ${name} • BIB ${bib} • Jersey ${jersey} • Payment ${payment}`) : (res.message || ('Berhasil update pickup #' + participantId));
+                    setQrMsg(msg, 'success');
+                    
+                    // Trigger AJAX reload to update the dashboard table and stats
+                    const filterForm = document.getElementById('report-filters');
+                    if (filterForm) {
+                        const fd = new FormData(filterForm);
+                        const payloadObj = {};
+                        for (const [k, v] of fd.entries()) {
+                            payloadObj[k] = typeof v === 'string' ? v.trim() : v;
+                        }
+                        payloadObj.page = 1;
+                        if (typeof fetchReport === 'function') {
+                            fetchReport(payloadObj);
+                        }
+                    }
+                    qrLastOkAt = Date.now();
+                } else {
+                    setQrMsg((res && res.message) ? res.message : 'Gagal update pickup', 'error');
+                }
+            }).catch(function(err){
+                setQrMsg((err && err.message) ? err.message : 'Gagal update pickup (network/server).', 'error');
+            });
+        }
+
+        function qrLoop() {
+            if (!qrRunning) return;
+            if (qrBusy) return;
+            var video = document.getElementById('qrVideo');
+            if (!video || !video.videoWidth) return;
+
+            var now = Date.now();
+            if (now - qrLastOkAt < 900) return;
+
+            qrBusy = true;
+            decodeWithBarcodeDetector(video).then(function(v){
+                if (v) return v;
+                return decodeWithJsQR(video);
+            }).then(function(val){
+                if (!val) return null;
+                return processQrPayload(val);
+            }).finally(function(){
+                qrBusy = false;
+            });
+        }
+
+        window.openQrScanModal = function() {
+            var modal = document.getElementById('qrScanModal');
+            if (modal) modal.classList.remove('hidden');
+            setQrMsg('', null);
+            window.startQrScan();
+        };
+
+        window.closeQrScanModal = function() {
+            window.stopQrScan();
+            var modal = document.getElementById('qrScanModal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.startQrScan = function() {
+            if (qrRunning) return;
+            var video = document.getElementById('qrVideo');
+            if (!video) return;
+
+            qrRunning = true;
+            setQrMsg('Meminta akses kamera…', null);
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
+                .then(function(stream){
+                    qrStream = stream;
+                    video.srcObject = stream;
+                    return video.play();
+                })
+                .then(function(){
+                    setQrMsg('Arahkan kamera ke QR.', null);
+                    if (qrLoopTimer) clearInterval(qrLoopTimer);
+                    qrLoopTimer = setInterval(qrLoop, 220);
+                })
+                .catch(function(err){
+                    qrRunning = false;
+                    setQrMsg('Kamera tidak bisa diakses. Pastikan izin kamera diaktifkan.', 'error');
+                    if (err) console.error(err);
+                });
+        };
+
+        window.stopQrScan = function() {
+            qrRunning = false;
+            qrBusy = false;
+            if (qrLoopTimer) {
+                clearInterval(qrLoopTimer);
+                qrLoopTimer = null;
+            }
+            var video = document.getElementById('qrVideo');
+            if (video) {
+                try { video.pause(); } catch (e) {}
+                video.srcObject = null;
+            }
+            if (qrStream) {
+                try {
+                    qrStream.getTracks().forEach(function(t){ t.stop(); });
+                } catch (e) {}
+                qrStream = null;
+            }
+        };
 
         async function updateStatus(participantId, value, checkboxEl) {
             try {

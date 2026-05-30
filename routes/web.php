@@ -386,6 +386,9 @@ Route::middleware('auth')->group(function() {
 
 Route::get('/reports/{event}', [App\Http\Controllers\PublicEventReportController::class, 'show'])->name('report.show');
 Route::post('/reports/{event}/participants/{participant}', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipant'])->name('report.participant.update');
+Route::get('/reports/{event}/export', [App\Http\Controllers\PublicEventReportController::class, 'exportParticipants'])->name('report.export');
+Route::get('/reports/{event}/export-xlsx', [App\Http\Controllers\PublicEventReportController::class, 'exportParticipantsXlsx'])->name('report.export.xlsx');
+Route::post('/reports/{event}/participants/{participant}/status', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipantStatus'])->name('report.participant.status');
 
 Route::get('/coach-ladder-program', function () {
     return view('coach.hub');
