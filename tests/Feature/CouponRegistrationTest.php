@@ -125,6 +125,11 @@ class CouponRegistrationTest extends TestCase
             $table->string('target_time')->nullable();
             $table->string('bib_number')->nullable();
             $table->string('jersey_size')->nullable();
+            $table->string('photo')->nullable();
+            $table->boolean('isApproved')->default(false);
+            $table->boolean('is_picked_up')->default(false);
+            $table->string('picked_up_by')->nullable();
+            $table->timestamp('picked_up_at')->nullable();
             $table->text('addons')->nullable();
             $table->string('status')->nullable();
             $table->string('price_type')->nullable();
@@ -265,11 +270,87 @@ class CouponRegistrationTest extends TestCase
                     'category_id' => $category->id,
                     'emergency_contact_name' => 'EC',
                     'emergency_contact_number' => '081234567892',
+                    'jersey_size' => 'M',
                 ],
             ],
         ];
 
         $response = $this->postJson(route('events.register.store', $event->slug), $payload);
         $response->assertOk()->assertJsonPath('success', true);
+    }
+
+    public function test_coupon_usage_recalculated_when_transaction_coupon_id_updated(): void
+    {
+        $this->resetSchema();
+
+        $event = Event::create([
+            'name' => 'Event Coupon Test',
+            'slug' => 'event-coupon-test',
+            'start_at' => now(),
+            'location_name' => 'Jakarta',
+            'platform_fee' => 0,
+        ]);
+
+        $coupon1 = Coupon::create([
+            'event_id' => $event->id,
+            'code' => 'COUPON1',
+            'type' => 'fixed',
+            'value' => 10000,
+            'used_count' => 0,
+            'is_active' => true,
+        ]);
+
+        $coupon2 = Coupon::create([
+            'event_id' => $event->id,
+            'code' => 'COUPON2',
+            'type' => 'fixed',
+            'value' => 20000,
+            'used_count' => 0,
+            'is_active' => true,
+        ]);
+
+        // Create transaction with paid status and coupon1
+        $tx = Transaction::create([
+            'event_id' => $event->id,
+            'payment_status' => 'paid',
+            'coupon_id' => $coupon1->id,
+        ]);
+
+        $coupon1->refresh();
+        $coupon2->refresh();
+        $this->assertEquals(1, $coupon1->used_count);
+        $this->assertEquals(0, $coupon2->used_count);
+
+        // Update transaction's coupon_id to coupon2
+        $tx->update(['coupon_id' => $coupon2->id]);
+
+        $coupon1->refresh();
+        $coupon2->refresh();
+        $this->assertEquals(0, $coupon1->used_count);
+        $this->assertEquals(1, $coupon2->used_count);
+
+        // Change status to pending
+        $tx->update(['payment_status' => 'pending']);
+
+        $coupon1->refresh();
+        $coupon2->refresh();
+        $this->assertEquals(0, $coupon1->used_count);
+        $this->assertEquals(0, $coupon2->used_count);
+
+        // Change status back to paid
+        $tx->update(['payment_status' => 'paid']);
+
+        $coupon1->refresh();
+        $coupon2->refresh();
+        $this->assertEquals(0, $coupon1->used_count);
+        $this->assertEquals(1, $coupon2->used_count);
+
+        // Delete transaction
+        $tx->delete();
+
+        $coupon1->refresh();
+        $coupon2->refresh();
+        $this->assertEquals(0, $coupon1->used_count);
+        $this->assertEquals(0, $coupon2->used_count);
     }
 }

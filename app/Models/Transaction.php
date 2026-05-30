@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Models\Coupon;
 
 class Transaction extends Model
 {
@@ -80,6 +81,33 @@ class Transaction extends Model
             } while (self::query()->where('public_ref', $ref)->exists());
 
             $transaction->public_ref = $ref;
+        });
+
+        static::created(function (self $transaction) {
+            if ($transaction->coupon_id) {
+                Coupon::recalculateUsedCount($transaction->coupon_id);
+            }
+        });
+
+        static::updated(function (self $transaction) {
+            $couponIdChanged = $transaction->isDirty('coupon_id');
+            $statusChanged = $transaction->isDirty('payment_status');
+
+            if ($couponIdChanged || $statusChanged) {
+                if ($transaction->coupon_id) {
+                    Coupon::recalculateUsedCount($transaction->coupon_id);
+                }
+                $originalCouponId = $transaction->getOriginal('coupon_id');
+                if ($originalCouponId && $originalCouponId != $transaction->coupon_id) {
+                    Coupon::recalculateUsedCount($originalCouponId);
+                }
+            }
+        });
+
+        static::deleted(function (self $transaction) {
+            if ($transaction->coupon_id) {
+                Coupon::recalculateUsedCount($transaction->coupon_id);
+            }
         });
     }
 

@@ -40,9 +40,9 @@ class ProcessPaidEventTransaction implements ShouldQueue
             // 2. Deposit to EO wallet
             $this->depositToEOWallet();
 
-            // 3. Increment coupon used_count
-            if ($this->transaction->coupon) {
-                $this->transaction->coupon->increment('used_count');
+            // 3. Recalculate coupon used_count
+            if ($this->transaction->coupon_id) {
+                \App\Models\Coupon::recalculateUsedCount($this->transaction->coupon_id);
             }
 
             // 4. Update participant status to confirmed

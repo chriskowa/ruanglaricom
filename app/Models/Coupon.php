@@ -114,4 +114,15 @@ class Coupon extends Model
         // Fixed discount
         return min($this->value, $amount);
     }
+
+    public static function recalculateUsedCount(int $couponId): void
+    {
+        $coupon = self::find($couponId);
+        if ($coupon) {
+            $count = $coupon->transactions()
+                ->whereIn('payment_status', ['paid', 'settlement', 'capture', 'cod'])
+                ->count();
+            $coupon->update(['used_count' => $count]);
+        }
+    }
 }
