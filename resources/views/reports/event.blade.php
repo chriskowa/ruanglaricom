@@ -101,6 +101,11 @@
             $jerseySizes = ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
             $jerseyActiveSizes = array_filter($jerseySizes, function($s) use ($jerseyCounts, $jerseyStockQuotas) {
                 $used = (int) ($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0);
+                if ($s === '2XL') {
+                    $used += (int) ($jerseyCounts['XXL'] ?? $jerseyCounts['xxl'] ?? 0);
+                } elseif ($s === '3XL') {
+                    $used += (int) ($jerseyCounts['XXXL'] ?? $jerseyCounts['xxxl'] ?? 0);
+                }
                 return $used > 0 || isset($jerseyStockQuotas[$s]);
             });
             if (empty($jerseyActiveSizes)) $jerseyActiveSizes = ['XS','S','M','L','XL','2XL','3XL'];
@@ -116,6 +121,11 @@
             @foreach($jerseyActiveSizes as $size)
                 @php
                     $used  = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
+                    if ($size === '2XL') {
+                        $used += (int) ($jerseyCounts['XXL'] ?? $jerseyCounts['xxl'] ?? 0);
+                    } elseif ($size === '3XL') {
+                        $used += (int) ($jerseyCounts['XXXL'] ?? $jerseyCounts['xxxl'] ?? 0);
+                    }
                     $quota = isset($jerseyStockQuotas[$size]) ? (int) $jerseyStockQuotas[$size] : null;
                     $sisa  = $quota !== null ? max(0, $quota - $used) : null;
                 @endphp
@@ -143,15 +153,24 @@
         </div>
         {{-- Total --}}
         @php
-            $totalUsed  = array_sum(array_map(fn($s) => (int)($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0), $jerseyActiveSizes));
+            $totalUsed = 0;
+            foreach ($jerseyActiveSizes as $s) {
+                $cnt = (int) ($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0);
+                if ($s === '2XL') {
+                    $cnt += (int) ($jerseyCounts['XXL'] ?? $jerseyCounts['xxl'] ?? 0);
+                } elseif ($s === '3XL') {
+                    $cnt += (int) ($jerseyCounts['XXXL'] ?? $jerseyCounts['xxxl'] ?? 0);
+                }
+                $totalUsed += $cnt;
+            }
             $totalQuota = !empty($jerseyStockQuotas) ? array_sum($jerseyStockQuotas) : null;
             $totalSisa  = $totalQuota !== null ? max(0, $totalQuota - $totalUsed) : null;
         @endphp
         <div class="mt-3 pt-3 border-t border-slate-700 grid grid-cols-4 gap-2 px-2 items-center">
             <span class="text-xs font-bold text-slate-400 uppercase">TOTAL</span>
-            <span class="text-right text-sm font-mono font-bold text-slate-300">{{ $totalQuota !== null ? number_format($totalQuota) : '∞' }}</span>
-            <span class="text-right text-sm font-mono font-bold text-white">{{ number_format($totalUsed) }}</span>
-            <span class="text-right text-sm font-mono font-bold text-emerald-400">{{ $totalSisa !== null ? $totalSisa : '∞' }}</span>
+            <span id="stat-jersey-total-quota" class="text-right text-sm font-mono font-bold text-slate-300">{{ $totalQuota !== null ? number_format($totalQuota) : '∞' }}</span>
+            <span id="stat-jersey-total-used" class="text-right text-sm font-mono font-bold text-white">{{ number_format($totalUsed) }}</span>
+            <span id="stat-jersey-total-sisa" class="text-right text-sm font-mono font-bold text-emerald-400">{{ $totalSisa !== null ? $totalSisa : '∞' }}</span>
         </div>
     </div>
 
@@ -1112,14 +1131,56 @@
             statRemaining.textContent = (typeof report.remaining_slots === 'string') ? report.remaining_slots : formatNumber(report.remaining_slots);
 
             const jersey = report.jersey_sizes || {};
-            ['XS','S','M','L','XL','2XL','3XL'].forEach((size) => {
+            let totalUsed = 0;
+            ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'].forEach((size) => {
                 const el = document.getElementById('stat-jersey-' + size);
                 if (!el) return;
                 let v = jersey[size];
                 if (v === undefined || v === null) v = jersey[String(size).toLowerCase()];
                 if (v === undefined || v === null) v = jersey[String(size).toUpperCase()];
-                el.textContent = formatNumber(v || 0);
+                if ((v === undefined || v === null) && size === '2XL') v = (jersey['XXL'] || jersey['xxl']);
+                if ((v === undefined || v === null) && size === '3XL') v = (jersey['XXXL'] || jersey['xxxl']);
+                const val = Number(v || 0);
+                el.textContent = formatNumber(val);
+                totalUsed += val;
+
+                // Recalculate remaining (sisa) dynamically
+                const quotaEl = document.getElementById('stat-jersey-quota-' + size);
+                const sisaEl = document.getElementById('stat-jersey-sisa-' + size);
+                if (quotaEl && sisaEl) {
+                    const quotaVal = quotaEl.textContent.trim();
+                    if (quotaVal !== '∞' && quotaVal !== '') {
+                        const quota = parseInt(quotaVal.replace(/,/g, '')) || 0;
+                        const sisa = Math.max(0, quota - val);
+                        sisaEl.textContent = formatNumber(sisa);
+
+                        // Update status colors on wrapper and text
+                        const parentEl = el.closest('.rounded-xl');
+                        if (parentEl) {
+                            parentEl.className = 'rounded-xl border px-3 py-2 ' + 
+                                (sisa === 0 ? 'border-red-500/40 bg-red-900/10' : (sisa <= 5 ? 'border-yellow-500/40 bg-yellow-900/10' : 'border-slate-700 bg-slate-900/30'));
+                            sisaEl.className = 'text-sm font-mono font-bold ' + 
+                                (sisa === 0 ? 'text-red-400' : (sisa <= 5 ? 'text-yellow-400' : 'text-emerald-400'));
+                        }
+                    }
+                }
             });
+
+            // Update Totals row dynamically
+            const totalUsedEl = document.getElementById('stat-jersey-total-used');
+            const totalQuotaEl = document.getElementById('stat-jersey-total-quota');
+            const totalSisaEl = document.getElementById('stat-jersey-total-sisa');
+            if (totalUsedEl) {
+                totalUsedEl.textContent = formatNumber(totalUsed);
+            }
+            if (totalQuotaEl && totalSisaEl) {
+                const totalQuotaVal = totalQuotaEl.textContent.trim();
+                if (totalQuotaVal !== '∞' && totalQuotaVal !== '') {
+                    const totalQuota = parseInt(totalQuotaVal.replace(/,/g, '')) || 0;
+                    const totalSisa = Math.max(0, totalQuota - totalUsed);
+                    totalSisaEl.textContent = formatNumber(totalSisa);
+                }
+            }
         }
 
         async function fetchReport(payload) {

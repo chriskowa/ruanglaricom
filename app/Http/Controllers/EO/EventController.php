@@ -1447,6 +1447,16 @@ class EventController extends Controller
             'addons.*.value' => 'nullable',
         ]);
 
+        if (!empty($validated['jersey_size'])) {
+            $sz = strtoupper(trim($validated['jersey_size']));
+            if ($sz === 'XXL') {
+                $sz = '2XL';
+            } elseif ($sz === 'XXXL') {
+                $sz = '3XL';
+            }
+            $validated['jersey_size'] = $sz;
+        }
+
         // If is_picked_up is toggled, handle timestamp
         if (isset($validated['is_picked_up'])) {
             $validated['is_picked_up'] = (bool) $validated['is_picked_up'];

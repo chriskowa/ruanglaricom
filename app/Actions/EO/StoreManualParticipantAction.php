@@ -52,6 +52,13 @@ class StoreManualParticipantAction
                 // Check jersey stock quota
                 if ($event->premium_amenities['jersey']['enabled'] ?? false) {
                     $size = strtoupper(trim($validated['jersey_size'] ?? ''));
+                    if ($size === 'XXL') {
+                        $size = '2XL';
+                    } elseif ($size === 'XXXL') {
+                        $size = '3XL';
+                    }
+                    $validated['jersey_size'] = $size;
+
                     if (empty($size)) {
                         throw ValidationException::withMessages([
                             'jersey_size' => ['Ukuran jersey wajib diisi.'],

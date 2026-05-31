@@ -193,6 +193,11 @@ class ImportParticipantsCsvAction
 
             if ($event->premium_amenities['jersey']['enabled'] ?? false) {
                 $jsz = strtoupper(trim((string) ($r['jersey_size'] ?? '')));
+                if ($jsz === 'XXL') {
+                    $jsz = '2XL';
+                } elseif ($jsz === 'XXXL') {
+                    $jsz = '3XL';
+                }
                 if ($jsz === '') {
                     $errors[] = $this->err($rn, 'jersey_size wajib diisi karena official jersey aktif.');
                     continue;

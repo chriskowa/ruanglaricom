@@ -140,6 +140,20 @@ class StoreRegistrationAction
 
         $validated = $request->validate($rules);
 
+        if (isset($validated['participants']) && is_array($validated['participants'])) {
+            foreach ($validated['participants'] as $k => $p) {
+                if (isset($p['jersey_size'])) {
+                    $sz = strtoupper(trim((string)$p['jersey_size']));
+                    if ($sz === 'XXL') {
+                        $sz = '2XL';
+                    } elseif ($sz === 'XXXL') {
+                        $sz = '3XL';
+                    }
+                    $validated['participants'][$k]['jersey_size'] = $sz;
+                }
+            }
+        }
+
         $paymentMethod = strtolower($validated['payment_method'] ?? 'midtrans');
 
         // Calculate Addons Price (Per Participant)
@@ -375,7 +389,7 @@ class StoreRegistrationAction
             if ($event->premium_amenities['jersey']['enabled'] ?? false) {
                 // 1. Group requested quantities by size
                 $jerseyQuantities = [];
-                foreach ($request->participants as $participant) {
+                foreach ($validated['participants'] as $participant) {
                     $size = strtoupper(trim($participant['jersey_size'] ?? ''));
                     if (empty($size)) {
                         throw new \Exception('Ukuran jersey wajib diisi.');
