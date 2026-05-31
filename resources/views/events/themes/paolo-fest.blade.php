@@ -360,6 +360,24 @@
             $countdownTarget = $event->registration_close_at;
             $countdownLabel = 'Pendaftaran Ditutup Dalam';
         }
+
+        // Pre-compute jersey stock for JS validation
+        $jerseyStockData = [];
+        $event->load('jerseyStock');
+        if ($event->jerseyStock) {
+            $paoloPailerSizes2 = $event->jersey_sizes ?? ['XS','S','M','L','XL','2XL','3XL'];
+            foreach ($paoloPailerSizes2 as $sz) {
+                $col = strtolower($sz);
+                $quota = $event->jerseyStock->$col ?? null;
+                if ($quota !== null) {
+                    $usedCount = \App\Models\Participant::whereNotNull('jersey_size')
+                        ->whereRaw('UPPER(jersey_size) = ?', [strtoupper($sz)])
+                        ->whereHas('transaction', fn($q) => $q->where('event_id', $event->id)->whereIn('payment_status', ['paid','cod']))
+                        ->count();
+                    $jerseyStockData[$sz] = ['quota' => (int) $quota, 'remaining' => max(0, (int)$quota - $usedCount)];
+                }
+            }
+        }
     @endphp
 
     @if(!$isRegOpen)
@@ -1808,10 +1826,24 @@
                                             <div class="space-y-1 relative">
                                                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Ukuran Jersey</label>
                                                 
-                                            <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                                <option value="">Ukuran Jersey</option>
-                                                @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}">{{ $size }}</option> @endforeach
-                                            </select>
+                                                @php
+                                                    // Use pre-computed data from top of template
+                                                    $paoloPailerSizes = $event->jersey_sizes ?? $paoloPailerSizes2 ?? ['XS','S','M','L','XL','2XL','3XL'];
+                                                @endphp
+                                                <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required id="jerseySelectMain">
+                                                    <option value="">Pilih Ukuran Jersey</option>
+                                                    @foreach($paoloPailerSizes as $sz)
+                                                        @php
+                                                            $stockInfo = $jerseyStockData[$sz] ?? null;
+                                                            $isOut = $stockInfo !== null && $stockInfo['remaining'] <= 0;
+                                                            $isLow = $stockInfo !== null && $stockInfo['remaining'] > 0 && $stockInfo['remaining'] <= 5;
+                                                            $label = $sz;
+                                                            if ($isOut) $label .= ' — HABIS';
+                                                            elseif ($isLow) $label .= ' — Sisa ' . $stockInfo['remaining'];
+                                                        @endphp
+                                                        <option value="{{ $sz }}" {{ $isOut ? 'disabled' : '' }}>{{ $label }}</option>
+                                                    @endforeach
+                                                </select>
                                             <button type="button" onclick="openLightbox('https://ruanglari.com/storage/blog/media/SEIthtxRb1p8CPI9wjjYfkiWYzcuzFek7tTVbrqq.webp', true)" class="text-xs font-bold text-brand-600 hover:text-brand-700 mt-1.5 flex items-center gap-1 ml-1 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 Panduan Ukuran
@@ -4663,8 +4695,17 @@
                     },
                     jersey_size: {
                         required: true,
+                        custom: (value) => {
+                            if (!value) return true; // required handles empty
+                            const stock = window.JERSEY_STOCK_DATA || {};
+                            if (stock[value] !== undefined && stock[value].remaining <= 0) {
+                                return false;
+                            }
+                            return true;
+                        },
                         message: {
-                            required: "Ukuran jersey wajib dipilih"
+                            required: "Ukuran jersey wajib dipilih",
+                            custom: "Maaf, stok ukuran jersey yang dipilih sudah habis. Silakan pilih ukuran lain."
                         }
                     },
                     date_of_birth: {
@@ -5207,11 +5248,37 @@
                         <i class="fas fa-ticket-alt text-2xl text-yellow-500"></i>
                     </div>
                     
-                    <h3 class="text-2xl font-black text-slate-900 mb-2">MASTER KUPON &amp; PROMO EVENT</h3>
-                    <p class="text-slate-600 mb-6 text-sm">
-                        Event ini bisa punya beberapa kupon berbeda. Cek kembali komunikasi resmi dari EO
-                        atau materi promosi untuk kode yang paling sesuai denganmu.
-                    </p>
+                    <h3 class="text-2xl font-black text-slate-900 mb-2">PENGUMUMAN EVENT</h3>                    
+                    @php $nowPromo = now(); @endphp
+                    @if($nowPromo >= \Carbon\Carbon::parse('2026-06-01'))
+                    {{-- Jersey stock warning active from June 1 --}}
+                    <div class="mb-5 flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-2xl p-4 text-left">
+                        <div class="shrink-0 w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center">
+                            <i class="fas fa-tshirt text-orange-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-orange-700 mb-0.5">⚠️ STOK JERSEY TERBATAS!</p>
+                            <p class="text-xs text-orange-600 leading-relaxed">
+                                Mulai <strong>1 Juni 2026</strong>, stok jersey official event sangat terbatas.
+                                Segera selesaikan pendaftaran sebelum ukuran jersey pilihanmu habis.
+                            </p>
+                        </div>
+                    </div>
+                    @else
+                    {{-- Pre-June 1 teaser --}}
+                    <div class="mb-5 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 text-left">
+                        <div class="shrink-0 w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-tshirt text-blue-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-blue-700 mb-0.5">📢 INFO JERSEY</p>
+                            <p class="text-xs text-blue-600 leading-relaxed">
+                                Mulai <strong>1 Juni 2026</strong>, stok jersey official event akan dibatasi.
+                                Pastikan kamu sudah mendaftar sebelum ukuran pilihanmu habis!
+                            </p>
+                        </div>
+                    </div>
+                    @endif
                     
                     <div class="space-y-3">
                         <a href="#register" onclick="closePromoModal()" class="block w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/20 transition-all transform hover:-translate-y-1">
@@ -5227,6 +5294,10 @@
     </div>
     @endif
 
+    <script>
+        // Jersey stock data for client-side validation
+        window.JERSEY_STOCK_DATA = @json($jerseyStockData ?? []);
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Show modal after 2.5 seconds if not shown in this session and registration is open

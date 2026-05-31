@@ -104,7 +104,7 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3v3H7V7zm7 0h3v3h-3V7zM7 14h3v3H7v-3zm7 0h3v3h-3v-3z" /></svg>
                                 Scan QR
                             </button>
-                            <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
+                            <a id="exportLink" href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="export-link-btn px-3 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold flex items-center gap-2 transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                 Export CSV
                             </a>
@@ -269,21 +269,55 @@
                 </div>
 
                 <div class="bg-slate-900/50 rounded-lg p-4 border border-slate-700 print:bg-white print:border-gray-300">
-                    <h4 class="text-white text-sm font-bold mb-4 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Jersey Breakdown</h4>
+                    <h4 class="text-white text-sm font-bold mb-1 border-b border-slate-700 pb-2 print:text-black print:border-gray-300">Jersey Breakdown</h4>
+                    <p class="text-slate-500 text-xs mb-3 print:text-gray-500">Terpakai = paid only. Stok = kuota dari master event.</p>
                     @php
                         $jerseyCounts = $eventReport['jersey_sizes_pending_pickup'] ?? ($eventReport['jersey_sizes'] ?? []);
-                        $jerseySizes = ['XS','S','M','L','XL','2XL','3XL'];
+                        $jerseyStockQuotas = $eventReport['jersey_stock_quotas'] ?? [];
+                        $jerseySizes = ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+                        // Only show sizes that have data (either used or quota configured)
+                        $jerseyActiveSizes = array_filter($jerseySizes, function($s) use ($jerseyCounts, $jerseyStockQuotas) {
+                            $used = (int) ($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0);
+                            return $used > 0 || isset($jerseyStockQuotas[$s]);
+                        });
+                        if (empty($jerseyActiveSizes)) $jerseyActiveSizes = $jerseySizes;
                     @endphp
-                    <div class="grid grid-cols-2 gap-2">
-                        @foreach($jerseySizes as $size)
+                    <div class="space-y-2">
+                        {{-- Header --}}
+                        <div class="grid grid-cols-4 gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 print:text-gray-400">
+                            <span>Ukuran</span>
+                            <span class="text-right">Stok</span>
+                            <span class="text-right">Terpakai</span>
+                            <span class="text-right">Sisa</span>
+                        </div>
+                        @foreach($jerseyActiveSizes as $size)
                             @php
-                                $count = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
+                                $used  = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
+                                $quota = isset($jerseyStockQuotas[$size]) ? (int) $jerseyStockQuotas[$size] : null;
+                                $sisa  = $quota !== null ? max(0, $quota - $used) : null;
+                                $pctUsed = ($quota > 0) ? round(($used / $quota) * 100) : null;
                             @endphp
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-slate-400 print:text-gray-600">{{ $size }}</span>
-                                <span class="text-white font-mono print:text-black" id="repJerseySize_{{ $size }}">{{ $count }}</span>
+                            <div class="grid grid-cols-4 gap-1 items-center text-sm px-1 py-1 rounded {{ $sisa !== null && $sisa == 0 ? 'bg-red-900/20' : ($sisa !== null && $sisa <= 5 ? 'bg-yellow-900/20' : '') }} print:border-b print:border-gray-200">
+                                <span class="text-slate-300 font-bold print:text-black">{{ $size }}</span>
+                                <span class="text-right text-slate-400 font-mono print:text-gray-600">{{ $quota !== null ? number_format($quota) : '∞' }}</span>
+                                <span class="text-right font-mono font-bold text-white print:text-black" id="repJerseySize_{{ $size }}">{{ $used }}</span>
+                                <span class="text-right font-mono font-bold print:text-black {{ $sisa !== null && $sisa == 0 ? 'text-red-400' : ($sisa !== null && $sisa <= 5 ? 'text-yellow-400' : 'text-emerald-400') }}">
+                                    {{ $sisa !== null ? $sisa : '∞' }}
+                                </span>
                             </div>
                         @endforeach
+                        {{-- Total row --}}
+                        @php
+                            $totalUsed  = array_sum(array_map(fn($s) => (int)($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0), $jerseyActiveSizes));
+                            $totalQuota = !empty($jerseyStockQuotas) ? array_sum($jerseyStockQuotas) : null;
+                            $totalSisa  = $totalQuota !== null ? max(0, $totalQuota - $totalUsed) : null;
+                        @endphp
+                        <div class="grid grid-cols-4 gap-1 items-center text-sm px-1 pt-2 mt-1 border-t border-slate-700 print:border-gray-300">
+                            <span class="text-slate-400 font-bold text-xs uppercase print:text-gray-500">TOTAL</span>
+                            <span class="text-right font-mono font-bold text-slate-300 print:text-black">{{ $totalQuota !== null ? number_format($totalQuota) : '∞' }}</span>
+                            <span class="text-right font-mono font-bold text-white print:text-black">{{ $totalUsed }}</span>
+                            <span class="text-right font-mono font-bold text-emerald-400 print:text-black">{{ $totalSisa !== null ? $totalSisa : '∞' }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -982,7 +1016,7 @@
                                 Scan QR
                             </span>
                         </button>
-                        <a href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="w-full px-4 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-black text-sm flex items-center justify-between transition-colors">
+                        <a href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="export-link-btn w-full px-4 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-black text-sm flex items-center justify-between transition-colors">
                             <span class="flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                 Export CSV
@@ -1794,7 +1828,11 @@
 
         function updateExportLink(data) {
             var q = qs(serializeForm());
-            if (exportLink) exportLink.href = '{{ route('eo.events.participants.export', $event) }}' + (q ? ('?' + q) : '');
+            var fullUrl = '{{ route('eo.events.participants.export', $event) }}' + (q ? ('?' + q) : '');
+            if (exportLink) exportLink.href = fullUrl;
+            document.querySelectorAll('.export-link-btn').forEach(function(el) {
+                el.href = fullUrl;
+            });
         }
 
         var debounceTimer;

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Event extends Model
@@ -370,6 +371,11 @@ class Event extends Model
     public function photoTaggingPhotoTags(): HasMany
     {
         return $this->hasMany(PhotoTaggingPhotoTag::class, 'event_id');
+    }
+
+    public function jerseyStock(): HasOne
+    {
+        return $this->hasOne(JerseySize::class, 'event_id');
     }
 
     public function getSanitizedDescriptionHtmlAttribute()

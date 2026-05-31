@@ -49,6 +49,43 @@ class StoreManualParticipantAction
                     ]);
                 }
 
+                // Check jersey stock quota
+                if ($event->premium_amenities['jersey']['enabled'] ?? false) {
+                    $size = strtoupper(trim($validated['jersey_size'] ?? ''));
+                    if (empty($size)) {
+                        throw ValidationException::withMessages([
+                            'jersey_size' => ['Ukuran jersey wajib diisi.'],
+                        ]);
+                    }
+                    if (! in_array($size, $event->jersey_sizes ?? [])) {
+                        throw ValidationException::withMessages([
+                            'jersey_size' => ["Ukuran jersey '{$size}' tidak tersedia untuk event ini."],
+                        ]);
+                    }
+
+                    $jerseyStock = $event->jerseyStock()->lockForUpdate()->first();
+                    if ($jerseyStock) {
+                        $col = strtolower($size);
+                        if (isset($jerseyStock->$col) && $jerseyStock->$col !== null) {
+                            $quota = (int) $jerseyStock->$col;
+
+                            $registeredSizeCount = Participant::whereNotNull('jersey_size')
+                                ->whereRaw('UPPER(jersey_size) = ?', [$size])
+                                ->whereHas('transaction', function ($q) use ($event) {
+                                    $q->where('event_id', $event->id)
+                                      ->whereIn('payment_status', ['paid', 'cod']);
+                                })
+                                ->count();
+
+                            if (($registeredSizeCount + 1) > $quota) {
+                                throw ValidationException::withMessages([
+                                    'jersey_size' => ["Stok jersey ukuran '{$size}' tidak mencukupi."],
+                                ]);
+                            }
+                        }
+                    }
+                }
+
                 $priceInfo = $this->getCategoryPrice($category);
                 $amount = (int) $priceInfo['price'];
 

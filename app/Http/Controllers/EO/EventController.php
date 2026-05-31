@@ -134,7 +134,9 @@ class EventController extends Controller
             'theme_colors.accent' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'theme_colors.danger' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'jersey_sizes' => 'nullable|array',
-            'jersey_sizes.*' => 'nullable|string|in:XS,S,M,L,XL,XXL',
+            'jersey_sizes.*' => 'nullable|string|in:XXS,XS,S,M,L,XL,2XL,3XL,4XL,5XL',
+            'jersey_stock' => 'nullable|array',
+            'jersey_stock.*' => 'nullable|integer|min:0',
             'addons' => 'nullable|array',
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
@@ -270,11 +272,15 @@ class EventController extends Controller
         if (isset($validated['jersey_sizes']) && is_array($validated['jersey_sizes'])) {
             $validated['jersey_sizes'] = array_values(array_filter($validated['jersey_sizes']));
             if (empty($validated['jersey_sizes'])) {
-                $validated['jersey_sizes'] = null;
+                $validated['jersey_sizes'] = [];
             }
         } else {
-            $validated['jersey_sizes'] = null;
+            $validated['jersey_sizes'] = [];
         }
+
+        // Extract jersey_stock — not a column on events table
+        $jerseyStockInput = $validated['jersey_stock'] ?? [];
+        unset($validated['jersey_stock']);
 
         // Process payment_config (Handle 'all' option)
         if (isset($validated['payment_config']['allowed_methods'])) {
@@ -322,6 +328,22 @@ class EventController extends Controller
                 unset($categoryData['prizes']);
             }
             \App\Models\RaceCategory::create($categoryData);
+        }
+
+        // Save Jersey Size Stock Quotas
+        if ($event->premium_amenities['jersey']['enabled'] ?? false) {
+            $stockData = ['event_id' => $event->id];
+            foreach (['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'] as $size) {
+                $col = strtolower($size);
+                if (in_array($size, $validated['jersey_sizes'] ?? [])) {
+                    $stockData[$col] = isset($jerseyStockInput[$size]) && $jerseyStockInput[$size] !== ''
+                        ? (int) $jerseyStockInput[$size]
+                        : null;
+                } else {
+                    $stockData[$col] = null;
+                }
+            }
+            \App\Models\JerseySize::create($stockData);
         }
 
         return redirect()->route('eo.events.index')
@@ -409,7 +431,9 @@ class EventController extends Controller
             'theme_colors.accent' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'theme_colors.danger' => ['nullable', 'string', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
             'jersey_sizes' => 'nullable|array',
-            'jersey_sizes.*' => 'nullable|string|in:XS,S,M,L,XL,XXL',
+            'jersey_sizes.*' => 'nullable|string|in:XXS,XS,S,M,L,XL,2XL,3XL,4XL,5XL',
+            'jersey_stock' => 'nullable|array',
+            'jersey_stock.*' => 'nullable|integer|min:0',
             'addons' => 'nullable|array',
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
@@ -547,11 +571,16 @@ class EventController extends Controller
         if (isset($validated['jersey_sizes']) && is_array($validated['jersey_sizes'])) {
             $validated['jersey_sizes'] = array_values(array_filter($validated['jersey_sizes']));
             if (empty($validated['jersey_sizes'])) {
-                $validated['jersey_sizes'] = null;
+                $validated['jersey_sizes'] = [];
             }
         } else {
-            $validated['jersey_sizes'] = null;
+            // Preserve existing jersey_sizes — do NOT reset when not submitted
+            $validated['jersey_sizes'] = $event->jersey_sizes ?? [];
         }
+
+        // Extract jersey_stock from validated (not a real DB column on events table)
+        $jerseyStockInput = $validated['jersey_stock'] ?? [];
+        unset($validated['jersey_stock']);
 
         // Process addons
         if (isset($validated['addons']) && is_array($validated['addons'])) {
@@ -623,7 +652,7 @@ class EventController extends Controller
         $affectedCategoryIds = [];
         $deletedCategoryIds = [];
 
-        DB::transaction(function () use ($event, $validated, $categories, &$affectedCategoryIds, &$deletedCategoryIds) {
+        DB::transaction(function () use ($event, $validated, $categories, $jerseyStockInput, &$affectedCategoryIds, &$deletedCategoryIds) {
             $event->update($validated);
 
             // Handle categories if provided
@@ -681,6 +710,24 @@ class EventController extends Controller
                         $affectedCategoryIds[] = $category->id;
                     }
                 }
+            }
+
+            // Handle Jersey Size Stock Quotas
+            if ($event->premium_amenities['jersey']['enabled'] ?? false) {
+                $stockData = [];
+                foreach (['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'] as $size) {
+                    $col = strtolower($size);
+                    if (in_array($size, $validated['jersey_sizes'] ?? [])) {
+                        $stockData[$col] = isset($jerseyStockInput[$size]) && $jerseyStockInput[$size] !== ''
+                            ? (int) $jerseyStockInput[$size]
+                            : null;
+                    } else {
+                        $stockData[$col] = null;
+                    }
+                }
+                $event->jerseyStock()->updateOrCreate(['event_id' => $event->id], $stockData);
+            } else {
+                $event->jerseyStock()->delete();
             }
         });
 
@@ -1044,7 +1091,7 @@ class EventController extends Controller
 
     private function getJerseyPendingPickupCounts(Event $event): array
     {
-        $soldStatuses = ['paid', 'settlement', 'capture', 'cod'];
+        $soldStatuses = ['paid'];
 
         $raw = \App\Models\Participant::query()
             ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')

@@ -87,6 +87,7 @@ class ImportParticipantsCsvAction
         $byGroup = [];
         $seenInFile = [];
         $seenBibInFile = [];
+        $csvJerseyQuantities = [];
 
         foreach ($rows as $r) {
             $rn = (int) $r['__row_number'];
@@ -190,9 +191,19 @@ class ImportParticipantsCsvAction
                 }
             }
 
-            if ($r['jersey_size'] !== '' && mb_strlen((string) $r['jersey_size']) > 10) {
-                $errors[] = $this->err($rn, 'jersey_size maksimal 10 karakter.');
-                continue;
+            if ($event->premium_amenities['jersey']['enabled'] ?? false) {
+                $jsz = strtoupper(trim((string) ($r['jersey_size'] ?? '')));
+                if ($jsz === '') {
+                    $errors[] = $this->err($rn, 'jersey_size wajib diisi karena official jersey aktif.');
+                    continue;
+                }
+                if (! in_array($jsz, $event->jersey_sizes ?? [])) {
+                    $errors[] = $this->err($rn, "jersey_size '{$jsz}' tidak tersedia untuk event ini.");
+                    continue;
+                }
+                $r['jersey_size'] = $jsz;
+            } else {
+                $r['jersey_size'] = null;
             }
 
             if ($r['bib_number'] !== '') {
@@ -234,7 +245,37 @@ class ImportParticipantsCsvAction
             }
             $r['payment_status'] = $status;
 
+            if (($status === 'paid' || $status === 'cod') && ! empty($r['jersey_size'])) {
+                $sz = $r['jersey_size'];
+                $csvJerseyQuantities[$sz] = ($csvJerseyQuantities[$sz] ?? 0) + 1;
+            }
+
             $byGroup[$groupKey][] = $r;
+        }
+
+        // Dry-run check for jersey stock quotas
+        if ($event->premium_amenities['jersey']['enabled'] ?? false) {
+            $jerseyStock = $event->jerseyStock;
+            if ($jerseyStock) {
+                foreach ($csvJerseyQuantities as $sz => $qty) {
+                    $col = strtolower($sz);
+                    if (isset($jerseyStock->$col) && $jerseyStock->$col !== null) {
+                        $quota = (int) $jerseyStock->$col;
+                        $registeredSizeCount = Participant::whereNotNull('jersey_size')
+                            ->whereRaw('UPPER(jersey_size) = ?', [$sz])
+                            ->whereHas('transaction', function ($q) use ($event) {
+                                $q->where('event_id', $event->id)
+                                  ->whereIn('payment_status', ['paid', 'cod']);
+                            })
+                            ->count();
+
+                        $remaining = $quota - $registeredSizeCount;
+                        if ($remaining < $qty) {
+                            $errors[] = $this->err(1, "Stok jersey ukuran '{$sz}' tidak mencukupi untuk jumlah pendaftaran baru di CSV. Sisa stok: {$remaining}, diminta di CSV: {$qty}.");
+                        }
+                    }
+                }
+            }
         }
 
         $groups = [];
@@ -376,6 +417,41 @@ class ImportParticipantsCsvAction
 
                             if ($cat->quota && ($registered + $qty) > $cat->quota) {
                                 throw ValidationException::withMessages(['file' => ["Kuota kategori '{$cat->name}' tidak mencukupi."]]);
+                            }
+                        }
+                    }
+
+                    // Check jersey stock quota in transaction
+                    if ($countsForQuota && ($event->premium_amenities['jersey']['enabled'] ?? false)) {
+                        $jerseyQuantities = [];
+                        foreach ($items as $r) {
+                            if (! empty($r['jersey_size'])) {
+                                $sz = strtoupper(trim($r['jersey_size']));
+                                $jerseyQuantities[$sz] = ($jerseyQuantities[$sz] ?? 0) + 1;
+                            }
+                        }
+
+                        if (! empty($jerseyQuantities)) {
+                            $jerseyStock = $event->jerseyStock()->lockForUpdate()->first();
+                            if ($jerseyStock) {
+                                foreach ($jerseyQuantities as $sz => $qty) {
+                                    $col = strtolower($sz);
+                                    if (isset($jerseyStock->$col) && $jerseyStock->$col !== null) {
+                                        $quota = (int) $jerseyStock->$col;
+
+                                        $registeredSizeCount = Participant::whereNotNull('jersey_size')
+                                            ->whereRaw('UPPER(jersey_size) = ?', [$sz])
+                                            ->whereHas('transaction', function ($q) use ($event) {
+                                                $q->where('event_id', $event->id)
+                                                  ->whereIn('payment_status', ['paid', 'cod']);
+                                            })
+                                            ->count();
+
+                                        if (($registeredSizeCount + $qty) > $quota) {
+                                            throw ValidationException::withMessages(['file' => ["Stok jersey ukuran '{$sz}' tidak mencukupi untuk pendaftaran baru."]]);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

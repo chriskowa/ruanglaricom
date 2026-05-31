@@ -23,20 +23,35 @@
             <input type="hidden" name="jersey_image" id="jersey_image_input" value="{{ $event->jersey_image ?? '' }}">
         </div>
 
-        <!-- Sizes -->
+        <!-- Sizes & Stock Quota -->
         <div>
-            <label class="block text-sm font-medium text-slate-300 mb-2">Available Sizes</label>
-            <div class="flex flex-wrap gap-3">
+            <label class="block text-sm font-medium text-slate-300 mb-2">Available Sizes & Stock Quota</label>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 @php
-                    $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
+                    $sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
                     $currentSizes = old('jersey_sizes', isset($event) ? $event->jersey_sizes : []);
                     if(!is_array($currentSizes)) $currentSizes = [];
+
+                    $currentStock = [];
+                    if (isset($event) && $event->jerseyStock) {
+                        foreach ($sizes as $size) {
+                            $col = strtolower($size);
+                            $currentStock[$size] = $event->jerseyStock->$col;
+                        }
+                    }
+                    $currentStock = old('jersey_stock', $currentStock);
                 @endphp
                 @foreach($sizes as $size)
-                    <label class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 cursor-pointer hover:border-yellow-400 transition-colors">
-                        <input type="checkbox" name="jersey_sizes[]" value="{{ $size }}" {{ in_array($size, $currentSizes) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50">
-                        <span class="text-sm font-bold text-white">{{ $size }}</span>
-                    </label>
+                    <div class="bg-slate-900 border border-slate-700 rounded-lg p-3 flex flex-col gap-2 hover:border-slate-600 transition-colors">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="jersey_sizes[]" value="{{ $size }}" {{ in_array($size, $currentSizes) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50">
+                            <span class="text-sm font-bold text-white">{{ $size }}</span>
+                        </label>
+                        <div>
+                            <input type="number" name="jersey_stock[{{ $size }}]" value="{{ $currentStock[$size] ?? '' }}" placeholder="Unlimited" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white text-xs focus:border-yellow-400 focus:outline-none" min="0">
+                            <span class="text-[10px] text-slate-500">Kuota / Stok</span>
+                        </div>
+                    </div>
                 @endforeach
             </div>
         </div>

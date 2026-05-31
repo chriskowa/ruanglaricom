@@ -371,6 +371,55 @@ class StoreRegistrationAction
                 $totalOriginal += $price * $paidQuantity;
             }
 
+            // Validate Jersey Sizes and Quotas if Jersey is enabled
+            if ($event->premium_amenities['jersey']['enabled'] ?? false) {
+                // 1. Group requested quantities by size
+                $jerseyQuantities = [];
+                foreach ($request->participants as $participant) {
+                    $size = strtoupper(trim($participant['jersey_size'] ?? ''));
+                    if (empty($size)) {
+                        throw new \Exception('Ukuran jersey wajib diisi.');
+                    }
+                    if (! in_array($size, $event->jersey_sizes ?? [])) {
+                        throw new \Exception("Ukuran jersey '{$size}' tidak tersedia untuk event ini.");
+                    }
+                    if (! isset($jerseyQuantities[$size])) {
+                        $jerseyQuantities[$size] = 0;
+                    }
+                    $jerseyQuantities[$size]++;
+                }
+
+                // 2. Load jersey stock record and perform checks
+                $jerseyStock = $event->jerseyStock()->lockForUpdate()->first();
+                if ($jerseyStock) {
+                    foreach ($jerseyQuantities as $size => $qty) {
+                        $col = strtolower($size);
+                        // If quota is set (not null)
+                        if (isset($jerseyStock->$col) && $jerseyStock->$col !== null) {
+                            $quota = (int) $jerseyStock->$col;
+
+                            // Count already registered for this size
+                            $registeredSizeCount = Participant::whereNotNull('jersey_size')
+                                ->whereRaw('UPPER(jersey_size) = ?', [$size])
+                                ->whereHas('transaction', function ($q) use ($event) {
+                                    $q->where('event_id', $event->id)
+                                      ->whereIn('payment_status', ['paid', 'cod']);
+                                })
+                                ->count();
+
+                            $remainingJerseyStock = $quota - $registeredSizeCount;
+                            if ($remainingJerseyStock < $qty) {
+                                // Release category locks first
+                                foreach ($categoryLocks as $lock) {
+                                    $lock->release();
+                                }
+                                throw new \Exception("Stok jersey ukuran '{$size}' tidak mencukupi. Sisa: {$remainingJerseyStock}");
+                            }
+                        }
+                    }
+                }
+            }
+
             // Add Addons Total
             $totalOriginal += $totalAddonsPrice;
 

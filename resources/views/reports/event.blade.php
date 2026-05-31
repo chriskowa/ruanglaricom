@@ -92,23 +92,66 @@
         <div class="flex items-center justify-between">
             <div>
                 <div class="text-lg font-bold">Jersey Breakdown</div>
-                <div class="text-xs text-slate-400">Distribusi ukuran jersey (active)</div>
+                <div class="text-xs text-slate-400">Stok / Terpakai (paid only) / Sisa per ukuran</div>
             </div>
         </div>
         @php
             $jerseyCounts = $report['jersey_sizes'] ?? [];
-            $jerseySizes = ['XS','S','M','L','XL','2XL','3XL'];
+            $jerseyStockQuotas = $report['jersey_stock_quotas'] ?? [];
+            $jerseySizes = ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+            $jerseyActiveSizes = array_filter($jerseySizes, function($s) use ($jerseyCounts, $jerseyStockQuotas) {
+                $used = (int) ($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0);
+                return $used > 0 || isset($jerseyStockQuotas[$s]);
+            });
+            if (empty($jerseyActiveSizes)) $jerseyActiveSizes = ['XS','S','M','L','XL','2XL','3XL'];
         @endphp
-        <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-            @foreach($jerseySizes as $size)
+        {{-- Header --}}
+        <div class="mt-3 hidden sm:grid grid-cols-4 gap-2 px-2 mb-1">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Ukuran</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Stok</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Terpakai</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Sisa</span>
+        </div>
+        <div class="mt-1 grid grid-cols-2 sm:grid-cols-1 gap-2">
+            @foreach($jerseyActiveSizes as $size)
                 @php
-                    $count = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
+                    $used  = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
+                    $quota = isset($jerseyStockQuotas[$size]) ? (int) $jerseyStockQuotas[$size] : null;
+                    $sisa  = $quota !== null ? max(0, $quota - $used) : null;
                 @endphp
-                <div class="rounded-xl border border-slate-700 bg-slate-900/30 px-3 py-2 flex items-center justify-between">
-                    <div class="text-xs text-slate-400 font-bold">{{ $size }}</div>
-                    <div class="text-sm font-mono font-bold text-white" id="stat-jersey-{{ $size }}">{{ number_format($count) }}</div>
+                <div class="rounded-xl border {{ $sisa !== null && $sisa == 0 ? 'border-red-500/40 bg-red-900/10' : ($sisa !== null && $sisa <= 5 ? 'border-yellow-500/40 bg-yellow-900/10' : 'border-slate-700 bg-slate-900/30') }} px-3 py-2">
+                    <div class="sm:hidden text-xs text-slate-400 font-bold mb-1">{{ $size }}</div>
+                    <div class="sm:grid sm:grid-cols-4 sm:gap-2 sm:items-center flex items-center justify-between">
+                        <div class="hidden sm:block text-sm font-bold text-slate-300">{{ $size }}</div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500 sm:hidden">Stok</div>
+                            <div class="text-sm font-mono text-slate-400" id="stat-jersey-quota-{{ $size }}">{{ $quota !== null ? number_format($quota) : '∞' }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500 sm:hidden">Terpakai</div>
+                            <div class="text-sm font-mono font-bold text-white" id="stat-jersey-{{ $size }}">{{ number_format($used) }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500 sm:hidden">Sisa</div>
+                            <div class="text-sm font-mono font-bold {{ $sisa !== null && $sisa == 0 ? 'text-red-400' : ($sisa !== null && $sisa <= 5 ? 'text-yellow-400' : 'text-emerald-400') }}" id="stat-jersey-sisa-{{ $size }}">
+                                {{ $sisa !== null ? $sisa : '∞' }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endforeach
+        </div>
+        {{-- Total --}}
+        @php
+            $totalUsed  = array_sum(array_map(fn($s) => (int)($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0), $jerseyActiveSizes));
+            $totalQuota = !empty($jerseyStockQuotas) ? array_sum($jerseyStockQuotas) : null;
+            $totalSisa  = $totalQuota !== null ? max(0, $totalQuota - $totalUsed) : null;
+        @endphp
+        <div class="mt-3 pt-3 border-t border-slate-700 grid grid-cols-4 gap-2 px-2 items-center">
+            <span class="text-xs font-bold text-slate-400 uppercase">TOTAL</span>
+            <span class="text-right text-sm font-mono font-bold text-slate-300">{{ $totalQuota !== null ? number_format($totalQuota) : '∞' }}</span>
+            <span class="text-right text-sm font-mono font-bold text-white">{{ number_format($totalUsed) }}</span>
+            <span class="text-right text-sm font-mono font-bold text-emerald-400">{{ $totalSisa !== null ? $totalSisa : '∞' }}</span>
         </div>
     </div>
 

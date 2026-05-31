@@ -118,7 +118,8 @@ class EventReportService
         $notPickedUpCount = (int) ($pickupCounts[0] ?? $pickupCounts['0'] ?? 0);
 
         $jerseySizeCounts = (clone $baseQuery)
-            ->whereIn('transactions.payment_status', $activeStatuses)
+            ->where('transactions.payment_status', 'paid')
+            ->whereNotNull('participants.jersey_size')
             ->select('participants.jersey_size', DB::raw('count(*) as total'))
             ->groupBy('participants.jersey_size')
             ->orderByDesc(DB::raw('count(*)'))
@@ -317,6 +318,19 @@ class EventReportService
             }
         }
 
+        // Jersey Stock Quotas
+        $jerseyStock = $event->jerseyStock;
+        $jerseyStockData = [];
+        if ($jerseyStock) {
+            foreach (['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'] as $size) {
+                $col = strtolower($size);
+                $quota = $jerseyStock->$col ?? null;
+                if ($quota !== null) {
+                    $jerseyStockData[$size] = (int) $quota;
+                }
+            }
+        }
+
         return [
             'total_slots' => $isUnlimited ? 'Unlimited' : $totalSlots,
             'sold_slots' => $soldSlots,
@@ -335,6 +349,7 @@ class EventReportService
             ],
             'jersey_sizes' => $jerseySizeCounts,
             'jersey_sizes_total_active' => $jerseySizeTotalActive,
+            'jersey_stock_quotas' => $jerseyStockData,
             'payment_counts' => $paymentCounts,
             'percentages' => $percentages,
             'show_warning' => $warning,

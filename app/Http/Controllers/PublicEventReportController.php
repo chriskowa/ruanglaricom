@@ -634,7 +634,7 @@ class PublicEventReportController extends Controller
 
     private function getJerseyPendingPickupCounts(Event $event): array
     {
-        $soldStatuses = ['paid', 'settlement', 'capture', 'cod'];
+        $soldStatuses = ['paid'];
 
         $raw = Participant::query()
             ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
