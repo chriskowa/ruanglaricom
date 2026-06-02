@@ -348,7 +348,10 @@
         };
 
         $now = now();
-        $isRegOpen = !($event->registration_open_at && $now < $event->registration_open_at) && !($event->registration_close_at && $now > $event->registration_close_at);
+        $isComingSoon = ($event->registration_open_at && $now < $event->registration_open_at);
+        $isNaturallyClosed = ($event->registration_close_at && $now > $event->registration_close_at);
+        
+        $isRegOpen = !$isComingSoon && !$isNaturallyClosed;
 
         $countdownTarget = $event->start_at;
         $countdownLabel = 'Event Dimulai Dalam';
@@ -380,7 +383,7 @@
         }
     @endphp
 
-    @if(!$isRegOpen)
+    @if(!$isRegOpen && !$isNaturallyClosed)
     <!-- Maintenance / Coming Soon Overlay -->
     <div class="fixed inset-0 z-[100] bg-slate-900 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <!-- Background -->
@@ -560,6 +563,14 @@
                         <a href="#register" class="bg-brand-600 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all duration-300">
                             Daftar Sekarang
                         </a>
+                    @elseif($isNaturallyClosed)
+                        <a href="#register" class="bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-1.5">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
+                            Slot Penuh!
+                        </a>
                     @else
                         <span class="bg-slate-100 text-slate-400 px-6 py-2.5 rounded-full text-sm font-bold cursor-not-allowed border border-slate-200">
                             Closed
@@ -584,7 +595,11 @@
                 <a href="{{ route('community.register.index', ['slug' => $event->slug]) }}" class="block text-emerald-600 font-bold p-2 hover:bg-emerald-50 rounded-lg flex items-center gap-2">
                     <i class="fas fa-users"></i> Daftar Komunitas
                 </a>
-                <a href="#register" class="block text-center bg-brand-600 text-white font-bold p-3 rounded-xl">Registrasi</a>
+                @if($isRegOpen)
+                    <a href="#register" class="block text-center bg-brand-600 text-white font-bold p-3 rounded-xl">Registrasi</a>
+                @elseif($isNaturallyClosed)
+                    <a href="#register" class="block text-center bg-red-600 text-white font-bold p-3 rounded-xl">Slot Penuh!</a>
+                @endif
             </div>
         </div>
     </nav>
@@ -634,6 +649,11 @@
                         @if($isRegOpen)
                         <a href="#register" class="group px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-600/30 hover:bg-brand-500 hover:shadow-brand-500/50 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
                             Amankan Slot
+                            <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </a>
+                        @elseif($isNaturallyClosed)
+                        <a href="#register" class="group px-8 py-4 bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold rounded-2xl shadow-lg shadow-red-600/30 hover:from-red-500 hover:to-amber-500 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
+                            Slot Penuh! Cek Gelombang Tambahan
                             <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
                         @else
@@ -913,9 +933,19 @@
                                 <div class="text-3xl font-black text-brand-600">Rp {{ number_format($displayPrice/1000, 0) }}k</div>
                             </div>
                         </div>
+                        @if($isRegOpen)
                         <a href="#register" class="block w-full py-4 px-4 bg-brand-600 text-white font-bold text-center rounded-xl shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/40 transition-all duration-300">
                             Daftar Sekarang
                         </a>
+                        @elseif($isNaturallyClosed)
+                        <a href="#register" class="block w-full py-4 px-4 bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-center rounded-xl shadow-lg shadow-red-600/20 hover:from-red-700 hover:to-amber-700 transition-all duration-300">
+                            Slot Penuh!
+                        </a>
+                        @else
+                        <button disabled class="block w-full py-4 px-4 bg-slate-200 text-slate-400 font-bold text-center rounded-xl cursor-not-allowed">
+                            Pendaftaran Ditutup
+                        </button>
+                        @endif
                     </div>
                 </div>
                 @endforeach
@@ -1653,11 +1683,40 @@
             </div>
 
             @if(!$isRegOpen)
-                <div class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-12 text-center max-w-2xl mx-auto">
-                    <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Pendaftaran Ditutup</h3>
-                    <p class="text-slate-500">Mohon maaf, pendaftaran saat ini tidak tersedia.</p>
-                </div>
+                @if($isNaturallyClosed)
+                    <!-- Premium Marketing Sold Out Card -->
+                    <div class="bg-slate-900 border border-red-500/30 rounded-3xl p-8 md:p-12 text-center max-w-2xl mx-auto shadow-2xl relative overflow-hidden reveal">
+                        <!-- Red/Amber Glow in Background -->
+                        <div class="absolute -top-10 -left-10 w-40 h-40 bg-red-600 rounded-full filter blur-[80px] opacity-20"></div>
+                        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-yellow-600 rounded-full filter blur-[80px] opacity-20"></div>
+
+                        <!-- Ticket Icon -->
+                        <div class="w-20 h-20 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-ticket-alt text-3xl rotate-12 animate-pulse"></i>
+                        </div>
+                        
+                        <h3 class="text-2xl md:text-3xl font-black text-white mb-3 tracking-tight">KUOTA TERPENUHI SEMENTARA!</h3>
+                        <p class="text-slate-400 text-sm md:text-base leading-relaxed mb-6 font-medium">
+                            Luar biasa! Dikarenakan antusiasme pelari yang sangat tinggi, seluruh slot pendaftaran Paolo Fest saat ini telah <span class="text-red-400 font-bold">habis terisi (Sold Out)</span>.
+                        </p>
+                        
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 text-xs md:text-sm text-slate-300 leading-relaxed text-left">
+                            <i class="fas fa-info-circle text-yellow-500 mr-1"></i> 
+                            Kami sedang mengupayakan penambahan kuota terbatas dengan pihak penyelenggara. Informasi pembukaan slot gelombang tambahan akan diumumkan eksklusif melalui Instagram kami.
+                        </div>
+
+                        <!-- CTA Follow Instagram -->
+                        <a href="https://www.instagram.com/paolorunfest/" target="_blank" class="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-black text-sm px-8 py-3.5 rounded-full shadow-lg shadow-red-950/50 transition-all duration-300 hover:-translate-y-0.5">
+                            <i class="fab fa-instagram text-lg"></i> Pantau Instagram @paolorunfest
+                        </a>
+                    </div>
+                @else
+                    <div class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-12 text-center max-w-2xl mx-auto">
+                        <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-2">Pendaftaran Ditutup</h3>
+                        <p class="text-slate-500">Mohon maaf, pendaftaran saat ini tidak tersedia.</p>
+                    </div>
+                @endif
             @else
                 @if(request('payment') === 'pending')
                     <div class="w-full mb-8 bg-yellow-50 border border-yellow-200 text-yellow-900 p-6 rounded-3xl reveal">
@@ -5281,8 +5340,8 @@
                     @endif
                     
                     <div class="space-y-3">
-                        <a href="#register" onclick="closePromoModal()" class="block w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/20 transition-all transform hover:-translate-y-1">
-                            KEMBALI KE FORM PENDAFTARAN
+                        <a href="#register" onclick="closePromoModal()" class="block w-full py-3.5 {{ $isNaturallyClosed ? 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700' : 'bg-brand-600 hover:bg-brand-700' }} text-white font-bold rounded-xl shadow-lg shadow-brand-600/20 transition-all transform hover:-translate-y-1">
+                            {{ $isNaturallyClosed ? 'LIHAT INFORMASI SLOT' : 'KEMBALI KE FORM PENDAFTARAN' }}
                         </a>
                         <button onclick="closePromoModal()" class="block w-full py-3 text-slate-400 font-semibold hover:text-slate-600 text-sm">
                             Mengerti
