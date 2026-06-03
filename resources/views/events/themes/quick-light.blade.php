@@ -601,7 +601,7 @@
 
                                             @if($showTargetTime)
                                                 <div>
-                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Target Time</label>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Personal Best</label>
                                                     <div class="grid grid-cols-3 gap-2 mt-2">
                                                         <div>
                                                             <select class="field" data-target-hour required>
