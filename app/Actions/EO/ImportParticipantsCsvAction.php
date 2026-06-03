@@ -211,6 +211,13 @@ class ImportParticipantsCsvAction
                 $r['jersey_size'] = null;
             }
 
+            $bt = strtoupper(trim((string) ($r['blood_type'] ?? '')));
+            if ($bt !== '' && ! in_array($bt, ['A', 'B', 'AB', 'O'], true)) {
+                $errors[] = $this->err($rn, 'blood_type harus salah satu dari: A, B, AB, O.');
+                continue;
+            }
+            $r['blood_type'] = $bt !== '' ? $bt : null;
+
             if ($r['bib_number'] !== '') {
                 $bib = (string) $r['bib_number'];
                 if (mb_strlen($bib) > 20) {
@@ -501,6 +508,7 @@ class ImportParticipantsCsvAction
                             'date_of_birth' => $r['date_of_birth'] !== '' ? (string) $r['date_of_birth'] : null,
                             'target_time' => $r['target_time'] !== '' ? (string) $r['target_time'] : null,
                             'jersey_size' => $r['jersey_size'] !== '' ? (string) $r['jersey_size'] : null,
+                            'blood_type' => $r['blood_type'],
                             'bib_number' => $r['bib_number'] !== '' ? (string) $r['bib_number'] : null,
                             'photo' => null,
                             'addons' => [],
@@ -643,7 +651,7 @@ class ImportParticipantsCsvAction
         $r['address'] = trim((string) ($r['address'] ?? ''));
         $r['coupon_code'] = trim((string) ($r['coupon_code'] ?? ''));
 
-        foreach (['city', 'province', 'postal_code', 'emergency_contact_name', 'emergency_contact_number', 'date_of_birth', 'target_time', 'jersey_size', 'bib_number'] as $k) {
+        foreach (['city', 'province', 'postal_code', 'emergency_contact_name', 'emergency_contact_number', 'date_of_birth', 'target_time', 'jersey_size', 'blood_type', 'bib_number'] as $k) {
             if (! array_key_exists($k, $r)) {
                 $r[$k] = '';
             } else {

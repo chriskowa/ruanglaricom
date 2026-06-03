@@ -456,6 +456,7 @@
                         </th>
                         <th class="px-6 py-4">PIC Info</th>
                         <th class="px-6 py-4">Jersey Size</th>
+                        <th class="px-6 py-4">Gol. Darah</th>
                         <th class="px-6 py-4">Addons</th>
                         <th class="px-6 py-4">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="bib_number" onclick="setTableSort('bib_number')">
@@ -501,6 +502,7 @@
                             'bib_number' => $participant->bib_number,
                             'age_group' => $participant->getAgeGroup($event->start_at),
                             'jersey_size' => $participant->jersey_size,
+                            'blood_type' => $participant->blood_type,
                             'pic_name' => $participant->transaction->pic_data['name'] ?? '-',
                             'pic_phone' => $participant->transaction->pic_data['phone'] ?? '-',
                             'pic_email' => $participant->transaction->pic_data['email'] ?? '-',
@@ -536,6 +538,11 @@
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
                                 {{ $participant->jersey_size ?? '-' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
+                                {{ $participant->blood_type ?? '-' }}
                             </span>
                         </td>
                         <td class="px-6 py-4">
@@ -876,6 +883,16 @@
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">Jersey Size</label>
                                 <input name="jersey_size" value="{{ old('jersey_size') }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="S / M / L / XL">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Golongan Darah</label>
+                                <select name="blood_type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">
+                                    <option value="">Pilih Golongan Darah</option>
+                                    <option value="A" {{ old('blood_type') == 'A' ? 'selected' : '' }}>A</option>
+                                    <option value="B" {{ old('blood_type') == 'B' ? 'selected' : '' }}>B</option>
+                                    <option value="AB" {{ old('blood_type') == 'AB' ? 'selected' : '' }}>AB</option>
+                                    <option value="O" {{ old('blood_type') == 'O' ? 'selected' : '' }}>O</option>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">Emergency Contact Name</label>
@@ -1267,6 +1284,18 @@
                                         <div class="text-xs text-slate-500">Jersey Size</div>
                                         <div class="view-mode text-white inline-flex items-center justify-center w-8 h-8 rounded bg-slate-700 border border-slate-600 font-bold" id="dm_jersey"></div>
                                         <input type="text" name="jersey_size" id="edit_jersey_size" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                    </div>
+                                    <!-- Blood Type -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Golongan Darah</div>
+                                        <div class="view-mode text-white inline-flex items-center justify-center w-8 h-8 rounded bg-slate-700 border border-slate-600 font-bold" id="dm_blood_type"></div>
+                                        <select name="blood_type" id="edit_blood_type" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                            <option value="">-</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="AB">AB</option>
+                                            <option value="O">O</option>
+                                        </select>
                                     </div>
                                     <!-- Age Group -->
                                     <div><div class="text-xs text-slate-500">Age Group</div><div class="text-white" id="dm_age_group"></div></div>
@@ -1756,6 +1785,7 @@
                     bib_number: p.bib_number,
                     age_group: p.age_group,
                     jersey_size: p.jersey_size,
+                    blood_type: p.blood_type,
                     pic_name: p.pic_name,
                     pic_phone: p.pic_phone,
                     pic_email: p.pic_email,
@@ -1779,6 +1809,7 @@
                     '<td class="px-6 py-4 text-white font-mono text-xs">'+ (p.id_card || '-') +'</td>'+
                     '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
+                    '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.blood_type || '-') +'</span></td>'+
                     '<td class="px-6 py-4">'+ renderAddonsCell(p.addons) +'</td>'+
                     '<td class="px-6 py-4"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
@@ -2265,6 +2296,7 @@
         
         setValue('edit_bib_number', d.bib_number);
         setValue('edit_jersey_size', d.jersey_size);
+        setValue('edit_blood_type', d.blood_type);
         setValue('edit_target_time', d.target_time);
 
         setValue('edit_coupon_id', d.coupon_id);
@@ -2347,6 +2379,7 @@
             race_category_id: document.getElementById('edit_race_category_id').value,
             bib_number: document.getElementById('edit_bib_number').value.trim(),
             jersey_size: document.getElementById('edit_jersey_size').value.trim(),
+            blood_type: document.getElementById('edit_blood_type').value,
             target_time: document.getElementById('edit_target_time').value.trim(),
             coupon_id: document.getElementById('edit_coupon_id').value,
             pic_name: document.getElementById('edit_pic_name').value.trim(),
@@ -2428,6 +2461,7 @@
                         category: res.data.category_name,
                         bib_number: res.data.bib_number,
                         jersey_size: res.data.jersey_size,
+                        blood_type: res.data.blood_type,
                         target_time: res.data.target_time,
                         age_group: res.data.age_group,
                         is_picked_up: res.data.is_picked_up,
@@ -2456,6 +2490,7 @@
                 document.getElementById('dm_category').textContent = res.data.category_name;
                 document.getElementById('dm_bib').textContent = res.data.bib_number || '-';
                 document.getElementById('dm_jersey').textContent = res.data.jersey_size || '-';
+                document.getElementById('dm_blood_type').textContent = res.data.blood_type || '-';
                 document.getElementById('dm_target_time').textContent = res.data.target_time || '-';
                 document.getElementById('dm_age_group').textContent = res.data.age_group || '-';
 
@@ -2570,6 +2605,7 @@
         document.getElementById('dm_bib').textContent = data.bib_number || '-';
         
         document.getElementById('dm_jersey').textContent = data.jersey_size || '-';
+        document.getElementById('dm_blood_type').textContent = data.blood_type || '-';
         document.getElementById('dm_target_time').textContent = data.target_time || '-';
         
         // Populate Inputs (Initial)

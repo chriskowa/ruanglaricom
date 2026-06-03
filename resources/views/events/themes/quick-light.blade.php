@@ -65,6 +65,14 @@
     $shortDescription = trim(preg_replace('/\s+/u', ' ', strip_tags($rawShortDescription)));
     $platformFee = (int) ($event->platform_fee ?? 0);
     $defaultJersey = collect($event->jersey_sizes ?? [])->filter()->first() ?? 'L';
+    $formFields = $event->premium_amenities['form_fields'] ?? [];
+    $showIdCard = !empty($formFields['id_card']);
+    $showAddress = !empty($formFields['address']);
+    $showEmergency = !empty($formFields['emergency_contact']);
+    $showDob = !empty($formFields['date_of_birth']);
+    $showJersey = !empty($formFields['jersey_size']);
+    $showTargetTime = !empty($formFields['target_time']);
+    $showBloodType = !empty($formFields['blood_type']);
     $schemaDescription = $shortDescription !== '' ? $shortDescription : trim(strip_tags((string) ($event->full_description ?? '')));
     if ($schemaDescription === '') {
         $schemaDescription = $event->name;
@@ -534,13 +542,109 @@
                                                 </div>
                                             @endif
 
-                                            <input type="hidden" data-hidden-auto="id_card" name="participants[0][id_card]">
-                                            <input type="hidden" data-hidden-auto="address" name="participants[0][address]">
-                                            <input type="hidden" data-hidden-auto="emergency_contact_name" name="participants[0][emergency_contact_name]">
-                                            <input type="hidden" data-hidden-auto="emergency_contact_number" name="participants[0][emergency_contact_number]">
-                                            <input type="hidden" data-hidden-auto="date_of_birth" name="participants[0][date_of_birth]">
-                                            <input type="hidden" data-hidden-auto="jersey_size" name="participants[0][jersey_size]" value="{{ $defaultJersey }}">
-                                            <input type="hidden" data-hidden-auto="target_time" name="participants[0][target_time]" value="">
+                                                                          @if($showIdCard)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. Identitas (KTP/SIM)</label>
+                                                    <input class="field mt-2" data-field="id_card" name="participants[0][id_card]" placeholder="Nomor KTP/SIM" required>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="id_card" name="participants[0][id_card]">
+                                            @endif
+
+                                            @if($showAddress)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Alamat Lengkap</label>
+                                                    <textarea class="field mt-2" data-field="address" name="participants[0][address]" placeholder="Alamat lengkap" rows="2" required></textarea>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="address" name="participants[0][address]">
+                                            @endif
+
+                                            @if($showEmergency)
+                                                <div class="grid sm:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama Kontak Darurat</label>
+                                                        <input class="field mt-2" data-field="emergency_contact_name" name="participants[0][emergency_contact_name]" placeholder="Nama kontak darurat" required>
+                                                    </div>
+                                                    <div>
+                                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP Kontak Darurat</label>
+                                                        <input class="field mt-2" data-field="emergency_contact_number" name="participants[0][emergency_contact_number]" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="emergency_contact_name" name="participants[0][emergency_contact_name]">
+                                                <input type="hidden" data-hidden-auto="emergency_contact_number" name="participants[0][emergency_contact_number]">
+                                            @endif
+
+                                            @if($showDob)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Tanggal Lahir</label>
+                                                    <input type="date" class="field mt-2" data-field="date_of_birth" name="participants[0][date_of_birth]" required>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="date_of_birth" name="participants[0][date_of_birth]">
+                                            @endif
+
+                                            @if($showJersey)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Ukuran Jersey</label>
+                                                    <select class="field mt-2" data-field="jersey_size" name="participants[0][jersey_size]" required>
+                                                        <option value="">Pilih ukuran jersey</option>
+                                                        @foreach($event->jersey_sizes ?? [] as $sz)
+                                                            <option value="{{ $sz }}">{{ $sz }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="jersey_size" name="participants[0][jersey_size]" value="{{ $defaultJersey }}">
+                                            @endif
+
+                                            @if($showTargetTime)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Target Time</label>
+                                                    <div class="grid grid-cols-3 gap-2 mt-2">
+                                                        <div>
+                                                            <select class="field" data-target-hour required>
+                                                                @for ($i = 0; $i <= 23; $i++)
+                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Jam</option>
+                                                                @endfor
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <select class="field" data-target-minute required>
+                                                                @for ($i = 0; $i <= 59; $i++)
+                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 30 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Menit</option>
+                                                                @endfor
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <select class="field" data-target-second required>
+                                                                @for ($i = 0; $i <= 59; $i++)
+                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Detik</option>
+                                                                @endfor
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <input type="hidden" data-field="target_time" name="participants[0][target_time]" value="00:30:00">
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="target_time" name="participants[0][target_time]" value="">
+                                            @endif
+
+                                            @if($showBloodType)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Golongan Darah</label>
+                                                    <select class="field mt-2" data-field="blood_type" name="participants[0][blood_type]" required>
+                                                        <option value="">Pilih golongan darah</option>
+                                                        <option value="A">A</option>
+                                                        <option value="B">B</option>
+                                                        <option value="AB">AB</option>
+                                                        <option value="O">O</option>
+                                                    </select>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="blood_type" name="participants[0][blood_type]" value="">
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -647,13 +751,109 @@
                                                 </div>
                                             @endif
 
-                                            <input type="hidden" data-hidden-auto="id_card">
-                                            <input type="hidden" data-hidden-auto="address">
-                                            <input type="hidden" data-hidden-auto="emergency_contact_name">
-                                            <input type="hidden" data-hidden-auto="emergency_contact_number">
-                                            <input type="hidden" data-hidden-auto="date_of_birth">
-                                            <input type="hidden" data-hidden-auto="jersey_size" value="{{ $defaultJersey }}">
-                                            <input type="hidden" data-hidden-auto="target_time" value="">
+                                            @if($showIdCard)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. Identitas (KTP/SIM)</label>
+                                                    <input class="field mt-2" data-field="id_card" placeholder="Nomor KTP/SIM" required>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="id_card">
+                                            @endif
+
+                                            @if($showAddress)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Alamat Lengkap</label>
+                                                    <textarea class="field mt-2" data-field="address" placeholder="Alamat lengkap" rows="2" required></textarea>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="address">
+                                            @endif
+
+                                            @if($showEmergency)
+                                                <div class="grid sm:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Nama Kontak Darurat</label>
+                                                        <input class="field mt-2" data-field="emergency_contact_name" placeholder="Nama kontak darurat" required>
+                                                    </div>
+                                                    <div>
+                                                        <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">No. HP Kontak Darurat</label>
+                                                        <input class="field mt-2" data-field="emergency_contact_number" inputmode="numeric" minlength="10" maxlength="15" placeholder="08xxxxxxxxxx" required>
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="emergency_contact_name">
+                                                <input type="hidden" data-hidden-auto="emergency_contact_number">
+                                            @endif
+
+                                            @if($showDob)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Tanggal Lahir</label>
+                                                    <input type="date" class="field mt-2" data-field="date_of_birth" required>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="date_of_birth">
+                                            @endif
+
+                                            @if($showJersey)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Ukuran Jersey</label>
+                                                    <select class="field mt-2" data-field="jersey_size" required>
+                                                        <option value="">Pilih ukuran jersey</option>
+                                                        @foreach($event->jersey_sizes ?? [] as $sz)
+                                                            <option value="{{ $sz }}">{{ $sz }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="jersey_size" value="{{ $defaultJersey }}">
+                                            @endif
+
+                                            @if($showTargetTime)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Target Time</label>
+                                                    <div class="grid grid-cols-3 gap-2 mt-2">
+                                                        <div>
+                                                            <select class="field" data-target-hour required>
+                                                                @for ($i = 0; $i <= 23; $i++)
+                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Jam</option>
+                                                                @endfor
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <select class="field" data-target-minute required>
+                                                                @for ($i = 0; $i <= 59; $i++)
+                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 30 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Menit</option>
+                                                                @endfor
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <select class="field" data-target-second required>
+                                                                @for ($i = 0; $i <= 59; $i++)
+                                                                    <option value="{{ sprintf('%02d', $i) }}" {{ $i == 0 ? 'selected' : '' }}>{{ sprintf('%02d', $i) }} Detik</option>
+                                                                @endfor
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <input type="hidden" data-field="target_time" value="00:30:00">
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="target_time" value="">
+                                            @endif
+
+                                            @if($showBloodType)
+                                                <div>
+                                                    <label class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Golongan Darah</label>
+                                                    <select class="field mt-2" data-field="blood_type" required>
+                                                        <option value="">Pilih golongan darah</option>
+                                                        <option value="A">A</option>
+                                                        <option value="B">B</option>
+                                                        <option value="AB">AB</option>
+                                                        <option value="O">O</option>
+                                                    </select>
+                                                </div>
+                                            @else
+                                                <input type="hidden" data-hidden-auto="blood_type" value="">
+                                            @endif
                                         </div>
                                     </div>
                                 </template>
@@ -1501,11 +1701,29 @@
                     const phone = normalizePhone(item.querySelector('[data-field="phone"]')?.value || '');
                     const categoryId = item.querySelector('[data-field="category_id"]:checked')?.value || '0';
                     const identity = ('QL-' + phone + '-' + email.toLowerCase() + '-' + categoryId + '-' + index).replace(/[^a-zA-Z0-9@._-]/g, '').slice(0, 50) || ('QL-' + Date.now() + '-' + index);
-                    item.querySelector('[data-hidden-auto="id_card"]').value = identity;
-                    item.querySelector('[data-hidden-auto="address"]').value = '-';
-                    item.querySelector('[data-hidden-auto="emergency_contact_name"]').value = name || 'Kontak Darurat';
-                    item.querySelector('[data-hidden-auto="emergency_contact_number"]').value = phone || '0811111111';
-                    item.querySelector('[data-hidden-auto="date_of_birth"]').value = '1990-01-01';
+                    
+                    const idCardEl = item.querySelector('[data-hidden-auto="id_card"]');
+                    if (idCardEl) idCardEl.value = identity;
+
+                    const addressEl = item.querySelector('[data-hidden-auto="address"]');
+                    if (addressEl) addressEl.value = '-';
+
+                    const emNameEl = item.querySelector('[data-hidden-auto="emergency_contact_name"]');
+                    if (emNameEl) emNameEl.value = name || 'Kontak Darurat';
+
+                    const emPhoneEl = item.querySelector('[data-hidden-auto="emergency_contact_number"]');
+                    if (emPhoneEl) emPhoneEl.value = phone || '0811111111';
+
+                    const dobEl = item.querySelector('[data-hidden-auto="date_of_birth"]');
+                    if (dobEl) dobEl.value = '1990-01-01';
+
+                    const targetHour = item.querySelector('[data-target-hour]')?.value || '00';
+                    const targetMinute = item.querySelector('[data-target-minute]')?.value || '30';
+                    const targetSecond = item.querySelector('[data-target-second]')?.value || '00';
+                    const targetTimeEl = item.querySelector('[data-field="target_time"]') || item.querySelector('[data-hidden-auto="target_time"]');
+                    if (targetTimeEl) {
+                        targetTimeEl.value = targetHour + ':' + targetMinute + ':' + targetSecond;
+                    }
                 });
             }
 
@@ -1618,6 +1836,22 @@
                 item.remove();
                 reindexParticipants();
                 updateSummary();
+            });
+
+            participantsWrapper.addEventListener('change', function(e) {
+                const target = e.target;
+                if (target.matches('[data-target-hour], [data-target-minute], [data-target-second]')) {
+                    const card = target.closest('[data-participant-item]');
+                    if (card) {
+                        const h = card.querySelector('[data-target-hour]')?.value || '00';
+                        const m = card.querySelector('[data-target-minute]')?.value || '30';
+                        const s = card.querySelector('[data-target-second]')?.value || '00';
+                        const hiddenInput = card.querySelector('input[data-field="target_time"]') || card.querySelector('input[data-hidden-auto="target_time"]');
+                        if (hiddenInput) {
+                            hiddenInput.value = h + ':' + m + ':' + s;
+                        }
+                    }
+                }
             });
 
             form.addEventListener('change', function(e) {

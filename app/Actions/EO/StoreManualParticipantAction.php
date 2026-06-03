@@ -143,6 +143,7 @@ class StoreManualParticipantAction
                     'date_of_birth' => $validated['date_of_birth'] ?? null,
                     'target_time' => $validated['target_time'] ?? null,
                     'jersey_size' => $validated['jersey_size'] ?? null,
+                    'blood_type' => $validated['blood_type'] ?? null,
                     'bib_number' => $validated['bib_number'] ?? null,
                     'price_type' => $priceInfo['type'],
                     'addons' => [],

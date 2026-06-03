@@ -59,6 +59,12 @@ class StoreRegistrationAction
                         $p['target_time'] = null;
                     }
                 }
+                if (isset($p['blood_type'])) {
+                    $p['blood_type'] = trim((string) $p['blood_type']);
+                    if ($p['blood_type'] === '') {
+                        $p['blood_type'] = null;
+                    }
+                }
             }
             $request->merge(['participants' => $participants]);
         }
@@ -93,6 +99,7 @@ class StoreRegistrationAction
             'participants.*.date_of_birth' => 'required|date|before:today',
             'participants.*.target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],
             'participants.*.jersey_size' => 'required|string|max:10',
+            'participants.*.blood_type' => 'nullable|string|in:A,B,AB,O',
             'coupon_code' => 'nullable|string|exists:coupons,code',
             'payment_method' => 'nullable|in:midtrans,cod,moota',
             'participants.*.addons' => 'nullable|array',
@@ -556,6 +563,7 @@ class StoreRegistrationAction
                     'date_of_birth' => $participantData['date_of_birth'] ?? null,
                     'target_time' => $participantData['target_time'] ?? null,
                     'jersey_size' => $participantData['jersey_size'] ?? null,
+                    'blood_type' => $participantData['blood_type'] ?? null,
                     'photo' => $photoPath,
                     'addons' => $participantsWithAddons[$pIndex] ?? [],
                     'status' => 'pending',
