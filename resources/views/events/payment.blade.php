@@ -133,7 +133,7 @@
                     
                     <div class="relative pl-4 border-l-2 border-slate-800 space-y-6">
                         @if(!empty($instructions))
-                            <div class="text-sm text-slate-400 leading-relaxed prose prose-invert prose-sm">
+                            <div class="text-sm text-slate-200 font-bold leading-relaxed prose prose-invert prose-sm">
                                 {!! nl2br(e($instructions)) !!}
                             </div>
                         @else

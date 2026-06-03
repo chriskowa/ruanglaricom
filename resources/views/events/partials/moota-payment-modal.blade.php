@@ -75,7 +75,7 @@
                     <div class="rounded-xl border border-slate-200 p-4">
                         <div class="text-sm font-black text-slate-900 mb-2">Rekening Tujuan</div>
                         <div class="space-y-2 text-sm" id="rl-moota-accounts"></div>
-                        <div class="mt-3 text-xs text-slate-600">
+                        <div class="mt-3 text-xs text-slate-800 font-bold leading-relaxed">
                             {!! nl2br(e($mootaInstructions ?: '1) Transfer sesuai total (termasuk kode unik).'.PHP_EOL.'2) Gunakan salah satu rekening di atas.'.PHP_EOL.'3) Tunggu status berubah menjadi PAID.')) !!}
                         </div>
                     </div>

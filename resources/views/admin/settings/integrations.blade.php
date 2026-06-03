@@ -4,7 +4,16 @@
 @section('title', 'Platform Settings')
 
 @section('content')
-<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans text-slate-200" x-data="{ activeTab: 'general' }">
+<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans text-slate-200" x-data="{ 
+    activeTab: 'general',
+    bankAccounts: {{ json_encode($settings['moota_bank_accounts'] ?? []) }},
+    addAccount() {
+        this.bankAccounts.push({ bank_type: 'bca', name: '', account_number: '', bank_id: '' });
+    },
+    removeAccount(index) {
+        this.bankAccounts.splice(index, 1);
+    }
+}">
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
@@ -197,6 +206,72 @@
                                 <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Payment Instructions</label>
                                 <textarea rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-slate-600" 
                                     name="moota_instructions" placeholder="Silakan transfer ke rekening BCA 1234567890 a.n PT Ruang Lari...">{{ $settings['moota_instructions'] }}</textarea>
+                            </div>
+
+                            <!-- Moota Bank Accounts Editor -->
+                            <div class="space-y-4 pt-4 border-t border-slate-800/50">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <label class="text-sm font-bold text-slate-300 uppercase tracking-wider block">Moota Bank Accounts</label>
+                                        <span class="text-xs text-slate-500">Add the bank accounts where users should transfer funds.</span>
+                                    </div>
+                                    <button type="button" @click="addAccount()" class="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 hover:border-primary/40 font-bold py-1.5 px-4 rounded-xl text-xs transition flex items-center gap-2">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                        Add Bank Account
+                                    </button>
+                                </div>
+
+                                <input type="hidden" name="moota_bank_accounts" :value="JSON.stringify(bankAccounts)">
+
+                                <div class="space-y-3">
+                                    <template x-for="(acc, index) in bankAccounts" :key="index">
+                                        <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-4 relative group space-y-3">
+                                            <button type="button" @click="removeAccount(index)" class="absolute top-4 right-4 text-slate-500 hover:text-red-400 transition" title="Remove Account">
+                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+
+                                            <div class="grid md:grid-cols-4 gap-4">
+                                                <div class="space-y-1">
+                                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bank Type</label>
+                                                    <select class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-primary transition" 
+                                                        x-model="acc.bank_type">
+                                                        <option value="bca">BCA</option>
+                                                        <option value="mandiri">Mandiri</option>
+                                                        <option value="bni">BNI</option>
+                                                        <option value="bri">BRI</option>
+                                                        <option value="cimb">CIMB Niaga</option>
+                                                        <option value="permata">Permata</option>
+                                                        <option value="other">Other / E-Wallet</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="space-y-1 md:col-span-2">
+                                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Account Number</label>
+                                                    <input type="text" placeholder="e.g. 3312233671" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-primary transition" 
+                                                        x-model="acc.account_number" required>
+                                                </div>
+
+                                                <div class="space-y-1">
+                                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bank ID (Dashboard)</label>
+                                                    <input type="text" placeholder="e.g. bpPkB9d4WB2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-primary transition" 
+                                                        x-model="acc.bank_id">
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-1">
+                                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Account Name</label>
+                                                <input type="text" placeholder="e.g. PT RUANG LARI" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-primary transition" 
+                                                    x-model="acc.name" required>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template x-if="bankAccounts.length === 0">
+                                        <div class="p-6 bg-slate-950/20 rounded-xl border border-dashed border-slate-800 text-center text-slate-500 text-sm">
+                                            No bank accounts added. Click "Add Bank Account" to configure bank details for Moota payments.
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                             
                             <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">

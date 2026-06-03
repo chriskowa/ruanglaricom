@@ -38,6 +38,7 @@ class IntegrationSettingsController extends Controller
             'moota_bank_id' => AppSettings::get('moota_bank_id'),
             'moota_is_active' => AppSettings::get('moota_is_active', false),
             'moota_instructions' => AppSettings::get('moota_instructions'),
+            'moota_bank_accounts' => json_decode(AppSettings::get('moota_bank_accounts', '[]'), true) ?: (config('moota.bank_accounts') ?? []),
 
             // WhatsApp Gateway
             'whatsapp_is_active' => AppSettings::get('whatsapp_is_active', false),
@@ -78,6 +79,7 @@ class IntegrationSettingsController extends Controller
             'moota_bank_id' => 'nullable|string',
             'moota_is_active' => 'nullable|boolean',
             'moota_instructions' => 'nullable|string',
+            'moota_bank_accounts' => 'nullable|string',
 
             // WhatsApp Gateway
             'whatsapp_is_active' => 'nullable|boolean',
