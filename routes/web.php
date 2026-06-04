@@ -290,6 +290,10 @@ Route::get('/tools/qr-generator', function () {
     return view('tools.qr-generator');
 })->name('tools.qr-generator');
 
+Route::get('/tools/shortlink', function () {
+    return view('tools.shortlink');
+})->name('tools.shortlink');
+
 Route::post('/tools/shortlink', [App\Http\Controllers\ShortLinkController::class, 'store'])->name('tools.shortlink.store');
 
 Route::get('/tools/shoe-analyzer', function () {

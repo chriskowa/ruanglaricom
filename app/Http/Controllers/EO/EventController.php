@@ -867,6 +867,8 @@ class EventController extends Controller
                 $query->where(function ($q) {
                     $q->whereNull('addons')->orWhereJsonLength('addons', 0);
                 });
+            } else {
+                $query->whereJsonContains('addons', ['name' => $addonFilter]);
             }
         }
 
@@ -1163,6 +1165,8 @@ class EventController extends Controller
                 $query->where(function ($q) {
                     $q->whereNull('addons')->orWhereJsonLength('addons', 0);
                 });
+            } else {
+                $query->whereJsonContains('addons', ['name' => $addonFilter]);
             }
         }
 
@@ -1719,6 +1723,8 @@ class EventController extends Controller
                 $query->where(function ($q) {
                     $q->whereNull('addons')->orWhereJsonLength('addons', 0);
                 });
+            } else {
+                $query->whereJsonContains('addons', ['name' => $addonFilter]);
             }
         }
 
@@ -1825,6 +1831,8 @@ class EventController extends Controller
                 $query->where(function ($q) {
                     $q->whereNull('addons')->orWhereJsonLength('addons', 0);
                 });
+            } else {
+                $query->whereJsonContains('addons', ['name' => $addonFilter]);
             }
         }
 

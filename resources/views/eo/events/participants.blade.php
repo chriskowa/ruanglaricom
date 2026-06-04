@@ -378,6 +378,22 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Add-on</label>
+                    <select name="addon" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                        <option value="">Semua Add-on</option>
+                        <option value="with" {{ request('addon') === 'with' ? 'selected' : '' }}>Ada Add-on (Apa Saja)</option>
+                        <option value="without" {{ request('addon') === 'without' ? 'selected' : '' }}>Tanpa Add-on</option>
+                        @if(!empty($event->addons))
+                            @foreach($event->addons as $addon)
+                                @php $addonName = is_array($addon) ? ($addon['name'] ?? null) : ($addon->name ?? null); @endphp
+                                @if($addonName)
+                                    <option value="{{ $addonName }}" {{ request('addon') === $addonName ? 'selected' : '' }}>Hanya: {{ $addonName }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Age Group</label>
                     <select name="age_group" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                         <option value="">All Groups</option>
@@ -428,6 +444,7 @@
                 <input type="hidden" name="gender" value="{{ request('gender') }}">
                 <input type="hidden" name="category_id" value="{{ request('category_id') }}">
                 <input type="hidden" name="coupon_id" value="{{ request('coupon_id') }}">
+                <input type="hidden" name="addon" value="{{ request('addon') }}">
                 <input type="hidden" name="age_group" value="{{ request('age_group') }}">
                 <input type="hidden" name="search" value="{{ request('search') }}">
                 <input type="hidden" name="sort_by" value="{{ request('sort_by', 'created_at') }}">

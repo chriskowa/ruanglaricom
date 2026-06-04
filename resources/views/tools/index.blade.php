@@ -115,6 +115,25 @@
             </div>
         </a>
 
+        <!-- URL Shortener -->
+        <a href="{{ route('tools.shortlink') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-rose-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-rose-500/10 hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="p-8 h-full flex flex-col">
+                <div class="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-black text-white italic tracking-tighter mb-2 group-hover:text-rose-400 transition-colors">URL SHORTENER</h3>
+                <p class="text-slate-400 mb-6 flex-grow">
+                    Persingkat tautan rute Strava, halaman event, atau URL lainnya dengan cepat. Dilengkapi dengan salin satu-klik dan riwayat pencarian.
+                </p>
+                <div class="flex items-center text-rose-400 font-bold text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform">
+                    Shorten Link <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+            </div>
+        </a>
+
         <!-- TrackMaster Pro -->
         <a href="{{ route('tools.trackmaster') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-[#ccff00]/50 transition-all duration-300 hover:shadow-2xl hover:shadow-[#ccff00]/10 hover:-translate-y-1">
             <div class="absolute inset-0 bg-gradient-to-br from-[#ccff00]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
