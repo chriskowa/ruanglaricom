@@ -1478,13 +1478,6 @@ class EventController extends Controller
             }
         }
 
-        // Update Coupon if present
-        if ($request->has('coupon_id') && $participant->transaction) {
-            $participant->transaction->update([
-                'coupon_id' => $validated['coupon_id']
-            ]);
-        }
-
         if ($participant->transaction && ($request->has('pic_name') || $request->has('pic_email') || $request->has('pic_phone'))) {
             $pic = is_array($participant->transaction->pic_data) ? $participant->transaction->pic_data : [];
 
@@ -1516,6 +1509,104 @@ class EventController extends Controller
         $participantData = $validated;
         unset($participantData['coupon_id'], $participantData['pic_name'], $participantData['pic_email'], $participantData['pic_phone']);
         $participant->update($participantData);
+
+        if ($participant->transaction) {
+            $transaction = $participant->transaction;
+            $event = $transaction->event;
+
+            // Load all participants for this transaction to calculate totals
+            $allParticipants = $transaction->participants()->with('category')->get();
+
+            $categoryQuantities = [];
+            foreach ($allParticipants as $p) {
+                if ($p->category) {
+                    $catId = $p->category->id;
+                    $categoryQuantities[$catId] = ($categoryQuantities[$catId] ?? 0) + 1;
+                }
+            }
+
+            $totalOriginal = 0;
+            foreach ($categoryQuantities as $catId => $qty) {
+                $category = \App\Models\RaceCategory::find($catId);
+                if (!$category) continue;
+
+                $catParticipants = $allParticipants->where('race_category_id', $catId);
+                $categorySum = 0;
+
+                foreach ($catParticipants as $p) {
+                    $priceType = $p->price_type ?? 'regular';
+                    $price = 0;
+                    if ($priceType === 'early' && isset($category->price_early) && $category->price_early > 0) {
+                        $price = (int) $category->price_early;
+                    } elseif ($priceType === 'late' && isset($category->price_late) && $category->price_late > 0) {
+                        $price = (int) $category->price_late;
+                    } else {
+                        $price = (int) ($category->price_regular ?? 0);
+                    }
+                    $categorySum += $price;
+                }
+
+                if ($event->promo_buy_x && $event->promo_buy_x > 0) {
+                    $bundleSize = $event->promo_buy_x + 1;
+                    $freeCount = floor($qty / $bundleSize);
+                    if ($freeCount > 0) {
+                        $avgPrice = $categorySum / $qty;
+                        $categorySum -= $avgPrice * $freeCount;
+                    }
+                }
+
+                $totalOriginal += $categorySum;
+            }
+
+            // Sum addons price
+            $totalAddonsPrice = 0;
+            foreach ($allParticipants as $p) {
+                if (! empty($p->addons) && is_array($p->addons)) {
+                    foreach ($p->addons as $addon) {
+                        $price = isset($addon['price']) ? (int) $addon['price'] : (isset($addon['value']) ? (int) $addon['value'] : 0);
+                        $totalAddonsPrice += $price;
+                    }
+                }
+            }
+            $totalOriginal += $totalAddonsPrice;
+
+            // Apply coupon
+            $couponId = array_key_exists('coupon_id', $validated) ? $validated['coupon_id'] : $transaction->coupon_id;
+            $discountAmount = 0.00;
+            if ($couponId) {
+                $coupon = Coupon::find($couponId);
+                if ($coupon) {
+                    $discountAmount = (float) $coupon->applyDiscount((float) $totalOriginal);
+                }
+            }
+
+            // Recalculate platform fee
+            $totalParticipants = $allParticipants->count();
+            $platformFeePerParticipant = $event->platform_fee ?? 0;
+            
+            if (($totalOriginal - $discountAmount) <= 0) {
+                $totalAdminFee = 0;
+            } else {
+                $totalAdminFee = $platformFeePerParticipant * $totalParticipants;
+            }
+
+            $finalAmount = ($totalOriginal - $discountAmount) + $totalAdminFee;
+            if ($finalAmount < 0) {
+                $finalAmount = 0;
+            }
+
+            if ($transaction->payment_gateway === 'moota' && $transaction->unique_code > 0) {
+                $finalAmount += (float) $transaction->unique_code;
+            }
+
+            $transaction->update([
+                'coupon_id' => $couponId ?: null,
+                'total_original' => $totalOriginal,
+                'discount_amount' => $discountAmount,
+                'admin_fee' => $totalAdminFee,
+                'final_amount' => $finalAmount,
+            ]);
+        }
 
         // Refresh to get relationship data if needed (e.g. category name)
         $participant->load(['category', 'transaction.coupon', 'transaction.user']);

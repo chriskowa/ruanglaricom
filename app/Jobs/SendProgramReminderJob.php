@@ -64,15 +64,31 @@ class SendProgramReminderJob implements ShouldQueue
                 ['user' => $this->user->id, 'redirect' => route('runner.calendar')]
             );
 
+            // Shorten the temporary calendar URL
+            $shortLink = \App\Models\ShortLink::where('original_url', $calendarUrl)->first();
+            if ($shortLink) {
+                $calendarUrlShort = route('shortlink.redirect', $shortLink->code);
+            } else {
+                do {
+                    $code = \Illuminate\Support\Str::random(6);
+                } while (\App\Models\ShortLink::where('code', $code)->exists());
+
+                $newLink = \App\Models\ShortLink::create([
+                    'code' => $code,
+                    'original_url' => $calendarUrl,
+                ]);
+                $calendarUrlShort = route('shortlink.redirect', $newLink->code);
+            }
+
             if ($message) {
-                $message = str_replace('[LINK_CALENDAR]', $calendarUrl, $message);
+                $message = str_replace('[LINK_CALENDAR]', $calendarUrlShort, $message);
                 // Fallback if AI forgot to include the calendar link
-                if (!str_contains($message, $calendarUrl)) {
-                    $message .= "\n\nCek kalendermu di sini ya: " . $calendarUrl;
+                if (!str_contains($message, $calendarUrlShort)) {
+                    $message .= "\n\nCek kalendermu di sini ya: " . $calendarUrlShort;
                 }
             } else {
                 // Fallback message if OpenAI fails
-                $message = $this->getFallbackMessage($calendarUrl);
+                $message = $this->getFallbackMessage($calendarUrlShort);
             }
 
             // Send via WhatsApp
