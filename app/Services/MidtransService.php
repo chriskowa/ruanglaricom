@@ -327,6 +327,22 @@ class MidtransService
                 'quantity' => 1,
                 'name' => $category->name.' - '.$participant->name,
             ];
+
+            // Add addons as item details
+            if (! empty($participant->addons) && is_array($participant->addons)) {
+                foreach ($participant->addons as $addonIndex => $addon) {
+                    $addonName = is_array($addon) ? ($addon['name'] ?? null) : ($addon->name ?? null);
+                    $addonPrice = is_array($addon) ? ($addon['price'] ?? 0) : ($addon->price ?? 0);
+                    if ($addonName) {
+                        $itemDetails[] = [
+                            'id' => 'ADDON-'.$participant->id.'-'.$addonIndex,
+                            'price' => (float) $addonPrice,
+                            'quantity' => 1,
+                            'name' => substr($addonName.' - '.$participant->name, 0, 50),
+                        ];
+                    }
+                }
+            }
         }
 
         // Add discount as item if exists
