@@ -1208,11 +1208,12 @@
                                         <input type="text" name="name" id="edit_name" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
                                     </div>
                                     
-                                    <!-- ID Card (Read Only) -->
-                                    <div>
-                                        <div class="text-xs text-slate-500">ID Card</div>
-                                        <div class="text-white" id="dm_id_card"></div>
-                                    </div>
+                                    <!-- ID Card -->
+                                     <div>
+                                         <div class="text-xs text-slate-500">ID Card</div>
+                                         <div class="view-mode text-white" id="dm_id_card"></div>
+                                         <input type="text" name="id_card" id="edit_id_card" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                     </div>
 
                                     <!-- Gender -->
                                     <div>
@@ -1239,11 +1240,25 @@
                                     </div>
 
                                     <!-- Phone -->
-                                    <div>
-                                        <div class="text-xs text-slate-500">Phone</div>
-                                        <div class="view-mode text-white" id="dm_phone"></div>
-                                        <input type="text" name="phone" id="edit_phone" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
-                                    </div>
+                                     <div>
+                                         <div class="text-xs text-slate-500">Phone</div>
+                                         <div class="view-mode text-white" id="dm_phone"></div>
+                                         <input type="text" name="phone" id="edit_phone" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                     </div>
+
+                                     <!-- Emergency Contact Name -->
+                                     <div>
+                                         <div class="text-xs text-slate-500">Emergency Contact Name</div>
+                                         <div class="view-mode text-white" id="dm_emergency_contact_name"></div>
+                                         <input type="text" name="emergency_contact_name" id="edit_emergency_contact_name" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                     </div>
+
+                                     <!-- Emergency Contact Number -->
+                                     <div>
+                                         <div class="text-xs text-slate-500">Emergency Contact Number (Call)</div>
+                                         <div class="view-mode text-white" id="dm_emergency_contact_number"></div>
+                                         <input type="text" name="emergency_contact_number" id="edit_emergency_contact_number" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                     </div>
 
                                     <!-- Address Info -->
                                     <div class="pt-2 border-t border-slate-700/50 mt-2">
@@ -1792,6 +1807,8 @@
                     email: p.email,
                     phone: p.phone,
                     id_card: p.id_card,
+                    emergency_contact_name: p.emergency_contact_name,
+                    emergency_contact_number: p.emergency_contact_number,
                     address: p.address,
                     city: p.city,
                     province: p.province,
@@ -2289,6 +2306,9 @@
         setValue('edit_name', d.name);
         setValue('edit_email', d.email);
         setValue('edit_phone', d.phone);
+        setValue('edit_id_card', d.id_card);
+        setValue('edit_emergency_contact_name', d.emergency_contact_name);
+        setValue('edit_emergency_contact_number', d.emergency_contact_number);
         setValue('edit_gender', d.gender || 'male');
         setValue('edit_pic_name', d.pic_name);
         setValue('edit_pic_phone', d.pic_phone);
@@ -2386,6 +2406,9 @@
             name: document.getElementById('edit_name').value.trim(),
             email: document.getElementById('edit_email').value.trim(),
             phone: document.getElementById('edit_phone').value.trim(),
+            id_card: document.getElementById('edit_id_card').value.trim(),
+            emergency_contact_name: document.getElementById('edit_emergency_contact_name').value.trim(),
+            emergency_contact_number: document.getElementById('edit_emergency_contact_number').value.trim(),
             gender: document.getElementById('edit_gender').value,
             date_of_birth: document.getElementById('edit_date_of_birth').value,
             address: document.getElementById('edit_address').value.trim(),
@@ -2412,6 +2435,8 @@
         
         if (!formData.phone) errors.push('Nomor telepon wajib diisi');
         else if (formData.phone.length < 8) errors.push('Nomor telepon minimal 8 digit');
+
+        if (!formData.id_card) errors.push('ID Card wajib diisi');
         
         if (!formData.gender) errors.push('Jenis kelamin wajib dipilih');
         if (!formData.race_category_id) errors.push('Kategori lomba wajib dipilih');
@@ -2468,6 +2493,9 @@
                         name: res.data.name,
                         email: res.data.email,
                         phone: res.data.phone,
+                        id_card: res.data.id_card,
+                        emergency_contact_name: res.data.emergency_contact_name,
+                        emergency_contact_number: res.data.emergency_contact_number,
                         gender: res.data.gender,
                         date_of_birth: res.data.date_of_birth,
                         address: res.data.address,
@@ -2496,6 +2524,9 @@
                 document.getElementById('dm_name').textContent = res.data.name;
                 document.getElementById('dm_email').textContent = res.data.email;
                 document.getElementById('dm_phone').textContent = res.data.phone;
+                document.getElementById('dm_id_card').textContent = res.data.id_card || '-';
+                document.getElementById('dm_emergency_contact_name').textContent = res.data.emergency_contact_name || '-';
+                document.getElementById('dm_emergency_contact_number').textContent = res.data.emergency_contact_number || '-';
                 document.getElementById('dm_gender').textContent = res.data.gender ? (res.data.gender.charAt(0).toUpperCase() + res.data.gender.slice(1)) : '-';
                 document.getElementById('dm_dob').textContent = formatDateId(res.data.date_of_birth);
                 document.getElementById('dm_address').textContent = res.data.address || '-';
@@ -2594,6 +2625,9 @@
         document.getElementById('dm_email').textContent = data.email;
         
         document.getElementById('dm_phone').textContent = data.phone;
+
+        document.getElementById('dm_emergency_contact_name').textContent = data.emergency_contact_name || '-';
+        document.getElementById('dm_emergency_contact_number').textContent = data.emergency_contact_number || '-';
         
         document.getElementById('dm_age_group').textContent = data.age_group || '-';
 

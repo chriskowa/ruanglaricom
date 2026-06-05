@@ -979,6 +979,8 @@ class EventController extends Controller
                     'email' => $p->email,
                     'phone' => $p->phone,
                     'id_card' => $p->id_card,
+                    'emergency_contact_name' => $p->emergency_contact_name,
+                    'emergency_contact_number' => $p->emergency_contact_number,
                     'date_of_birth' => $p->date_of_birth ? $p->date_of_birth->toDateString() : null,
                     'address' => $p->address,
                     'city' => $p->city,
@@ -1213,6 +1215,8 @@ class EventController extends Controller
                 'email' => $p->email,
                 'phone' => $p->phone,
                 'id_card' => $p->id_card,
+                'emergency_contact_name' => $p->emergency_contact_name,
+                'emergency_contact_number' => $p->emergency_contact_number,
                 'address' => $p->address,
                 'city' => $p->city,
                 'province' => $p->province,
@@ -1434,6 +1438,9 @@ class EventController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|min:8|max:20',
+            'id_card' => 'required|string|max:50',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_number' => 'nullable|string|max:20',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'nullable|date',
             'address' => 'nullable|string|max:500',
@@ -1574,7 +1581,7 @@ class EventController extends Controller
             $couponId = array_key_exists('coupon_id', $validated) ? $validated['coupon_id'] : $transaction->coupon_id;
             $discountAmount = 0.00;
             if ($couponId) {
-                $coupon = Coupon::find($couponId);
+                $coupon = \App\Models\Coupon::find($couponId);
                 if ($coupon) {
                     $discountAmount = (float) $coupon->applyDiscount((float) $totalOriginal);
                 }
@@ -1619,6 +1626,9 @@ class EventController extends Controller
                 'name' => $participant->name,
                 'email' => $participant->email,
                 'phone' => $participant->phone,
+                'id_card' => $participant->id_card,
+                'emergency_contact_name' => $participant->emergency_contact_name,
+                'emergency_contact_number' => $participant->emergency_contact_number,
                 'gender' => $participant->gender,
                 'date_of_birth' => $participant->date_of_birth ? $participant->date_of_birth->toDateString() : null,
                 'address' => $participant->address,
