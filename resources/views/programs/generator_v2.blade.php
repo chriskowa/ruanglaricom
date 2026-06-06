@@ -323,9 +323,9 @@
                                 <div class="space-y-2">
                                     <label class="label-text">Level Pelari</label>
                                     <select v-model="form.runner_level" class="input-field cursor-pointer">
-                                        <option value="beginner">Pemula</option>
-                                        <option value="intermediate">Menengah</option>
-                                        <option value="advanced">Mahir</option>
+                                        <option value="beginner">Pemula (Beginner)</option>
+                                        <option value="intermediate">Menengah (Medium)</option>
+                                        <option value="advanced">Mahir / Elite (Advanced)</option>
                                     </select>
                                 </div>
                                 <div class="space-y-2">
@@ -334,6 +334,15 @@
                                         <option value="saturday">Sabtu</option>
                                         <option value="sunday">Minggu</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="label-text">Penyesuaian Suhu Tropis (Indonesia)</label>
+                                <div class="flex items-center gap-3 p-4 bg-slate-900/50 rounded-2xl border border-slate-700/50">
+                                    <input type="checkbox" v-model="form.is_tropical" id="is_tropical" class="w-5 h-5 accent-brand-500 cursor-pointer rounded border-slate-600 bg-slate-800">
+                                    <label for="is_tropical" class="text-xs text-slate-300 font-bold cursor-pointer select-none">
+                                        Aktifkan penyesuaian pace untuk cuaca panas (+10-15s/km untuk menjaga beban kardio/HR stabil)
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -385,13 +394,19 @@
                             </button>
                         </div>
 
-                        <!-- Training Paces Card -->
+                        <!-- Training Paces & Heart Rate Zones Card -->
                         <div class="card-dark p-8 rounded-3xl">
-                            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Training Paces (min/km)</h3>
+                            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Training Paces & Heart Rate Zones</h3>
                             <div class="space-y-4">
-                                <div v-for="(pace, type) in (result?.paces || {})" :key="type" class="flex justify-between items-center p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/50">
-                                    <span class="font-bold text-xs uppercase" :class="getPaceColor(type)">@{{ getPaceLabel(type) }}</span>
-                                    <span class="font-mono font-bold text-white">@{{ formatPace(pace) }}</span>
+                                <div v-for="(pace, type) in (result?.paces || {})" :key="type" class="p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/50 space-y-1.5">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-xs uppercase" :class="getPaceColor(type)">@{{ getPaceLabel(type) }}</span>
+                                        <span class="font-mono font-bold text-white">@{{ formatPace(pace) }}</span>
+                                    </div>
+                                    <div v-if="result?.hr_zones && result.hr_zones[type]" class="flex justify-between items-center text-[10px] text-slate-400">
+                                        <span>Target HR (Zone)</span>
+                                        <span class="font-bold text-slate-300">@{{ result.hr_zones[type].min }}-@{{ result.hr_zones[type].max }} BPM (@{{ result.hr_zones[type].label }})</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -401,9 +416,15 @@
                     <div class="lg:col-span-2 space-y-8">
                         <div v-for="(weekSessions, weekNum) in sessionsByWeek" :key="weekNum" class="card-dark p-8 md:p-10 rounded-3xl">
                             <div class="flex justify-between items-center mb-8">
-                                <h3 class="text-2xl font-black text-white italic uppercase tracking-tight">
-                                    Preview Minggu @{{ weekNum }}
-                                </h3>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <h3 class="text-2xl font-black text-white italic uppercase tracking-tight">
+                                        Preview Minggu @{{ weekNum }}
+                                    </h3>
+                                    <span v-if="weekSessions && weekSessions.length > 0 && weekSessions[0].is_deload" 
+                                          class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[9px] font-black rounded-full border border-emerald-500/30 uppercase tracking-widest animate-pulse">
+                                        De-load / Recovery Week
+                                    </span>
+                                </div>
                                 <span class="px-3 py-1 bg-brand-500/10 text-brand-400 text-[10px] font-black rounded-full border border-brand-500/20 uppercase tracking-wider">Akses Gratis</span>
                             </div>
 
@@ -477,7 +498,8 @@
                 gender: 'male',
                 age: 25,
                 runner_level: 'intermediate',
-                long_run_day: 'sunday'
+                long_run_day: 'sunday',
+                is_tropical: false
             });
 
             const showNotification = (message, type = 'success') => {

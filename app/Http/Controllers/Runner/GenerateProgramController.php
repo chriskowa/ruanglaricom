@@ -7,22 +7,26 @@ use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Models\StravaActivity;
 use App\Services\DanielsRunningService;
+use App\Services\OpenAiService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class GenerateProgramController extends Controller
 {
     protected $danielsService;
+    protected $openAiService;
 
-    public function __construct(DanielsRunningService $danielsService)
+    public function __construct(DanielsRunningService $danielsService, OpenAiService $openAiService)
     {
         $this->danielsService = $danielsService;
+        $this->openAiService = $openAiService;
     }
 
     /**
-     * Generate program based on Daniels' Running Formula
+     * Generate program based on Daniels' Running Formula & AI Refinement
      */
     public function generate(Request $request)
     {
@@ -33,16 +37,37 @@ class GenerateProgramController extends Controller
             'training_frequency' => 'required|integer|min:2|max:7',
             'goal_distance' => 'required|in:5k,10k,21k,42k',
             'goal_time' => 'nullable|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
-            'duration_weeks' => 'nullable|integer|min:6|max:12', // Flexible short duration
+            'duration_weeks' => 'nullable|integer|min:6|max:24',
+            
+            // AI and Periodization inputs
+            'race_distance' => 'nullable|in:5k,10k,21k,42k',
+            'race_time' => 'nullable|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
+            'goal_race_date' => 'nullable|date|after_or_equal:today',
+            'runner_level' => 'nullable|in:beginner,intermediate,advanced',
+            'long_run_day' => 'nullable|in:saturday,sunday',
+            'is_tropical' => 'nullable|boolean',
+            'use_ai' => 'nullable|boolean',
         ]);
 
         $user = auth()->user();
-        $vdot = $user->vdot;
+        
+        // Calculate VDOT from recent race data if provided
+        $vdot = null;
+        if (!empty($validated['race_distance']) && !empty($validated['race_time'])) {
+            $vdot = $this->danielsService->calculateVDOT($validated['race_time'], $validated['race_distance']);
+            if ($vdot && $user) {
+                $user->update(['vdot' => $vdot]);
+            }
+        }
+
+        if (!$vdot && $user) {
+            $vdot = $user->vdot;
+        }
 
         if (! $vdot) {
             return response()->json([
                 'success' => false,
-                'message' => 'Silakan update Personal Best (PB) Anda terlebih dahulu untuk menghitung VDOT.',
+                'message' => 'Silakan update Personal Best (PB) Anda terlebih dahulu atau isi kolom fitness terbaru untuk menghitung VDOT.',
             ], 422);
         }
 
@@ -52,51 +77,103 @@ class GenerateProgramController extends Controller
             $effectiveWeeklyMileage = (float) ($adaptive['weekly_mileage'] ?? $validated['weekly_mileage']);
             $effectiveFrequency = (int) ($adaptive['training_frequency'] ?? $validated['training_frequency']);
 
+            $runnerLevel = $validated['runner_level'] ?? 'intermediate';
+            $longRunDay = $validated['long_run_day'] ?? 'sunday';
+            $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $useAi = filter_var($validated['use_ai'] ?? true, FILTER_VALIDATE_BOOLEAN);
+
+            // Determine duration in weeks
+            $durationWeeks = 8;
+            if (!empty($validated['goal_race_date'])) {
+                $targetDate = Carbon::parse($validated['goal_race_date']);
+                $durationWeeks = max(8, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
+            } elseif (!empty($validated['duration_weeks'])) {
+                $durationWeeks = (int) $validated['duration_weeks'];
+            }
+
+            // Cap the improvement to a realistic level based on runner level
+            $maxVdotImprovement = 3.0;
+            if ($runnerLevel === 'beginner') {
+                $maxVdotImprovement = 2.0;
+            } elseif ($runnerLevel === 'advanced') {
+                $maxVdotImprovement = 4.0;
+            }
+
             $targetVdot = null;
             if (! empty($validated['goal_time'])) {
                 $targetVdot = $this->danielsService->calculateVDOT($validated['goal_time'], $validated['goal_distance']);
             }
-            $safeTargetVdot = $targetVdot ? min($targetVdot, $vdot + 3.0) : $vdot;
+            $safeTargetVdot = $targetVdot ? min($targetVdot, $vdot + $maxVdotImprovement) : $vdot;
 
-            // Generate program using VDOT directly
-            $programData = $this->danielsService->generateProgramFromVDOT($vdot, [
-                'goal_distance' => $validated['goal_distance'],
+            // Calculate training paces
+            $paces = $this->danielsService->calculateTrainingPaces($vdot);
+            if ($isTropical) {
+                $paces['E'] += 0.25;  // +15s/km
+                $paces['M'] += 0.20;  // +12s/km
+                $paces['T'] += 0.167; // +10s/km
+                $paces['I'] += 0.133; // +8s/km
+                $paces['R'] += 0.083; // +5s/km
+            }
+
+            // Generate periodized program sessions
+            $programData = $this->buildPeriodizedProgram([
+                'target_distance' => $validated['goal_distance'],
                 'weekly_mileage' => $effectiveWeeklyMileage,
-                'training_frequency' => $effectiveFrequency,
-                'duration_weeks' => $validated['duration_weeks'] ?? 8,
+                'frequency' => $effectiveFrequency,
+                'weeks' => $durationWeeks,
                 'initial_vdot' => $vdot,
                 'target_vdot' => $safeTargetVdot,
-                'pace_progression' => true,
-                'max_vdot_delta' => 3.0,
+                'runner_level' => $runnerLevel,
+                'long_run_day' => $longRunDay,
+                'is_tropical' => $isTropical,
             ]);
 
-            if (isset($programData['sessions']) && is_array($programData['sessions'])) {
-                $programData['sessions'] = $this->injectStrengthSessions(
-                    $programData['sessions'],
+            $sessions = $programData['sessions'] ?? [];
+
+            // Inject Strength Sessions
+            if (is_array($sessions)) {
+                $sessions = $this->injectStrengthSessions(
+                    $sessions,
                     $effectiveWeeklyMileage,
                     $effectiveFrequency,
                     $adaptive['recent'] ?? []
                 );
             }
 
+            // AI Description Refinement
+            if ($useAi && is_array($sessions) && $sessions) {
+                $sessions = $this->improveProgramSessionsWithAi($sessions, [
+                    'target_distance' => $validated['goal_distance'],
+                    'weeks' => $durationWeeks,
+                    'weekly_mileage' => $effectiveWeeklyMileage,
+                    'frequency' => $effectiveFrequency,
+                    'runner_level' => $runnerLevel,
+                    'long_run_day' => $longRunDay,
+                    'initial_vdot' => $vdot,
+                    'target_vdot' => $safeTargetVdot,
+                    'is_tropical' => $isTropical,
+                    'paces' => $paces,
+                ]);
+            }
+
             // Create program
             $program = Program::create([
                 'coach_id' => $user->id,
-                'title' => 'Program VDOT: '.strtoupper($validated['goal_distance']).' ('.$programData['duration_weeks'].' Weeks)',
-                'slug' => 'vdot-'.strtolower($validated['goal_distance']).'-'.Str::random(8),
-                'description' => $this->generateDescription($validated, $programData),
-                'difficulty' => $this->determineDifficulty($validated['weekly_mileage']),
+                'title' => 'Program VDOT AI: '.strtoupper($validated['goal_distance']).' ('.$durationWeeks.' Weeks)',
+                'slug' => 'vdot-ai-'.strtolower($validated['goal_distance']).'-'.Str::random(8),
+                'description' => "AI VDOT periodized program for " . strtoupper($validated['goal_distance']),
+                'difficulty' => $this->determineDifficulty($effectiveWeeklyMileage),
                 'distance_target' => $validated['goal_distance'],
                 'price' => 0,
                 'program_json' => [
-                    'sessions' => $programData['sessions'],
-                    'duration_weeks' => $programData['duration_weeks'],
+                    'sessions' => $sessions,
+                    'duration_weeks' => $durationWeeks,
                 ],
                 'is_vdot_generated' => true,
-                'vdot_score' => $programData['vdot'],
+                'vdot_score' => $vdot,
                 'is_active' => true,
                 'is_published' => true,
-                'duration_weeks' => $programData['duration_weeks'],
+                'duration_weeks' => $durationWeeks,
                 'is_self_generated' => true,
                 'daniels_params' => [
                     'age' => $validated['age'],
@@ -105,12 +182,16 @@ class GenerateProgramController extends Controller
                     'training_frequency' => $effectiveFrequency,
                     'goal_distance' => $validated['goal_distance'],
                     'goal_time' => $validated['goal_time'] ?? null,
-                    'training_paces' => $programData['training_paces'],
-                    'initial_vdot' => $programData['initial_vdot'] ?? $vdot,
-                    'target_vdot' => $programData['target_vdot'] ?? $vdot,
+                    'training_paces' => $paces,
+                    'initial_vdot' => $vdot,
+                    'target_vdot' => $safeTargetVdot,
                     'adaptive' => $adaptive,
+                    'runner_level' => $runnerLevel,
+                    'long_run_day' => $longRunDay,
+                    'is_tropical' => $isTropical,
+                    'use_ai' => $useAi,
                 ],
-                'generated_vdot' => $programData['vdot'],
+                'generated_vdot' => $vdot,
             ]);
 
             // Auto-enroll in the generated program (Add to Bag)
@@ -126,8 +207,8 @@ class GenerateProgramController extends Controller
             DB::commit();
 
             // Build improvement projection
-            $initialVdot = (float) ($programData['initial_vdot'] ?? $vdot);
-            $targetVdot  = (float) ($programData['target_vdot'] ?? $vdot);
+            $initialVdot = (float) $vdot;
+            $targetVdot  = (float) $safeTargetVdot;
             $vdotDiff = round($targetVdot - $initialVdot, 1);
             $vdotPct  = $initialVdot > 0 ? round(($vdotDiff / $initialVdot) * 100, 1) : 0;
 
@@ -154,32 +235,31 @@ class GenerateProgramController extends Controller
                 }
             }
 
-            $trainingPaces = $programData['training_paces'];
             $paceRationale = [
                 [
                     'type'         => 'Easy (E)',
-                    'pace'         => $this->formatPace($trainingPaces['E'] ?? 0),
+                    'pace'         => $this->formatPace($paces['E'] ?? 0),
                     'purpose'      => 'Membangun aerobic base yang kuat — fondasi dari semua peningkatan',
                     'contribution' => '~80% volume latihan',
                     'color'        => 'green',
                 ],
                 [
                     'type'         => 'Threshold (T)',
-                    'pace'         => $this->formatPace($trainingPaces['T'] ?? 0),
+                    'pace'         => $this->formatPace($paces['T'] ?? 0),
                     'purpose'      => 'Meningkatkan lactate threshold — kunci utama lari lebih cepat lebih lama',
                     'contribution' => '~10-15% volume latihan',
                     'color'        => 'yellow',
                 ],
                 [
                     'type'         => 'Interval (I)',
-                    'pace'         => $this->formatPace($trainingPaces['I'] ?? 0),
+                    'pace'         => $this->formatPace($paces['I'] ?? 0),
                     'purpose'      => 'Meningkatkan VO2Max — kapasitas aerobik maksimal Anda',
                     'contribution' => '~5-8% volume latihan',
                     'color'        => 'orange',
                 ],
                 [
                     'type'         => 'Repetition (R)',
-                    'pace'         => $this->formatPace($trainingPaces['R'] ?? 0),
+                    'pace'         => $this->formatPace($paces['R'] ?? 0),
                     'purpose'      => 'Meningkatkan speed economy & running form — efisiensi lari',
                     'contribution' => '~2-5% volume latihan',
                     'color'        => 'red',
@@ -194,14 +274,14 @@ class GenerateProgramController extends Controller
                 'success'              => true,
                 'message'              => 'Program berhasil di-generate! Program telah ditambahkan ke Program Bag Anda.',
                 'program_id'           => $program->id,
-                'vdot'                 => $programData['vdot'],
-                'training_paces'       => $programData['training_paces'],
+                'vdot'                 => $vdot,
+                'training_paces'       => $paces,
                 'improvement_projection' => [
                     'initial_vdot'     => round($initialVdot, 1),
                     'target_vdot'      => round($targetVdot, 1),
                     'vdot_diff'        => $vdotDiff,
                     'vdot_pct'         => $vdotPct,
-                    'duration_weeks'   => $programData['duration_weeks'],
+                    'duration_weeks'   => $durationWeeks,
                     'goal_distance'    => $validated['goal_distance'],
                     'goal_time_input'  => $validated['goal_time'] ?? null,
                     'goal_projected'   => $goalTimeProjected,
@@ -235,26 +315,6 @@ class GenerateProgramController extends Controller
     }
 
     /**
-     * Generate description for the program
-     */
-    private function generateDescription(array $params, array $programData): string
-    {
-        $description = "Program latihan yang di-generate menggunakan Daniels' Running Formula.\n\n";
-        $description .= 'VDOT Score: '.($programData['vdot'] ?? '-')."\n";
-        $description .= "Training Paces:\n";
-        if (isset($programData['training_paces'])) {
-            $description .= '- Easy (E): '.$this->formatPace($programData['training_paces']['E'])."/km\n";
-            $description .= '- Threshold (T): '.$this->formatPace($programData['training_paces']['T'])."/km\n";
-            $description .= '- Interval (I): '.$this->formatPace($programData['training_paces']['I'])."/km\n";
-        }
-
-        $durationWeeks = $programData['duration_weeks'] ?? 8;
-        $description .= "\nTarget: ".strtoupper($params['goal_distance']).' ('.$durationWeeks.' Weeks)';
-
-        return $description;
-    }
-
-    /**
      * Format pace for display
      */
     private function formatPace(float $minutesPerKm): string
@@ -263,6 +323,13 @@ class GenerateProgramController extends Controller
         $seconds = round(($minutesPerKm - $minutes) * 60);
 
         return sprintf('%d:%02d', $minutes, $seconds);
+    }
+
+    private function formatPacePeriodized(float $minPerKm)
+    {
+        $m = floor($minPerKm);
+        $s = round(($minPerKm - $m) * 60);
+        return sprintf('@ %d:%02d/km', $m, $s);
     }
 
     /**
@@ -470,5 +537,373 @@ class GenerateProgramController extends Controller
         ];
 
         return $session;
+    }
+
+    /**
+     * Logic to build periodized program sessions
+     */
+    private function buildPeriodizedProgram(array $config)
+    {
+        $weeks = $config['weeks'];
+        $frequency = $config['frequency'];
+        $mileage = $config['weekly_mileage'];
+        $initialVdot = $config['initial_vdot'];
+        $targetVdot = $config['target_vdot'];
+        $targetDistance = $config['target_distance'] ?? '10k';
+        $runnerLevel = $config['runner_level'] ?? 'intermediate';
+        $longRunDay = $config['long_run_day'] ?? 'sunday';
+        $isTropical = $config['is_tropical'] ?? false;
+
+        // Adjust training frequency by level to optimize recovery and prevent injuries
+        if ($runnerLevel === 'beginner') {
+            $frequency = min($frequency, 4);
+        } elseif ($runnerLevel === 'intermediate') {
+            $frequency = min($frequency, 5);
+        }
+
+        $distanceProfiles = [
+            '5k' => [
+                'long_run' => ['Base' => 0.20, 'Strength' => 0.22, 'Speed' => 0.22, 'Taper' => 0.18],
+                'quality_strength' => 0.10,
+                'quality_speed' => 0.14
+            ],
+            '10k' => [
+                'long_run' => ['Base' => 0.22, 'Strength' => 0.24, 'Speed' => 0.24, 'Taper' => 0.20],
+                'quality_strength' => 0.12,
+                'quality_speed' => 0.15
+            ],
+            '21k' => [
+                'long_run' => ['Base' => 0.28, 'Strength' => 0.30, 'Speed' => 0.30, 'Taper' => 0.22],
+                'quality_strength' => 0.18,
+                'quality_speed' => 0.18,
+                'secondary' => 0.12
+            ],
+            '42k' => [
+                'long_run' => ['Base' => 0.32, 'Strength' => 0.34, 'Speed' => 0.34, 'Taper' => 0.24],
+                'quality_strength' => 0.20,
+                'quality_speed' => 0.20,
+                'secondary' => 0.14
+            ]
+        ];
+
+        $profile = $distanceProfiles[$targetDistance] ?? $distanceProfiles['10k'];
+        $levelFactors = [
+            'beginner' => 0.8,      // Lower quality volume for beginners
+            'intermediate' => 1.0,  // Standard quality volume
+            'advanced' => 1.25      // Higher/Elite intensity capacity
+        ];
+        $longRunFactors = [
+            'beginner' => 0.9,      // Conservative long run build-up
+            'intermediate' => 1.0,  // Standard long run ratio
+            'advanced' => 1.15      // Elite aerobic endurance long runs
+        ];
+        $qualityFactor = $levelFactors[$runnerLevel] ?? 1;
+        $longRunFactor = $longRunFactors[$runnerLevel] ?? 1;
+        $longRunDayIndex = $longRunDay === 'saturday' ? 6 : 7;
+        $qualityDayIndex = 3;
+        $secondaryDayIndex = $longRunDayIndex === 6 ? 7 : 6;
+        
+        $sessions = [];
+        $dayCount = 1;
+
+        // Phases: 25% Base, 25% Strength, 40% Speed, 10% Taper
+        $p1 = (int)($weeks * 0.25);
+        $p2 = (int)($weeks * 0.25);
+        $p3 = (int)($weeks * 0.40);
+
+        $deltaVdot = $targetVdot - $initialVdot;
+        $strengthStart = $p1 + 1;
+        $strengthEnd = $p1 + $p2;
+        $speedStart = $strengthEnd + 1;
+        $speedEnd = $strengthEnd + $p3;
+
+        for ($w = 1; $w <= $weeks; $w++) {
+            $phase = 'Base';
+            $currentVdot = $initialVdot;
+
+            if ($w >= $strengthStart && $w <= $strengthEnd) {
+                $phase = 'Strength';
+                $t = ($w - $strengthStart + 1) / max(1, $p2);
+                $currentVdot = $initialVdot + ($deltaVdot * 0.5 * $t);
+            } elseif ($w >= $speedStart && $w <= $speedEnd) {
+                $phase = 'Speed';
+                $t = ($w - $speedStart + 1) / max(1, $p3);
+                $currentVdot = ($initialVdot + ($deltaVdot * 0.5)) + ($deltaVdot * 0.5 * $t);
+            } elseif ($w > $speedEnd) {
+                $phase = 'Taper';
+                $currentVdot = $targetVdot;
+            }
+
+            $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
+            if ($isTropical) {
+                $paces['E'] += 0.25;
+                $paces['M'] += 0.20;
+                $paces['T'] += 0.167;
+                $paces['I'] += 0.133;
+                $paces['R'] += 0.083;
+            }
+
+            $currentMileage = $mileage;
+            if ($phase === 'Taper') $currentMileage *= 0.6;
+            if ($w % 4 === 0) $currentMileage *= 0.8;
+
+            $longRunRatio = $profile['long_run'][$phase] ?? 0.24;
+            $longRunDistance = round($currentMileage * $longRunRatio * $longRunFactor, 1);
+            $longRunDistance = min($longRunDistance, round($currentMileage * 0.35, 1));
+
+            $qualityType = null;
+            $qualityDistance = 0;
+            $qualityPace = null;
+            $qualityDescription = null;
+
+            if ($phase === 'Strength') {
+                if (in_array($targetDistance, ['5k', '10k'], true)) {
+                    $qualityType = 'repetition';
+                    $qualityDistance = round($currentMileage * $profile['quality_strength'] * $qualityFactor, 1);
+                    $qualityPace = 'R';
+                    $qualityDescription = 'Repetition Run - Ekonomi dan kecepatan';
+                } else {
+                    $qualityType = 'threshold';
+                    $qualityDistance = round($currentMileage * $profile['quality_strength'] * $qualityFactor, 1);
+                    $qualityPace = 'T';
+                    $qualityDescription = 'Threshold Run - Ketahanan aerobik';
+                }
+            }
+
+            if ($phase === 'Speed') {
+                if (in_array($targetDistance, ['5k', '10k'], true)) {
+                    $qualityType = 'interval';
+                    $qualityDistance = round($currentMileage * $profile['quality_speed'] * $qualityFactor, 1);
+                    $qualityPace = 'I';
+                    $qualityDescription = 'Interval Run - VO2 Max';
+                } else {
+                    $qualityType = 'threshold';
+                    $qualityDistance = round($currentMileage * $profile['quality_speed'] * $qualityFactor, 1);
+                    $qualityPace = 'T';
+                    $qualityDescription = 'Tempo Run - Kecepatan lomba';
+                }
+            }
+
+            $secondaryType = null;
+            $secondaryDistance = 0;
+            $secondaryPace = null;
+            $secondaryDescription = null;
+
+            if (in_array($targetDistance, ['21k', '42k'], true) && $phase !== 'Base' && $phase !== 'Taper' && $frequency >= 5) {
+                $secondaryType = 'marathon';
+                $secondaryDistance = round($currentMileage * ($profile['secondary'] ?? 0.12) * $qualityFactor, 1);
+                $secondaryDistance = min($secondaryDistance, round($currentMileage * 0.18, 1));
+                $secondaryPace = 'M';
+                $secondaryDescription = 'Marathon Pace Run - Daya tahan lomba';
+            }
+
+            if ($qualityDistance > 0) {
+                $qualityDistance = min($qualityDistance, round($currentMileage * 0.22, 1));
+            }
+
+            $fixedDistance = $longRunDistance + max(0, $qualityDistance) + max(0, $secondaryDistance);
+            if ($fixedDistance > $currentMileage && $fixedDistance > 0) {
+                $scale = $currentMileage / $fixedDistance;
+                $longRunDistance = round($longRunDistance * $scale, 1);
+                $qualityDistance = round($qualityDistance * $scale, 1);
+                $secondaryDistance = round($secondaryDistance * $scale, 1);
+            }
+
+            $trainingDays = [];
+            if ($longRunDistance > 0) {
+                $trainingDays[] = $longRunDayIndex;
+            }
+            if ($qualityDistance > 0) {
+                $trainingDays[] = $qualityDayIndex;
+            }
+            if ($secondaryDistance > 0) {
+                $trainingDays[] = $secondaryDayIndex;
+            }
+            $trainingDays = array_values(array_unique($trainingDays));
+            $easySlots = max(0, $frequency - count($trainingDays));
+            $availableDays = [1, 2, 3, 4, 5, 6, 7];
+            $easyDays = [];
+            foreach ($availableDays as $day) {
+                if ($easySlots <= 0) {
+                    break;
+                }
+                if (in_array($day, $trainingDays, true)) {
+                    continue;
+                }
+                $easyDays[] = $day;
+                $easySlots--;
+            }
+            $easyPool = $currentMileage - $longRunDistance - $qualityDistance - $secondaryDistance;
+            $easyDistance = count($easyDays) > 0 ? round(max(0, $easyPool) / count($easyDays), 1) : 0;
+
+            $isDeload = ($w % 4 === 0);
+            for ($d = 1; $d <= 7; $d++) {
+                $session = [
+                    'day' => $dayCount++,
+                    'week' => $w,
+                    'phase' => $phase,
+                    'is_deload' => $isDeload,
+                    'type' => 'rest',
+                    'description' => 'Rest Day',
+                    'distance' => 0,
+                    'target_pace' => null
+                ];
+
+                if ($d === $longRunDayIndex) {
+                    $session['type'] = 'long_run';
+                    $session['distance'] = $longRunDistance;
+                    $session['target_pace'] = $this->formatPacePeriodized($paces['E']);
+                    $session['description'] = $isDeload 
+                        ? 'Long Easy Run (De-load) - Berlari santai dengan volume dikurangi untuk pemulihan.'
+                        : 'Long Easy Run - Fokus pada daya tahan kardio.';
+                } elseif ($d === $qualityDayIndex && $qualityDistance > 0) {
+                    $session['type'] = $qualityType;
+                    $session['distance'] = $qualityDistance;
+                    $session['target_pace'] = $this->formatPacePeriodized($paces[$qualityPace]);
+                    $session['description'] = $qualityDescription;
+                } elseif ($d === $secondaryDayIndex && $secondaryDistance > 0) {
+                    $session['type'] = $secondaryType;
+                    $session['distance'] = $secondaryDistance;
+                    $session['target_pace'] = $this->formatPacePeriodized($paces[$secondaryPace]);
+                    $session['description'] = $secondaryDescription;
+                } elseif (in_array($d, $easyDays, true) && $easyDistance > 0) {
+                    $session['type'] = 'easy_run';
+                    $session['distance'] = $easyDistance;
+                    $session['target_pace'] = $this->formatPacePeriodized($paces['E']);
+                    $session['description'] = $isDeload
+                        ? 'Easy Recovery Run (De-load) - Lari santai pemulihan pasca beban.'
+                        : 'Easy Recovery Run';
+                } else {
+                    // Rest day fallbacks based on runner level
+                    if ($runnerLevel === 'beginner') {
+                        $session['description'] = 'Rest Day - Fokus peregangan otot ringan atau istirahat total.';
+                    } elseif ($runnerLevel === 'intermediate') {
+                        $session['description'] = 'Active Recovery - 15-20 menit foam rolling dan mobilitas sendi.';
+                    } else {
+                        $session['description'] = 'Active Recovery - Latihan core strength ringan (plank, bird-dog) & foam rolling.';
+                    }
+                }
+
+                $sessions[] = $session;
+            }
+        }
+
+        return [
+            'sessions' => $sessions,
+            'summary' => [
+                'total_weeks' => $weeks,
+                'target' => strtoupper($targetDistance),
+                'vdot' => round($initialVdot, 1),
+                'target_vdot' => round($targetVdot, 1)
+            ]
+        ];
+    }
+
+    private function improveProgramSessionsWithAi(array $sessions, array $context): array
+    {
+        $hasKey = (bool) (config('services.openai.api_key') ?: env('OPENAI_API_KEY'));
+        if (! $hasKey) {
+            return $sessions;
+        }
+
+        // Collect unique Phase_Type combinations to generate tailored phase-specific & type-specific templates
+        $combinations = [];
+        foreach ($sessions as $s) {
+            if (! is_array($s)) continue;
+            $phase = $s['phase'] ?? null;
+            $type = $s['type'] ?? null;
+            if (is_string($phase) && $phase !== '' && is_string($type) && $type !== '') {
+                $combinations[] = $phase . '_' . $type;
+            }
+        }
+        $combinations = array_values(array_unique($combinations));
+        if (empty($combinations)) {
+            return $sessions;
+        }
+
+        $paces = $context['paces'] ?? [];
+        $paceLines = [];
+        foreach (['E', 'M', 'T', 'I', 'R'] as $k) {
+            $v = $paces[$k] ?? null;
+            if (is_numeric($v)) {
+                $paceLines[] = $k.': '.$this->formatPacePeriodized((float) $v);
+            }
+        }
+
+        $system = 'Anda adalah Coach AI Ruang Lari, asisten pelatih lari profesional kelas dunia dengan keahlian mendalam pada formula periodisasi VDOT Jack Daniels. Tugas Anda adalah menyusun deskripsi latihan lari yang sangat spesifik, aman, ilmiah, dan meningkatkan performa atlet berdasarkan tingkat kebugaran mereka.';
+        
+        $prompt = "Sempurnakan deskripsi latihan lari untuk tingkat: " . strtoupper($context['runner_level']) . " (Beginner/Intermediate/Advanced-Elite).\n\n" .
+            "Konteks Latihan:\n" .
+            "- Target Jarak Lomba: " . strtoupper($context['target_distance'] ?? '-') . "\n" .
+            "- Durasi: " . ($context['weeks'] ?? '-') . " Minggu\n" .
+            "- Volume Latihan: " . ($context['weekly_mileage'] ?? '-') . " km/minggu\n" .
+            "- Penyesuaian Suhu Tropis: " . ($context['is_tropical'] ? 'Aktif (Pace disesuaikan untuk cuaca panas Indonesia)' : 'Nonaktif') . "\n" .
+            "- VDOT Awal: " . ($context['initial_vdot'] ?? '-') . " -> Target VDOT: " . ($context['target_vdot'] ?? '-') . "\n" .
+            "Pace Latihan (min/km):\n" . implode("\n", $paceLines) . "\n\n" .
+            "Daftar kombinasi latihan (Format: Phase_Type) yang membutuhkan deskripsi:\n" . implode(', ', $combinations) . "\n\n" .
+            "Kembalikan format JSON murni (tanpa tag markdown ```json) dengan struktur:\n" .
+            "{\n" .
+            "  \"templates\": {\n" .
+            "    \"Phase_Type\": \"Deskripsi latihan spesifik\"\n" .
+            "  }\n" .
+            "}\n\n" .
+            "Panduan Penulisan Deskripsi berdasarkan Level Pelari:\n" .
+            "1. BEGINNER (Pemula):\n" .
+            "   - Fokus: Membangun daya tahan dasar (aerobic base), pencegahan cedera, dan konsistensi.\n" .
+            "   - Deskripsi lari mudah/recovery harus santai, menyarankan pernapasan berirama (3:3), hidrasi teratur, dan berjalan kaki jika detak jantung terlalu tinggi.\n" .
+            "   - Latihan kualitas (jika ada) harus ringan, memberi penekanan pada form lari yang relaks.\n" .
+            "2. INTERMEDIATE (Medium):\n" .
+            "   - Fokus: Meningkatkan laktat threshold, efisiensi energi, dan ketahanan jarak jauh.\n" .
+            "   - Berikan panduan terstruktur: Warmup (pemanasan) lari mudah 10-15 menit + dinamis stretch, Main Set (latihan inti) sesuai pace target dengan instruksi kontrol pace agar tidak overshoot, dan Cooldown (pendinginan).\n" .
+            "   - Contoh long run: fokus pada pacing konstan dan asupan nutrisi latihan (gel/elektrolit).\n" .
+            "3. ADVANCED / ELITE (Mahir):\n" .
+            "   - Fokus: Memaksimalkan VO2Max, running economy, mental toughness, dan taktis lomba.\n" .
+            "   - Berikan instruksi set latihan yang presisi dan atletis. Contoh untuk Interval (I): 'Pemanasan 3km E + drills. Latihan Inti: set interval {distance_km}km @ {target_pace} dengan recovery jog aktif. Pendinginan 2km E. Fokus pada cadance tinggi (180+ SPM) dan postur tegak.'\n" .
+            "   - Contoh Long Run: Sertakan variasi seperti progresif atau fast-finish block di akhir sesi.\n\n" .
+            "Aturan Penting & Pemulihan (De-load):\n" .
+            "- Jika sesi berada dalam minggu De-load (Minggu pemulihan kelipatan 4, misal minggu 4, 8, 12, 16), tekankan pentingnya adaptasi tubuh, lari santai yang rileks, dan kurangi intensitas mental.\n" .
+            "- Gunakan Bahasa Indonesia yang profesional namun memotivasi (gaya Coach lari yang suportif).\n" .
+            "- Harus memakai placeholder {distance_km} dan {target_pace} untuk menggambarkan jarak sesi dan pace target.\n" .
+            "- Jangan mengubah tipe latihan, jarak, atau target pace.\n" .
+            "- Buat deskripsi yang ringkas, informatif, dan mudah dibaca di kalender (maksimal 3-4 baris per deskripsi).\n" .
+            "- Untuk tipe 'rest', berikan panduan pemulihan aktif (active recovery) spesifik per level (peregangan otot ringan untuk pemula, foam rolling/mobility untuk intermediate, core strength ringan untuk advanced).\n";
+
+        try {
+            $raw = $this->openAiService->getAiResponseOrThrow($prompt, $system);
+            
+            // Clean markdown tags if OpenAI accidentally returns them
+            $raw = preg_replace('/^```json\s*/i', '', $raw);
+            $raw = preg_replace('/```$/', '', $raw);
+            $raw = trim($raw);
+
+            $decoded = json_decode($raw, true);
+            $templates = is_array($decoded) ? ($decoded['templates'] ?? null) : null;
+            if (! is_array($templates) || ! $templates) {
+                return $sessions;
+            }
+
+            foreach ($sessions as $i => $s) {
+                if (! is_array($s)) continue;
+                $phase = $s['phase'] ?? null;
+                $type = $s['type'] ?? null;
+                if (! is_string($phase) || ! is_string($type)) continue;
+                
+                $key = $phase . '_' . $type;
+                $tpl = $templates[$key] ?? null;
+                if (! is_string($tpl) || trim($tpl) === '') continue;
+
+                $repl = [
+                    '{distance_km}' => (string) ($s['distance'] ?? ''),
+                    '{target_pace}' => (string) ($s['target_pace'] ?? ''),
+                ];
+                $s['description'] = trim(strtr($tpl, $repl));
+                $sessions[$i] = $s;
+            }
+
+            return $sessions;
+        } catch (\Throwable $e) {
+            Log::warning('AI refine generator failed: '.$e->getMessage());
+            return $sessions;
+        }
     }
 }

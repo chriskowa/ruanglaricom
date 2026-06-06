@@ -10,8 +10,8 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        // Get role from route parameter or query string
-        $role = $request->route('role') ?? $request->query('role');
+        // Get role from route parameter or input payload
+        $role = $request->route('role') ?? $request->input('role');
 
         $query = User::query();
 

@@ -252,6 +252,55 @@
             </div>
         </a>
 
+        <!-- AI Training Analyzer (Strava MCP) -->
+        @auth
+        @if(auth()->user()->role === 'runner')
+        <a href="{{ route('runner.dashboard') }}#strava-analysis" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="absolute top-4 right-4">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 uppercase border border-purple-500/30">AI Powered</span>
+            </div>
+            <div class="p-8 h-full flex flex-col">
+                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-black text-white italic tracking-tighter mb-2 group-hover:text-purple-400 transition-colors">AI TRAINING ANALYZER</h3>
+                <p class="text-slate-400 mb-6 flex-grow">
+                    Analisis latihan Strava Anda dengan AI Coach. Otomatis klasifikasi Easy/Tempo/Interval/Long Run, estimasi VDOT real-time, dan evaluasi distribusi intensitas 80/20.
+                </p>
+                <div class="flex items-center text-purple-400 font-bold text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform">
+                    Analisis Sekarang <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+            </div>
+        </a>
+        @endif
+        @endauth
+
+        @guest
+        <a href="{{ route('login') }}" class="group relative overflow-hidden rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="absolute top-4 right-4">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 uppercase border border-purple-500/30">AI + Strava</span>
+            </div>
+            <div class="p-8 h-full flex flex-col">
+                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-black text-white italic tracking-tighter mb-2 group-hover:text-purple-400 transition-colors">AI TRAINING ANALYZER</h3>
+                <p class="text-slate-400 mb-6 flex-grow">
+                    Analisis latihan Strava Anda dengan AI Coach. Klasifikasi otomatis, estimasi VDOT, dan evaluasi distribusi intensitas. Login & hubungkan Strava untuk mulai.
+                </p>
+                <div class="flex items-center text-purple-400 font-bold text-sm uppercase tracking-wider group-hover:translate-x-2 transition-transform">
+                    Login & Mulai <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </div>
+            </div>
+        </a>
+        @endguest
+
     </div>
 
     <!-- Decorative Elements -->

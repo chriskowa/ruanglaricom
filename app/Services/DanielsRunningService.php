@@ -18,10 +18,10 @@ class DanielsRunningService
 
         if (count($timeParts) === 3) {
             // HH:MM:SS
-            $totalSeconds = ($timeParts[0] * 3600) + ($timeParts[1] * 60) + $timeParts[2];
+            $totalSeconds = ((float)$timeParts[0] * 3600) + ((float)$timeParts[1] * 60) + (float)$timeParts[2];
         } elseif (count($timeParts) === 2) {
             // MM:SS
-            $totalSeconds = ($timeParts[0] * 60) + $timeParts[1];
+            $totalSeconds = ((float)$timeParts[0] * 60) + (float)$timeParts[1];
         }
 
         // Convert distance to meters

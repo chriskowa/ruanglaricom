@@ -897,6 +897,10 @@ Route::middleware('auth')->group(function () {
 
         // Generate program (Daniels Formula)
         Route::post('/programs/generate', [App\Http\Controllers\Runner\GenerateProgramController::class, 'generate'])->name('programs.generate');
+
+        // Strava AI Analysis (Strava MCP)
+        Route::get('/strava/analysis-status', [App\Http\Controllers\Runner\StravaAnalysisController::class, 'status'])->name('strava.analysis.status');
+        Route::post('/strava/analyze', [App\Http\Controllers\Runner\StravaAnalysisController::class, 'analyze'])->name('strava.analyze');
     });
 
     // Marketplace routes (accessible by all authenticated users)

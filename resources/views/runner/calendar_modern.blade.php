@@ -268,6 +268,7 @@
 
                 <div class="hidden md:flex gap-2 md:gap-3 flex-wrap justify-end" data-debug="runner-calendar-header-actions">
                     <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
+                    <button type="button" @click="openStravaAnalysisModal" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-purple-900/60 text-purple-200 border border-purple-500/30 font-bold hover:bg-purple-800/60 hover:text-white transition text-sm flex items-center gap-1.5">⚡ Analisis My Training</button>
                     <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#E34402] transition text-sm shadow-lg shadow-orange-600/20 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
                         <span v-if="isSyncingStrava" class="animate-spin">⟳</span>
                         Sync Strava
@@ -313,6 +314,10 @@
                     <button type="button" class="w-full px-4 py-3 rounded-2xl bg-purple-600 text-white font-black text-sm flex items-center justify-between" @click="showHeaderActions = false; openVdotModal();">
                         <span>Generate VDOT</span>
                         <span class="text-white/80">›</span>
+                    </button>
+                    <button type="button" class="w-full px-4 py-3 rounded-2xl bg-purple-900/60 text-purple-200 border border-purple-500/30 font-black text-sm flex items-center justify-between" @click="showHeaderActions = false; openStravaAnalysisModal();">
+                        <span>⚡ Analisis My Training (AI)</span>
+                        <span class="text-purple-300">›</span>
                     </button>
                     <a href="{{ route('programs.index') }}" class="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white font-black text-sm flex items-center justify-between">
                         <span>Browse Programs</span>
@@ -498,6 +503,9 @@
                                     <span v-if="syncLoading" class="animate-spin">⟳</span>
                                     <span v-else>⟳</span>
                                     Sync Training
+                                </button>
+                                <button @click="openStravaAnalysisModal" class="text-xs bg-purple-600/30 text-purple-300 px-3 py-1 rounded-lg border border-purple-500/40 hover:text-white hover:border-purple-400 transition flex items-center gap-1">
+                                    <span>⚡</span> Analisis AI MCP
                                 </button>
                                 <button @click="showPbModal = true" class="text-xs text-neon hover:underline">Update PB</button>
                             </div>
@@ -1666,6 +1674,39 @@
                                 <p class="text-[10px] text-slate-500 mt-1">Recommended: 8-16 weeks from today for optimal results.</p>
                             </div>
                         </div>
+                        
+                        <!-- AI & Sports Science Options -->
+                        <div class="space-y-3 md:col-span-2 border-t border-slate-800 pt-4">
+                            <h4 class="text-neon font-bold text-xs uppercase tracking-wider">Sports Science & AI settings</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-slate-400 block mb-1">Runner Level</label>
+                                    <select v-model="vdotForm.runner_level" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+                                        <option value="beginner">Beginner (Focus: Base & Consistency)</option>
+                                        <option value="intermediate">Intermediate (Focus: Threshold & Endurance)</option>
+                                        <option value="advanced">Advanced / Elite (Focus: VO2Max & Speed)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-400 block mb-1">Long Run Day</label>
+                                    <select v-model="vdotForm.long_run_day" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+                                        <option value="saturday">Saturday</option>
+                                        <option value="sunday">Sunday</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 mt-2">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                                    <input type="checkbox" v-model="vdotForm.is_tropical" class="rounded bg-slate-900 border-slate-700 text-purple-600 focus:ring-purple-500">
+                                    <span>Tropical Climate Adaptation (+10-15s/km pace offset)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                                    <input type="checkbox" v-model="vdotForm.use_ai" class="rounded bg-slate-900 border-slate-700 text-purple-600 focus:ring-purple-500">
+                                    <span>Enhance descriptions with AI Coach (OpenAI GPT)</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="pt-4 border-t border-slate-700 flex justify-end gap-3">
@@ -1675,6 +1716,197 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Strava AI Analysis (Strava MCP) Modal -->
+        <div v-if="showStravaAnalysisModal" class="fixed inset-0 z-[1050] overflow-y-auto">
+            <div class="fixed inset-0 bg-black/85 backdrop-blur-sm" @click="showStravaAnalysisModal = false"></div>
+            <div class="relative z-10 max-w-2xl mx-auto my-10 glass-panel rounded-2xl p-6 border-purple-500/30 shadow-2xl shadow-purple-500/10">
+                <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                    <h3 class="text-white font-black text-xl flex items-center gap-2">
+                        <span class="text-purple-400">⚡</span> Strava AI Training Analyzer (MCP)
+                    </h3>
+                    <button @click="showStravaAnalysisModal = false" class="text-slate-400 hover:text-white text-2xl font-bold">✕</button>
+                </div>
+
+                <!-- Step 1: Input Form -->
+                <div v-if="!stravaAnalysisResult && !stravaAnalysisLoading" class="space-y-6">
+                    <p class="text-slate-300 text-sm">
+                        Fitur ini menganalisis data latihan Strava Anda secara mendalam — mengklasifikasikan setiap lari (Easy, Tempo, Interval, Long Run), menghitung distribusi intensitas 80/20, mengestimasi VDOT terbaru, dan mengevaluasi keselarasan latihan Anda dengan bantuan AI Coach profesional.
+                    </p>
+
+                    <!-- Strava Connection Status -->
+                    <div v-if="stravaStatusLoading" class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div class="w-4 h-4 border-2 border-slate-500 border-t-purple-400 rounded-full animate-spin"></div>
+                        <span class="text-xs text-slate-400">Memeriksa koneksi Strava...</span>
+                    </div>
+                    <div v-else-if="stravaStatus" class="p-3 rounded-xl border" :class="stravaStatus.strava_connected ? 'bg-green-900/10 border-green-800/40' : 'bg-orange-900/10 border-orange-800/40'">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full" :class="stravaStatus.strava_connected ? 'bg-green-400' : 'bg-orange-400'"></div>
+                                <span class="text-xs font-bold" :class="stravaStatus.strava_connected ? 'text-green-300' : 'text-orange-300'">
+                                    @{{ stravaStatus.strava_connected ? 'Strava Terhubung' : 'Strava Belum Terhubung' }}
+                                </span>
+                            </div>
+                            <div v-if="stravaStatus.strava_connected" class="text-[10px] text-slate-500">
+                                @{{ stravaStatus.total_activities }} aktivitas tersimpan
+                            </div>
+                        </div>
+                        <div v-if="!stravaStatus.strava_connected" class="mt-2 flex items-center gap-2">
+                            <button type="button" @click="connectStravaFirst" class="px-3 py-1.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:bg-[#E34402] transition flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-.956l2.62 5.128L13.033.007H6.51L2.5 7.868h4.478"/></svg>
+                                Hubungkan Strava
+                            </button>
+                            <span class="text-[10px] text-slate-500">Diperlukan untuk mengambil data latihan</span>
+                        </div>
+                        <div v-else-if="stravaStatus.total_activities === 0" class="mt-2 flex items-center gap-2">
+                            <button type="button" @click="syncStravaFirst" :disabled="stravaStatusLoading" class="px-3 py-1.5 rounded-lg bg-[#FC4C02] text-white text-xs font-bold hover:bg-[#E34402] transition flex items-center gap-1 disabled:opacity-50">
+                                <span v-if="stravaStatusLoading" class="animate-spin">⟳</span>
+                                Sync Data Strava Sekarang
+                            </button>
+                            <span class="text-[10px] text-slate-500">Belum ada data. Sync dulu untuk mulai analisis.</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-purple-400 uppercase block mb-2">Pilih Rentang Waktu Analisis</label>
+                        <select v-model="stravaAnalysisRange" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:border-purple-500 focus:outline-none">
+                            <option value="7">7 Hari Terakhir</option>
+                            <option value="14">14 Hari Terakhir (Direkomendasikan)</option>
+                            <option value="30">30 Hari Terakhir</option>
+                            <option value="60">60 Hari Terakhir</option>
+                            <option value="90">90 Hari Terakhir (Macro Cycle)</option>
+                            <option value="custom">Kustom Rentang Tanggal</option>
+                        </select>
+                    </div>
+
+                    <div v-if="stravaAnalysisRange === 'custom'" class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Tanggal Mulai</label>
+                            <input type="date" v-model="straCustomStartDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Tanggal Selesai</label>
+                            <input type="date" v-model="straCustomEndDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800 flex justify-end gap-3">
+                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm" @click="showStravaAnalysisModal = false">Batal</button>
+                        <button type="button" @click="runStravaAnalysis" :disabled="stravaStatus && !stravaStatus.strava_connected" class="px-6 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-sm flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <span>⚡</span>
+                            <span>Mulai Analisis AI</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Loading State -->
+                <div v-if="stravaAnalysisLoading" class="py-12 flex flex-col items-center justify-center space-y-4">
+                    <div class="relative w-16 h-16">
+                        <div class="absolute inset-0 rounded-full border-4 border-purple-500/20 border-t-purple-500 animate-spin"></div>
+                        <div class="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center text-xl">⚡</div>
+                    </div>
+                    <p class="text-white font-bold text-sm">AI Coach sedang memproses data latihan Anda...</p>
+                    <p class="text-xs text-slate-400 text-center max-w-md">Mengelompokkan lari (Easy, Tempo, Interval, Long Run), mengestimasi VDOT lari Anda, dan mengevaluasi status pemulihan.</p>
+                </div>
+
+                <!-- Step 3: Analysis Result View -->
+                <div v-if="stravaAnalysisResult && !stravaAnalysisLoading" class="space-y-6">
+                    <!-- Stat Summary Cards -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                            <div class="text-[10px] uppercase text-slate-500 tracking-wider">Total Lari</div>
+                            <div class="text-xl font-black text-white mt-1">@{{ stravaAnalysisResult.statistics.total_runs }} sesi</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                            <div class="text-[10px] uppercase text-slate-500 tracking-wider">Total Jarak</div>
+                            <div class="text-xl font-black text-white mt-1">@{{ stravaAnalysisResult.statistics.total_distance_km }} km</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                            <div class="text-[10px] uppercase text-slate-500 tracking-wider">Rata-rata Pace</div>
+                            <div class="text-xl font-black text-white mt-1">@{{ stravaAnalysisResult.statistics.avg_pace_str }}/km</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center relative overflow-hidden group">
+                            <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-neon"></div>
+                            <div class="text-[10px] uppercase text-slate-500 tracking-wider">Estimasi VDOT</div>
+                            <div class="text-xl font-black text-neon mt-1">@{{ stravaAnalysisResult.estimated_vdot }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Classification Breakdown -->
+                    <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Workout Classification Breakdown</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                                <div class="text-xs text-slate-400 font-bold mb-1">Easy Run</div>
+                                <div class="text-lg font-black text-green-400">@{{ stravaAnalysisResult.classification.easy_run_count }}</div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                                <div class="text-xs text-slate-400 font-bold mb-1">Tempo / Threshold</div>
+                                <div class="text-lg font-black text-yellow-400">@{{ stravaAnalysisResult.classification.tempo_count }}</div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                                <div class="text-xs text-slate-400 font-bold mb-1">Interval / Speed</div>
+                                <div class="text-lg font-black text-orange-400">@{{ stravaAnalysisResult.classification.interval_count }}</div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                                <div class="text-xs text-slate-400 font-bold mb-1">Long Run</div>
+                                <div class="text-lg font-black text-blue-400">@{{ stravaAnalysisResult.classification.long_run_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Polarized Training Ratio (80/20 Rule) -->
+                    <div v-if="stravaAnalysisResult.polarized_ratio" class="bg-slate-950/80 rounded-xl p-4 border border-slate-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Polarized Training Ratio (80/20)</h4>
+                            <span class="text-xs text-slate-400 font-bold">Target: 80% Easy / 20% Hard</span>
+                        </div>
+                        <div class="h-4 w-full bg-slate-900 rounded-full overflow-hidden flex border border-slate-800">
+                            <div :style="{ width: stravaAnalysisResult.polarized_ratio.easy_pct + '%' }" class="h-full bg-green-500 transition-all duration-500" title="Easy / Long Run Volume"></div>
+                            <div :style="{ width: stravaAnalysisResult.polarized_ratio.hard_pct + '%' }" class="h-full bg-orange-500 transition-all duration-500" title="Quality (Tempo / Interval) Volume"></div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-xs font-bold">
+                            <span class="text-green-400">@{{ stravaAnalysisResult.polarized_ratio.easy_pct }}% Easy / Long Run</span>
+                            <span class="text-orange-400">@{{ stravaAnalysisResult.polarized_ratio.hard_pct }}% Quality</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2">
+                            *Sains olahraga menyarankan porsi latihan aerobik intensitas rendah (Easy/Long) sebesar ~80% untuk membangun basis aerobik dan meminimalkan risiko cedera.
+                        </p>
+                    </div>
+
+                    <!-- AI Coach Insights -->
+                    <div class="bg-purple-900/10 border border-purple-500/20 rounded-xl p-5 relative">
+                        <div class="absolute top-2 right-3 text-2xl opacity-20">💬</div>
+                        <h4 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                            <span>🤖</span> Coach AI Insights
+                        </h4>
+                        <div class="text-slate-300 text-sm leading-relaxed" v-html="parseMarkdown(stravaAnalysisResult.ai_insights)"></div>
+                    </div>
+
+                    <!-- Action Steps / CTA -->
+                    <div class="pt-4 border-t border-slate-800 space-y-3">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">Rekomendasi Langkah Berikutnya:</div>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button @click="applyAnalysisToGenerator" class="flex-1 px-5 py-3 rounded-xl bg-purple-600 text-white font-black hover:bg-purple-500 transition text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20">
+                                <span>🎯</span> Generate Program Lari (Autofill)
+                            </button>
+                            <a href="/marketplace" class="flex-1 px-5 py-3 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-center font-black hover:bg-slate-700 hover:text-white transition text-sm flex items-center justify-center gap-2">
+                                <span>🏃</span> Hubungi Personal Coach
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2">
+                        <button type="button" @click="stravaAnalysisResult = null" class="text-xs text-slate-400 hover:text-white underline">
+                            ← Ulangi Analisis
+                        </button>
+                        <button type="button" class="text-xs text-slate-400 hover:text-white" @click="showStravaAnalysisModal = false">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -2738,7 +2970,11 @@ createApp({
             training_frequency: 3,
             goal_distance: '10k',
             goal_race_date: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0,10), // ~4 months from now
-            goal_time: ''
+            goal_time: '',
+            runner_level: 'intermediate',
+            long_run_day: 'sunday',
+            is_tropical: false,
+            use_ai: true
         });
 
         // Performance Improvement Insight Modal State
@@ -4650,6 +4886,13 @@ createApp({
                 console.error('[RunnerCalendar] initCalendar failed', e);
             }
 
+            // Auto-open Strava analysis modal if hash is present
+            if (window.location.hash === '#strava-analysis') {
+                openStravaAnalysisModal();
+                // Clear the hash so it doesn't reopen on refresh if not intended
+                history.replaceState(null, null, ' ');
+            }
+
             try {
                 nextTick(() => {
                     const plansEl = document.getElementById('runner-plans-section');
@@ -4671,6 +4914,158 @@ createApp({
             } catch (e) {
             }
         });
+
+        // Strava AI Analysis (Strava MCP) State
+        const showStravaAnalysisModal = ref(false);
+        const stravaAnalysisLoading = ref(false);
+        const stravaAnalysisRange = ref('14');
+        const stravaAnalysisResult = ref(null);
+        const straCustomStartDate = ref(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0,10));
+        const straCustomEndDate = ref(new Date().toISOString().slice(0,10));
+        const stravaStatus = ref(null); // { strava_connected, last_sync, total_activities }
+        const stravaStatusLoading = ref(false);
+
+        const checkStravaStatus = async () => {
+            stravaStatusLoading.value = true;
+            try {
+                const res = await fetch('{{ route("runner.strava.analysis.status") }}', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                stravaStatus.value = await res.json();
+            } catch (e) {
+                console.error('Failed to check Strava status', e);
+                stravaStatus.value = { strava_connected: false, total_activities: 0 };
+            } finally {
+                stravaStatusLoading.value = false;
+            }
+        };
+
+        const openStravaAnalysisModal = async () => {
+            showStravaAnalysisModal.value = true;
+            stravaAnalysisResult.value = null;
+            stravaAnalysisLoading.value = false;
+            // Check Strava connection status in background
+            await checkStravaStatus();
+        };
+
+        const connectStravaFirst = () => {
+            window.location.href = '{{ route("runner.strava.connect") }}';
+        };
+
+        const syncStravaFirst = async () => {
+            stravaStatusLoading.value = true;
+            try {
+                const res = await fetch('{{ route("runner.strava.sync") }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(`Strava sync berhasil! ${data.imported || 0} aktivitas baru diimport.`, 'success');
+                    await checkStravaStatus(); // Refresh status
+                } else {
+                    if (confirm(data.message + '\nHubungkan akun Strava sekarang?')) {
+                        connectStravaFirst();
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Gagal sync Strava.');
+            } finally {
+                stravaStatusLoading.value = false;
+            }
+        };
+
+        const runStravaAnalysis = async () => {
+            stravaAnalysisLoading.value = true;
+            try {
+                const payload = {
+                    range: stravaAnalysisRange.value,
+                    start_date: stravaAnalysisRange.value === 'custom' ? straCustomStartDate.value : null,
+                    end_date: stravaAnalysisRange.value === 'custom' ? straCustomEndDate.value : null,
+                };
+                const res = await fetch('{{ route("runner.strava.analyze") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    stravaAnalysisResult.value = data;
+                } else if (data.needs_connect) {
+                    if (confirm(data.message + '\n\nHubungkan Strava sekarang?')) {
+                        connectStravaFirst();
+                    }
+                } else if (data.needs_sync) {
+                    if (confirm(data.message + '\n\nSync data Strava sekarang?')) {
+                        await syncStravaFirst();
+                    }
+                } else {
+                    alert(data.message || 'Gagal menganalisis data Strava.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Terjadi kesalahan saat menghubungi server.');
+            } finally {
+                stravaAnalysisLoading.value = false;
+            }
+        };
+
+        const applyAnalysisToGenerator = () => {
+            if (!stravaAnalysisResult.value || !stravaAnalysisResult.value.autofill_params) return;
+            const params = stravaAnalysisResult.value.autofill_params;
+            
+            // Prefill VDOT Form
+            vdotForm.weekly_mileage = params.weekly_mileage || 20;
+            vdotForm.training_frequency = params.training_frequency || 3;
+            if (params.vdot) {
+                trainingProfile.value.vdot = params.vdot;
+            }
+            
+            vdotForm.race_distance = '5k';
+            vdotForm.race_time = '';
+            
+            // Close analysis modal and open generator modal
+            showStravaAnalysisModal.value = false;
+            showVdotModal.value = true;
+            
+            showNotification(`AI Coach memuat parameter ke generator! VDOT: ${params.vdot}, Mileage: ${params.weekly_mileage} km/minggu`, 'success');
+        };
+
+        const parseMarkdown = (text) => {
+            if (!text) return '';
+            
+            // Escape HTML
+            let html = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Headers
+            html = html.replace(/^### (.*?)$/gm, '<h4 class="text-xs font-bold text-purple-400 uppercase tracking-widest mt-6 mb-3 first:mt-0 pb-1.5 border-b border-slate-800/80 flex items-center gap-2">$1</h4>');
+
+            // Bullet lists
+            html = html.replace(/^[-*] (.*?)$/gm, '<li class="ml-4 list-disc text-slate-300 mb-2 leading-relaxed">$1</li>');
+
+            // Bold text with cool styling (badge/pill style for key metrics)
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white bg-purple-950/30 border border-purple-500/20 px-1.5 py-0.5 rounded-md text-xs">$1</strong>');
+
+            // Paragraphs & line breaks
+            const blocks = html.split(/\n\n+/);
+            const processed = blocks.map(block => {
+                const trimmed = block.trim();
+                if (trimmed.startsWith('<h4') || trimmed.startsWith('<li')) {
+                    return trimmed;
+                }
+                return `<p class="text-slate-300 text-sm leading-relaxed mb-4">${trimmed.replace(/\n/g, '<br>')}</p>`;
+            });
+
+            return processed.join('');
+        };
 
         return { filter, plans, plansLoading, enrollments, programBag, setFilter, dayName, statusText, statusClass, activityLabel, formatDate,
             showDetailModal, detail, detailTitle, closeDetail, deleteCustomWorkout,
@@ -4696,7 +5091,10 @@ createApp({
             hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek,
             promoCode, promoApplied, promoError, checkingPromo, applyPromo, handleUnlockAction,
             notification, showNotification, showHeaderActions, showMobileAddSheet, openMobileAddSheet, activeDock, scrollToSection, activeMobileTab,
-            showInsightModal, insightData, insightType
+            showInsightModal, insightData, insightType,
+            showStravaAnalysisModal, stravaAnalysisLoading, stravaAnalysisRange, stravaAnalysisResult, straCustomStartDate, straCustomEndDate,
+            stravaStatus, stravaStatusLoading, connectStravaFirst, syncStravaFirst,
+            openStravaAnalysisModal, runStravaAnalysis, applyAnalysisToGenerator, parseMarkdown
         };
     }
 

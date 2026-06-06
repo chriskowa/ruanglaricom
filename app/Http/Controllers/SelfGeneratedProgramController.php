@@ -142,6 +142,9 @@ class SelfGeneratedProgramController extends Controller
             'frequency' => 'required|integer|min:3|max:7',
             'runner_level' => 'required|in:beginner,intermediate,advanced',
             'long_run_day' => 'required|in:saturday,sunday',
+            'gender' => 'required|in:male,female',
+            'age' => 'required|integer|min:10|max:100',
+            'is_tropical' => 'nullable|boolean',
         ], [
             'pb_time.regex' => 'Format waktu PB harus HH:MM:SS atau MM:SS.',
             'goal_time.regex' => 'Format waktu Goal harus HH:MM:SS atau MM:SS.',
@@ -152,8 +155,57 @@ class SelfGeneratedProgramController extends Controller
             $currentVdot = $this->danielsService->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
             $targetVdot = $this->danielsService->calculateVDOT($validated['goal_time'], $validated['target_distance']);
             
-            // Limit the improvement to a realistic level (max +3.0 VDOT points)
-            $safeTargetVdot = min($targetVdot, $currentVdot + 3.0);
+            // Limit the improvement to a realistic level based on runner level
+            $maxVdotImprovement = 3.0;
+            if ($validated['runner_level'] === 'beginner') {
+                $maxVdotImprovement = 2.0;
+            } elseif ($validated['runner_level'] === 'advanced') {
+                $maxVdotImprovement = 4.0;
+            }
+            $safeTargetVdot = min($targetVdot, $currentVdot + $maxVdotImprovement);
+
+            $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            // Calculate base and adjusted training paces
+            $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
+            if ($isTropical) {
+                $paces['E'] += 0.25;  // +15s/km
+                $paces['M'] += 0.20;  // +12s/km
+                $paces['T'] += 0.167; // +10s/km
+                $paces['I'] += 0.133; // +8s/km
+                $paces['R'] += 0.083; // +5s/km
+            }
+
+            // Calculate target Heart Rate zones based on age (Haskell & Fox formula: 220 - age)
+            $age = (int) $validated['age'];
+            $maxHr = 220 - $age;
+            $hrZones = [
+                'E' => [
+                    'min' => (int) round($maxHr * 0.60),
+                    'max' => (int) round($maxHr * 0.79),
+                    'label' => 'Zone 2 (Aerobic Base)'
+                ],
+                'M' => [
+                    'min' => (int) round($maxHr * 0.80),
+                    'max' => (int) round($maxHr * 0.85),
+                    'label' => 'Zone 3 (Tempo/Marathon)'
+                ],
+                'T' => [
+                    'min' => (int) round($maxHr * 0.88),
+                    'max' => (int) round($maxHr * 0.92),
+                    'label' => 'Zone 4 (Lactate Threshold)'
+                ],
+                'I' => [
+                    'min' => (int) round($maxHr * 0.93),
+                    'max' => (int) round($maxHr * 0.97),
+                    'label' => 'Zone 5 (VO2 Max)'
+                ],
+                'R' => [
+                    'min' => (int) round($maxHr * 0.98),
+                    'max' => (int) $maxHr,
+                    'label' => 'Zone 5+ (Anaerobic Capacity)'
+                ]
+            ];
             
             // Generate sessions based on distance and duration
             $targetDate = Carbon::parse($validated['target_date']);
@@ -168,6 +220,7 @@ class SelfGeneratedProgramController extends Controller
                 'target_vdot' => $safeTargetVdot,
                 'runner_level' => $validated['runner_level'],
                 'long_run_day' => $validated['long_run_day'],
+                'is_tropical' => $isTropical,
             ]);
 
             $sessions = $programData['sessions'] ?? [];
@@ -183,7 +236,8 @@ class SelfGeneratedProgramController extends Controller
                     'long_run_day' => $validated['long_run_day'],
                     'initial_vdot' => (float) $currentVdot,
                     'target_vdot' => (float) $safeTargetVdot,
-                    'paces' => $this->danielsService->calculateTrainingPaces($currentVdot),
+                    'is_tropical' => $isTropical,
+                    'paces' => $paces,
                 ]);
             }
 
@@ -191,7 +245,8 @@ class SelfGeneratedProgramController extends Controller
                 'success' => true,
                 'data' => [
                     'vdot' => round($currentVdot, 1),
-                    'paces' => $this->danielsService->calculateTrainingPaces($currentVdot),
+                    'paces' => $paces,
+                    'hr_zones' => $hrZones,
                     'weeks' => $weeksUntilRace,
                     'sessions' => $sessions,
                     'summary' => [
@@ -449,6 +504,14 @@ class SelfGeneratedProgramController extends Controller
         $targetDistance = $config['target_distance'] ?? '10k';
         $runnerLevel = $config['runner_level'] ?? 'intermediate';
         $longRunDay = $config['long_run_day'] ?? 'sunday';
+        $isTropical = $config['is_tropical'] ?? false;
+
+        // Adjust training frequency by level to optimize recovery and prevent injuries
+        if ($runnerLevel === 'beginner') {
+            $frequency = min($frequency, 4);
+        } elseif ($runnerLevel === 'intermediate') {
+            $frequency = min($frequency, 5);
+        }
 
         $distanceProfiles = [
             '5k' => [
@@ -477,14 +540,14 @@ class SelfGeneratedProgramController extends Controller
 
         $profile = $distanceProfiles[$targetDistance] ?? $distanceProfiles['10k'];
         $levelFactors = [
-            'beginner' => 0.9,
-            'intermediate' => 1,
-            'advanced' => 1.1
+            'beginner' => 0.8,      // Lower quality volume for beginners
+            'intermediate' => 1.0,  // Standard quality volume
+            'advanced' => 1.25      // Higher/Elite intensity capacity
         ];
         $longRunFactors = [
-            'beginner' => 0.95,
-            'intermediate' => 1,
-            'advanced' => 1.05
+            'beginner' => 0.9,      // Conservative long run build-up
+            'intermediate' => 1.0,  // Standard long run ratio
+            'advanced' => 1.15      // Elite aerobic endurance long runs
         ];
         $qualityFactor = $levelFactors[$runnerLevel] ?? 1;
         $longRunFactor = $longRunFactors[$runnerLevel] ?? 1;
@@ -524,6 +587,13 @@ class SelfGeneratedProgramController extends Controller
             }
 
             $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
+            if ($isTropical) {
+                $paces['E'] += 0.25;
+                $paces['M'] += 0.20;
+                $paces['T'] += 0.167;
+                $paces['I'] += 0.133;
+                $paces['R'] += 0.083;
+            }
 
             $currentMileage = $mileage;
             if ($phase === 'Taper') $currentMileage *= 0.6;
@@ -618,11 +688,13 @@ class SelfGeneratedProgramController extends Controller
             $easyPool = $currentMileage - $longRunDistance - $qualityDistance - $secondaryDistance;
             $easyDistance = count($easyDays) > 0 ? round(max(0, $easyPool) / count($easyDays), 1) : 0;
 
+            $isDeload = ($w % 4 === 0);
             for ($d = 1; $d <= 7; $d++) {
                 $session = [
                     'day' => $dayCount++,
                     'week' => $w,
                     'phase' => $phase,
+                    'is_deload' => $isDeload,
                     'type' => 'rest',
                     'description' => 'Rest Day',
                     'distance' => 0,
@@ -633,7 +705,9 @@ class SelfGeneratedProgramController extends Controller
                     $session['type'] = 'long_run';
                     $session['distance'] = $longRunDistance;
                     $session['target_pace'] = $this->formatPace($paces['E']);
-                    $session['description'] = 'Long Easy Run - Fokus pada daya tahan';
+                    $session['description'] = $isDeload 
+                        ? 'Long Easy Run (De-load) - Berlari santai dengan volume dikurangi untuk pemulihan.'
+                        : 'Long Easy Run - Fokus pada daya tahan kardio.';
                 } elseif ($d === $qualityDayIndex && $qualityDistance > 0) {
                     $session['type'] = $qualityType;
                     $session['distance'] = $qualityDistance;
@@ -648,7 +722,18 @@ class SelfGeneratedProgramController extends Controller
                     $session['type'] = 'easy_run';
                     $session['distance'] = $easyDistance;
                     $session['target_pace'] = $this->formatPace($paces['E']);
-                    $session['description'] = 'Easy Recovery Run';
+                    $session['description'] = $isDeload
+                        ? 'Easy Recovery Run (De-load) - Lari santai pemulihan pasca beban.'
+                        : 'Easy Recovery Run';
+                } else {
+                    // Rest day fallbacks based on runner level
+                    if ($runnerLevel === 'beginner') {
+                        $session['description'] = 'Rest Day - Fokus peregangan otot ringan atau istirahat total.';
+                    } elseif ($runnerLevel === 'intermediate') {
+                        $session['description'] = 'Active Recovery - 15-20 menit foam rolling dan mobilitas sendi.';
+                    } else {
+                        $session['description'] = 'Active Recovery - Latihan core strength ringan (plank, bird-dog) & foam rolling.';
+                    }
                 }
 
                 $sessions[] = $session;
@@ -680,14 +765,18 @@ class SelfGeneratedProgramController extends Controller
             return $sessions;
         }
 
-        $types = [];
+        // Collect unique Phase_Type combinations to generate tailored phase-specific & type-specific templates
+        $combinations = [];
         foreach ($sessions as $s) {
             if (! is_array($s)) continue;
-            $t = $s['type'] ?? null;
-            if (is_string($t) && $t !== '') $types[$t] = true;
+            $phase = $s['phase'] ?? null;
+            $type = $s['type'] ?? null;
+            if (is_string($phase) && $phase !== '' && is_string($type) && $type !== '') {
+                $combinations[] = $phase . '_' . $type;
+            }
         }
-        $types = array_values(array_keys($types));
-        if (! $types) {
+        $combinations = array_values(array_unique($combinations));
+        if (empty($combinations)) {
             return $sessions;
         }
 
@@ -700,30 +789,52 @@ class SelfGeneratedProgramController extends Controller
             }
         }
 
-        $system = 'Anda adalah coach lari. Tugas Anda: memperbaiki kualitas deskripsi latihan agar jelas, realistis, dan aman tanpa mengubah struktur program.';
-        $prompt = "Konteks program:\n".
-            "- Target distance: ".($context['target_distance'] ?? '-')."\n".
-            "- Weeks: ".($context['weeks'] ?? '-')."\n".
-            "- Weekly mileage: ".($context['weekly_mileage'] ?? '-')." km\n".
-            "- Frequency: ".($context['frequency'] ?? '-')."/week\n".
-            "- Runner level: ".($context['runner_level'] ?? '-')."\n".
-            "- Long run day: ".($context['long_run_day'] ?? '-')."\n".
-            "- Initial VDOT: ".($context['initial_vdot'] ?? '-')."\n".
-            "- Target VDOT: ".($context['target_vdot'] ?? '-')."\n\n".
-            "Training paces (min/km):\n".implode("\n", $paceLines)."\n\n".
-            "Session types yang dipakai:\n".implode(', ', $types)."\n\n".
-            "Buat JSON murni (tanpa markdown) dengan format:\n".
-            "{\"templates\":{\"TYPE\":\"template\"}}\n\n".
-            "Aturan template:\n".
-            "- Jangan mengubah type, jarak, atau pace; hanya deskripsi.\n".
-            "- Gunakan Bahasa Indonesia.\n".
-            "- Pakai placeholder {distance_km} dan {target_pace}.\n".
-            "- Maks 5 baris, tiap baris singkat.\n".
-            "- Untuk rest: fokus recovery (mobility/strength ringan).\n".
-            "- Untuk interval/repetition/threshold/marathon: sertakan warmup + main set + cooldown yang masuk akal.\n";
+        $system = 'Anda adalah Coach AI Ruang Lari, asisten pelatih lari profesional kelas dunia dengan keahlian mendalam pada formula periodisasi VDOT Jack Daniels. Tugas Anda adalah menyusun deskripsi latihan lari yang sangat spesifik, aman, ilmiah, dan meningkatkan performa atlet berdasarkan tingkat kebugaran mereka.';
+        
+        $prompt = "Sempurnakan deskripsi latihan lari untuk tingkat: " . strtoupper($context['runner_level']) . " (Beginner/Intermediate/Advanced-Elite).\n\n" .
+            "Konteks Latihan:\n" .
+            "- Target Jarak Lomba: " . strtoupper($context['target_distance'] ?? '-') . "\n" .
+            "- Durasi: " . ($context['weeks'] ?? '-') . " Minggu\n" .
+            "- Volume Latihan: " . ($context['weekly_mileage'] ?? '-') . " km/minggu\n" .
+            "- Penyesuaian Suhu Tropis: " . ($context['is_tropical'] ? 'Aktif (Pace disesuaikan untuk cuaca panas Indonesia)' : 'Nonaktif') . "\n" .
+            "- VDOT Awal: " . ($context['initial_vdot'] ?? '-') . " -> Target VDOT: " . ($context['target_vdot'] ?? '-') . "\n" .
+            "Pace Latihan (min/km):\n" . implode("\n", $paceLines) . "\n\n" .
+            "Daftar kombinasi latihan (Format: Phase_Type) yang membutuhkan deskripsi:\n" . implode(', ', $combinations) . "\n\n" .
+            "Kembalikan format JSON murni (tanpa tag markdown ```json) dengan struktur:\n" .
+            "{\n" .
+            "  \"templates\": {\n" .
+            "    \"Phase_Type\": \"Deskripsi latihan spesifik\"\n" .
+            "  }\n" .
+            "}\n\n" .
+            "Panduan Penulisan Deskripsi berdasarkan Level Pelari:\n" .
+            "1. BEGINNER (Pemula):\n" .
+            "   - Fokus: Membangun daya tahan dasar (aerobic base), pencegahan cedera, dan konsistensi.\n" .
+            "   - Deskripsi lari mudah/recovery harus santai, menyarankan pernapasan berirama (3:3), hidrasi teratur, dan berjalan kaki jika detak jantung terlalu tinggi.\n" .
+            "   - Latihan kualitas (jika ada) harus ringan, memberi penekanan pada form lari yang relaks.\n" .
+            "2. INTERMEDIATE (Medium):\n" .
+            "   - Fokus: Meningkatkan laktat threshold, efisiensi energi, dan ketahanan jarak jauh.\n" .
+            "   - Berikan panduan terstruktur: Warmup (pemanasan) lari mudah 10-15 menit + dinamis stretch, Main Set (latihan inti) sesuai pace target dengan instruksi kontrol pace agar tidak overshoot, dan Cooldown (pendinginan).\n" .
+            "   - Contoh long run: fokus pada pacing konstan dan asupan nutrisi latihan (gel/elektrolit).\n" .
+            "3. ADVANCED / ELITE (Mahir):\n" .
+            "   - Fokus: Memaksimalkan VO2Max, running economy, mental toughness, dan taktis lomba.\n" .
+            "   - Berikan instruksi set latihan yang presisi dan atletis. Contoh untuk Interval (I): 'Pemanasan 3km E + drills. Latihan Inti: set interval {distance_km}km @ {target_pace} dengan recovery jog aktif. Pendinginan 2km E. Fokus pada cadance tinggi (180+ SPM) dan postur tegak.'\n" .
+            "   - Contoh Long Run: Sertakan variasi seperti progresif atau fast-finish block di akhir sesi.\n\n" .
+            "Aturan Penting & Pemulihan (De-load):\n" .
+            "- Jika sesi berada dalam minggu De-load (Minggu pemulihan kelipatan 4, misal minggu 4, 8, 12, 16), tekankan pentingnya adaptasi tubuh, lari santai yang rileks, dan kurangi intensitas mental.\n" .
+            "- Gunakan Bahasa Indonesia yang profesional namun memotivasi (gaya Coach lari yang suportif).\n" .
+            "- Harus memakai placeholder {distance_km} dan {target_pace} untuk menggambarkan jarak sesi dan pace target.\n" .
+            "- Jangan mengubah tipe latihan, jarak, atau target pace.\n" .
+            "- Buat deskripsi yang ringkas, informatif, dan mudah dibaca di kalender (maksimal 3-4 baris per deskripsi).\n" .
+            "- Untuk tipe 'rest', berikan panduan pemulihan aktif (active recovery) spesifik per level (peregangan otot ringan untuk pemula, foam rolling/mobility untuk intermediate, core strength ringan untuk advanced).\n";
 
         try {
             $raw = $this->openAiService->getAiResponseOrThrow($prompt, $system);
+            
+            // Clean markdown tags if OpenAI accidentally returns them
+            $raw = preg_replace('/^```json\s*/i', '', $raw);
+            $raw = preg_replace('/```$/', '', $raw);
+            $raw = trim($raw);
+
             $decoded = json_decode($raw, true);
             $templates = is_array($decoded) ? ($decoded['templates'] ?? null) : null;
             if (! is_array($templates) || ! $templates) {
@@ -732,9 +843,12 @@ class SelfGeneratedProgramController extends Controller
 
             foreach ($sessions as $i => $s) {
                 if (! is_array($s)) continue;
+                $phase = $s['phase'] ?? null;
                 $type = $s['type'] ?? null;
-                if (! is_string($type) || $type === '') continue;
-                $tpl = $templates[$type] ?? null;
+                if (! is_string($phase) || ! is_string($type)) continue;
+                
+                $key = $phase . '_' . $type;
+                $tpl = $templates[$key] ?? null;
                 if (! is_string($tpl) || trim($tpl) === '') continue;
 
                 $repl = [
