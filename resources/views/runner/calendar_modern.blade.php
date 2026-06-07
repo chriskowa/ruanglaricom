@@ -2378,35 +2378,152 @@
 
         <!-- Reschedule Modal -->
         <div v-if="showRescheduleModal" class="fixed inset-0 z-[250] overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80"></div>
-            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6 border-blue-500/30 shadow-2xl shadow-blue-500/10">
+            <div class="fixed inset-0 bg-black/80" @click="showRescheduleModal = false"></div>
+            <div class="relative z-10 max-w-lg mx-auto my-10 glass-panel rounded-2xl p-6 border-blue-500/30 shadow-2xl shadow-blue-500/10">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-white font-black text-xl flex items-center gap-2">
                         <span class="text-2xl">📅</span> Reschedule Program
                     </h3>
                     <button class="text-slate-400 hover:text-white" @click="showRescheduleModal = false">×</button>
                 </div>
-                <div class="mb-4">
-                    <p class="text-slate-300 text-sm mb-2">Shift your entire program to a new start date. All future sessions will be moved accordingly.</p>
-                    <div class="bg-blue-900/20 border border-blue-800 rounded-lg p-3">
-                        <p class="text-xs text-blue-300">Program: <span class="font-bold text-white">@{{ rescheduleTarget?.program?.title }}</span></p>
-                        <p class="text-xs text-blue-300">Current Start: <span class="font-bold text-white">@{{ formatDate(rescheduleTarget?.start_date) }}</span></p>
+
+                <!-- Tabs selection -->
+                <div class="flex border-b border-slate-700 mb-6">
+                    <button type="button" 
+                            class="flex-1 text-center font-bold text-sm pb-2 transition-all border-b-2"
+                            :class="rescheduleTab === 'standard' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                            @click="rescheduleTab = 'standard'">
+                        Standard Shift
+                    </button>
+                    <button type="button" 
+                            class="flex-1 text-center font-bold text-sm pb-2 transition-all border-b-2"
+                            :class="rescheduleTab === 'adaptive' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                            @click="rescheduleTab = 'adaptive'">
+                        Scientific / Adaptive
+                    </button>
+                </div>
+
+                <!-- Program Info Header -->
+                <div class="bg-blue-900/20 border border-blue-800 rounded-xl p-3 mb-6">
+                    <p class="text-xs text-blue-300">Program: <span class="font-bold text-white">@{{ rescheduleTarget?.program?.title }}</span></p>
+                    <p class="text-xs text-blue-300" v-if="rescheduleTarget?.current_vdot">VDOT Saat Ini: <span class="font-bold text-white">@{{ Number(rescheduleTarget?.current_vdot).toFixed(1) }}</span></p>
+                </div>
+
+                <!-- STANDARD TAB -->
+                <div v-if="rescheduleTab === 'standard'">
+                    <p class="text-slate-300 text-sm mb-4">Shift your entire program to a new start date. All future sessions will be moved accordingly.</p>
+                    <form @submit.prevent="submitReschedule" class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-blue-400 uppercase">New Start Date</label>
+                            <input type="date" v-model="rescheduleForm.new_start_date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none">
+                        </div>
+                        
+                        <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
+                            <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showRescheduleModal = false">Cancel</button>
+                            <button type="submit" :disabled="rescheduleLoading" class="px-6 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm hover:bg-blue-400 shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                                <span v-if="rescheduleLoading" class="animate-spin">⌛</span>
+                                <span>Shift Calendar</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ADAPTIVE SCIENTIFIC TAB -->
+                <div v-if="rescheduleTab === 'adaptive'" class="space-y-4">
+                    <p class="text-slate-300 text-sm mb-2">Reschedule adaptif berdasarkan kondisi fisik Anda. Algoritma akan menghitung kurva detraining VDOT dan protokol pemulihan yang aman.</p>
+                    
+                    <div class="space-y-4">
+                        <!-- Alasan Absen -->
+                        <div>
+                            <label class="text-xs font-bold text-blue-400 uppercase">Alasan Absen / Tidak Latihan</label>
+                            <select v-model="adaptiveRescheduleForm.reason" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none">
+                                <option value="busy">Kesibukan / Halangan Acara</option>
+                                <option value="sick">Sakit / Kurang Fit</option>
+                                <option value="injury">Cedera Otot / Sendi</option>
+                            </select>
+                        </div>
+
+                        <!-- Jumlah Hari Absen -->
+                        <div>
+                            <label class="text-xs font-bold text-blue-400 uppercase">Jumlah Hari Absen Latihan</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" v-model.number="adaptiveRescheduleForm.days_missed" min="0" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none">
+                                <span class="text-slate-400 text-sm">hari</span>
+                            </div>
+                        </div>
+
+                        <!-- Tanggal Mulai Kembali -->
+                        <div>
+                            <label class="text-xs font-bold text-blue-400 uppercase">Tanggal Aktif Kembali</label>
+                            <input type="date" v-model="adaptiveRescheduleForm.start_date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:border-blue-500 focus:outline-none">
+                        </div>
+
+                        <!-- Opsi Cedera tambahan -->
+                        <div v-if="adaptiveRescheduleForm.reason === 'injury'" class="p-3 bg-red-950/20 border border-red-900/30 rounded-xl space-y-3">
+                            <div>
+                                <label class="text-xs font-bold text-red-400 uppercase">Tingkat Cedera</label>
+                                <select v-model="adaptiveRescheduleForm.injury_severity" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none">
+                                    <option value="minor">Ringan (Absen < 7 hari, pemulihan 1 minggu)</option>
+                                    <option value="moderate">Sedang/Berat (Absen > 7 hari, pemulihan 2 minggu)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-red-400 uppercase">Bagian Tubuh yang Cedera</label>
+                                <input type="text" v-model="adaptiveRescheduleForm.body_part" placeholder="Misal: Knee, Ankle, Shin splints" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Catatan tambahan -->
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase">Catatan</label>
+                            <textarea v-model="adaptiveRescheduleForm.notes" rows="2" placeholder="Bagaimana kondisi fisik Anda sekarang?" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"></textarea>
+                        </div>
+
+                        <!-- Action Buttons: Preview & Apply -->
+                        <div class="pt-4 border-t border-slate-700 flex flex-col gap-2">
+                            <button type="button" @click="getAdaptivePreview" :disabled="previewLoading" class="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-500 flex items-center justify-center gap-2">
+                                <span v-if="previewLoading" class="animate-spin">⌛</span>
+                                <span>Preview Rencana Reschedule</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PREVIEW SECTION -->
+                    <div v-if="adaptivePreview" class="mt-4 p-4 bg-slate-800/80 border border-purple-500/30 rounded-xl space-y-3">
+                        <h4 class="text-white font-black text-sm border-b border-slate-700 pb-2">📋 Hasil Analisis & Jadwal Baru</h4>
+                        
+                        <div class="grid grid-cols-2 gap-2 text-xs text-slate-300">
+                            <div>VDOT Baru: <span class="text-neon font-bold">@{{ Number(adaptivePreview.adjusted_vdot).toFixed(1) }}</span></div>
+                            <div v-if="adaptivePreview.adjusted_vdot < (rescheduleTarget?.current_vdot || rescheduleTarget?.program?.vdot)">
+                                Penurunan VDOT: <span class="text-red-400 font-bold">-@{{ Number((rescheduleTarget?.current_vdot || rescheduleTarget?.program?.vdot) - adaptivePreview.adjusted_vdot).toFixed(1) }}</span>
+                            </div>
+                        </div>
+
+                        <p class="text-[10px] text-slate-400 italic">Sistem telah menjadwalkan sesi pemulihan (Easy recovery) dan menyesuaikan beban volume lari agar Anda tidak mengalami cedera (batas ACWR 1.3).</p>
+
+                        <!-- Preview Sesi Latihan Baru -->
+                        <div class="max-h-40 overflow-y-auto space-y-1.5 border border-slate-700 rounded-lg p-2 bg-slate-950/50">
+                            <div v-for="(session, index) in adaptivePreview.sessions" :key="index" class="text-[11px] p-1.5 rounded bg-slate-900 flex justify-between items-start">
+                                <div>
+                                    <div class="text-white font-bold">@{{ formatDate(session.date) }} - Week @{{ session.week }}</div>
+                                    <div class="text-slate-400">@{{ session.description }}</div>
+                                </div>
+                                <div class="text-neon font-bold text-right">
+                                    <div>@{{ session.type }}</div>
+                                    <div class="text-slate-400 text-[10px]" v-if="session.distance > 0">@{{ session.distance }} km</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showRescheduleModal = false">Batal</button>
+                            <button type="button" @click="submitAdaptiveReschedule" :disabled="rescheduleLoading" class="px-6 py-2 rounded-xl bg-neon text-dark font-black text-sm hover:bg-neon/90 shadow-lg shadow-neon/20 flex items-center gap-2">
+                                <span v-if="rescheduleLoading" class="animate-spin">⌛</span>
+                                <span>Terapkan Reschedule</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <form @submit.prevent="submitReschedule" class="space-y-4">
-                    <div>
-                        <label class="text-xs font-bold text-blue-400 uppercase">New Start Date</label>
-                        <input type="date" v-model="rescheduleForm.new_start_date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none">
-                    </div>
-                    
-                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showRescheduleModal = false">Cancel</button>
-                        <button type="submit" :disabled="rescheduleLoading" class="px-6 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm hover:bg-blue-400 shadow-lg shadow-blue-500/20 flex items-center gap-2">
-                            <span v-if="rescheduleLoading" class="animate-spin">⌛</span>
-                            <span>Confirm Reschedule</span>
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
 
@@ -3132,13 +3249,28 @@ createApp({
         const showRescheduleModal = ref(false);
         const rescheduleLoading = ref(false);
         const rescheduleTarget = ref(null);
+        const rescheduleTab = ref('standard'); // 'standard' or 'adaptive'
         const rescheduleForm = reactive({
             new_start_date: ''
         });
 
+        const adaptiveRescheduleForm = reactive({
+            reason: 'busy',
+            days_missed: 5,
+            start_date: new Date().toISOString().slice(0, 10),
+            injury_severity: 'minor',
+            body_part: 'knee',
+            notes: ''
+        });
+
+        const adaptivePreview = ref(null);
+        const previewLoading = ref(false);
+
         const openRescheduleModal = (enrollment) => {
             rescheduleTarget.value = enrollment;
             rescheduleForm.new_start_date = enrollment.start_date ? enrollment.start_date.slice(0,10) : new Date().toISOString().slice(0,10);
+            adaptiveRescheduleForm.start_date = new Date().toISOString().slice(0, 10);
+            adaptivePreview.value = null;
             showRescheduleModal.value = true;
         };
 
@@ -3167,6 +3299,66 @@ createApp({
                 }
             } catch (e) {
                 alert('An error occurred');
+            } finally {
+                rescheduleLoading.value = false;
+            }
+        };
+
+        const getAdaptivePreview = async () => {
+            previewLoading.value = true;
+            adaptivePreview.value = null;
+            try {
+                const res = await fetch(`{{ route('runner.calendar.adaptive-reschedule.preview') }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
+                    body: JSON.stringify({
+                        enrollment_id: rescheduleTarget.value.id,
+                        reason: adaptiveRescheduleForm.reason,
+                        days_missed: adaptiveRescheduleForm.days_missed,
+                        start_date: adaptiveRescheduleForm.start_date,
+                        injury_severity: adaptiveRescheduleForm.reason === 'injury' ? adaptiveRescheduleForm.injury_severity : null,
+                        body_part: adaptiveRescheduleForm.reason === 'injury' ? adaptiveRescheduleForm.body_part : null,
+                        notes: adaptiveRescheduleForm.notes
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    adaptivePreview.value = data.preview;
+                } else {
+                    alert(data.message || 'Gagal memuat preview reschedule');
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan saat menghubungi server.');
+            } finally {
+                previewLoading.value = false;
+            }
+        };
+
+        const submitAdaptiveReschedule = async () => {
+            rescheduleLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('runner.calendar.adaptive-reschedule.apply') }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
+                    body: JSON.stringify({
+                        enrollment_id: rescheduleTarget.value.id,
+                        reason: adaptiveRescheduleForm.reason,
+                        days_missed: adaptiveRescheduleForm.days_missed,
+                        start_date: adaptiveRescheduleForm.start_date,
+                        injury_severity: adaptiveRescheduleForm.reason === 'injury' ? adaptiveRescheduleForm.injury_severity : null,
+                        body_part: adaptiveRescheduleForm.reason === 'injury' ? adaptiveRescheduleForm.body_part : null,
+                        notes: adaptiveRescheduleForm.notes
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Program berhasil dijadwalkan ulang secara adaptif!');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal menerapkan reschedule');
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan saat memproses reschedule.');
             } finally {
                 rescheduleLoading.value = false;
             }
@@ -5082,6 +5274,7 @@ createApp({
             stravaDetailsLoading, stravaDetailsError, formatSeconds, displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass,
             aiAnalysisLoading, aiAnalysisError, loadAiWorkoutAnalysis,
             showRescheduleModal, rescheduleTarget, rescheduleForm, rescheduleLoading, openRescheduleModal, submitReschedule,
+            rescheduleTab, adaptiveRescheduleForm, adaptivePreview, previewLoading, getAdaptivePreview, submitAdaptiveReschedule,
             showStravaGraphModal, displayedPlans, canLoadMore, loadMorePlans,
             showApplyModal, applyForm, applyLoading, applyTarget, submitApply,
             countExercises, parseStrengthExercises, getExerciseIcon, previewExercise, startGuidedWorkout,

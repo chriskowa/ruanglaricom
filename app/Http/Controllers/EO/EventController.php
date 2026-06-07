@@ -875,20 +875,32 @@ class EventController extends Controller
         // Filter by Age Group
         if (request()->has('age_group') && request()->age_group) {
             $group = request()->age_group;
-            $eventDate = $event->start_at;
-            if ($eventDate) {
-                if ($group === '50+') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-                } elseif ($group === 'Master 45+') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-                } elseif ($group === 'Master') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-                } elseif ($group === 'Umum') {
-                    $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-                }
+            $eventDate = $event->start_at ?: now();
+            if ($group === '50+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master 45+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+            } elseif ($group === 'Umum') {
+                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
             }
+        }
+
+        // Filter by Min Age
+        if (request()->filled('min_age')) {
+            $minAge = (int) request()->min_age;
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
+        }
+
+        // Filter by Max Age
+        if (request()->filled('max_age')) {
+            $maxAge = (int) request()->max_age;
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
         }
 
         if (request()->has('search') && trim(request()->search) !== '') {
@@ -1174,20 +1186,32 @@ class EventController extends Controller
 
         if ($request->filled('age_group')) {
             $group = $request->query('age_group');
-            $eventDate = $event->start_at;
-            if ($eventDate) {
-                if ($group === '50+') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-                } elseif ($group === 'Master 45+') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-                } elseif ($group === 'Master') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-                } elseif ($group === 'Umum') {
-                    $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-                }
+            $eventDate = $event->start_at ?: now();
+            if ($group === '50+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master 45+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+            } elseif ($group === 'Umum') {
+                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
             }
+        }
+
+        // Filter by Min Age
+        if ($request->filled('min_age')) {
+            $minAge = (int) $request->query('min_age');
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
+        }
+
+        // Filter by Max Age
+        if ($request->filled('max_age')) {
+            $maxAge = (int) $request->query('max_age');
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
         }
 
         if ($request->filled('search')) {
@@ -1829,6 +1853,37 @@ class EventController extends Controller
             }
         }
 
+        // Filter by Age Group
+        if (request()->has('age_group') && request()->age_group) {
+            $group = request()->age_group;
+            $eventDate = $event->start_at ?: now();
+            if ($group === '50+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master 45+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+            } elseif ($group === 'Umum') {
+                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+            }
+        }
+
+        // Filter by Min Age
+        if (request()->filled('min_age')) {
+            $minAge = (int) request()->min_age;
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
+        }
+
+        // Filter by Max Age
+        if (request()->filled('max_age')) {
+            $maxAge = (int) request()->max_age;
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
+        }
+
         $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.csv';
 
         $headers = [
@@ -1935,6 +1990,37 @@ class EventController extends Controller
             } else {
                 $query->whereJsonContains('addons', ['name' => $addonFilter]);
             }
+        }
+
+        // Filter by Age Group
+        if (request()->has('age_group') && request()->age_group) {
+            $group = request()->age_group;
+            $eventDate = $event->start_at ?: now();
+            if ($group === '50+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master 45+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+            } elseif ($group === 'Umum') {
+                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+            }
+        }
+
+        // Filter by Min Age
+        if (request()->filled('min_age')) {
+            $minAge = (int) request()->min_age;
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
+        }
+
+        // Filter by Max Age
+        if (request()->filled('max_age')) {
+            $maxAge = (int) request()->max_age;
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
         }
 
         $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.xlsx';

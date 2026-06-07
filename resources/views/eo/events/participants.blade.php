@@ -397,11 +397,19 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1">Age Group</label>
                     <select name="age_group" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                         <option value="">All Groups</option>
-                        <option value="Umum" {{ request('age_group') == 'Umum' ? 'selected' : '' }}>Umum (< 40)</option>
+                        <option value="Umum" {{ request('age_group') == 'Umum' ? 'selected' : '' }}>Umum (&lt; 40)</option>
                         <option value="Master" {{ request('age_group') == 'Master' ? 'selected' : '' }}>Master (40-44)</option>
                         <option value="Master 45+" {{ request('age_group') == 'Master 45+' ? 'selected' : '' }}>Master 45+ (45-49)</option>
-                        <option value="50+" {{ request('age_group') == '50+' ? 'selected' : '' }}>50+ (>= 50)</option>
+                        <option value="50+" {{ request('age_group') == '50+' ? 'selected' : '' }}>50+ (&gt;= 50)</option>
                     </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Min Age</label>
+                    <input type="number" name="min_age" value="{{ request('min_age') }}" placeholder="Min" class="w-20 bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none" min="1" max="150">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Max Age</label>
+                    <input type="number" name="max_age" value="{{ request('max_age') }}" placeholder="Max" class="w-20 bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none" min="1" max="150">
                 </div>
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Search</label>
@@ -446,6 +454,8 @@
                 <input type="hidden" name="coupon_id" value="{{ request('coupon_id') }}">
                 <input type="hidden" name="addon" value="{{ request('addon') }}">
                 <input type="hidden" name="age_group" value="{{ request('age_group') }}">
+                <input type="hidden" name="min_age" value="{{ request('min_age') }}">
+                <input type="hidden" name="max_age" value="{{ request('max_age') }}">
                 <input type="hidden" name="search" value="{{ request('search') }}">
                 <input type="hidden" name="sort_by" value="{{ request('sort_by', 'created_at') }}">
                 <input type="hidden" name="sort_dir" value="{{ request('sort_dir', 'desc') }}">
@@ -591,7 +601,7 @@
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">
-                                {{ $participant->getAgeGroup($event->start_at) }}
+                                {{ $participant->getAgeGroup($event->start_at) }}{{ $participant->date_of_birth ? ' (' . $participant->date_of_birth->diffInYears($event->start_at) . ' thn)' : '' }}
                             </span>
                         </td>
                         <td class="px-6 py-4">

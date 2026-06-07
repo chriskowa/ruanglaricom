@@ -1,6 +1,6 @@
 
 const fs = require('fs');
-const filePath = 'resources/views/events/themes/paolo-fest.blade.php';
+const filePath = 'resources/views/runner/calendar_modern.blade.php';
 
 try {
     const content = fs.readFileSync(filePath, 'utf8');

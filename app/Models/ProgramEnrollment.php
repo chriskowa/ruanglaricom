@@ -15,6 +15,10 @@ class ProgramEnrollment extends Model
         'status',
         'payment_status',
         'payment_transaction_id',
+        'current_vdot',
+        'target_race_date',
+        'status_reason',
+        'reschedule_history',
     ];
 
     protected function casts(): array
@@ -22,6 +26,8 @@ class ProgramEnrollment extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            'target_race_date' => 'date',
+            'reschedule_history' => 'array',
         ];
     }
 
@@ -38,5 +44,10 @@ class ProgramEnrollment extends Model
     public function paymentTransaction(): BelongsTo
     {
         return $this->belongsTo(WalletTransaction::class, 'payment_transaction_id');
+    }
+
+    public function injuryLogs()
+    {
+        return $this->hasMany(RunnerInjuryLog::class, 'enrollment_id');
     }
 }

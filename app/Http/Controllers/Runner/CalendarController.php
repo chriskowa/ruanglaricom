@@ -8,6 +8,7 @@ use App\Models\ProgramEnrollment;
 use App\Models\ProgramSessionTracking;
 use App\Models\StravaActivity;
 use App\Services\DanielsRunningService;
+use App\Services\AdaptiveRescheduleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Notification;
@@ -1415,6 +1416,113 @@ class CalendarController extends Controller
             'success' => true,
             'message' => 'Weekly target updated',
             'weekly_km_target' => $user->weekly_km_target,
+        ]);
+    }
+
+    /**
+     * Preview adaptive reschedule based on scientific calculations
+     */
+    public function previewAdaptiveReschedule(Request $request, AdaptiveRescheduleService $rescheduleService)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+            'reason' => 'required|in:sick,busy,injury',
+            'days_missed' => 'required|integer|min:0',
+            'start_date' => 'required|date',
+            'injury_severity' => 'nullable|in:minor,moderate',
+            'body_part' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->firstOrFail();
+
+        $preview = $rescheduleService->reschedule($enrollment, $validated);
+
+        return response()->json([
+            'success' => true,
+            'preview' => $preview,
+        ]);
+    }
+
+    /**
+     * Apply adaptive reschedule to database
+     */
+    public function applyAdaptiveReschedule(Request $request, AdaptiveRescheduleService $rescheduleService)
+    {
+        $validated = $request->validate([
+            'enrollment_id' => 'required|exists:program_enrollments,id',
+            'reason' => 'required|in:sick,busy,injury',
+            'days_missed' => 'required|integer|min:0',
+            'start_date' => 'required|date',
+            'injury_severity' => 'nullable|in:minor,moderate',
+            'body_part' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $user = auth()->user();
+        $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
+            ->where('runner_id', $user->id)
+            ->firstOrFail();
+
+        DB::transaction(function () use ($enrollment, $validated, $rescheduleService, $user) {
+            $result = $rescheduleService->reschedule($enrollment, $validated);
+
+            // Save history
+            $history = $enrollment->reschedule_history ?? [];
+            $history[] = [
+                'timestamp' => now()->toIso8601String(),
+                'reason' => $validated['reason'],
+                'days_missed' => $validated['days_missed'],
+                'previous_vdot' => $enrollment->current_vdot ?? $enrollment->program->vdot ?? $enrollment->runner->vdot ?? 40.0,
+                'new_vdot' => $result['adjusted_vdot'],
+            ];
+
+            // Update enrollment details
+            $enrollment->update([
+                'current_vdot' => $result['adjusted_vdot'],
+                'status_reason' => $validated['reason'],
+                'reschedule_history' => $history,
+            ]);
+
+            // Save new sessions into ProgramSessionTracking and CustomWorkout
+            foreach ($result['sessions'] as $session) {
+                if (isset($session['session_day'])) {
+                    // This is an original session shifted/rescheduled
+                    ProgramSessionTracking::updateOrCreate(
+                        [
+                            'enrollment_id' => $enrollment->id,
+                            'session_day' => $session['session_day'],
+                        ],
+                        [
+                            'rescheduled_date' => $session['date'],
+                        ]
+                    );
+                } else {
+                    // This is a recovery session: create as a CustomWorkout
+                    CustomWorkout::updateOrCreate(
+                        [
+                            'runner_id' => $user->id,
+                            'workout_date' => $session['date'],
+                        ],
+                        [
+                            'type' => $session['type'],
+                            'distance' => $session['distance'],
+                            'duration' => $session['duration'],
+                            'description' => $session['description'],
+                            'difficulty' => 'easy',
+                            'status' => 'pending',
+                        ]
+                    );
+                }
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Program latihan berhasil di-reschedule secara ilmiah.',
         ]);
     }
 }

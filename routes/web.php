@@ -886,6 +886,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/calendar/reset-plan-list', [CalendarController::class, 'resetPlanList'])->name('calendar.reset-plan-list');
         Route::post('/calendar/reschedule', [CalendarController::class, 'reschedule'])->name('calendar.reschedule');
         Route::post('/calendar/reschedule-program', [CalendarController::class, 'rescheduleProgram'])->name('calendar.reschedule-program');
+        Route::post('/calendar/adaptive-reschedule/preview', [CalendarController::class, 'previewAdaptiveReschedule'])->name('calendar.adaptive-reschedule.preview');
+        Route::post('/calendar/adaptive-reschedule/apply', [CalendarController::class, 'applyAdaptiveReschedule'])->name('calendar.adaptive-reschedule.apply');
         Route::get('/calendar/weekly-volume', [CalendarController::class, 'weeklyVolume'])->name('calendar.weekly-volume');
 
         // Program purchase & enrollment
@@ -1018,6 +1020,7 @@ Route::middleware('auth')->group(function () {
         Route::post('events/{event}/blast', [App\Http\Controllers\EO\EventController::class, 'sendBlast'])->name('events.blast.send');
         Route::delete('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'destroyParticipant'])->name('events.participants.destroy');
         Route::get('events/{event}/participants/export', [App\Http\Controllers\EO\EventController::class, 'exportParticipants'])->name('events.participants.export');
+        Route::get('events/{event}/participants/export-xlsx', [App\Http\Controllers\EO\EventController::class, 'exportParticipantsXlsx'])->name('events.participants.export-xlsx');
         Route::post('events/{event}/participants/{participant}/status', [App\Http\Controllers\EO\EventController::class, 'updateParticipantStatus'])->name('events.participants.status');
         Route::post('events/{event}/participants/resend-email', [App\Http\Controllers\EO\EventController::class, 'resendEmail'])->name('events.participants.resend-email');
         Route::post('events/{event}/participants/resend-email-bulk', [App\Http\Controllers\EO\EventController::class, 'resendEmailBulk'])->name('events.participants.resend-email-bulk');
