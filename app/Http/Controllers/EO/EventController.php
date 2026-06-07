@@ -872,6 +872,18 @@ class EventController extends Controller
             }
         }
 
+        // Filter by Jersey Size
+        if (request()->filled('jersey_size')) {
+            $jerseySizeFilter = request()->query('jersey_size');
+            $matchSizes = [strtoupper($jerseySizeFilter)];
+            if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                $matchSizes = ['2XL', 'XXL'];
+            } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                $matchSizes = ['3XL', 'XXXL'];
+            }
+            $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
+        }
+
         // Filter by Age Group
         if (request()->has('age_group') && request()->age_group) {
             $group = request()->age_group;
@@ -1182,6 +1194,18 @@ class EventController extends Controller
             } else {
                 $query->whereJsonContains('addons', ['name' => $addonFilter]);
             }
+        }
+
+        // Filter by Jersey Size
+        if ($request->filled('jersey_size')) {
+            $jerseySizeFilter = $request->query('jersey_size');
+            $matchSizes = [strtoupper($jerseySizeFilter)];
+            if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                $matchSizes = ['2XL', 'XXL'];
+            } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                $matchSizes = ['3XL', 'XXXL'];
+            }
+            $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
         }
 
         if ($request->filled('age_group')) {
@@ -1853,6 +1877,18 @@ class EventController extends Controller
             }
         }
 
+        // Filter by Jersey Size
+        if (request()->filled('jersey_size')) {
+            $jerseySizeFilter = request()->query('jersey_size');
+            $matchSizes = [strtoupper($jerseySizeFilter)];
+            if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                $matchSizes = ['2XL', 'XXL'];
+            } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                $matchSizes = ['3XL', 'XXXL'];
+            }
+            $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
+        }
+
         // Filter by Age Group
         if (request()->has('age_group') && request()->age_group) {
             $group = request()->age_group;
@@ -1992,6 +2028,18 @@ class EventController extends Controller
             } else {
                 $query->whereJsonContains('addons', ['name' => $addonFilter]);
             }
+        }
+
+        // Filter by Jersey Size
+        if (request()->filled('jersey_size')) {
+            $jerseySizeFilter = request()->query('jersey_size');
+            $matchSizes = [strtoupper($jerseySizeFilter)];
+            if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                $matchSizes = ['2XL', 'XXL'];
+            } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                $matchSizes = ['3XL', 'XXXL'];
+            }
+            $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
         }
 
         // Filter by Age Group

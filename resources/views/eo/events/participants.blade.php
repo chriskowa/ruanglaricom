@@ -394,6 +394,18 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Jersey Size</label>
+                    <select name="jersey_size" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                        <option value="">All Sizes</option>
+                        @php
+                            $jerseySizeOptions = ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+                        @endphp
+                        @foreach($jerseySizeOptions as $jsz)
+                            <option value="{{ $jsz }}" {{ request('jersey_size') === $jsz ? 'selected' : '' }}>{{ $jsz }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Age Group</label>
                     <select name="age_group" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                         <option value="">All Groups</option>
@@ -453,6 +465,7 @@
                 <input type="hidden" name="category_id" value="{{ request('category_id') }}">
                 <input type="hidden" name="coupon_id" value="{{ request('coupon_id') }}">
                 <input type="hidden" name="addon" value="{{ request('addon') }}">
+                <input type="hidden" name="jersey_size" value="{{ request('jersey_size') }}">
                 <input type="hidden" name="age_group" value="{{ request('age_group') }}">
                 <input type="hidden" name="min_age" value="{{ request('min_age') }}">
                 <input type="hidden" name="max_age" value="{{ request('max_age') }}">
