@@ -853,9 +853,20 @@ class EventController extends Controller
 
         // Filter by coupon
         if (request()->has('coupon_id') && request()->coupon_id) {
-            $query->whereHas('transaction', function ($q) {
-                $q->where('coupon_id', request()->coupon_id);
-            });
+            $couponFilter = request()->coupon_id;
+            if ($couponFilter === 'with') {
+                $query->whereHas('transaction', function ($q) {
+                    $q->whereNotNull('coupon_id');
+                });
+            } elseif ($couponFilter === 'without') {
+                $query->whereHas('transaction', function ($q) {
+                    $q->whereNull('coupon_id');
+                });
+            } else {
+                $query->whereHas('transaction', function ($q) use ($couponFilter) {
+                    $q->where('coupon_id', $couponFilter);
+                });
+            }
         }
 
         // Filter by addons
@@ -1863,9 +1874,20 @@ class EventController extends Controller
 
         // Filter by coupon
         if (request()->has('coupon_id') && request()->coupon_id) {
-            $query->whereHas('transaction', function ($q) {
-                $q->where('coupon_id', request()->coupon_id);
-            });
+            $couponFilter = request()->coupon_id;
+            if ($couponFilter === 'with') {
+                $query->whereHas('transaction', function ($q) {
+                    $q->whereNotNull('coupon_id');
+                });
+            } elseif ($couponFilter === 'without') {
+                $query->whereHas('transaction', function ($q) {
+                    $q->whereNull('coupon_id');
+                });
+            } else {
+                $query->whereHas('transaction', function ($q) use ($couponFilter) {
+                    $q->where('coupon_id', $couponFilter);
+                });
+            }
         }
 
         if (request()->filled('addon')) {
@@ -2036,9 +2058,20 @@ class EventController extends Controller
 
         // Filter by coupon
         if (request()->has('coupon_id') && request()->coupon_id) {
-            $query->whereHas('transaction', function ($q) {
-                $q->where('coupon_id', request()->coupon_id);
-            });
+            $couponFilter = request()->coupon_id;
+            if ($couponFilter === 'with') {
+                $query->whereHas('transaction', function ($q) {
+                    $q->whereNotNull('coupon_id');
+                });
+            } elseif ($couponFilter === 'without') {
+                $query->whereHas('transaction', function ($q) {
+                    $q->whereNull('coupon_id');
+                });
+            } else {
+                $query->whereHas('transaction', function ($q) use ($couponFilter) {
+                    $q->where('coupon_id', $couponFilter);
+                });
+            }
         }
 
         if (request()->filled('addon')) {

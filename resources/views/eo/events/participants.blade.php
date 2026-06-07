@@ -376,6 +376,8 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1">Kupon</label>
                     <select name="coupon_id" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                         <option value="">Semua Kupon</option>
+                        <option value="without" {{ request('coupon_id') === 'without' ? 'selected' : '' }}>Tanpa Kupon</option>
+                        <option value="with" {{ request('coupon_id') === 'with' ? 'selected' : '' }}>Dengan Kupon (Apa Saja)</option>
                         @foreach($coupons as $coupon)
                             <option value="{{ $coupon->id }}" {{ request('coupon_id') == $coupon->id ? 'selected' : '' }}>{{ $coupon->code }}</option>
                         @endforeach
