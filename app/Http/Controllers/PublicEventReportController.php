@@ -453,8 +453,9 @@ class PublicEventReportController extends Controller
             // Data
             $rowNumber = 0;
             $queryForStream->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                ->leftJoin('coupons', 'transactions.coupon_id', '=', 'coupons.id')
                 ->select('participants.*')
-                ->orderBy('transactions.coupon_id', 'asc')
+                ->orderBy('coupons.code', 'asc')
                 ->orderBy('participants.created_at', 'asc')
                 ->chunk(1000, function ($participants) use ($file, &$rowNumber) {
                 foreach ($participants as $participant) {
@@ -541,8 +542,9 @@ class PublicEventReportController extends Controller
 
             $rowNumber = 0;
             $queryForStream->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                ->leftJoin('coupons', 'transactions.coupon_id', '=', 'coupons.id')
                 ->select('participants.*')
-                ->orderBy('transactions.coupon_id', 'asc')
+                ->orderBy('coupons.code', 'asc')
                 ->orderBy('participants.created_at', 'asc')
                 ->chunk(1000, function ($participants) use (&$rowNumber, $writer) {
                 $rows = [];

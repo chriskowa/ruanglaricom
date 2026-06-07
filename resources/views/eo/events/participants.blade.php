@@ -510,6 +510,12 @@
                         </th>
                         <th class="px-6 py-4">Age Group</th>                        
                         <th class="px-6 py-4">
+                            <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="coupon_code" onclick="setTableSort('coupon_code')">
+                                Kupon
+                                <span class="sort-indicator" data-sort-indicator="coupon_code"></span>
+                            </button>
+                        </th>
+                        <th class="px-6 py-4">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="payment_status" onclick="setTableSort('payment_status')">
                                 Payment
                                 <span class="sort-indicator" data-sort-indicator="payment_status"></span>
@@ -622,6 +628,16 @@
                             </span>
                         </td>
                         <td class="px-6 py-4">
+                            @if($participant->transaction->coupon)
+                                <div class="text-xs text-yellow-400 font-bold flex items-center gap-1" title="Coupon Used">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                                    {{ $participant->transaction->coupon->code }}
+                                </div>
+                            @else
+                                <span class="text-xs text-slate-500 italic">-</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
                             @php $status = $participant->transaction->payment_status ?? 'pending'; @endphp
                             <div class="relative inline-block">
                                 <button type="button" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border"
@@ -643,12 +659,6 @@
                             @if($status == 'pending' && $participant->transaction->created_at->diffInDays(now()) >= 1)
                                 <div class="text-xs text-red-400 font-bold mt-1">
                                     Pending > 1 Hari
-                                </div>
-                            @endif
-                            @if($participant->transaction->coupon)
-                                <div class="mt-2 text-xs text-yellow-400 flex items-center gap-1" title="Coupon Used">
-                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
-                                    <span class="font-mono font-bold">{{ $participant->transaction->coupon->code }}</span>
                                 </div>
                             @endif
                         </td>

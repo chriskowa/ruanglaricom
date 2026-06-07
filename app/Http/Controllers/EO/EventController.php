@@ -942,6 +942,7 @@ class EventController extends Controller
             'bib_number' => 'participants.bib_number',
             'is_picked_up' => 'participants.is_picked_up',
             'payment_status' => 'transactions.payment_status',
+            'coupon_code' => 'coupons.code',
         ];
 
         $perPage = (int) request()->query('per_page', 20);
@@ -956,11 +957,14 @@ class EventController extends Controller
             $sortBy = 'created_at';
         }
 
-        if ($sortBy === 'payment_status') {
-            $query->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
-                ->where('transactions.event_id', $event->id)
-                ->select('participants.*')
-                ->orderBy('transactions.payment_status', $sortDir);
+        if (in_array($sortBy, ['payment_status', 'coupon_code'])) {
+            $query->join('transactions', 'transactions.id', '=', 'participants.transaction_id');
+            if ($sortBy === 'coupon_code') {
+                $query->leftJoin('coupons', 'transactions.coupon_id', '=', 'coupons.id');
+            }
+            $query->where('transactions.event_id', $event->id)
+                  ->select('participants.*')
+                  ->orderBy($allowedSorts[$sortBy], $sortDir);
         } else {
             $query->orderBy($allowedSorts[$sortBy], $sortDir);
         }
@@ -1955,8 +1959,9 @@ class EventController extends Controller
             // Data
             $rowNumber = 0;
             $queryForStream->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                ->leftJoin('coupons', 'transactions.coupon_id', '=', 'coupons.id')
                 ->select('participants.*')
-                ->orderBy('transactions.coupon_id', 'asc')
+                ->orderBy('coupons.code', 'asc')
                 ->orderBy('participants.created_at', 'asc')
                 ->chunk(1000, function ($participants) use ($file, &$rowNumber) {
                 foreach ($participants as $participant) {
@@ -2118,8 +2123,9 @@ class EventController extends Controller
 
             $rowNumber = 0;
             $queryForStream->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                ->leftJoin('coupons', 'transactions.coupon_id', '=', 'coupons.id')
                 ->select('participants.*')
-                ->orderBy('transactions.coupon_id', 'asc')
+                ->orderBy('coupons.code', 'asc')
                 ->orderBy('participants.created_at', 'asc')
                 ->chunk(1000, function ($participants) use (&$rowNumber, $writer) {
                 $rows = [];
