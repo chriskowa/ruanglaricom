@@ -1021,6 +1021,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('events/{event}/participants/{participant}', [App\Http\Controllers\EO\EventController::class, 'destroyParticipant'])->name('events.participants.destroy');
         Route::get('events/{event}/participants/export', [App\Http\Controllers\EO\EventController::class, 'exportParticipants'])->name('events.participants.export');
         Route::get('events/{event}/participants/export-xlsx', [App\Http\Controllers\EO\EventController::class, 'exportParticipantsXlsx'])->name('events.participants.export-xlsx');
+        Route::post('events/{event}/participants/print-bib', [App\Http\Controllers\EO\EventController::class, 'printBibPdf'])->name('events.participants.print-bib');
         Route::post('events/{event}/participants/{participant}/status', [App\Http\Controllers\EO\EventController::class, 'updateParticipantStatus'])->name('events.participants.status');
         Route::post('events/{event}/participants/resend-email', [App\Http\Controllers\EO\EventController::class, 'resendEmail'])->name('events.participants.resend-email');
         Route::post('events/{event}/participants/resend-email-bulk', [App\Http\Controllers\EO\EventController::class, 'resendEmailBulk'])->name('events.participants.resend-email-bulk');

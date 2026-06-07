@@ -410,7 +410,7 @@ class PublicEventReportController extends Controller
                 $q->where('payment_status', $request->payment_status);
             }
         })
-        ->with(['transaction', 'category']);
+        ->with(['transaction.coupon', 'category']);
 
         if ($request->has('category_id') && $request->category_id) {
             $query->where('race_category_id', $request->category_id);
@@ -452,7 +452,11 @@ class PublicEventReportController extends Controller
 
             // Data
             $rowNumber = 0;
-            $queryForStream->orderBy('id')->chunkById(1000, function ($participants) use ($file, &$rowNumber) {
+            $queryForStream->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                ->select('participants.*')
+                ->orderBy('transactions.coupon_id', 'asc')
+                ->orderBy('participants.created_at', 'asc')
+                ->chunk(1000, function ($participants) use ($file, &$rowNumber) {
                 foreach ($participants as $participant) {
                     $rowNumber++;
                     fputcsv($file, [
@@ -469,6 +473,7 @@ class PublicEventReportController extends Controller
                         $participant->blood_type ?? '-',
                         (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
+                        $participant->transaction && $participant->transaction->coupon ? $participant->transaction->coupon->code : '-',
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
@@ -502,7 +507,7 @@ class PublicEventReportController extends Controller
                 $q->where('payment_status', $request->payment_status);
             }
         })
-        ->with(['transaction', 'category']);
+        ->with(['transaction.coupon', 'category']);
 
         if ($request->has('category_id') && $request->category_id) {
             $query->where('race_category_id', $request->category_id);
@@ -535,7 +540,11 @@ class PublicEventReportController extends Controller
             $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(\App\Services\GoogleSheetsParticipantExporter::OUTPUT_COLUMNS));
 
             $rowNumber = 0;
-            $queryForStream->orderBy('id')->chunkById(1000, function ($participants) use (&$rowNumber, $writer) {
+            $queryForStream->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                ->select('participants.*')
+                ->orderBy('transactions.coupon_id', 'asc')
+                ->orderBy('participants.created_at', 'asc')
+                ->chunk(1000, function ($participants) use (&$rowNumber, $writer) {
                 $rows = [];
                 foreach ($participants as $participant) {
                     $rowNumber++;
@@ -553,6 +562,7 @@ class PublicEventReportController extends Controller
                         $participant->blood_type ?? '-',
                         (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
+                        $participant->transaction && $participant->transaction->coupon ? $participant->transaction->coupon->code : '-',
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),

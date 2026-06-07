@@ -108,6 +108,10 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                 Export CSV
                             </a>
+                            <button type="button" onclick="openBibModal()" class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-white text-slate-900 font-bold flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                Print BIB
+                            </button>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-red-500/20 p-2">
@@ -614,7 +618,7 @@
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">
-                                {{ $participant->getAgeGroup($event->start_at) }}{{ $participant->date_of_birth ? ' (' . $participant->date_of_birth->diffInYears($event->start_at) . ' thn)' : '' }}
+                                {{ $participant->getAgeGroup($event->start_at) }}{{ $participant->date_of_birth ? ' (' . number_format($participant->date_of_birth->floatDiffInYears($event->start_at), 1) . ' thn)' : '' }}
                             </span>
                         </td>
                         <td class="px-6 py-4">
@@ -765,6 +769,93 @@
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 Resend Tiket
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Print BIB Modal -->
+<div id="bibModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeBibModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                            Print BIB Designer
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">Desain letak teks BIB dan cetak ke format PDF.</p>
+                    </div>
+                    <button type="button" onclick="closeBibModal()" class="text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1 space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">1. Upload Background BIB (JPG/PNG)</label>
+                            <input type="file" id="bibBackgroundImage" accept="image/png, image/jpeg" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-yellow-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">2. Format Nomor BIB</label>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="text-xs text-slate-400">Ambil X Karakter Terakhir</label>
+                                    <input type="number" id="bibTakeLast" value="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-400">Prefix / Awalan</label>
+                                    <input type="text" id="bibPrefix" placeholder="Misal: 5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
+                                </div>
+                                <div class="text-xs text-slate-500 italic mt-1">Contoh: PAOLO-0743 &rarr; 50743</div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">3. Tambahkan Teks</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="addBibText('{bib_number}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{bib_number}</button>
+                                <button type="button" onclick="addBibText('{name}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{name}</button>
+                                <button type="button" onclick="addBibText('{category}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{category}</button>
+                                <button type="button" onclick="addBibText('{blood_type}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{blood_type}</button>
+                                <button type="button" onclick="addBibText('{emergency_contact_number}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{emergency}</button>
+                            </div>
+                        </div>
+                        <div id="bibTextSettings" class="hidden space-y-3 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                            <label class="block text-xs font-bold text-slate-300">Pengaturan Teks Terpilih</label>
+                            <div class="flex gap-2">
+                                <div class="flex-1">
+                                    <label class="text-[10px] text-slate-400 block mb-1">Ukuran Font</label>
+                                    <input type="number" id="bibFontSize" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="text-[10px] text-slate-400 block mb-1">Warna</label>
+                                    <input type="color" id="bibFontColor" class="w-full bg-slate-800 border border-slate-600 rounded p-0 h-[28px] cursor-pointer">
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" id="bibFontBold" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-sm text-white font-bold transition">B</button>
+                                <button type="button" onclick="deleteSelectedBibText()" class="flex-1 bg-red-900/50 hover:bg-red-800 border border-red-800 rounded p-1 text-sm text-red-200 transition">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <div class="bg-slate-900 border border-slate-700 rounded-lg p-2 flex justify-center items-center overflow-auto relative" style="min-height: 400px;" id="bibCanvasContainer">
+                            <span id="bibCanvasPlaceholder" class="text-slate-500 text-sm absolute pointer-events-none z-0">Upload gambar background terlebih dahulu</span>
+                            <canvas id="bibCanvas" class="z-10"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3 border-t border-slate-700 pt-4">
+                    <button type="button" onclick="closeBibModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-bold transition">Batal</button>
+                    <button type="button" onclick="generateBibPdf(this)" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-lg text-sm font-bold flex items-center gap-2 transition">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                        Generate & Download PDF
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -3377,5 +3468,224 @@
             alert('Terjadi kesalahan saat mengirim email konfirmasi');
         });
     };
+</script>
+
+<!-- Fabric JS for BIB Canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script>
+    let bibCanvas = null;
+    let bibImageBase64 = null;
+
+    function openBibModal() {
+        document.getElementById('bibModal').classList.remove('hidden');
+        if (!bibCanvas) {
+            bibCanvas = new fabric.Canvas('bibCanvas', {
+                width: document.getElementById('bibCanvasContainer').clientWidth - 20,
+                height: 400
+            });
+            
+            bibCanvas.on('selection:created', onBibObjectSelected);
+            bibCanvas.on('selection:updated', onBibObjectSelected);
+            bibCanvas.on('selection:cleared', onBibObjectCleared);
+            bibCanvas.on('object:modified', onBibObjectModified);
+        }
+    }
+
+    function closeBibModal() {
+        document.getElementById('bibModal').classList.add('hidden');
+    }
+
+    document.getElementById('bibBackgroundImage').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(f) {
+            const data = f.target.result;
+            bibImageBase64 = data;
+            
+            fabric.Image.fromURL(data, function(img) {
+                const containerWidth = document.getElementById('bibCanvasContainer').clientWidth - 20;
+                let scale = containerWidth / img.width;
+                if (scale > 1) scale = 1;
+                
+                const w = img.width * scale;
+                const h = img.height * scale;
+                
+                bibCanvas.setWidth(w);
+                bibCanvas.setHeight(h);
+                
+                bibCanvas.setBackgroundImage(img, bibCanvas.renderAll.bind(bibCanvas), {
+                    scaleX: scale,
+                    scaleY: scale
+                });
+                
+                document.getElementById('bibCanvasPlaceholder').style.display = 'none';
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function addBibText(textValue) {
+        if (!bibCanvas) return;
+        const text = new fabric.Text(textValue, {
+            left: bibCanvas.width / 2,
+            top: bibCanvas.height / 2,
+            fontFamily: 'Helvetica',
+            fontSize: 40,
+            fill: '#000000',
+            fontWeight: 'bold',
+            originX: 'center',
+            originY: 'center',
+            cornerSize: 12,
+            transparentCorners: false
+        });
+        bibCanvas.add(text);
+        bibCanvas.setActiveObject(text);
+    }
+
+    const textSettingsPanel = document.getElementById('bibTextSettings');
+    const fontSizeInput = document.getElementById('bibFontSize');
+    const fontColorInput = document.getElementById('bibFontColor');
+    const fontBoldBtn = document.getElementById('bibFontBold');
+
+    function onBibObjectSelected(e) {
+        const obj = e.selected[0];
+        if (obj && obj.type === 'text') {
+            textSettingsPanel.classList.remove('hidden');
+            fontSizeInput.value = Math.round(obj.fontSize * obj.scaleX);
+            fontColorInput.value = obj.fill;
+            if (obj.fontWeight === 'bold') {
+                fontBoldBtn.classList.add('bg-slate-700');
+            } else {
+                fontBoldBtn.classList.remove('bg-slate-700');
+            }
+        }
+    }
+
+    function onBibObjectCleared() {
+        textSettingsPanel.classList.add('hidden');
+    }
+
+    function onBibObjectModified(e) {
+        const obj = e.target;
+        if (obj && obj.type === 'text') {
+            fontSizeInput.value = Math.round(obj.fontSize * obj.scaleX);
+        }
+    }
+
+    fontSizeInput.addEventListener('input', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            obj.set({ fontSize: parseInt(this.value, 10), scaleX: 1, scaleY: 1 });
+            bibCanvas.renderAll();
+        }
+    });
+
+    fontColorInput.addEventListener('input', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            obj.set({ fill: this.value });
+            bibCanvas.renderAll();
+        }
+    });
+
+    fontBoldBtn.addEventListener('click', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            const isBold = obj.fontWeight === 'bold';
+            obj.set({ fontWeight: isBold ? 'normal' : 'bold' });
+            if (isBold) {
+                this.classList.remove('bg-slate-700');
+            } else {
+                this.classList.add('bg-slate-700');
+            }
+            bibCanvas.renderAll();
+        }
+    });
+
+    function deleteSelectedBibText() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj) {
+            bibCanvas.remove(obj);
+            textSettingsPanel.classList.add('hidden');
+        }
+    }
+
+    function generateBibPdf(btn) {
+        if (!bibImageBase64) {
+            alert('Silakan upload background gambar BIB terlebih dahulu.');
+            return;
+        }
+
+        const objects = bibCanvas.getObjects();
+        const textElements = objects.map(obj => {
+            return {
+                text: obj.text,
+                left: obj.left,
+                top: obj.top,
+                fontSize: obj.fontSize * obj.scaleX,
+                fill: obj.fill,
+                fontWeight: obj.fontWeight,
+                originX: obj.originX,
+                originY: obj.originY,
+                angle: obj.angle
+            };
+        });
+
+        const bgScale = bibCanvas.backgroundImage.scaleX;
+        const payload = {
+            image_base64: bibImageBase64,
+            bg_width: bibCanvas.backgroundImage.width,
+            bg_height: bibCanvas.backgroundImage.height,
+            scale: bgScale,
+            texts: textElements,
+            take_last: document.getElementById('bibTakeLast').value,
+            prefix: document.getElementById('bibPrefix').value,
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.forEach((value, key) => {
+            payload[key] = value;
+        });
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-slate-900 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses PDF...`;
+
+        var tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '{{ csrf_token() }}';
+
+        fetch(`{{ route('eo.events.participants.print-bib', $event) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrf,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(res => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            if (res.success && res.download_url) {
+                const link = document.createElement('a');
+                link.href = res.download_url;
+                link.download = res.filename || 'BIB.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert(res.message || 'Gagal menghasilkan PDF');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            console.error(err);
+            alert('Terjadi kesalahan saat memproses PDF. Jika data sangat besar, coba filter sebagian peserta terlebih dahulu.');
+        });
+    }
 </script>
 @endsection

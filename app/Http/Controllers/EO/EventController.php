@@ -1834,7 +1834,7 @@ class EventController extends Controller
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
-            ->with(['transaction', 'category']);
+            ->with(['transaction.coupon', 'category']);
 
         // Apply same filters as list
         if (request()->has('payment_status') && request()->payment_status) {
@@ -1940,7 +1940,11 @@ class EventController extends Controller
 
             // Data
             $rowNumber = 0;
-            $queryForStream->orderBy('id')->chunkById(1000, function ($participants) use ($file, &$rowNumber) {
+            $queryForStream->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                ->select('participants.*')
+                ->orderBy('transactions.coupon_id', 'asc')
+                ->orderBy('participants.created_at', 'asc')
+                ->chunk(1000, function ($participants) use ($file, &$rowNumber) {
                 foreach ($participants as $participant) {
                     $rowNumber++;
                     fputcsv($file, [
@@ -1957,6 +1961,7 @@ class EventController extends Controller
                         $participant->blood_type ?? '-',
                         (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
+                        $participant->transaction && $participant->transaction->coupon ? $participant->transaction->coupon->code : '-',
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
@@ -1990,7 +1995,7 @@ class EventController extends Controller
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
-            ->with(['transaction', 'category']);
+            ->with(['transaction.coupon', 'category']);
 
         if (request()->has('payment_status') && request()->payment_status) {
             $query->whereHas('transaction', function ($q) {
@@ -2084,7 +2089,11 @@ class EventController extends Controller
             $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(\App\Services\GoogleSheetsParticipantExporter::OUTPUT_COLUMNS));
 
             $rowNumber = 0;
-            $queryForStream->orderBy('id')->chunkById(1000, function ($participants) use (&$rowNumber, $writer) {
+            $queryForStream->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                ->select('participants.*')
+                ->orderBy('transactions.coupon_id', 'asc')
+                ->orderBy('participants.created_at', 'asc')
+                ->chunk(1000, function ($participants) use (&$rowNumber, $writer) {
                 $rows = [];
                 foreach ($participants as $participant) {
                     $rowNumber++;
@@ -2102,6 +2111,7 @@ class EventController extends Controller
                         $participant->blood_type ?? '-',
                         (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
+                        $participant->transaction && $participant->transaction->coupon ? $participant->transaction->coupon->code : '-',
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
@@ -2118,7 +2128,215 @@ class EventController extends Controller
 
             $writer->close();
         }, $filename, [
+        }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    public function printBibPdf(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $request->validate([
+            'image_base64' => 'required|string',
+            'bg_width' => 'required|numeric',
+            'bg_height' => 'required|numeric',
+            'scale' => 'required|numeric',
+            'texts' => 'required|array',
+            'take_last' => 'nullable|integer|min:1',
+            'prefix' => 'nullable|string'
+        ]);
+
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id);
+        })->with(['transaction', 'category']);
+
+        // Filters
+        if ($request->filled('payment_status')) {
+            $query->whereHas('transaction', function ($q) use ($request) {
+                $q->where('payment_status', $request->payment_status);
+            });
+        }
+        if ($request->has('is_picked_up') && $request->is_picked_up !== '') {
+            $query->where('is_picked_up', $request->is_picked_up == '1');
+        }
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+        if ($request->filled('category_id')) {
+            $query->where('race_category_id', $request->category_id);
+        }
+        if ($request->filled('coupon_id')) {
+            $query->whereHas('transaction', function ($q) use ($request) {
+                $q->where('coupon_id', $request->coupon_id);
+            });
+        }
+        if ($request->filled('addon')) {
+            $addonFilter = $request->query('addon');
+            if ($addonFilter === 'with') {
+                $query->whereNotNull('addons')->whereJsonLength('addons', '>', 0);
+            } elseif ($addonFilter === 'without') {
+                $query->where(function ($q) {
+                    $q->whereNull('addons')->orWhereJsonLength('addons', 0);
+                });
+            } else {
+                $query->whereJsonContains('addons', ['name' => $addonFilter]);
+            }
+        }
+        if ($request->filled('jersey_size')) {
+            $jerseySizeFilter = $request->query('jersey_size');
+            $matchSizes = [strtoupper($jerseySizeFilter)];
+            if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                $matchSizes = ['2XL', 'XXL'];
+            } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                $matchSizes = ['3XL', 'XXXL'];
+            }
+            $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
+        }
+        if ($request->filled('age_group')) {
+            $group = $request->age_group;
+            $eventDate = $event->start_at ?: now();
+            if ($group === '50+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master 45+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+            } elseif ($group === 'Umum') {
+                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+            }
+        }
+        if ($request->filled('min_age')) {
+            $minAge = (int) $request->min_age;
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
+        }
+        if ($request->filled('max_age')) {
+            $maxAge = (int) $request->max_age;
+            $eventDate = $event->start_at ?: now();
+            $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
+        }
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($qq) use ($search) {
+                $qq->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('bib_number', 'like', "%{$search}%")
+                    ->orWhere('id_card', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $participants = $query->orderBy('bib_number')->get();
+
+        if ($participants->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada peserta yang cocok dengan filter.']);
+        }
+
+        // Decode image
+        $imageBase64 = $request->image_base64;
+        if (preg_match('/^data:image\/(\w+);base64,/', $imageBase64, $type)) {
+            $imageBase64 = substr($imageBase64, strpos($imageBase64, ',') + 1);
+            $type = strtolower($type[1]);
+            if (!in_array($type, ['jpg', 'jpeg', 'png'])) {
+                return response()->json(['success' => false, 'message' => 'Format gambar tidak didukung']);
+            }
+        } else {
+            return response()->json(['success' => false, 'message' => 'Format base64 tidak valid']);
+        }
+
+        $imageData = base64_decode($imageBase64);
+        
+        $tempImgPath = sys_get_temp_dir() . '/' . uniqid('bib_bg_') . '.' . $type;
+        file_put_contents($tempImgPath, $imageData);
+        
+        $canvasWidthPx = $request->bg_width * $request->scale;
+        $canvasHeightPx = $request->bg_height * $request->scale;
+        
+        $pdf = new \TCPDF('L', 'pt', [$canvasWidthPx, $canvasHeightPx], true, 'UTF-8', false);
+        $pdf->SetCreator(PDF_CREATOR);
+        $pdf->SetAuthor('RuangLari');
+        $pdf->SetTitle('BIBs - ' . $event->name);
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetAutoPageBreak(false, 0);
+        $pdf->SetMargins(0, 0, 0);
+        
+        $takeLast = $request->filled('take_last') ? (int) $request->take_last : null;
+        $prefix = $request->filled('prefix') ? $request->prefix : '';
+        $texts = $request->texts;
+
+        foreach ($participants as $p) {
+            $pdf->AddPage('L', [$canvasWidthPx, $canvasHeightPx]);
+            $pdf->Image($tempImgPath, 0, 0, $canvasWidthPx, $canvasHeightPx, '', '', '', false, 300, '', false, false, 0);
+            
+            $dynamicBib = $p->bib_number;
+            if ($dynamicBib && $takeLast) {
+                $dynamicBib = substr($dynamicBib, -$takeLast);
+            }
+            $dynamicBib = $prefix . $dynamicBib;
+            
+            foreach ($texts as $t) {
+                $textValue = str_replace(
+                    ['{bib_number}', '{name}', '{category}', '{blood_type}', '{emergency_contact_number}'],
+                    [$dynamicBib, $p->name, $p->category->name ?? '', $p->blood_type ?? '', $p->emergency_contact_number ?? ''],
+                    $t['text']
+                );
+                
+                $hex = ltrim($t['fill'], '#');
+                $r = hexdec(substr($hex, 0, 2));
+                $g = hexdec(substr($hex, 2, 2));
+                $b = hexdec(substr($hex, 4, 2));
+                $pdf->SetTextColor($r, $g, $b);
+                
+                $fontStyle = $t['fontWeight'] === 'bold' ? 'B' : '';
+                $fontSizePt = $t['fontSize'];
+                $pdf->SetFont('helvetica', $fontStyle, $fontSizePt);
+                
+                $textWidth = $pdf->GetStringWidth($textValue);
+                $textHeight = $fontSizePt;
+                
+                $x = $t['left'];
+                $y = $t['top'];
+                
+                if (isset($t['originX']) && $t['originX'] === 'center') {
+                    $x -= ($textWidth / 2);
+                }
+                if (isset($t['originY']) && $t['originY'] === 'center') {
+                    $y -= ($textHeight / 2);
+                }
+                
+                $pdf->Text($x, $y, $textValue);
+            }
+        }
+        
+        @unlink($tempImgPath);
+        
+        $pdfFilename = 'BIB_Export_' . $event->slug . '_' . time() . '.pdf';
+        
+        // Ensure storage path exists
+        $bibsDir = public_path('storage/bibs');
+        if (!file_exists($bibsDir)) {
+            @mkdir($bibsDir, 0755, true);
+        }
+        // If public/storage is a symlink, write to storage/app/public/bibs directly
+        $storageDir = storage_path('app/public/bibs');
+        if (!file_exists($storageDir)) {
+            @mkdir($storageDir, 0755, true);
+        }
+        
+        $pdfPath = $storageDir . '/' . $pdfFilename;
+        $pdf->Output($pdfPath, 'F');
+        
+        return response()->json([
+            'success' => true, 
+            'download_url' => asset('storage/bibs/' . $pdfFilename),
+            'filename' => $pdfFilename
         ]);
     }
 
