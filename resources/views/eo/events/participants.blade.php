@@ -834,6 +834,17 @@
                                     <input type="color" id="bibFontColor" class="w-full bg-slate-800 border border-slate-600 rounded p-0 h-[28px] cursor-pointer">
                                 </div>
                             </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">Jenis Font</label>
+                                <select id="bibFontFamily" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
+                                    <option value="Helvetica">Helvetica / Arial</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Courier">Courier</option>
+                                    <option value="Montserrat">Montserrat</option>
+                                    <option value="Montserrat ExtraBold">Montserrat ExtraBold</option>
+                                    <option value="Anton">Anton (Bold)</option>
+                                </select>
+                            </div>
                             <div class="flex gap-2">
                                 <button type="button" id="bibFontBold" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-sm text-white font-bold transition">B</button>
                                 <button type="button" onclick="deleteSelectedBibText()" class="flex-1 bg-red-900/50 hover:bg-red-800 border border-red-800 rounded p-1 text-sm text-red-200 transition">Hapus</button>
@@ -3471,6 +3482,9 @@
 </script>
 
 <!-- Fabric JS for BIB Canvas -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;700;800&display=swap');
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <script>
     let bibCanvas = null;
@@ -3548,6 +3562,7 @@
     const fontSizeInput = document.getElementById('bibFontSize');
     const fontColorInput = document.getElementById('bibFontColor');
     const fontBoldBtn = document.getElementById('bibFontBold');
+    const fontFamilyInput = document.getElementById('bibFontFamily');
 
     function onBibObjectSelected(e) {
         const obj = e.selected[0];
@@ -3555,6 +3570,9 @@
             textSettingsPanel.classList.remove('hidden');
             fontSizeInput.value = Math.round(obj.fontSize * obj.scaleX);
             fontColorInput.value = obj.fill;
+            if (fontFamilyInput.querySelector(`option[value="${obj.fontFamily}"]`)) {
+                fontFamilyInput.value = obj.fontFamily;
+            }
             if (obj.fontWeight === 'bold') {
                 fontBoldBtn.classList.add('bg-slate-700');
             } else {
@@ -3586,6 +3604,22 @@
         const obj = bibCanvas.getActiveObject();
         if (obj && obj.type === 'text') {
             obj.set({ fill: this.value });
+            bibCanvas.renderAll();
+        }
+    });
+
+    fontFamilyInput.addEventListener('change', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            let selectedFont = this.value;
+            if (selectedFont === 'Montserrat ExtraBold') {
+                obj.set({ fontFamily: 'Montserrat', fontWeight: 800, customFontFamily: 'Montserrat ExtraBold' });
+            } else {
+                obj.set({ fontFamily: selectedFont, fontWeight: 'normal', customFontFamily: selectedFont });
+                if (fontBoldBtn.classList.contains('bg-slate-700')) {
+                    obj.set({ fontWeight: 'bold' });
+                }
+            }
             bibCanvas.renderAll();
         }
     });
@@ -3626,6 +3660,7 @@
                 top: obj.top,
                 fontSize: obj.fontSize * obj.scaleX,
                 fill: obj.fill,
+                fontFamily: obj.customFontFamily || obj.fontFamily,
                 fontWeight: obj.fontWeight,
                 originX: obj.originX,
                 originY: obj.originY,
@@ -3644,10 +3679,15 @@
             prefix: document.getElementById('bibPrefix').value,
         };
 
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.forEach((value, key) => {
-            payload[key] = value;
-        });
+        const filtersForm = document.getElementById('filtersForm');
+        if (filtersForm) {
+            const formData = new FormData(filtersForm);
+            formData.forEach((value, key) => {
+                if (value !== '') {
+                    payload[key] = value;
+                }
+            });
+        }
 
         const originalText = btn.innerHTML;
         btn.disabled = true;

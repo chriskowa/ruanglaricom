@@ -1920,6 +1920,20 @@ class EventController extends Controller
             $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
         }
 
+        if (request()->has('search') && trim(request()->search) !== '') {
+            $search = trim(request()->search);
+            $query->where(function ($qq) use ($search) {
+                $qq->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('bib_number', 'like', "%{$search}%")
+                    ->orWhere('id_card', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.csv';
 
         $headers = [
@@ -2078,6 +2092,20 @@ class EventController extends Controller
             $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
         }
 
+        if (request()->has('search') && trim(request()->search) !== '') {
+            $search = trim(request()->search);
+            $query->where(function ($qq) use ($search) {
+                $qq->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('bib_number', 'like', "%{$search}%")
+                    ->orWhere('id_card', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         $filename = 'participants_'.$event->slug.'_'.date('Y-m-d').'.xlsx';
 
         $queryForStream = clone $query;
@@ -2127,7 +2155,6 @@ class EventController extends Controller
             });
 
             $writer->close();
-        }, $filename, [
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
@@ -2296,7 +2323,22 @@ class EventController extends Controller
                 
                 $fontStyle = $t['fontWeight'] === 'bold' ? 'B' : '';
                 $fontSizePt = $t['fontSize'];
-                $pdf->SetFont('helvetica', $fontStyle, $fontSizePt);
+                $fontFamily = strtolower($t['fontFamily'] ?? 'helvetica');
+                
+                if ($fontFamily === 'times new roman') {
+                    $fontFamily = 'times';
+                } elseif ($fontFamily === 'montserrat extrabold') {
+                    $fontFamily = 'montserratextrab';
+                    $fontStyle = ''; // ExtraBold is built into the font family
+                } elseif ($fontFamily === 'bebas neue') {
+                    $fontFamily = 'bebasneue';
+                    $fontStyle = ''; // Usually only one weight
+                } elseif ($fontFamily === 'anton') {
+                    $fontFamily = 'anton';
+                    $fontStyle = ''; // Usually only one weight
+                }
+
+                $pdf->SetFont($fontFamily, $fontStyle, $fontSizePt);
                 
                 $textWidth = $pdf->GetStringWidth($textValue);
                 $textHeight = $fontSizePt;
