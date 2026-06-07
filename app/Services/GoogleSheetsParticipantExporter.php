@@ -18,6 +18,8 @@ class GoogleSheetsParticipantExporter
         'Golongan Darah',
         'Addons',
         'Target Time',
+        'Nama Kontak Darurat',
+        'No. Kontak Darurat',
         'Status Pembayaran',
         'Status Pengambilan',
         'Tanggal Registrasi',

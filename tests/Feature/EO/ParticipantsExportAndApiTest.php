@@ -105,6 +105,8 @@ class ParticipantsExportAndApiTest extends TestCase
             'address' => 'Jl. CSV Test No. 1, Jakarta',
             'status' => 'pending',
             'is_picked_up' => false,
+            'emergency_contact_name' => 'Emergency Name',
+            'emergency_contact_number' => '08999999999',
         ]);
 
         $response = $this->actingAs($eo)->get(route('eo.events.participants.export', $event));
@@ -113,6 +115,10 @@ class ParticipantsExportAndApiTest extends TestCase
         $content = $response->streamedContent();
         $this->assertStringContainsString('Alamat', $content);
         $this->assertStringContainsString('Jl. CSV Test No. 1, Jakarta', $content);
+        $this->assertStringContainsString('Nama Kontak Darurat', $content);
+        $this->assertStringContainsString('No. Kontak Darurat', $content);
+        $this->assertStringContainsString('Emergency Name', $content);
+        $this->assertStringContainsString('08999999999', $content);
     }
 
     public function test_eo_participants_export_xlsx_is_zip_stream(): void
