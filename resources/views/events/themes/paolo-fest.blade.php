@@ -373,8 +373,15 @@
                 $col = strtolower($sz);
                 $quota = $event->jerseyStock->$col ?? null;
                 if ($quota !== null) {
+                    $checkSizes = [strtoupper(trim($sz))];
+                    if (strtoupper(trim($sz)) === '2XL' || strtoupper(trim($sz)) === 'XXL') {
+                        $checkSizes = ['2XL', 'XXL'];
+                    } elseif (strtoupper(trim($sz)) === '3XL' || strtoupper(trim($sz)) === 'XXXL') {
+                        $checkSizes = ['3XL', 'XXXL'];
+                    }
+
                     $usedCount = \App\Models\Participant::whereNotNull('jersey_size')
-                        ->whereRaw('UPPER(jersey_size) = ?', [strtoupper($sz)])
+                        ->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $checkSizes)
                         ->whereHas('transaction', fn($q) => $q->where('event_id', $event->id)->whereIn('payment_status', ['paid','cod']))
                         ->count();
                     $jerseyStockData[$sz] = ['quota' => (int) $quota, 'remaining' => max(0, (int)$quota - $usedCount)];
