@@ -4,8 +4,33 @@ namespace App\Helpers;
 
 class WhatsApp
 {
-    public static function send(string $to, string $message): void
+    public static function send(?string $to, string $message): void
     {
+        if ($to === null) {
+            return;
+        }
+
+        $to = trim($to);
+        if ($to === '') {
+            return;
+        }
+
+        // Remove all non-digits (e.g. "-", "+", " ", "(", ")", etc.)
+        $normalized = preg_replace('/\D+/', '', $to);
+
+        if ($normalized === '') {
+            return;
+        }
+
+        // Format to Indonesian country code 62
+        if (str_starts_with($normalized, '0')) {
+            $normalized = '62' . substr($normalized, 1);
+        } elseif (!str_starts_with($normalized, '62')) {
+            $normalized = '62' . $normalized;
+        }
+
+        $to = $normalized;
+
         $isActive = (bool) \App\Models\AppSettings::get('whatsapp_is_active', false);
         if (! $isActive) {
             return;

@@ -40,6 +40,10 @@ class AthleteController extends Controller
 
         $enrollments = $query->latest()->paginate(10);
 
+        if ($request->ajax()) {
+            return view('coach.athletes._list', compact('enrollments'))->render();
+        }
+
         // Get coach's programs for filter dropdown
         $programs = \App\Models\Program::where('coach_id', $coachId)
             ->orderBy('title')

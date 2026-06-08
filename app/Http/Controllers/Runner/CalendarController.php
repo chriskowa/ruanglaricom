@@ -825,6 +825,17 @@ class CalendarController extends Controller
             // Delete all tracking records
             ProgramSessionTracking::where('enrollment_id', $enrollment->id)->delete();
 
+            // If already cancelled or requested as permanent, delete permanently
+            if ($enrollment->status === 'cancelled' || request()->get('permanent') || request()->get('delete_mode') === 'permanent') {
+                $enrollment->delete();
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Program berhasil dihapus secara permanen',
+                ]);
+            }
+
             // Update enrollment status to cancelled
             $enrollment->update(['status' => 'cancelled']);
 
@@ -938,7 +949,8 @@ class CalendarController extends Controller
                     } elseif (! str_starts_with($normalized, '62')) {
                         $normalized = '62'.$normalized;
                     }
-                    WhatsApp::send($normalized, "*Program Diaktifkan*\nRunner: ".$user->name."\nProgram: ".$program->title."\nMulai: ".$startDate->format('d M Y'));
+                    $runnerPhone = $user->phone ?? '-';
+                    WhatsApp::send($normalized, "*Program Diaktifkan*\nRunner: ".$user->name."\nNo. HP: ".$runnerPhone."\nProgram: ".$program->title."\nMulai: ".$startDate->format('d M Y'));
                 }
             }
         } catch (\Throwable $e) {

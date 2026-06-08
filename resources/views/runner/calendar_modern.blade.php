@@ -455,7 +455,10 @@
                                 <div class="text-white font-bold">@{{ bg.program.title }}</div>
                                 <div class="text-[11px] text-slate-500 font-mono">Purchased: @{{ formatDate(bg.created_at) }}</div>
                             </div>
-                            <button class="px-3 py-2 rounded-lg bg-neon text-dark font-black text-xs w-full hover:bg-neon/90 transition" @click="applyProgram(bg.id)">Apply to Calendar</button>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-2 rounded-lg bg-neon text-dark font-black text-xs w-full hover:bg-neon/90 transition" @click="applyProgram(bg.id)">Apply to Calendar</button>
+                                <button class="px-3 py-2 rounded-lg bg-red-600/20 text-red-500 border border-red-600/30 text-xs w-1/3 hover:bg-red-600/30 transition flex items-center justify-center" @click="deleteEnrollment(bg.id)">Hapus</button>
+                            </div>
                         </div>
                     </div>
                     <div v-else class="text-slate-400 text-sm py-4 border border-dashed border-slate-700 rounded-xl text-center italic">
@@ -471,7 +474,10 @@
                                 <div class="text-slate-300 font-bold">@{{ bg.program.title }}</div>
                                 <div class="text-[11px] text-slate-500 font-mono">Cancelled: @{{ formatDate(bg.updated_at) }}</div>
                             </div>
-                            <button class="px-3 py-2 rounded-lg bg-slate-700 text-white font-bold text-xs w-full hover:bg-slate-600 transition" @click="restoreProgram(bg.id)">Restore to Bag</button>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-2 rounded-lg bg-slate-700 text-white font-bold text-xs w-full hover:bg-slate-600 transition" @click="restoreProgram(bg.id)">Restore to Bag</button>
+                                <button class="px-3 py-2 rounded-lg bg-red-600/20 text-red-500 border border-red-600/30 text-xs w-full hover:bg-red-600/30 transition flex items-center justify-center" @click="deleteEnrollment(bg.id, true)">Hapus Permanen</button>
+                            </div>
                         </div>
                     </div>
                     <div v-else class="text-slate-400 text-sm py-4 border border-dashed border-slate-700 rounded-xl text-center italic">No history history.</div>
@@ -5023,19 +5029,27 @@ createApp({
             await updateSessionStatus(detail, 'completed', link || null, notesInput.value, rpeInput.value, feelingInput.value);
         };
 
-        const deleteEnrollment = async (enrollmentId) => {
+        const deleteEnrollment = async (enrollmentId, isPermanent = false) => {
+            const confirmMsg = isPermanent
+                ? 'Apakah Anda yakin ingin menghapus program ini secara PERMANEN? Data tidak dapat dikembalikan.'
+                : 'Apakah Anda yakin ingin menghapus program ini? Program akan dipindahkan ke History.';
+            if(!confirm(confirmMsg)) return;
+
             try {
-                const res = await fetch(`{{ url('/runner/calendar/enrollment') }}/${enrollmentId}/delete`, {
+                const url = `{{ url('/runner/calendar/enrollment') }}/${enrollmentId}/delete${isPermanent ? '?permanent=true' : ''}`;
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json' }
                 });
                 const data = await res.json();
                 if (data.success) {
-                    enrollments.value = enrollments.value.filter(e => e.id !== enrollmentId);
-                    await loadPlans();
-                    if (calendar) calendar.refetchEvents();
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal menghapus program');
                 }
-            } catch {}
+            } catch (e) {
+                alert('Terjadi kesalahan saat menghapus program');
+            }
         };
 
         const dayName = (d) => {
