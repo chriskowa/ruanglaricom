@@ -847,6 +847,16 @@
                                     <input type="color" id="bibFontColor" class="w-full bg-slate-800 border border-slate-600 rounded p-0 h-[28px] cursor-pointer">
                                 </div>
                             </div>
+                            <div class="flex gap-2">
+                                <div class="flex-1">
+                                    <label class="text-[10px] text-slate-400 block mb-1">Posisi X (Kiri)</label>
+                                    <input type="number" id="bibPosX" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="text-[10px] text-slate-400 block mb-1">Posisi Y (Atas)</label>
+                                    <input type="number" id="bibPosY" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
+                                </div>
+                            </div>
                             <div>
                                 <label class="text-[10px] text-slate-400 block mb-1">Jenis Font</label>
                                 <select id="bibFontFamily" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
@@ -3523,6 +3533,7 @@
             bibCanvas.on('selection:updated', onBibObjectSelected);
             bibCanvas.on('selection:cleared', onBibObjectCleared);
             bibCanvas.on('object:modified', onBibObjectModified);
+            bibCanvas.on('object:moving', onBibObjectMoving);
         }
     }
 
@@ -3586,6 +3597,8 @@
     const fontFamilyInput = document.getElementById('bibFontFamily');
     const alignLeftBtn = document.getElementById('bibAlignLeft');
     const alignCenterBtn = document.getElementById('bibAlignCenter');
+    const posXInput = document.getElementById('bibPosX');
+    const posYInput = document.getElementById('bibPosY');
 
     function onBibObjectSelected(e) {
         const obj = e.selected[0];
@@ -3593,6 +3606,8 @@
             textSettingsPanel.classList.remove('hidden');
             fontSizeInput.value = Math.round(obj.fontSize * obj.scaleX);
             fontColorInput.value = obj.fill;
+            posXInput.value = Math.round(obj.left);
+            posYInput.value = Math.round(obj.top);
             if (fontFamilyInput.querySelector(`option[value="${obj.fontFamily}"]`)) {
                 fontFamilyInput.value = obj.fontFamily;
             }
@@ -3619,6 +3634,16 @@
         const obj = e.target;
         if (obj && obj.type === 'text') {
             fontSizeInput.value = Math.round(obj.fontSize * obj.scaleX);
+            posXInput.value = Math.round(obj.left);
+            posYInput.value = Math.round(obj.top);
+        }
+    }
+
+    function onBibObjectMoving(e) {
+        const obj = e.target;
+        if (obj && obj.type === 'text') {
+            posXInput.value = Math.round(obj.left);
+            posYInput.value = Math.round(obj.top);
         }
     }
 
@@ -3634,6 +3659,22 @@
         const obj = bibCanvas.getActiveObject();
         if (obj && obj.type === 'text') {
             obj.set({ fill: this.value });
+            bibCanvas.renderAll();
+        }
+    });
+
+    posXInput.addEventListener('input', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            obj.set({ left: parseFloat(this.value) || 0 });
+            bibCanvas.renderAll();
+        }
+    });
+
+    posYInput.addEventListener('input', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            obj.set({ top: parseFloat(this.value) || 0 });
             bibCanvas.renderAll();
         }
     });
