@@ -2324,6 +2324,29 @@ class EventController extends Controller
         $canvasWidthPx = $request->bg_width * $request->scale;
         $canvasHeightPx = $request->bg_height * $request->scale;
         
+        // Ensure custom fonts are converted/imported in TCPDF dynamically
+        $tcpdfFontPath = \TCPDF_FONTS::_getfontpath();
+        $customFonts = [
+            'montserrat' => 'Montserrat-Regular.ttf',
+            'montserratb' => 'Montserrat-Bold.ttf',
+            'montserratextrab' => 'Montserrat-ExtraBold.ttf',
+            'bebasneue' => 'BebasNeue-Regular.ttf',
+            'anton' => 'Anton-Regular.ttf'
+        ];
+
+        foreach ($customFonts as $fontName => $ttfFile) {
+            if (!file_exists($tcpdfFontPath . $fontName . '.php')) {
+                $ttfPath = storage_path('app/public/fonts/' . $ttfFile);
+                if (file_exists($ttfPath)) {
+                    try {
+                        \TCPDF_FONTS::addTTFfont($ttfPath, 'TrueTypeUnicode', '', 96);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("Failed to auto-import font {$fontName}: " . $e->getMessage());
+                    }
+                }
+            }
+        }
+        
         try {
             $pdf = new SafeTCPDF('L', 'pt', [$canvasWidthPx, $canvasHeightPx], true, 'UTF-8', false);
             $pdf->SetCreator(PDF_CREATOR);
