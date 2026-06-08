@@ -2324,101 +2324,120 @@ class EventController extends Controller
         $canvasWidthPx = $request->bg_width * $request->scale;
         $canvasHeightPx = $request->bg_height * $request->scale;
         
-        $pdf = new \TCPDF('L', 'pt', [$canvasWidthPx, $canvasHeightPx], true, 'UTF-8', false);
-        $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor('RuangLari');
-        $pdf->SetTitle('BIBs - ' . $event->name);
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-        $pdf->SetAutoPageBreak(false, 0);
-        $pdf->SetMargins(0, 0, 0);
-        
-        $takeLast = $request->filled('take_last') ? (int) $request->take_last : null;
-        $prefix = $request->filled('prefix') ? $request->prefix : '';
-        $texts = $request->texts;
-
-        foreach ($participants as $p) {
-            $pdf->AddPage('L', [$canvasWidthPx, $canvasHeightPx]);
-            $pdf->Image($tempImgPath, 0, 0, $canvasWidthPx, $canvasHeightPx, '', '', '', false, 300, '', false, false, 0);
+        try {
+            $pdf = new SafeTCPDF('L', 'pt', [$canvasWidthPx, $canvasHeightPx], true, 'UTF-8', false);
+            $pdf->SetCreator(PDF_CREATOR);
+            $pdf->SetAuthor('RuangLari');
+            $pdf->SetTitle('BIBs - ' . $event->name);
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+            $pdf->SetAutoPageBreak(false, 0);
+            $pdf->SetMargins(0, 0, 0);
             
-            $dynamicBib = $p->bib_number;
-            if ($dynamicBib && $takeLast) {
-                $dynamicBib = substr($dynamicBib, -$takeLast);
-            }
-            $dynamicBib = $prefix . $dynamicBib;
-            
-            foreach ($texts as $t) {
-                $textValue = str_replace(
-                    ['{bib_number}', '{name}', '{category}', '{blood_type}', '{emergency_contact_number}'],
-                    [$dynamicBib, $p->name, $p->category->name ?? '', $p->blood_type ?? '', $p->emergency_contact_number ?? ''],
-                    $t['text']
-                );
-                
-                $hex = ltrim($t['fill'], '#');
-                $r = hexdec(substr($hex, 0, 2));
-                $g = hexdec(substr($hex, 2, 2));
-                $b = hexdec(substr($hex, 4, 2));
-                $pdf->SetTextColor($r, $g, $b);
-                
-                $fontStyle = $t['fontWeight'] === 'bold' ? 'B' : '';
-                $fontSizePt = $t['fontSize'];
-                $fontFamily = strtolower($t['fontFamily'] ?? 'helvetica');
-                
-                if ($fontFamily === 'times new roman') {
-                    $fontFamily = 'times';
-                } elseif ($fontFamily === 'montserrat extrabold') {
-                    $fontFamily = 'montserratextrab';
-                    $fontStyle = ''; // ExtraBold is built into the font family
-                } elseif ($fontFamily === 'bebas neue') {
-                    $fontFamily = 'bebasneue';
-                    $fontStyle = ''; // Usually only one weight
-                } elseif ($fontFamily === 'anton') {
-                    $fontFamily = 'anton';
-                    $fontStyle = ''; // Usually only one weight
-                }
+            $takeLast = $request->filled('take_last') ? (int) $request->take_last : null;
+            $prefix = $request->filled('prefix') ? $request->prefix : '';
+            $texts = $request->texts;
 
-                $pdf->SetFont($fontFamily, $fontStyle, $fontSizePt);
+            foreach ($participants as $p) {
+                $pdf->AddPage('L', [$canvasWidthPx, $canvasHeightPx]);
+                $pdf->Image($tempImgPath, 0, 0, $canvasWidthPx, $canvasHeightPx, '', '', '', false, 300, '', false, false, 0);
                 
-                $textWidth = $pdf->GetStringWidth($textValue);
-                $textHeight = $fontSizePt;
-                
-                $x = $t['left'];
-                $y = $t['top'];
-                
-                if (isset($t['originX']) && $t['originX'] === 'center') {
-                    $x -= ($textWidth / 2);
+                $dynamicBib = $p->bib_number;
+                if ($dynamicBib && $takeLast) {
+                    $dynamicBib = substr($dynamicBib, -$takeLast);
                 }
-                if (isset($t['originY']) && $t['originY'] === 'center') {
-                    $y -= ($textHeight / 2);
-                }
+                $dynamicBib = $prefix . $dynamicBib;
                 
-                $pdf->Text($x, $y, $textValue);
+                foreach ($texts as $t) {
+                    $textValue = str_replace(
+                        ['{bib_number}', '{name}', '{category}', '{blood_type}', '{emergency_contact_number}'],
+                        [$dynamicBib, $p->name, $p->category->name ?? '', $p->blood_type ?? '', $p->emergency_contact_number ?? ''],
+                        $t['text']
+                    );
+                    
+                    $hex = ltrim($t['fill'], '#');
+                    $r = hexdec(substr($hex, 0, 2));
+                    $g = hexdec(substr($hex, 2, 2));
+                    $b = hexdec(substr($hex, 4, 2));
+                    $pdf->SetTextColor($r, $g, $b);
+                    
+                    $fontStyle = $t['fontWeight'] === 'bold' ? 'B' : '';
+                    $fontSizePt = $t['fontSize'];
+                    $fontFamily = strtolower($t['fontFamily'] ?? 'helvetica');
+                    
+                    if (in_array($fontFamily, ['times new roman', 'times', 'serif'])) {
+                        $fontFamily = 'times';
+                    } elseif ($fontFamily === 'montserrat extrabold') {
+                        $fontFamily = 'montserratextrab';
+                        $fontStyle = ''; // ExtraBold is built into the font family
+                    } elseif (in_array($fontFamily, ['bebas neue', 'bebasneue'])) {
+                        $fontFamily = 'bebasneue';
+                        $fontStyle = ''; // Usually only one weight
+                    } elseif ($fontFamily === 'anton') {
+                        $fontFamily = 'anton';
+                        $fontStyle = ''; // Usually only one weight
+                    } elseif ($fontFamily === 'montserrat') {
+                        $fontFamily = 'montserrat';
+                    } elseif (in_array($fontFamily, ['courier', 'courier new', 'monospace'])) {
+                        $fontFamily = 'courier';
+                    } elseif (in_array($fontFamily, ['helvetica', 'arial', 'sans-serif'])) {
+                        $fontFamily = 'helvetica';
+                    } else {
+                        $fontFamily = 'helvetica';
+                    }
+
+                    $pdf->SetFont($fontFamily, $fontStyle, $fontSizePt);
+                    
+                    $textWidth = $pdf->GetStringWidth($textValue);
+                    $textHeight = $fontSizePt;
+                    
+                    $x = $t['left'];
+                    $y = $t['top'];
+                    
+                    if (isset($t['originX']) && $t['originX'] === 'center') {
+                        $x -= ($textWidth / 2);
+                    }
+                    if (isset($t['originY']) && $t['originY'] === 'center') {
+                        $y -= ($textHeight / 2);
+                    }
+                    
+                    $pdf->Text($x, $y, $textValue);
+                }
             }
+            
+            @unlink($tempImgPath);
+            
+            $pdfFilename = 'BIB_Export_' . $event->slug . '_' . time() . '.pdf';
+            
+            // Ensure storage path exists
+            $bibsDir = public_path('storage/bibs');
+            if (!file_exists($bibsDir)) {
+                @mkdir($bibsDir, 0755, true);
+            }
+            // If public/storage is a symlink, write to storage/app/public/bibs directly
+            $storageDir = storage_path('app/public/bibs');
+            if (!file_exists($storageDir)) {
+                @mkdir($storageDir, 0755, true);
+            }
+            
+            $pdfPath = $storageDir . '/' . $pdfFilename;
+            $pdf->Output($pdfPath, 'F');
+            
+            return response()->json([
+                'success' => true, 
+                'download_url' => asset('storage/bibs/' . $pdfFilename),
+                'filename' => $pdfFilename
+            ]);
+        } catch (\Throwable $e) {
+            @unlink($tempImgPath);
+            \Illuminate\Support\Facades\Log::error('TCPDF BIB Generation Error: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghasilkan PDF: ' . $e->getMessage()
+            ], 500);
         }
-        
-        @unlink($tempImgPath);
-        
-        $pdfFilename = 'BIB_Export_' . $event->slug . '_' . time() . '.pdf';
-        
-        // Ensure storage path exists
-        $bibsDir = public_path('storage/bibs');
-        if (!file_exists($bibsDir)) {
-            @mkdir($bibsDir, 0755, true);
-        }
-        // If public/storage is a symlink, write to storage/app/public/bibs directly
-        $storageDir = storage_path('app/public/bibs');
-        if (!file_exists($storageDir)) {
-            @mkdir($storageDir, 0755, true);
-        }
-        
-        $pdfPath = $storageDir . '/' . $pdfFilename;
-        $pdf->Output($pdfPath, 'F');
-        
-        return response()->json([
-            'success' => true, 
-            'download_url' => asset('storage/bibs/' . $pdfFilename),
-            'filename' => $pdfFilename
-        ]);
     }
 
     // Google Sheets export removed as per request
@@ -3104,5 +3123,13 @@ class EventController extends Controller
             'success' => true,
             'message' => "Berhasil mengirim {$count} pesan reminder WhatsApp ke antrean."
         ]);
+    }
+}
+
+class SafeTCPDF extends \TCPDF
+{
+    public function Error($msg)
+    {
+        throw new \Exception('TCPDF ERROR: ' . $msg);
     }
 }
