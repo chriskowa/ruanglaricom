@@ -937,10 +937,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/checkout', [App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
         Route::get('/checkout/program/{order}/pay', [App\Http\Controllers\CheckoutController::class, 'pay'])->name('checkout.program.pay');
 
-        // Order routes
-        Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
-        Route::get('/orders/{order}/invoice', [App\Http\Controllers\OrderController::class, 'invoice'])->name('orders.invoice');
+        // Program Order routes (to avoid collision with Marketplace physical product orders)
+        Route::get('/program-orders', [App\Http\Controllers\OrderController::class, 'index'])->name('program-orders.index');
+        Route::get('/program-orders/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('program-orders.show');
+        Route::get('/program-orders/{order}/invoice', [App\Http\Controllers\OrderController::class, 'invoice'])->name('program-orders.invoice');
     });
 
     // Coach routes

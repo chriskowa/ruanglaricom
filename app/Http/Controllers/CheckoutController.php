@@ -28,7 +28,7 @@ class CheckoutController extends Controller
             ->get();
 
         if ($cartItems->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', 'Keranjang kosong.');
+            return redirect()->route('marketplace.cart.index')->with('error', 'Keranjang kosong.');
         }
 
         $subtotal = $cartItems->sum('subtotal');
@@ -174,7 +174,7 @@ class CheckoutController extends Controller
                     'order_number' => $order->order_number,
                 ]);
 
-                return redirect()->route('marketplace.orders.show', $order->id)
+                return redirect()->route('marketplace.program-orders.show', $order->id)
                     ->with('success', 'Pembelian berhasil! Program telah ditambahkan ke kalender Anda.');
             }
 
@@ -222,6 +222,11 @@ class CheckoutController extends Controller
                         'email' => $user->email,
                     ],
                     'item_details' => $itemDetails,
+                    'callbacks' => [
+                        'finish' => route('marketplace.program-orders.show', $order->id),
+                        'pending' => route('marketplace.program-orders.show', $order->id),
+                        'error' => route('marketplace.program-orders.show', $order->id),
+                    ],
                 ];
 
                 $snapToken = Snap::getSnapToken($params);
@@ -235,12 +240,12 @@ class CheckoutController extends Controller
                     'order_number' => $order->order_number,
                 ]);
 
-                return redirect()->route('marketplace.orders.show', $order->id)
+                return redirect()->route('marketplace.program-orders.show', $order->id)
                     ->with('error', 'Gagal menginisiasi pembayaran Midtrans: '.$e->getMessage());
             }
         }
 
-        return redirect()->route('marketplace.orders.show', $order->id)
+        return redirect()->route('marketplace.program-orders.show', $order->id)
             ->with('error', 'Metode pembayaran tidak dikenal.');
     }
 
@@ -254,12 +259,12 @@ class CheckoutController extends Controller
         }
 
         if ($order->payment_method !== 'midtrans') {
-            return redirect()->route('marketplace.orders.show', $order->id)
+            return redirect()->route('marketplace.program-orders.show', $order->id)
                 ->with('info', 'Order ini tidak menggunakan Midtrans.');
         }
 
         if ($order->payment_status === 'paid') {
-            return redirect()->route('marketplace.orders.show', $order->id)
+            return redirect()->route('marketplace.program-orders.show', $order->id)
                 ->with('info', 'Order ini sudah dibayar.');
         }
 
@@ -293,6 +298,11 @@ class CheckoutController extends Controller
                         'email' => $user->email,
                     ],
                     'item_details' => $itemDetails,
+                    'callbacks' => [
+                        'finish' => route('marketplace.program-orders.show', $order->id),
+                        'pending' => route('marketplace.program-orders.show', $order->id),
+                        'error' => route('marketplace.program-orders.show', $order->id),
+                    ],
                 ];
 
                 $snapToken = Snap::getSnapToken($params);
@@ -303,7 +313,7 @@ class CheckoutController extends Controller
                     'order_number' => $order->order_number,
                 ]);
 
-                return redirect()->route('marketplace.orders.show', $order->id)
+                return redirect()->route('marketplace.program-orders.show', $order->id)
                     ->with('error', 'Gagal menginisiasi pembayaran Midtrans: '.$e->getMessage());
             }
         }

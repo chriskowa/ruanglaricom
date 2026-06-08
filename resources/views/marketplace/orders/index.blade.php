@@ -24,20 +24,106 @@
     </div>
 
     <!-- Main Container -->
-    <div x-data="{ tab: 'purchases' }" class="space-y-6">
+    <div x-data="{ tab: 'programs' }" class="space-y-6">
         
         <!-- Tab Navigation -->
-        <div class="bg-slate-900/50 backdrop-blur-md rounded-xl p-1 border border-slate-800 inline-flex">
+        <div class="bg-slate-900/50 backdrop-blur-md rounded-xl p-1 border border-slate-800 inline-flex flex-wrap gap-1">
+            <button @click="tab = 'programs'" 
+                class="px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all duration-300"
+                :class="tab === 'programs' ? 'bg-neon text-slate-900 shadow-lg shadow-neon/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
+                Training Programs
+            </button>
             <button @click="tab = 'purchases'" 
                 class="px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all duration-300"
                 :class="tab === 'purchases' ? 'bg-neon text-slate-900 shadow-lg shadow-neon/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
-                Purchases
+                Market Purchases
             </button>
             <button @click="tab = 'sales'" 
                 class="px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all duration-300"
                 :class="tab === 'sales' ? 'bg-neon text-slate-900 shadow-lg shadow-neon/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'">
-                Sales
+                Market Sales
             </button>
+        </div>
+
+        <!-- Programs List -->
+        <div x-show="tab === 'programs'" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="space-y-4">
+             
+             @forelse($programOrders as $order)
+                <div class="bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-slate-800 overflow-hidden hover:border-slate-700 transition-all group">
+                    <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-6">
+                        <!-- Program Icon -->
+                        <div class="w-full sm:w-32 h-32 flex-shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 relative flex items-center justify-center text-neon">
+                             <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                        </div>
+
+                        <!-- Order Info -->
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <span class="px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-wider
+                                            {{ $order->payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' }}">
+                                            {{ $order->payment_status === 'paid' ? 'Paid' : 'Pending' }}
+                                        </span>
+                                        <span class="text-xs text-slate-500 font-mono">{{ $order->created_at->format('d M Y, H:i') }}</span>
+                                    </div>
+                                    <span class="text-xs font-mono text-slate-500">#{{ $order->order_number }}</span>
+                                </div>
+                                
+                                <h3 class="text-lg font-bold text-white mb-1 truncate">
+                                    <?php $firstItem = $order->items->first(); ?>
+                                    {{ $firstItem ? $firstItem->program_title : 'Program Purchase' }}
+                                </h3>
+                                @if($order->items->count() > 1)
+                                    <p class="text-xs text-slate-400">+ {{ $order->items->count() - 1 }} other programs</p>
+                                @endif
+                                @if($firstItem && $firstItem->program && $firstItem->program->coach)
+                                    <p class="text-xs text-slate-400">Coach: {{ $firstItem->program->coach->name }}</p>
+                                @endif
+                            </div>
+                            
+                            <div class="mt-4 flex items-end justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Total Amount</div>
+                                    <div class="text-xl font-black text-neon font-mono">
+                                        Rp {{ number_format($order->total, 0, ',', '.') }}
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-3">
+                                    @if($order->payment_status == 'pending' && $order->payment_method === 'midtrans')
+                                        <a href="{{ route('marketplace.checkout.program.pay', $order->id) }}" class="px-5 py-2 bg-neon text-slate-900 text-sm font-bold rounded-lg hover:bg-neon/90 hover:shadow-lg hover:shadow-neon/20 transition-all flex items-center gap-2">
+                                            <span>Pay Now</span>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('marketplace.program-orders.show', $order->id) }}" class="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-bold rounded-lg hover:bg-slate-700 hover:text-white transition-all">
+                                        Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             @empty
+                <!-- Empty State -->
+                <div class="text-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 border-dashed">
+                    <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">No program purchases yet</h3>
+                    <p class="text-slate-400 max-w-sm mx-auto mb-8">Ready to start training? Explore professional programs designed by running coaches.</p>
+                    <a href="{{ route('programs.index') }}" class="px-8 py-3 bg-neon text-slate-900 font-bold rounded-xl hover:scale-105 transition-transform inline-flex items-center gap-2">
+                        Browse Programs
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </a>
+                </div>
+             @endforelse
         </div>
 
         <!-- Purchases List -->
@@ -45,17 +131,17 @@
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4"
              x-transition:enter-end="opacity-100 translate-y-0"
-             class="space-y-4">
+             class="space-y-4" style="display: none;">
              
              @forelse($purchases as $order)
                 <div class="bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-slate-800 overflow-hidden hover:border-slate-700 transition-all group">
                     <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-6">
                         <!-- Product Image (First Item) -->
                         <div class="w-full sm:w-32 h-32 flex-shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 relative">
-                             @php
+                             <?php
                                 $firstItem = $order->items->first();
                                 $productImage = $firstItem->product?->primaryImage?->image_path;
-                             @endphp
+                             ?>
                              @if($productImage)
                                 <img src="{{ asset('storage/' . $productImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Product">
                              @else
@@ -143,10 +229,10 @@
                     <div class="p-5 sm:p-6 flex flex-col sm:flex-row gap-6">
                          <!-- Product Image -->
                         <div class="w-full sm:w-32 h-32 flex-shrink-0 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 relative">
-                             @php
+                             <?php
                                 $firstItem = $order->items->first();
                                 $productImage = $firstItem->product?->primaryImage?->image_path;
-                             @endphp
+                             ?>
                              @if($productImage)
                                 <img src="{{ asset('storage/' . $productImage) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Product">
                              @else

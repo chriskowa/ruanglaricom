@@ -12,14 +12,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $orders = Order::where('user_id', Auth::id())
-            ->with('items.program')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        return view('orders.index', [
-            'orders' => $orders,
-        ]);
+        return redirect()->route('marketplace.orders.index');
     }
 
     /**

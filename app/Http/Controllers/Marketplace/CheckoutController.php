@@ -273,6 +273,11 @@ class CheckoutController extends Controller
                 'email' => $user->email,
             ],
             'item_details' => $itemDetails,
+            'callbacks' => [
+                'finish' => route('marketplace.orders.show', $order->id),
+                'pending' => route('marketplace.orders.show', $order->id),
+                'error' => route('marketplace.orders.show', $order->id),
+            ],
         ];
 
         try {
@@ -317,6 +322,11 @@ class CheckoutController extends Controller
                     'email' => Auth::user()->email,
                 ],
                 'item_details' => $itemDetails,
+                'callbacks' => [
+                    'finish' => route('marketplace.orders.show', $order->id),
+                    'pending' => route('marketplace.orders.show', $order->id),
+                    'error' => route('marketplace.orders.show', $order->id),
+                ],
             ];
 
             try {

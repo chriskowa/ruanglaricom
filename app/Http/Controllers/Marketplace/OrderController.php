@@ -23,7 +23,12 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
-        return view('marketplace.orders.index', compact('purchases', 'sales'));
+        $programOrders = \App\Models\Order::where('user_id', Auth::id())
+            ->with('items.program.coach')
+            ->latest()
+            ->get();
+
+        return view('marketplace.orders.index', compact('purchases', 'sales', 'programOrders'));
     }
 
     public function show(MarketplaceOrder $order)
