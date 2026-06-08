@@ -831,7 +831,8 @@
                                 <button type="button" onclick="addBibText('{name}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{name}</button>
                                 <button type="button" onclick="addBibText('{category}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{category}</button>
                                 <button type="button" onclick="addBibText('{blood_type}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{blood_type}</button>
-                                <button type="button" onclick="addBibText('{emergency_contact_number}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{emergency}</button>
+                                <button type="button" onclick="addBibText('{emergency_contact_number}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{emergency_number}</button>
+                                <button type="button" onclick="addBibText('{emergency_contact_name}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{emergency_name}</button>
                             </div>
                         </div>
                         <div id="bibTextSettings" class="hidden space-y-3 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
@@ -856,6 +857,13 @@
                                     <option value="Montserrat ExtraBold">Montserrat ExtraBold</option>
                                     <option value="Anton">Anton (Bold)</option>
                                 </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 block mb-1">Perataan</label>
+                                <div class="flex gap-2">
+                                    <button type="button" id="bibAlignLeft" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-xs text-white transition">Rata Kiri</button>
+                                    <button type="button" id="bibAlignCenter" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-xs text-white transition">Rata Tengah</button>
+                                </div>
                             </div>
                             <div class="flex gap-2">
                                 <button type="button" id="bibFontBold" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-sm text-white font-bold transition">B</button>
@@ -3576,6 +3584,8 @@
     const fontColorInput = document.getElementById('bibFontColor');
     const fontBoldBtn = document.getElementById('bibFontBold');
     const fontFamilyInput = document.getElementById('bibFontFamily');
+    const alignLeftBtn = document.getElementById('bibAlignLeft');
+    const alignCenterBtn = document.getElementById('bibAlignCenter');
 
     function onBibObjectSelected(e) {
         const obj = e.selected[0];
@@ -3590,6 +3600,13 @@
                 fontBoldBtn.classList.add('bg-slate-700');
             } else {
                 fontBoldBtn.classList.remove('bg-slate-700');
+            }
+            if (obj.originX === 'left') {
+                alignLeftBtn.classList.add('bg-slate-700');
+                alignCenterBtn.classList.remove('bg-slate-700');
+            } else {
+                alignLeftBtn.classList.remove('bg-slate-700');
+                alignCenterBtn.classList.add('bg-slate-700');
             }
         }
     }
@@ -3648,6 +3665,34 @@
                 this.classList.add('bg-slate-700');
             }
             bibCanvas.renderAll();
+        }
+    });
+
+    alignLeftBtn.addEventListener('click', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            if (obj.originX !== 'left') {
+                const center = obj.getCenterPoint();
+                obj.set({ originX: 'left', textAlign: 'left' });
+                obj.setPositionByOrigin(center, 'center', 'center');
+                bibCanvas.renderAll();
+            }
+            this.classList.add('bg-slate-700');
+            alignCenterBtn.classList.remove('bg-slate-700');
+        }
+    });
+
+    alignCenterBtn.addEventListener('click', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            if (obj.originX !== 'center') {
+                const center = obj.getCenterPoint();
+                obj.set({ originX: 'center', textAlign: 'center' });
+                obj.setPositionByOrigin(center, 'center', 'center');
+                bibCanvas.renderAll();
+            }
+            this.classList.add('bg-slate-700');
+            alignLeftBtn.classList.remove('bg-slate-700');
         }
     });
 

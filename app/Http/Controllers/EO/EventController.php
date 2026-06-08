@@ -2370,11 +2370,10 @@ class EventController extends Controller
                     $dynamicBib = substr($dynamicBib, -$takeLast);
                 }
                 $dynamicBib = $prefix . $dynamicBib;
-                
                 foreach ($texts as $t) {
                     $textValue = str_replace(
-                        ['{bib_number}', '{name}', '{category}', '{blood_type}', '{emergency_contact_number}'],
-                        [$dynamicBib, $p->name, $p->category->name ?? '', $p->blood_type ?? '', $p->emergency_contact_number ?? ''],
+                        ['{bib_number}', '{name}', '{category}', '{blood_type}', '{emergency_contact_number}', '{emergency_contact_name}'],
+                        [$dynamicBib, $p->name, $p->category->name ?? '', $p->blood_type ?? '', $p->emergency_contact_number ?? '', $p->emergency_contact_name ?? ''],
                         $t['text']
                     );
                     
