@@ -978,6 +978,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/athletes/{enrollment}/workout/{customWorkout}', [App\Http\Controllers\Coach\AthleteController::class, 'updateWorkout'])->name('athletes.workout.update');
         Route::delete('/athletes/{enrollment}/workout/{customWorkout}', [App\Http\Controllers\Coach\AthleteController::class, 'destroyWorkout'])->name('athletes.workout.destroy');
         Route::post('/athletes/{enrollment}/update-weekly-target', [App\Http\Controllers\Coach\AthleteController::class, 'updateWeeklyTarget'])->name('athletes.update-weekly-target');
+        Route::post('/athletes/{enrollment}/nudge-strava', [App\Http\Controllers\Coach\AthleteController::class, 'nudgeStrava'])->name('athletes.nudge-strava');
+        Route::post('/athletes/{enrollment}/generate-weekly-report', [App\Http\Controllers\Coach\AthleteController::class, 'generateWeeklyReport'])->name('athletes.generate-weekly-report');
+        Route::post('/athletes/{enrollment}/store-weekly-report', [App\Http\Controllers\Coach\AthleteController::class, 'storeWeeklyReport'])->name('athletes.store-weekly-report');
     });
 
     // EO routes

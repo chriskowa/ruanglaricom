@@ -166,6 +166,12 @@
                                 @click="profileTab = 'predictions'">
                                 Race Predictor
                             </button>
+                            <button 
+                                class="text-sm font-bold pb-2 transition border-b-2 whitespace-nowrap"
+                                :class="profileTab === 'weekly_report' ? 'text-neon border-neon' : 'text-slate-400 border-transparent hover:text-white'"
+                                @click="profileTab = 'weekly_report'">
+                                Weekly Report
+                            </button>
                         </div>
 
                         <!-- Training Tab -->
@@ -386,6 +392,85 @@
                                     <div class="text-[9px] text-slate-500 uppercase tracking-widest font-mono">Predicted Finish Time</div>
                                     <div class="text-3xl font-black text-neon italic mt-1 font-mono">@{{ predictedTime.time }}</div>
                                     <div class="text-[10px] text-slate-400 mt-1">Target Pace: <span class="text-white font-bold font-mono">@{{ predictedTime.pace }} /km</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Report Tab -->
+                        <div v-if="profileTab === 'weekly_report'" class="space-y-6">
+                            <!-- Nudge Strava Banner inside tab if not connected -->
+                            <div v-if="!trainingProfile.strava_connected" class="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-lg">⚠️</span>
+                                    <div class="text-left">
+                                        <div class="text-xs font-bold text-white">Strava Belum Terhubung</div>
+                                        <div class="text-[10px] text-slate-400">Atlet ini belum menyinkronkan Strava. Anda dapat meminta mereka menyinkronkan token di dashboard mereka.</div>
+                                    </div>
+                                </div>
+                                <button type="button" @click="nudgeStrava" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark font-black text-xs transition whitespace-nowrap">
+                                    Nudge in App
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <!-- Report Form (Col-span-2) -->
+                                <div class="md:col-span-2 space-y-4">
+                                    <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50">
+                                        <h4 class="text-sm font-black text-white italic tracking-tight mb-4 flex items-center gap-1.5">
+                                            <span>📝</span> Tulis Laporan Mingguan
+                                        </h4>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Minggu Ke</label>
+                                                <input type="number" min="1" max="52" v-model.number="weeklyReportForm.week_number" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white text-xs focus:ring-1 focus:ring-neon outline-none font-bold">
+                                            </div>
+                                            <div class="flex items-end">
+                                                <button type="button" @click="generateWeeklyReport" :disabled="weeklyReportLoading" class="w-full px-4 py-2.5 bg-neon hover:bg-neon/90 disabled:bg-slate-800 disabled:text-slate-600 text-dark font-black text-xs rounded-xl transition flex items-center justify-center gap-2">
+                                                    <span v-if="!weeklyReportLoading">🤖 Hasilkan AI Draft</span>
+                                                    <span v-else class="flex items-center gap-1">
+                                                        <svg class="animate-spin h-3.5 w-3.5 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Menganalisis...
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Konten Laporan</label>
+                                            <textarea rows="10" v-model="weeklyReportForm.report_text" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-xs focus:ring-1 focus:ring-neon outline-none leading-relaxed font-sans" placeholder="Tulis analisis mingguan di sini atau klik 'Hasilkan AI Draft' untuk mendraft secara otomatis..."></textarea>
+                                        </div>
+
+                                        <div class="mt-4 flex justify-end">
+                                            <button type="button" @click="publishWeeklyReport" :disabled="weeklyReportPublishing" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-600 text-dark font-black text-xs rounded-xl transition flex items-center gap-1.5">
+                                                <span v-if="!weeklyReportPublishing">🚀 Terbitkan Rapor Mingguan</span>
+                                                <span v-else class="w-3.5 h-3.5 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- History List (Col-span-1) -->
+                                <div class="md:col-span-1 space-y-4">
+                                    <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50">
+                                        <h4 class="text-sm font-black text-white italic tracking-tight mb-4 flex items-center gap-1.5">
+                                            <span>📂</span> Riwayat Rapor Mingguan
+                                        </h4>
+                                        <div v-if="weeklyReportsList.length === 0" class="text-center py-6 text-xs text-slate-500 italic">
+                                            Belum ada laporan mingguan yang diterbitkan.
+                                        </div>
+                                        <div v-else class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                                            <div v-for="rep in weeklyReportsList" :key="rep.id" @click="selectWeeklyReport(rep)" class="p-3 bg-slate-900/50 hover:bg-slate-900 border border-slate-800 rounded-xl cursor-pointer transition">
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="text-xs font-black text-white">Minggu ke-@{{ rep.week_number }}</span>
+                                                    <span class="text-[9px] text-slate-500 font-mono">@{{ formatDateShort(rep.created_at) }}</span>
+                                                </div>
+                                                <p class="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">@{{ rep.report_text }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1162,6 +1247,15 @@ createApp({
         const weeklyTargetLoading = ref(false);
         const weeklyTargetForm = reactive({
             weekly_km_target: trainingProfile.weekly_km_target || ''
+        });
+
+        // Weekly Report State
+        const weeklyReportLoading = ref(false);
+        const weeklyReportPublishing = ref(false);
+        const weeklyReportsList = ref(@json($enrollment->weeklyReports()->orderBy('week_number', 'desc')->get()) || []);
+        const weeklyReportForm = reactive({
+            week_number: weeklyReportsList.value.length > 0 ? Math.max(...weeklyReportsList.value.map(r => r.week_number)) + 1 : 1,
+            report_text: ''
         });
 
         const updateWeeklyTarget = async () => {
@@ -2613,6 +2707,96 @@ createApp({
             }, 60_000);
         });
 
+        // Weekly Report Actions
+        const nudgeStrava = async () => {
+            if (confirm("Kirim notifikasi in-app ke atlet untuk menghubungkan akun Strava?")) {
+                try {
+                    const res = await fetch(`{{ route('coach.athletes.nudge-strava', $enrollment->id) }}`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert(data.message);
+                    } else {
+                        alert("Gagal mengirim notifikasi.");
+                    }
+                } catch (e) {
+                    alert("Terjadi kesalahan.");
+                }
+            }
+        };
+
+        const generateWeeklyReport = async () => {
+            weeklyReportLoading.value = true;
+            try {
+                const res = await fetch(`{{ route('coach.athletes.generate-weekly-report', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    weeklyReportForm.report_text = data.draft;
+                } else {
+                    alert(data.message || "Gagal menghasilkan draf laporan.");
+                }
+            } catch (e) {
+                alert("Terjadi kesalahan saat menghubungi OpenAI.");
+            } finally {
+                weeklyReportLoading.value = false;
+            }
+        };
+
+        const publishWeeklyReport = async () => {
+            if (!weeklyReportForm.report_text.trim()) {
+                alert("Konten laporan tidak boleh kosong.");
+                return;
+            }
+            weeklyReportPublishing.value = true;
+            try {
+                const res = await fetch(`{{ route('coach.athletes.store-weekly-report', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 
+                        'X-CSRF-TOKEN': csrf, 
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(weeklyReportForm)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Update lists
+                    const index = weeklyReportsList.value.findIndex(r => r.week_number === data.report.week_number);
+                    if (index !== -1) {
+                        weeklyReportsList.value[index] = data.report;
+                    } else {
+                        weeklyReportsList.value.unshift(data.report);
+                    }
+                    // increment suggested week
+                    weeklyReportForm.week_number = Math.max(...weeklyReportsList.value.map(r => r.week_number)) + 1;
+                    weeklyReportForm.report_text = '';
+                    alert(data.message);
+                } else {
+                    alert(data.message || "Gagal menyimpan laporan.");
+                }
+            } catch (e) {
+                alert("Terjadi kesalahan saat menyimpan laporan.");
+            } finally {
+                weeklyReportPublishing.value = false;
+            }
+        };
+
+        const selectWeeklyReport = (rep) => {
+            weeklyReportForm.week_number = rep.week_number;
+            weeklyReportForm.report_text = rep.report_text;
+        };
+
+        const formatDateShort = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        };
+
         return { 
             trainingProfile, profileTab, formatPace,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
@@ -2626,7 +2810,10 @@ createApp({
             // New Features
             predictor, predictedTime,
             chatContainer, chatState, toggleChatDrawer, loadChatMessages, sendChatMessage, formatChatTime,
-            paceComplianceList, healthSummary
+            paceComplianceList, healthSummary,
+            // Weekly Reports
+            nudgeStrava, generateWeeklyReport, publishWeeklyReport, selectWeeklyReport, formatDateShort,
+            weeklyReportLoading, weeklyReportPublishing, weeklyReportsList, weeklyReportForm
         };
     }
 }).mount('#coach-monitor-app');

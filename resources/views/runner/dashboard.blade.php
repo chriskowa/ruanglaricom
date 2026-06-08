@@ -282,6 +282,69 @@
             </div>
 
             <div class="space-y-6">
+                <!-- Weekly Report Cards from Coach -->
+                @if(isset($weeklyReports) && count($weeklyReports) > 0)
+                    <div class="bg-slate-800/40 backdrop-blur-md border border-neon/30 rounded-[2rem] p-6 shadow-xl shadow-neon/5 relative overflow-hidden">
+                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/10 rounded-full blur-3xl"></div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <div class="text-[10px] font-mono text-neon uppercase tracking-widest leading-none">Weekly Insight</div>
+                                <h3 class="text-xl font-black text-white italic tracking-tight mt-1 leading-none">Rapor Mingguan</h3>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-xl bg-neon/10 text-neon font-black text-[10px] uppercase border border-neon/20">
+                                Active Coaching
+                            </span>
+                        </div>
+
+                        <div class="space-y-4">
+                            @foreach($weeklyReports as $index => $report)
+                                <div class="p-4 bg-slate-950/40 rounded-2xl border border-slate-850 {{ $index > 0 ? 'hidden' : '' }}" id="report-card-{{ $report->id }}">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-xs font-black text-white">Minggu ke-{{ $report->week_number }}</span>
+                                        <span class="text-[9px] text-slate-500 font-mono">{{ $report->created_at->format('d M Y') }}</span>
+                                    </div>
+                                    <div class="text-xs text-slate-300 leading-relaxed font-sans whitespace-pre-line">
+                                        {{ $report->report_text }}
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            @if(count($weeklyReports) > 1)
+                                <div class="flex justify-between items-center mt-2 text-[10px] text-slate-400 font-mono">
+                                    <button onclick="toggleOtherReports()" id="toggle-reports-btn" class="hover:text-neon transition">
+                                        Lihat Riwayat Laporan ({{ count($weeklyReports) - 1 }})
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <script>
+                        function toggleOtherReports() {
+                            const reports = document.querySelectorAll('[id^="report-card-"]');
+                            const btn = document.getElementById('toggle-reports-btn');
+                            let isShowingAll = false;
+                            
+                            reports.forEach((el, idx) => {
+                                if (idx > 0) {
+                                    if (el.classList.contains('hidden')) {
+                                        el.classList.remove('hidden');
+                                        isShowingAll = true;
+                                    } else {
+                                        el.classList.add('hidden');
+                                    }
+                                }
+                            });
+                            
+                            if (isShowingAll) {
+                                btn.textContent = "Sembunyikan Riwayat Laporan";
+                            } else {
+                                btn.textContent = "Lihat Riwayat Laporan (" + (reports.length - 1) + ")";
+                            }
+                        }
+                    </script>
+                @endif
+
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Progress</div>
                     <div class="mt-2 flex items-end justify-between gap-3">

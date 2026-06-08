@@ -50,4 +50,9 @@ class ProgramEnrollment extends Model
     {
         return $this->hasMany(RunnerInjuryLog::class, 'enrollment_id');
     }
+
+    public function weeklyReports()
+    {
+        return $this->hasMany(ProgramWeeklyReport::class, 'enrollment_id');
+    }
 }

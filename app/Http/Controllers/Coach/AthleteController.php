@@ -67,6 +67,8 @@ class AthleteController extends Controller
 
         // Get runner profile for context
         $trainingProfile = app(\App\Services\RunningProfileService::class)->getProfile($enrollment->runner);
+        $trainingProfile['strava_connected'] = !empty($enrollment->runner->strava_access_token);
+        $trainingProfile['phone'] = $enrollment->runner->phone;
 
         return view('coach.athletes.show', compact('enrollment', 'trainingProfile'));
     }
@@ -745,6 +747,208 @@ class AthleteController extends Controller
             'success' => true,
             'message' => 'Weekly target updated',
             'weekly_km_target' => $runner->weekly_km_target,
+        ]);
+    }
+
+    public function nudgeStrava(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        // Send In-App Notification
+        \App\Models\Notification::create([
+            'user_id' => $enrollment->runner_id,
+            'type' => 'nudge_strava',
+            'title' => 'Hubungkan Strava Anda',
+            'message' => 'Coach ' . auth()->user()->name . ' meminta Anda menghubungkan akun Strava Anda agar data lari dapat dipantau otomatis.',
+            'reference_type' => 'program_enrollment',
+            'reference_id' => $enrollment->id,
+            'is_read' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notifikasi in-app berhasil dikirim ke atlet untuk menyambungkan Strava!'
+        ]);
+    }
+
+    public function generateWeeklyReport(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $runner = $enrollment->runner;
+        $hasStrava = !empty($runner->strava_access_token);
+
+        // Get the past 7 days of training events
+        $now = Carbon::now();
+        $startOfWeek = $now->copy()->subDays(7)->startOfDay();
+        $endOfWeek = $now->copy()->endOfDay();
+
+        // 1. Scheduled program workouts
+        $program = $enrollment->program;
+        $startDate = $enrollment->start_date;
+        $sessions = $program->program_json['sessions'] ?? [];
+        $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get()->keyBy('session_day');
+
+        $completedWorkoutsText = [];
+        $totalDistanceCompleted = 0;
+        
+        foreach ($sessions as $session) {
+            $day = (int) ($session['day'] ?? 0);
+            if ($day <= 0) continue;
+            
+            $sessionDate = $startDate->copy()->addDays($day - 1);
+            $tracking = $trackings->get($day);
+            if ($tracking && $tracking->rescheduled_date) {
+                $sessionDate = Carbon::parse($tracking->rescheduled_date);
+            }
+
+            if ($sessionDate->between($startOfWeek, $endOfWeek)) {
+                $type = $session['type'] ?? 'Run';
+                $plannedDist = $session['distance'] ?? null;
+                $status = $tracking ? $tracking->status : 'pending';
+                
+                $detailStr = "- Rencana: " . ucwords(str_replace('_', ' ', $type));
+                if ($plannedDist) $detailStr .= " ({$plannedDist} km)";
+                
+                if ($status === 'completed') {
+                    $rpe = $tracking->rpe ?? '-';
+                    $feeling = $tracking->feeling ?? '-';
+                    $notes = $tracking->notes ?? 'Tidak ada catatan';
+                    $detailStr .= " | Status: SELESAI, RPE: {$rpe}, Feeling: {$feeling}, Catatan: '{$notes}'";
+                    
+                    $completedWorkoutsText[] = $detailStr;
+                    $totalDistanceCompleted += (float) $plannedDist;
+                } elseif ($status === 'missed') {
+                    $completedWorkoutsText[] = $detailStr . " | Status: LEWAT (MISSED)";
+                } else {
+                    $completedWorkoutsText[] = $detailStr . " | Status: PENDING / BELUM SELESAI";
+                }
+            }
+        }
+
+        // 2. Custom Workouts
+        $customWorkouts = \App\Models\CustomWorkout::where('runner_id', $runner->id)
+            ->whereBetween('workout_date', [$startOfWeek, $endOfWeek])
+            ->get();
+            
+        foreach ($customWorkouts as $cw) {
+            $type = $cw->type;
+            $dist = $cw->distance ?? 0;
+            $status = $cw->status ?? 'pending';
+            $detailStr = "- Kustom: " . ucwords(str_replace('_', ' ', $type)) . " ({$dist} km)";
+            if ($status === 'completed') {
+                $detailStr .= " | Status: SELESAI";
+                $totalDistanceCompleted += (float) $dist;
+                $completedWorkoutsText[] = $detailStr;
+            } else {
+                $detailStr .= " | Status: " . strtoupper($status);
+                $completedWorkoutsText[] = $detailStr;
+            }
+        }
+
+        // 3. Strava activities
+        $stravaDetailsText = [];
+        if ($hasStrava) {
+            $stravaActivities = StravaActivity::where('user_id', $runner->id)
+                ->whereBetween('start_date', [$startOfWeek, $endOfWeek])
+                ->get();
+                
+            foreach ($stravaActivities as $act) {
+                $distKm = $act->distance_m ? round($act->distance_m / 1000, 2) : 0;
+                $durationMin = $act->moving_time_s ? round($act->moving_time_s / 60, 1) : 0;
+                $pace = ($distKm > 0 && $act->moving_time_s > 0) ? ($act->moving_time_s / $distKm) : null;
+                $paceStr = $pace ? gmdate('i:s', (int) $pace) : '-';
+                
+                $stravaDetailsText[] = "- Strava Run: {$act->name} | {$distKm} km dalam {$durationMin} menit (Avg Pace: {$paceStr}/km)";
+            }
+        }
+
+        // Build OpenAI Prompt
+        $prompt = "Anda adalah Coach AI Ruang Lari.\n";
+        $prompt .= "Buat draf laporan mingguan (Weekly Report Card) untuk atlet bernama {$runner->name}.\n";
+        $prompt .= "Profil Atlet:\n";
+        $prompt .= "- VDOT saat ini: " . ($runner->vdot ?? 'Belum ada') . "\n";
+        $prompt .= "- Target Jarak Mingguan: " . ($runner->weekly_km_target ?? 'Belum ada') . " km\n\n";
+        
+        $prompt .= "Data Latihan (7 Hari Terakhir):\n";
+        $prompt .= "Aktivitas Terjadwal & Log Manual:\n";
+        if (empty($completedWorkoutsText)) {
+            $prompt .= "- Tidak ada aktivitas terjadwal minggu ini.\n";
+        } else {
+            $prompt .= implode("\n", $completedWorkoutsText) . "\n";
+        }
+        
+        if ($hasStrava) {
+            $prompt .= "\nAktivitas Sinkronisasi Strava:\n";
+            if (empty($stravaDetailsText)) {
+                $prompt .= "- Tidak ada aktivitas Strava terdeteksi minggu ini.\n";
+            } else {
+                $prompt .= implode("\n", $stravaDetailsText) . "\n";
+            }
+        } else {
+            $prompt .= "\n(Atlet belum menghubungkan Strava, analisis sepenuhnya berdasarkan log manual & RPE/perasaan diatas)\n";
+        }
+        
+        $prompt .= "\nBerikan analisis yang konstruktif dan memotivasi menggunakan bahasa Indonesia yang santai, bersahabat namun profesional (gaya 'Coach Gaul'). Jangan terlalu kaku.\n";
+        $prompt .= "Struktur laporan wajib memiliki:\n";
+        $prompt .= "1. **Ringkasan Performa**: Evaluasi volume latihan (jarak/frekuensi) dibanding target.\n";
+        $prompt .= "2. **Analisis Kepatuhan & Intensitas**: Ulas RPE/perasaan atlet atau kesesuaian pace Strava.\n";
+        $prompt .= "3. **Rekomendasi Pemulihan & Cedera**: Peringatan jika RPE tinggi berturut-turut atau fatigue tinggi.\n";
+        $prompt .= "4. **Tindakan Lanjutan**: Apa yang harus dilakukan minggu depan.\n";
+
+        $aiService = app(\App\Services\OpenAiService::class);
+        $draft = $aiService->getAiResponse($prompt, "Anda adalah pelatih lari AI profesional Indonesia yang disebut Coach Gaul.");
+
+        return response()->json([
+            'success' => true,
+            'draft' => $draft ?: "Gagal menghasilkan draf laporan. Silakan coba beberapa saat lagi."
+        ]);
+    }
+
+    public function storeWeeklyReport(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'week_number' => 'required|integer|min:1',
+            'report_text' => 'required|string',
+        ]);
+
+        $report = \App\Models\ProgramWeeklyReport::updateOrCreate(
+            [
+                'enrollment_id' => $enrollment->id,
+                'week_number' => $validated['week_number'],
+            ],
+            [
+                'report_text' => $validated['report_text'],
+                'status' => 'published',
+            ]
+        );
+
+        // Notify Runner
+        \App\Models\Notification::create([
+            'user_id' => $enrollment->runner_id,
+            'type' => 'weekly_report',
+            'title' => 'Weekly Report Card Baru!',
+            'message' => 'Coach ' . auth()->user()->name . ' telah menerbitkan Rapor Mingguan (Minggu ' . $validated['week_number'] . ') Anda.',
+            'reference_type' => 'program_weekly_report',
+            'reference_id' => $report->id,
+            'is_read' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Laporan mingguan berhasil disimpan dan diterbitkan untuk atlet.',
+            'report' => $report
         ]);
     }
 }

@@ -21,6 +21,11 @@ class DashboardController extends Controller
             ->with('program')
             ->get();
 
+        $weeklyReports = \App\Models\ProgramWeeklyReport::whereIn('enrollment_id', $activeEnrollments->pluck('id'))
+            ->where('status', 'published')
+            ->orderBy('week_number', 'desc')
+            ->get();
+
         $totalEarnings = 0;
         if ($user->wallet) {
             $totalEarnings = $user->wallet->transactions()
@@ -328,6 +333,7 @@ class DashboardController extends Controller
             'todayWorkout' => $todayWorkout,
             'todayWorkoutCount' => count($todayWorkouts),
             'greeting' => $greeting,
+            'weeklyReports' => $weeklyReports,
         ]);
     }
 
