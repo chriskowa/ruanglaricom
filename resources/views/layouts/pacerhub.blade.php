@@ -6,11 +6,25 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
+        $isDashboard = (isset($withSidebar) && $withSidebar) || request()->is('admin/*', 'runner/*', 'coach/*', 'eo/*', 'admin', 'runner', 'coach', 'eo');
         $gsc = \App\Models\AppSettings::get('google_search_console');
         $bsc = \App\Models\AppSettings::get('bing_search_console');
         $ga = \App\Models\AppSettings::get('google_analytics');
         $gads = \App\Models\AppSettings::get('google_ads_tag');
     @endphp
+
+    @if($isDashboard)
+    <script>
+        (function() {
+            var state = localStorage.getItem('sidebar_expanded');
+            if (state === 'false') {
+                document.documentElement.classList.add('sidebar-collapsed');
+            } else {
+                document.documentElement.classList.remove('sidebar-collapsed');
+            }
+        })();
+    </script>
+    @endif
 
     @if($gsc)
     <meta name="google-site-verification" content="{{ $gsc }}" />
@@ -206,6 +220,54 @@
 
         /* Hide reCAPTCHA v3 badge */
         .grecaptcha-badge { visibility: hidden !important; }
+
+        /* Fixed full-height sidebar layout */
+        @if($isDashboard)
+        #ph-sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 16rem !important;
+            height: 100vh !important;
+            z-index: 50 !important;
+            transform: translateX(-100%);
+            transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
+        }
+        #ph-sidebar.show {
+            transform: translateX(0) !important;
+        }
+        #pacerhub-nav {
+            transition: left 0.2s ease-in-out, width 0.2s ease-in-out;
+        }
+        #main-content-wrapper {
+            transition: padding-left 0.2s ease-in-out;
+        }
+
+        @media (min-width: 1024px) {
+            #ph-sidebar {
+                transform: translateX(0) !important;
+            }
+            html.sidebar-collapsed #ph-sidebar {
+                transform: translateX(-100%) !important;
+            }
+            html:not(.sidebar-collapsed) #main-content-wrapper {
+                padding-left: 16rem !important;
+            }
+            html:not(.sidebar-collapsed) #pacerhub-nav {
+                left: 16rem !important;
+                width: calc(100% - 16rem) !important;
+            }
+            html:not(.sidebar-collapsed) #pacerhub-nav .nav-logo {
+                opacity: 0 !important;
+                visibility: hidden !important;
+                width: 0 !important;
+                margin-right: 0 !important;
+                padding-left: 0 !important;
+                overflow: hidden !important;
+            }
+        }
+        @endif
     </style>
     @stack('styles')
     @stack('structured_data')
@@ -220,22 +282,25 @@
 
     <div id="app" class="flex flex-col min-h-screen">
         
-        @if(!isset($hideNav) || !$hideNav)
-            @include('layouts.components.pacerhub-nav', ['lightMode' => $lightMode ?? false])
-        @endif
-
-        @if(isset($withSidebar) && $withSidebar && (!isset($hideSidebar) || !$hideSidebar))
-            <div id="ph-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+        @if($isDashboard)
+            <!-- Sidebar backdrop for mobile -->
+            <div id="ph-sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden"></div>
             @include('layouts.components.pacerhub-sidebar', ['lightMode' => $lightMode ?? false])
         @endif
 
-        <main class="flex-grow w-full {{ (!isset($hideNav) || !$hideNav) ? (isset($navHeight) ? 'pt-['.$navHeight.']' : 'pt-20') : '' }}">
-            @yield('content')
-        </main>
+        <div id="main-content-wrapper" class="flex flex-col min-h-screen flex-grow">
+            @if(!isset($hideNav) || !$hideNav)
+                @include('layouts.components.pacerhub-nav', ['lightMode' => $lightMode ?? false, 'isDashboard' => $isDashboard])
+            @endif
 
-        @if(!isset($hideFooter) || !$hideFooter)
-            @include('layouts.components.pacerhub-footer', ['lightMode' => $lightMode ?? false])
-        @endif
+            <main class="flex-grow w-full {{ (!isset($hideNav) || !$hideNav) ? (isset($navHeight) ? 'pt-['.$navHeight.']' : 'pt-20') : '' }}">
+                @yield('content')
+            </main>
+
+            @if(!isset($hideFooter) || !$hideFooter)
+                @include('layouts.components.pacerhub-footer', ['lightMode' => $lightMode ?? false])
+            @endif
+        </div>
 
     </div>
 
@@ -312,26 +377,43 @@
             var btn = document.getElementById('ph-sidebar-toggle');
             var sidebar = document.getElementById('ph-sidebar');
             var backdrop = document.getElementById('ph-sidebar-backdrop');
-            function openSidebar(){
-                if(!sidebar) return;
-                sidebar.classList.remove('-translate-x-full');
-                if(backdrop){ backdrop.classList.remove('hidden'); }
+            
+            function toggleSidebar() {
+                if (window.innerWidth >= 1024) {
+                    var isCollapsed = document.documentElement.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebar_expanded', isCollapsed ? 'false' : 'true');
+                } else {
+                    if (sidebar) {
+                        if (sidebar.classList.contains('show')) {
+                            sidebar.classList.remove('show');
+                            if (backdrop) backdrop.classList.add('hidden');
+                        } else {
+                            sidebar.classList.add('show');
+                            if (backdrop) backdrop.classList.remove('hidden');
+                        }
+                    }
+                }
             }
-            function closeSidebar(){
-                if(!sidebar) return;
-                sidebar.classList.add('-translate-x-full');
-                if(backdrop){ backdrop.classList.add('hidden'); }
+
+            function closeMobileSidebar() {
+                if (sidebar) sidebar.classList.remove('show');
+                if (backdrop) backdrop.classList.add('hidden');
             }
-            if(btn){
-                btn.addEventListener('click', function(){
-                    if(sidebar && sidebar.classList.contains('-translate-x-full')){ openSidebar(); } else { closeSidebar(); }
+
+            if (btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleSidebar();
                 });
             }
-            if(backdrop){
-                backdrop.addEventListener('click', closeSidebar);
+            if (backdrop) {
+                backdrop.addEventListener('click', closeMobileSidebar);
             }
-            document.addEventListener('keydown', function(e){
-                if(e.key === 'Escape'){ closeSidebar(); }
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeMobileSidebar();
+                }
             });
         })();
     </script>

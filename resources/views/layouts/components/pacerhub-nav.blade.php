@@ -1,6 +1,6 @@
 @php $lightMode = $lightMode ?? false; @endphp
 <style>[x-cloak]{display:none !important;}</style>
-<nav class="border-b {{ $lightMode ? 'border-slate-200 bg-white/90' : 'border-slate-800 bg-dark/80' }} backdrop-blur-md fixed w-full z-40">
+<nav id="pacerhub-nav" class="border-b {{ $lightMode ? 'border-slate-200 bg-white/90' : 'border-slate-800 bg-dark/80' }} backdrop-blur-md fixed w-full z-40">
     @php
         $headerMenu = \App\Models\Menu::where('location', 'header')
             ->with(['items' => function($q) {
@@ -12,13 +12,20 @@
     @endphp
     <div class="max-w-7xl mx-auto p-2">
         <div class="flex items-center justify-between h-20">
-            <!-- Left Side: Logo -->
-            <div class="flex items-center gap-1 pl-2">
-                <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
-                <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" 
-                    class="text-lg xs:text-xl font-black italic tracking-tighter flex items-center {{ $lightMode ? 'text-slate-900' : 'text-white' }}">
-                    RUANG<span class="pl-1" style="{{ $lightMode ? 'color: #000000ff;' : 'color: #ccff00;' }}">LARI</span>
-                </a>
+            <!-- Left Side: Logo & Sidebar Toggle -->
+            <div class="flex items-center gap-2 pl-2">
+                @if(isset($isDashboard) && $isDashboard)
+                <button id="ph-sidebar-toggle" class="p-2 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300' }} transition-colors" title="Toggle Sidebar">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                @endif
+                <div class="flex items-center gap-1 nav-logo">
+                    <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
+                    <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" 
+                        class="text-lg xs:text-xl font-black italic tracking-tighter flex items-center {{ $lightMode ? 'text-slate-900' : 'text-white' }}">
+                        RUANG<span class="pl-1" style="{{ $lightMode ? 'color: #000000ff;' : 'color: #ccff00;' }}">LARI</span>
+                    </a>
+                </div>
             </div>
        
             <div class="flex-1 hidden md:flex items-center justify-center gap-1">
@@ -69,9 +76,11 @@
             
             <!-- Right Side: Navigation & Actions -->
             <div class="flex items-center gap-1">
-                <button id="ph-sidebar-toggle" class="p-2 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300' }} transition-colors" title="Menu">
+                @if(!isset($isDashboard) || !$isDashboard)
+                <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-300' }} transition-colors" title="Menu">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
+                @endif
 
                 <!-- Cart Icon -->
                 @auth
@@ -479,7 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Mobile Menu Toggle
-    const mobileBtn = document.getElementById('mobile-menu-toggle') || document.getElementById('ph-sidebar-toggle');
+    const mobileBtn = document.getElementById('mobile-menu-toggle');
     const mobileMenu = document.getElementById('mobile-menu-panel');
     const mobileMenuLinks = mobileMenu ? mobileMenu.querySelectorAll('a') : [];
 
