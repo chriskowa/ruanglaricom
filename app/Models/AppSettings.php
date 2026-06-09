@@ -10,13 +10,15 @@ class AppSettings extends Model
 
     public static function get($key, $default = null)
     {
-        $setting = self::where('key', $key)->first();
-
-        return $setting ? $setting->value : $default;
+        return \Illuminate\Support\Facades\Cache::remember("app_settings.{$key}", 3600, function () use ($key, $default) {
+            $setting = self::where('key', $key)->first();
+            return $setting ? $setting->value : $default;
+        });
     }
 
     public static function set($key, $value)
     {
+        \Illuminate\Support\Facades\Cache::forget("app_settings.{$key}");
         return self::updateOrCreate(
             ['key' => $key],
             ['value' => $value]

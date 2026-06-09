@@ -103,27 +103,35 @@
     
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     
+    @if(empty($skipHeavyAssets))
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    @endif
 
     @php($recaptchaSiteKeyV3 = env('RECAPTCHA_SITE_KEY_v3'))
     @if($recaptchaSiteKeyV3)
         <script src="https://www.google.com/recaptcha/api.js?render={{ $recaptchaSiteKeyV3 }}"></script>
     @endif
+    @if(empty($skipHeavyAssets))
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    @endif
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     
+    @if(empty($skipHeavyAssets))
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/duration.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
-    <script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" 
-            data-client-key="{{ config('midtrans.is_production') ? config('midtrans.client_key') : config('midtrans.client_key_sandbox') }}"></script>
     <script>
         dayjs.extend(window.dayjs_plugin_duration);
         dayjs.extend(window.dayjs_plugin_relativeTime);
     </script>
+
+    <script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" 
+            data-client-key="{{ config('midtrans.is_production') ? config('midtrans.client_key') : config('midtrans.client_key_sandbox') }}"></script>
+    @endif
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 

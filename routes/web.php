@@ -561,85 +561,87 @@ Route::get('/blog/{slug}', [App\Http\Controllers\BlogController::class, 'show'])
 
 // Public API: Upcoming events for home page
 Route::get('/api/events/upcoming', function () {
-    try {
-        if (! Illuminate\Support\Facades\Schema::hasTable('events')) {
-            return response()->json([]);
-        }
+    return Illuminate\Support\Facades\Cache::remember('api.events.upcoming', 600, function () {
+        try {
+            if (! Illuminate\Support\Facades\Schema::hasTable('events')) {
+                return [];
+            }
 
-        $now = now();
+            $now = now();
 
-        $baseQuery = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id', 'external_registration_link')
-            ->where('start_at', '>=', $now)
-            ->orderBy('start_at', 'asc');
-
-        $events = (clone $baseQuery)
-            ->whereYear('start_at', $now->year)
-            ->whereMonth('start_at', $now->month)
-            ->limit(4)
-            ->get();
-
-        if ($events->isEmpty()) {
-            $nextMonth = $now->copy()->addMonth();
+            $baseQuery = App\Models\Event::select('name', 'slug', 'start_at', 'location_name', 'created_at', 'user_id', 'external_registration_link')
+                ->where('start_at', '>=', $now)
+                ->orderBy('start_at', 'asc');
 
             $events = (clone $baseQuery)
-                ->whereYear('start_at', $nextMonth->year)
-                ->whereMonth('start_at', $nextMonth->month)
+                ->whereYear('start_at', $now->year)
+                ->whereMonth('start_at', $now->month)
                 ->limit(4)
                 ->get();
+
+            if ($events->isEmpty()) {
+                $nextMonth = $now->copy()->addMonth();
+
+                $events = (clone $baseQuery)
+                    ->whereYear('start_at', $nextMonth->year)
+                    ->whereMonth('start_at', $nextMonth->month)
+                    ->limit(4)
+                    ->get();
+            }
+
+            return $events->map(function ($e) {
+                $dt = $e->start_at ?: $e->created_at;
+
+                return [
+                    'name' => $e->name,
+                    'slug' => $e->slug ?: Illuminate\Support\Str::slug($e->name),
+                    'is_eo' => $e->is_eo,
+                    'date' => optional($dt)->format('Y-m-d'),
+                    'time' => optional($dt)->format('H:i'),
+                    'location' => $e->location_name,
+                    'url' => $e->public_url,
+                ];
+            })->toArray();
+        } catch (\Throwable $e) {
+            return [];
         }
-
-        $payload = $events->map(function ($e) {
-            $dt = $e->start_at ?: $e->created_at;
-
-            return [
-                'name' => $e->name,
-                'slug' => $e->slug ?: Illuminate\Support\Str::slug($e->name),
-                'is_eo' => $e->is_eo,
-                'date' => optional($dt)->format('Y-m-d'),
-                'time' => optional($dt)->format('H:i'),
-                'location' => $e->location_name,
-                'url' => $e->public_url,
-            ];
-        });
-
-        return response()->json($payload);
-    } catch (\Throwable $e) {
-        return response()->json([]);
-    }
+    });
 })->name('api.events.upcoming');
 
 // Public API: Latest blog articles for home page
 Route::get('/api/blog/latest', function () {
-    try {
-        if (! Illuminate\Support\Facades\Schema::hasTable('articles')) {
-            return response()->json([]);
+    return Illuminate\Support\Facades\Cache::remember('api.blog.latest', 600, function () {
+        try {
+            if (! Illuminate\Support\Facades\Schema::hasTable('articles')) {
+                return [];
+            }
+
+            return \App\Models\Article::published()
+                ->orderByDesc('is_featured')
+                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->limit(3)
+                ->get()
+                ->map(function ($a) {
+                    $img = $a->featured_image;
+                    if ($img && ! str_starts_with($img, 'http')) {
+                        $img = asset('storage/'.ltrim($img, '/'));
+                    }
+
+                    $dt = $a->published_at ?: $a->created_at;
+
+                    return [
+                        'title' => $a->localized_title,
+                        'slug' => $a->slug,
+                        'excerpt' => $a->localized_excerpt,
+                        'date' => optional($dt)->format('Y-m-d'),
+                        'image' => $img,
+                        'url' => $a->localized_canonical_url ?: route('blog.show', $a->slug),
+                    ];
+                })->toArray();
+        } catch (\Throwable $e) {
+            return [];
         }
-
-        return \App\Models\Article::published()
-            ->orderByDesc('is_featured')
-            ->orderByRaw('COALESCE(published_at, created_at) DESC')
-            ->limit(3)
-            ->get()
-            ->map(function ($a) {
-                $img = $a->featured_image;
-                if ($img && ! str_starts_with($img, 'http')) {
-                    $img = asset('storage/'.ltrim($img, '/'));
-                }
-
-                $dt = $a->published_at ?: $a->created_at;
-
-                return [
-                    'title' => $a->localized_title,
-                    'slug' => $a->slug,
-                    'excerpt' => $a->localized_excerpt,
-                    'date' => optional($dt)->format('Y-m-d'),
-                    'image' => $img,
-                    'url' => $a->localized_canonical_url ?: route('blog.show', $a->slug),
-                ];
-            });
-    } catch (\Throwable $e) {
-        return response()->json([]);
-    }
+    });
 })->name('api.blog.latest');
 
 // Public API: Cyberpunk Leaderboard (40days)

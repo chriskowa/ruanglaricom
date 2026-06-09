@@ -58,6 +58,7 @@ class PageController extends Controller
                     'page' => $page,
                     'featuredEvents' => $featuredEvents,
                     'primaryMenu' => $primaryMenu,
+                    'skipHeavyAssets' => true,
                 ]);
             }
         }
@@ -110,6 +111,7 @@ class PageController extends Controller
             'featuredArticles' => $featuredArticles,
             'leaderboard' => $leaderboard,
             'primaryMenu' => $primaryMenu,
+            'skipHeavyAssets' => true,
         ]);
     }
 }
