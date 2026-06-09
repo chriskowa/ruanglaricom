@@ -830,6 +830,7 @@
                                 <button type="button" onclick="addBibText('{bib_number}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{bib_number}</button>
                                 <button type="button" onclick="addBibText('{name}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{name}</button>
                                 <button type="button" onclick="addBibText('{category}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{category}</button>
+                                
                                 <button type="button" onclick="addBibText('{blood_type}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{blood_type}</button>
                                 <button type="button" onclick="addBibText('{emergency_contact_number}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{emergency_number}</button>
                                 <button type="button" onclick="addBibText('{emergency_contact_name}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{emergency_name}</button>

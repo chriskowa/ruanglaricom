@@ -2370,10 +2370,23 @@ class EventController extends Controller
                     $dynamicBib = substr($dynamicBib, -$takeLast);
                 }
                 $dynamicBib = $prefix . $dynamicBib;
+                
+                $genderVal = '';
+                if (!empty($p->gender)) {
+                    $gLower = strtolower(trim($p->gender));
+                    if (in_array($gLower, ['male', 'm', 'laki-laki', 'l', 'men', 'man', 'laki - laki'])) {
+                        $genderVal = 'M';
+                    } elseif (in_array($gLower, ['female', 'f', 'perempuan', 'p', 'women', 'woman'])) {
+                        $genderVal = 'F';
+                    } else {
+                        $genderVal = strtoupper(substr($p->gender, 0, 1));
+                    }
+                }
+
                 foreach ($texts as $t) {
                     $textValue = str_replace(
-                        ['{bib_number}', '{name}', '{category}', '{blood_type}', '{emergency_contact_number}', '{emergency_contact_name}'],
-                        [$dynamicBib, $p->name, $p->category->name ?? '', $p->blood_type ?? '', $p->emergency_contact_number ?? '', $p->emergency_contact_name ?? ''],
+                        ['{bib_number}', '{name}', '{category}', '{blood_type}', '{emergency_contact_number}', '{emergency_contact_name}', '{gender}'],
+                        [$dynamicBib, $p->name, $p->category->name ?? '', $p->blood_type ?? '', $p->emergency_contact_number ?? '', $p->emergency_contact_name ?? '', $genderVal],
                         $t['text']
                     );
                     
