@@ -11,6 +11,10 @@ Route::post('/api/moota/webhook', [App\Http\Controllers\MootaWebhookController::
 // Homepage with template support
 Route::get('/', [App\Http\Controllers\PageController::class, 'homepage'])->name('home');
 
+Route::get('/about', function () {
+    return view('pages.about');
+})->name('about');
+
 Route::get('/join-now', App\Http\Controllers\JoinNowController::class)->name('home.join-now');
 
 // Challenge: 40 Days Challenge - reuse realistic program design view with challenge mode

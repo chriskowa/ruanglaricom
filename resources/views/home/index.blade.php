@@ -1,5 +1,10 @@
 @extends('layouts.pacerhub')
 
+@section('title', 'Ruang Lari | Ticketing Event Lari Advanced, Kalender Event, Pacer & Training Plans')
+@section('meta_title', 'Ruang Lari: Ticketing Event Lari Advanced & Ekosistem Pelari')
+@section('meta_description', 'Ruang Lari adalah platform event lari: ticketing dinamis untuk EO (kategori & kuota real-time, promo/kupon, add-ons, pembayaran terintegrasi, dashboard), plus kalender event, pacer, coach, dan tools performa.')
+@section('canonical_url', url('/'))
+
 @section('content')
     <div id="home-app" class="overflow-x-hidden">
         
@@ -47,13 +52,16 @@
                             @if($homepageContent && $homepageContent->subheadline)
                                 {!! $homepageContent->subheadline !!}
                             @else
-                                Platform all-in-one untuk pelari, pacer, dan pelatih. Temukan event, pantau progres, dan raih personal best Anda bersama <span class="text-white font-bold">Ruang Lari</span>.
+                                Platform event lari dan ekosistem pelari. Untuk EO: ticketing dinamis dengan kategori & kuota real-time, promo/kupon, add-ons, dan pembayaran terintegrasi. Untuk pelari: temukan event, pacer, dan program latihan bersama <span class="text-white font-bold">Ruang Lari</span>.
                             @endif
                         </p>
                         
                         <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                            <a href="{{ route('home.join-now') }}" class="px-8 py-4 bg-neon text-dark font-black rounded-xl hover:bg-white hover:scale-105 transition transform shadow-[0_0_30px_rgba(204,255,0,0.3)] text-center">
+                            <a href="{{ route('about') }}" class="px-8 py-4 bg-neon text-dark font-black rounded-xl hover:bg-white hover:scale-105 transition transform shadow-[0_0_30px_rgba(204,255,0,0.3)] text-center">
                                 MULAI SEKARANG
+                            </a>
+                            <a href="{{ route('eo.landing') }}" class="px-8 py-4 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-500 hover:scale-105 transition transform text-center">
+                                SOLUSI EO
                             </a>
                             <a href="#events" class="px-8 py-4 border border-slate-700 text-white font-bold rounded-xl hover:bg-slate-800 hover:border-slate-500 transition flex items-center justify-center gap-2 group">
                                 <svg class="w-5 h-5 text-neon group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
@@ -437,6 +445,67 @@
                         </div>
                     </div>
 
+                </div>
+            </div>
+        </section>
+
+        <section class="py-24 bg-dark relative overflow-hidden">
+            <div class="absolute inset-0 bg-slate-900/20"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-14">
+                    <div data-aos="fade-right">
+                        <span class="text-blue-400 font-bold tracking-widest uppercase text-sm mb-2 block">Solusi Untuk Event Organizer</span>
+                        <h2 class="text-3xl md:text-5xl font-black text-white">
+                            TICKETING EVENT <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">ADVANCED</span>
+                        </h2>
+                        <p class="text-slate-400 mt-4 max-w-2xl">
+                            Sistem yang dibuat spesifik untuk event lari: fleksibel, dinamis, dan siap dipakai dari registrasi sampai race day.
+                        </p>
+                    </div>
+                    <div class="flex gap-3" data-aos="fade-left">
+                        <a href="{{ route('eo.landing') }}" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-white transition">
+                            Lihat Detail
+                        </a>
+                        <a href="{{ route('events.index') }}" class="px-6 py-3 rounded-xl border border-slate-700 text-white font-bold hover:bg-slate-800 transition">
+                            Contoh Event
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-blue-500/50 transition" data-aos="fade-up" data-aos-delay="0">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 border border-blue-500/20">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                        <div class="text-white font-black text-lg mb-2">Kategori & Kuota Real-time</div>
+                        <div class="text-slate-400 text-sm leading-relaxed">Atur kategori tiket, batas kuota, dan status sold-out yang selalu update.</div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-neon/50 transition" data-aos="fade-up" data-aos-delay="100">
+                        <div class="w-12 h-12 rounded-xl bg-neon/10 flex items-center justify-center text-neon mb-4 border border-neon/20">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5 5.5L4 19l5.5-5.5M14 9l5.5-5.5L20 4l-5.5 5.5M6 6l12 12" /></svg>
+                        </div>
+                        <div class="text-white font-black text-lg mb-2">Promo, Kupon, Add-ons</div>
+                        <div class="text-slate-400 text-sm leading-relaxed">Buat strategi pricing yang lincah: kupon/promo dan add-ons per peserta.</div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-purple-500/50 transition" data-aos="fade-up" data-aos-delay="200">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-4 border border-purple-500/20">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2v1c0 1.105 1.343 2 3 2s3 .895 3 2v1c0 1.105-1.343 2-3 2m0-14v2m0 16v2m9-10a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div class="text-white font-black text-lg mb-2">Pembayaran Terintegrasi</div>
+                        <div class="text-slate-400 text-sm leading-relaxed">Checkout cepat, status pembayaran jelas, dan alur pembayaran yang rapi.</div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/50 transition" data-aos="fade-up" data-aos-delay="300">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-4 border border-emerald-500/20">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2m-6 6h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2h2" /></svg>
+                        </div>
+                        <div class="text-white font-black text-lg mb-2">Dashboard & Race Ops</div>
+                        <div class="text-slate-400 text-sm leading-relaxed">Kelola data peserta, operasional, laporan, dan export untuk tim race day.</div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -899,6 +968,32 @@
         50% { transform: translateY(-10px) rotate(12deg); } 
     }
 </style>
+@endpush
+
+@push('structured_data')
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@graph' => [
+        [
+            '@type' => 'Organization',
+            'name' => 'Ruang Lari',
+            'url' => url('/'),
+            'logo' => asset('images/ruanglari_green.png'),
+        ],
+        [
+            '@type' => 'WebSite',
+            'name' => 'Ruang Lari',
+            'url' => url('/'),
+        ],
+        [
+            '@type' => 'WebPage',
+            'name' => 'Ruang Lari',
+            'url' => url('/'),
+        ],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
 @endpush
 
 @push('scripts')

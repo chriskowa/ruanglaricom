@@ -9,6 +9,7 @@ class SitemapController extends Controller
         // 1. Static Pages
         $urls = [
             ['loc' => route('home'), 'priority' => '1.0', 'changefreq' => 'daily'],
+            ['loc' => route('about'), 'priority' => '0.8', 'changefreq' => 'monthly'],
             ['loc' => route('events.index'), 'priority' => '0.9', 'changefreq' => 'daily'],
             ['loc' => route('programs.index'), 'priority' => '0.8', 'changefreq' => 'weekly'],
             ['loc' => route('marketplace.index'), 'priority' => '0.8', 'changefreq' => 'daily'],
@@ -18,6 +19,7 @@ class SitemapController extends Controller
             ['loc' => route('coaches.index'), 'priority' => '0.7', 'changefreq' => 'weekly'],
             ['loc' => route('challenge.index'), 'priority' => '0.7', 'changefreq' => 'daily'],
             ['loc' => route('vcard.index'), 'priority' => '0.6', 'changefreq' => 'weekly'],
+            ['loc' => route('eo.landing'), 'priority' => '0.8', 'changefreq' => 'monthly'],
         ];
 
         // 2. Events (Published)
