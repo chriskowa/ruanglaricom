@@ -965,7 +965,7 @@
                             @endif
                         </div>
 
-                        <h3 class="text-3xl font-bold text-white mb-2">{{ $cat->name }} Umum/Master</h3>
+                        <h3 class="text-3xl font-bold text-white mb-2">{{ $cat->name }}</h3>
                         <p class="text-slate-400 text-sm mb-8 flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Cut Off Time: <strong class="text-brand-400">{{ $cat->cutoff_minutes ? round($cat->cutoff_minutes/60, 1) : '-' }} Jam</strong>
