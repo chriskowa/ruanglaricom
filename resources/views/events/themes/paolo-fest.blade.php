@@ -2161,8 +2161,14 @@
         </div>
 
         @php
-            $ugcTemplatePath = public_path('images/paolo/ugc-template.png');
-            $ugcTemplateVersion = file_exists($ugcTemplatePath) ? filemtime($ugcTemplatePath) : null;
+            $ugcTemplateUrl = $event->twibbon_image ? asset('storage/' . $event->twibbon_image) : asset('images/paolo/ugc-template.png');
+            if (!$event->twibbon_image) {
+                $ugcTemplatePath = public_path('images/paolo/ugc-template.png');
+                $ugcTemplateVersion = file_exists($ugcTemplatePath) ? filemtime($ugcTemplatePath) : null;
+                if ($ugcTemplateVersion) {
+                    $ugcTemplateUrl .= '?v=' . $ugcTemplateVersion;
+                }
+            }
         @endphp
 
         <div class="flex flex-col lg:flex-row gap-10 items-center justify-center">
@@ -2173,7 +2179,7 @@
                         data-event-date="{{ $event->start_at->format('d F Y') }}"
                         data-event-location="{{ $event->location_name }}"
                         data-event-logo="{{ $event->logo_image ? asset('storage/'.$event->logo_image) : '' }}"
-                        data-template-url="{{ asset('images/paolo/ugc-template.png') }}@if($ugcTemplateVersion)?v={{ $ugcTemplateVersion }}@endif">
+                        data-template-url="{{ $ugcTemplateUrl }}">
                     </canvas>
                 </div>
             </div>

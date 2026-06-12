@@ -724,11 +724,7 @@
                         </p>
                     </div>                    
 
-                    @if($isRegOpen)
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent-500/20 border border-accent-500/30 text-accent-400 text-sm font-bold mb-6 animate-pulse">
-                        <i class="fas fa-fire"></i> TIKET SEMAKIN MENIPIS! BURUAN REGISTER
-                    </div>
-                    @endif
+                    
 
                     <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
                         @if($isRegOpen)
@@ -879,12 +875,12 @@
                     <div class="absolute -bottom-10 -left-10 w-64 h-64 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
                     <div class="relative rounded-3xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition duration-500 border border-white/10">
                         @php
-                            // Logic: Use First Gallery Image, fallback to Hero Image
+                            // Logic: Use Hero Image, fallback to First Gallery Image
                             $aboutImgSrc = null;
-                            if (isset($event->gallery) && is_array($event->gallery) && count($event->gallery) > 0) {
-                                $aboutImgSrc = $event->gallery[0];
-                            } elseif ($event->hero_image) {
+                            if ($event->hero_image) {
                                 $aboutImgSrc = $event->hero_image;
+                            } elseif (isset($event->gallery) && is_array($event->gallery) && count($event->gallery) > 0) {
+                                $aboutImgSrc = $event->gallery[0];
                             }
                         @endphp
                         
@@ -909,7 +905,7 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
-                @foreach(array_slice($event->gallery, 1, 8) as $index => $img)
+                @foreach(array_slice($event->gallery, 0, 8) as $index => $img)
                 <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-zoom-in border border-white/5" onclick="openLightbox({{ $index }})">
                     <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300"></div>
@@ -1611,7 +1607,7 @@
         </div>
     </section>
 
-    <section id="prizes" class="py-24 bg-dark-950">
+    <section id="prizes" class="py-24 bg-dark-950 hidden">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 reveal">
                 <h2 class="text-3xl md:text-4xl font-extrabold text-white">Hadiah Pemenang</h2>
@@ -1910,7 +1906,7 @@
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">                                            
                                             <em class="md:col-span-1 text-slate-400">Tanggal lahir</em>
-                                            <input type="date" name="participants[0][date_of_birth]" aria-label="Tanggal Lahir" class="w-full md:col-span-3 bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none" required>
+                                            <input type="date" name="participants[0][date_of_birth]" aria-label="Tanggal Lahir" class="w-full md:col-span-3 bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none" style="color-scheme: dark;" required>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required>
@@ -2172,8 +2168,14 @@
         </div>
 
         @php
-            $ugcTemplatePath = public_path('images/paolo/ugc-template.png');
-            $ugcTemplateVersion = file_exists($ugcTemplatePath) ? filemtime($ugcTemplatePath) : null;
+            $ugcTemplateUrl = $event->twibbon_image ? asset('storage/' . $event->twibbon_image) : asset('images/paolo/ugc-template.png');
+            if (!$event->twibbon_image) {
+                $ugcTemplatePath = public_path('images/paolo/ugc-template.png');
+                $ugcTemplateVersion = file_exists($ugcTemplatePath) ? filemtime($ugcTemplatePath) : null;
+                if ($ugcTemplateVersion) {
+                    $ugcTemplateUrl .= '?v=' . $ugcTemplateVersion;
+                }
+            }
         @endphp
 
         <div class="flex flex-col lg:flex-row gap-10 items-center justify-center">
@@ -2184,7 +2186,7 @@
                         data-event-date="{{ $event->start_at->format('d F Y') }}"
                         data-event-location="{{ $event->location_name }}"
                         data-event-logo="{{ $event->logo_image ? asset('storage/'.$event->logo_image) : '' }}"
-                        data-template-url="{{ asset('images/paolo/ugc-template.png') }}@if($ugcTemplateVersion)?v={{ $ugcTemplateVersion }}@endif">
+                        data-template-url="{{ $ugcTemplateUrl }}">
                     </canvas>
                 </div>
             </div>
@@ -4619,8 +4621,8 @@
                     date_of_birth: {
                         required: true,
                         custom: (value) => {
-                            if (!value || !/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return false;
-                            const [m, d, y] = value.split('/').map(Number);
+                            if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+                            const [y, m, d] = value.split('-').map(Number);
                             const date = new Date(y, m - 1, d);
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
