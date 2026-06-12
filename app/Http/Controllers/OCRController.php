@@ -38,7 +38,7 @@ Tugas Anda adalah membaca data KTP ini dan mengekstraknya ke dalam format JSON y
 Aturan ekstraksi:
 1. "nik": Ambil 16 digit angka NIK. Koreksi typo umum (misal O/o jadi 0, I/l jadi 1). Pastikan akurat.
 2. "name": Ambil nama lengkap sesuai KTP. Abaikan gelar jika memungkinkan.
-3. "date_of_birth": Ambil tanggal lahir (Tempat/Tgl Lahir). Formatkan menjadi MM-DD-YYYY. (Contoh jika tertulis JAKARTA, 17-08-1990 -> maka jadikan 08-17-1990).
+3. "date_of_birth": Ambil tanggal lahir (Tempat/Tgl Lahir). Formatkan menjadi YYYY-MM-DD. (Contoh jika tertulis JAKARTA, 17-08-1990 -> maka jadikan 1990-08-17).
 4. "gender": Ambil jenis kelamin. Jika tertulis LAKI-LAKI kembalikan "male", jika PEREMPUAN kembalikan "female".
 5. "address": Ambil alamat lengkap beserta RT/RW, Kel/Desa, dan Kecamatan. Gabungkan menjadi satu kalimat string.
 

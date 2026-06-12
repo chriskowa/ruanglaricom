@@ -110,8 +110,7 @@
         gtag('config', 'G-562MDGQ3RZ', { 'anonymize_ip': true });
     </script>
 
-    <!-- Tesseract.js for OCR -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
@@ -2810,19 +2809,6 @@
                 setKtpStatus('Foto tersimpan. Jalankan OCR untuk membaca data.');
             };
 
-            let ktpWorker = null;
-            const getKtpWorker = async () => {
-                if (ktpWorker) return ktpWorker;
-                if (!window.Tesseract?.createWorker) return null;
-                ktpWorker = await window.Tesseract.createWorker('ind+eng');
-                await ktpWorker.setParameters({
-                    tessedit_pageseg_mode: '6',
-                    preserve_interword_spaces: '1',
-                    user_defined_dpi: '300'
-                });
-                return ktpWorker;
-            };
-
             const loadImage = (src) => new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => resolve(img);
@@ -2837,14 +2823,7 @@
                 return c;
             };
 
-            const cropCanvas = (src, x, y, w, h) => {
-                const c = createCanvas(w, h);
-                const ctx = c.getContext('2d');
-                ctx.drawImage(src, x, y, w, h, 0, 0, w, h);
-                return c;
-            };
-
-            const drawToCanvas = (img, maxWidth = 1600) => {
+            const drawToCanvas = (img, maxWidth = 1200) => {
                 const scale = Math.min(1, maxWidth / img.width);
                 const w = Math.round(img.width * scale);
                 const h = Math.round(img.height * scale);
@@ -2852,203 +2831,6 @@
                 const ctx = c.getContext('2d');
                 ctx.drawImage(img, 0, 0, w, h);
                 return c;
-            };
-
-            const applyKernel = (src, kernel, divisor = 1) => {
-                const { width, height } = src;
-                const ctx = src.getContext('2d');
-                const img = ctx.getImageData(0, 0, width, height);
-                const out = ctx.createImageData(width, height);
-                const data = img.data;
-                const dst = out.data;
-                const k = kernel;
-                for (let y = 1; y < height - 1; y++) {
-                    for (let x = 1; x < width - 1; x++) {
-                        let r = 0, g = 0, b = 0;
-                        let i = 0;
-                        for (let ky = -1; ky <= 1; ky++) {
-                            for (let kx = -1; kx <= 1; kx++) {
-                                const idx = ((y + ky) * width + (x + kx)) * 4;
-                                r += data[idx] * k[i];
-                                g += data[idx + 1] * k[i];
-                                b += data[idx + 2] * k[i];
-                                i++;
-                            }
-                        }
-                        const o = (y * width + x) * 4;
-                        dst[o] = Math.min(255, Math.max(0, r / divisor));
-                        dst[o + 1] = Math.min(255, Math.max(0, g / divisor));
-                        dst[o + 2] = Math.min(255, Math.max(0, b / divisor));
-                        dst[o + 3] = 255;
-                    }
-                }
-                ctx.putImageData(out, 0, 0);
-                return src;
-            };
-
-            const preprocessCanvas = (base, mode = 'clean') => {
-                const c = createCanvas(base.width, base.height);
-                const ctx = c.getContext('2d');
-                ctx.drawImage(base, 0, 0);
-                const img = ctx.getImageData(0, 0, c.width, c.height);
-                const data = img.data;
-                let sum = 0;
-                for (let i = 0; i < data.length; i += 4) {
-                    const v = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
-                    data[i] = data[i + 1] = data[i + 2] = v;
-                    sum += v;
-                }
-                const mean = sum / (data.length / 4);
-                const contrast = mode === 'clean' ? 1.35 : 1.15;
-                const threshold = mode === 'threshold' ? Math.max(100, Math.min(190, mean + 10)) : null;
-                for (let i = 0; i < data.length; i += 4) {
-                    let v = data[i];
-                    v = (v - 128) * contrast + 128;
-                    if (threshold !== null) {
-                        v = v > threshold ? 255 : 0;
-                    }
-                    data[i] = data[i + 1] = data[i + 2] = Math.min(255, Math.max(0, v));
-                }
-                ctx.putImageData(img, 0, 0);
-                if (mode === 'clean') {
-                    applyKernel(c, [0, -1, 0, -1, 5, -1, 0, -1, 0], 1);
-                }
-                return c;
-            };
-
-            const blurScore = (canvas) => {
-                const ctx = canvas.getContext('2d');
-                const { width, height } = canvas;
-                const img = ctx.getImageData(0, 0, width, height).data;
-                const lap = [];
-                let sum = 0;
-                let sumSq = 0;
-                for (let y = 1; y < height - 1; y++) {
-                    for (let x = 1; x < width - 1; x++) {
-                        const idx = (y * width + x) * 4;
-                        const v = img[idx];
-                        const up = img[((y - 1) * width + x) * 4];
-                        const down = img[((y + 1) * width + x) * 4];
-                        const left = img[(y * width + (x - 1)) * 4];
-                        const right = img[(y * width + (x + 1)) * 4];
-                        const lapVal = (4 * v - up - down - left - right);
-                        lap.push(lapVal);
-                        sum += lapVal;
-                        sumSq += lapVal * lapVal;
-                    }
-                }
-                const n = lap.length || 1;
-                const mean = sum / n;
-                const variance = sumSq / n - mean * mean;
-                return variance;
-            };
-
-            const normalizeDate = (raw) => {
-                if (!raw) return '';
-                // OCR sometimes mistakes 0 for O or o, and 1 for I or l
-                const clean = raw.replace(/[Oo]/g, '0').replace(/[Il]/g, '1');
-                const m = clean.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
-                if (!m) return '';
-                // Return in Y-m-d format
-                return `${m[3]}-${m[2]}-${m[1]}`;
-            };
-
-            const parseAddressText = (text) => {
-                const clean = (text || '').replace(/\r/g, '');
-                const lines = clean.split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
-                
-                // Labels that indicate the end of address section
-                const stopRegex = /(agama|status|pekerjaan|kewarganegaraan|berlaku|hingga|gol\. darah)/i;
-                const addressLabelRegex = /(alamat|alamai|alamei|alamet)/i;
-                
-                let addressLines = [];
-                let isCapturing = false;
-                
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    
-                    if (addressLabelRegex.test(line)) {
-                        isCapturing = true;
-                        // Extract content if it's on the same line as the label
-                        const content = line.replace(addressLabelRegex, '').replace(/[:\-]/g, '').trim();
-                        if (content) addressLines.push(content);
-                        continue;
-                    }
-                    
-                    if (isCapturing) {
-                        if (stopRegex.test(line)) break;
-                        addressLines.push(line);
-                        // KTP address usually doesn't exceed 5 lines including RT/RW etc.
-                        if (addressLines.length >= 5) break;
-                    }
-                }
-                
-                return addressLines.join(' ').replace(/\s+/g, ' ').trim();
-            };
-
-            const parseKtpText = (text) => {
-                const clean = (text || '').replace(/\r/g, '');
-                const lines = clean.split('\n').map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
-                const joinedDigits = clean.replace(/\D/g, '');
-                const nik = (joinedDigits.match(/\d{16}/) || [])[0] || '';
-                const findLineIndex = (regex) => lines.findIndex((l) => regex.test(l));
-                const extractAfterLabel = (line, regex) => line.replace(regex, '').replace(/[:\-]/g, ' ').replace(/\s+/g, ' ').trim();
-
-                let name = '';
-                const nameIdx = findLineIndex(/nama/i);
-                if (nameIdx >= 0) {
-                    const inline = extractAfterLabel(lines[nameIdx], /nama/i);
-                    name = inline || (lines[nameIdx + 1] || '');
-                }
-
-                let gender = '';
-                const genderIdx = findLineIndex(/jenis kelamin/i);
-                if (genderIdx >= 0) {
-                    const line = lines[genderIdx].toLowerCase();
-                    if (line.includes('laki') || line.includes('laki-laki')) gender = 'male';
-                    else if (line.includes('perempuan')) gender = 'female';
-                } else {
-                    for (const line of lines) {
-                        const lower = line.toLowerCase();
-                        if (lower.includes('laki-laki') || (lower.includes('jenis') && lower.includes('laki'))) {
-                            gender = 'male';
-                            break;
-                        } else if (lower.includes('perempuan')) {
-                            gender = 'female';
-                            break;
-                        }
-                    }
-                }
-
-                let dob = '';
-                let dobRaw = '';
-                for (const line of lines) {
-                    // OCR robustness: allow O/o/I/l as substitutes for digits in date pattern
-                    const datePattern = /([0-9OoIl]{2}[\/\-.][0-9OoIl]{2}[\/\-.][0-9OoIl]{4})/;
-                    const match = line.match(datePattern);
-                    if (match) {
-                        dobRaw = match[1];
-                        break;
-                    }
-                }
-                dob = normalizeDate(dobRaw);
-
-                let address = '';
-                const addrIdx = findLineIndex(/alamat/i);
-                if (addrIdx >= 0) {
-                    const stopRegex = /(rt\/rw|rw\/rt|kel|desa|kec|kab|prov|gol|agama|status|pekerjaan|warga|berlaku)/i;
-                    const addrLines = [];
-                    const first = extractAfterLabel(lines[addrIdx], /alamat/i);
-                    if (first) addrLines.push(first);
-                    for (let i = addrIdx + 1; i < lines.length; i++) {
-                        if (stopRegex.test(lines[i])) break;
-                        addrLines.push(lines[i]);
-                        if (addrLines.join(' ').length > 160) break;
-                    }
-                    address = addrLines.join(' ');
-                }
-
-                return { nik, name, gender, dob, address };
             };
 
             const updateKtpFields = (data) => {
@@ -3067,50 +2849,18 @@
                 }
                 try {
                     if (ktpLoading) ktpLoading.classList.remove('hidden');
+                    setKtpStatus('Membaca KTP dengan AI Vision...');
                     
                     const formData = new FormData();
-                    let useFallback = false;
 
                     // Compress Image
                     const img = await loadImage(ktpImageData);
-                    const baseCanvas = drawToCanvas(img, 1024);
-                    const compressedDataUrl = baseCanvas.toDataURL('image/jpeg', 0.6);
+                    const baseCanvas = drawToCanvas(img, 1200);
+                    const compressedDataUrl = baseCanvas.toDataURL('image/jpeg', 0.8);
 
-                    // Try Local Tesseract
-                    if (window.Tesseract) {
-                        setKtpStatus('Membaca KTP secara lokal (Tahap 1)...');
-                        try {
-                            const cleanCanvas = preprocessCanvas(baseCanvas, 'clean');
-                            const worker = await getKtpWorker();
-                            let text = '';
-                            if (worker) {
-                                const result = await worker.recognize(cleanCanvas);
-                                text = result?.data?.text || '';
-                            } else {
-                                const result = await window.Tesseract.recognize(cleanCanvas, 'ind');
-                                text = result?.data?.text || '';
-                            }
-                            
-                            if (text && text.trim().length > 10) {
-                                formData.append('text', text);
-                                setKtpStatus('Mengoreksi data dengan AI (Tahap 2)...');
-                            } else {
-                                useFallback = true;
-                            }
-                        } catch (err) {
-                            console.error('[Tesseract Error]', err);
-                            useFallback = true;
-                        }
-                    } else {
-                        useFallback = true;
-                    }
-
-                    if (useFallback) {
-                        setKtpStatus('Mengirim KTP ke AI Vision (Mode Presisi)...');
-                        const response = await fetch(compressedDataUrl);
-                        const blob = await response.blob();
-                        formData.append('image', blob, 'ktp.jpg');
-                    }
+                    const response = await fetch(compressedDataUrl);
+                    const blob = await response.blob();
+                    formData.append('image', blob, 'ktp.jpg');
 
                     let res = await fetch('/ocr/ktp', {
                         method: 'POST',
@@ -3127,33 +2877,6 @@
                     }
 
                     let json = await res.json();
-
-                    if (!json.success && !useFallback) {
-                        console.log('Local text-based OCR failed, retrying with Vision API...');
-                        setKtpStatus('Mencoba membaca gambar KTP secara langsung...');
-                        
-                        const retryFormData = new FormData();
-                        const response = await fetch(compressedDataUrl);
-                        const blob = await response.blob();
-                        retryFormData.append('image', blob, 'ktp.jpg');
-                        
-                        const retryRes = await fetch('/ocr/ktp', {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                'Accept': 'application/json'
-                            },
-                            body: retryFormData
-                        });
-                        
-                        contentType = retryRes.headers.get("content-type");
-                        if (!contentType || !contentType.includes("application/json")) {
-                            throw new Error(`Koneksi gagal atau server error saat retry (HTTP ${retryRes.status}).`);
-                        }
-                        
-                        json = await retryRes.json();
-                        res = retryRes;
-                    }
                     
                     if (!res.ok || !json.success) {
                         throw new Error(json.message || 'Gagal membaca KTP.');
