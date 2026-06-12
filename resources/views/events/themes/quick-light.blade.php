@@ -56,7 +56,7 @@
     }
     $sponsorUrls = array_values(array_unique($sponsorUrls));
     $logoImage = $event->logo_image ? asset('storage/'.$event->logo_image) : null;
-    $faviconImage = $logoImage ?? $heroImage;
+    $faviconImage = $logoImage ?? asset('favicon.ico');
     $canonicalUrl = route('events.show', $event->slug);
     $rawShortDescription = (string) ($event->short_description ?? '');
     $rawShortDescription = html_entity_decode($rawShortDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8');

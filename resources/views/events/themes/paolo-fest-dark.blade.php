@@ -28,7 +28,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     @php
         $seoTitle = isset($seo['title']) && $seo['title'] ? $seo['title'] : $event->name . ' - ' . ($event->location_name ?? 'Official Event');
-        $seoDesc = isset($seo['description']) && $seo['description'] ? $seo['description'] : Str::limit(strip_tags($event->short_description ?? $event->description), 155);
+        $seoDesc = isset($seo['description']) && $seo['description'] ? $seo['description'] : Str::limit(strip_tags($event->short_description ?: $event->full_description), 155);
         $seoKeywords = isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
         $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
         $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
@@ -36,6 +36,11 @@
 
     <title>{{ $seoTitle }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
+    <link rel="shortcut icon" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('favicon.ico') }}">
     <meta name="description" content="{{ $seoDesc }}" />
     <meta name="keywords" content="{{ $seoKeywords }}">
     <link rel="canonical" href="{{ $seoUrl }}">
