@@ -81,16 +81,10 @@ class PublicEventController extends Controller
     public function show($slug)
     {
         // Try to get from cache first
-        $cached = $this->cacheService->getCachedEventDetail($slug);
+        $event = $this->cacheService->getCachedEventDetail($slug);
 
-        if ($cached) {
-            $event = Event::find($cached['event']['id']);
-            if (! $event) {
-                abort(404);
-            }
-
-            // Load categories if not in cache
-            $categories = $event->categories()->where('is_active', true)->with('masterGpx')->get();
+        if ($event) {
+            $categories = $event->categories;
             $seo = $this->buildSeo($event);
             $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
                 $q->where('event_id', $event->id)
@@ -127,22 +121,16 @@ class PublicEventController extends Controller
 
         // Cache miss - query from database
         $event = Event::where('slug', $slug)
-            ->with(['categories', 'user'])
+            ->with(['categories' => function ($q) {
+                $q->where('is_active', true)->with('masterGpx');
+            }, 'user'])
             ->firstOrFail();
 
         // Cache the event detail
         $this->cacheService->cacheEventDetail($event);
 
         // Get categories
-        $categories = $event->categories()->where('is_active', true)
-            ->with('masterGpx')
-            ->withCount(['participants as early_bird_sold_count' => function ($q) {
-                $q->where('price_type', 'early')
-                    ->whereHas('transaction', function ($t) {
-                        $t->whereIn('payment_status', ['pending', 'paid', 'cod']);
-                    });
-            }])
-            ->get();
+        $categories = $event->categories;
         $seo = $this->buildSeo($event);
         $hasPaidParticipants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id)
@@ -152,22 +140,22 @@ class PublicEventController extends Controller
         $this->trackEventDetailView($event);
 
         if ($event->hardcoded === 'latbarkamis') {
-                $participants = $this->getLatbarParticipants($event);
-                $stats = $this->getLatbarStats($event);
-                $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-                $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
-                $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+            $participants = $this->getLatbarParticipants($event);
+            $stats = $this->getLatbarStats($event);
+            $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+            $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
 
-                return view('events.latbar3', [
-                    'event' => $event,
-                    'categories' => $categories,
-                    'participants' => $participants,
-                    'stats' => $stats,
-                    'hasPaidParticipants' => $hasPaidParticipants,
-                    'midtransUrl' => $midtransUrl,
-                    'midtransClientKey' => $midtransClientKey,
-                ]);
-            }
+            return view('events.latbar3', [
+                'event' => $event,
+                'categories' => $categories,
+                'participants' => $participants,
+                'stats' => $stats,
+                'hasPaidParticipants' => $hasPaidParticipants,
+                'midtransUrl' => $midtransUrl,
+                'midtransClientKey' => $midtransClientKey,
+            ]);
+        }
 
         return view('events.show', [
             'event' => $event,
@@ -199,15 +187,20 @@ class PublicEventController extends Controller
         $uniqueCacheKey = "page_unique:{$page}:{$event->id}:{$today}:{$visitorHash}";
         $isUnique = Cache::add($uniqueCacheKey, 1, now()->addDays(2));
 
-        DB::table('eo_page_stats')->insertOrIgnore([
-            'event_id' => $event->id,
-            'page' => $page,
-            'stat_date' => $today,
-            'views' => 0,
-            'unique_views' => 0,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // Optimize: Cache the check/insertion of the daily page stats row to avoid running insertOrIgnore on every request
+        $statsRowCacheKey = "eo_page_stats_exists:{$event->id}:{$page}:{$today}";
+        Cache::remember($statsRowCacheKey, 86400, function() use ($event, $page, $today) {
+            DB::table('eo_page_stats')->insertOrIgnore([
+                'event_id' => $event->id,
+                'page' => $page,
+                'stat_date' => $today,
+                'views' => 0,
+                'unique_views' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            return true;
+        });
 
         $update = [
             'views' => DB::raw('views + 1'),

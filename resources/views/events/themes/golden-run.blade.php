@@ -868,7 +868,7 @@
                         @endphp
                         
                         @if($aboutImgSrc)
-                            <img src="{{ asset('storage/' . $aboutImgSrc) }}" class="w-full h-auto object-cover">
+                            <img src="{{ asset('storage/' . $aboutImgSrc) }}" class="w-full h-auto object-cover" loading="lazy">
                         @else
                             <div class="bg-dark-800 w-full aspect-[4/3] flex items-center justify-center text-slate-500 font-bold">Event Image</div>
                         @endif
@@ -890,7 +890,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
                 @foreach(array_slice($event->gallery, 0, 8) as $index => $img)
                 <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-zoom-in border border-white/5" onclick="openLightbox({{ $index }})">
-                    <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" loading="lazy">
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300"></div>
                     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
                         <svg class="w-10 h-10 text-brand-400 drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
@@ -1224,7 +1224,7 @@
                 <div class="flex-1 reveal delay-200">
                     <div class="relative group">
                         <div class="absolute inset-0 bg-brand-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                        <img src="{{ asset('storage/' . $event->medal_image) }}" class="relative w-full max-w-md mx-auto drop-shadow-2xl transform group-hover:scale-105 transition duration-500">
+                        <img src="{{ asset('storage/' . $event->medal_image) }}" class="relative w-full max-w-md mx-auto drop-shadow-2xl transform group-hover:scale-105 transition duration-500" loading="lazy">
                     </div>
                 </div>
             </div>
@@ -1565,46 +1565,41 @@
     </div>
 
     <!-- What to Bring & FAQ -->
+    @php
+        $whatToBring = isset($event->premium_amenities['what_to_bring']['items']) ? $event->premium_amenities['what_to_bring']['items'] : [];
+        $isWhatToBringEnabled = isset($event->premium_amenities['what_to_bring']['enabled']) ? (bool)$event->premium_amenities['what_to_bring']['enabled'] : false;
+
+        $faqs = isset($event->premium_amenities['faq']['items']) ? $event->premium_amenities['faq']['items'] : [];
+        $isFaqEnabled = isset($event->premium_amenities['faq']['enabled']) ? (bool)$event->premium_amenities['faq']['enabled'] : false;
+        
+        // Filter out empty items
+        $whatToBring = array_filter($whatToBring, function($item) {
+            return !empty(trim($item ?? ''));
+        });
+    @endphp
+
+    @if(($isWhatToBringEnabled && !empty($whatToBring)) || ($isFaqEnabled && !empty($faqs)))
     <section id="faq" class="py-24 bg-dark-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+            <div class="grid grid-cols-1 {{ ($isWhatToBringEnabled && !empty($whatToBring)) && ($isFaqEnabled && !empty($faqs)) ? 'md:grid-cols-2 gap-16' : 'max-w-3xl mx-auto gap-16' }}">
                 <!-- What to Bring -->
+                @if($isWhatToBringEnabled && !empty($whatToBring))
                 <div class="reveal">
                     <h3 class="text-2xl font-bold text-white mb-8">What To Bring</h3>
                     <div class="grid grid-cols-2 gap-4">
+                        @foreach($whatToBring as $item)
                         <div class="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center gap-3 hover:bg-white/10 transition">
                             <div class="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center border border-brand-500/30">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             </div>
-                            <span class="text-sm font-bold text-slate-300">Running Shoes</span>
+                            <span class="text-sm font-bold text-slate-300">{{ $item }}</span>
                         </div>
-                        <div class="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center gap-3 hover:bg-white/10 transition">
-                            <div class="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center border border-brand-500/30">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-sm font-bold text-slate-300">Jersey & BIB</span>
-                        </div>
-                        <div class="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center gap-3 hover:bg-white/10 transition">
-                            <div class="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center border border-brand-500/30">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-sm font-bold text-slate-300">ID Card</span>
-                        </div>
-                        <div class="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center gap-3 hover:bg-white/10 transition">
-                            <div class="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center border border-brand-500/30">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-sm font-bold text-slate-300">Sunscreen</span>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
+                @endif
 
                 <!-- FAQ -->
-                @php
-                    $faqs = isset($event->premium_amenities['faq']['items']) ? $event->premium_amenities['faq']['items'] : [];
-                    $isFaqEnabled = isset($event->premium_amenities['faq']['enabled']) ? $event->premium_amenities['faq']['enabled'] : false;
-                @endphp
-
                 @if($isFaqEnabled && !empty($faqs))
                 <div class="reveal delay-200">
                     <h3 class="text-2xl font-bold text-white mb-8">FAQ</h3>
@@ -1626,6 +1621,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     <section id="prizes" class="py-24 bg-dark-950 hidden">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -2284,10 +2280,9 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-     crossorigin=""></script>
+     crossorigin="" defer></script>
     <!-- Leaflet GPX -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js" defer></script>
 
     <script>
         // Initialize Maps

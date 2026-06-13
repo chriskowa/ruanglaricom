@@ -118,6 +118,18 @@ class Event extends Model
                 $event->slug = Str::slug($event->name);
             }
         });
+
+        static::saved(function ($event) {
+            try {
+                app(\App\Services\EventCacheService::class)->invalidateEventCache($event);
+            } catch (\Throwable $e) {}
+        });
+
+        static::deleted(function ($event) {
+            try {
+                app(\App\Services\EventCacheService::class)->invalidateEventCache($event);
+            } catch (\Throwable $e) {}
+        });
     }
 
     public function user(): BelongsTo

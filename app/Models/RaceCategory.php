@@ -7,6 +7,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RaceCategory extends Model
 {
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saved(function ($category) {
+            try {
+                app(\App\Services\EventCacheService::class)->invalidateCategoryCache($category);
+            } catch (\Throwable $e) {}
+        });
+
+        static::deleted(function ($category) {
+            try {
+                app(\App\Services\EventCacheService::class)->invalidateCategoryCache($category);
+            } catch (\Throwable $e) {}
+        });
+    }
+
     protected $fillable = [
         'event_id',
         'master_gpx_id',

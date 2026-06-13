@@ -21,38 +21,24 @@ class EventCacheService
     /**
      * Cache event detail with categories
      */
-    public function cacheEventDetail(Event $event): array
+    public function cacheEventDetail(Event $event)
     {
         $cacheKey = $event->getCacheKey();
 
         return Cache::remember($cacheKey, self::CACHE_TTL_EVENT_DETAIL, function () use ($event) {
-            $event->load(['categories', 'user']);
-
-            return [
-                'event' => $event->toArray(),
-                'categories' => $event->categories->where('is_active', true)->map(function ($category) {
-                    return [
-                        'id' => $category->id,
-                        'name' => $category->name,
-                        'distance_km' => $category->distance_km,
-                        'code' => $category->code,
-                        'quota' => $category->quota,
-                        'price_early' => $category->price_early,
-                        'price_regular' => $category->price_regular,
-                        'price_late' => $category->price_late,
-                        'min_age' => $category->min_age,
-                        'max_age' => $category->max_age,
-                        'cutoff_minutes' => $category->cutoff_minutes,
-                    ];
-                })->toArray(),
-            ];
+            if (!$event->relationLoaded('categories') || !$event->relationLoaded('user')) {
+                $event->load(['categories' => function ($q) {
+                    $q->where('is_active', true)->with('masterGpx');
+                }, 'user']);
+            }
+            return $event;
         });
     }
 
     /**
      * Get cached event detail
      */
-    public function getCachedEventDetail(string $slug): ?array
+    public function getCachedEventDetail(string $slug)
     {
         $cacheKey = "event:detail:{$slug}";
 
