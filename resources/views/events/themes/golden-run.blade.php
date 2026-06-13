@@ -732,10 +732,7 @@
                             Pendaftaran Ditutup
                         </button>
                         @endif
-                        <a href="{{ route('community.register.index', ['slug' => $event->slug]) }}" class="px-8 py-4 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 backdrop-blur-sm font-bold rounded-2xl hover:bg-emerald-600/30 transition flex items-center justify-center gap-2">
-                            <i class="fas fa-users text-xl"></i>
-                            Daftar Komunitas
-                        </a>
+                       
                         <a href="#about" class="px-8 py-4 bg-white/10 text-white border border-white/20 backdrop-blur-sm font-bold rounded-2xl hover:bg-white/20 transition flex items-center justify-center">
                             Explore Event
                         </a>
