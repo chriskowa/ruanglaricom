@@ -86,12 +86,12 @@
                             </div>
                         </div>
                         -->
-                        <div class="mt-12 flex items-center justify-center md:justify-start gap-4">
+                        <div class="mt-12 flex items-center justify-center md:justify-start gap-4 pb-10">
                             <div class="text-left">
                                 <div class="flex text-yellow-400 text-xs mb-1">
                                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                                 </div>
-                                <p class="text-sm text-slate-400"><span class="text-white font-bold">7700+</span> Pelari Bergabung</p>
+                                <p class="text-sm text-slate-400"><span class="text-white font-bold">1000+</span> Pelari Bergabung</p>
                             </div>
                         </div>
                     </div>
