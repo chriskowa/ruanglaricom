@@ -848,7 +848,7 @@
                             </div>
                             <div>
                                 <h4 class="font-bold text-white">Refreshment</h4>
-                                <p class="text-sm text-slate-400 mt-1">Water station tiap 2.5KM dengan air mineral dan isotonik.</p>
+                                <p class="text-sm text-slate-400 mt-1">Water station tiap 3.5KM dengan air mineral dan isotonik.</p>
                             </div>
                         </div>
                     </div>
