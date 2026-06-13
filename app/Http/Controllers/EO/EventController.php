@@ -2324,12 +2324,17 @@ class EventController extends Controller
         $canvasWidthPx = $request->bg_width * $request->scale;
         $canvasHeightPx = $request->bg_height * $request->scale;
 
-        // Optimize background image using Intervention Image to significantly speed up TCPDF processing
+        // Optimize background image using Intervention Image while maintaining high resolution and quality
         try {
             $manager = new ImageManager(new Driver);
             $image = $manager->read($imageData);
-            $image->resize($canvasWidthPx, $canvasHeightPx);
-            $jpgImage = $image->toJpeg(75);
+            
+            // Keep original resolution but limit max-width to 2500px to prevent memory limits
+            if ($image->width() > 2500) {
+                $image->scale(width: 2500);
+            }
+            
+            $jpgImage = $image->toJpeg(95);
             $tempImgPath = sys_get_temp_dir() . '/' . uniqid('bib_bg_') . '.jpg';
             $jpgImage->save($tempImgPath);
         } catch (\Throwable $e) {
