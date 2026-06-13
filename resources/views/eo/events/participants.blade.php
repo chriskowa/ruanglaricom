@@ -827,13 +827,13 @@
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">3. Tambahkan Teks</label>
                             <div class="flex flex-wrap gap-2">
-                                <button type="button" onclick="addBibText('{bib_number}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{bib_number}</button>
-                                <button type="button" onclick="addBibText('{name}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{name}</button>
-                                <button type="button" onclick="addBibText('{category}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{category}</button>
-                                <button type="button" onclick="addBibText('{gender}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{gender}</button>
-                                <button type="button" onclick="addBibText('{blood_type}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{blood_type}</button>
-                                <button type="button" onclick="addBibText('{emergency_contact_number}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{emergency_number}</button>
-                                <button type="button" onclick="addBibText('{emergency_contact_name}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">{emergency_name}</button>
+                                <button type="button" onclick="addBibText('#')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nomor BIB"># (BIB)</button>
+                                <button type="button" onclick="addBibText('[N]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nama Peserta">[N] (Nama)</button>
+                                <button type="button" onclick="addBibText('[C]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Kategori Lomba">[C] (Kategori)</button>
+                                <button type="button" onclick="addBibText('[G]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Jenis Kelamin (M/F)">[G] (Gender)</button>
+                                <button type="button" onclick="addBibText('[B]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Golongan Darah">[B] (Darah)</button>
+                                <button type="button" onclick="addBibText('[E#]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="No Darurat">[E#] (No. Darurat)</button>
+                                <button type="button" onclick="addBibText('[EN]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nama Kontak Darurat">[EN] (Nama Darurat)</button>
                             </div>
                         </div>
                         <div id="bibTextSettings" class="hidden space-y-3 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
