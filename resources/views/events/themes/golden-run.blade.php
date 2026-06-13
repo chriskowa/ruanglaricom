@@ -1344,7 +1344,7 @@
                                 </div>
                             </div>
                             <!-- Time -->
-                            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+                            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4 hidden">
                                 <div class="w-12 h-12 bg-accent-500/20 text-accent-400 rounded-xl flex items-center justify-center shrink-0">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>
@@ -1384,8 +1384,8 @@
                                     <strong class="block text-white">Tanggal</strong>
                                     <span class="text-slate-400">H-2 & H-1 Sebelum Race Day</span>
                                 </div>
-                            </li>
-                            <li class="flex gap-4">
+                            </li> 
+                            <li class="flex gap-4 hidden">
                                 <svg class="w-5 h-5 text-brand-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <div>
                                     <strong class="block text-white">Waktu</strong>
