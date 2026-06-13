@@ -1,97 +1,60 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Ruang Lari | Ticketing Event Lari Advanced, Kalender Event, Pacer & Training Plans')
-@section('meta_title', 'Ruang Lari: Ticketing Event Lari Advanced & Ekosistem Pelari')
-@section('meta_description', 'Ruang Lari adalah platform event lari: ticketing dinamis untuk EO (kategori & kuota real-time, promo/kupon, add-ons, pembayaran terintegrasi, dashboard), plus kalender event, pacer, coach, dan tools performa.')
+@section('title', 'RuangLari | Kalender Event Lari, Komunitas, dan Tools Pelari Indonesia')
+@section('meta_title', 'RuangLari | Kalender Event Lari, Komunitas, dan Tools Pelari Indonesia')
+@section('meta_description', 'Temukan event lari terbaru, kalender race, komunitas pelari, leaderboard, dan tools latihan dalam satu platform RuangLari.')
 @section('canonical_url', url('/'))
 
 @section('content')
-    <div id="home-app" class="overflow-x-hidden">
+    <div id="home-app" class="overflow-x-hidden bg-[#08111F]">
         
         <!-- HERO SECTION -->
-        <header class="relative min-h-screen flex items-center justify-center pt-20 md:pt-0">
+        <header class="relative min-h-screen flex items-center justify-center pt-24 md:pt-0">
             <!-- Dynamic Background -->
-            <div class="absolute inset-0 bg-dark z-0 overflow-hidden">
-                <!-- Mobile Parallax Background -->
-                <div class="absolute inset-0 md:hidden">
-                    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat bg-fixed scale-110" 
-                         style="background-image: url('https://res.cloudinary.com/dslfarxct/images/v1766050868/542301374_18517775974013478_1186867397282832240_n/542301374_18517775974013478_1186867397282832240_n.jpg');">
-                    </div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/80 to-slate-900/60"></div>
-                </div>
-
-                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-dark to-black opacity-80 hidden md:block"></div>
-                <!-- Animated Blobs -->
-                <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-neon/10 rounded-full blur-[120px] animate-pulse-slow"></div>
-                <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[150px] animate-pulse-slow" style="animation-delay: 2s"></div>
+            <div class="absolute inset-0 z-0 overflow-hidden">
+                <div class="absolute inset-0 bg-[#08111F]"></div>
+                <!-- Subtle Radial Glow -->
+                <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#B8FF00]/5 rounded-full blur-[120px] animate-pulse-slow"></div>
+                <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[150px] animate-pulse-slow" style="animation-delay: 2s"></div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-                <div class="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-12">
+                <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
                     
                     <!-- Hero Text -->
                     <div class="text-center md:text-left order-2 md:order-1" data-aos="fade-up">
-                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon/20 bg-neon/5 backdrop-blur-md text-neon text-xs font-bold uppercase tracking-wider mb-8">
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#B8FF00]/20 bg-[#B8FF00]/5 backdrop-blur-md text-[#B8FF00] text-xs font-bold uppercase tracking-wider mb-8">
                             <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-neon"></span>
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B8FF00] opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-[#B8FF00]"></span>
                             </span>
                             Dari Pelari Untuk Pelari
                         </div>
                         
-                        <h1 class="text-5xl md:text-7xl lg:text-8xl font-black leading-tight mb-6 text-white tracking-tighter">
-                            @if($homepageContent && $homepageContent->headline)
-                                {!! $homepageContent->headline !!}
-                            @else
-                                LARI TANPA <br class="hidden md:block">
-                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon via-green-400 to-emerald-500">BATAS.</span>
-                            @endif
+                        <h1 class="text-5xl md:text-7xl lg:text-8xl font-black leading-none mb-6 text-[#F8FAFC] tracking-tighter uppercase">
+                            LARI TANPA <br class="hidden md:block">
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#B8FF00] via-[#9FE000] to-emerald-400 italic">BATAS.</span>
                         </h1>
                         
-                        <p class="text-slate-400 text-lg md:text-xl mb-10 max-w-lg mx-auto md:mx-0 leading-relaxed font-light">
-                            @if($homepageContent && $homepageContent->subheadline)
-                                {!! $homepageContent->subheadline !!}
-                            @else
-                                Platform event lari dan ekosistem pelari. Untuk EO: ticketing dinamis dengan kategori & kuota real-time, promo/kupon, add-ons, dan pembayaran terintegrasi. Untuk pelari: temukan event, pacer, dan program latihan bersama <span class="text-white font-bold">Ruang Lari</span>.
-                            @endif
+                        <p class="text-[#94A3B8] text-lg md:text-xl mb-10 max-w-lg mx-auto md:mx-0 leading-relaxed font-normal">
+                            Temukan event lari, kelola progres latihan, dan terhubung dengan komunitas pelari di Indonesia. Untuk event organizer, RuangLari membantu publikasi, ticketing, dan manajemen peserta dalam satu sistem.
                         </p>
                         
                         <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                            <a href="{{ route('about') }}" class="px-8 py-4 bg-neon text-dark font-black rounded-xl hover:bg-white hover:scale-105 transition transform shadow-[0_0_30px_rgba(204,255,0,0.3)] text-center">
-                                MULAI SEKARANG
+                            <a href="#events" class="px-8 py-4 bg-[#B8FF00] text-[#08111F] font-black rounded-xl hover:bg-[#9FE000] hover:scale-105 transition transform text-center shadow-lg shadow-[#B8FF00]/20 uppercase tracking-wider text-sm">
+                                Lihat Event
                             </a>
-                            <a href="{{ route('eo.landing') }}" class="px-8 py-4 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-500 hover:scale-105 transition transform text-center">
-                                SOLUSI EO
-                            </a>
-                            <a href="#events" class="px-8 py-4 border border-slate-700 text-white font-bold rounded-xl hover:bg-slate-800 hover:border-slate-500 transition flex items-center justify-center gap-2 group">
-                                <svg class="w-5 h-5 text-neon group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-                                LIHAT EVENT
+                            <a href="{{ route('eo.landing') }}" class="px-8 py-4 border border-[#1F2D44] bg-[#0E1A2D]/50 text-[#F8FAFC] font-black rounded-xl hover:bg-[#111F35] hover:border-[#94A3B8] hover:scale-105 transition transform text-center uppercase tracking-wider text-sm">
+                                Untuk Event Organizer
                             </a>
                         </div>
 
-                        <!-- Social Proof -->
-                        <!-- 
                         <div class="mt-12 flex items-center justify-center md:justify-start gap-4">
-                            <div class="flex -space-x-4">
-                                <img class="w-12 h-12 rounded-full border-4 border-dark object-cover" src="https://i.pravatar.cc/100?img=11" alt="User">
-                                <img class="w-12 h-12 rounded-full border-4 border-dark object-cover" src="https://i.pravatar.cc/100?img=33" alt="User">
-                                <img class="w-12 h-12 rounded-full border-4 border-dark object-cover" src="https://i.pravatar.cc/100?img=12" alt="User">
-                                <div class="w-12 h-12 rounded-full border-4 border-dark bg-slate-800 flex items-center justify-center text-xs font-bold text-white">+2k</div>
-                            </div>
                             <div class="text-left">
                                 <div class="flex text-yellow-400 text-xs mb-1">
                                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                                 </div>
-                                <p class="text-sm text-slate-400"><span class="text-white font-bold">{{ number_format($totalUsers ?? 0) }}</span> Pelari Bergabung</p>
-                            </div>
-                        </div>
-                        -->
-                        <div class="mt-12 flex items-center justify-center md:justify-start gap-4 pb-10">
-                            <div class="text-left">
-                                <div class="flex text-yellow-400 text-xs mb-1">
-                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                                </div>
-                                <p class="text-sm text-slate-400"><span class="text-white font-bold">1000+</span> Pelari Bergabung</p>
+                                <p class="text-sm text-[#94A3B8]"><span class="text-white font-bold">1000+</span> Pelari Telah Bergabung</p>
                             </div>
                         </div>
                     </div>
@@ -143,18 +106,18 @@
                             $slides = $slides->filter(fn ($s) => ! empty($s['href']))->values()->take(6);
                         @endphp
 
-                        <div class="relative z-10 rounded-[2.5rem] overflow-hidden border-8 border-slate-800/50 shadow-2xl transition duration-700 group">
-                            <div class="absolute inset-0 bg-gradient-to-t from-dark/80 via-transparent to-transparent z-10 pointer-events-none"></div>
+                        <div class="relative z-10 rounded-[2rem] overflow-hidden border border-[#1F2D44] shadow-2xl transition duration-700 group">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#08111F]/90 via-[#08111F]/30 to-transparent z-10 pointer-events-none"></div>
 
                             <div class="relative">
                                 <div id="heroFeaturedTrack" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth">
                                     @forelse($slides as $i => $s)
                                         <a href="{{ $s['href'] }}" class="snap-center flex-none w-full relative block" aria-label="{{ $s['eyebrow'] }}: {{ $s['title'] }}">
-                                            <img src="{{ $s['image'] ?: $fallbackHero }}" alt="{{ $s['title'] }}" class="w-full h-[500px] object-cover object-center transform transition duration-1000 group-hover:scale-110" @if($i === 0) fetchpriority="high" @else loading="lazy" @endif>
+                                            <img src="{{ $s['image'] ?: $fallbackHero }}" alt="{{ $s['title'] }}" class="w-full h-[400px] md:h-[480px] object-cover object-center transform transition duration-1000 group-hover:scale-105" @if($i === 0) fetchpriority="high" @else loading="lazy" @endif onerror="this.onerror=null; this.src='{{ $fallbackHero }}';">
 
-                                            <div class="absolute bottom-6 left-6 right-6 z-20 bg-dark/80 hover:bg-dark/90 backdrop-blur-md p-4 rounded-2xl border border-white/10 transition">
-                                                <div class="flex items-start gap-3">
-                                                    <div class="w-11 h-11 rounded-xl bg-neon/20 flex items-center justify-center text-neon flex-shrink-0">
+                                            <div class="absolute bottom-6 left-6 right-6 z-20 bg-[#0E1A2D]/90 hover:bg-[#0E1A2D] backdrop-blur-md p-5 rounded-2xl border border-[#1F2D44] transition">
+                                                <div class="flex items-start gap-4">
+                                                    <div class="w-12 h-12 rounded-xl bg-[#B8FF00]/10 flex items-center justify-center text-[#B8FF00] flex-shrink-0 border border-[#B8FF00]/20">
                                                         @if($s['type'] === 'event')
                                                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                                         @else
@@ -162,286 +125,169 @@
                                                         @endif
                                                     </div>
                                                     <div class="min-w-0 flex-1">
-                                                        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-black">{{ $s['eyebrow'] }}</p>
-                                                        <p class="text-lg font-black text-white leading-tight line-clamp-2">{{ $s['title'] }}</p>
-                                                        <div class="mt-1 text-xs text-slate-300 space-y-0.5">
+                                                        <p class="text-[10px] text-[#B8FF00] uppercase tracking-widest font-black mb-1">{{ $s['eyebrow'] }}</p>
+                                                        <h3 class="text-base md:text-lg font-bold text-white leading-tight line-clamp-2">{{ $s['title'] }}</h3>
+                                                        <div class="mt-2 text-xs text-[#94A3B8] space-y-1">
                                                             @if(!empty($s['meta_1']))
                                                                 <div class="flex items-center gap-2">
-                                                                    <span class="text-slate-500">{{ $s['type'] === 'event' ? 'Tanggal' : 'Terbit' }}</span>
-                                                                    <span class="font-bold">{{ $s['meta_1'] }}</span>
+                                                                    <span class="text-slate-500">{{ $s['type'] === 'event' ? 'Tanggal:' : 'Terbit:' }}</span>
+                                                                    <span class="font-bold text-[#F8FAFC]">{{ $s['meta_1'] }}</span>
                                                                 </div>
                                                             @endif
                                                             @if(!empty($s['meta_2']))
                                                                 <div class="flex items-center gap-2">
-                                                                    <span class="text-slate-500">{{ $s['type'] === 'event' ? 'Lokasi' : 'Kategori' }}</span>
-                                                                    <span class="font-bold truncate">{{ $s['meta_2'] }}</span>
+                                                                    <span class="text-slate-500">{{ $s['type'] === 'event' ? 'Lokasi:' : 'Kategori:' }}</span>
+                                                                    <span class="font-bold text-[#F8FAFC] truncate">{{ $s['meta_2'] }}</span>
                                                                 </div>
                                                             @endif
                                                         </div>
                                                     </div>
-                                                    <div class="hidden sm:flex items-center">
-                                                        <span class="px-3 py-2 rounded-xl bg-neon text-dark font-black text-xs">{{ $s['type'] === 'event' ? 'JOIN' : 'BACA' }}</span>
+                                                    <div class="hidden sm:flex items-center self-center">
+                                                        <span class="px-4 py-2 rounded-xl bg-[#B8FF00] text-[#08111F] font-black text-xs uppercase tracking-wider transition hover:bg-[#9FE000]">{{ $s['type'] === 'event' ? 'Ikuti' : 'Baca' }}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </a>
                                     @empty
                                         <div class="snap-center flex-none w-full relative">
-                                            <img src="{{ $featuredEvent ? $featuredEvent->getHeroImageUrl() : $fallbackHero }}" alt="Hero" class="w-full h-[500px] object-cover object-center">
+                                             <img src="{{ $featuredEvent ? $featuredEvent->getHeroImageUrl() : $fallbackHero }}" alt="Hero" class="w-full h-[400px] md:h-[480px] object-cover object-center" onerror="this.onerror=null; this.src='{{ $fallbackHero }}';">
                                         </div>
                                     @endforelse
                                 </div>
 
                                 @if($slides->count() > 1)
-                                    <button type="button" id="heroFeaturedPrev" class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-2xl bg-dark/70 hover:bg-dark/90 border border-white/10 backdrop-blur items-center justify-center text-white">
+                                    <button type="button" id="heroFeaturedPrev" class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-2xl bg-[#0E1A2D]/80 hover:bg-[#0E1A2D] border border-[#1F2D44] backdrop-blur items-center justify-center text-white transition">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                                     </button>
-                                    <button type="button" id="heroFeaturedNext" class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-2xl bg-dark/70 hover:bg-dark/90 border border-white/10 backdrop-blur items-center justify-center text-white">
+                                    <button type="button" id="heroFeaturedNext" class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-2xl bg-[#0E1A2D]/80 hover:bg-[#0E1A2D] border border-[#1F2D44] backdrop-blur items-center justify-center text-white transition">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                                     </button>
 
-                                    <div id="heroFeaturedDots" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-dark/50 border border-white/10 backdrop-blur px-3 py-2 rounded-full"></div>
+                                    <div id="heroFeaturedDots" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 bg-[#0E1A2D]/80 border border-[#1F2D44] backdrop-blur px-3 py-2 rounded-full"></div>
                                 @endif
                             </div>
                         </div>
-
-                        <div class="absolute -top-10 -right-10 text-[200px] leading-none font-black text-slate-800/30 select-none pointer-events-none z-0">01</div>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- BRANDS SECTION -->
-        <!-- 
-        <section class="py-10 border-y border-slate-800/50 bg-slate-900/30">
-            <div class="max-w-7xl mx-auto px-4 overflow-hidden">
-                <div class="flex flex-wrap justify-center md:justify-between items-center gap-8 md:gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/New_Balance_logo.svg/2560px-New_Balance_logo.svg.png" class="h-6 md:h-8 invert hover:scale-110 transition">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png" class="h-6 md:h-8 invert hover:scale-110 transition">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/2560px-Adidas_Logo.svg.png" class="h-8 md:h-10 invert hover:scale-110 transition">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Under_armour_logo.svg/2560px-Under_armour_logo.svg.png" class="h-6 md:h-8 invert hover:scale-110 transition">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Skechers.svg" class="h-6 md:h-8 invert hover:scale-110 transition">
+        <!-- UPCOMING EVENTS SECTION -->
+        <section id="events" class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                    <div data-aos="fade-right">
+                        <span class="text-[#B8FF00] font-bold tracking-widest uppercase text-sm mb-2 block">Kalender Race</span>
+                        <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">Event Lari Mendatang</h2>
+                        <p class="text-[#94A3B8] mt-2 max-w-xl text-base">Jelajahi kalender race lari terbaru di Indonesia dan daftar langsung secara online.</p>
+                    </div>
+                    <a href="/jadwal-lari" class="group flex items-center gap-2 text-[#94A3B8] hover:text-white transition font-bold border-b border-[#1F2D44] hover:border-white pb-1" data-aos="fade-left">
+                        Lihat Semua Event 
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                    </a>
+                </div>
+
+                <div id="homeEvents" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Events Loaded via JS -->
+                    <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center py-20 text-slate-500">
+                        <div class="w-10 h-10 border-4 border-[#1F2D44] border-t-[#B8FF00] rounded-full animate-spin mb-4"></div>
+                        <p class="text-sm">Memuat jadwal lari...</p>
+                    </div>
                 </div>
             </div>
         </section>
-        -->
 
-        <!-- FEATURES SECTION -->
-        <section class="py-24 relative overflow-hidden bg-dark">
-            <div class="absolute inset-0 bg-slate-900/20"></div>
-            <!-- Glow Effect -->
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-neon/5 rounded-full blur-[120px] pointer-events-none"></div>
+        <!-- SATU EKOSISTEM UNTUK PELARI -->
+        <section class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
+            <!-- Subtle glow -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#B8FF00]/5 rounded-full blur-[120px] pointer-events-none"></div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="text-center mb-16" data-aos="fade-up">
-                    <span class="text-neon font-bold tracking-widest uppercase text-sm mb-2 block">Ekosistem Ruang Lari</span>
-                    <h2 class="text-3xl md:text-5xl font-black text-white">SOLUSI TERINTEGRASI <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">UNTUK PELARI</span></h2>
+                    <span class="text-[#B8FF00] font-bold tracking-widest uppercase text-sm mb-2 block">Ekosistem Ruang Lari</span>
+                    <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">Satu Ekosistem untuk Pelari</h2>
+                    <p class="text-[#94A3B8] mt-3 max-w-2xl mx-auto text-base">Kami mengintegrasikan seluruh kebutuhan pelari mulai dari tools latihan, kalender event, komunitas, hingga gear pendukung.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     
                     <!-- Card 1: Running Tools & Performance -->
-                    <div x-data="{ open: false }" class="group" data-aos="fade-up" data-aos-delay="0">
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-neon/10 hover:border-neon/50 transition duration-300 h-full flex flex-col">
-                        <button type="button" @click="open = !open" class="w-full text-left cursor-pointer p-6 flex flex-col">
-                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 group-hover:scale-110 transition duration-300 border border-blue-500/20">
+                    <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/50 transition duration-300 h-full flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="0">
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6 border border-blue-500/20 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </div>
-                            <h3 class="text-xl font-bold text-white mb-2 leading-tight">Running Tools & Performance</h3>
-                            <p class="text-slate-400 text-sm mb-4 flex-grow leading-relaxed">Tingkatkan performa larimu dengan teknologi dan program latihan terukur.</p>
-                            
-                            <div class="mt-auto flex items-center justify-between text-blue-400 text-sm font-bold pt-4 border-t border-slate-800/50">
-                                <span x-text="open ? 'Tutup Menu' : 'Jelajahi Fitur'">Jelajahi Fitur</span>
-                                <svg :class="{'rotate-180': open}" class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                            </div>
-                        </button>
-
-                        <!-- Accordion Content -->
-                        <div x-show="open" x-collapse class="bg-slate-950 border-t border-slate-800 px-2 pb-2">
-                            <ul class="space-y-1 pt-2">
-                                <li>
-                                    <a href="{{ route('calendar.public') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-blue-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-calendar-alt text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Kalender Lari</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('calculator') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-blue-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-calculator text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Pace Calculator</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('programs.index') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-blue-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-running text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Running Program</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('coaches.index') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-blue-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-stopwatch text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Coach </span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('tools.trackmaster') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-blue-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-stopwatch text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Coach TrackMaster Pro</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pantau & Tingkatkan Latihan</h3>
+                            <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Tingkatkan performa larimu dengan kalkulator pace, training plan custom, serta bimbingan dari coach TrackMaster Pro.</p>
                         </div>
+                        <div class="pt-6 border-t border-[#1F2D44] space-y-2">
+                            <a href="{{ route('calendar.public') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                                <span>Kalender Lari</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                            </a>
+                            <a href="{{ route('calculator') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                                <span>Pace Calculator</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                            </a>
+                            <a href="{{ route('programs.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                                <span>Program Latihan</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                            </a>
                         </div>
                     </div>
 
                     <!-- Card 2: Community & Network -->
-                    <div x-data="{ open: false }" class="group" data-aos="fade-up" data-aos-delay="100">
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-neon/10 hover:border-neon/50 transition duration-300 h-full flex flex-col">
-                        <button type="button" @click="open = !open" class="w-full text-left cursor-pointer p-6 flex flex-col">
-                            <div class="w-12 h-12 rounded-xl bg-neon/10 flex items-center justify-center text-neon mb-4 group-hover:scale-110 transition duration-300 border border-neon/20">
+                    <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/50 transition duration-300 h-full flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="100">
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-[#B8FF00]/10 flex items-center justify-center text-[#B8FF00] mb-6 border border-[#B8FF00]/20 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
-                            <h3 class="text-xl font-bold text-white mb-2 leading-tight">Community & Network</h3>
-                            <p class="text-slate-400 text-sm mb-4 flex-grow leading-relaxed">Terhubung dengan ribuan pelari, pacer, dan komunitas di seluruh Indonesia.</p>
-                            
-                            <div class="mt-auto flex items-center justify-between text-neon text-sm font-bold pt-4 border-t border-slate-800/50">
-                                <span x-text="open ? 'Tutup Menu' : 'Jelajahi Fitur'">Jelajahi Fitur</span>
-                                <svg :class="{'rotate-180': open}" class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                            </div>
-                        </button>
-
-                        <div x-show="open" x-collapse class="bg-slate-950 border-t border-slate-800 px-2 pb-2">
-                            <ul class="space-y-1 pt-2">
-                                <li>
-                                    <a href="{{ route('users.runners') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-neon group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-users text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Runner Profiles</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('pacer.index') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-neon group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-flag-checkered text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Pacers</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link opacity-50 cursor-not-allowed" title="Coming Soon">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-neon group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-users-rectangle text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Community (Soon)</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('events.index') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-neon group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-calendar-check text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Events</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link opacity-50 cursor-not-allowed" title="Coming Soon">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-neon group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-handshake text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Collaborations (Soon)</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            <h3 class="text-xl font-bold text-white mb-3 leading-tight">Terhubung dengan Komunitas</h3>
+                            <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Terhubung dengan ribuan pelari se-Indonesia, temukan profil rekan pelari, dan booking pacer resmi untuk target race Anda.</p>
                         </div>
+                        <div class="pt-6 border-t border-[#1F2D44] space-y-2">
+                            <a href="{{ route('users.runners') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                                <span>Profil Pelari</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                            </a>
+                            <a href="{{ route('pacer.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                                <span>Booking Pacers</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Card 3: Event Solutions -->
-                    <div x-data="{ open: false }" class="group" data-aos="fade-up" data-aos-delay="200">
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-neon/10 hover:border-neon/50 transition duration-300 h-full flex flex-col">
-                        <button type="button" @click="open = !open" class="w-full text-left cursor-pointer p-6 flex flex-col">
-                            <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-4 group-hover:scale-110 transition duration-300 border border-purple-500/20">
+                    <!-- Card 3: Event Ticketing -->
+                    <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/50 transition duration-300 h-full flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="200">
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-6 border border-purple-500/20 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                             </div>
-                            <h3 class="text-xl font-bold text-white mb-2 leading-tight">Event Solutions</h3>
-                            <p class="text-slate-400 text-sm mb-4 flex-grow leading-relaxed">Platform all-in-one untuk manajemen registrasi event lari yang aman.</p>
-                            
-                            <div class="mt-auto flex items-center justify-between text-purple-400 text-sm font-bold pt-4 border-t border-slate-800/50">
-                                <span x-text="open ? 'Tutup Menu' : 'Jelajahi Fitur'">Jelajahi Fitur</span>
-                                <svg :class="{'rotate-180': open}" class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                            </div>
-                        </button>
-
-                        <div x-show="open" x-collapse class="bg-slate-950 border-t border-slate-800 px-2 pb-2">
-                            <ul class="space-y-1 pt-2">
-                                <li>
-                                    <a href="{{ route('eo.landing') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-purple-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-clipboard-check text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Registration System</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('eo.landing') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-purple-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-chart-pie text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Analitik & Dashboard</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('eo.landing') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-purple-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-shield-alt text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Secured Payment</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pendaftaran Event Lari</h3>
+                            <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Nikmati kemudahan registrasi event lari nasional yang aman, praktis, dengan konfirmasi e-ticket instan via e-mail.</p>
                         </div>
+                        <div class="pt-6 border-t border-[#1F2D44] space-y-2">
+                            <a href="{{ route('events.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                                <span>Cari Event Lari</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                            </a>
                         </div>
                     </div>
 
                     <!-- Card 4: Gear Marketplace -->
-                    <div x-data="{ open: false }" class="group" data-aos="fade-up" data-aos-delay="300">
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-neon/10 hover:border-neon/50 transition duration-300 h-full flex flex-col">
-                        <button type="button" @click="open = !open" class="w-full text-left cursor-pointer p-6 flex flex-col">
-                            <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 mb-4 group-hover:scale-110 transition duration-300 border border-orange-500/20">
+                    <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/50 transition duration-300 h-full flex flex-col justify-between group" data-aos="fade-up" data-aos-delay="300">
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-400 mb-6 border border-orange-500/20 group-hover:scale-105 transition">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             </div>
-                            <h3 class="text-xl font-bold text-white mb-2 leading-tight">Gear Marketplace</h3>
-                            <p class="text-slate-400 text-sm mb-4 flex-grow leading-relaxed">Temukan atau jual perlengkapan lari berkualitas, baru maupun pre-loved.</p>
-                            
-                            <div class="mt-auto flex items-center justify-between text-orange-400 text-sm font-bold pt-4 border-t border-slate-800/50">
-                                <span x-text="open ? 'Tutup Menu' : 'Jelajahi Fitur'">Jelajahi Fitur</span>
-                                <svg :class="{'rotate-180': open}" class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                            </div>
-                        </button>
-
-                        <div x-show="open" x-collapse class="bg-slate-950 border-t border-slate-800 px-2 pb-2">
-                            <ul class="space-y-1 pt-2">
-                                <li>
-                                    <a href="{{ route('marketplace.index') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition group/link">
-                                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-hover/link:text-orange-400 group-hover/link:bg-slate-700 transition">
-                                            <i class="fas fa-tag text-xs"></i>
-                                        </div>
-                                        <span class="text-sm font-medium">Jual Beli Gear (Konsinasi)</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            <h3 class="text-xl font-bold text-white mb-3 leading-tight">Pasar Perlengkapan Lari</h3>
+                            <p class="text-[#94A3B8] text-sm leading-relaxed mb-6">Temukan perlengkapan lari berkualitas dari brand terpercaya, atau titipkan gear lari pre-loved Anda lewat sistem konsinyasi kami.</p>
                         </div>
+                        <div class="pt-6 border-t border-[#1F2D44] space-y-2">
+                            <a href="{{ route('marketplace.index') }}" class="flex items-center justify-between text-xs text-[#94A3B8] hover:text-[#B8FF00] font-bold transition">
+                                <span>Jual Beli Gear</span>
+                                <i class="fas fa-arrow-right text-[10px]"></i>
+                            </a>
                         </div>
                     </div>
 
@@ -449,103 +295,76 @@
             </div>
         </section>
 
-        <section class="py-24 bg-dark relative overflow-hidden">
-            <div class="absolute inset-0 bg-slate-900/20"></div>
+        <!-- KELOLA EVENT LARI TANPA RIBET (EO SECTION) -->
+        <section class="py-24 bg-[#08111F] relative overflow-hidden border-t border-[#1F2D44]">
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none"></div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-14">
-                    <div data-aos="fade-right">
-                        <span class="text-blue-400 font-bold tracking-widest uppercase text-sm mb-2 block">Solusi Untuk Event Organizer</span>
-                        <h2 class="text-3xl md:text-5xl font-black text-white">
-                            TICKETING EVENT <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">ADVANCED</span>
+                    <div data-aos="fade-right" class="max-w-2xl">
+                        <span class="text-[#B8FF00] font-bold tracking-widest uppercase text-sm mb-2 block">Solusi Untuk Event Organizer</span>
+                        <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">
+                            Kelola Event Lari Tanpa Ribet
                         </h2>
-                        <p class="text-slate-400 mt-4 max-w-2xl">
-                            Sistem yang dibuat spesifik untuk event lari: fleksibel, dinamis, dan siap dipakai dari registrasi sampai race day.
+                        <p class="text-[#94A3B8] mt-4 text-base leading-relaxed">
+                            Sistem ticketing dan registrasi advanced yang dibuat khusus untuk event lari. Dilengkapi manajemen kuota real-time, kode promo fleksibel, add-on jersey, serta integrasi e-ticket dan WhatsApp blast.
                         </p>
                     </div>
-                    <div class="flex gap-3" data-aos="fade-left">
-                        <a href="{{ route('eo.landing') }}" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-white transition">
+                    <div class="flex gap-3 shrink-0" data-aos="fade-left">
+                        <a href="{{ route('eo.landing') }}" class="px-6 py-3 rounded-xl bg-[#B8FF00] text-[#08111F] font-black hover:bg-[#9FE000] hover:scale-105 transition transform text-sm uppercase tracking-wider">
                             Lihat Detail
                         </a>
-                        <a href="{{ route('events.index') }}" class="px-6 py-3 rounded-xl border border-slate-700 text-white font-bold hover:bg-slate-800 transition">
+                        <a href="{{ route('events.index') }}" class="px-6 py-3 rounded-xl border border-[#1F2D44] bg-[#0E1A2D] text-white font-bold hover:bg-[#111F35] transition text-sm uppercase tracking-wider">
                             Contoh Event
                         </a>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-blue-500/50 transition" data-aos="fade-up" data-aos-delay="0">
-                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 border border-blue-500/20">
+                    <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="0">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6 border border-blue-500/20">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         </div>
-                        <div class="text-white font-black text-lg mb-2">Kategori & Kuota Real-time</div>
-                        <div class="text-slate-400 text-sm leading-relaxed">Atur kategori tiket, batas kuota, dan status sold-out yang selalu update.</div>
+                        <h3 class="text-white font-bold text-lg mb-2">Kuota & Kategori Real-time</h3>
+                        <p class="text-[#94A3B8] text-sm leading-relaxed">Atur kuota, early bird, slot per kategori secara dinamis dengan status real-time untuk menghindari over-booking.</p>
                     </div>
 
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-neon/50 transition" data-aos="fade-up" data-aos-delay="100">
-                        <div class="w-12 h-12 rounded-xl bg-neon/10 flex items-center justify-center text-neon mb-4 border border-neon/20">
+                    <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="100">
+                        <div class="w-12 h-12 rounded-2xl bg-[#B8FF00]/10 flex items-center justify-center text-[#B8FF00] mb-6 border border-[#B8FF00]/20">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5 5.5L4 19l5.5-5.5M14 9l5.5-5.5L20 4l-5.5 5.5M6 6l12 12" /></svg>
                         </div>
-                        <div class="text-white font-black text-lg mb-2">Promo, Kupon, Add-ons</div>
-                        <div class="text-slate-400 text-sm leading-relaxed">Buat strategi pricing yang lincah: kupon/promo dan add-ons per peserta.</div>
+                        <h3 class="text-white font-bold text-lg mb-2">Promo, Kupon, & Jersey Add-on</h3>
+                        <p class="text-[#94A3B8] text-sm leading-relaxed">Kelola kode promo komunitas, diskon progresif, ukuran jersey, bib number custom, hingga opsi merchandise dalam satu formulir.</p>
                     </div>
 
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-purple-500/50 transition" data-aos="fade-up" data-aos-delay="200">
-                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-4 border border-purple-500/20">
+                    <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="200">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-6 border border-purple-500/20">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2v1c0 1.105 1.343 2 3 2s3 .895 3 2v1c0 1.105-1.343 2-3 2m0-14v2m0 16v2m9-10a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <div class="text-white font-black text-lg mb-2">Pembayaran Terintegrasi</div>
-                        <div class="text-slate-400 text-sm leading-relaxed">Checkout cepat, status pembayaran jelas, dan alur pembayaran yang rapi.</div>
+                        <h3 class="text-white font-bold text-lg mb-2">Pembayaran Online Otomatis</h3>
+                        <p class="text-[#94A3B8] text-sm leading-relaxed">Integrasi Virtual Account, E-Wallet (Gopay/QRIS), dan Kartu Kredit dengan verifikasi instan tanpa perlu konfirmasi manual.</p>
                     </div>
 
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/50 transition" data-aos="fade-up" data-aos-delay="300">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-4 border border-emerald-500/20">
+                    <div class="bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 hover:border-[#B8FF00]/30 transition" data-aos="fade-up" data-aos-delay="300">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-6 border border-emerald-500/20">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2m-6 6h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2h2" /></svg>
                         </div>
-                        <div class="text-white font-black text-lg mb-2">Dashboard & Race Ops</div>
-                        <div class="text-slate-400 text-sm leading-relaxed">Kelola data peserta, operasional, laporan, dan export untuk tim race day.</div>
+                        <h3 class="text-white font-bold text-lg mb-2">Dashboard Rekap & Race Day Ops</h3>
+                        <p class="text-[#94A3B8] text-sm leading-relaxed">Ekspor data peserta berformat Excel untuk tim timer (BIB tagging) dan kelola check-in kehadiran secara live saat race day.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- EVENTS SECTION -->
-        <section id="events" class="py-24 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-neon/50 to-transparent"></div>
-            
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-                    <div data-aos="fade-right">
-                        <span class="text-neon font-bold tracking-widest uppercase text-sm mb-2 block">Race Calendar</span>
-                        <h2 class="text-4xl md:text-5xl font-black text-white">UPCOMING <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">EVENTS</span></h2>
-                    </div>
-                    <a href="/jadwal-lari" class="group flex items-center gap-2 text-slate-400 hover:text-white transition font-bold border-b border-slate-700 hover:border-white pb-1" data-aos="fade-left">
-                        Lihat Semua Event 
-                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                    </a>
-                </div>
-
-                <div id="homeEvents" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Events Loaded via JS -->
-                    <div class="col-span-1 lg:col-span-2 flex flex-col items-center justify-center py-20 text-slate-500">
-                        <div class="w-10 h-10 border-4 border-slate-800 border-t-neon rounded-full animate-spin mb-4"></div>
-                        <p>Memuat jadwal lari...</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- LEADERBOARD SECTION -->
-        <section id="leaderboard" class="py-24 bg-dark relative overflow-hidden">
-            <!-- Background Elements -->
-            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-neon/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <!-- WEEKLY LEADERBOARD SECTION -->
+        <section id="leaderboard" class="py-24 bg-[#08111F] relative overflow-hidden border-t border-[#1F2D44]">
+            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-[#B8FF00]/5 rounded-full blur-[100px] pointer-events-none"></div>
             <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="text-center mb-16" data-aos="fade-up">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-700 bg-slate-800/50 backdrop-blur-sm text-slate-300 text-xs font-bold uppercase tracking-wider mb-4">
-                        <svg class="w-4 h-4 text-[#fc4c02]" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#FC4C02]/20 bg-[#FC4C02]/10 backdrop-blur-sm text-[#FC4C02] text-xs font-bold uppercase tracking-wider mb-6">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
                         Powered by Strava
                     </div>
                     @auth
@@ -554,11 +373,10 @@
                         @endif
                     @endauth
                     <h2 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
-                        WEEKLY <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400 pr-2">LEADERBOARD</span>
+                        Weekly <span class="text-[#B8FF00]">Leaderboard</span>
                     </h2>
-                    <p class="text-slate-400 max-w-2xl mx-auto">
-                        Pantau performa terbaik minggu ini dari member <a href="https://www.strava.com/clubs/1859982" target="_blank" class="text-neon hover:underline font-bold">Ruang Lari Club</a> di Strava.
-                        Apakah namamu ada di sini?
+                    <p class="text-[#94A3B8] max-w-2xl mx-auto text-base">
+                        Pantau performa terbaik minggu ini dari member <a href="https://www.strava.com/clubs/1859982" target="_blank" class="text-[#B8FF00] hover:underline font-bold">Ruang Lari Club</a> di Strava. Gabungkan catatan larimu dan tantang dirimu untuk masuk papan peringkat teratas!
                     </p>
                 </div>
 
@@ -568,40 +386,36 @@
                         <!-- 1. Fastest Pace (Speed Demon) -->
                         @if($leaderboard['fastest'])
                         <div class="group relative" data-aos="fade-up" data-aos-delay="0">
-                            <div class="absolute inset-0 bg-gradient-to-b from-blue-500/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
-                            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl p-1 overflow-hidden hover:border-blue-500/50 transition duration-300 h-full">
-                                <div class="bg-slate-950/50 rounded-[1.3rem] p-6 h-full flex flex-col relative overflow-hidden">
-                                    <!-- Rank Badge -->
-                                    <div class="absolute top-0 right-0 p-4">
-                                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                        </div>
-                                    </div>
-                                    
+                            <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden hover:border-blue-500/50 transition duration-300 h-full flex flex-col justify-between">
+                                <!-- Icon / Rank Badge -->
+                                <div class="absolute top-0 right-0 bg-blue-500/10 border-l border-b border-[#1F2D44] text-blue-400 text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
+                                    <i class="fas fa-bolt"></i> Speed Demon
+                                </div>
+                                
+                                <div class="pt-6">
                                     <!-- Profile -->
                                     <div class="flex items-center gap-4 mb-6">
                                         <div class="relative">
-                                            <div class="w-16 h-16 rounded-full p-1 bg-gradient-to-br from-blue-500 to-cyan-400">
-                                                <img src="{{ $leaderboard['fastest']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-2 border-slate-900">
+                                            <div class="w-16 h-16 rounded-full p-0.5 bg-blue-500">
+                                                <img src="{{ $leaderboard['fastest']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-2 border-[#0E1A2D]">
                                             </div>
-                                            <div class="absolute -bottom-2 -right-2 bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-slate-900">#1</div>
+                                            <div class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-[#0E1A2D]">#1</div>
                                         </div>
                                         <div>
-                                            <h4 class="text-white font-bold text-lg leading-tight">{{ $leaderboard['fastest']['name'] }}</h4>
-                                            <p class="text-slate-500 text-xs uppercase tracking-wider font-bold">The Flash</p>
+                                            <h4 class="text-white font-bold text-base leading-tight">{{ $leaderboard['fastest']['name'] }}</h4>
+                                            <p class="text-[#94A3B8] text-xs uppercase tracking-wider font-semibold">Fastest pace</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Stats -->
-                                    <div class="mt-auto">
-                                        <div class="flex items-end justify-between mb-2">
-                                            <span class="text-slate-400 text-sm font-medium">Fastest Pace</span>
-                                            <span class="text-3xl font-black text-white italic">{{ $leaderboard['fastest']['value'] }} <span class="text-sm text-slate-500 font-normal not-italic">{{ $leaderboard['fastest']['unit'] }}</span></span>
-                                        </div>
-                                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                                            <div class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-[95%]"></div>
-                                        </div>
-                                        <p class="text-right text-xs text-blue-400 mt-2 font-mono">5k Time Trial</p>
+                                <!-- Stats -->
+                                <div class="mt-4">
+                                    <div class="flex items-end justify-between mb-2">
+                                        <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Pace</span>
+                                        <span class="text-3xl font-black text-white italic">{{ $leaderboard['fastest']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['fastest']['unit'] }}</span></span>
+                                    </div>
+                                    <div class="w-full h-2 bg-[#111F35] rounded-full overflow-hidden">
+                                        <div class="h-full bg-blue-500 w-[95%]"></div>
                                     </div>
                                 </div>
                             </div>
@@ -611,79 +425,75 @@
                         <!-- 2. Longest Distance (Distance Monster) -->
                         @if($leaderboard['distance'])
                         <div class="group relative transform md:-translate-y-4" data-aos="fade-up" data-aos-delay="100">
-                            <!-- Crown/Winner Effect -->
-                            <div class="absolute -top-12 left-1/2 -translate-x-1/2 text-4xl animate-bounce">👑</div>
-                            <div class="absolute inset-0 bg-gradient-to-b from-neon/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
-                            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl p-1 overflow-hidden hover:border-neon/50 transition duration-300 h-full shadow-[0_0_50px_rgba(204,255,0,0.1)]">
-                                <div class="bg-slate-950/50 rounded-[1.3rem] p-8 h-full flex flex-col relative overflow-hidden">
-                                    <div class="absolute top-0 right-0 p-4">
-                                        <div class="w-12 h-12 rounded-xl bg-neon/10 border border-neon/20 flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" /></svg>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex items-center gap-4 mb-8">
+                            <!-- MVP Crown Banner -->
+                            <div class="absolute top-0 right-0 bg-[#FC4C02] text-white text-[10px] font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5 z-20">
+                                <i class="fas fa-crown"></i> MVP Leader
+                            </div>
+                            <div class="relative bg-[#0E1A2D] border border-[#B8FF00]/50 rounded-3xl p-6 overflow-hidden transition duration-300 h-full flex flex-col justify-between shadow-[0_0_30px_rgba(184,255,0,0.05)]">
+                                
+                                <div class="pt-6">
+                                    <!-- Profile -->
+                                    <div class="flex items-center gap-4 mb-6">
                                         <div class="relative">
-                                            <div class="w-20 h-20 rounded-full p-1 bg-gradient-to-br from-neon to-lime-500 shadow-lg shadow-neon/20">
-                                                <img src="{{ $leaderboard['distance']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-4 border-slate-900">
+                                            <div class="w-20 h-20 rounded-full p-1 bg-gradient-to-br from-[#B8FF00] to-emerald-400">
+                                                <img src="{{ $leaderboard['distance']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-4 border-[#0E1A2D]">
                                             </div>
-                                            <div class="absolute -bottom-2 -right-2 bg-neon text-dark text-xs font-black px-2 py-0.5 rounded-full border-2 border-slate-900">MVP</div>
+                                            <div class="absolute -bottom-1 -right-1 bg-[#B8FF00] text-[#08111F] text-xs font-black px-2 py-0.5 rounded-full border-2 border-[#0E1A2D]">MVP</div>
                                         </div>
                                         <div>
-                                            <h4 class="text-white font-bold text-xl leading-tight">{{ $leaderboard['distance']['name'] }}</h4>
-                                            <p class="text-neon text-xs uppercase tracking-wider font-bold">Ultra Runner</p>
+                                            <h4 class="text-white font-bold text-lg leading-tight">{{ $leaderboard['distance']['name'] }}</h4>
+                                            <p class="text-[#B8FF00] text-xs uppercase tracking-wider font-semibold">Distance Leader</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div class="mt-auto">
-                                        <div class="flex items-end justify-between mb-2">
-                                            <span class="text-slate-400 text-sm font-medium">Total Distance</span>
-                                            <span class="text-4xl font-black text-white italic">{{ $leaderboard['distance']['value'] }} <span class="text-sm text-slate-500 font-normal not-italic">{{ $leaderboard['distance']['unit'] }}</span></span>
-                                        </div>
-                                        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-                                            <div class="h-full bg-gradient-to-r from-neon to-lime-500 w-[88%]"></div>
-                                        </div>
-                                        <p class="text-right text-xs text-neon mt-2 font-mono">Week 42 Leader</p>
+                                <!-- Stats -->
+                                <div class="mt-4">
+                                    <div class="flex items-end justify-between mb-2">
+                                        <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Distance</span>
+                                        <span class="text-4xl font-black text-white italic">{{ $leaderboard['distance']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['distance']['unit'] }}</span></span>
+                                    </div>
+                                    <div class="w-full h-3 bg-[#111F35] rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-[#B8FF00] to-emerald-400 w-[88%]"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         @endif
 
-                        <!-- 3. Highest Elevation (Mountain Goat) -->
+                        <!-- 3. Highest Elevation (Elevation King) -->
                         @if($leaderboard['elevation'])
                         <div class="group relative" data-aos="fade-up" data-aos-delay="200">
-                            <div class="absolute inset-0 bg-gradient-to-b from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
-                            <div class="relative bg-slate-900 border border-slate-800 rounded-3xl p-1 overflow-hidden hover:border-purple-500/50 transition duration-300 h-full">
-                                <div class="bg-slate-950/50 rounded-[1.3rem] p-6 h-full flex flex-col relative overflow-hidden">
-                                    <div class="absolute top-0 right-0 p-4">
-                                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                                        </div>
-                                    </div>
-                                    
+                            <div class="relative bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl p-6 overflow-hidden hover:border-purple-500/50 transition duration-300 h-full flex flex-col justify-between">
+                                <!-- Icon / Rank Badge -->
+                                <div class="absolute top-0 right-0 bg-purple-500/10 border-l border-b border-[#1F2D44] text-purple-400 text-xs font-black px-4 py-2 rounded-bl-2xl uppercase tracking-widest flex items-center gap-1.5">
+                                    <i class="fas fa-mountain"></i> Elevation King
+                                </div>
+                                
+                                <div class="pt-6">
+                                    <!-- Profile -->
                                     <div class="flex items-center gap-4 mb-6">
                                         <div class="relative">
-                                            <div class="w-16 h-16 rounded-full p-1 bg-gradient-to-br from-purple-500 to-pink-500">
-                                                <img src="{{ $leaderboard['elevation']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-2 border-slate-900">
+                                            <div class="w-16 h-16 rounded-full p-0.5 bg-purple-500">
+                                                <img src="{{ $leaderboard['elevation']['avatar'] }}" loading="lazy" class="w-full h-full rounded-full object-cover border-2 border-[#0E1A2D]">
                                             </div>
-                                            <div class="absolute -bottom-2 -right-2 bg-purple-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-slate-900">#1</div>
+                                            <div class="absolute -bottom-1 -right-1 bg-purple-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-[#0E1A2D]">#1</div>
                                         </div>
                                         <div>
-                                            <h4 class="text-white font-bold text-lg leading-tight">{{ $leaderboard['elevation']['name'] }}</h4>
-                                            <p class="text-slate-500 text-xs uppercase tracking-wider font-bold">Mountain Goat</p>
+                                            <h4 class="text-white font-bold text-base leading-tight">{{ $leaderboard['elevation']['name'] }}</h4>
+                                            <p class="text-[#94A3B8] text-xs uppercase tracking-wider font-semibold">Highest climb</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div class="mt-auto">
-                                        <div class="flex items-end justify-between mb-2">
-                                            <span class="text-slate-400 text-sm font-medium">Elevation Gain</span>
-                                            <span class="text-3xl font-black text-white italic">{{ $leaderboard['elevation']['value'] }} <span class="text-sm text-slate-500 font-normal not-italic">{{ $leaderboard['elevation']['unit'] }}</span></span>
-                                        </div>
-                                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                                            <div class="h-full bg-gradient-to-r from-purple-600 to-pink-500 w-[75%]"></div>
-                                        </div>
-                                        <p class="text-right text-xs text-purple-400 mt-2 font-mono">Bromo Tengger Semeru</p>
+                                <!-- Stats -->
+                                <div class="mt-4">
+                                    <div class="flex items-end justify-between mb-2">
+                                        <span class="text-[#94A3B8] text-xs uppercase tracking-wider font-bold">Elevation</span>
+                                        <span class="text-3xl font-black text-white italic">{{ $leaderboard['elevation']['value'] }} <span class="text-xs text-slate-500 font-normal not-italic">{{ $leaderboard['elevation']['unit'] }}</span></span>
+                                    </div>
+                                    <div class="w-full h-2 bg-[#111F35] rounded-full overflow-hidden">
+                                        <div class="h-full bg-purple-500 w-[75%]"></div>
                                     </div>
                                 </div>
                             </div>
@@ -691,281 +501,126 @@
                         @endif
 
                     @else
-                        <!-- Mock Data / Empty State if no real data yet -->
+                        <!-- Empty State if no real data yet -->
                         <div class="col-span-3 text-center py-10">
-                            <div class="inline-block p-6 rounded-2xl bg-slate-800/50 border border-slate-700">
-                                <p class="text-slate-400 mb-4">Belum ada data leaderboard minggu ini.</p>
-                                <a href="{{ route('calendar.strava.connect', ['return_to' => '/#leaderboard']) }}" class="text-neon font-bold hover:underline">Hubungkan Strava untuk memulai tracking &rarr;</a>
+                            <div class="inline-block p-8 rounded-3xl bg-[#0E1A2D] border border-[#1F2D44] max-w-md">
+                                <p class="text-[#94A3B8] mb-6 leading-relaxed">Belum ada data aktivitas lari minggu ini dari klub Strava. Jadilah yang pertama dengan menyambungkan Strava Anda!</p>
+                                <a href="{{ route('calendar.strava.connect', ['return_to' => '/#leaderboard']) }}" class="inline-flex items-center gap-2 px-6 py-3 bg-[#FC4C02] text-white font-bold rounded-xl hover:bg-[#E34402] transition uppercase text-xs tracking-wider">Hubungkan Strava</a>
                             </div>
                         </div>
                     @endif
                 </div>
 
                 <div class="mt-12 text-center">
-                    <a href="https://www.strava.com/clubs/1859982" target="_blank" class="inline-flex items-center gap-2 px-8 py-4 bg-[#fc4c02] text-white font-bold rounded-xl hover:bg-[#e34402] hover:scale-105 transition transform shadow-lg shadow-orange-500/20">
-                        <span>GABUNG KLUB STRAVA</span>
+                    <a href="https://www.strava.com/clubs/1859982" target="_blank" class="inline-flex items-center gap-2 px-8 py-4 bg-[#FC4C02] text-white font-bold rounded-xl hover:bg-[#E34402] hover:scale-105 transition transform shadow-lg shadow-orange-500/20 text-sm uppercase tracking-wider">
+                        <span>Gabung Klub Strava RuangLari</span>
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                     </a>
                 </div>
             </div>
         </section>
 
-        <!-- COMMUNITY / HALL OF FAME -->
-        <!--<section id="community" class="py-24 bg-slate-900/50 relative">
-            
-            <div class="absolute inset-0 transform -skew-y-2 bg-slate-900 z-0 origin-top-left scale-110"></div>
-            
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="text-center mb-20" data-aos="fade-up">
-                    <h2 class="text-neon font-mono font-bold tracking-[0.2em] uppercase mb-3">Community Elite</h2>
-                    <h3 class="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter">
-                        Hall of <span class="text-stroke">FAME</span>
-                    </h3>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    
-                    <div class="group relative" data-aos="fade-up" data-aos-delay="100">
-                        <div class="absolute inset-0 bg-neon/20 blur-xl opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
-                        <div class="relative bg-card border border-slate-700 rounded-3xl overflow-hidden hover:-translate-y-2 transition duration-300 h-full flex flex-col">
-                            <div class="absolute top-4 left-4 z-20">
-                                <span class="bg-neon text-dark text-xs font-black px-3 py-1 rounded uppercase tracking-wider">Top Runner</span>
-                            </div>
-                            <div class="h-64 overflow-hidden relative">
-                                @if(isset($topRunner))
-                                    <img src="{{ $topRunner->banner ? asset('storage/' . $topRunner->banner) : ($topRunner->avatar ? asset('storage/' . $topRunner->avatar) : ($topRunner->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg'))) }}" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
-                                @else
-                                    <img src="https://images.unsplash.com/photo-1596727145-0043c7576566?auto=format&fit=crop&q=80&w=600" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
-                                @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
-                                <div class="absolute bottom-4 left-4">
-                                    @if(isset($topRunner))
-                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">{{ $topRunner->name }}</h4>
-                                    @else
-                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">Top Runner</h4>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="p-6 pt-2 flex-grow flex flex-col justify-between">
-                                <div class="grid grid-cols-2 gap-4 mb-6">
-                                    <div>
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Followers</p>
-                                        <p class="text-2xl font-mono font-bold text-white">{{ isset($topRunner) ? number_format($topRunner->followers_count) : '—' }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Posts</p>
-                                        <p class="text-2xl font-mono font-bold text-neon">{{ isset($topRunner) ? number_format($topRunner->posts_count) : '—' }}</p>
-                                    </div>
-                                </div>
-                                @if(isset($topRunner))
-                                <a href="{{ route('runner.profile.show', $topRunner->username ?? $topRunner->id) }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-neon hover:text-dark hover:border-neon transition uppercase text-xs tracking-wider">
-                                    View Profile
-                                </a>
-                                @else
-                                <a href="{{ route('users.runners') }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-neon hover:text-dark hover:border-neon transition uppercase text-xs tracking-wider">
-                                    View Profile
-                                </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    
-                    <div class="group relative" data-aos="fade-up" data-aos-delay="200">
-                        <div class="absolute inset-0 bg-blue-500/20 blur-xl opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
-                        <div class="relative bg-card border border-slate-700 rounded-3xl overflow-hidden hover:-translate-y-2 transition duration-300 h-full flex flex-col">
-                            <div class="absolute top-4 left-4 z-20">
-                                <span class="bg-blue-500 text-white text-xs font-black px-3 py-1 rounded uppercase tracking-wider">Top Pacer</span>
-                            </div>
-                            <div class="h-64 overflow-hidden relative">
-                                @if(isset($topPacer))
-                                    <img src="{{ $topPacer->image_url ?? ($topPacer->user && $topPacer->user->avatar ? asset('storage/' . $topPacer->user->avatar) : asset('images/default-male.svg')) }}" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
-                                @else
-                                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
-                                @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
-                                <div class="absolute bottom-4 left-4">
-                                    @if(isset($topPacer))
-                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">{{ $topPacer->nickname ?? ($topPacer->user->name ?? 'Top Pacer') }}</h4>
-                                    @else
-                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">Top Pacer</h4>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="p-6 pt-2 flex-grow flex flex-col justify-between">
-                                <div class="grid grid-cols-2 gap-4 mb-6">
-                                    <div>
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Events</p>
-                                        <p class="text-2xl font-mono font-bold text-white">{{ isset($topPacer) ? number_format($topPacer->total_races) : '—' }}<span class="text-sm text-slate-500">races</span></p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Verified</p>
-                                        <p class="text-2xl font-mono font-bold text-blue-400">{{ isset($topPacer) ? ($topPacer->verified ? 'Yes' : 'No') : '—' }}</p>
-                                    </div>
-                                </div>
-                                @if(isset($topPacer))
-                                <a href="{{ route('pacer.show', $topPacer->seo_slug ?? $topPacer->id) }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-blue-500 hover:text-white hover:border-blue-500 transition uppercase text-xs tracking-wider">
-                                    Book Pacer
-                                </a>
-                                @else
-                                <a href="{{ route('pacer.index') }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-blue-500 hover:text-white hover:border-blue-500 transition uppercase text-xs tracking-wider">
-                                    Book Pacer
-                                </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    
-                    <div class="group relative" data-aos="fade-up" data-aos-delay="300">
-                        <div class="absolute inset-0 bg-purple-500/20 blur-xl opacity-0 group-hover:opacity-100 transition duration-500 rounded-3xl"></div>
-                        <div class="relative bg-card border border-slate-700 rounded-3xl overflow-hidden hover:-translate-y-2 transition duration-300 h-full flex flex-col">
-                            <div class="absolute top-4 left-4 z-20">
-                                <span class="bg-white text-dark text-xs font-black px-3 py-1 rounded uppercase tracking-wider">Top Coach</span>
-                            </div>
-                            <div class="h-64 overflow-hidden relative">
-                                @if(isset($topCoach))
-                                    <img src="{{ $topCoach->avatar ? asset('storage/' . $topCoach->avatar) : asset('images/default-male.svg') }}" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
-                                @else
-                                    <img src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=600" loading="lazy" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-105 group-hover:scale-110">
-                                @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent opacity-90"></div>
-                                <div class="absolute bottom-4 left-4">
-                                    @if(isset($topCoach))
-                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">{{ $topCoach->name }}</h4>
-                                    @else
-                                        <h4 class="text-2xl font-black text-white italic uppercase leading-none">Top Coach</h4>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="p-6 pt-2 flex-grow flex flex-col justify-between">
-                                <div class="grid grid-cols-2 gap-4 mb-6">
-                                    <div>
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Students</p>
-                                        <p class="text-2xl font-mono font-bold text-white">{{ isset($topCoachData) ? number_format($topCoachData->students_count) : '—' }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-xs text-slate-500 uppercase font-bold">Programs</p>
-                                        <p class="text-2xl font-mono font-bold text-white">{{ isset($topCoach) ? number_format($topCoach->programs()->count()) : '—' }}</p>
-                                    </div>
-                                </div>
-                                @if(isset($topCoach))
-                                <a href="{{ route('runner.profile.show', $topCoach->username ?? $topCoach->id) }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-white hover:text-dark hover:border-white transition uppercase text-xs tracking-wider">
-                                    Join Class
-                                </a>
-                                @else
-                                <a href="{{ url('/users?role=coach') }}" class="w-full py-3 rounded-xl border border-slate-600 text-white font-bold text-center hover:bg-white hover:text-dark hover:border-white transition uppercase text-xs tracking-wider">
-                                    Join Class
-                                </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>-->
-
-        <!-- PRICING SECTION -->
-        <section id="pricing" class="py-32 relative hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-gradient-to-br from-neon via-lime-500 to-emerald-600 rounded-[3rem] p-8 md:p-20 text-center relative overflow-hidden shadow-[0_20px_100px_-20px_rgba(204,255,0,0.3)]">
-                    
-                    <!-- Decorative Circles -->
-                    <div class="absolute top-0 left-0 w-96 h-96 bg-white/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-                    <div class="absolute bottom-0 right-0 w-96 h-96 bg-black/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
-
-                    <div class="relative z-10 max-w-5xl mx-auto">
-                        <h2 class="text-3xl md:text-6xl font-black text-dark mb-6 tracking-tight">UNLOCK PREMIUM FEATURES</h2>
-                        <p class="text-dark/80 text-lg md:text-xl mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
-                            Dapatkan akses ke rencana latihan eksklusif, analisis performa mendalam, dan diskon pendaftaran event.
-                        </p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-                            <!-- Free Plan -->
-                            <div class="bg-dark/90 backdrop-blur-sm p-8 rounded-3xl border border-white/10 hover:border-white/30 transition group h-full flex flex-col">
-                                <div class="mb-auto">
-                                    <h3 class="text-lg font-bold text-white mb-2">Starter</h3>
-                                    <div class="flex items-baseline mb-6">
-                                        <span class="text-4xl font-black text-white">Rp 0</span>
-                                    </div>
-                                    <ul class="space-y-4 text-sm text-slate-300 mb-8">
-                                        <li class="flex gap-3"><svg class="w-5 h-5 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Basic Tracking</li>
-                                        <li class="flex gap-3"><svg class="w-5 h-5 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Community Access</li>
-                                        <li class="flex gap-3 text-slate-600"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> Advanced Stats</li>
-                                    </ul>
-                                </div>
-                                <a href="{{ url('/register') }}" class="w-full py-4 rounded-xl bg-slate-800 hover:bg-white hover:text-dark font-bold transition text-white text-center text-sm uppercase tracking-wider">Start Free</a>
-                            </div>
-
-                            <!-- Pro Plan -->
-                            <div class="bg-white text-dark p-8 rounded-3xl shadow-2xl relative transform md:-translate-y-4 h-full flex flex-col border-4 border-white/50">
-                                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-dark text-neon border border-neon text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Most Popular</div>
-                                <div class="mb-auto">
-                                    <h3 class="text-lg font-bold mb-2">Pro Runner</h3>
-                                    <div class="flex items-baseline mb-6">
-                                        <span class="text-4xl font-black">Rp 49k</span>
-                                        <span class="text-sm font-medium text-slate-500 ml-1">/bln</span>
-                                    </div>
-                                    <ul class="space-y-4 text-sm font-medium mb-8 text-slate-700">
-                                        <li class="flex gap-3"><svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Advanced Analytics</li>
-                                        <li class="flex gap-3"><svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Training Plans</li>
-                                        <li class="flex gap-3"><svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Event Discounts</li>
-                                    </ul>
-                                </div>
-                                <a href="{{ url('/membership') }}" class="w-full py-4 rounded-xl bg-dark text-neon hover:bg-slate-800 font-black transition text-center text-sm uppercase tracking-wider shadow-lg">Upgrade Now</a>
-                            </div>
-
-                            <!-- Coach Plan -->
-                            <div class="bg-dark/90 backdrop-blur-sm p-8 rounded-3xl border border-white/10 hover:border-white/30 transition h-full flex flex-col">
-                                <div class="mb-auto">
-                                    <h3 class="text-lg font-bold text-white mb-2">Elite Coach</h3>
-                                    <div class="flex items-baseline mb-6">
-                                        <span class="text-4xl font-black text-white">Rp 199k</span>
-                                        <span class="text-sm text-slate-400 ml-1">/bln</span>
-                                    </div>
-                                    <ul class="space-y-4 text-sm text-slate-300 mb-8">
-                                        <li class="flex gap-3"><svg class="w-5 h-5 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> All Pro Features</li>
-                                        <li class="flex gap-3"><svg class="w-5 h-5 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Manage Students</li>
-                                        <li class="flex gap-3"><svg class="w-5 h-5 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Verified Badge</li>
-                                    </ul>
-                                </div>
-                                <a href="{{ url('/contact') }}" class="w-full py-4 rounded-xl bg-slate-800 hover:bg-white hover:text-dark font-bold transition text-white text-center text-sm uppercase tracking-wider">Contact Sales</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- BLOG SECTION -->
-        <section id="blog" class="py-24 bg-dark">
+        <!-- NEWS & ARTICLES SECTION -->
+        <section id="blog" class="py-24 bg-[#08111F] border-t border-[#1F2D44]">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
                     <div>
-                        <span class="text-neon font-bold tracking-widest uppercase text-sm mb-2 block">Latest Updates</span>
-                        <h2 class="text-4xl font-black text-white">NEWS & <span class="text-stroke">ARTICLES</span></h2>
+                        <span class="text-[#B8FF00] font-bold tracking-widest uppercase text-sm mb-2 block">Tips & Edukasi</span>
+                        <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight">News & Articles</h2>
+                        <p class="text-[#94A3B8] mt-2 max-w-xl text-base">Ikuti tips latihan lari terbaru, review sepatu, nutrisi olahraga, dan cerita inspiratif dari pelari Indonesia.</p>
                     </div>
-                    <a href="{{ url('/blog') }}" class="text-sm font-bold text-white hover:text-neon transition flex items-center gap-2 border-b border-transparent hover:border-neon pb-1">
+                    <a href="{{ url('/blog') }}" class="text-sm font-bold text-[#94A3B8] hover:text-white transition flex items-center gap-2 border-b border-transparent hover:border-white pb-1 shrink-0">
                         Lihat Artikel Terbaru <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </a>
                 </div>
-                <div id="blogCards" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+                <div id="blogCards" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Loaded via JS -->
+                </div>
             </div>
         </section>
+
     </div>
 @endsection
 
 @push('styles')
 <style>
-    .text-stroke { -webkit-text-stroke: 1px rgba(255,255,255,0.2); color: transparent; }
-    .bg-hero-glow { background-image: radial-gradient(circle at center, rgba(204,255,0,0.1) 0%, transparent 60%); }
-    .animate-float { animation: floaty 3s ease-in-out infinite; }
-    .animate-pulse-slow { animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    @keyframes floaty { 
-        0%, 100% { transform: translateY(0) rotate(12deg); } 
-        50% { transform: translateY(-10px) rotate(12deg); } 
+    :root {
+        --color-bg: #08111F;
+        --color-surface: #0E1A2D;
+        --color-surface-2: #111F35;
+        --color-border: #1F2D44;
+        --color-text-primary: #F8FAFC;
+        --color-text-secondary: #94A3B8;
+        --color-lime: #B8FF00;
+        --color-lime-hover: #9FE000;
+    }
+    
+    body {
+        background-color: var(--color-bg) !important;
+        color: var(--color-text-primary) !important;
+    }
+    
+    .bg-dark {
+        background-color: var(--color-bg) !important;
+    }
+    
+    .bg-card, .bg-slate-900 {
+        background-color: var(--color-surface) !important;
+    }
+    
+    .bg-slate-950, .bg-slate-950\/50, .bg-slate-900\/30, .bg-slate-900\/50, .bg-slate-950\/50 {
+        background-color: var(--color-surface-2) !important;
+    }
+    
+    .border-slate-800, .border-slate-800\/50, .border-slate-700, .border-slate-600 {
+        border-color: var(--color-border) !important;
+    }
+    
+    .text-slate-400, .text-slate-300 {
+        color: var(--color-text-secondary) !important;
+    }
+    
+    .text-neon, .text-primary {
+        color: var(--color-lime) !important;
+    }
+    
+    .bg-neon, .bg-primary {
+        background-color: var(--color-lime) !important;
+        color: var(--color-bg) !important;
+    }
+
+    .bg-neon\/10 {
+        background-color: rgba(184, 255, 0, 0.1) !important;
+    }
+
+    .bg-neon\/5 {
+        background-color: rgba(184, 255, 0, 0.05) !important;
+    }
+
+    .border-neon\/20 {
+        border-color: rgba(184, 255, 0, 0.2) !important;
+    }
+
+    .border-neon\/50 {
+        border-color: rgba(184, 255, 0, 0.5) !important;
+    }
+
+    .hover\:bg-white:hover {
+        background-color: var(--color-text-primary) !important;
+        color: var(--color-bg) !important;
+    }
+    
+    .animate-pulse-slow { 
+        animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite; 
+    }
+    
+    .no-scrollbar::-webkit-scrollbar { 
+        display: none; 
+    }
+    
+    .no-scrollbar { 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
     }
 </style>
 @endpush
@@ -988,7 +643,8 @@
         ],
         [
             '@type' => 'WebPage',
-            'name' => 'Ruang Lari',
+            'name' => 'Ruang Lari | Kalender Event Lari, Komunitas, dan Tools Pelari Indonesia',
+            'description' => 'Temukan event lari terbaru, kalender race, komunitas pelari, leaderboard, dan tools latihan dalam satu platform RuangLari.',
             'url' => url('/'),
         ],
     ],
@@ -1044,7 +700,7 @@
             for (var i = 0; i < slides.length; i++) {
                 var b = document.createElement('button');
                 b.type = 'button';
-                b.className = 'w-2.5 h-2.5 rounded-full bg-slate-500/70 hover:bg-white transition';
+                b.className = 'w-2 h-2 rounded-full bg-slate-500/70 hover:bg-white transition';
                 b.setAttribute('aria-label', 'Slide ' + (i + 1));
                 (function (idx) {
                     b.addEventListener('click', function () {
@@ -1061,8 +717,8 @@
             var children = dots.children;
             for (var i = 0; i < children.length; i++) {
                 children[i].className = i === idx
-                    ? 'w-2.5 h-2.5 rounded-full bg-neon transition'
-                    : 'w-2.5 h-2.5 rounded-full bg-slate-500/70 hover:bg-white transition';
+                    ? 'w-2 h-2 rounded-full bg-[#B8FF00] transition'
+                    : 'w-2 h-2 rounded-full bg-slate-500/70 hover:bg-white transition';
             }
         }
 
@@ -1130,14 +786,14 @@
     async function loadLatestBlogs(){
         const c=document.getElementById('blogCards');
         if(!c)return;
-        c.innerHTML='<div class="col-span-3 text-center text-slate-500 animate-pulse">Memuat artikel...</div>';
+        c.innerHTML='<div class="col-span-3 text-center text-slate-500 animate-pulse py-10">Memuat artikel...</div>';
         try{
             const base=(window.location.pathname.indexOf('/ruanglari/public')!==-1)?'/ruanglari/public':'';
             const r=await fetch(base+'/api/blog/latest');
             const p=await r.json();
             c.innerHTML='';
             if(!p || p.length===0){
-                c.innerHTML='<div class="col-span-3 text-center text-slate-500 py-10 border border-dashed border-slate-800 rounded-2xl bg-slate-900/40">Belum ada artikel yang dipublikasikan.</div>';
+                c.innerHTML='<div class="col-span-3 text-center text-slate-500 py-10 border border-dashed border-[#1F2D44] rounded-3xl bg-[#0E1A2D]">Belum ada artikel yang dipublikasikan.</div>';
                 return;
             }
             p.forEach((post, i)=>{
@@ -1147,31 +803,36 @@
                 const date=new Date(post.date).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
                 
                 const card=document.createElement('div');
-                card.className='group bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-600 transition duration-300 flex flex-col h-full';
+                card.className='group bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl overflow-hidden hover:border-[#B8FF00]/50 transition duration-300 flex flex-col h-full justify-between';
                 card.setAttribute('data-aos', 'fade-up');
                 card.setAttribute('data-aos-delay', i * 100);
                 
                 card.innerHTML=`
-                    <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener" class="block overflow-hidden relative aspect-video">
-                        <img src="${img}" alt="${t.replace(/<[^>]*>/g,'')}" loading="lazy" class="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110" />
-                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
-                    </a>
-                    <div class="p-6 flex-grow flex flex-col">
-                        <div class="text-xs text-neon font-bold mb-2 uppercase tracking-wider">${date}</div>
-                        <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener" class="text-lg font-bold text-white mb-3 hover:text-neon transition line-clamp-2 leading-tight">
-                            ${t}
+                    <div>
+                        <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener" class="block overflow-hidden relative aspect-video">
+                            <img src="${img}" alt="${t.replace(/<[^>]*>/g,'')}" loading="lazy" class="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105" onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';" />
+                            <div class="absolute inset-0 bg-[#08111F]/20 group-hover:bg-transparent transition"></div>
                         </a>
-                        <div class="mt-auto pt-4 border-t border-slate-800">
-                            <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener" class="text-sm text-slate-400 group-hover:text-white transition flex items-center gap-2">
-                                Baca Selengkapnya <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                            </a>
+                        <div class="p-6">
+                            <div class="text-xs text-[#B8FF00] font-bold mb-2 uppercase tracking-wider">${date}</div>
+                            <h3 class="text-lg font-bold text-white mb-4 hover:text-[#B8FF00] transition line-clamp-2 leading-snug">
+                                <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener">
+                                    ${t}
+                                </a>
+                            </h3>
                         </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-4 border-t border-[#1F2D44] flex items-center justify-between">
+                        <a href="${l}" target="${l === '#' ? '_self' : '_blank'}" rel="noopener" class="text-xs text-[#94A3B8] group-hover:text-white font-bold uppercase tracking-wider transition flex items-center gap-2">
+                            Baca Selengkapnya
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </a>
                     </div>
                 `;
                 c.appendChild(card);
             });
         }catch(e){
-            c.innerHTML='<div class="col-span-3 text-center text-red-500 py-10 bg-slate-900 rounded-xl border border-red-900/50">Gagal memuat artikel. Silakan coba lagi nanti.</div>';
+            c.innerHTML='<div class="col-span-3 text-center text-red-500 py-10 bg-[#0E1A2D] rounded-3xl border border-red-900/50">Gagal memuat artikel. Silakan coba lagi nanti.</div>';
         }
     }
 
@@ -1185,7 +846,7 @@
             c.innerHTML='';
             
             if(!events||events.length===0){
-                c.innerHTML='<div class="col-span-2 text-center text-slate-500 py-10 border border-dashed border-slate-800 rounded-2xl">Belum ada event mendatang.</div>';
+                c.innerHTML='<div class="col-span-2 text-center text-[#94A3B8] py-16 border border-dashed border-[#1F2D44] rounded-3xl bg-[#0E1A2D]">Belum ada event mendatang.</div>';
                 return;
             }
             
@@ -1193,28 +854,65 @@
                 const d=new Date(ev.date+'T'+(ev.time||'00:00'));
                 const m=d.toLocaleString('id-ID',{month:'short'}).toUpperCase();
                 const day=String(d.getDate()).padStart(2,'0');
+                const year=d.getFullYear();
                 
-                const card=document.createElement('a');
-                card.href = ev.url;
-                card.className='group relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-neon/50 transition duration-300 flex';
+                const card=document.createElement('div');
+                card.className='group bg-[#0E1A2D] border border-[#1F2D44] rounded-3xl overflow-hidden hover:border-[#B8FF00]/50 transition duration-300 flex flex-col justify-between p-6 h-full relative';
                 card.setAttribute('data-aos', 'fade-up');
                 card.setAttribute('data-aos-delay', i * 100);
                 
+                // Construct distance badges
+                let distanceBadges = '';
+                if (ev.distances && ev.distances.length > 0) {
+                    ev.distances.forEach(dist => {
+                        distanceBadges += `<span class="bg-[#111F35] text-[#B8FF00] border border-[#1F2D44] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">${dist}</span>`;
+                    });
+                } else {
+                    distanceBadges = `<span class="bg-[#111F35] text-[#94A3B8] border border-[#1F2D44] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">Run</span>`;
+                }
+
                 card.innerHTML=`
-                    <div class="absolute inset-0 bg-gradient-to-r from-neon/5 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                    <div class="w-24 md:w-32 bg-slate-950 flex flex-col items-center justify-center text-center p-4 border-r border-slate-800 group-hover:border-neon/30 transition z-10">
-                        <span class="text-xs md:text-sm font-bold text-neon uppercase tracking-wider mb-1">${m}</span>
-                        <span class="text-3xl md:text-4xl font-black text-white">${day}</span>
-                    </div>
-                    <div class="p-5 flex-grow flex flex-col justify-center relative z-10">
-                        <h3 class="text-lg md:text-xl font-bold text-white mb-2 group-hover:text-neon transition line-clamp-1">${ev.name}</h3>
-                        <div class="flex items-center gap-4 text-xs md:text-sm text-slate-500">
-                            <span class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> ${ev.location||'TBA'}</span>
-                            <span class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> ${ev.time||'TBA'} WIB</span>
+                    <div>
+                        <!-- Header: Date & Status -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-[#111F35] border border-[#1F2D44] rounded-2xl px-4 py-2 text-center flex flex-col justify-center min-w-[64px]">
+                                    <span class="text-[10px] font-black text-[#B8FF00] uppercase tracking-wider">${m}</span>
+                                    <span class="text-2xl font-black text-white leading-none">${day}</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 font-bold uppercase">${year}</p>
+                                    <p class="text-[10px] text-[#B8FF00] font-bold uppercase tracking-wider">Mendatang</p>
+                                </div>
+                            </div>
+                            <!-- Category Badge -->
+                            <div class="flex flex-wrap gap-1 max-w-[150px] justify-end">
+                                ${distanceBadges}
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <h3 class="text-xl font-bold text-white mb-3 group-hover:text-[#B8FF00] transition line-clamp-2 leading-snug">${ev.name}</h3>
+                        
+                        <div class="space-y-2 mb-6">
+                            <div class="flex items-center gap-2 text-sm text-[#94A3B8]">
+                                <svg class="w-4 h-4 text-[#B8FF00] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                <span class="truncate">${ev.location||'TBA'}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-[#94A3B8]">
+                                <svg class="w-4 h-4 text-[#B8FF00] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>${ev.time||'TBA'} WIB</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="w-12 md:w-16 flex items-center justify-center border-l border-slate-800 bg-slate-900/50 group-hover:bg-neon group-hover:text-dark transition z-10">
-                        <svg class="w-6 h-6 transform -rotate-45 group-hover:rotate-0 transition duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+
+                    <!-- Footer: Action button -->
+                    <div class="pt-4 border-t border-[#1F2D44] flex items-center justify-between">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">${ev.is_eo ? 'Managed by EO' : 'RuangLari Listing'}</span>
+                        <a href="${ev.url}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#111F35] text-white hover:bg-[#B8FF00] hover:text-[#08111F] font-bold text-xs uppercase tracking-wider transition duration-300">
+                            Lihat Detail
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </a>
                     </div>
                 `;
                 c.appendChild(card);

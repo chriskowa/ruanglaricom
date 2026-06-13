@@ -54,10 +54,10 @@
                     </div>
 
                     <div>
-                        <h4 class="text-white font-bold mb-6 uppercase text-xs tracking-[0.2em] text-neon">Newsletter</h4>
-                        <p class="text-slate-400 text-sm mb-4">Dapatkan tips lari eksklusif dan info event terbaru.</p>
+                        <h4 class="text-white font-bold mb-4 uppercase text-xs tracking-[0.2em] text-neon">Newsletter</h4>
+                        <p class="text-slate-400 text-sm mb-4 leading-relaxed">Dapatkan update event lari, tips latihan, dan artikel pilihan langsung ke email kamu.</p>
                         <form id="newsletter-form" class="flex flex-col gap-3" onsubmit="event.preventDefault(); subscribeNewsletter();">
-                            <input type="email" id="newsletter-email" name="email" placeholder="Email Anda" class="bg-slate-900 text-white text-sm px-4 py-3 rounded-xl border border-slate-800 w-full focus:border-neon focus:ring-1 focus:ring-neon outline-none transition placeholder-slate-600" required>
+                            <input type="email" id="newsletter-email" name="email" placeholder="Alamat Email Anda" class="bg-slate-900 text-white text-sm px-4 py-3 rounded-xl border border-slate-800 w-full focus:border-neon focus:ring-1 focus:ring-neon outline-none transition placeholder-slate-600" required>
                             <button type="submit" id="newsletter-btn" class="bg-neon text-slate-900 font-black uppercase text-xs tracking-wider px-4 py-3 rounded-xl hover:bg-white transition hover:scale-[1.02] active:scale-95">Subscribe</button>
                             <p id="newsletter-message" class="text-xs mt-1 hidden"></p>
                         </form>

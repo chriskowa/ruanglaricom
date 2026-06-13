@@ -32,6 +32,30 @@
         $seoKeywords = isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
         $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
         $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
+
+        $minPrice = null;
+        $maxPrice = null;
+        if (isset($categories) && count($categories) > 0) {
+            foreach ($categories as $cat) {
+                $priceRegular = (int) ($cat->price_regular ?? 0);
+                $priceEarly = (int) ($cat->price_early ?? 0);
+                $priceLate = (int) ($cat->price_late ?? 0);
+                
+                $prices = array_filter([$priceRegular, $priceEarly, $priceLate], function($p) { return $p > 0; });
+                if (!empty($prices)) {
+                    $catMin = min($prices);
+                    $catMax = max($prices);
+                    if (is_null($minPrice) || $catMin < $minPrice) {
+                        $minPrice = $catMin;
+                    }
+                    if (is_null($maxPrice) || $catMax > $maxPrice) {
+                        $maxPrice = $catMax;
+                    }
+                }
+            }
+        }
+        $minPrice = $minPrice ?? 0;
+        $maxPrice = $maxPrice ?? 0;
     @endphp
 
     <title>{{ $seoTitle }}</title>
@@ -57,7 +81,7 @@
     <script type="application/ld+json">
     {
       "@@context": "https://schema.org",
-      "@@type": "Event",
+      "@@type": "SportsEvent",
       "name": "{{ $event->name }}",
       "description": "{{ $seoDesc }}",
       "image": "{{ $seoImage }}",
@@ -70,7 +94,7 @@
         "name": "{{ $event->location_name ?? 'TBA' }}",
         "address": {
           "@@type": "PostalAddress",
-          "addressLocality": "{{ $event->city ?? '' }}",
+          "addressLocality": "{{ $event->city ? $event->city->name : '' }}",
           "addressCountry": "ID"
         }
       },
@@ -79,6 +103,18 @@
         "name": "RuangLari",
         "url": "{{ url('/') }}"
       },
+      @if($maxPrice > 0)
+      "offers": {
+        "@@type": "AggregateOffer",
+        "url": "{{ $seoUrl }}",
+        "priceCurrency": "IDR",
+        "lowPrice": "{{ $minPrice }}",
+        "highPrice": "{{ $maxPrice }}",
+        "offerCount": "{{ isset($categories) ? count($categories) : 1 }}",
+        "availability": "{{ (isset($isRegOpen) && $isRegOpen) ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut' }}",
+        "validFrom": "{{ $event->registration_open_at ? $event->registration_open_at->toIso8601String() : '' }}"
+      }
+      @else
       "offers": {
         "@@type": "Offer",
         "url": "{{ $seoUrl }}",
@@ -87,6 +123,7 @@
         "availability": "{{ (isset($isRegOpen) && $isRegOpen) ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut' }}",
         "validFrom": "{{ $event->registration_open_at ? $event->registration_open_at->toIso8601String() : '' }}"
       }
+      @endif
     }
     </script>
 
@@ -1320,9 +1357,12 @@
     </section>
 
     <!-- Info Section (RPC & Venue) -->
+    @php
+        $isRpcEnabled = isset($event->premium_amenities['rpc']['enabled']) ? (bool)$event->premium_amenities['rpc']['enabled'] : false;
+    @endphp
     <section id="info" class="py-24 bg-dark-950">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="grid grid-cols-1 {{ $isRpcEnabled ? 'md:grid-cols-2' : '' }} gap-12">
                 <!-- Race Day Info Card -->
                 <div class="md:col-span-2 bg-gradient-to-r from-brand-950/40 via-dark-900 to-accent-950/40 border border-white/10 rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden mb-6 reveal">
                     <div class="absolute -right-16 -top-16 w-48 h-48 bg-brand-500/10 rounded-full filter blur-xl"></div>
@@ -1369,6 +1409,7 @@
                     </div>
                 </div>
 
+                @if($isRpcEnabled)
                 <!-- RPC Info -->
                 <div class="reveal">
                     <div class="flex items-center gap-3 mb-6">
@@ -1411,9 +1452,10 @@
                         @endif
                     </div>
                 </div>
+                @endif
 
                 <!-- Venue Info -->
-                <div class="reveal delay-200" id="venue">
+                <div class="reveal {{ !$isRpcEnabled ? 'md:col-span-2' : 'delay-200' }}" id="venue">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 bg-accent-500/20 rounded-full flex items-center justify-center text-accent-400">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -3790,7 +3832,7 @@
         $ticketDate = $event->start_at
             ? \Carbon\Carbon::parse($event->start_at)->isoFormat('D MMM Y, HH:mm')
             : ($event->date ? \Carbon\Carbon::parse($event->date)->isoFormat('D MMM Y') : '-');
-        $ticketLocation = $event->location_name ?? $event->city ?? '-';
+        $ticketLocation = $event->location_name ?? ($event->city ? $event->city->name : '-');
     @endphp
     <div id="registrationSuccessModal" class="fixed inset-0 z-[100] hidden">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" id="registrationSuccessModalBackdrop"></div>
