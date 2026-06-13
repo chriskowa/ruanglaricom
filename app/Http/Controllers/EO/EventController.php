@@ -2390,6 +2390,10 @@ class EventController extends Controller
                 $pBloodType = trim($p->blood_type ?? '') === '' ? '-' : $p->blood_type;
                 $pEmergencyNumber = trim($p->emergency_contact_number ?? '') === '' ? '-' : $p->emergency_contact_number;
                 $pEmergencyName = trim($p->emergency_contact_name ?? '') === '' ? '-' : $p->emergency_contact_name;
+                $pGroup = $p->getAgeGroup($event->start_at ?: now());
+                $pGroup = trim($pGroup ?? '') === '' ? '-' : $pGroup;
+                $pCouponCode = ($p->transaction && $p->transaction->coupon) ? $p->transaction->coupon->code : '';
+                $pCouponCode = trim($pCouponCode ?? '') === '' ? '-' : $pCouponCode;
 
                 foreach ($texts as $t) {
                     $textValue = str_replace(
@@ -2400,7 +2404,9 @@ class EventController extends Controller
                             '{name}', '[N]',
                             '{category}', '[C]',
                             '{blood_type}', '[B]',
-                            '{gender}', '[G]'
+                            '{gender}', '[G]',
+                            '{age_group}', '[GR]',
+                            '{coupon_code}', '[KP]'
                         ],
                         [
                             $pEmergencyNumber, $pEmergencyNumber,
@@ -2409,7 +2415,9 @@ class EventController extends Controller
                             $pName, $pName,
                             $pCategory, $pCategory,
                             $pBloodType, $pBloodType,
-                            $genderVal, $genderVal
+                            $genderVal, $genderVal,
+                            $pGroup, $pGroup,
+                            $pCouponCode, $pCouponCode
                         ],
                         $t['text']
                     );
