@@ -848,17 +848,8 @@
                         {!! $event->full_description ?? $event->short_description !!}
                     </div>
                     
-                    <div class="mt-8 grid grid-cols-2 gap-6">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 bg-brand-500/20 rounded-xl flex items-center justify-center text-brand-400 shrink-0">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-white">Rute Steril</h4>
-                                <p class="text-sm text-slate-400 mt-1">Keamanan pelari adalah prioritas utama kami dengan rute bebas kendaraan.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-4">
+                    <div class="mt-8">
+                        <div class="flex items-start gap-4 max-w-md">
                             <div class="w-12 h-12 bg-accent-500/20 rounded-xl flex items-center justify-center text-accent-400 shrink-0">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
                             </div>
@@ -975,19 +966,19 @@
                                 <div class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center mr-3 shrink-0">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
-                                Official Jersey & BIB
+                                Official Jersey
                             </li>
                             <li class="flex items-center text-sm font-medium text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5">
                                 <div class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center mr-3 shrink-0">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
-                                Finisher Medal
+                                Breakfast
                             </li>
                             <li class="flex items-center text-sm font-medium text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5">
                                 <div class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center mr-3 shrink-0">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
-                                Goodie Bag
+                                Coffee
                             </li>
                             <li class="flex items-center text-sm font-medium text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5">
                                 <div class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center mr-3 shrink-0">
@@ -1281,15 +1272,6 @@
                 <!-- Facilities Grid -->
                 <div class="grid grid-cols-1 gap-6">
                     <div class="bg-white/5 p-8 rounded-3xl shadow-sm border border-white/10 flex items-start gap-6 hover:shadow-md transition reveal delay-100">
-                        <div class="w-14 h-14 bg-brand-500/20 text-brand-400 rounded-2xl flex items-center justify-center shrink-0">
-                            <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                        <div>
-                            <h4 class="text-xl font-bold text-white mb-2">Timing System</h4>
-                            <p class="text-slate-400">Sistem pencatatan waktu tidak menggunakan chip, melainkan dilakukan secara manual oleh juri yang adil, berpengalaman, dan profesional untuk memastikan hasil podium runner akurat serta transparan.</p>
-                        </div>
-                    </div>
-                    <div class="bg-white/5 p-8 rounded-3xl shadow-sm border border-white/10 flex items-start gap-6 hover:shadow-md transition reveal delay-200">
                         <div class="w-14 h-14 bg-accent-500/20 text-accent-400 rounded-2xl flex items-center justify-center shrink-0">
                             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                         </div>
@@ -1300,7 +1282,7 @@
                     </div>
                     
                     <!-- Documents -->
-                    <div class="bg-white/5 p-8 rounded-3xl shadow-sm border border-white/10 flex items-start gap-6 hover:shadow-md transition reveal delay-300">
+                    <div class="bg-white/5 p-8 rounded-3xl shadow-sm border border-white/10 flex items-start gap-6 hover:shadow-md transition reveal delay-200">
                         <div class="w-14 h-14 bg-brand-500/20 text-brand-400 rounded-2xl flex items-center justify-center shrink-0">
                             <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         </div>

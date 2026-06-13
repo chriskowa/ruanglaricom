@@ -2938,7 +2938,7 @@
 
         var tokenMeta = document.querySelector('meta[name="csrf-token"]');
         var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
-        var url = '{{ route('eo.events.participants.clear', $event) }}' + (includePaid ? '?include_paid=1' : '');
+        var url = '{{ route('eo.events.participants.clear', $event, false) }}' + (includePaid ? '?include_paid=1' : '');
         var original = btn ? btn.innerHTML : '';
         if (btn) {
             btn.disabled = true;
@@ -3035,7 +3035,7 @@
             fd.append('send_email_if_paid', document.getElementById('importSendPaidEmail') && document.getElementById('importSendPaidEmail').checked ? '1' : '0');
             fd.append('use_queue', document.getElementById('importUseQueue') && document.getElementById('importUseQueue').checked ? '1' : '0');
 
-            fetch('{{ route('eo.events.participants.import-csv', $event) }}', {
+            fetch('{{ route('eo.events.participants.import-csv', $event, false) }}', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
@@ -3144,7 +3144,7 @@
         btn.disabled = true;
         btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
 
-        var remindUrlTemplate = @json(route('eo.events.transactions.remind-pending', [$event, 'transaction' => '__ID__']));
+        var remindUrlTemplate = @json(route('eo.events.transactions.remind-pending', [$event, 'transaction' => '__ID__'], false));
         var url = remindUrlTemplate.replace('__ID__', transactionId);
 
         fetch(url, {
@@ -3200,7 +3200,7 @@
         btn.disabled = true;
         btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
 
-        fetch(`{{ route('eo.events.remind-pending.bulk', $event) }}`, {
+        fetch(`{{ route('eo.events.remind-pending.bulk', $event, false) }}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -3245,7 +3245,7 @@
 
             var tokenMeta = document.querySelector('meta[name="csrf-token"]');
             var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
-            var url = '{{ route("eo.events.participants.resend-email", $event) }}';
+            var url = '{{ route("eo.events.participants.resend-email", $event, false) }}';
             
             fetch(url, {
                 method: 'POST',
@@ -3343,7 +3343,7 @@
 
         if (!confirm(`Apakah anda yakin ingin menghapus ${selected.length} peserta terpilih?`)) return;
 
-        fetch(`{{ route('eo.events.participants.bulk-delete', $event) }}`, {
+        fetch(`{{ route('eo.events.participants.bulk-delete', $event, false) }}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -3373,7 +3373,7 @@
 
         if (!confirm(`Kirim reminder untuk ${selected.length} peserta terpilih?\n\nHanya peserta dengan status 'pending' yang akan diproses.`)) return;
 
-        fetch(`{{ route('eo.events.remind-pending.bulk', $event) }}`, {
+        fetch(`{{ route('eo.events.remind-pending.bulk', $event, false) }}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -3439,7 +3439,7 @@
         btn.disabled = true;
         btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-slate-950 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...`;
 
-        fetch(`{{ route('eo.events.remind-whatsapp-custom', $event) }}`, {
+        fetch(`{{ route('eo.events.remind-whatsapp-custom', $event, false) }}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -3484,7 +3484,7 @@
         var tokenMeta = document.querySelector('meta[name="csrf-token"]');
         var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '{{ csrf_token() }}';
 
-        fetch(`{{ route('eo.events.participants.resend-email-bulk', $event) }}`, {
+        fetch(`{{ route('eo.events.participants.resend-email-bulk', $event, false) }}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrf,
@@ -3798,7 +3798,7 @@
         var tokenMeta = document.querySelector('meta[name="csrf-token"]');
         var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '{{ csrf_token() }}';
 
-        fetch(`{{ route('eo.events.participants.print-bib', $event) }}`, {
+        fetch(`{{ route('eo.events.participants.print-bib', $event, false) }}`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrf,
