@@ -281,6 +281,8 @@
         /* Reveal Animation */
         .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
+        .reveal-fade { opacity: 0; transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .reveal-fade.active { opacity: 1; }
         .delay-100 { transition-delay: 100ms; }
         .delay-200 { transition-delay: 200ms; }
         .delay-300 { transition-delay: 300ms; }
@@ -1803,7 +1805,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" id="registrationForm" class="flex flex-col lg:flex-row gap-8 reveal">
+                <form action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" id="registrationForm" class="flex flex-col lg:flex-row gap-8 reveal-fade">
                     @csrf
                     
                     <div class="flex-1 space-y-8">
@@ -2335,7 +2337,7 @@
                 }
             });
         }, { threshold: 0.1 });
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        document.querySelectorAll('.reveal, .reveal-fade').forEach(el => observer.observe(el));
 
         (function () {
             const modal = document.getElementById('predictorModal');
