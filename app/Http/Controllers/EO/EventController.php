@@ -2370,6 +2370,7 @@ class EventController extends Controller
                     $dynamicBib = substr($dynamicBib, -$takeLast);
                 }
                 $dynamicBib = $prefix . $dynamicBib;
+                $dynamicBib = trim($dynamicBib ?? '') === '' ? '-' : $dynamicBib;
                 
                 $genderVal = '';
                 if (!empty($p->gender)) {
@@ -2382,25 +2383,32 @@ class EventController extends Controller
                         $genderVal = strtoupper(substr($p->gender, 0, 1));
                     }
                 }
+                $genderVal = trim($genderVal ?? '') === '' ? '-' : $genderVal;
+
+                $pName = trim($p->name ?? '') === '' ? '-' : $p->name;
+                $pCategory = trim($p->category->name ?? '') === '' ? '-' : $p->category->name;
+                $pBloodType = trim($p->blood_type ?? '') === '' ? '-' : $p->blood_type;
+                $pEmergencyNumber = trim($p->emergency_contact_number ?? '') === '' ? '-' : $p->emergency_contact_number;
+                $pEmergencyName = trim($p->emergency_contact_name ?? '') === '' ? '-' : $p->emergency_contact_name;
 
                 foreach ($texts as $t) {
                     $textValue = str_replace(
                         [
+                            '{emergency_contact_number}', '[E#]',
+                            '{emergency_contact_name}', '[EN]',
                             '{bib_number}', '#',
                             '{name}', '[N]',
                             '{category}', '[C]',
                             '{blood_type}', '[B]',
-                            '{emergency_contact_number}', '[E#]',
-                            '{emergency_contact_name}', '[EN]',
                             '{gender}', '[G]'
                         ],
                         [
+                            $pEmergencyNumber, $pEmergencyNumber,
+                            $pEmergencyName, $pEmergencyName,
                             $dynamicBib, $dynamicBib,
-                            $p->name, $p->name,
-                            $p->category->name ?? '', $p->category->name ?? '',
-                            $p->blood_type ?? '', $p->blood_type ?? '',
-                            $p->emergency_contact_number ?? '', $p->emergency_contact_number ?? '',
-                            $p->emergency_contact_name ?? '', $p->emergency_contact_name ?? '',
+                            $pName, $pName,
+                            $pCategory, $pCategory,
+                            $pBloodType, $pBloodType,
                             $genderVal, $genderVal
                         ],
                         $t['text']
