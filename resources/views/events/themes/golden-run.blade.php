@@ -2001,16 +2001,19 @@
                             </div>
 
                             <!-- Bottom Add Participant Button -->
-                            <div class="mt-6 flex justify-center border-t border-white/10 pt-6">
+                            <div class="mt-6 flex flex-wrap justify-center gap-4 border-t border-white/10 pt-6">
                                 <button type="button" id="addParticipantBottom" class="text-sm font-bold text-brand-400 border border-brand-400 px-6 py-3 rounded-full hover:bg-brand-500/10 transition flex items-center gap-2 shadow-sm hover:shadow-glow transform hover:-translate-y-0.5 duration-200">
                                     <i class="fas fa-plus"></i> Tambah Peserta Lainnya
+                                </button>
+                                <button type="button" onclick="document.getElementById('paymentSummarySection').scrollIntoView({ behavior: 'smooth' })" class="text-sm font-bold bg-brand-500 text-black px-6 py-3 rounded-full hover:bg-brand-400 hover:shadow-brand-500/30 transition flex items-center gap-2 shadow-sm hover:shadow-glow transform hover:-translate-y-0.5 duration-200">
+                                    <i class="fas fa-shopping-cart"></i> Lanjut ke Pembayaran
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="lg:w-96 flex-shrink-0">
-                        <div class="sticky top-28 space-y-6">
+                    <div class="lg:w-96 flex-shrink-0 lg:sticky lg:top-28 lg:self-start">
+                        <div class="space-y-6">
                             
                             <div class="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-sm">
                                 <label class="text-sm font-bold text-slate-300 mb-2 block">Kode Promo</label>
@@ -2027,7 +2030,7 @@
                                 @endif
                             </div>
 
-                            <div class="bg-dark-900 border border-brand-500/30 rounded-3xl p-8 shadow-2xl shadow-brand-500/10 relative overflow-hidden">
+                            <div id="paymentSummarySection" class="bg-dark-900 border border-brand-500/30 rounded-3xl p-8 shadow-2xl shadow-brand-500/10 relative overflow-hidden">
                                 <div class="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-brand-500 rounded-full opacity-10 blur-2xl"></div>
 
                                 <h3 class="text-lg font-bold mb-6 relative z-10 text-white">Ringkasan Biaya</h3>
