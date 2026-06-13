@@ -2201,6 +2201,9 @@ class EventController extends Controller
 
     public function printBibPdf(Request $request, Event $event)
     {
+        @ini_set('memory_limit', '1024M');
+        @set_time_limit(0);
+
         $this->authorizeEvent($event);
 
         $request->validate([
@@ -2318,11 +2321,23 @@ class EventController extends Controller
 
         $imageData = base64_decode($imageBase64);
         
-        $tempImgPath = sys_get_temp_dir() . '/' . uniqid('bib_bg_') . '.' . $type;
-        file_put_contents($tempImgPath, $imageData);
-        
         $canvasWidthPx = $request->bg_width * $request->scale;
         $canvasHeightPx = $request->bg_height * $request->scale;
+
+        // Optimize background image using Intervention Image to significantly speed up TCPDF processing
+        try {
+            $manager = new ImageManager(new Driver);
+            $image = $manager->read($imageData);
+            $image->resize($canvasWidthPx, $canvasHeightPx);
+            $jpgImage = $image->toJpeg(75);
+            $tempImgPath = sys_get_temp_dir() . '/' . uniqid('bib_bg_') . '.jpg';
+            $jpgImage->save($tempImgPath);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to optimize BIB background image with Intervention: " . $e->getMessage());
+            // Fallback to original write
+            $tempImgPath = sys_get_temp_dir() . '/' . uniqid('bib_bg_') . '.' . $type;
+            file_put_contents($tempImgPath, $imageData);
+        }
         
         // Ensure custom fonts are converted/imported in TCPDF dynamically
         $tcpdfFontPath = \TCPDF_FONTS::_getfontpath();
@@ -2348,7 +2363,8 @@ class EventController extends Controller
         }
         
         try {
-            $pdf = new SafeTCPDF('L', 'pt', [$canvasWidthPx, $canvasHeightPx], true, 'UTF-8', false);
+            // Enable diskcache (6th parameter = true) to prevent memory issues with large numbers of pages
+            $pdf = new SafeTCPDF('L', 'pt', [$canvasWidthPx, $canvasHeightPx], true, 'UTF-8', true);
             $pdf->SetCreator(PDF_CREATOR);
             $pdf->SetAuthor('RuangLari');
             $pdf->SetTitle('BIBs - ' . $event->name);
