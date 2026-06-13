@@ -69,7 +69,7 @@ class PacerBookingController extends Controller
 
         $params = [
             'transaction_details' => [
-                'order_id' => $booking->invoice_number,
+                'order_id' => $booking->invoice_number . '-' . time(),
                 'gross_amount' => (int) $booking->total_amount,
             ],
             'customer_details' => [
@@ -115,7 +115,7 @@ class PacerBookingController extends Controller
 
             $params = [
                 'transaction_details' => [
-                    'order_id' => $booking->invoice_number,
+                    'order_id' => $booking->invoice_number . '-' . time(),
                     'gross_amount' => (int) $booking->total_amount,
                 ],
                 'customer_details' => [

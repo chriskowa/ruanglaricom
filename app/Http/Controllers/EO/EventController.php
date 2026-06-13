@@ -2432,7 +2432,13 @@ class EventController extends Controller
                     $b = hexdec(substr($hex, 4, 2));
                     $pdf->SetTextColor($r, $g, $b);
                     
-                    $fontStyle = $t['fontWeight'] === 'bold' ? 'B' : '';
+                    $fontStyle = '';
+                    if (isset($t['fontWeight']) && $t['fontWeight'] === 'bold') {
+                        $fontStyle .= 'B';
+                    }
+                    if (isset($t['fontStyle']) && $t['fontStyle'] === 'italic') {
+                        $fontStyle .= 'I';
+                    }
                     $fontSizePt = $t['fontSize'];
                     $fontFamily = strtolower($t['fontFamily'] ?? 'helvetica');
                     

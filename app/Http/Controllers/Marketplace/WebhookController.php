@@ -23,10 +23,19 @@ class WebhookController extends Controller
         Log::info('Marketplace Webhook', $payload);
 
         $orderId = $payload['order_id'];
+
+        $baseOrderId = $orderId;
+        if (str_contains($orderId, '-')) {
+            $lastPart = substr(strrchr($orderId, "-"), 1);
+            if (is_numeric($lastPart)) {
+                $baseOrderId = substr($orderId, 0, strrpos($orderId, "-"));
+            }
+        }
+
         $transactionStatus = $payload['transaction_status'];
         $fraudStatus = $payload['fraud_status'] ?? null;
 
-        $marketplaceOrder = MarketplaceOrder::where('invoice_number', $orderId)->first();
+        $marketplaceOrder = MarketplaceOrder::where('invoice_number', $baseOrderId)->first();
 
         if ($marketplaceOrder) {
             if ($transactionStatus == 'capture' || $transactionStatus == 'settlement') {
@@ -43,7 +52,7 @@ class WebhookController extends Controller
             return response()->json(['status' => 'ok']);
         }
 
-        $programOrder = Order::where('order_number', $orderId)->with('items.program', 'user')->first();
+        $programOrder = Order::where('order_number', $baseOrderId)->with('items.program', 'user')->first();
 
         if (! $programOrder) {
             return response()->json(['message' => 'Order not found'], 404);

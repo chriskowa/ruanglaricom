@@ -214,7 +214,7 @@ class CheckoutController extends Controller
 
                 $params = [
                     'transaction_details' => [
-                        'order_id' => $order->order_number,
+                        'order_id' => $order->order_number . '-' . time(),
                         'gross_amount' => (int) $order->total,
                     ],
                     'customer_details' => [
@@ -290,7 +290,7 @@ class CheckoutController extends Controller
 
                 $params = [
                     'transaction_details' => [
-                        'order_id' => $order->order_number,
+                        'order_id' => $order->order_number . '-' . time(),
                         'gross_amount' => (int) $order->total,
                     ],
                     'customer_details' => [

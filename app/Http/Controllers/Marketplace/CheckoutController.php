@@ -265,7 +265,7 @@ class CheckoutController extends Controller
 
         $params = [
             'transaction_details' => [
-                'order_id' => $order->invoice_number,
+                'order_id' => $order->invoice_number . '-' . time(),
                 'gross_amount' => (int) $total,
             ],
             'customer_details' => [
@@ -281,9 +281,18 @@ class CheckoutController extends Controller
         ];
 
         try {
+            Config::$serverKey = config('midtrans.server_key');
+            Config::$isProduction = config('midtrans.is_production');
+            Config::$isSanitized = true;
+            Config::$is3ds = true;
+
             $snapToken = Snap::getSnapToken($params);
             $order->update(['snap_token' => $snapToken]);
         } catch (\Exception $e) {
+            \Log::error('Midtrans process error: '.$e->getMessage(), [
+                'order_id' => $order->id,
+                'invoice_number' => $order->invoice_number,
+            ]);
             return back()->with('error', 'Payment gateway error: '.$e->getMessage());
         }
 
@@ -320,7 +329,7 @@ class CheckoutController extends Controller
 
             $params = [
                 'transaction_details' => [
-                    'order_id' => $order->invoice_number,
+                    'order_id' => $order->invoice_number . '-' . time(),
                     'gross_amount' => (int) $order->total_amount,
                 ],
                 'customer_details' => [
@@ -336,9 +345,26 @@ class CheckoutController extends Controller
             ];
 
             try {
+                Config::$serverKey = config('midtrans.server_key');
+                Config::$isProduction = config('midtrans.is_production');
+                Config::$isSanitized = true;
+                Config::$is3ds = true;
+
                 $snapToken = Snap::getSnapToken($params);
                 $order->update(['snap_token' => $snapToken]);
             } catch (\Exception $e) {
+                \Log::error('Midtrans pay error: '.$e->getMessage(), [
+                    'order_id' => $order->id,
+                    'invoice_number' => $order->invoice_number,
+                ]);
+
+                if (request()->wantsJson() || request()->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Payment gateway error: '.$e->getMessage()
+                    ], 500);
+                }
+
                 return back()->with('error', 'Payment gateway error: '.$e->getMessage());
             }
         }

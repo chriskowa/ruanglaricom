@@ -22,7 +22,15 @@ class PacerBookingWebhookController extends Controller
             return response()->json(['message' => 'Missing order_id'], 422);
         }
 
-        $booking = PacerBooking::where('invoice_number', $orderId)->first();
+        $baseOrderId = $orderId;
+        if (str_contains($orderId, '-')) {
+            $lastPart = substr(strrchr($orderId, "-"), 1);
+            if (is_numeric($lastPart)) {
+                $baseOrderId = substr($orderId, 0, strrpos($orderId, "-"));
+            }
+        }
+
+        $booking = PacerBooking::where('invoice_number', $baseOrderId)->first();
         if (! $booking) {
             return response()->json(['message' => 'Booking not found'], 404);
         }

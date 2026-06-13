@@ -825,7 +825,13 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">3. Tambahkan Teks</label>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-bold text-slate-300">3. Tambahkan Teks</label>
+                                <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition">
+                                    <input type="checkbox" id="bibPreviewData" onchange="toggleBibPreview()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer">
+                                    Preview Data
+                                </label>
+                            </div>
                             <div class="flex flex-wrap gap-2">
                                 <button type="button" onclick="addBibText('#')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nomor BIB"># (BIB)</button>
                                 <button type="button" onclick="addBibText('[N]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nama Peserta">[N] (Nama)</button>
@@ -836,6 +842,19 @@
                                 <button type="button" onclick="addBibText('[EN]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nama Kontak Darurat">[EN] (Nama Darurat)</button>
                                 <button type="button" onclick="addBibText('[GR]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Group (Kategori Umur)">[GR] (Group)</button>
                                 <button type="button" onclick="addBibText('[KP]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Kode Kupon">[KP] (Kupon)</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">4. Preset Desain</label>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="saveBibPreset()" class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                                    Simpan Desain
+                                </button>
+                                <button type="button" onclick="loadBibPreset()" class="flex-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                    Muat Desain
+                                </button>
                             </div>
                         </div>
                         <div id="bibTextSettings" class="hidden space-y-3 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
@@ -880,6 +899,7 @@
                             </div>
                             <div class="flex gap-2">
                                 <button type="button" id="bibFontBold" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-sm text-white font-bold transition">B</button>
+                                <button type="button" id="bibFontItalic" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-sm text-white italic transition">I</button>
                                 <button type="button" onclick="deleteSelectedBibText()" class="flex-1 bg-red-900/50 hover:bg-red-800 border border-red-800 rounded p-1 text-sm text-red-200 transition">Hapus</button>
                             </div>
                         </div>
@@ -3523,6 +3543,257 @@
 <script>
     let bibCanvas = null;
     let bibImageBase64 = null;
+    const eventId = {{ $event->id }};
+
+    function saveBibPreset(quiet = false) {
+        if (!bibCanvas) return;
+        
+        const objects = bibCanvas.getObjects('text');
+        const textElements = objects.map(obj => {
+            return {
+                text: obj.originalText || obj.text,
+                left: obj.left,
+                top: obj.top,
+                fontSize: obj.fontSize * obj.scaleX,
+                fill: obj.fill,
+                fontFamily: obj.fontFamily,
+                customFontFamily: obj.customFontFamily,
+                fontWeight: obj.fontWeight,
+                fontStyle: obj.fontStyle || 'normal',
+                originX: obj.originX,
+                originY: obj.originY,
+                angle: obj.angle
+            };
+        });
+
+        const preset = {
+            take_last: document.getElementById('bibTakeLast').value,
+            prefix: document.getElementById('bibPrefix').value,
+            texts: textElements
+        };
+
+        if (bibImageBase64) {
+            preset.image_base64 = bibImageBase64;
+        }
+
+        try {
+            localStorage.setItem(`bib_preset_event_${eventId}`, JSON.stringify(preset));
+            if (!quiet) alert('Desain berhasil disimpan!');
+        } catch (e) {
+            if (e.name === 'QuotaExceededError' || e.code === 22) {
+                try {
+                    delete preset.image_base64;
+                    localStorage.setItem(`bib_preset_event_${eventId}`, JSON.stringify(preset));
+                    if (!quiet) alert('Desain berhasil disimpan (tanpa gambar background karena ukuran gambar terlalu besar).');
+                } catch (err) {
+                    if (!quiet) alert('Gagal menyimpan desain: Penyimpanan lokal penuh.');
+                }
+            } else {
+                if (!quiet) alert('Gagal menyimpan desain: ' + e.message);
+            }
+        }
+    }
+
+    function loadBibPreset(quiet = false) {
+        if (!bibCanvas) return;
+        const dataStr = localStorage.getItem(`bib_preset_event_${eventId}`);
+        if (!dataStr) {
+            if (!quiet) alert('Belum ada desain yang disimpan untuk event ini.');
+            return;
+        }
+
+        try {
+            const preset = JSON.parse(dataStr);
+
+            if (preset.take_last !== undefined) {
+                document.getElementById('bibTakeLast').value = preset.take_last;
+            }
+            if (preset.prefix !== undefined) {
+                document.getElementById('bibPrefix').value = preset.prefix;
+            }
+
+            // Clear existing texts
+            const existingTexts = bibCanvas.getObjects('text');
+            existingTexts.forEach(obj => bibCanvas.remove(obj));
+
+            // Load texts
+            if (Array.isArray(preset.texts)) {
+                preset.texts.forEach(t => {
+                    const text = new fabric.Text(t.text, {
+                        left: t.left,
+                        top: t.top,
+                        fontFamily: t.fontFamily,
+                        customFontFamily: t.customFontFamily,
+                        fontSize: t.fontSize,
+                        fill: t.fill,
+                        fontWeight: t.fontWeight,
+                        fontStyle: t.fontStyle || 'normal',
+                        originX: t.originX || 'center',
+                        originY: t.originY || 'center',
+                        angle: t.angle || 0,
+                        cornerSize: 12,
+                        transparentCorners: false
+                    });
+                    text.originalText = t.text;
+
+                    if (document.getElementById('bibPreviewData').checked) {
+                        const prevData = getPreviewData();
+                        let txt = t.text;
+                        for (const [placeholder, val] of Object.entries(prevData)) {
+                            txt = txt.replaceAll(placeholder, val);
+                        }
+                        text.set({ text: txt });
+                    }
+
+                    bibCanvas.add(text);
+                });
+            }
+
+            // Load background image
+            if (preset.image_base64) {
+                bibImageBase64 = preset.image_base64;
+                fabric.Image.fromURL(preset.image_base64, function(img) {
+                    const containerWidth = document.getElementById('bibCanvasContainer').clientWidth - 20;
+                    let scale = containerWidth / img.width;
+                    if (scale > 1) scale = 1;
+
+                    const w = img.width * scale;
+                    const h = img.height * scale;
+
+                    bibCanvas.setWidth(w);
+                    bibCanvas.setHeight(h);
+
+                    bibCanvas.setBackgroundImage(img, bibCanvas.renderAll.bind(bibCanvas), {
+                        scaleX: scale,
+                        scaleY: scale
+                    });
+
+                    document.getElementById('bibCanvasPlaceholder').style.display = 'none';
+                });
+            } else {
+                if (!quiet) {
+                    alert('Desain dimuat! Harap upload kembali gambar background jika diperlukan.');
+                }
+            }
+
+            bibCanvas.renderAll();
+            if (!quiet) alert('Desain berhasil dimuat!');
+        } catch (e) {
+            console.error("Error loading preset: ", e);
+            if (!quiet) alert('Gagal memuat preset: ' + e.message);
+        }
+    }
+
+    function getPreviewData() {
+        const firstRow = document.querySelector('#participantsTableBody tr[data-json]');
+        if (firstRow) {
+            try {
+                const data = JSON.parse(firstRow.getAttribute('data-json'));
+                let genderVal = '-';
+                if (data.gender) {
+                    const g = data.gender.toLowerCase();
+                    if (['male', 'm', 'laki-laki', 'l', 'men', 'man', 'laki - laki'].includes(g)) {
+                        genderVal = 'M';
+                    } else if (['female', 'f', 'perempuan', 'p', 'women', 'woman'].includes(g)) {
+                        genderVal = 'F';
+                    } else {
+                        genderVal = data.gender.charAt(0).toUpperCase();
+                    }
+                }
+
+                const takeLastVal = parseInt(document.getElementById('bibTakeLast').value, 10);
+                const prefixVal = document.getElementById('bibPrefix').value || '';
+                let bibNum = data.bib_number || '-';
+                if (data.bib_number && takeLastVal) {
+                    bibNum = data.bib_number.slice(-takeLastVal);
+                }
+                bibNum = prefixVal + bibNum;
+
+                return {
+                    '#': bibNum,
+                    '{bib_number}': bibNum,
+                    '[N]': data.name || '-',
+                    '{name}': data.name || '-',
+                    '[C]': data.category || '-',
+                    '{category}': data.category || '-',
+                    '[G]': genderVal,
+                    '{gender}': genderVal,
+                    '[B]': data.blood_type || '-',
+                    '{blood_type}': data.blood_type || '-',
+                    '[E#]': data.emergency_contact_number || '-',
+                    '{emergency_contact_number}': data.emergency_contact_number || '-',
+                    '[EN]': data.emergency_contact_name || '-',
+                    '{emergency_contact_name}': data.emergency_contact_name || '-',
+                    '[GR]': data.age_group || '-',
+                    '{age_group}': data.age_group || '-',
+                    '[KP]': data.coupon_code || '-',
+                    '{coupon_code}': data.coupon_code || '-'
+                };
+            } catch (e) {
+                console.error("Error parsing preview data: ", e);
+            }
+        }
+
+        const takeLastVal = parseInt(document.getElementById('bibTakeLast').value, 10);
+        const prefixVal = document.getElementById('bibPrefix').value || '';
+        let bibNum = '10234';
+        if (takeLastVal) {
+            bibNum = bibNum.slice(-takeLastVal);
+        }
+        bibNum = prefixVal + bibNum;
+
+        return {
+            '#': bibNum,
+            '{bib_number}': bibNum,
+            '[N]': 'BUDI SANTOSO',
+            '{name}': 'BUDI SANTOSO',
+            '[C]': '10K',
+            '{category}': '10K',
+            '[G]': 'M',
+            '{gender}': 'M',
+            '[B]': 'O',
+            '{blood_type}': 'O',
+            '[E#]': '08123456789',
+            '{emergency_contact_number}': '08123456789',
+            '[EN]': 'SITI AMINAH',
+            '{emergency_contact_name}': 'SITI AMINAH',
+            '[GR]': 'Umum',
+            '{age_group}': 'Umum',
+            '[KP]': 'DISCOUNT10',
+            '{coupon_code}': 'DISCOUNT10'
+        };
+    }
+
+    function toggleBibPreview() {
+        if (!bibCanvas) return;
+        const isPreview = document.getElementById('bibPreviewData').checked;
+        const data = getPreviewData();
+
+        bibCanvas.getObjects('text').forEach(obj => {
+            if (isPreview) {
+                if (!obj.originalText) {
+                    obj.originalText = obj.text;
+                }
+                let txt = obj.originalText;
+                for (const [placeholder, val] of Object.entries(data)) {
+                    txt = txt.replaceAll(placeholder, val);
+                }
+                obj.set({ text: txt });
+            } else {
+                if (obj.originalText) {
+                    obj.set({ text: obj.originalText });
+                }
+            }
+        });
+        bibCanvas.renderAll();
+    }
+
+    function updateBibPreviewIfActive() {
+        const previewCheckbox = document.getElementById('bibPreviewData');
+        if (previewCheckbox && previewCheckbox.checked) {
+            toggleBibPreview();
+        }
+    }
 
     function openBibModal() {
         document.getElementById('bibModal').classList.remove('hidden');
@@ -3537,6 +3808,19 @@
             bibCanvas.on('selection:cleared', onBibObjectCleared);
             bibCanvas.on('object:modified', onBibObjectModified);
             bibCanvas.on('object:moving', onBibObjectMoving);
+
+            const bibTakeLastInput = document.getElementById('bibTakeLast');
+            if (bibTakeLastInput) {
+                bibTakeLastInput.addEventListener('input', updateBibPreviewIfActive);
+            }
+            const bibPrefixInput = document.getElementById('bibPrefix');
+            if (bibPrefixInput) {
+                bibPrefixInput.addEventListener('input', updateBibPreviewIfActive);
+            }
+
+            setTimeout(function() {
+                loadBibPreset(true);
+            }, 100);
         }
     }
 
@@ -3584,11 +3868,24 @@
             fontSize: 40,
             fill: '#000000',
             fontWeight: 'bold',
+            fontStyle: 'normal',
             originX: 'center',
             originY: 'center',
             cornerSize: 12,
             transparentCorners: false
         });
+        text.originalText = textValue;
+
+        const previewCheckbox = document.getElementById('bibPreviewData');
+        if (previewCheckbox && previewCheckbox.checked) {
+            const data = getPreviewData();
+            let txt = textValue;
+            for (const [placeholder, val] of Object.entries(data)) {
+                txt = txt.replaceAll(placeholder, val);
+            }
+            text.set({ text: txt });
+        }
+
         bibCanvas.add(text);
         bibCanvas.setActiveObject(text);
     }
@@ -3597,6 +3894,7 @@
     const fontSizeInput = document.getElementById('bibFontSize');
     const fontColorInput = document.getElementById('bibFontColor');
     const fontBoldBtn = document.getElementById('bibFontBold');
+    const fontItalicBtn = document.getElementById('bibFontItalic');
     const fontFamilyInput = document.getElementById('bibFontFamily');
     const alignLeftBtn = document.getElementById('bibAlignLeft');
     const alignCenterBtn = document.getElementById('bibAlignCenter');
@@ -3604,7 +3902,7 @@
     const posYInput = document.getElementById('bibPosY');
 
     function onBibObjectSelected(e) {
-        const obj = e.selected[0];
+        const obj = e.selected ? e.selected[0] : e.target;
         if (obj && obj.type === 'text') {
             textSettingsPanel.classList.remove('hidden');
             fontSizeInput.value = Math.round(obj.fontSize * obj.scaleX);
@@ -3618,6 +3916,11 @@
                 fontBoldBtn.classList.add('bg-slate-700');
             } else {
                 fontBoldBtn.classList.remove('bg-slate-700');
+            }
+            if (obj.fontStyle === 'italic') {
+                fontItalicBtn.classList.add('bg-slate-700');
+            } else {
+                fontItalicBtn.classList.remove('bg-slate-700');
             }
             if (obj.originX === 'left') {
                 alignLeftBtn.classList.add('bg-slate-700');
@@ -3712,6 +4015,20 @@
         }
     });
 
+    fontItalicBtn.addEventListener('click', function() {
+        const obj = bibCanvas.getActiveObject();
+        if (obj && obj.type === 'text') {
+            const isItalic = obj.fontStyle === 'italic';
+            obj.set({ fontStyle: isItalic ? 'normal' : 'italic' });
+            if (isItalic) {
+                this.classList.remove('bg-slate-700');
+            } else {
+                this.classList.add('bg-slate-700');
+            }
+            bibCanvas.renderAll();
+        }
+    });
+
     alignLeftBtn.addEventListener('click', function() {
         const obj = bibCanvas.getActiveObject();
         if (obj && obj.type === 'text') {
@@ -3754,16 +4071,20 @@
             return;
         }
 
-        const objects = bibCanvas.getObjects();
+        // Auto save preset silently
+        saveBibPreset(true);
+
+        const objects = bibCanvas.getObjects('text');
         const textElements = objects.map(obj => {
             return {
-                text: obj.text,
+                text: obj.originalText || obj.text,
                 left: obj.left,
                 top: obj.top,
                 fontSize: obj.fontSize * obj.scaleX,
                 fill: obj.fill,
                 fontFamily: obj.customFontFamily || obj.fontFamily,
                 fontWeight: obj.fontWeight,
+                fontStyle: obj.fontStyle || 'normal',
                 originX: obj.originX,
                 originY: obj.originY,
                 angle: obj.angle
