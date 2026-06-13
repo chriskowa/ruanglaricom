@@ -37,21 +37,29 @@
 
 <script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
 <script type="text/javascript">
-    document.getElementById('pay-button').onclick = function(){
+    function triggerSnapPay() {
         snap.pay('{{ $order->snap_token }}', {
             onSuccess: function(result){
                 window.location.href = "{{ route('marketplace.orders.index') }}?payment=success";
             },
             onPending: function(result){
                 alert("Waiting for your payment!");
+                window.location.reload();
             },
             onError: function(result){
                 alert("Payment failed!");
+                window.location.reload();
             },
             onClose: function(){
-                // Do nothing
+                console.log('Midtrans popup closed');
             }
         });
-    };
+    }
+
+    document.getElementById('pay-button').onclick = triggerSnapPay;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(triggerSnapPay, 200);
+    });
 </script>
 @endsection

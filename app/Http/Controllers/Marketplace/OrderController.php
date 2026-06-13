@@ -28,7 +28,14 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
-        return view('marketplace.orders.index', compact('purchases', 'sales', 'programOrders'));
+        $cartItems = \App\Models\Cart::where('user_id', Auth::id())
+            ->with('program.coach')
+            ->get();
+
+        $cartSubtotal = $cartItems->sum('subtotal');
+        $cartTotal = $cartSubtotal; // No tax for now
+
+        return view('marketplace.orders.index', compact('purchases', 'sales', 'programOrders', 'cartItems', 'cartSubtotal', 'cartTotal'));
     }
 
     public function show(MarketplaceOrder $order)

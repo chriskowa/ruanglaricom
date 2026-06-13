@@ -318,6 +318,13 @@ class CheckoutController extends Controller
             }
         }
 
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'snap_token' => $snapToken
+            ]);
+        }
+
         return view('checkout.pay', [
             'order' => $order,
             'snapToken' => $snapToken,

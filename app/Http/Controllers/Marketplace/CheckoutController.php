@@ -301,6 +301,12 @@ class CheckoutController extends Controller
             return redirect()->route('marketplace.index')->with('info', 'Order already processed.');
         }
 
+        // Redirect to checkout form if shipping address is not yet filled
+        if (empty($order->shipping_address)) {
+            return redirect()->route('marketplace.checkout.show', $order->id)
+                ->with('info', 'Silakan lengkapi informasi pengiriman terlebih dahulu.');
+        }
+
         if (! $order->snap_token) {
             $items = $order->items()->with('product')->get();
             $itemDetails = $items->map(function ($it) {
@@ -335,6 +341,13 @@ class CheckoutController extends Controller
             } catch (\Exception $e) {
                 return back()->with('error', 'Payment gateway error: '.$e->getMessage());
             }
+        }
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'snap_token' => $order->snap_token
+            ]);
         }
 
         return view('marketplace.checkout.pay', compact('order'));

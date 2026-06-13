@@ -57,7 +57,7 @@ class CartController extends Controller
 
         if ($cartItem) {
             return redirect()->route('marketplace.checkout.index')
-                ->with('info', 'Program sudah ada di keranjang. Silakan lanjut ke checkout.');
+                ->with('info', 'Program sudah ada di keranjang.');
         }
 
         Cart::create([
@@ -68,7 +68,7 @@ class CartController extends Controller
         ]);
 
         return redirect()->route('marketplace.checkout.index')
-            ->with('success', 'Program berhasil ditambahkan ke keranjang. Silakan selesaikan pembayaran.');
+            ->with('success', 'Program berhasil ditambahkan ke keranjang.');
     }
 
     /**

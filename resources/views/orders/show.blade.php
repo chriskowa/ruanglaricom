@@ -145,9 +145,9 @@
                         </div>
 
                         @if($order->payment_method === 'midtrans')
-                             <a href="{{ route('marketplace.checkout.program.pay', $order->id) }}" class="w-full block bg-neon text-slate-900 font-black text-center py-4 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] transition-all">
+                             <button id="pay-now-btn" onclick="payProgram({{ $order->id }})" class="w-full block bg-neon text-slate-900 font-black text-center py-4 rounded-xl shadow-lg shadow-neon/20 hover:bg-neon/90 hover:scale-[1.02] transition-all">
                                 PAY NOW
-                            </a>
+                             </button>
                         @endif
 
                     @elseif($order->payment_status == 'paid')
@@ -189,3 +189,64 @@
     </div>
 </div>
 @endsection
+
+@if($order->payment_status == 'pending' && $order->payment_method === 'midtrans')
+@push('scripts')
+<script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
+<script type="text/javascript">
+    function payProgram(orderId) {
+        const btn = document.getElementById('pay-now-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = 'Processing...';
+        }
+        
+        fetch('{{ route("marketplace.checkout.program.pay", $order->id) }}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.snap_token) {
+                window.snap.pay(data.snap_token, {
+                    onSuccess: function(result){
+                        window.location.href = "{{ route('marketplace.program-orders.show', $order->id) }}?payment=success";
+                    },
+                    onPending: function(result){
+                        alert("Waiting for your payment!");
+                        window.location.reload();
+                    },
+                    onError: function(result){
+                        alert("Payment failed!");
+                        window.location.reload();
+                    },
+                    onClose: function(){
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = 'PAY NOW';
+                        }
+                    }
+                });
+            } else {
+                alert('Gagal mengambil token pembayaran.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'PAY NOW';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan koneksi.');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'PAY NOW';
+            }
+        });
+    }
+</script>
+@endpush
+@endif

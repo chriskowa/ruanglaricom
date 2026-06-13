@@ -53,22 +53,30 @@
 
 <script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
 <script type="text/javascript">
-    document.getElementById('pay-button').onclick = function () {
+    function triggerSnapPay() {
         snap.pay(@json($snapToken), {
             onSuccess: function (result) {
-                window.location.href = "{{ route('marketplace.orders.show', $order->id) }}?payment=success";
+                window.location.href = "{{ route('marketplace.program-orders.show', $order->id) }}?payment=success";
             },
             onPending: function (result) {
                 alert("Pembayaran kamu masih pending. Silakan selesaikan pembayaran di Midtrans.");
+                window.location.reload();
             },
             onError: function (result) {
                 alert("Pembayaran gagal. Silakan coba lagi.");
+                window.location.reload();
             },
             onClose: function () {
                 console.log('Midtrans popup closed');
             }
         });
-    };
+    }
+
+    document.getElementById('pay-button').onclick = triggerSnapPay;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(triggerSnapPay, 200);
+    });
 </script>
 @endsection
 

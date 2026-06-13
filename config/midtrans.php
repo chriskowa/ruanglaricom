@@ -11,8 +11,12 @@ return [
     */
 
     'merchant_id' => env('MIDTRANS_MERCHANT_ID', ''),
-    'client_key' => env('MIDTRANS_CLIENT_KEY', ''),
-    'server_key' => env('MIDTRANS_SERVER_KEY', ''),
+    'client_key' => env('MIDTRANS_IS_PRODUCTION', false)
+        ? env('MIDTRANS_CLIENT_KEY', '')
+        : env('MIDTRANS_CLIENT_KEY_SANDBOX', ''),
+    'server_key' => env('MIDTRANS_IS_PRODUCTION', false)
+        ? env('MIDTRANS_SERVER_KEY', '')
+        : env('MIDTRANS_SERVER_KEY_SANDBOX', ''),
     'client_key_sandbox' => env('MIDTRANS_CLIENT_KEY_SANDBOX', ''),
     'server_key_sandbox' => env('MIDTRANS_SERVER_KEY_SANDBOX', ''),
     'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
