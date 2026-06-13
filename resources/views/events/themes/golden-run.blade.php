@@ -1270,7 +1270,7 @@
                         </div>
                         <div>
                             <h4 class="text-xl font-bold text-white mb-2">Water Station</h4>
-                            <p class="text-slate-400">Setiap 2.5 KM tersedia pos hidrasi lengkap dengan air minum segar dan tim medis siaga, sehingga peserta tetap terjaga stamina dan keselamatannya sepanjang lomba.</p>
+                            <p class="text-slate-400">Setiap 3.5 KM tersedia pos hidrasi lengkap dengan air minum segar dan tim medis siaga, sehingga peserta tetap terjaga stamina dan keselamatannya sepanjang lomba.</p>
                         </div>
                     </div>
                     
