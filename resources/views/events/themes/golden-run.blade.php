@@ -678,11 +678,7 @@
                 <!-- Theme Toggle (Mobile) -->
                 <button id="themeToggleMobile" class="w-full text-left text-slate-300 font-medium p-2 hover:bg-white/5 hover:text-white rounded-lg transition flex items-center gap-2">
                     <i class="fas fa-sun w-5 text-center"></i> <span id="themeTextMobile">Mode Terang</span>
-                </button>
-
-                <a href="{{ route('community.register.index', ['slug' => $event->slug]) }}" class="block text-emerald-400 font-bold p-2 hover:bg-emerald-500/10 rounded-lg flex items-center gap-2 transition">
-                    <i class="fas fa-users"></i> Daftar Komunitas
-                </a>
+                </button>                
                 <a href="#register" class="block text-center bg-gradient-to-r from-brand-400 to-brand-600 text-black font-bold p-3 rounded-xl shadow-lg shadow-brand-500/20">Registrasi</a>
             </div>
         </div>
@@ -706,12 +702,12 @@
         <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div class="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
                 <div class="flex-1 text-center md:text-left reveal active">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md shadow-lg mb-8 hover:bg-white/20 transition cursor-default">
+                    <div class="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-brand-500/10 via-brand-500/20 to-accent-500/10 border border-brand-500/30 backdrop-blur-md shadow-xl shadow-brand-950/20 mb-8 hover:border-brand-500/50 transition cursor-default">
                         <span class="relative flex h-3 w-3">
                           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-500 opacity-75"></span>
                           <span class="relative inline-flex rounded-full h-3 w-3 bg-accent-600"></span>
                         </span>
-                        <span class="text-xs font-bold text-white uppercase tracking-wider">{{ $event->start_at->format('d F Y') }} • {{ $event->location_name }}</span>
+                        <span class="text-sm font-extrabold text-white uppercase tracking-wider">{{ $event->start_at->translatedFormat('d F Y') }} <span class="text-brand-400 mx-1.5">•</span> {{ $event->location_name }}</span>
                     </div>
                     
                     <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none mb-6 drop-shadow-lg">
@@ -1328,6 +1324,52 @@
     <section id="info" class="py-24 bg-dark-950">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- Race Day Info Card -->
+                <div class="md:col-span-2 bg-gradient-to-r from-brand-950/40 via-dark-900 to-accent-950/40 border border-white/10 rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden mb-6 reveal">
+                    <div class="absolute -right-16 -top-16 w-48 h-48 bg-brand-500/10 rounded-full filter blur-xl"></div>
+                    <div class="absolute -left-16 -bottom-16 w-48 h-48 bg-accent-500/10 rounded-full filter blur-xl"></div>
+                    
+                    <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+                        <div>
+                            <span class="text-brand-400 font-bold uppercase tracking-widest text-xs mb-2 block">Hari Pelaksanaan</span>
+                            <h3 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">Race Day Information</h3>
+                            <p class="text-slate-400 max-w-xl">Persiapkan diri Anda untuk hari pelaksanaan lomba. Pastikan hadir tepat waktu di lokasi start.</p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full lg:w-auto shrink-0">
+                            <!-- Date -->
+                            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+                                <div class="w-12 h-12 bg-brand-500/20 text-brand-400 rounded-xl flex items-center justify-center shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-500 uppercase font-bold">Tanggal</span>
+                                    <span class="block text-sm font-bold text-white">{{ $event->start_at->translatedFormat('d F Y') }}</span>
+                                </div>
+                            </div>
+                            <!-- Time -->
+                            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+                                <div class="w-12 h-12 bg-accent-500/20 text-accent-400 rounded-xl flex items-center justify-center shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-500 uppercase font-bold">Waktu Start</span>
+                                    <span class="block text-sm font-bold text-white">{{ $event->start_at->format('H:i') }} WIB</span>
+                                </div>
+                            </div>
+                            <!-- Location -->
+                            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+                                <div class="w-12 h-12 bg-brand-500/20 text-brand-400 rounded-xl flex items-center justify-center shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-500 uppercase font-bold">Lokasi</span>
+                                    <span class="block text-sm font-bold text-white truncate max-w-[150px]" title="{{ $event->location_name }}">{{ $event->location_name }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- RPC Info -->
                 <div class="reveal">
                     <div class="flex items-center gap-3 mb-6">
