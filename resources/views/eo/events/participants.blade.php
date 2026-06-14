@@ -828,7 +828,7 @@
                             <div class="flex justify-between items-center mb-2">
                                 <label class="block text-sm font-bold text-slate-300">3. Tambahkan Teks</label>
                                 <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition">
-                                    <input type="checkbox" id="bibPreviewData" onchange="toggleBibPreview()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer">
+                                    <input type="checkbox" id="bibPreviewData" checked onchange="toggleBibPreview()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer">
                                     Preview Data
                                 </label>
                             </div>
@@ -904,19 +904,86 @@
                             </div>
                         </div>
                     </div>
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2 flex flex-col space-y-4">
+                        <!-- Navigation controls -->
+                        <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-900 border border-slate-700 rounded-lg p-3">
+                            <div class="flex items-center gap-3">
+                                <button type="button" onclick="prevBibParticipant()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold transition">&larr; Prev</button>
+                                <span id="bibParticipantInfo" class="text-xs text-slate-300 font-medium">No active participant</span>
+                                <button type="button" onclick="nextBibParticipant()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold transition">Next &rarr;</button>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button type="button" onclick="generateBibPdf(this, true)" class="whitespace-nowrap px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    Download Preview
+                                </button>
+                                <div class="text-[10px] text-slate-500 italic">Klik kanan baris tabel untuk memuat langsung</div>
+                            </div>
+                        </div>
+
+                        <!-- Canvas container -->
                         <div class="bg-slate-900 border border-slate-700 rounded-lg p-2 flex justify-center items-center overflow-auto relative" style="min-height: 400px;" id="bibCanvasContainer">
                             <span id="bibCanvasPlaceholder" class="text-slate-500 text-sm absolute pointer-events-none z-0">Upload gambar background terlebih dahulu</span>
                             <canvas id="bibCanvas" class="z-10"></canvas>
+                        </div>
+
+                        <!-- Temporary Form Editor -->
+                        <div class="bg-slate-900 border border-slate-700 rounded-lg p-4 space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-yellow-500">Edit Data Cetak (Sementara / Tanpa Save DB)</h4>
+                                <button type="button" onclick="resetActiveParticipantOverride()" class="text-[10px] text-red-400 hover:text-red-300 underline font-semibold transition">Reset ke Default</button>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">Nama Lengkap</label>
+                                    <input type="text" id="bibEditName" oninput="onBibOverrideChange('name', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">Nomor BIB</label>
+                                    <input type="text" id="bibEditBibNumber" oninput="onBibOverrideChange('bib_number', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white font-mono">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">Kategori Lomba</label>
+                                    <input type="text" id="bibEditCategory" oninput="onBibOverrideChange('category', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">Gender (M/F)</label>
+                                    <input type="text" id="bibEditGender" oninput="onBibOverrideChange('gender', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">Golongan Darah</label>
+                                    <input type="text" id="bibEditBloodType" oninput="onBibOverrideChange('blood_type', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">Nama Kontak Darurat</label>
+                                    <input type="text" id="bibEditEmergencyName" oninput="onBibOverrideChange('emergency_contact_name', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white font-sans">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">No Kontak Darurat</label>
+                                    <input type="text" id="bibEditEmergencyPhone" oninput="onBibOverrideChange('emergency_contact_number', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white font-mono">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">Group / Umur</label>
+                                    <input type="text" id="bibEditAgeGroup" oninput="onBibOverrideChange('age_group', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-slate-400 block mb-1">Kode Kupon</label>
+                                    <input type="text" id="bibEditCouponCode" oninput="onBibOverrideChange('coupon_code', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white font-mono">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-6 flex justify-end gap-3 border-t border-slate-700 pt-4">
                     <button type="button" onclick="closeBibModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-bold transition">Batal</button>
+                    <button type="button" onclick="generateBibPdf(this, true)" class="whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        Download BIB Satuan
+                    </button>
                     <button type="button" onclick="generateBibPdf(this)" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-lg text-sm font-bold flex items-center gap-2 transition">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                        Generate & Download PDF
+                        Generate Semua BIB (PDF)
                     </button>
                 </div>
             </div>
@@ -2174,6 +2241,7 @@
                 alert('Gagal memuat data');
                 return;
             }
+            window.currentParticipantsList = res.data || [];
             tbody.innerHTML = renderRows(res.data || []);
             document.querySelectorAll('button[data-dropdown]').forEach(function(btn){
                 setStatusButtonStyle(btn, btn.dataset.status || 'pending');
@@ -3545,6 +3613,98 @@
     let bibImageBase64 = null;
     const eventId = {{ $event->id }};
 
+    window.currentParticipantsList = [];
+    window.bibOverrides = {};
+    window.activeParticipantIndex = 0;
+
+    window.loadBibParticipant = function(index) {
+        if (!window.currentParticipantsList || window.currentParticipantsList.length === 0) {
+            const infoEl = document.getElementById('bibParticipantInfo');
+            if (infoEl) infoEl.textContent = "Tidak ada peserta";
+            return;
+        }
+        
+        if (index < 0) index = 0;
+        if (index >= window.currentParticipantsList.length) index = window.currentParticipantsList.length - 1;
+        
+        window.activeParticipantIndex = index;
+        const p = window.currentParticipantsList[index];
+        if (!p) return;
+        
+        const infoEl = document.getElementById('bibParticipantInfo');
+        if (infoEl) {
+            infoEl.textContent = `Peserta ${index + 1} dari ${window.currentParticipantsList.length}: ${p.name}`;
+        }
+        
+        const overrides = window.bibOverrides[p.id] || {};
+        
+        const nameInput = document.getElementById('bibEditName');
+        if (nameInput) nameInput.value = overrides.name !== undefined ? overrides.name : (p.name || '');
+        
+        const bibInput = document.getElementById('bibEditBibNumber');
+        if (bibInput) bibInput.value = overrides.bib_number !== undefined ? overrides.bib_number : (p.bib_number || '');
+        
+        const categoryInput = document.getElementById('bibEditCategory');
+        if (categoryInput) categoryInput.value = overrides.category !== undefined ? overrides.category : (p.category || '');
+        
+        const genderInput = document.getElementById('bibEditGender');
+        if (genderInput) genderInput.value = overrides.gender !== undefined ? overrides.gender : (p.gender || '');
+        
+        const bloodInput = document.getElementById('bibEditBloodType');
+        if (bloodInput) bloodInput.value = overrides.blood_type !== undefined ? overrides.blood_type : (p.blood_type || '');
+        
+        const emNameInput = document.getElementById('bibEditEmergencyName');
+        if (emNameInput) emNameInput.value = overrides.emergency_contact_name !== undefined ? overrides.emergency_contact_name : (p.emergency_contact_name || '');
+        
+        const emPhoneInput = document.getElementById('bibEditEmergencyPhone');
+        if (emPhoneInput) emPhoneInput.value = overrides.emergency_contact_number !== undefined ? overrides.emergency_contact_number : (p.emergency_contact_number || '');
+        
+        const ageGroupInput = document.getElementById('bibEditAgeGroup');
+        if (ageGroupInput) ageGroupInput.value = overrides.age_group !== undefined ? overrides.age_group : (p.age_group || '');
+        
+        const couponInput = document.getElementById('bibEditCouponCode');
+        if (couponInput) couponInput.value = overrides.coupon_code !== undefined ? overrides.coupon_code : (p.coupon_code || '');
+        
+        toggleBibPreview();
+    };
+
+    window.prevBibParticipant = function() {
+        if (window.activeParticipantIndex > 0) {
+            window.loadBibParticipant(window.activeParticipantIndex - 1);
+        }
+    };
+    
+    window.nextBibParticipant = function() {
+        if (window.currentParticipantsList && window.activeParticipantIndex < window.currentParticipantsList.length - 1) {
+            window.loadBibParticipant(window.activeParticipantIndex + 1);
+        }
+    };
+
+    window.onBibOverrideChange = function(field, value) {
+        if (!window.currentParticipantsList || window.currentParticipantsList.length === 0) return;
+        const p = window.currentParticipantsList[window.activeParticipantIndex];
+        if (!p) return;
+        
+        if (!window.bibOverrides[p.id]) {
+            window.bibOverrides[p.id] = {};
+        }
+        window.bibOverrides[p.id][field] = value;
+        
+        toggleBibPreview();
+    };
+
+    window.resetActiveParticipantOverride = function() {
+        if (!window.currentParticipantsList || window.currentParticipantsList.length === 0) return;
+        const p = window.currentParticipantsList[window.activeParticipantIndex];
+        if (!p) return;
+        
+        if (window.bibOverrides[p.id]) {
+            delete window.bibOverrides[p.id];
+        }
+        
+        window.loadBibParticipant(window.activeParticipantIndex);
+    };
+
     function saveBibPreset(quiet = false) {
         if (!bibCanvas) return;
         
@@ -3685,52 +3845,63 @@
     }
 
     function getPreviewData() {
-        const firstRow = document.querySelector('#participantsTableBody tr[data-json]');
-        if (firstRow) {
-            try {
-                const data = JSON.parse(firstRow.getAttribute('data-json'));
+        if (window.currentParticipantsList && window.currentParticipantsList.length > 0) {
+            const index = window.activeParticipantIndex || 0;
+            const data = window.currentParticipantsList[index];
+            if (data) {
+                const overrides = window.bibOverrides[data.id] || {};
+                
+                const name = overrides.name !== undefined ? overrides.name : (data.name || '-');
+                const category = overrides.category !== undefined ? overrides.category : (data.category || '-');
+                const blood_type = overrides.blood_type !== undefined ? overrides.blood_type : (data.blood_type || '-');
+                const emergency_contact_number = overrides.emergency_contact_number !== undefined ? overrides.emergency_contact_number : (data.emergency_contact_number || '-');
+                const emergency_contact_name = overrides.emergency_contact_name !== undefined ? overrides.emergency_contact_name : (data.emergency_contact_name || '-');
+                const age_group = overrides.age_group !== undefined ? overrides.age_group : (data.age_group || '-');
+                const coupon_code = overrides.coupon_code !== undefined ? overrides.coupon_code : (data.coupon_code || '-');
+                
                 let genderVal = '-';
-                if (data.gender) {
-                    const g = data.gender.toLowerCase();
+                const gender = overrides.gender !== undefined ? overrides.gender : (data.gender || '');
+                if (gender) {
+                    const g = gender.toLowerCase().trim();
                     if (['male', 'm', 'laki-laki', 'l', 'men', 'man', 'laki - laki'].includes(g)) {
                         genderVal = 'M';
                     } else if (['female', 'f', 'perempuan', 'p', 'women', 'woman'].includes(g)) {
                         genderVal = 'F';
                     } else {
-                        genderVal = data.gender.charAt(0).toUpperCase();
+                        genderVal = gender.charAt(0).toUpperCase();
                     }
                 }
 
                 const takeLastVal = parseInt(document.getElementById('bibTakeLast').value, 10);
                 const prefixVal = document.getElementById('bibPrefix').value || '';
-                let bibNum = data.bib_number || '-';
-                if (data.bib_number && takeLastVal) {
-                    bibNum = data.bib_number.slice(-takeLastVal);
+                let bibNum = overrides.bib_number !== undefined ? overrides.bib_number : (data.bib_number || '-');
+                if (bibNum !== '-' && takeLastVal) {
+                    bibNum = bibNum.slice(-takeLastVal);
                 }
-                bibNum = prefixVal + bibNum;
+                if (bibNum !== '-') {
+                    bibNum = prefixVal + bibNum;
+                }
 
                 return {
                     '#': bibNum,
                     '{bib_number}': bibNum,
-                    '[N]': data.name || '-',
-                    '{name}': data.name || '-',
-                    '[C]': data.category || '-',
-                    '{category}': data.category || '-',
+                    '[N]': name,
+                    '{name}': name,
+                    '[C]': category,
+                    '{category}': category,
                     '[G]': genderVal,
                     '{gender}': genderVal,
-                    '[B]': data.blood_type || '-',
-                    '{blood_type}': data.blood_type || '-',
-                    '[E#]': data.emergency_contact_number || '-',
-                    '{emergency_contact_number}': data.emergency_contact_number || '-',
-                    '[EN]': data.emergency_contact_name || '-',
-                    '{emergency_contact_name}': data.emergency_contact_name || '-',
-                    '[GR]': data.age_group || '-',
-                    '{age_group}': data.age_group || '-',
-                    '[KP]': data.coupon_code || '-',
-                    '{coupon_code}': data.coupon_code || '-'
+                    '[B]': blood_type,
+                    '{blood_type}': blood_type,
+                    '[E#]': emergency_contact_number,
+                    '{emergency_contact_number}': emergency_contact_number,
+                    '[EN]': emergency_contact_name,
+                    '{emergency_contact_name}': emergency_contact_name,
+                    '[GR]': age_group,
+                    '{age_group}': age_group,
+                    '[KP]': coupon_code,
+                    '{coupon_code}': coupon_code
                 };
-            } catch (e) {
-                console.error("Error parsing preview data: ", e);
             }
         }
 
@@ -3797,6 +3968,19 @@
 
     function openBibModal() {
         document.getElementById('bibModal').classList.remove('hidden');
+        
+        // Populate currentParticipantsList from DOM
+        const list = [];
+        const rows = document.querySelectorAll('#participantsTableBody tr[data-json]');
+        rows.forEach(function(row) {
+            try {
+                list.push(JSON.parse(row.getAttribute('data-json')));
+            } catch(e) {
+                console.error("Error parsing row json:", e);
+            }
+        });
+        window.currentParticipantsList = list;
+        
         if (!bibCanvas) {
             bibCanvas = new fabric.Canvas('bibCanvas', {
                 width: document.getElementById('bibCanvasContainer').clientWidth - 20,
@@ -3820,7 +4004,10 @@
 
             setTimeout(function() {
                 loadBibPreset(true);
+                window.loadBibParticipant(window.activeParticipantIndex || 0);
             }, 100);
+        } else {
+            window.loadBibParticipant(window.activeParticipantIndex || 0);
         }
     }
 
@@ -4065,7 +4252,7 @@
         }
     }
 
-    function generateBibPdf(btn) {
+    function generateBibPdf(btn, isSingle = false) {
         if (!bibImageBase64) {
             alert('Silakan upload background gambar BIB terlebih dahulu.');
             return;
@@ -4100,21 +4287,36 @@
             texts: textElements,
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
+            overrides: window.bibOverrides || {}
         };
 
-        const filtersForm = document.getElementById('filtersForm');
-        if (filtersForm) {
-            const formData = new FormData(filtersForm);
-            formData.forEach((value, key) => {
-                if (value !== '') {
-                    payload[key] = value;
-                }
-            });
+        if (isSingle) {
+            if (!window.currentParticipantsList || window.currentParticipantsList.length === 0) {
+                alert('Tidak ada data peserta yang aktif.');
+                return;
+            }
+            const activeParticipant = window.currentParticipantsList[window.activeParticipantIndex];
+            if (!activeParticipant) {
+                alert('Peserta aktif tidak ditemukan.');
+                return;
+            }
+            payload.single_participant_id = activeParticipant.id;
+        } else {
+            const filtersForm = document.getElementById('filtersForm');
+            if (filtersForm) {
+                const formData = new FormData(filtersForm);
+                formData.forEach((value, key) => {
+                    if (value !== '') {
+                        payload[key] = value;
+                    }
+                });
+            }
         }
 
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-slate-900 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses PDF...`;
+        const spinnerColor = isSingle ? 'text-white' : 'text-slate-900';
+        btn.innerHTML = `<svg class="animate-spin h-5 w-5 ${spinnerColor} inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses PDF...`;
 
         var tokenMeta = document.querySelector('meta[name="csrf-token"]');
         var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '{{ csrf_token() }}';
@@ -4150,5 +4352,51 @@
             alert('Terjadi kesalahan saat memproses PDF. Jika data sangat besar, coba filter sebagian peserta terlebih dahulu.');
         });
     }
+
+    function initRightClick() {
+        var tbody = document.getElementById('participantsTableBody');
+        if (tbody) {
+            tbody.removeEventListener('contextmenu', handleRowRightClick);
+            tbody.addEventListener('contextmenu', handleRowRightClick);
+        }
+    }
+    
+    function handleRowRightClick(e) {
+        var tr = e.target.closest('tr');
+        if (!tr || !tr.hasAttribute('data-json')) return;
+        
+        e.preventDefault();
+        
+        try {
+            var data = JSON.parse(tr.getAttribute('data-json'));
+            var participantId = data.id;
+            
+            // Populate window.currentParticipantsList from DOM first
+            var list = [];
+            var rows = document.querySelectorAll('#participantsTableBody tr[data-json]');
+            rows.forEach(function(row) {
+                try {
+                    list.push(JSON.parse(row.getAttribute('data-json')));
+                } catch(err) {
+                    console.error("Error parsing row json:", err);
+                }
+            });
+            window.currentParticipantsList = list;
+            
+            var idx = list.findIndex(function(p) { return p.id === participantId; });
+            if (idx !== -1) {
+                window.activeParticipantIndex = idx;
+                openBibModal();
+                setTimeout(function() {
+                    window.loadBibParticipant(idx);
+                }, 150);
+            }
+        } catch (err) {
+            console.error("Right click load failed:", err);
+        }
+    }
+    
+    initRightClick();
+    document.addEventListener('DOMContentLoaded', initRightClick);
 </script>
 @endsection

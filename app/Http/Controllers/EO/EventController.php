@@ -2213,92 +2213,98 @@ class EventController extends Controller
             'scale' => 'required|numeric',
             'texts' => 'required|array',
             'take_last' => 'nullable|integer|min:1',
-            'prefix' => 'nullable|string'
+            'prefix' => 'nullable|string',
+            'overrides' => 'nullable|array',
+            'single_participant_id' => 'nullable|integer|exists:participants,id'
         ]);
 
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })->with(['transaction', 'category']);
 
-        // Filters
-        if ($request->filled('payment_status')) {
-            $query->whereHas('transaction', function ($q) use ($request) {
-                $q->where('payment_status', $request->payment_status);
-            });
-        }
-        if ($request->has('is_picked_up') && $request->is_picked_up !== '') {
-            $query->where('is_picked_up', $request->is_picked_up == '1');
-        }
-        if ($request->filled('gender')) {
-            $query->where('gender', $request->gender);
-        }
-        if ($request->filled('category_id')) {
-            $query->where('race_category_id', $request->category_id);
-        }
-        if ($request->filled('coupon_id')) {
-            $query->whereHas('transaction', function ($q) use ($request) {
-                $q->where('coupon_id', $request->coupon_id);
-            });
-        }
-        if ($request->filled('addon')) {
-            $addonFilter = $request->query('addon');
-            if ($addonFilter === 'with') {
-                $query->whereNotNull('addons')->whereJsonLength('addons', '>', 0);
-            } elseif ($addonFilter === 'without') {
-                $query->where(function ($q) {
-                    $q->whereNull('addons')->orWhereJsonLength('addons', 0);
+        if ($request->filled('single_participant_id')) {
+            $query->where('id', $request->single_participant_id);
+        } else {
+            // Filters
+            if ($request->filled('payment_status')) {
+                $query->whereHas('transaction', function ($q) use ($request) {
+                    $q->where('payment_status', $request->payment_status);
                 });
-            } else {
-                $query->whereJsonContains('addons', ['name' => $addonFilter]);
             }
-        }
-        if ($request->filled('jersey_size')) {
-            $jerseySizeFilter = $request->query('jersey_size');
-            $matchSizes = [strtoupper($jerseySizeFilter)];
-            if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
-                $matchSizes = ['2XL', 'XXL'];
-            } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
-                $matchSizes = ['3XL', 'XXXL'];
+            if ($request->has('is_picked_up') && $request->is_picked_up !== '') {
+                $query->where('is_picked_up', $request->is_picked_up == '1');
             }
-            $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
-        }
-        if ($request->filled('age_group')) {
-            $group = $request->age_group;
-            $eventDate = $event->start_at ?: now();
-            if ($group === '50+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master 45+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-            } elseif ($group === 'Umum') {
-                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+            if ($request->filled('gender')) {
+                $query->where('gender', $request->gender);
             }
-        }
-        if ($request->filled('min_age')) {
-            $minAge = (int) $request->min_age;
-            $eventDate = $event->start_at ?: now();
-            $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
-        }
-        if ($request->filled('max_age')) {
-            $maxAge = (int) $request->max_age;
-            $eventDate = $event->start_at ?: now();
-            $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
-        }
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('bib_number', 'like', "%{$search}%")
-                    ->orWhere('id_card', 'like', "%{$search}%")
-                    ->orWhereHas('category', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
+            if ($request->filled('category_id')) {
+                $query->where('race_category_id', $request->category_id);
+            }
+            if ($request->filled('coupon_id')) {
+                $query->whereHas('transaction', function ($q) use ($request) {
+                    $q->where('coupon_id', $request->coupon_id);
+                });
+            }
+            if ($request->filled('addon')) {
+                $addonFilter = $request->query('addon');
+                if ($addonFilter === 'with') {
+                    $query->whereNotNull('addons')->whereJsonLength('addons', '>', 0);
+                } elseif ($addonFilter === 'without') {
+                    $query->where(function ($q) {
+                        $q->whereNull('addons')->orWhereJsonLength('addons', 0);
                     });
-            });
+                } else {
+                    $query->whereJsonContains('addons', ['name' => $addonFilter]);
+                }
+            }
+            if ($request->filled('jersey_size')) {
+                $jerseySizeFilter = $request->query('jersey_size');
+                $matchSizes = [strtoupper($jerseySizeFilter)];
+                if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                    $matchSizes = ['2XL', 'XXL'];
+                } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                    $matchSizes = ['3XL', 'XXXL'];
+                }
+                $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
+            }
+            if ($request->filled('age_group')) {
+                $group = $request->age_group;
+                $eventDate = $event->start_at ?: now();
+                if ($group === '50+') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master 45+') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master') {
+                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+                } elseif ($group === 'Umum') {
+                    $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+                }
+            }
+            if ($request->filled('min_age')) {
+                $minAge = (int) $request->min_age;
+                $eventDate = $event->start_at ?: now();
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
+            }
+            if ($request->filled('max_age')) {
+                $maxAge = (int) $request->max_age;
+                $eventDate = $event->start_at ?: now();
+                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
+            }
+            if ($request->filled('search')) {
+                $search = trim($request->search);
+                $query->where(function ($qq) use ($search) {
+                    $qq->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('bib_number', 'like', "%{$search}%")
+                        ->orWhere('id_card', 'like', "%{$search}%")
+                        ->orWhereHas('category', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
+                });
+            }
         }
 
         $participants = $query->orderBy('bib_number')->get();
@@ -2364,39 +2370,57 @@ class EventController extends Controller
             $takeLast = $request->filled('take_last') ? (int) $request->take_last : null;
             $prefix = $request->filled('prefix') ? $request->prefix : '';
             $texts = $request->texts;
+            $overrides = $request->input('overrides', []);
 
             foreach ($participants as $p) {
                 $pdf->AddPage('L', [$canvasWidthPx, $canvasHeightPx]);
                 $pdf->Image($tempImgPath, 0, 0, $canvasWidthPx, $canvasHeightPx, '', '', '', false, 300, '', false, false, 0);
                 
-                $dynamicBib = $p->bib_number;
+                // Get override for this participant if any
+                $pOverride = isset($overrides[$p->id]) ? $overrides[$p->id] : [];
+                
+                $bibNum = isset($pOverride['bib_number']) ? $pOverride['bib_number'] : $p->bib_number;
+                $dynamicBib = $bibNum;
                 if ($dynamicBib && $takeLast) {
                     $dynamicBib = substr($dynamicBib, -$takeLast);
                 }
                 $dynamicBib = $prefix . $dynamicBib;
                 $dynamicBib = trim($dynamicBib ?? '') === '' ? '-' : $dynamicBib;
                 
+                $gender = isset($pOverride['gender']) ? $pOverride['gender'] : $p->gender;
                 $genderVal = '';
-                if (!empty($p->gender)) {
-                    $gLower = strtolower(trim($p->gender));
+                if (!empty($gender)) {
+                    $gLower = strtolower(trim($gender));
                     if (in_array($gLower, ['male', 'm', 'laki-laki', 'l', 'men', 'man', 'laki - laki'])) {
                         $genderVal = 'M';
                     } elseif (in_array($gLower, ['female', 'f', 'perempuan', 'p', 'women', 'woman'])) {
                         $genderVal = 'F';
                     } else {
-                        $genderVal = strtoupper(substr($p->gender, 0, 1));
+                        $genderVal = strtoupper(substr($gender, 0, 1));
                     }
                 }
                 $genderVal = trim($genderVal ?? '') === '' ? '-' : $genderVal;
 
-                $pName = trim($p->name ?? '') === '' ? '-' : $p->name;
-                $pCategory = trim($p->category->name ?? '') === '' ? '-' : $p->category->name;
-                $pBloodType = trim($p->blood_type ?? '') === '' ? '-' : $p->blood_type;
-                $pEmergencyNumber = trim($p->emergency_contact_number ?? '') === '' ? '-' : $p->emergency_contact_number;
-                $pEmergencyName = trim($p->emergency_contact_name ?? '') === '' ? '-' : $p->emergency_contact_name;
-                $pGroup = $p->getAgeGroup($event->start_at ?: now());
+                $pName = isset($pOverride['name']) ? $pOverride['name'] : $p->name;
+                $pName = trim($pName ?? '') === '' ? '-' : $pName;
+                
+                $pCategory = isset($pOverride['category']) ? $pOverride['category'] : ($p->category->name ?? '');
+                $pCategory = trim($pCategory ?? '') === '' ? '-' : $pCategory;
+                
+                $pBloodType = isset($pOverride['blood_type']) ? $pOverride['blood_type'] : $p->blood_type;
+                $pBloodType = trim($pBloodType ?? '') === '' ? '-' : $pBloodType;
+                
+                $pEmergencyNumber = isset($pOverride['emergency_contact_number']) ? $pOverride['emergency_contact_number'] : $p->emergency_contact_number;
+                $pEmergencyNumber = trim($pEmergencyNumber ?? '') === '' ? '-' : $pEmergencyNumber;
+                
+                $pEmergencyName = isset($pOverride['emergency_contact_name']) ? $pOverride['emergency_contact_name'] : $p->emergency_contact_name;
+                $pEmergencyName = trim($pEmergencyName ?? '') === '' ? '-' : $pEmergencyName;
+                
+                $pGroup = isset($pOverride['age_group']) ? $pOverride['age_group'] : $p->getAgeGroup($event->start_at ?: now());
                 $pGroup = trim($pGroup ?? '') === '' ? '-' : $pGroup;
-                $pCouponCode = ($p->transaction && $p->transaction->coupon) ? $p->transaction->coupon->code : '';
+                
+                $couponCodeDefault = ($p->transaction && $p->transaction->coupon) ? $p->transaction->coupon->code : '';
+                $pCouponCode = isset($pOverride['coupon_code']) ? $pOverride['coupon_code'] : $couponCodeDefault;
                 $pCouponCode = trim($pCouponCode ?? '') === '' ? '-' : $pCouponCode;
 
                 foreach ($texts as $t) {
@@ -2484,7 +2508,13 @@ class EventController extends Controller
             
             @unlink($tempImgPath);
             
-            $pdfFilename = 'BIB_Export_' . $event->slug . '_' . time() . '.pdf';
+            if ($request->filled('single_participant_id') && $participants->count() === 1) {
+                $singleParticipant = $participants->first();
+                $cleanName = Str::slug($singleParticipant->name);
+                $pdfFilename = 'BIB_' . $cleanName . '_' . $event->slug . '_' . time() . '.pdf';
+            } else {
+                $pdfFilename = 'BIB_Export_' . $event->slug . '_' . time() . '.pdf';
+            }
             
             // Ensure storage path exists
             $bibsDir = public_path('storage/bibs');
