@@ -501,6 +501,7 @@
                             </button>
                         </th>
                         <th class="px-6 py-4">PIC Info</th>
+                        <th class="px-6 py-4">Keterangan</th>
                         <th class="px-6 py-4">Jersey Size</th>
                         <th class="px-6 py-4">Gol. Darah</th>
                         <th class="px-6 py-4">Addons</th>
@@ -570,6 +571,7 @@
                             'coupon_id' => $participant->transaction->coupon_id ?? null,
                             'coupon_code' => $participant->transaction->coupon->code ?? null,
                             'addons' => $participant->addons,
+                            'notes' => $participant->notes,
                         ]) }}">
                         <td class="px-6 py-4" onclick="event.stopPropagation()">
                             <input type="checkbox" class="participant-checkbox rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" value="{{ $participant->id }}">
@@ -589,6 +591,9 @@
                             @php $pic = $participant->transaction->pic_data ?? []; @endphp
                             <div class="text-sm text-white">{{ $pic['name'] ?? '-' }}</div>
                             <div class="text-xs text-slate-400">{{ $pic['phone'] ?? '-' }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-xs text-slate-300">
+                            {{ $participant->notes ?? '-' }}
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
@@ -1536,6 +1541,13 @@
                                             <option value="1">Picked Up</option>
                                         </select>
                                     </div>
+
+                                    <!-- Keterangan -->
+                                    <div class="pt-2 border-t border-slate-700/50 mt-2">
+                                        <div class="text-xs text-slate-500">Keterangan</div>
+                                        <div class="view-mode text-white text-sm" id="dm_notes" style="white-space: pre-wrap;">-</div>
+                                        <textarea name="notes" id="edit_notes" rows="2" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500" placeholder="Keterangan / Catatan"></textarea>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -2080,7 +2092,8 @@
                     picked_up_by: p.picked_up_by,
                     coupon_code: p.coupon_code,
                     coupon_id: p.coupon_id,
-                    addons: p.addons
+                    addons: p.addons,
+                    notes: p.notes
                 }).replace(/'/g, "&#39;");
 
                 html += '<tr class="hover:bg-slate-800/50 transition-colors cursor-pointer" onclick="if(!event.target.closest(\'button\') && !event.target.closest(\'a\') && !event.target.closest(\'.no-click\')) openDetailModalFromRow(this)" data-json=\''+ dataJson +'\'>'+
@@ -2090,6 +2103,7 @@
                     '<td class="px-6 py-4"><div class="font-medium text-white">'+ p.name +'</div><div class="text-xs text-slate-500 mb-1">'+ genderLabel +' • Reg: '+ regDate +'</div><div class="text-xs text-slate-400">'+ (p.email || '') +'</div><div class="text-xs text-slate-400">'+ (p.phone || '') +'</div></td>'+
                     '<td class="px-6 py-4 text-white font-mono text-xs">'+ (p.id_card || '-') +'</td>'+
                     '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
+                    '<td class="px-6 py-4 text-xs text-slate-300">'+ (p.notes || '-') +'</td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
                     '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.blood_type || '-') +'</span></td>'+
                     '<td class="px-6 py-4">'+ renderAddonsCell(p.addons) +'</td>'+
@@ -2434,8 +2448,9 @@
         };
     })();
     
-    // Global variable to store current participant data for edit/cancel
+    // Global variable to store current participant data and row for edit/cancel
     var currentParticipantData = null;
+    var currentParticipantRow = null;
 
     function setStatusButtonStyle(btn, status) {
         var map = {
@@ -2587,6 +2602,7 @@
         setValue('edit_target_time', d.target_time);
 
         setValue('edit_coupon_id', d.coupon_id);
+        setValue('edit_notes', d.notes);
         var addons = Array.isArray(d.addons) ? d.addons : [];
         setValue('edit_addons_json', JSON.stringify(addons, null, 2));
         
@@ -2674,7 +2690,8 @@
             coupon_id: document.getElementById('edit_coupon_id').value,
             pic_name: document.getElementById('edit_pic_name').value.trim(),
             pic_phone: document.getElementById('edit_pic_phone').value.trim(),
-            pic_email: document.getElementById('edit_pic_email').value.trim()
+            pic_email: document.getElementById('edit_pic_email').value.trim(),
+            notes: document.getElementById('edit_notes').value.trim()
         };
 
         // Client-side Validation
@@ -2766,9 +2783,88 @@
                         pic_name: res.data.pic_name,
                         pic_phone: res.data.pic_phone,
                         pic_email: res.data.pic_email,
-                        addons: res.data.addons
+                        addons: res.data.addons,
+                        notes: res.data.notes
                     });
                 }
+
+                // Update Row instantly in table view
+                if (currentParticipantRow) {
+                    var oldData = {};
+                    try {
+                        oldData = JSON.parse(currentParticipantRow.dataset.json || '{}');
+                    } catch(e){}
+                    var mergedData = Object.assign({}, oldData, currentParticipantData);
+                    currentParticipantRow.dataset.json = JSON.stringify(mergedData);
+
+                    var cells = currentParticipantRow.querySelectorAll('td');
+                    if (cells && cells.length >= 13) {
+                        var genderLabel = mergedData.gender ? (mergedData.gender.charAt(0).toUpperCase() + mergedData.gender.slice(1)) : '-';
+                        var regDate = '';
+                        if (mergedData.created_at) {
+                            try {
+                                var parsedDate = new Date(mergedData.created_at);
+                                if (!isNaN(parsedDate.getTime())) {
+                                    regDate = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short' }).format(parsedDate);
+                                }
+                            } catch(e){}
+                        }
+                        if (!regDate && oldData.created_at) {
+                            regDate = oldData.created_at;
+                            if (regDate.length > 10) regDate = regDate.substring(0, 10);
+                        }
+                        cells[1].innerHTML = '<div class="font-medium text-white">'+ mergedData.name +'</div>'+
+                            '<div class="text-xs text-slate-500 mb-1">'+ genderLabel +' • Reg: '+ (regDate || '-') +'</div>'+
+                            '<div class="text-xs text-slate-400">'+ (mergedData.email || '') +'</div>'+
+                            '<div class="text-xs text-slate-400">'+ (mergedData.phone || '') +'</div>';
+
+                        cells[2].textContent = mergedData.id_card || '-';
+
+                        cells[3].innerHTML = '<div class="text-sm text-white">'+ (mergedData.pic_name || '-') +'</div>'+
+                            '<div class="text-xs text-slate-400">'+ (mergedData.pic_phone || '-') +'</div>';
+
+                        cells[4].textContent = mergedData.notes || '-';
+
+                        var jerseyBadge = cells[5].querySelector('span');
+                        if (jerseyBadge) {
+                            jerseyBadge.textContent = mergedData.jersey_size || '-';
+                        }
+
+                        var bloodBadge = cells[6].querySelector('span');
+                        if (bloodBadge) {
+                            bloodBadge.textContent = mergedData.blood_type || '-';
+                        }
+
+                        if (typeof renderAddonsCell === 'function') {
+                            cells[7].innerHTML = renderAddonsCell(mergedData.addons);
+                        }
+
+                        cells[8].innerHTML = '<div class="flex flex-col gap-1">'+
+                            '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (mergedData.category || '-') +'</span>'+
+                            '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (mergedData.bib_number || 'N/A') +'</span>'+
+                            '</div>';
+
+                        var ageBadge = cells[9].querySelector('span');
+                        if (ageBadge) {
+                            ageBadge.textContent = mergedData.age_group || '-';
+                        }
+
+                        var couponHtml = '-';
+                        if (mergedData.coupon_code) {
+                            couponHtml = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-900/30 text-green-400 border border-green-500/30 font-mono">'+ mergedData.coupon_code +'</span>';
+                        }
+                        cells[10].innerHTML = couponHtml;
+
+                        var pickedBadge = '';
+                        if (mergedData.is_picked_up) {
+                            pickedBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span>';
+                        } else {
+                            pickedBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
+                        }
+                        cells[12].innerHTML = pickedBadge;
+                    }
+                }
+
 
                 // Update View Mode Data
                 document.getElementById('dm_name').textContent = res.data.name;
@@ -2795,6 +2891,7 @@
                 document.getElementById('dm_pic_name').textContent = res.data.pic_name || '-';
                 document.getElementById('dm_pic_phone').textContent = res.data.pic_phone || '-';
                 document.getElementById('dm_pic_email').textContent = res.data.pic_email || '-';
+                document.getElementById('dm_notes').textContent = res.data.notes || '-';
                 
                 // Update Attendance Badge
                 var attendanceBadge = document.getElementById('dm_attendance_badge');
@@ -2857,6 +2954,7 @@
     function openDetailModalFromRow(tr) {
         var data = JSON.parse(tr.dataset.json);
         currentParticipantData = data; // Store for cancel restore
+        currentParticipantRow = tr;
         
         // Reset Edit Mode
         toggleEditMode(false);
@@ -2880,6 +2978,7 @@
         document.getElementById('dm_emergency_contact_number').textContent = data.emergency_contact_number || '-';
         
         document.getElementById('dm_age_group').textContent = data.age_group || '-';
+        document.getElementById('dm_notes').textContent = data.notes || '-';
 
         // Populate Address Info
         document.getElementById('dm_address').textContent = data.address || '-';

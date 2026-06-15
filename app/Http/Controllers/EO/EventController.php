@@ -1028,7 +1028,7 @@ class EventController extends Controller
                     'category' => $p->category ? $p->category->name : '-',
                     'race_category_id' => $p->race_category_id,
                     'bib_number' => $p->bib_number,
-                    'age_group' => $p->getAgeGroup($event->start_at),
+                    'age_group' => $p->getAgeGroup($event->start_at) . ($p->date_of_birth ? ' (' . number_format($p->date_of_birth->floatDiffInYears($event->start_at), 1) . ' thn)' : ''),
                     'jersey_size' => $p->jersey_size,
                     'created_at' => $p->created_at ? $p->created_at->format('d M Y') : '',
                     'payment_status' => $p->transaction->payment_status ?? 'pending',
@@ -1044,6 +1044,7 @@ class EventController extends Controller
                     'coupon_code' => $p->transaction->coupon?->code ?? null,
                     'coupon_id' => $p->transaction->coupon_id ?? null,
                     'addons' => $p->addons,
+                    'notes' => $p->notes,
                 ];
             });
 
@@ -1524,6 +1525,7 @@ class EventController extends Controller
             'addons.*' => 'array',
             'addons.*.name' => 'nullable|string|max:100',
             'addons.*.value' => 'nullable',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         if (!empty($validated['jersey_size'])) {
@@ -1704,7 +1706,7 @@ class EventController extends Controller
                 'bib_number' => $participant->bib_number,
                 'jersey_size' => $participant->jersey_size,
                 'blood_type' => $participant->blood_type,
-                'age_group' => $participant->getAgeGroup($event->start_at),
+                'age_group' => $participant->getAgeGroup($event->start_at) . ($participant->date_of_birth ? ' (' . number_format($participant->date_of_birth->floatDiffInYears($event->start_at), 1) . ' thn)' : ''),
                 'is_picked_up' => $participant->is_picked_up,
                 'picked_up_at' => $participant->picked_up_at,
                 'picked_up_by' => $participant->picked_up_by,
@@ -1714,6 +1716,7 @@ class EventController extends Controller
                 'pic_phone' => $participant->pic_phone,
                 'pic_email' => $participant->pic_email,
                 'addons' => $participant->addons,
+                'notes' => $participant->notes,
             ],
         ]);
     }

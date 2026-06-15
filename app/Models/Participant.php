@@ -39,6 +39,7 @@ class Participant extends Model
         'price_type',
         'isApproved',
         'result_time_ms',
+        'notes',
     ];
 
     protected $casts = [
