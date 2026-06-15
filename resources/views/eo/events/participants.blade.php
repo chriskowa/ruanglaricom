@@ -814,14 +814,14 @@
                             <label class="block text-sm font-bold text-slate-300 mb-2">2. Format Nomor BIB</label>
                             <div class="space-y-2">
                                 <div>
-                                    <label class="text-xs text-slate-400">Ambil X Karakter Terakhir</label>
-                                    <input type="number" id="bibTakeLast" value="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
+                                    <label class="text-xs text-slate-400">Potong Teks / Ambil X Karakter Terakhir</label>
+                                    <input type="text" id="bibTakeLast" value="4" placeholder="Misal: PAOLORUNFE-2026- atau 4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
                                 </div>
                                 <div>
-                                    <label class="text-xs text-slate-400">Prefix / Awalan</label>
+                                    <label class="text-xs text-slate-400">Prefix / Awalan Baru</label>
                                     <input type="text" id="bibPrefix" placeholder="Misal: 5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
                                 </div>
-                                <div class="text-xs text-slate-500 italic mt-1">Contoh: PAOLO-0743 &rarr; 50743</div>
+                                <div class="text-xs text-slate-500 italic mt-1">Contoh: PAOLORUNFE-2026-01 &rarr; 01 (jika diisi "PAOLORUNFE-2026-")</div>
                             </div>
                         </div>
                         <div>
@@ -3872,11 +3872,16 @@
                     }
                 }
 
-                const takeLastVal = parseInt(document.getElementById('bibTakeLast').value, 10);
+                const stripVal = document.getElementById('bibTakeLast').value;
                 const prefixVal = document.getElementById('bibPrefix').value || '';
                 let bibNum = overrides.bib_number !== undefined ? overrides.bib_number : (data.bib_number || '-');
-                if (bibNum !== '-' && takeLastVal) {
-                    bibNum = bibNum.slice(-takeLastVal);
+                if (bibNum !== '-' && stripVal) {
+                    if (/^\d+$/.test(stripVal)) {
+                        const numChars = parseInt(stripVal, 10);
+                        bibNum = bibNum.slice(-numChars);
+                    } else {
+                        bibNum = bibNum.replace(stripVal, '');
+                    }
                 }
                 if (bibNum !== '-') {
                     bibNum = prefixVal + bibNum;
@@ -3905,11 +3910,16 @@
             }
         }
 
-        const takeLastVal = parseInt(document.getElementById('bibTakeLast').value, 10);
+        const stripVal = document.getElementById('bibTakeLast').value;
         const prefixVal = document.getElementById('bibPrefix').value || '';
         let bibNum = '10234';
-        if (takeLastVal) {
-            bibNum = bibNum.slice(-takeLastVal);
+        if (stripVal) {
+            if (/^\d+$/.test(stripVal)) {
+                const numChars = parseInt(stripVal, 10);
+                bibNum = bibNum.slice(-numChars);
+            } else {
+                bibNum = bibNum.replace(stripVal, '');
+            }
         }
         bibNum = prefixVal + bibNum;
 

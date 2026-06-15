@@ -2212,7 +2212,7 @@ class EventController extends Controller
             'bg_height' => 'required|numeric',
             'scale' => 'required|numeric',
             'texts' => 'required|array',
-            'take_last' => 'nullable|integer|min:1',
+            'take_last' => 'nullable|string',
             'prefix' => 'nullable|string',
             'overrides' => 'nullable|array',
             'single_participant_id' => 'nullable|integer|exists:participants,id'
@@ -2367,7 +2367,7 @@ class EventController extends Controller
             $pdf->SetAutoPageBreak(false, 0);
             $pdf->SetMargins(0, 0, 0);
             
-            $takeLast = $request->filled('take_last') ? (int) $request->take_last : null;
+            $takeLast = $request->filled('take_last') ? $request->take_last : null;
             $prefix = $request->filled('prefix') ? $request->prefix : '';
             $texts = $request->texts;
             $overrides = $request->input('overrides', []);
@@ -2381,8 +2381,12 @@ class EventController extends Controller
                 
                 $bibNum = isset($pOverride['bib_number']) ? $pOverride['bib_number'] : $p->bib_number;
                 $dynamicBib = $bibNum;
-                if ($dynamicBib && $takeLast) {
-                    $dynamicBib = substr($dynamicBib, -$takeLast);
+                if ($dynamicBib && $takeLast !== null && $takeLast !== '') {
+                    if (is_numeric($takeLast)) {
+                        $dynamicBib = substr($dynamicBib, -(int)$takeLast);
+                    } else {
+                        $dynamicBib = str_replace($takeLast, '', $dynamicBib);
+                    }
                 }
                 $dynamicBib = $prefix . $dynamicBib;
                 $dynamicBib = trim($dynamicBib ?? '') === '' ? '-' : $dynamicBib;
