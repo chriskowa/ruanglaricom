@@ -830,6 +830,16 @@
                             </div>
                         </div>
                         <div>
+                            <label class="block text-sm font-bold text-slate-300 mb-2">Format Nama di BIB</label>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="text-xs text-slate-400">Panjang Maksimal Karakter Nama</label>
+                                    <input type="number" id="bibMaxNameLength" value="18" min="5" max="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
+                                </div>
+                                <div class="text-xs text-slate-500 italic mt-1">Mengubah ke Title Case, maks 2 kata penuh, sisa kata disingkat. Contoh: Dafid Sandi Eka Pratama &rarr; Dafid Sandi E. P.</div>
+                            </div>
+                        </div>
+                        <div>
                             <div class="flex justify-between items-center mb-2">
                                 <label class="block text-sm font-bold text-slate-300">3. Tambahkan Teks</label>
                                 <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition">
@@ -3828,6 +3838,7 @@
         const preset = {
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
+            max_name_length: document.getElementById('bibMaxNameLength').value,
             texts: textElements
         };
 
@@ -3869,6 +3880,9 @@
             }
             if (preset.prefix !== undefined) {
                 document.getElementById('bibPrefix').value = preset.prefix;
+            }
+            if (preset.max_name_length !== undefined) {
+                document.getElementById('bibMaxNameLength').value = preset.max_name_length;
             }
 
             // Clear existing texts
@@ -3943,6 +3957,61 @@
         }
     }
 
+    function formatBibName(name, maxLength = 18) {
+        if (!name) return '';
+        
+        // 1. Clean and Title Case
+        name = name.trim().toLowerCase().split(/\s+/).map(word => {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }).join(' ');
+        
+        // 2. Limit to max 2 words in full, abbreviate the rest
+        var words = name.split(/\s+/);
+        if (words.length > 2) {
+            var formattedWords = [words[0], words[1]];
+            for (var i = 2; i < words.length; i++) {
+                var firstLetter = words[i].charAt(0);
+                if (firstLetter) {
+                    formattedWords.push(firstLetter + '.');
+                }
+            }
+            name = formattedWords.join(' ');
+        }
+        
+        // 3. Apply maximum character length truncation with smart initial fallback
+        if (name.length <= maxLength) {
+            return name;
+        }
+        
+        var truncated = name.substring(0, maxLength);
+        var nextChar = name.charAt(maxLength);
+        if (!nextChar || nextChar === ' ' || truncated.slice(-1) === ' ') {
+            return truncated.trim();
+        }
+        
+        var parts = truncated.split(/\s+/);
+        if (parts.length > 0) {
+            var lastWordIndex = parts.length - 1;
+            var lastWord = parts[lastWordIndex];
+            
+            if (/^[A-Z]\.$/.test(lastWord)) {
+                return parts.join(' ');
+            }
+            
+            var originalWords = name.split(/\s+/);
+            if (originalWords[lastWordIndex]) {
+                var firstLetter = originalWords[lastWordIndex].charAt(0);
+                parts[lastWordIndex] = firstLetter + '.';
+            } else {
+                var firstLetter = lastWord.charAt(0);
+                parts[lastWordIndex] = firstLetter + '.';
+            }
+            return parts.join(' ');
+        }
+        
+        return truncated;
+    }
+
     function getPreviewData() {
         if (window.currentParticipantsList && window.currentParticipantsList.length > 0) {
             const index = window.activeParticipantIndex || 0;
@@ -3950,7 +4019,12 @@
             if (data) {
                 const overrides = window.bibOverrides[data.id] || {};
                 
-                const name = overrides.name !== undefined ? overrides.name : (data.name || '-');
+                var rawName = overrides.name !== undefined ? overrides.name : (data.name || '-');
+                if (rawName !== '-') {
+                    var maxLen = parseInt(document.getElementById('bibMaxNameLength').value || 18, 10);
+                    rawName = formatBibName(rawName, maxLen);
+                }
+                const name = rawName;
                 const category = overrides.category !== undefined ? overrides.category : (data.category || '-');
                 const blood_type = overrides.blood_type !== undefined ? overrides.blood_type : (data.blood_type || '-');
                 const emergency_contact_number = overrides.emergency_contact_number !== undefined ? overrides.emergency_contact_number : (data.emergency_contact_number || '-');
@@ -4022,11 +4096,15 @@
         }
         bibNum = prefixVal + bibNum;
 
+        var dummyName = 'BUDI SANTOSO';
+        var maxLen = parseInt(document.getElementById('bibMaxNameLength').value || 18, 10);
+        dummyName = formatBibName(dummyName, maxLen);
+
         return {
             '#': bibNum,
             '{bib_number}': bibNum,
-            '[N]': 'BUDI SANTOSO',
-            '{name}': 'BUDI SANTOSO',
+            '[N]': dummyName,
+            '{name}': dummyName,
             '[C]': '10K',
             '{category}': '10K',
             '[G]': 'M',
@@ -4109,6 +4187,10 @@
             const bibPrefixInput = document.getElementById('bibPrefix');
             if (bibPrefixInput) {
                 bibPrefixInput.addEventListener('input', updateBibPreviewIfActive);
+            }
+            const bibMaxNameLengthInput = document.getElementById('bibMaxNameLength');
+            if (bibMaxNameLengthInput) {
+                bibMaxNameLengthInput.addEventListener('input', updateBibPreviewIfActive);
             }
 
             setTimeout(function() {
@@ -4396,6 +4478,7 @@
             texts: textElements,
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
+            max_name_length: document.getElementById('bibMaxNameLength').value,
             overrides: window.bibOverrides || {}
         };
 

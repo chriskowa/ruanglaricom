@@ -2217,6 +2217,7 @@ class EventController extends Controller
             'texts' => 'required|array',
             'take_last' => 'nullable|string',
             'prefix' => 'nullable|string',
+            'max_name_length' => 'nullable|integer',
             'overrides' => 'nullable|array',
             'single_participant_id' => 'nullable|integer|exists:participants,id'
         ]);
@@ -2372,6 +2373,7 @@ class EventController extends Controller
             
             $takeLast = $request->filled('take_last') ? $request->take_last : null;
             $prefix = $request->filled('prefix') ? $request->prefix : '';
+            $maxNameLength = $request->input('max_name_length') !== null ? (int)$request->input('max_name_length') : 18;
             $texts = $request->texts;
             $overrides = $request->input('overrides', []);
 
@@ -2410,6 +2412,9 @@ class EventController extends Controller
 
                 $pName = isset($pOverride['name']) ? $pOverride['name'] : $p->name;
                 $pName = trim($pName ?? '') === '' ? '-' : $pName;
+                if ($pName !== '-') {
+                    $pName = $this->formatBibName($pName, $maxNameLength);
+                }
                 
                 $pCategory = isset($pOverride['category']) ? $pOverride['category'] : ($p->category->name ?? '');
                 $pCategory = trim($pCategory ?? '') === '' ? '-' : $pCategory;
@@ -2552,6 +2557,73 @@ class EventController extends Controller
                 'message' => 'Gagal menghasilkan PDF: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function formatBibName($name, $maxLength = 18)
+    {
+        $name = trim($name);
+        if (empty($name)) {
+            return '';
+        }
+
+        // Lowercase first to normalize ALL CAPS
+        $name = mb_strtolower($name, 'UTF-8');
+        $name = mb_convert_case($name, MB_CASE_TITLE, "UTF-8");
+
+        // Limit to max 2 words in full, abbreviate the rest
+        $words = preg_split('/\s+/', $name);
+        if (count($words) > 2) {
+            $formattedWords = [];
+            $formattedWords[] = $words[0];
+            $formattedWords[] = $words[1];
+            for ($i = 2; $i < count($words); $i++) {
+                $firstLetter = mb_substr($words[$i], 0, 1, 'UTF-8');
+                if (!empty($firstLetter)) {
+                    $formattedWords[] = $firstLetter . '.';
+                }
+            }
+            $name = implode(' ', $formattedWords);
+        }
+
+        // Apply maximum character length truncation with smart initial fallback
+        if (mb_strlen($name, 'UTF-8') <= $maxLength) {
+            return $name;
+        }
+
+        // Truncate to maxLength
+        $truncated = mb_substr($name, 0, $maxLength, 'UTF-8');
+
+        // Check if the character right after the truncation point is a space, or if we ended exactly on a word boundary
+        $nextChar = mb_substr($name, $maxLength, 1, 'UTF-8');
+        if ($nextChar === '' || $nextChar === ' ' || mb_substr($truncated, -1) === ' ') {
+            return trim($truncated);
+        }
+
+        // Find the last word in the truncated string
+        $parts = preg_split('/\s+/', $truncated);
+        if (count($parts) > 0) {
+            $lastWordIndex = count($parts) - 1;
+            $lastWord = $parts[$lastWordIndex];
+
+            // If the last word is already an initial (e.g. "E."), leave it
+            if (preg_match('/^[A-Z]\.$/', $lastWord)) {
+                return implode(' ', $parts);
+            }
+
+            // Otherwise, it is a cut-off word. Abbreviate it to its first character + "."
+            $originalWords = preg_split('/\s+/', $name);
+            if (isset($originalWords[$lastWordIndex])) {
+                $firstLetter = mb_substr($originalWords[$lastWordIndex], 0, 1, 'UTF-8');
+                $parts[$lastWordIndex] = $firstLetter . '.';
+            } else {
+                $firstLetter = mb_substr($lastWord, 0, 1, 'UTF-8');
+                $parts[$lastWordIndex] = $firstLetter . '.';
+            }
+
+            return implode(' ', $parts);
+        }
+
+        return $truncated;
     }
 
     // Google Sheets export removed as per request
