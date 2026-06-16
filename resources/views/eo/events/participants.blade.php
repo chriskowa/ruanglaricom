@@ -112,6 +112,10 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                                 Print BIB
                             </button>
+                            <button type="button" onclick="openDoorprizeModal()" class="px-3 py-2 rounded-lg bg-pink-600 hover:bg-pink-500 text-white font-bold flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
+                                Doorprize
+                            </button>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-2 rounded-xl bg-slate-900/40 border border-red-500/20 p-2">
@@ -786,6 +790,152 @@
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 Resend Tiket
             </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes scaleUp {
+        from { transform: scale(0.95); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .animate-scale-up {
+        animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes bounceShort {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+    .animate-bounce-short {
+        animation: bounceShort 0.6s ease-in-out 2;
+    }
+    .glow-pink {
+        border-color: #ec4899 !important;
+        box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+    }
+    .glow-green {
+        border-color: #22c55e !important;
+        box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
+    }
+</style>
+
+<!-- Doorprize Modal -->
+<div id="doorprizeModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300" onclick="closeDoorprizeModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-3xl bg-slate-900 border border-slate-700/80 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl p-6 sm:p-8 animate-scale-up">
+                
+                <!-- Close Button -->
+                <button type="button" onclick="closeDoorprizeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <!-- Modal Header -->
+                <div class="mb-6">
+                    <h3 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 flex items-center gap-2">
+                        🎉 DOORPRIZE RANDOM DRAW
+                    </h3>
+                    <p class="text-sm text-slate-400 mt-1">Mengundi pemenang secara acak dari semua peserta yang berstatus lunas (Paid) untuk event <strong>{{ $event->name }}</strong>.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Main Draw Screen (2 Cols) -->
+                    <div class="lg:col-span-2 flex flex-col justify-between bg-slate-950/50 rounded-2xl border border-slate-800 p-6 relative overflow-hidden">
+                        
+                        <!-- Decorative Neon Glows -->
+                        <div class="absolute -top-12 -left-12 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <!-- Draw Display Board -->
+                        <div class="flex flex-col items-center justify-center min-h-[260px] text-center relative z-10">
+                            <!-- Spinning Box -->
+                            <div id="doorprizeDrawBoard" class="w-full flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-800 transition-all duration-300">
+                                
+                                <!-- Placeholder / Init State -->
+                                <div id="doorprizePlaceholder" class="text-slate-500 flex flex-col items-center gap-3">
+                                    <span class="text-5xl">🎁</span>
+                                    <p class="text-sm font-semibold tracking-wide uppercase">Siap untuk memutar doorprize</p>
+                                </div>
+
+                                <!-- Live Spin State -->
+                                <div id="doorprizeLiveSpin" class="hidden w-full space-y-4">
+                                    <div class="text-6xl font-black text-white tracking-widest font-mono select-none" id="liveBib">0000</div>
+                                    <div class="text-2xl font-bold text-yellow-400 truncate max-w-full px-4 select-none" id="liveName">---</div>
+                                    <div class="text-sm text-slate-500 font-medium" id="liveStatus">Memutar data...</div>
+                                </div>
+
+                                <!-- Winner State -->
+                                <div id="doorprizeWinner" class="hidden w-full space-y-6">
+                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-xs font-bold text-green-400 uppercase tracking-widest">
+                                        ✨ Pemenang Terpilih ✨
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="text-5xl font-black text-white tracking-widest font-mono" id="winnerBib">0000</div>
+                                        <div class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-300 truncate px-4" id="winnerName">Nama Pemenang</div>
+                                    </div>
+                                    <div class="h-px bg-slate-800 my-4 w-3/4 mx-auto"></div>
+                                    <div class="grid grid-cols-2 gap-4 text-left text-xs bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                                        <div>
+                                            <span class="text-slate-500 block mb-0.5">Nomor Telepon</span>
+                                            <span class="font-bold text-slate-200 text-sm" id="winnerPhone">0812xxxx</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-500 block mb-0.5">Alamat</span>
+                                            <span class="font-bold text-slate-200 text-sm truncate block" id="winnerAddress" title="Alamat">Alamat Lengkap</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Checkbox option and statistics info -->
+                        <div class="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1">
+                            <label class="inline-flex items-center gap-2 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition">
+                                <input type="checkbox" id="doorprizeExcludeWinners" checked class="rounded border-slate-700 bg-slate-900 text-pink-500 focus:ring-pink-500/50 cursor-pointer">
+                                Saring pemenang yang sudah terpilih sebelumnya
+                            </label>
+                            <div class="text-xs text-slate-500">
+                                Total Paid: <span id="doorprizeTotalPaid" class="font-bold text-slate-300">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Controls -->
+                        <div class="mt-6 flex gap-3 relative z-10">
+                            <button type="button" id="btnStartDoorprize" onclick="startDoorprizeDraw()" class="flex-1 py-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl font-black text-sm tracking-wider uppercase transition-all duration-300 shadow-lg shadow-pink-600/25 flex items-center justify-center gap-2">
+                                <span class="text-base">▶</span> Start Draw
+                            </button>
+                            <button type="button" id="btnStopDoorprize" onclick="stopDoorprizeDraw()" disabled class="flex-1 py-4 bg-slate-800 text-slate-500 rounded-xl font-black text-sm tracking-wider uppercase transition-all duration-300 cursor-not-allowed flex items-center justify-center gap-2">
+                                <span class="text-base">⏹</span> Stop Draw
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Winner History Sidebar (1 Col) -->
+                    <div class="flex flex-col bg-slate-950/30 rounded-2xl border border-slate-800 p-4 overflow-hidden h-[380px] lg:h-auto">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-xs font-black uppercase text-slate-400 tracking-wider">🏆 History Pemenang</h4>
+                            <button type="button" onclick="clearDoorprizeWinners()" class="text-[10px] text-red-400 hover:text-red-300 font-bold hover:underline transition">Reset</button>
+                        </div>
+
+                        <!-- Scrollable Winner List -->
+                        <div id="doorprizeWinnerList" class="flex-1 overflow-y-auto space-y-2 pr-1 text-left">
+                            <div class="text-xs text-slate-500 text-center py-8">Belum ada pemenang yang ditarik.</div>
+                        </div>
+
+                        <!-- Export Button -->
+                        <button type="button" onclick="exportDoorprizeWinners()" class="mt-3 w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 border border-slate-700">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            Export Pemenang (CSV)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>
@@ -4224,6 +4374,271 @@
             toggleBibPreview();
         }
     }
+
+    // ==========================================
+    // DOORPRIZE DRAW SYSTEM
+    // ==========================================
+    window.doorprizeParticipants = [];
+    window.doorprizeInterval = null;
+    window.doorprizeIsSpinning = false;
+    window.doorprizeWinners = [];
+    const eventIdForStorage = "{{ $event->id }}";
+
+    window.openDoorprizeModal = function() {
+        document.getElementById('doorprizeModal').classList.remove('hidden');
+        renderDoorprizeWinnersList();
+        
+        if (window.doorprizeParticipants.length === 0) {
+            const btnStart = document.getElementById('btnStartDoorprize');
+            const totalPaidEl = document.getElementById('doorprizeTotalPaid');
+            if (btnStart) {
+                btnStart.disabled = true;
+                btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+                btnStart.innerHTML = `<span>⏳ Loading Data...</span>`;
+            }
+            if (totalPaidEl) totalPaidEl.textContent = 'Loading...';
+            
+            fetch("{{ route('eo.events.participants.doorprize-list', $event) }}")
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        window.doorprizeParticipants = res.data || [];
+                        if (totalPaidEl) totalPaidEl.textContent = window.doorprizeParticipants.length;
+                        
+                        if (window.doorprizeParticipants.length > 0) {
+                            if (btnStart) {
+                                btnStart.disabled = false;
+                                btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+                                btnStart.innerHTML = `<span class="text-base">▶</span> Start Draw`;
+                            }
+                        } else {
+                            if (btnStart) {
+                                btnStart.innerHTML = `<span>Tidak ada data Paid</span>`;
+                            }
+                        }
+                    } else {
+                        alert('Gagal mengambil data peserta: ' + (res.message || 'Error'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Gagal mengambil data peserta.');
+                });
+        } else {
+            const totalPaidEl = document.getElementById('doorprizeTotalPaid');
+            if (totalPaidEl) totalPaidEl.textContent = window.doorprizeParticipants.length;
+        }
+    };
+
+    window.closeDoorprizeModal = function() {
+        if (window.doorprizeIsSpinning) {
+            window.stopDoorprizeDraw();
+        }
+        document.getElementById('doorprizeModal').classList.add('hidden');
+    };
+
+    window.startDoorprizeDraw = function() {
+        if (window.doorprizeIsSpinning) return;
+        
+        let pool = [...window.doorprizeParticipants];
+        const excludeWinners = document.getElementById('doorprizeExcludeWinners').checked;
+        
+        if (excludeWinners) {
+            const winnersKeys = getDoorprizeWinnersFromStorage().map(w => w.id);
+            pool = pool.filter(p => !winnersKeys.includes(p.id));
+        }
+        
+        if (pool.length === 0) {
+            alert('Semua peserta paid sudah terpilih atau kolam undian kosong!');
+            return;
+        }
+        
+        window.doorprizeIsSpinning = true;
+        
+        // UI Adjustments
+        document.getElementById('doorprizePlaceholder').classList.add('hidden');
+        document.getElementById('doorprizeWinner').classList.add('hidden');
+        document.getElementById('doorprizeLiveSpin').classList.remove('hidden');
+        
+        const board = document.getElementById('doorprizeDrawBoard');
+        board.classList.add('glow-pink');
+        board.classList.remove('glow-green');
+        
+        const btnStart = document.getElementById('btnStartDoorprize');
+        const btnStop = document.getElementById('btnStopDoorprize');
+        
+        btnStart.disabled = true;
+        btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+        
+        btnStop.disabled = false;
+        btnStop.classList.remove('bg-slate-800', 'text-slate-500', 'cursor-not-allowed');
+        btnStop.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white', 'shadow-lg', 'shadow-red-600/20');
+        
+        const liveBib = document.getElementById('liveBib');
+        const liveName = document.getElementById('liveName');
+        
+        window.doorprizeInterval = setInterval(() => {
+            const randIdx = Math.floor(Math.random() * pool.length);
+            const candidate = pool[randIdx];
+            if (candidate) {
+                liveBib.textContent = candidate.bib_number || '0000';
+                liveName.textContent = candidate.name || '---';
+            }
+        }, 50);
+    };
+
+    window.stopDoorprizeDraw = function() {
+        if (!window.doorprizeIsSpinning) return;
+        
+        clearInterval(window.doorprizeInterval);
+        window.doorprizeIsSpinning = false;
+        
+        let pool = [...window.doorprizeParticipants];
+        const excludeWinners = document.getElementById('doorprizeExcludeWinners').checked;
+        if (excludeWinners) {
+            const winnersKeys = getDoorprizeWinnersFromStorage().map(w => w.id);
+            pool = pool.filter(p => !winnersKeys.includes(p.id));
+        }
+        
+        if (pool.length === 0) {
+            alert('Undian tidak valid.');
+            return;
+        }
+        
+        const finalWinner = pool[Math.floor(Math.random() * pool.length)];
+        
+        // Show Winner Detail
+        document.getElementById('doorprizeLiveSpin').classList.add('hidden');
+        document.getElementById('doorprizeWinner').classList.remove('hidden');
+        
+        const board = document.getElementById('doorprizeDrawBoard');
+        board.classList.remove('glow-pink');
+        board.classList.add('glow-green');
+        
+        document.getElementById('winnerBib').textContent = finalWinner.bib_number || '-';
+        document.getElementById('winnerName').textContent = finalWinner.name || '-';
+        document.getElementById('winnerPhone').textContent = finalWinner.phone || '-';
+        
+        const fullAddr = [finalWinner.address, finalWinner.city, finalWinner.province]
+            .filter(part => part && part.trim() !== '')
+            .join(', ') || '-';
+        document.getElementById('winnerAddress').textContent = fullAddr;
+        document.getElementById('winnerAddress').setAttribute('title', fullAddr);
+        
+        // Action Controls Reset
+        const btnStart = document.getElementById('btnStartDoorprize');
+        const btnStop = document.getElementById('btnStopDoorprize');
+        
+        btnStart.disabled = false;
+        btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        btnStop.disabled = true;
+        btnStop.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white', 'shadow-lg', 'shadow-red-600/20');
+        btnStop.classList.add('bg-slate-800', 'text-slate-500', 'cursor-not-allowed');
+        
+        // Save Winner to Local Storage
+        saveWinnerToStorage(finalWinner);
+        renderDoorprizeWinnersList();
+        
+        // Celebration visual pulse
+        const winnerBlock = document.getElementById('doorprizeWinner');
+        winnerBlock.classList.remove('animate-bounce-short');
+        void winnerBlock.offsetWidth; // Trigger reflow
+        winnerBlock.classList.add('animate-bounce-short');
+    };
+
+    function getDoorprizeWinnersFromStorage() {
+        const key = 'doorprize_winners_' + eventIdForStorage;
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveWinnerToStorage(winner) {
+        const key = 'doorprize_winners_' + eventIdForStorage;
+        const list = getDoorprizeWinnersFromStorage();
+        
+        // Avoid duplicate entry if same ID somehow gets added
+        if (!list.some(w => w.id === winner.id)) {
+            list.push({
+                id: winner.id,
+                bib_number: winner.bib_number || '-',
+                name: winner.name || '-',
+                phone: winner.phone || '-',
+                address: [winner.address, winner.city, winner.province]
+                    .filter(part => part && part.trim() !== '')
+                    .join(', ') || '-',
+                drawn_at: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+            });
+            localStorage.setItem(key, JSON.stringify(list));
+        }
+    }
+
+    window.clearDoorprizeWinners = function() {
+        if (confirm('Apakah Anda yakin ingin menghapus semua history pemenang doorprize untuk event ini?')) {
+            const key = 'doorprize_winners_' + eventIdForStorage;
+            localStorage.removeItem(key);
+            renderDoorprizeWinnersList();
+        }
+    };
+
+    function renderDoorprizeWinnersList() {
+        const list = getDoorprizeWinnersFromStorage();
+        const container = document.getElementById('doorprizeWinnerList');
+        if (!container) return;
+        
+        if (list.length === 0) {
+            container.innerHTML = `<div class="text-xs text-slate-500 text-center py-8">Belum ada pemenang yang ditarik.</div>`;
+            return;
+        }
+        
+        let html = '';
+        list.slice().reverse().forEach((w, index) => {
+            html += `
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5 transition hover:border-slate-700">
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] bg-pink-500/10 text-pink-400 border border-pink-500/20 px-1.5 py-0.5 rounded font-bold">BIB ${w.bib_number}</span>
+                    <span class="text-[10px] text-slate-500 font-medium">${w.drawn_at}</span>
+                </div>
+                <div class="text-xs font-bold text-slate-200 truncate" title="${w.name}">${w.name}</div>
+                <div class="text-[10px] text-slate-400 flex flex-col gap-0.5 mt-0.5 border-t border-slate-800/60 pt-1.5">
+                    <span class="truncate">📞 ${w.phone}</span>
+                    <span class="truncate" title="${w.address}">📍 ${w.address}</span>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    window.exportDoorprizeWinners = function() {
+        const list = getDoorprizeWinnersFromStorage();
+        if (list.length === 0) {
+            alert('Belum ada pemenang untuk di-export.');
+            return;
+        }
+        
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "No,BIB Number,Name,Phone,Address,Drawn At\n";
+        
+        list.forEach((w, idx) => {
+            const row = [
+                idx + 1,
+                `"${w.bib_number}"`,
+                `"${w.name.replace(/"/g, '""')}"`,
+                `"${w.phone}"`,
+                `"${w.address.replace(/"/g, '""')}"`,
+                `"${w.drawn_at}"`
+            ].join(",");
+            csvContent += row + "\n";
+        });
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Doorprize_Winners_" + "{{ Str::slug($event->name) }}" + "_" + new Date().toISOString().slice(0,10) + ".csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     function openBibModal() {
         document.getElementById('bibModal').classList.remove('hidden');

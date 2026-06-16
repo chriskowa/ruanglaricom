@@ -2590,6 +2590,24 @@ class EventController extends Controller
         }
     }
 
+    public function doorprizeList(Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $participants = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id)
+              ->where('payment_status', 'paid');
+        })
+        ->select('id', 'bib_number', 'name', 'phone', 'address', 'city', 'province')
+        ->orderBy('bib_number')
+        ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $participants
+        ]);
+    }
+
     private function formatBibName($name, $maxLength = 18)
     {
         $name = trim($name);
