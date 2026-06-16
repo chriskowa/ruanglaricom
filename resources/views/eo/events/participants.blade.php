@@ -829,6 +829,26 @@
                                 <div class="text-xs text-slate-500 italic mt-1">Contoh: PAOLORUNFE-2026-01 &rarr; 01 (jika diisi "PAOLORUNFE-2026-")</div>
                             </div>
                         </div>
+                        <div class="border-t border-slate-700 pt-3">
+                            <label class="block text-sm font-bold text-slate-300 mb-2">Cetak Kustom Tanpa Data</label>
+                            <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition mb-2">
+                                <input type="checkbox" id="bibCustomRangeMode" onchange="toggleCustomRangeMode()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer">
+                                Aktifkan Mode Kustom (Range)
+                            </label>
+                            <div id="bibCustomRangeFields" class="hidden space-y-2 bg-slate-900/50 p-2.5 rounded-lg border border-slate-700">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 block mb-1">Mulai Dari (From)</label>
+                                        <input type="number" id="bibCustomFrom" min="0" placeholder="Contoh: 1" oninput="toggleBibPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 block mb-1">Sampai (To)</label>
+                                        <input type="number" id="bibCustomTo" min="0" placeholder="Contoh: 100" oninput="toggleBibPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                    </div>
+                                </div>
+                                <div class="text-[10px] text-slate-500 italic">Mencetak nomor berurutan dengan increment 1.</div>
+                            </div>
+                        </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-300 mb-2">Format Nama di BIB</label>
                             <div class="space-y-2">
@@ -921,7 +941,7 @@
                     </div>
                     <div class="md:col-span-2 flex flex-col space-y-4">
                         <!-- Navigation controls -->
-                        <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-900 border border-slate-700 rounded-lg p-3">
+                        <div id="bibNormalNavControls" class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-900 border border-slate-700 rounded-lg p-3">
                             <div class="flex items-center gap-3">
                                 <button type="button" onclick="prevBibParticipant()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold transition">&larr; Prev</button>
                                 <span id="bibParticipantInfo" class="text-xs text-slate-300 font-medium">No active participant</span>
@@ -943,7 +963,7 @@
                         </div>
 
                         <!-- Temporary Form Editor -->
-                        <div class="bg-slate-900 border border-slate-700 rounded-lg p-4 space-y-3">
+                        <div id="bibTemporaryFormEditor" class="bg-slate-900 border border-slate-700 rounded-lg p-4 space-y-3">
                             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                                 <h4 class="text-xs font-bold uppercase tracking-wider text-yellow-500">Edit Data Cetak (Sementara / Tanpa Save DB)</h4>
                                 <button type="button" onclick="resetActiveParticipantOverride()" class="text-[10px] text-red-400 hover:text-red-300 underline font-semibold transition">Reset ke Default</button>
@@ -3814,6 +3834,27 @@
         window.loadBibParticipant(window.activeParticipantIndex);
     };
 
+    window.toggleCustomRangeMode = function() {
+        const isCustom = document.getElementById('bibCustomRangeMode').checked;
+        const customFields = document.getElementById('bibCustomRangeFields');
+        const normalNavControls = document.getElementById('bibNormalNavControls');
+        const temporaryFormEditor = document.getElementById('bibTemporaryFormEditor');
+        
+        if (isCustom) {
+            if (customFields) customFields.classList.remove('hidden');
+            if (normalNavControls) normalNavControls.classList.add('opacity-50', 'pointer-events-none');
+            if (temporaryFormEditor) temporaryFormEditor.classList.add('opacity-50', 'pointer-events-none');
+            const infoEl = document.getElementById('bibParticipantInfo');
+            if (infoEl) infoEl.textContent = "Mode Cetak Kustom Aktif";
+        } else {
+            if (customFields) customFields.classList.add('hidden');
+            if (normalNavControls) normalNavControls.classList.remove('opacity-50', 'pointer-events-none');
+            if (temporaryFormEditor) temporaryFormEditor.classList.remove('opacity-50', 'pointer-events-none');
+            window.loadBibParticipant(window.activeParticipantIndex || 0);
+        }
+        toggleBibPreview();
+    };
+
     function saveBibPreset(quiet = false) {
         if (!bibCanvas) return;
         
@@ -4013,6 +4054,37 @@
     }
 
     function getPreviewData() {
+        const isCustom = document.getElementById('bibCustomRangeMode') && document.getElementById('bibCustomRangeMode').checked;
+        if (isCustom) {
+            const customFromVal = document.getElementById('bibCustomFrom').value || '1';
+            const prefixVal = document.getElementById('bibPrefix').value || '';
+            const paddedTo = document.getElementById('bibCustomTo').value || '1';
+            
+            const padLength = paddedTo.length;
+            const bibNum = prefixVal + String(customFromVal).padStart(padLength, '0');
+            
+            return {
+                '#': bibNum,
+                '{bib_number}': bibNum,
+                '[N]': '-',
+                '{name}': '-',
+                '[C]': '-',
+                '{category}': '-',
+                '[G]': '-',
+                '{gender}': '-',
+                '[B]': '-',
+                '{blood_type}': '-',
+                '[E#]': '-',
+                '{emergency_contact_number}': '-',
+                '[EN]': '-',
+                '{emergency_contact_name}': '-',
+                '[GR]': '-',
+                '{age_group}': '-',
+                '[KP]': '-',
+                '{coupon_code}': '-'
+            };
+        }
+
         if (window.currentParticipantsList && window.currentParticipantsList.length > 0) {
             const index = window.activeParticipantIndex || 0;
             const data = window.currentParticipantsList[index];
@@ -4155,6 +4227,12 @@
 
     function openBibModal() {
         document.getElementById('bibModal').classList.remove('hidden');
+        
+        const customModeCheckbox = document.getElementById('bibCustomRangeMode');
+        if (customModeCheckbox) {
+            customModeCheckbox.checked = false;
+            toggleCustomRangeMode();
+        }
         
         // Populate currentParticipantsList from DOM
         const list = [];
@@ -4482,26 +4560,52 @@
             overrides: window.bibOverrides || {}
         };
 
-        if (isSingle) {
-            if (!window.currentParticipantsList || window.currentParticipantsList.length === 0) {
-                alert('Tidak ada data peserta yang aktif.');
+        const isCustomMode = document.getElementById('bibCustomRangeMode') && document.getElementById('bibCustomRangeMode').checked;
+        if (isCustomMode) {
+            const customFromVal = document.getElementById('bibCustomFrom').value;
+            if (!customFromVal) {
+                alert('Silakan isi nomor BIB mulai dari.');
                 return;
             }
-            const activeParticipant = window.currentParticipantsList[window.activeParticipantIndex];
-            if (!activeParticipant) {
-                alert('Peserta aktif tidak ditemukan.');
-                return;
+            payload.is_custom_range = true;
+            payload.custom_from = parseInt(customFromVal, 10);
+            
+            if (isSingle) {
+                payload.custom_to = parseInt(customFromVal, 10);
+            } else {
+                const customToVal = document.getElementById('bibCustomTo').value;
+                if (!customToVal) {
+                    alert('Silakan isi nomor BIB sampai dengan.');
+                    return;
+                }
+                payload.custom_to = parseInt(customToVal, 10);
+                if (payload.custom_to < payload.custom_from) {
+                    alert('Nomor BIB sampai dengan harus lebih besar atau sama dengan mulai dari.');
+                    return;
+                }
             }
-            payload.single_participant_id = activeParticipant.id;
         } else {
-            const filtersForm = document.getElementById('filtersForm');
-            if (filtersForm) {
-                const formData = new FormData(filtersForm);
-                formData.forEach((value, key) => {
-                    if (value !== '') {
-                        payload[key] = value;
-                    }
-                });
+            if (isSingle) {
+                if (!window.currentParticipantsList || window.currentParticipantsList.length === 0) {
+                    alert('Tidak ada data peserta yang aktif.');
+                    return;
+                }
+                const activeParticipant = window.currentParticipantsList[window.activeParticipantIndex];
+                if (!activeParticipant) {
+                    alert('Peserta aktif tidak ditemukan.');
+                    return;
+                }
+                payload.single_participant_id = activeParticipant.id;
+            } else {
+                const filtersForm = document.getElementById('filtersForm');
+                if (filtersForm) {
+                    const formData = new FormData(filtersForm);
+                    formData.forEach((value, key) => {
+                        if (value !== '') {
+                            payload[key] = value;
+                        }
+                    });
+                }
             }
         }
 
