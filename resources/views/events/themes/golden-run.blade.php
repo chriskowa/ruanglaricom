@@ -620,10 +620,10 @@
              <div class="animate-fade-in-up delay-500 pb-8">
                 <p class="text-slate-500 text-sm mb-4 font-medium">Ikuti kami untuk update terbaru</p>
                 <div class="flex justify-center gap-4">
-                    <a href="https://www.instagram.com/paolorunfest/" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-purple-500/20">
+                    <a href="https://www.instagram.com/goldenrunmalang/" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-purple-500/20">
                         <i class="fab fa-instagram text-xl"></i>
                     </a>
-                    <a href="http://wa.me/6281958662550" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-green-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-green-500/20">
+                    <a href="http://wa.me/6282132379947" target="_blank" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-green-600 hover:border-transparent transition-all duration-300 shadow-lg hover:shadow-green-500/20">
                         <i class="fab fa-whatsapp text-xl"></i>
                     </a>
                 </div>
@@ -1938,7 +1938,7 @@
                                         </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input type="text" name="participants[0][name]" placeholder="Nama Peserta (BIB Name)" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required>
+                                            <input type="text" name="participants[0][name]" placeholder="Nama Peserta" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none placeholder-slate-500" required>
                                             <select name="participants[0][gender]" class="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 outline-none" required>
                                                 <option value="" class="bg-dark-900">Pilih Gender</option>
                                                 <option value="male" class="bg-dark-900">Laki-laki</option>
@@ -2299,7 +2299,7 @@
             </div>
             <div class="flex gap-6 font-medium">
                 <a href="#faq" class="hover:text-brand-400 transition">FAQ</a>
-                <a href="https://wa.link/aslic7" class="hover:text-brand-400 transition">Kontak</a>
+                <a href="https://wa.link/hcne61" class="hover:text-brand-400 transition">Kontak</a>
                 <a href="https://www.instagram.com/goldenrunmalang/" class="hover:text-brand-400 transition">Instagram</a>
             </div>
         </div>
