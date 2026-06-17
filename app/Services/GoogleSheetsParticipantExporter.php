@@ -8,6 +8,7 @@ class GoogleSheetsParticipantExporter
         'No',
         'Nama',
         'Gender',
+        'Tanggal Lahir',
         'Email',
         'Phone',
         'ID Card',
