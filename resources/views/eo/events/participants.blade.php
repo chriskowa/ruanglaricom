@@ -1248,9 +1248,9 @@
 </div>
 
 <!-- Resend Email Modal with Custom HTML -->
-<div id="resendEmailModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeResendEmailModal()"></div>
-    <div class="fixed inset-0 z-10 overflow-y-auto">
+<div id="resendEmailModal" class="fixed inset-0 hidden" style="z-index: 100;" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" style="z-index: 100;" onclick="closeResendEmailModal()"></div>
+    <div class="fixed inset-0 overflow-y-auto" style="z-index: 110;">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-xl p-6">
                 <div class="flex justify-between items-start mb-6">
