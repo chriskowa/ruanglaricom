@@ -187,10 +187,10 @@
                 </div>
             </div>
 
-            <form id="report-filters" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <form id="report-filters" class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 <div>
                     <label class="text-xs text-slate-300">Search</label>
-                    <input name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nama atau email"
+                    <input name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nama, email, HP, BIB, Category, ID Card"
                         class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
                 </div>
                 <div>
@@ -199,7 +199,7 @@
                         class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
                         @php
                             $paymentStatus = $filters['payment_status'] ?? 'all';
-                            $paymentOptions = ['all' => 'Semua', 'paid' => 'paid', 'settlement' => 'settlement', 'capture' => 'capture', 'pending' => 'pending', 'failed' => 'failed', 'cancel' => 'cancel', 'expire' => 'expire', 'deny' => 'deny'];
+                            $paymentOptions = ['all' => 'Semua', 'pending' => 'Pending', 'paid' => 'Paid', 'failed' => 'Failed', 'expired' => 'Expired', 'cod' => 'COD'];
                         @endphp
                         @foreach($paymentOptions as $val => $label)
                             <option value="{{ $val }}" @selected($paymentStatus === $val)>{{ $label }}</option>
@@ -207,14 +207,22 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Tanggal Mulai</label>
-                    <input type="date" name="start_date" value="{{ $filters['start_date'] ?? '' }}"
+                    <label class="text-xs text-slate-300">Status Pengambilan</label>
+                    <select name="is_picked_up"
                         class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                        <option value="" @selected(($filters['is_picked_up'] ?? '') === '')>Semua Status</option>
+                        <option value="0" @selected(($filters['is_picked_up'] ?? '') === '0')>Belum Diambil</option>
+                        <option value="1" @selected(($filters['is_picked_up'] ?? '') === '1')>Sudah Diambil</option>
+                    </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Tanggal Akhir</label>
-                    <input type="date" name="end_date" value="{{ $filters['end_date'] ?? '' }}"
+                    <label class="text-xs text-slate-300">Jenis Kelamin</label>
+                    <select name="gender"
                         class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                        <option value="" @selected(($filters['gender'] ?? '') === '')>Semua Gender</option>
+                        <option value="male" @selected(($filters['gender'] ?? '') === 'male')>Laki-laki (Male)</option>
+                        <option value="female" @selected(($filters['gender'] ?? '') === 'female')>Perempuan (Female)</option>
+                    </select>
                 </div>
                 <div>
                     <label class="text-xs text-slate-300">Kategori</label>
@@ -227,6 +235,78 @@
                     </select>
                 </div>
                 <div>
+                    <label class="text-xs text-slate-300">Kupon</label>
+                    <select name="coupon_id"
+                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                        <option value="" @selected(($filters['coupon_id'] ?? '') === '')>Semua Kupon</option>
+                        <option value="without" @selected(($filters['coupon_id'] ?? '') === 'without')>Tanpa Kupon</option>
+                        <option value="with" @selected(($filters['coupon_id'] ?? '') === 'with')>Dengan Kupon (Apa Saja)</option>
+                        @foreach($coupons as $coupon)
+                            <option value="{{ $coupon->id }}" @selected((string)($filters['coupon_id'] ?? '') === (string)$coupon->id)>{{ $coupon->code }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-300">Add-on</label>
+                    <select name="addon"
+                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                        <option value="" @selected(($filters['addon'] ?? '') === '')>Semua Add-on</option>
+                        <option value="with" @selected(($filters['addon'] ?? '') === 'with')>Ada Add-on (Apa Saja)</option>
+                        <option value="without" @selected(($filters['addon'] ?? '') === 'without')>Tanpa Add-on</option>
+                        @if(!empty($event->addons) && (is_array($event->addons) || is_object($event->addons)))
+                            @foreach($event->addons as $addon)
+                                @php 
+                                    $addonName = is_array($addon) ? ($addon['name'] ?? null) : (is_object($addon) ? ($addon->name ?? ($addon['name'] ?? null)) : $addon); 
+                                @endphp
+                                @if($addonName)
+                                    <option value="{{ $addonName }}" @selected(($filters['addon'] ?? '') === $addonName)>Hanya: {{ $addonName }}</option>
+                                @endif
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-300">Ukuran Jersey</label>
+                    <select name="jersey_size"
+                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                        <option value="" @selected(($filters['jersey_size'] ?? '') === '')>Semua Ukuran</option>
+                        @foreach(['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'] as $jsz)
+                            <option value="{{ $jsz }}" @selected(($filters['jersey_size'] ?? '') === $jsz)>{{ $jsz }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-300">Kelompok Umur</label>
+                    <select name="age_group"
+                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                        <option value="" @selected(($filters['age_group'] ?? '') === '')>Semua Kelompok</option>
+                        <option value="Umum" @selected(($filters['age_group'] ?? '') === 'Umum')>Umum (&lt; 40)</option>
+                        <option value="Master" @selected(($filters['age_group'] ?? '') === 'Master')>Master (40-44)</option>
+                        <option value="Master 45+" @selected(($filters['age_group'] ?? '') === 'Master 45+')>Master 45+ (45-49)</option>
+                        <option value="50+" @selected(($filters['age_group'] ?? '') === '50+')>50+ (&gt;= 50)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-300">Umur Minimum</label>
+                    <input type="number" name="min_age" value="{{ $filters['min_age'] ?? '' }}" placeholder="Min" min="1" max="150"
+                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-300">Umur Maksimum</label>
+                    <input type="number" name="max_age" value="{{ $filters['max_age'] ?? '' }}" placeholder="Max" min="1" max="150"
+                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-300">Tanggal Mulai</label>
+                    <input type="date" name="start_date" value="{{ $filters['start_date'] ?? '' }}"
+                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-300">Tanggal Akhir</label>
+                    <input type="date" name="end_date" value="{{ $filters['end_date'] ?? '' }}"
+                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                </div>
+                <div>
                     <label class="text-xs text-slate-300">Per Halaman</label>
                     <select name="per_page"
                         class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
@@ -235,7 +315,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm:col-span-2 flex flex-wrap items-center gap-2">
+                <div class="sm:col-span-2 md:col-span-3 flex flex-wrap items-center gap-2 mt-2">
                     <button type="submit" class="px-4 py-2 rounded-xl bg-neon text-dark font-bold hover:bg-lime-300 transition">
                         Terapkan
                     </button>
@@ -265,6 +345,7 @@
                             <th class="text-left font-semibold px-4 py-3">Email</th>
                             <th class="text-left font-semibold px-4 py-3">No Telp</th>
                             <th class="text-left font-semibold px-4 py-3">Jersey</th>
+                            <th class="text-left font-semibold px-4 py-3">No BIB</th>
                             <th class="text-left font-semibold px-4 py-3">Addons</th>
                             <th class="text-left font-semibold px-4 py-3">Tanggal Registrasi</th>
                             <th class="text-left font-semibold px-4 py-3">Status Pembayaran</th>
@@ -289,6 +370,10 @@
                                 <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Jersey</span>
                                     <span class="text-right md:text-left font-mono">{{ $p->jersey_size ?? '-' }}</span>
+                                </td>
+                                <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
+                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No BIB</span>
+                                    <span class="text-right md:text-left font-mono">{{ $p->bib_number ?? '-' }}</span>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Addons</span>
@@ -997,7 +1082,7 @@
         function renderParticipants(paginator) {
             const rows = (paginator && paginator.data) ? paginator.data : [];
             if (!rows.length) {
-                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td></tr>`;
             } else {
                 tbody.innerHTML = rows.map((p) => {
                     const addons = Array.isArray(p.addons) ? p.addons : [];
@@ -1030,6 +1115,10 @@
                             <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Jersey</span>
                                 <span class="text-right md:text-left font-mono">${(p.jersey_size || '-')}</span>
+                            </td>
+                            <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
+                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No BIB</span>
+                                <span class="text-right md:text-left font-mono">${(p.bib_number || '-')}</span>
                             </td>
                             <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Addons</span>

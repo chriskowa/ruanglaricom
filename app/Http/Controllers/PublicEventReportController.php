@@ -58,11 +58,19 @@ class PublicEventReportController extends Controller
 
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
-            'payment_status' => ['nullable', 'in:all,paid,settlement,capture,pending,failed,cancel,expire,deny'],
+            'payment_status' => ['nullable', 'string', 'max:50'],
+            'is_picked_up' => ['nullable', 'string', 'max:10'],
+            'gender' => ['nullable', 'string', 'max:20'],
+            'coupon_id' => ['nullable', 'string', 'max:50'],
+            'addon' => ['nullable', 'string', 'max:100'],
+            'jersey_size' => ['nullable', 'string', 'max:50'],
+            'age_group' => ['nullable', 'string', 'max:100'],
+            'min_age' => ['nullable', 'integer'],
+            'max_age' => ['nullable', 'integer'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
             'category_id' => ['nullable', 'integer'],
-            'per_page' => ['nullable', 'integer', 'min:10', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:5', 'max:200'],
             'page' => ['nullable', 'integer', 'min:1'],
             'sales_group' => ['nullable', 'in:day,month'],
             'sales_start_date' => ['nullable', 'date'],
@@ -72,6 +80,14 @@ class PublicEventReportController extends Controller
         $filters = [
             'search' => trim((string) ($validated['search'] ?? '')),
             'payment_status' => (string) ($validated['payment_status'] ?? 'all'),
+            'is_picked_up' => isset($validated['is_picked_up']) ? (string) $validated['is_picked_up'] : '',
+            'gender' => (string) ($validated['gender'] ?? ''),
+            'coupon_id' => (string) ($validated['coupon_id'] ?? ''),
+            'addon' => (string) ($validated['addon'] ?? ''),
+            'jersey_size' => (string) ($validated['jersey_size'] ?? ''),
+            'age_group' => (string) ($validated['age_group'] ?? ''),
+            'min_age' => isset($validated['min_age']) ? (int) $validated['min_age'] : null,
+            'max_age' => isset($validated['max_age']) ? (int) $validated['max_age'] : null,
             'start_date' => (string) ($validated['start_date'] ?? ''),
             'end_date' => (string) ($validated['end_date'] ?? ''),
             'category_id' => isset($validated['category_id']) ? (int) $validated['category_id'] : null,
@@ -134,6 +150,8 @@ class PublicEventReportController extends Controller
                     'participants.photo',
                     'participants.jersey_size',
                     'participants.addons',
+                    'participants.gender',
+                    'participants.is_picked_up',
                     'transactions.payment_status',
                     'transactions.final_amount',
                     'transactions.discount_amount',
@@ -144,11 +162,89 @@ class PublicEventReportController extends Controller
                 $participantsQuery->where('participants.race_category_id', $filters['category_id']);
             }
 
+            if (isset($filters['is_picked_up']) && $filters['is_picked_up'] !== '') {
+                $participantsQuery->where('participants.is_picked_up', $filters['is_picked_up'] == '1');
+            }
+
+            if (! empty($filters['gender'])) {
+                $participantsQuery->where('participants.gender', $filters['gender']);
+            }
+
+            if (! empty($filters['coupon_id'])) {
+                $couponFilter = $filters['coupon_id'];
+                if ($couponFilter === 'with') {
+                    $participantsQuery->whereNotNull('transactions.coupon_id');
+                } elseif ($couponFilter === 'without') {
+                    $participantsQuery->whereNull('transactions.coupon_id');
+                } else {
+                    $participantsQuery->where('transactions.coupon_id', $couponFilter);
+                }
+            }
+
+            if (! empty($filters['addon'])) {
+                $addonFilter = $filters['addon'];
+                if ($addonFilter === 'with') {
+                    $participantsQuery->whereNotNull('participants.addons')->whereJsonLength('participants.addons', '>', 0);
+                } elseif ($addonFilter === 'without') {
+                    $participantsQuery->where(function ($q) {
+                        $q->whereNull('participants.addons')->orWhereJsonLength('participants.addons', 0);
+                    });
+                } else {
+                    $participantsQuery->whereJsonContains('participants.addons', ['name' => $addonFilter]);
+                }
+            }
+
+            if (! empty($filters['jersey_size'])) {
+                $jerseySizeFilter = $filters['jersey_size'];
+                $matchSizes = [strtoupper($jerseySizeFilter)];
+                if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                    $matchSizes = ['2XL', 'XXL'];
+                } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                    $matchSizes = ['3XL', 'XXXL'];
+                }
+                $participantsQuery->whereNotNull('participants.jersey_size')
+                    ->whereIn(\DB::raw('UPPER(TRIM(participants.jersey_size))'), $matchSizes);
+            }
+
+            if (! empty($filters['age_group'])) {
+                $group = $filters['age_group'];
+                $eventDate = $eventModel->start_at ?: now();
+                if ($group === '50+') {
+                    $participantsQuery->whereDate('participants.date_of_birth', '<=', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master 45+') {
+                    $participantsQuery->whereDate('participants.date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                        ->whereDate('participants.date_of_birth', '>', $eventDate->copy()->subYears(50));
+                } elseif ($group === 'Master') {
+                    $participantsQuery->whereDate('participants.date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                        ->whereDate('participants.date_of_birth', '>', $eventDate->copy()->subYears(45));
+                } elseif ($group === 'Umum') {
+                    $participantsQuery->whereDate('participants.date_of_birth', '>', $eventDate->copy()->subYears(40));
+                }
+            }
+
+            if ($filters['min_age'] !== null) {
+                $minAge = (int) $filters['min_age'];
+                $eventDate = $eventModel->start_at ?: now();
+                $participantsQuery->whereDate('participants.date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
+            }
+
+            if ($filters['max_age'] !== null) {
+                $maxAge = (int) $filters['max_age'];
+                $eventDate = $eventModel->start_at ?: now();
+                $participantsQuery->whereDate('participants.date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
+            }
+
             if (! empty($filters['search'])) {
-                $s = $filters['search'];
-                $participantsQuery->where(function ($q) use ($s) {
-                    $q->where('participants.name', 'like', "%{$s}%")
-                        ->orWhere('participants.email', 'like', "%{$s}%");
+                $search = $filters['search'];
+                $participantsQuery->where(function ($qq) use ($search) {
+                    $qq->where('participants.name', 'like', "%{$search}%")
+                        ->orWhere('participants.email', 'like', "%{$search}%")
+                        ->orWhere('participants.phone', 'like', "%{$search}%")
+                        ->orWhere('participants.bib_number', 'like', "%{$search}%")
+                        ->orWhere('participants.id_card', 'like', "%{$search}%")
+                        ->orWhereHas('category', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        });
                 });
             }
 
@@ -222,6 +318,14 @@ class PublicEventReportController extends Controller
                     'sales' => $payload['sales'],
                     'filters' => [
                         'payment_status' => $filters['payment_status'],
+                        'is_picked_up' => $filters['is_picked_up'],
+                        'gender' => $filters['gender'] ?: null,
+                        'coupon_id' => $filters['coupon_id'] ?: null,
+                        'addon' => $filters['addon'] ?: null,
+                        'jersey_size' => $filters['jersey_size'] ?: null,
+                        'age_group' => $filters['age_group'] ?: null,
+                        'min_age' => $filters['min_age'],
+                        'max_age' => $filters['max_age'],
                         'start_date' => $filters['start_date'] ?: null,
                         'end_date' => $filters['end_date'] ?: null,
                         'category_id' => $filters['category_id'],
@@ -235,6 +339,11 @@ class PublicEventReportController extends Controller
                 ->header('X-Robots-Tag', $noIndexHeader);
         }
 
+        $coupons = \App\Models\Coupon::where('event_id', $eventModel->id)
+            ->where('is_active', true)
+            ->orderBy('code')
+            ->get();
+
         return response()
             ->view('reports.event', [
                 'event' => $eventModel,
@@ -243,6 +352,7 @@ class PublicEventReportController extends Controller
                 'participants' => $payload['participants'],
                 'sales' => $payload['sales'],
                 'filters' => $filters,
+                'coupons' => $coupons,
             ])
             ->header('X-Robots-Tag', $noIndexHeader);
     }
@@ -404,33 +514,12 @@ class PublicEventReportController extends Controller
             ->whereKey($event)
             ->firstOrFail();
 
-        $query = Participant::whereHas('transaction', function ($q) use ($eventModel, $request) {
+        $query = Participant::whereHas('transaction', function ($q) use ($eventModel) {
             $q->where('event_id', $eventModel->id);
-            if ($request->has('payment_status') && $request->payment_status && $request->payment_status !== 'all') {
-                $q->where('payment_status', $request->payment_status);
-            }
         })
         ->with(['transaction.coupon', 'category']);
 
-        if ($request->has('category_id') && $request->category_id) {
-            $query->where('race_category_id', $request->category_id);
-        }
-
-        if ($request->has('search') && trim($request->search) !== '') {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->has('start_date') && $request->start_date) {
-            $query->whereDate('created_at', '>=', $request->start_date);
-        }
-
-        if ($request->has('end_date') && $request->end_date) {
-            $query->whereDate('created_at', '<=', $request->end_date);
-        }
+        $this->applyParticipantFilters($query, $request, $eventModel);
 
         $filename = 'participants_'.$eventModel->slug.'_'.date('Y-m-d').'.csv';
 
@@ -503,33 +592,12 @@ class PublicEventReportController extends Controller
             ->whereKey($event)
             ->firstOrFail();
 
-        $query = Participant::whereHas('transaction', function ($q) use ($eventModel, $request) {
+        $query = Participant::whereHas('transaction', function ($q) use ($eventModel) {
             $q->where('event_id', $eventModel->id);
-            if ($request->has('payment_status') && $request->payment_status && $request->payment_status !== 'all') {
-                $q->where('payment_status', $request->payment_status);
-            }
         })
         ->with(['transaction.coupon', 'category']);
 
-        if ($request->has('category_id') && $request->category_id) {
-            $query->where('race_category_id', $request->category_id);
-        }
-
-        if ($request->has('search') && trim($request->search) !== '') {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->has('start_date') && $request->start_date) {
-            $query->whereDate('created_at', '>=', $request->start_date);
-        }
-
-        if ($request->has('end_date') && $request->end_date) {
-            $query->whereDate('created_at', '<=', $request->end_date);
-        }
+        $this->applyParticipantFilters($query, $request, $eventModel);
 
         $filename = 'participants_'.$eventModel->slug.'_'.date('Y-m-d').'.xlsx';
 
@@ -680,5 +748,119 @@ class PublicEventReportController extends Controller
         }
 
         return $normalized;
+    }
+
+    private function applyParticipantFilters($query, Request $request, Event $eventModel)
+    {
+        if ($request->has('payment_status') && $request->payment_status && $request->payment_status !== 'all') {
+            $query->whereHas('transaction', function ($q) use ($request) {
+                $q->where('payment_status', $request->payment_status);
+            });
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('race_category_id', $request->category_id);
+        }
+
+        if ($request->has('is_picked_up') && $request->is_picked_up !== '') {
+            $query->where('is_picked_up', $request->is_picked_up == '1');
+        }
+
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        if ($request->filled('coupon_id')) {
+            $couponFilter = $request->coupon_id;
+            if ($couponFilter === 'with') {
+                $query->whereHas('transaction', function ($q) {
+                    $q->whereNotNull('coupon_id');
+                });
+            } elseif ($couponFilter === 'without') {
+                $query->whereHas('transaction', function ($q) {
+                    $q->whereNull('coupon_id');
+                });
+            } else {
+                $query->whereHas('transaction', function ($q) use ($couponFilter) {
+                    $q->where('coupon_id', $couponFilter);
+                });
+            }
+        }
+
+        if ($request->filled('addon')) {
+            $addonFilter = $request->addon;
+            if ($addonFilter === 'with') {
+                $query->whereNotNull('addons')->whereJsonLength('addons', '>', 0);
+            } elseif ($addonFilter === 'without') {
+                $query->where(function ($q) {
+                    $q->whereNull('addons')->orWhereJsonLength('addons', 0);
+                });
+            } else {
+                $query->whereJsonContains('addons', ['name' => $addonFilter]);
+            }
+        }
+
+        if ($request->filled('jersey_size')) {
+            $jerseySizeFilter = $request->jersey_size;
+            $matchSizes = [strtoupper($jerseySizeFilter)];
+            if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                $matchSizes = ['2XL', 'XXL'];
+            } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                $matchSizes = ['3XL', 'XXXL'];
+            }
+            $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
+        }
+
+        if ($request->filled('age_group')) {
+            $group = $request->age_group;
+            $eventDate = $eventModel->start_at ?: now();
+            if ($group === '50+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master 45+') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
+            } elseif ($group === 'Master') {
+                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
+                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
+            } elseif ($group === 'Umum') {
+                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
+            }
+        }
+
+        if ($request->filled('min_age')) {
+            $minAge = (int) $request->min_age;
+            $eventDate = $eventModel->start_at ?: now();
+            $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears($minAge));
+        }
+
+        if ($request->filled('max_age')) {
+            $maxAge = (int) $request->max_age;
+            $eventDate = $eventModel->start_at ?: now();
+            $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
+        }
+
+        if ($request->has('search') && trim($request->search) !== '') {
+            $search = trim($request->search);
+            $query->where(function ($qq) use ($search) {
+                $qq->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('bib_number', 'like', "%{$search}%")
+                    ->orWhere('id_card', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        return $query;
     }
 }
