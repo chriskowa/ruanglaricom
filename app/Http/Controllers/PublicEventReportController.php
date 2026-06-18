@@ -149,6 +149,7 @@ class PublicEventReportController extends Controller
                     'participants.isApproved',
                     'participants.photo',
                     'participants.jersey_size',
+                    'participants.bib_number',
                     'participants.addons',
                     'participants.gender',
                     'participants.is_picked_up',

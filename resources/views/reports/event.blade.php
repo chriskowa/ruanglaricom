@@ -373,7 +373,14 @@
                                 </td>
                                 <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No BIB</span>
-                                    <span class="text-right md:text-left font-mono">{{ $p->bib_number ?? '-' }}</span>
+                                    @php
+                                        $bib = $p->bib_number;
+                                        if ($bib && strpos($bib, '-') !== false) {
+                                            $parts = explode('-', $bib);
+                                            $bib = end($parts);
+                                        }
+                                    @endphp
+                                    <span class="text-right md:text-left font-mono">{{ $bib ?? '-' }}</span>
                                 </td>
                                 <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Addons</span>
@@ -1118,7 +1125,16 @@
                             </td>
                             <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No BIB</span>
-                                <span class="text-right md:text-left font-mono">${(p.bib_number || '-')}</span>
+                                <span class="text-right md:text-left font-mono">${
+                                    (() => {
+                                        let bib = p.bib_number;
+                                        if (bib && bib.includes('-')) {
+                                            const parts = bib.split('-');
+                                            return parts[parts.length - 1];
+                                        }
+                                        return bib || '-';
+                                    })()
+                                }</span>
                             </td>
                             <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Addons</span>
