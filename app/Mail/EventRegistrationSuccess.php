@@ -22,15 +22,18 @@ class EventRegistrationSuccess extends Mailable
 
     public $notifiableName;
 
+    public $customHtml;
+
     /**
      * Create a new message instance.
      */
-    public function __construct(Event $event, Transaction $transaction, $participants, $notifiableName)
+    public function __construct(Event $event, Transaction $transaction, $participants, $notifiableName, $customHtml = null)
     {
         $this->event = $event;
         $this->transaction = $transaction;
         $this->participants = $participants;
         $this->notifiableName = $notifiableName;
+        $this->customHtml = $customHtml;
     }
 
     /**

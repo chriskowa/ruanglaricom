@@ -433,6 +433,14 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1">Max Age</label>
                     <input type="number" name="max_age" value="{{ request('max_age') }}" placeholder="Max" class="w-20 bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none" min="1" max="150">
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Start Reg Date</label>
+                    <input type="date" name="start_date" value="{{ request('start_date') }}" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">End Reg Date</label>
+                    <input type="date" name="end_date" value="{{ request('end_date') }}" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                </div>
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Search</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama, email, HP, BIB, Category, ID Card" class="w-full bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
@@ -479,6 +487,8 @@
                 <input type="hidden" name="age_group" value="{{ request('age_group') }}">
                 <input type="hidden" name="min_age" value="{{ request('min_age') }}">
                 <input type="hidden" name="max_age" value="{{ request('max_age') }}">
+                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                 <input type="hidden" name="search" value="{{ request('search') }}">
                 <input type="hidden" name="sort_by" value="{{ request('sort_by', 'created_at') }}">
                 <input type="hidden" name="sort_dir" value="{{ request('sort_dir', 'desc') }}">
@@ -558,6 +568,7 @@
                             'province' => $participant->province,
                             'postal_code' => $participant->postal_code,
                             'category' => $participant->category->name ?? '-',
+                            'category_quota' => $participant->category->quota ?? 0,
                             'race_category_id' => $participant->race_category_id,
                             'bib_number' => $participant->bib_number,
                             'age_group' => $participant->getAgeGroup($event->start_at),
@@ -1229,6 +1240,50 @@
                     </button>
                     <button type="button" onclick="sendBulkWaReminder(this)" class="px-5 py-2 rounded-xl bg-green-500 hover:bg-green-400 text-slate-950 font-black text-sm transition flex items-center gap-2">
                         Kirim Reminder
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resend Email Modal with Custom HTML -->
+<div id="resendEmailModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeResendEmailModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-xl p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            Kirim Ulang Tiket / Konfirmasi
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1" id="resendEmailModalSubtitle">Kirim ulang email tiket dengan tambahan informasi kustom.</p>
+                    </div>
+                    <button type="button" onclick="closeResendEmailModal()" class="text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-300 mb-2">Tambahan Info (HTML didukung)</label>
+                        <textarea id="resendEmailCustomHtml" rows="6" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition placeholder-slate-600 font-sans" placeholder="Tulis tambahan informasi di sini, misalnya info pengambilan Racepack. Contoh: <br><b>Info Pengambilan Racepack:</b><br>Tanggal: 1-2 Agustus 2026<br>Tempat: Kantor Utama" oninput="updateResendEmailPreview()"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-300 mb-2">Preview Tambahan Info:</label>
+                        <div id="resendEmailHtmlPreview" class="w-full min-h-[60px] max-h-[150px] overflow-y-auto p-4 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-200 prose prose-invert"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-700/50">
+                    <button type="button" onclick="closeResendEmailModal()" class="px-4 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-bold transition">
+                        Batal
+                    </button>
+                    <button type="button" onclick="executeResendEmail(this)" class="px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-white font-black text-sm transition flex items-center gap-2">
+                        Kirim Tiket
                     </button>
                 </div>
             </div>
@@ -2254,6 +2309,7 @@
                     province: p.province,
                     postal_code: p.postal_code,
                     category: p.category,
+                    category_quota: p.category_quota,
                     race_category_id: p.race_category_id,
                     target_time: p.target_time,
                     bib_number: p.bib_number,
@@ -3604,41 +3660,8 @@
             var btn = this;
             var participantId = btn.dataset.participantId;
             if(!participantId) return;
-
-            if(!confirm('Kirim ulang email konfirmasi ke peserta ini?')) return;
-
-            btn.disabled = true;
-            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Sending...';
-
-            var tokenMeta = document.querySelector('meta[name="csrf-token"]');
-            var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
-            var url = '{{ route("eo.events.participants.resend-email", $event, false) }}';
-            
-            fetch(url, {
-                method: 'POST',
-                headers: { 
-                    'X-CSRF-TOKEN': csrf, 
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ participant_id: participantId })
-            })
-            .then(function(r){ return r.json(); })
-            .then(function(res){
-                if (res.success) {
-                    alert(res.message);
-                } else {
-                    alert(res.message || 'Gagal mengirim email');
-                }
-            })
-            .catch(function(err){ 
-                console.error(err);
-                alert('Terjadi kesalahan saat mengirim email'); 
-            })
-            .finally(function(){
-                btn.disabled = false;
-                btn.innerHTML = '<svg class="w-4 h-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> Resend Email';
-            });
+            var participantName = document.getElementById('dm_name').textContent || '';
+            openResendEmailModal('single', participantId, participantName);
         });
     }
 
@@ -3840,45 +3863,116 @@
 
     window.bulkResendEmail = function(btn) {
         const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);
-        if (selected.length === 0) return;
+        if (selected.length === 0) {
+            alert('Silakan pilih minimal 1 peserta terlebih dahulu.');
+            return;
+        }
+        openResendEmailModal('bulk', selected, selected.length);
+    };
 
-        if (!confirm(`Kirim ulang email konfirmasi & tiket ke ${selected.length} peserta terpilih?`)) return;
+    window.resendTarget = null;
 
+    window.openResendEmailModal = function(type, data, displayLabel) {
+        window.resendTarget = { type: type, data: data };
+        const subtitle = document.getElementById('resendEmailModalSubtitle');
+        if (subtitle) {
+            if (type === 'single') {
+                subtitle.textContent = `Kirim ulang email tiket ke peserta: ${displayLabel}`;
+            } else {
+                subtitle.textContent = `Kirim ulang email tiket ke ${displayLabel} peserta terpilih`;
+            }
+        }
+        document.getElementById('resendEmailCustomHtml').value = '';
+        document.getElementById('resendEmailHtmlPreview').innerHTML = '';
+        document.getElementById('resendEmailModal').classList.remove('hidden');
+    };
+
+    window.closeResendEmailModal = function() {
+        document.getElementById('resendEmailModal').classList.add('hidden');
+        window.resendTarget = null;
+    };
+
+    window.updateResendEmailPreview = function() {
+        const val = document.getElementById('resendEmailCustomHtml').value;
+        document.getElementById('resendEmailHtmlPreview').innerHTML = val;
+    };
+
+    window.executeResendEmail = function(btn) {
+        if (!window.resendTarget) return;
+
+        const customHtml = document.getElementById('resendEmailCustomHtml').value;
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...`;
 
-        var tokenMeta = document.querySelector('meta[name="csrf-token"]');
-        var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '{{ csrf_token() }}';
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrf = tokenMeta ? tokenMeta.getAttribute('content') : '{{ csrf_token() }}';
 
-        fetch(`{{ route('eo.events.participants.resend-email-bulk', $event, false) }}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrf,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                participant_ids: selected
+        if (window.resendTarget.type === 'single') {
+            const url = '{{ route("eo.events.participants.resend-email", $event, false) }}';
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    participant_id: window.resendTarget.data,
+                    custom_html: customHtml
+                })
             })
-        })
-        .then(r => r.json())
-        .then(res => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            if (res.success) {
-                alert(res.message);
-                window.location.reload();
-            } else {
-                alert(res.message || 'Gagal mengirim email konfirmasi');
-            }
-        })
-        .catch(err => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            console.error(err);
-            alert('Terjadi kesalahan saat mengirim email konfirmasi');
-        });
+            .then(r => r.json())
+            .then(res => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                if (res.success) {
+                    alert(res.message);
+                    closeResendEmailModal();
+                    closeDetailModal();
+                } else {
+                    alert(res.message || 'Gagal mengirim email');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                console.error(err);
+                alert('Terjadi kesalahan saat mengirim email');
+            });
+        } else if (window.resendTarget.type === 'bulk') {
+            const url = '{{ route("eo.events.participants.resend-email-bulk", $event, false) }}';
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    participant_ids: window.resendTarget.data,
+                    custom_html: customHtml
+                })
+            })
+            .then(r => r.json())
+            .then(res => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                if (res.success) {
+                    alert(res.message);
+                    closeResendEmailModal();
+                    window.location.reload();
+                } else {
+                    alert(res.message || 'Gagal mengirim email konfirmasi');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                console.error(err);
+                alert('Terjadi kesalahan saat mengirim email konfirmasi');
+            });
+        }
     };
 </script>
 
@@ -4270,7 +4364,10 @@
                 const stripVal = document.getElementById('bibTakeLast').value;
                 const prefixVal = document.getElementById('bibPrefix').value || '';
                 let bibNum = overrides.bib_number !== undefined ? overrides.bib_number : (data.bib_number || '-');
-                if (bibNum !== '-' && stripVal) {
+                if (bibNum !== '-' && bibNum.includes('-')) {
+                    const parts = bibNum.split('-');
+                    bibNum = parts[parts.length - 1];
+                } else if (bibNum !== '-' && stripVal) {
                     if (/^\d+$/.test(stripVal)) {
                         const numChars = parseInt(stripVal, 10);
                         bibNum = bibNum.slice(-numChars);
@@ -4278,8 +4375,25 @@
                         bibNum = bibNum.replace(stripVal, '');
                     }
                 }
+
+                // Apply quota formatting if category has quota
+                const categoryQuota = parseInt(overrides.category_quota !== undefined ? overrides.category_quota : (data.category_quota || 0), 10);
+                if (categoryQuota > 0 && /^\d+$/.test(bibNum)) {
+                    const padLength = String(categoryQuota).length;
+                    bibNum = String(bibNum).padStart(padLength, '0');
+                }
+
                 if (bibNum !== '-') {
-                    bibNum = prefixVal + bibNum;
+                    if (prefixVal !== '' && /^\d+$/.test(bibNum)) {
+                        const prefixLen = prefixVal.length;
+                        if (bibNum.length >= prefixLen) {
+                            bibNum = prefixVal + bibNum.substring(prefixLen);
+                        } else {
+                            bibNum = prefixVal + bibNum;
+                        }
+                    } else {
+                        bibNum = prefixVal + bibNum;
+                    }
                 }
 
                 return {

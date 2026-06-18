@@ -926,6 +926,14 @@ class EventController extends Controller
             $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
         }
 
+        // Filter by Reg Date
+        if (request()->filled('start_date')) {
+            $query->whereDate('participants.created_at', '>=', request()->start_date);
+        }
+        if (request()->filled('end_date')) {
+            $query->whereDate('participants.created_at', '<=', request()->end_date);
+        }
+
         if (request()->has('search') && trim(request()->search) !== '') {
             $search = trim(request()->search);
             $query->where(function ($qq) use ($search) {
@@ -1254,6 +1262,13 @@ class EventController extends Controller
             $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
         }
 
+        if ($request->filled('start_date')) {
+            $query->whereDate('participants.created_at', '>=', $request->query('start_date'));
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('participants.created_at', '<=', $request->query('end_date'));
+        }
+
         if ($request->filled('search')) {
             $search = trim((string) $request->query('search'));
             $query->where(function ($qq) use ($search) {
@@ -1287,6 +1302,7 @@ class EventController extends Controller
                 'postal_code' => $p->postal_code,
                 'race_category_id' => $p->race_category_id,
                 'category' => $p->category ? $p->category->name : '-',
+                'category_quota' => $p->category ? $p->category->quota : 0,
                 'bib_number' => $p->bib_number,
                 'date_of_birth' => $p->date_of_birth ? $p->date_of_birth->toDateString() : null,
                 'age_group' => $p->getAgeGroup($event->start_at),
@@ -1730,6 +1746,7 @@ class EventController extends Controller
 
         $request->validate([
             'participant_id' => 'required|exists:participants,id',
+            'custom_html' => 'nullable|string',
         ]);
 
         $participant = \App\Models\Participant::with('transaction')->find($request->participant_id);
@@ -1752,7 +1769,8 @@ class EventController extends Controller
                     $event,
                     $participant->transaction,
                     $participants,
-                    $participant->name
+                    $participant->name,
+                    $request->custom_html
                 )
             );
 
@@ -1780,6 +1798,7 @@ class EventController extends Controller
         $request->validate([
             'participant_ids' => 'required|array',
             'participant_ids.*' => 'exists:participants,id',
+            'custom_html' => 'nullable|string',
         ]);
 
         $participants = \App\Models\Participant::with('transaction')
@@ -1806,7 +1825,8 @@ class EventController extends Controller
                         $event,
                         $participant->transaction,
                         collect([$participant]),
-                        $participant->name
+                        $participant->name,
+                        $request->custom_html
                     )
                 );
                 $sentCount++;
@@ -2225,6 +2245,8 @@ class EventController extends Controller
             'is_custom_range' => 'nullable|boolean',
             'custom_from' => 'nullable|integer|min:0',
             'custom_to' => 'nullable|integer|min:0',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
         ]);
 
         if ($request->boolean('is_custom_range')) {
@@ -2326,6 +2348,13 @@ class EventController extends Controller
                     $eventDate = $event->start_at ?: now();
                     $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears($maxAge + 1));
                 }
+                if ($request->filled('start_date')) {
+                    $query->whereDate('participants.created_at', '>=', $request->start_date);
+                }
+                if ($request->filled('end_date')) {
+                    $query->whereDate('participants.created_at', '<=', $request->end_date);
+                }
+
                 if ($request->filled('search')) {
                     $search = trim($request->search);
                     $query->where(function ($qq) use ($search) {
@@ -2417,14 +2446,38 @@ class EventController extends Controller
                 
                 $bibNum = isset($pOverride['bib_number']) ? $pOverride['bib_number'] : $p->bib_number;
                 $dynamicBib = $bibNum;
-                if ($dynamicBib && $takeLast !== null && $takeLast !== '') {
+                if ($dynamicBib && strpos($dynamicBib, '-') !== false) {
+                    $parts = explode('-', $dynamicBib);
+                    $dynamicBib = end($parts);
+                } elseif ($dynamicBib && $takeLast !== null && $takeLast !== '') {
                     if (is_numeric($takeLast)) {
                         $dynamicBib = substr($dynamicBib, -(int)$takeLast);
                     } else {
                         $dynamicBib = str_replace($takeLast, '', $dynamicBib);
                     }
                 }
-                $dynamicBib = $prefix . $dynamicBib;
+
+                // Apply quota formatting if category has quota
+                if ($p->category && $p->category->quota > 0) {
+                    $padLength = strlen((string)$p->category->quota);
+                    if (is_numeric($dynamicBib)) {
+                        $dynamicBib = str_pad($dynamicBib, $padLength, '0', STR_PAD_LEFT);
+                    }
+                }
+
+                // If prefix is present, replace/substitute the leading characters
+                if ($prefix !== '') {
+                    if (is_numeric($dynamicBib)) {
+                        $prefixLen = strlen($prefix);
+                        if (strlen($dynamicBib) >= $prefixLen) {
+                            $dynamicBib = substr_replace($dynamicBib, $prefix, 0, $prefixLen);
+                        } else {
+                            $dynamicBib = $prefix . $dynamicBib;
+                        }
+                    } else {
+                        $dynamicBib = $prefix . $dynamicBib;
+                    }
+                }
                 $dynamicBib = trim($dynamicBib ?? '') === '' ? '-' : $dynamicBib;
                 
                 $gender = isset($pOverride['gender']) ? $pOverride['gender'] : $p->gender;

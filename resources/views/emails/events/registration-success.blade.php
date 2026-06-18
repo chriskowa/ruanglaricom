@@ -152,6 +152,12 @@
             </div>
             @endforeach
 
+            @if(isset($customHtml) && !empty($customHtml))
+            <div style="margin-top: 25px; margin-bottom: 25px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc; color: #334155; font-size: 14px; line-height: 1.6;">
+                {!! $customHtml !!}
+            </div>
+            @endif
+
             <div style="text-align: center;">
                 <p style="font-size: 14px; color: #64748b;">Total Pembayaran: <strong>Rp {{ number_format($transaction->final_amount, 0, ',', '.') }}</strong></p>
                 <p style="font-size: 14px; color: #64748b;">Status: <strong style="color: {{ $transaction->payment_status == 'paid' ? '#10b981' : '#f59e0b' }}">{{ strtoupper($transaction->payment_status) }}</strong></p>
