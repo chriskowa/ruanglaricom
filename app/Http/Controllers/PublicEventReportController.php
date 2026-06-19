@@ -136,26 +136,18 @@ class PublicEventReportController extends Controller
 
         $payload = Cache::remember($cacheKey, 30, function () use ($eventModel, $filters, $reportService) {
             $participantsQuery = Participant::query()
+                ->with(['category', 'transaction.user'])
                 ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
                 ->leftJoin('coupons', 'coupons.id', '=', 'transactions.coupon_id')
                 ->where('transactions.event_id', $eventModel->id)
                 ->select([
-                    'participants.id',
-                    'participants.name',
-                    'participants.email',
-                    'participants.phone',
-                    'participants.created_at',
-                    'participants.target_time',
-                    'participants.isApproved',
-                    'participants.photo',
-                    'participants.jersey_size',
-                    'participants.bib_number',
-                    'participants.addons',
-                    'participants.gender',
-                    'participants.is_picked_up',
+                    'participants.*',
                     'transactions.payment_status',
                     'transactions.final_amount',
                     'transactions.discount_amount',
+                    'transactions.payment_gateway',
+                    'transactions.created_at as transaction_created_at',
+                    'transactions.pic_data',
                     DB::raw('COALESCE(coupons.code, "") as coupon_code'),
                 ]);
 
@@ -265,6 +257,16 @@ class PublicEventReportController extends Controller
                 ->orderByDesc('participants.created_at')
                 ->paginate($filters['per_page'])
                 ->withQueryString();
+
+            $participants->getCollection()->each(function ($p) use ($eventModel) {
+                $p->setAttribute('age_group', $p->getAgeGroup($eventModel->start_at));
+                $p->setAttribute('category_name', $p->category ? $p->category->name : '-');
+                $p->setAttribute('pic_name', $p->transaction->pic_data['name'] ?? ($p->transaction->user->name ?? '-'));
+                $p->setAttribute('pic_phone', $p->transaction->pic_data['phone'] ?? ($p->transaction->user->phone ?? '-'));
+                $p->setAttribute('pic_email', $p->transaction->pic_data['email'] ?? ($p->transaction->user->email ?? '-'));
+                $p->setAttribute('transaction_date', $p->transaction_created_at ? \Carbon\Carbon::parse($p->transaction_created_at)->format('d M Y H:i') : '-');
+                $p->setAttribute('payment_method', $p->payment_gateway ?? '-');
+            });
 
             $reportFilters = [
                 'start_date' => $filters['start_date'] ?: null,
@@ -713,6 +715,8 @@ class PublicEventReportController extends Controller
                     'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
                     'picked_up_by' => $participant->picked_up_by,
                     'payment_status' => $participant->transaction->payment_status ?? 'pending',
+                    'age_group' => $participant->getAgeGroup($eventModel->start_at),
+                    'addons' => $participant->addons ?? [],
                 ],
                 'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($eventModel),
             ]);

@@ -354,7 +354,7 @@
                     </thead>
                     <tbody id="participants-tbody" class="divide-y divide-slate-800">
                         @foreach($participants as $p)
-                            <tr class="hover:bg-slate-900/40 block md:table-row border-b border-slate-800 md:border-none mb-4 md:mb-0 bg-slate-900/20 md:bg-transparent rounded-xl md:rounded-none p-4 md:p-0">
+                            <tr class="hover:bg-slate-900/40 cursor-pointer block md:table-row border-b border-slate-800 md:border-none mb-4 md:mb-0 bg-slate-900/20 md:bg-transparent rounded-xl md:rounded-none p-4 md:p-0" onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('.no-click')) openDetailModalFromRow(this)" data-json="{{ json_encode($p) }}">
                                 <td class="px-4 py-2 md:py-3 font-semibold text-white block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Nama</span>
                                     <span class="text-right md:text-left">{{ $p->name }}</span>
@@ -534,6 +534,156 @@
                 <button type="submit" class="px-4 py-2 rounded-xl bg-neon text-dark hover:bg-lime-300 transition text-sm font-bold">Simpan Perubahan</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-card w-full max-w-2xl rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-900/50">
+            <h3 class="text-lg font-bold text-white">Detail Peserta</h3>
+            <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-white transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <!-- Content -->
+        <div class="p-6 overflow-y-auto space-y-6 text-sm text-slate-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Personal Info -->
+                <div>
+                    <h4 class="text-xs font-bold text-yellow-400 uppercase tracking-wider mb-3">Informasi Pribadi</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="text-xs text-slate-500">Nama Lengkap</div>
+                            <div class="text-white font-medium" id="dm-name">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">ID Card (KTP/SIM)</div>
+                            <div class="text-white" id="dm-id-card">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Gender</div>
+                            <div class="text-white capitalize" id="dm-gender">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Tanggal Lahir</div>
+                            <div class="text-white" id="dm-dob">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Email</div>
+                            <div class="text-white break-all" id="dm-email">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">No. Telp</div>
+                            <div class="text-white font-mono" id="dm-phone">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Kontak Darurat</div>
+                            <div class="text-white" id="dm-emergency">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Alamat Lengkap</div>
+                            <div class="text-white" id="dm-address">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Race Info -->
+                <div>
+                    <h4 class="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-3">Informasi Lomba</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="text-xs text-slate-500">Kategori Lomba</div>
+                            <div class="text-white font-bold" id="dm-category">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Nomor BIB</div>
+                            <div class="text-yellow-400 font-mono text-lg font-bold" id="dm-bib">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Ukuran Jersey</div>
+                            <div class="text-white font-bold" id="dm-jersey">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Golongan Darah</div>
+                            <div class="text-white font-bold" id="dm-blood-type">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Kategori Umur</div>
+                            <div class="text-white font-bold" id="dm-age-group">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Target Time</div>
+                            <div class="text-white font-mono" id="dm-target-time">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Status Pengambilan Race Pack</div>
+                            <div id="dm-pickup-status">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PIC & Transaction Info -->
+            <div class="pt-6 border-t border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- PIC Info -->
+                <div>
+                    <h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-3">Informasi PIC Pemesan</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="text-xs text-slate-500">Nama PIC</div>
+                            <div class="text-white" id="dm-pic-name">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Email PIC</div>
+                            <div class="text-white break-all" id="dm-pic-email">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">No. Telp PIC</div>
+                            <div class="text-white font-mono" id="dm-pic-phone">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Info -->
+                <div>
+                    <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3">Detail Transaksi</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="text-xs text-slate-500">Tanggal Transaksi</div>
+                            <div class="text-white" id="dm-trx-date">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Metode Pembayaran</div>
+                            <div class="text-white uppercase font-mono" id="dm-payment-method">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Kupon Diskon</div>
+                            <div class="text-yellow-400 font-bold font-mono" id="dm-coupon">-</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500">Status Pembayaran</div>
+                            <div class="inline-flex mt-1" id="dm-payment-status">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Addons Info -->
+            <div class="pt-6 border-t border-slate-700">
+                <h4 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-3">Addons / Tambahan</h4>
+                <div id="dm-addons" class="grid grid-cols-1 gap-2 bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+                    -
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-slate-900/50 px-6 py-4 flex justify-end border-t border-slate-700">
+            <button type="button" onclick="closeDetailModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-sm font-bold">Tutup</button>
+        </div>
     </div>
 </div>
 
@@ -722,7 +872,10 @@
                     var bib = (p && p.bib_number) ? String(p.bib_number) : '-';
                     var jersey = (p && p.jersey_size) ? String(p.jersey_size) : '-';
                     var payment = (p && p.payment_status) ? String(p.payment_status).toUpperCase() : 'UNKNOWN';
-                    var msg = name ? (`Berhasil pickup: ${name} • BIB ${bib} • Jersey ${jersey} • Payment ${payment}`) : (res.message || ('Berhasil update pickup #' + participantId));
+                    var ageGroup = (p && p.age_group) ? String(p.age_group) : '-';
+                    var addonsList = (p && Array.isArray(p.addons)) ? p.addons.map(function(a) { return (a && (a.name || a['name'])) || a; }).filter(Boolean) : [];
+                    var addonsText = addonsList.length ? addonsList.join(', ') : '-';
+                    var msg = name ? (`Berhasil pickup: ${name} • BIB ${bib} • Jersey ${jersey} • Kategori Umur ${ageGroup} • Addons: ${addonsText} • Payment ${payment}`) : (res.message || ('Berhasil update pickup #' + participantId));
                     setQrMsg(msg, 'success');
                     
                     // Trigger AJAX reload to update the dashboard table and stats
@@ -898,6 +1051,95 @@
         document.getElementById('edit-modal').classList.add('hidden');
     }
 
+    function openDetailModalFromRow(tr) {
+        var data = JSON.parse(tr.dataset.json || '{}');
+        
+        document.getElementById('dm-name').textContent = data.name || '-';
+        document.getElementById('dm-id-card').textContent = data.id_card || '-';
+        document.getElementById('dm-gender').textContent = data.gender || '-';
+        
+        var dob = data.date_of_birth;
+        if (dob) {
+            try {
+                var dateObj = new Date(dob);
+                if (!isNaN(dateObj.getTime())) {
+                    var options = { day: 'numeric', month: 'short', year: 'numeric' };
+                    dob = dateObj.toLocaleDateString('id-ID', options);
+                }
+            } catch(e) {}
+        }
+        document.getElementById('dm-dob').textContent = dob || '-';
+        
+        document.getElementById('dm-email').textContent = data.email || '-';
+        document.getElementById('dm-phone').textContent = data.phone || '-';
+        
+        var emergency = '-';
+        if (data.emergency_contact_name || data.emergency_contact_number) {
+            emergency = (data.emergency_contact_name || '') + ' (' + (data.emergency_contact_number || '') + ')';
+        }
+        document.getElementById('dm-emergency').textContent = emergency;
+        
+        var fullAddress = data.address || '';
+        var addrParts = [];
+        if (data.city) addrParts.push(data.city);
+        if (data.province) addrParts.push(data.province);
+        if (data.postal_code) addrParts.push(data.postal_code);
+        if (addrParts.length > 0) {
+            fullAddress += (fullAddress ? ', ' : '') + addrParts.join(', ');
+        }
+        document.getElementById('dm-address').textContent = fullAddress || '-';
+        
+        document.getElementById('dm-category').textContent = (data.category && data.category.name) ? data.category.name : (data.category_name || '-');
+        document.getElementById('dm-bib').textContent = data.bib_number || '-';
+        document.getElementById('dm-jersey').textContent = data.jersey_size || '-';
+        document.getElementById('dm-blood-type').textContent = data.blood_type || '-';
+        document.getElementById('dm-age-group').textContent = data.age_group || '-';
+        document.getElementById('dm-target-time').textContent = data.target_time || '-';
+        
+        var pickupEl = document.getElementById('dm-pickup-status');
+        if (data.is_picked_up) {
+            pickupEl.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Already Picked Up</span>';
+        } else {
+            pickupEl.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">Not Picked Up</span>';
+        }
+        
+        document.getElementById('dm-pic-name').textContent = data.pic_name || '-';
+        document.getElementById('dm-pic-email').textContent = data.pic_email || '-';
+        document.getElementById('dm-pic-phone').textContent = data.pic_phone || '-';
+        document.getElementById('dm-trx-date').textContent = data.transaction_date || '-';
+        document.getElementById('dm-payment-method').textContent = data.payment_method || '-';
+        document.getElementById('dm-coupon').textContent = data.coupon_code || '-';
+        
+        var pStatus = (data.payment_status || '').toLowerCase();
+        var pStatusEl = document.getElementById('dm-payment-status');
+        pStatusEl.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border';
+        if (pStatus === 'paid' || pStatus === 'settlement' || pStatus === 'capture' || pStatus === 'cod') {
+            pStatusEl.classList.add('bg-green-900/30', 'text-green-400', 'border-green-500/30');
+        } else if (pStatus === 'pending') {
+            pStatusEl.classList.add('bg-yellow-900/30', 'text-yellow-400', 'border-yellow-500/30');
+        } else {
+            pStatusEl.classList.add('bg-red-900/30', 'text-red-400', 'border-red-500/30');
+        }
+        pStatusEl.textContent = pStatus.toUpperCase();
+        
+        var addonsEl = document.getElementById('dm-addons');
+        if (data.addons && Array.isArray(data.addons) && data.addons.length > 0) {
+            addonsEl.innerHTML = data.addons.map(function(a) {
+                var name = a.name || a['name'] || '-';
+                var val = a.value || a['value'] || '-';
+                return '<div class="flex justify-between text-xs py-1 border-b border-slate-800 last:border-0"><span class="text-slate-400 font-medium">' + name + '</span><span class="text-white font-bold">' + val + '</span></div>';
+            }).join('');
+        } else {
+            addonsEl.innerHTML = '<div class="text-slate-500 italic text-xs text-center py-2">Tidak ada addons</div>';
+        }
+        
+        document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detail-modal').classList.add('hidden');
+    }
+
     (function () {
         const form = document.getElementById('report-filters');
         const resetBtn = document.getElementById('report-reset');
@@ -920,6 +1162,14 @@
         const statRemaining = document.getElementById('stat-remaining');
         const initialSales = @json($sales ?? null);
         let salesChart = null;
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
 
         function csrfToken() {
             const meta = document.querySelector('meta[name="csrf-token"]');
@@ -1106,7 +1356,7 @@
                     const jsonP = JSON.stringify(p).replace(/"/g, '&quot;');
 
                     return `
-                        <tr class="hover:bg-slate-900/40 block md:table-row border-b border-slate-800 md:border-none mb-4 md:mb-0 bg-slate-900/20 md:bg-transparent rounded-xl md:rounded-none p-4 md:p-0">
+                        <tr class="hover:bg-slate-900/40 cursor-pointer block md:table-row border-b border-slate-800 md:border-none mb-4 md:mb-0 bg-slate-900/20 md:bg-transparent rounded-xl md:rounded-none p-4 md:p-0" onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('.no-click')) openDetailModalFromRow(this)" data-json="${jsonP}">
                             <td class="px-4 py-2 md:py-3 font-semibold text-white block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Nama</span>
                                 <span class="text-right md:text-left">${(p.name || '-')}</span>
@@ -1336,6 +1586,31 @@
                 payload.page = 1;
                 fetchReport(payload);
             });
+
+            form.querySelectorAll('select').forEach((sel) => {
+                sel.addEventListener('change', () => {
+                    const payload = serializeAll();
+                    payload.page = 1;
+                    fetchReport(payload);
+                });
+            });
+
+            form.querySelectorAll('input[type="date"], input[type="number"]').forEach((inp) => {
+                inp.addEventListener('change', () => {
+                    const payload = serializeAll();
+                    payload.page = 1;
+                    fetchReport(payload);
+                });
+            });
+
+            const searchInp = form.querySelector('input[name="search"]');
+            if (searchInp) {
+                searchInp.addEventListener('input', debounce(() => {
+                    const payload = serializeAll();
+                    payload.page = 1;
+                    fetchReport(payload);
+                }, 400));
+            }
         }
 
         if (resetBtn) {

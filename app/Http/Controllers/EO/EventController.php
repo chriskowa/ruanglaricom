@@ -2897,7 +2897,72 @@ class EventController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Status pengambilan berhasil diperbarui');
+    }
+
+    /**
+     * Update participant picked up status in bulk
+     */
+    public function bulkUpdateStatus(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $validated = $request->validate([
+            'participant_ids' => 'required|array',
+            'participant_ids.*' => 'required|exists:participants,id',
+            'is_picked_up' => 'required|boolean',
+            'picked_up_by' => 'nullable|string|max:255',
+        ]);
+
+        $ids = $validated['participant_ids'];
+        $isPickedUp = (bool) $validated['is_picked_up'];
+        $pickedUpBy = $validated['picked_up_by'] ?? null;
+        $currentUser = auth()->user()->name ?? null;
+
+        $participants = \App\Models\Participant::whereIn('id', $ids)
+            ->whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id);
+            })
+            ->with(['transaction'])
+            ->get();
+
+        if ($participants->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada peserta valid yang dipilih.',
+            ], 422);
+        }
+
+        $successCount = 0;
+        $failedCount = 0;
+
+        foreach ($participants as $p) {
+            if ($isPickedUp) {
+                $paymentStatus = (string) ($p->transaction->payment_status ?? '');
+                if (! in_array($paymentStatus, ['paid', 'cod'], true)) {
+                    $failedCount++;
+                    continue;
+                }
+            }
+
+            $p->update([
+                'is_picked_up' => $isPickedUp,
+                'picked_up_at' => $isPickedUp ? now() : null,
+                'picked_up_by' => $isPickedUp ? ($pickedUpBy ?: $currentUser) : null,
+            ]);
+            $successCount++;
+        }
+
+        $message = "Status pengambilan berhasil diperbarui untuk {$successCount} peserta.";
+        if ($failedCount > 0) {
+            $message .= " Gagal mengupdate {$failedCount} peserta karena status pembayaran belum paid.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'success_count' => $successCount,
+            'failed_count' => $failedCount,
+        ]);
     }
 
     /**

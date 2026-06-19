@@ -801,6 +801,10 @@
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 Resend Tiket
             </button>
+            <button onclick="bulkPickedUp(this)" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold flex items-center gap-2 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                Picked Up
+            </button>
         </div>
     </div>
 </div>
@@ -3868,6 +3872,57 @@
             return;
         }
         openResendEmailModal('bulk', selected, selected.length);
+    };
+
+    window.bulkPickedUp = function(btn) {
+        const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) {
+            alert('Silakan pilih minimal 1 peserta terlebih dahulu.');
+            return;
+        }
+
+        const pickedUpBy = prompt("Nama pengambil (kosongkan untuk nama Anda / user login saat ini):", "");
+        if (pickedUpBy === null) return;
+
+        if (!confirm(`Tandai ${selected.length} peserta terpilih sebagai sudah diambil (Picked Up)?`)) return;
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...`;
+
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrf = tokenMeta ? tokenMeta.getAttribute('content') : '{{ csrf_token() }}';
+
+        fetch(`{{ route('eo.events.participants.bulk-status', $event, false) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrf,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                participant_ids: selected,
+                is_picked_up: true,
+                picked_up_by: pickedUpBy
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            if (res.success) {
+                alert(res.message);
+                window.location.reload();
+            } else {
+                alert(res.message || 'Gagal memperbarui status pengambilan');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            console.error(err);
+            alert('Terjadi kesalahan saat memperbarui status pengambilan');
+        });
     };
 
     window.resendTarget = null;
