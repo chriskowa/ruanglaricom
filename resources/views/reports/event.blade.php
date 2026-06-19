@@ -349,6 +349,7 @@
                             <th class="text-left font-semibold px-4 py-3">Addons</th>
                             <th class="text-left font-semibold px-4 py-3">Tanggal Registrasi</th>
                             <th class="text-left font-semibold px-4 py-3">Status Pembayaran</th>
+                            <th class="text-left font-semibold px-4 py-3 text-center">Picked Up</th>
                             <th class="text-left font-semibold px-4 py-3">Aksi</th>
                         </tr>
                     </thead>
@@ -419,6 +420,16 @@
                                         @endif
                                     </span>
                                 </td>
+                                <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
+                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Picked Up</span>
+                                    <span class="text-right md:text-left">
+                                        <button type="button" 
+                                            onclick="togglePickup(this, {{ $p->id }}, {{ $p->is_picked_up ? 'true' : 'false' }})"
+                                            class="px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 {{ $p->is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700' }}">
+                                            {{ $p->is_picked_up ? 'Picked Up' : 'Not Picked' }}
+                                        </button>
+                                    </span>
+                                </td>
                                 <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                     <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Aksi</span>
                                     <span class="text-right md:text-left">
@@ -433,7 +444,7 @@
                         @endforeach
                         @if($participants->isEmpty())
                             <tr>
-                                <td colspan="8" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td>
+                                <td colspan="10" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td>
                             </tr>
                         @endif
                     </tbody>
@@ -620,7 +631,12 @@
                         </div>
                         <div>
                             <div class="text-xs text-slate-500">Status Pengambilan Race Pack</div>
-                            <div id="dm-pickup-status">-</div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div id="dm-pickup-status">-</div>
+                                <button type="button" id="dm-pickup-toggle-btn" class="px-2 py-0.5 text-[10px] rounded-lg font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition">
+                                    Toggle
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1096,12 +1112,8 @@
         document.getElementById('dm-age-group').textContent = data.age_group || '-';
         document.getElementById('dm-target-time').textContent = data.target_time || '-';
         
-        var pickupEl = document.getElementById('dm-pickup-status');
-        if (data.is_picked_up) {
-            pickupEl.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Already Picked Up</span>';
-        } else {
-            pickupEl.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">Not Picked Up</span>';
-        }
+        document.getElementById('dm-pickup-status').dataset.participantId = data.id;
+        updateModalPickupUi(data);
         
         document.getElementById('dm-pic-name').textContent = data.pic_name || '-';
         document.getElementById('dm-pic-email').textContent = data.pic_email || '-';
@@ -1138,6 +1150,128 @@
 
     function closeDetailModal() {
         document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    function performPickupToggle(participantId, nextStatus, callback) {
+        const eventId = "{{ $event->id }}";
+        const url = `/reports/${eventId}/participants/${participantId}/status`;
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                is_picked_up: nextStatus ? 1 : 0,
+                picked_up_by: 'Public Report Dashboard'
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                callback(null, data.participant);
+            } else {
+                callback(data.message || 'Gagal mengubah status');
+            }
+        })
+        .catch(error => {
+            callback(error.message || 'Terjadi kesalahan sistem');
+        });
+    }
+
+    function togglePickup(btn, participantId, isPickedUp) {
+        btn.disabled = true;
+        performPickupToggle(participantId, !isPickedUp, function(err, p) {
+            btn.disabled = false;
+            if (err) {
+                alert(err);
+                return;
+            }
+            // Update table button
+            btn.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
+            if (p.is_picked_up) {
+                btn.className = "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60";
+                btn.textContent = "Picked Up";
+            } else {
+                btn.className = "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
+                btn.textContent = "Not Picked";
+            }
+
+            // Update row data-json attribute
+            const tr = btn.closest('tr');
+            if (tr) {
+                try {
+                    const currentJson = JSON.parse(tr.dataset.json || '{}');
+                    currentJson.is_picked_up = p.is_picked_up;
+                    tr.dataset.json = JSON.stringify(currentJson);
+                } catch(e) {}
+            }
+
+            // Update detail modal if open for this participant
+            const activeId = document.getElementById('dm-pickup-status')?.dataset?.participantId;
+            if (activeId && parseInt(activeId) === p.id) {
+                updateModalPickupUi(p);
+            }
+        });
+    }
+
+    function updateModalPickupUi(data) {
+        const pickupEl = document.getElementById('dm-pickup-status');
+        const toggleBtn = document.getElementById('dm-pickup-toggle-btn');
+        
+        if (data.is_picked_up) {
+            pickupEl.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Already Picked Up</span>';
+            toggleBtn.textContent = 'Mark as Not Picked';
+        } else {
+            pickupEl.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">Not Picked Up</span>';
+            toggleBtn.textContent = 'Mark as Picked Up';
+        }
+
+        toggleBtn.onclick = function() {
+            toggleBtn.disabled = true;
+            performPickupToggle(data.id, !data.is_picked_up, function(err, p) {
+                toggleBtn.disabled = false;
+                if (err) {
+                    alert(err);
+                    return;
+                }
+                
+                // Update modal UI
+                updateModalPickupUi(p);
+                
+                // Update table row button if visible in the table
+                const rows = document.querySelectorAll('#participants-tbody tr[data-json]');
+                rows.forEach(tr => {
+                    try {
+                        const rowData = JSON.parse(tr.dataset.json || '{}');
+                        if (rowData.id === p.id) {
+                            const rowBtn = tr.querySelector('button[onclick*="togglePickup"]');
+                            if (rowBtn) {
+                                rowBtn.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
+                                if (p.is_picked_up) {
+                                    rowBtn.className = "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60";
+                                    rowBtn.textContent = "Picked Up";
+                                } else {
+                                    rowBtn.className = "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
+                                    rowBtn.textContent = "Not Picked";
+                                }
+                            }
+                            // Update row data-json attribute
+                            rowData.is_picked_up = p.is_picked_up;
+                            tr.dataset.json = JSON.stringify(rowData);
+                        }
+                    } catch(e) {}
+                });
+            });
+        };
     }
 
     (function () {
@@ -1339,7 +1473,7 @@
         function renderParticipants(paginator) {
             const rows = (paginator && paginator.data) ? paginator.data : [];
             if (!rows.length) {
-                tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td></tr>`;
             } else {
                 tbody.innerHTML = rows.map((p) => {
                     const addons = Array.isArray(p.addons) ? p.addons : [];
@@ -1397,6 +1531,16 @@
                             <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Status</span>
                                 <span class="text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount)}</span>
+                            </td>
+                            <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
+                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Picked Up</span>
+                                <span class="text-right md:text-left">
+                                    <button type="button" 
+                                        onclick="togglePickup(this, ${p.id}, ${p.is_picked_up ? 'true' : 'false'})"
+                                        class="px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 ${p.is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}">
+                                        ${p.is_picked_up ? 'Picked Up' : 'Not Picked'}
+                                    </button>
+                                </span>
                             </td>
                             <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
                                 <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Aksi</span>
