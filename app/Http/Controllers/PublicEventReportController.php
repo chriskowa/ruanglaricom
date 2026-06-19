@@ -854,6 +854,18 @@ class PublicEventReportController extends Controller
                     ->orWhere('id_card', 'like', "%{$search}%")
                     ->orWhereHas('category', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('transaction', function ($t) use ($search) {
+                        $t->where(function ($jt) use ($search) {
+                            $jt->where('pic_data->name', 'like', "%{$search}%")
+                                ->orWhere('pic_data->email', 'like', "%{$search}%")
+                                ->orWhere('pic_data->phone', 'like', "%{$search}%")
+                                ->orWhere('pic_data', 'like', "%{$search}%");
+                        })->orWhereHas('user', function ($u) use ($search) {
+                            $u->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
                     });
             });
         }
