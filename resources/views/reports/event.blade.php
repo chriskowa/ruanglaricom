@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div class="bg-card border border-slate-700 rounded-2xl p-4">
             <div class="text-xs text-slate-400">Total Slot</div>
             <div id="stat-total" class="text-2xl font-extrabold">
@@ -48,6 +48,18 @@
             @if(($report['show_warning'] ?? false) === true)
                 <div class="mt-2 text-xs text-yellow-300">Sisa slot &lt; 10%</div>
             @endif
+        </div>
+        <div class="bg-card border border-slate-700 rounded-2xl p-4">
+            <div class="text-xs text-slate-400">Picked Up</div>
+            <div id="stat-picked" class="text-2xl font-extrabold text-emerald-400">
+                {{ number_format((int) ($report['pickup']['picked_up'] ?? 0)) }}
+            </div>
+        </div>
+        <div class="bg-card border border-slate-700 rounded-2xl p-4">
+            <div class="text-xs text-slate-400">Belum Diambil</div>
+            <div id="stat-unpicked" class="text-2xl font-extrabold text-slate-400">
+                {{ number_format((int) ($report['pickup']['not_picked_up'] ?? 0)) }}
+            </div>
         </div>
     </div>
 
@@ -235,7 +247,12 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Kupon</label>
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs text-slate-300">Kupon</label>
+                        <button type="button" id="btn-show-coupon-report" class="text-[10px] text-neon hover:underline hidden" onclick="triggerManualCouponReport()">
+                            Lihat Laporan
+                        </button>
+                    </div>
                     <select name="coupon_id"
                         class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
                         <option value="" @selected(($filters['coupon_id'] ?? '') === '')>Semua Kupon</option>
@@ -739,6 +756,57 @@
         </div>
     </div>
 </div>
+
+<!-- Coupon Report Modal -->
+<div id="coupon-report-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-card w-full max-w-2xl rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-900/50">
+            <div>
+                <h3 class="text-lg font-bold text-white">Laporan Filter Kupon</h3>
+                <div class="text-xs text-slate-400" id="coupon-modal-subtitle"></div>
+            </div>
+            <button type="button" onclick="closeCouponReportModal()" class="text-slate-400 hover:text-white transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <!-- Content -->
+        <div class="p-6 overflow-y-auto space-y-6 text-sm text-slate-300">
+            <!-- Jersey Size Summary (misal S = 3 XL = 4) -->
+            <div>
+                <h4 class="text-xs font-bold text-yellow-400 uppercase tracking-wider mb-3">Ringkasan Ukuran Jersey</h4>
+                <div id="coupon-jersey-summary" class="flex flex-wrap gap-2">
+                    <!-- Dynamic badges -->
+                </div>
+            </div>
+
+            <!-- List of BIB & Jersey Sizes -->
+            <div>
+                <h4 class="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-3">Daftar Nomor BIB dan Jersey</h4>
+                <div class="overflow-x-auto border border-slate-700 rounded-xl">
+                    <table class="min-w-full text-xs">
+                        <thead class="bg-slate-900/60 text-slate-300">
+                            <tr>
+                                <th class="text-left font-semibold px-4 py-2">Nama</th>
+                                <th class="text-left font-semibold px-4 py-2">Nomor BIB</th>
+                                <th class="text-left font-semibold px-4 py-2">Ukuran Jersey</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coupon-participants-tbody" class="divide-y divide-slate-800">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-slate-900/50 px-6 py-4 flex justify-end border-t border-slate-700">
+            <button type="button" onclick="closeCouponReportModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-sm font-bold">Tutup</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1187,6 +1255,22 @@
         });
     }
 
+    function adjustPickupStats(isPickedUp) {
+        const statPicked = document.getElementById('stat-picked');
+        const statUnpicked = document.getElementById('stat-unpicked');
+        if (statPicked && statUnpicked) {
+            let pickedVal = parseInt(statPicked.textContent.replace(/[^0-9]/g, '')) || 0;
+            let unpickedVal = parseInt(statUnpicked.textContent.replace(/[^0-9]/g, '')) || 0;
+            if (isPickedUp) {
+                statPicked.textContent = (pickedVal + 1).toLocaleString('id-ID');
+                statUnpicked.textContent = Math.max(0, unpickedVal - 1).toLocaleString('id-ID');
+            } else {
+                statPicked.textContent = Math.max(0, pickedVal - 1).toLocaleString('id-ID');
+                statUnpicked.textContent = (unpickedVal + 1).toLocaleString('id-ID');
+            }
+        }
+    }
+
     function togglePickup(btn, participantId, isPickedUp) {
         btn.disabled = true;
         performPickupToggle(participantId, !isPickedUp, function(err, p) {
@@ -1195,6 +1279,7 @@
                 alert(err);
                 return;
             }
+            adjustPickupStats(p.is_picked_up);
             // Update table button
             btn.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
             if (p.is_picked_up) {
@@ -1243,6 +1328,7 @@
                     alert(err);
                     return;
                 }
+                adjustPickupStats(p.is_picked_up);
                 
                 // Update modal UI
                 updateModalPickupUi(p);
@@ -1294,6 +1380,13 @@
         const statSold = document.getElementById('stat-sold');
         const statPending = document.getElementById('stat-pending');
         const statRemaining = document.getElementById('stat-remaining');
+        const statPicked = document.getElementById('stat-picked');
+        const statUnpicked = document.getElementById('stat-unpicked');
+        
+        // Coupon Report Variables
+        let currentCouponReport = @json($couponReport ?? null);
+        let currentCouponText = '';
+        let shouldShowCouponModal = false;
         const initialSales = @json($sales ?? null);
         let salesChart = null;
 
@@ -1628,6 +1721,12 @@
             statSold.textContent = formatNumber(report.sold_slots);
             statPending.textContent = formatNumber(report.pending_slots);
             statRemaining.textContent = (typeof report.remaining_slots === 'string') ? report.remaining_slots : formatNumber(report.remaining_slots);
+            if (statPicked && report.pickup) {
+                statPicked.textContent = formatNumber(report.pickup.picked_up || 0);
+            }
+            if (statUnpicked && report.pickup) {
+                statUnpicked.textContent = formatNumber(report.pickup.not_picked_up || 0);
+            }
 
             const jersey = report.jersey_sizes || {};
             let totalUsed = 0;
@@ -1716,6 +1815,23 @@
                 renderParticipants(data.participants);
                 renderPagination(data.participants, payload);
                 renderSalesChart(data.sales);
+
+                currentCouponReport = data.coupon_report || null;
+                currentCouponText = couponSelect ? couponSelect.options[couponSelect.selectedIndex].text : '';
+
+                const btnShowCouponReport = document.getElementById('btn-show-coupon-report');
+                if (btnShowCouponReport) {
+                    if (currentCouponReport) {
+                        btnShowCouponReport.classList.remove('hidden');
+                    } else {
+                        btnShowCouponReport.classList.add('hidden');
+                    }
+                }
+
+                if (shouldShowCouponModal && currentCouponReport) {
+                    showCouponReportModal(currentCouponReport, currentCouponText);
+                    shouldShowCouponModal = false;
+                }
             } catch (e) {
                 alert(e.message || 'Terjadi kesalahan');
             } finally {
@@ -1800,6 +1916,75 @@
         // <div id="participants-pagination" ...></div> is empty in HTML.
         // So line 394 in original calls renderPagination.
         
+        // Coupon Report Modal Helpers
+        const couponSelect = document.querySelector('select[name="coupon_id"]');
+        if (couponSelect) {
+            couponSelect.addEventListener('change', function() {
+                const val = this.value;
+                if (val !== '' && val !== 'without') {
+                    shouldShowCouponModal = true;
+                }
+            });
+            currentCouponText = couponSelect.options[couponSelect.selectedIndex].text;
+        }
+
+        window.showCouponReportModal = function(report, couponCode) {
+            const modal = document.getElementById('coupon-report-modal');
+            if (!modal) return;
+            
+            document.getElementById('coupon-modal-subtitle').textContent = 'Kupon: ' + couponCode;
+            
+            const summaryEl = document.getElementById('coupon-jersey-summary');
+            summaryEl.innerHTML = '';
+            if (report.jersey_totals && Object.keys(report.jersey_totals).length > 0) {
+                Object.keys(report.jersey_totals).forEach(size => {
+                    const count = report.jersey_totals[size];
+                    const badge = document.createElement('span');
+                    badge.className = 'inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold bg-neon text-dark border border-neon/30';
+                    badge.innerHTML = `${size} = <span class="font-mono ml-1">${count}</span>`;
+                    summaryEl.appendChild(badge);
+                });
+            } else {
+                summaryEl.innerHTML = '<span class="text-slate-500 italic text-xs">Tidak ada data ukuran jersey</span>';
+            }
+            
+            const tbody = document.getElementById('coupon-participants-tbody');
+            tbody.innerHTML = '';
+            if (report.participants && report.participants.length > 0) {
+                report.participants.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-900/40';
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 font-semibold text-white">${p.name}</td>
+                        <td class="px-4 py-2 font-mono text-yellow-400">${p.bib}</td>
+                        <td class="px-4 py-2 font-mono text-slate-300">${p.jersey_size}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-slate-500 italic">Tidak ada peserta untuk kupon ini</td></tr>`;
+            }
+            
+            modal.classList.remove('hidden');
+        };
+
+        window.closeCouponReportModal = function() {
+            const modal = document.getElementById('coupon-report-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.triggerManualCouponReport = function() {
+            if (currentCouponReport) {
+                showCouponReportModal(currentCouponReport, currentCouponText);
+            }
+        };
+
+        // Initialize coupon report button visibility
+        const btnShowCouponReport = document.getElementById('btn-show-coupon-report');
+        if (btnShowCouponReport && currentCouponReport) {
+            btnShowCouponReport.classList.remove('hidden');
+        }
+
         const initialParticipants = @json($participants);
         renderPagination(initialParticipants, serializeAll());
         renderSalesChart(initialSales);

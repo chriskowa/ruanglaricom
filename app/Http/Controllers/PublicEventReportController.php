@@ -297,11 +297,92 @@ class PublicEventReportController extends Controller
 
             $couponUsage = $couponUsageQuery->get();
 
+            $couponReport = null;
+            if (! empty($filters['coupon_id']) && $filters['coupon_id'] !== 'without') {
+                $couponReportQuery = \App\Models\Participant::query()
+                    ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+                    ->where('transactions.event_id', $eventModel->id)
+                    ->whereIn('transactions.payment_status', ['paid', 'settlement', 'capture', 'cod']);
+
+                $couponFilter = $filters['coupon_id'];
+                if ($couponFilter === 'with') {
+                    $couponReportQuery->whereNotNull('transactions.coupon_id');
+                } else {
+                    $couponReportQuery->where('transactions.coupon_id', $couponFilter);
+                }
+
+                if (! empty($filters['category_id'])) {
+                    $couponReportQuery->where('participants.race_category_id', $filters['category_id']);
+                }
+                if (! empty($filters['gender'])) {
+                    $couponReportQuery->where('participants.gender', $filters['gender']);
+                }
+                if (! empty($filters['search'])) {
+                    $search = $filters['search'];
+                    $couponReportQuery->where(function ($qq) use ($search) {
+                        $qq->where('participants.name', 'like', "%{$search}%")
+                            ->orWhere('participants.email', 'like', "%{$search}%")
+                            ->orWhere('participants.phone', 'like', "%{$search}%")
+                            ->orWhere('participants.bib_number', 'like', "%{$search}%")
+                            ->orWhere('participants.id_card', 'like', "%{$search}%");
+                    });
+                }
+
+                $couponParticipants = $couponReportQuery
+                    ->select([
+                        'participants.name',
+                        'participants.bib_number',
+                        'participants.jersey_size',
+                    ])
+                    ->orderBy('participants.name', 'asc')
+                    ->get();
+
+                $jerseyCounts = [];
+                foreach ($couponParticipants as $cp) {
+                    $size = strtoupper(trim((string) $cp->jersey_size));
+                    if ($size === '') {
+                        $size = 'NO SIZE';
+                    }
+                    if ($size === 'XXL') {
+                        $size = '2XL';
+                    } elseif ($size === 'XXXL') {
+                        $size = '3XL';
+                    }
+                    $jerseyCounts[$size] = ($jerseyCounts[$size] ?? 0) + 1;
+                }
+
+                $standardOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', 'NO SIZE'];
+                uksort($jerseyCounts, function ($a, $b) use ($standardOrder) {
+                    $posA = array_search($a, $standardOrder);
+                    $posB = array_search($b, $standardOrder);
+                    $posA = $posA === false ? 999 : $posA;
+                    $posB = $posB === false ? 999 : $posB;
+                    return $posA <=> $posB;
+                });
+
+                $couponReport = [
+                    'jersey_totals' => $jerseyCounts,
+                    'participants' => $couponParticipants->map(function ($cp) {
+                        $bib = $cp->bib_number;
+                        if ($bib && strpos($bib, '-') !== false) {
+                            $parts = explode('-', $bib);
+                            $bib = end($parts);
+                        }
+                        return [
+                            'name' => $cp->name,
+                            'bib' => $bib ?: '-',
+                            'jersey_size' => $cp->jersey_size ?: '-',
+                        ];
+                    })->toArray(),
+                ];
+            }
+
             return [
                 'report' => $report,
                 'coupon_usage' => $couponUsage,
                 'participants' => $participants,
                 'sales' => $this->buildSalesSeries($eventModel->id, $filters),
+                'coupon_report' => $couponReport,
             ];
         });
 
@@ -319,6 +400,7 @@ class PublicEventReportController extends Controller
                     'coupon_usage' => $payload['coupon_usage'],
                     'participants' => $payload['participants'],
                     'sales' => $payload['sales'],
+                    'coupon_report' => $payload['coupon_report'] ?? null,
                     'filters' => [
                         'payment_status' => $filters['payment_status'],
                         'is_picked_up' => $filters['is_picked_up'],
@@ -356,6 +438,7 @@ class PublicEventReportController extends Controller
                 'sales' => $payload['sales'],
                 'filters' => $filters,
                 'coupons' => $coupons,
+                'couponReport' => $payload['coupon_report'] ?? null,
             ])
             ->header('X-Robots-Tag', $noIndexHeader);
     }
