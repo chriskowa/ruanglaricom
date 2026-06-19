@@ -333,6 +333,7 @@ class PublicEventReportController extends Controller
                         'participants.name',
                         'participants.bib_number',
                         'participants.jersey_size',
+                        'participants.is_picked_up',
                     ])
                     ->orderBy('participants.name', 'asc')
                     ->get();
@@ -372,6 +373,7 @@ class PublicEventReportController extends Controller
                             'name' => $cp->name,
                             'bib' => $bib ?: '-',
                             'jersey_size' => $cp->jersey_size ?: '-',
+                            'is_picked_up' => (bool) $cp->is_picked_up,
                         ];
                     })->toArray(),
                 ];

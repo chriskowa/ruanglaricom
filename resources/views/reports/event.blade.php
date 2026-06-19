@@ -791,6 +791,7 @@
                                 <th class="text-left font-semibold px-4 py-2">Nama</th>
                                 <th class="text-left font-semibold px-4 py-2">Nomor BIB</th>
                                 <th class="text-left font-semibold px-4 py-2">Ukuran Jersey</th>
+                                <th class="text-left font-semibold px-4 py-2">Status Picked</th>
                             </tr>
                         </thead>
                         <tbody id="coupon-participants-tbody" class="divide-y divide-slate-800">
@@ -1952,17 +1953,22 @@
             tbody.innerHTML = '';
             if (report.participants && report.participants.length > 0) {
                 report.participants.forEach(p => {
+                    const statusHtml = p.is_picked_up
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-500/30">Picked Up</span>`
+                        : `<span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Not Picked</span>`;
+
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-900/40';
                     tr.innerHTML = `
                         <td class="px-4 py-2 font-semibold text-white">${p.name}</td>
                         <td class="px-4 py-2 font-mono text-yellow-400">${p.bib}</td>
                         <td class="px-4 py-2 font-mono text-slate-300">${p.jersey_size}</td>
+                        <td class="px-4 py-2">${statusHtml}</td>
                     `;
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-slate-500 italic">Tidak ada peserta untuk kupon ini</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-4 text-center text-slate-500 italic">Tidak ada peserta untuk kupon ini</td></tr>`;
             }
             
             modal.classList.remove('hidden');
