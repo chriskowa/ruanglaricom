@@ -186,8 +186,8 @@
         </div>
     </div>
 
-    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 bg-card border border-slate-700 rounded-2xl p-4">
+    <div class="mt-6 space-y-6">
+        <div class="bg-card border border-slate-700 rounded-2xl p-4">
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <div class="text-lg font-bold">Data Peserta</div>
@@ -1281,14 +1281,34 @@
                 return;
             }
             adjustPickupStats(p.is_picked_up);
-            // Update table button
-            btn.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
-            if (p.is_picked_up) {
-                btn.className = "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60";
-                btn.textContent = "Picked Up";
-            } else {
-                btn.className = "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
-                btn.textContent = "Not Picked";
+            
+            // Update all toggle buttons for this participant on the page (main table, coupon modal, etc.)
+            const allToggles = document.querySelectorAll(`button[onclick*="togglePickup"]`);
+            allToggles.forEach(toggle => {
+                const onclickStr = toggle.getAttribute('onclick') || '';
+                const match = onclickStr.match(/togglePickup\s*\(\s*this\s*,\s*(\d+)/);
+                if (match && parseInt(match[1]) === p.id) {
+                    toggle.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
+                    if (p.is_picked_up) {
+                        toggle.className = toggle.classList.contains('text-[10px]')
+                            ? "px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60"
+                            : "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60";
+                        toggle.textContent = "Picked Up";
+                    } else {
+                        toggle.className = toggle.classList.contains('text-[10px]')
+                            ? "px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                            : "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
+                        toggle.textContent = "Not Picked";
+                    }
+                }
+            });
+
+            // Update in-memory coupon report cache
+            if (window.currentCouponReport && window.currentCouponReport.participants) {
+                const cp = window.currentCouponReport.participants.find(x => x.id === p.id);
+                if (cp) {
+                    cp.is_picked_up = p.is_picked_up;
+                }
             }
 
             // Update row data-json attribute
@@ -1334,24 +1354,41 @@
                 // Update modal UI
                 updateModalPickupUi(p);
                 
-                // Update table row button if visible in the table
+                // Update all toggle buttons for this participant on the page (main table, coupon modal, etc.)
+                const allToggles = document.querySelectorAll(`button[onclick*="togglePickup"]`);
+                allToggles.forEach(toggle => {
+                    const onclickStr = toggle.getAttribute('onclick') || '';
+                    const match = onclickStr.match(/togglePickup\s*\(\s*this\s*,\s*(\d+)/);
+                    if (match && parseInt(match[1]) === p.id) {
+                        toggle.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
+                        if (p.is_picked_up) {
+                            toggle.className = toggle.classList.contains('text-[10px]')
+                                ? "px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60"
+                                : "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60";
+                            toggle.textContent = "Picked Up";
+                        } else {
+                            toggle.className = toggle.classList.contains('text-[10px]')
+                                ? "px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                                : "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
+                            toggle.textContent = "Not Picked";
+                        }
+                    }
+                });
+
+                // Update in-memory coupon report cache
+                if (window.currentCouponReport && window.currentCouponReport.participants) {
+                    const cp = window.currentCouponReport.participants.find(x => x.id === p.id);
+                    if (cp) {
+                        cp.is_picked_up = p.is_picked_up;
+                    }
+                }
+                
+                // Update table row data-json attribute if visible in the table
                 const rows = document.querySelectorAll('#participants-tbody tr[data-json]');
                 rows.forEach(tr => {
                     try {
                         const rowData = JSON.parse(tr.dataset.json || '{}');
                         if (rowData.id === p.id) {
-                            const rowBtn = tr.querySelector('button[onclick*="togglePickup"]');
-                            if (rowBtn) {
-                                rowBtn.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
-                                if (p.is_picked_up) {
-                                    rowBtn.className = "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60";
-                                    rowBtn.textContent = "Picked Up";
-                                } else {
-                                    rowBtn.className = "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
-                                    rowBtn.textContent = "Not Picked";
-                                }
-                            }
-                            // Update row data-json attribute
                             rowData.is_picked_up = p.is_picked_up;
                             tr.dataset.json = JSON.stringify(rowData);
                         }
@@ -1385,7 +1422,7 @@
         const statUnpicked = document.getElementById('stat-unpicked');
         
         // Coupon Report Variables
-        let currentCouponReport = @json($couponReport ?? null);
+        window.currentCouponReport = @json($couponReport ?? null);
         let currentCouponText = '';
         let shouldShowCouponModal = false;
         const initialSales = @json($sales ?? null);
@@ -1817,12 +1854,12 @@
                 renderPagination(data.participants, payload);
                 renderSalesChart(data.sales);
 
-                currentCouponReport = data.coupon_report || null;
+                window.currentCouponReport = data.coupon_report || null;
                 currentCouponText = couponSelect ? couponSelect.options[couponSelect.selectedIndex].text : '';
 
                 const btnShowCouponReport = document.getElementById('btn-show-coupon-report');
                 if (btnShowCouponReport) {
-                    if (currentCouponReport) {
+                    if (window.currentCouponReport) {
                         btnShowCouponReport.classList.remove('hidden');
                     } else {
                         btnShowCouponReport.classList.add('hidden');
@@ -1953,9 +1990,13 @@
             tbody.innerHTML = '';
             if (report.participants && report.participants.length > 0) {
                 report.participants.forEach(p => {
-                    const statusHtml = p.is_picked_up
-                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-500/30">Picked Up</span>`
-                        : `<span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Not Picked</span>`;
+                    const statusHtml = `
+                        <button type="button" 
+                            onclick="togglePickup(this, ${p.id}, ${p.is_picked_up ? 'true' : 'false'})"
+                            class="px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 ${p.is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}">
+                            ${p.is_picked_up ? 'Picked Up' : 'Not Picked'}
+                        </button>
+                    `;
 
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-900/40';
@@ -1980,14 +2021,14 @@
         };
 
         window.triggerManualCouponReport = function() {
-            if (currentCouponReport) {
-                showCouponReportModal(currentCouponReport, currentCouponText);
+            if (window.currentCouponReport) {
+                showCouponReportModal(window.currentCouponReport, currentCouponText);
             }
         };
 
         // Initialize coupon report button visibility
         const btnShowCouponReport = document.getElementById('btn-show-coupon-report');
-        if (btnShowCouponReport && currentCouponReport) {
+        if (btnShowCouponReport && window.currentCouponReport) {
             btnShowCouponReport.classList.remove('hidden');
         }
 

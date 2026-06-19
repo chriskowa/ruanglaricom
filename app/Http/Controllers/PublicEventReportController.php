@@ -330,6 +330,7 @@ class PublicEventReportController extends Controller
 
                 $couponParticipants = $couponReportQuery
                     ->select([
+                        'participants.id',
                         'participants.name',
                         'participants.bib_number',
                         'participants.jersey_size',
@@ -370,6 +371,7 @@ class PublicEventReportController extends Controller
                             $bib = end($parts);
                         }
                         return [
+                            'id' => $cp->id,
                             'name' => $cp->name,
                             'bib' => $bib ?: '-',
                             'jersey_size' => $cp->jersey_size ?: '-',
