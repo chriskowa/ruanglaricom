@@ -397,6 +397,8 @@ Route::post('/reports/{event}/participants/{participant}', [App\Http\Controllers
 Route::get('/reports/{event}/export', [App\Http\Controllers\PublicEventReportController::class, 'exportParticipants'])->name('report.export');
 Route::get('/reports/{event}/export-xlsx', [App\Http\Controllers\PublicEventReportController::class, 'exportParticipantsXlsx'])->name('report.export.xlsx');
 Route::post('/reports/{event}/participants/{participant}/status', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipantStatus'])->name('report.participant.status');
+Route::get('/reports/{event}/doorprize-list', [App\Http\Controllers\PublicEventReportController::class, 'doorprizeList'])->name('report.doorprize-list');
+
 
 Route::get('/coach-ladder-program', function () {
     return view('coach.hub');

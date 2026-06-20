@@ -314,6 +314,20 @@ class PublicEventReportController extends Controller
                 if (! empty($filters['category_id'])) {
                     $couponReportQuery->where('participants.race_category_id', $filters['category_id']);
                 }
+                if (isset($filters['is_picked_up']) && $filters['is_picked_up'] !== '') {
+                    $couponReportQuery->where('participants.is_picked_up', $filters['is_picked_up'] == '1');
+                }
+                if (! empty($filters['jersey_size'])) {
+                    $jerseySizeFilter = $filters['jersey_size'];
+                    $matchSizes = [strtoupper($jerseySizeFilter)];
+                    if (in_array(strtoupper($jerseySizeFilter), ['2XL', 'XXL'])) {
+                        $matchSizes = ['2XL', 'XXL'];
+                    } elseif (in_array(strtoupper($jerseySizeFilter), ['3XL', 'XXXL'])) {
+                        $matchSizes = ['3XL', 'XXXL'];
+                    }
+                    $couponReportQuery->whereNotNull('participants.jersey_size')
+                        ->whereIn(\DB::raw('UPPER(TRIM(participants.jersey_size))'), $matchSizes);
+                }
                 if (! empty($filters['gender'])) {
                     $couponReportQuery->where('participants.gender', $filters['gender']);
                 }
@@ -967,4 +981,39 @@ class PublicEventReportController extends Controller
 
         return $query;
     }
+
+    public function doorprizeList(Request $request, $event)
+    {
+        $sessionKey = 'report_access_' . $event;
+        if (! session($sessionKey)) {
+            abort(403, 'Unauthorized');
+        }
+
+        $eventModel = Event::query()->whereKey($event)->firstOrFail();
+        
+        $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($eventModel) {
+            $q->where('event_id', $eventModel->id)
+              ->where('payment_status', 'paid');
+        });
+
+        $this->applyParticipantFilters($query, $request, $eventModel);
+
+        $participants = $query->select(
+            'participants.id',
+            'participants.bib_number',
+            'participants.name',
+            'participants.phone',
+            'participants.address',
+            'participants.city',
+            'participants.province'
+        )
+        ->orderBy('participants.bib_number')
+        ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $participants
+        ]);
+    }
 }
+
