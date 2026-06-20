@@ -35,6 +35,12 @@
     #doorprizeModalCard:fullscreen .grid {
         height: calc(100vh - 8rem);
     }
+    #doorprizeModalCard:fullscreen #doorprizeHistorySidebar {
+        display: none !important;
+    }
+    #doorprizeModalCard:fullscreen .grid > div.lg\:col-span-2 {
+        grid-column: span 3 / span 3 !important;
+    }
     #doorprizeModalCard:fullscreen #doorprizeDrawBoard {
         flex: 1;
         justify-content: center;
