@@ -2769,6 +2769,8 @@
     window.togglePickupQuick = function(id, checkbox, runnerName) {
         const isPickedUp = checkbox.checked ? 1 : 0;
         const url = `{{ url('/eo/events/' . $event->id . '/participants') }}/${id}/status`;
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
         
         checkbox.disabled = true;
         
@@ -2776,7 +2778,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': getCsrf(),
+                'X-CSRF-TOKEN': csrf,
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
