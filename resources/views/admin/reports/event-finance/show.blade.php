@@ -56,7 +56,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                 <div class="text-xs font-mono text-slate-500 uppercase">Hak EO (Accrued)</div>
-                <div class="text-2xl font-black text-white mt-2">Rp {{ number_format((float) $paid['eo_amount'], 0, ',', '.') }}</div>
+                <div class="text-2xl font-black text-white mt-2">{{ $paid['eo_amount'] < 0 ? '- Rp ' . number_format(abs($paid['eo_amount']), 0, ',', '.') : 'Rp ' . number_format($paid['eo_amount'], 0, ',', '.') }}</div>
                 <div class="text-xs text-slate-400 mt-2">{{ number_format($paid['participants_count']) }} peserta · {{ number_format($paid['tx_count']) }} transaksi</div>
             </div>
             <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
@@ -66,7 +66,7 @@
             </div>
             <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                 <div class="text-xs font-mono text-slate-500 uppercase">Sisa Harus Dibayar</div>
-                <div class="text-2xl font-black text-white mt-2">Rp {{ number_format((float) $remaining_amount, 0, ',', '.') }}</div>
+                <div class="text-2xl font-black text-white mt-2">{{ $remaining_amount < 0 ? '- Rp ' . number_format(abs($remaining_amount), 0, ',', '.') : 'Rp ' . number_format($remaining_amount, 0, ',', '.') }}</div>
                 <div class="text-xs text-slate-400 mt-2">Platform fee: Rp {{ number_format((float) $paid['admin_fee'], 0, ',', '.') }}</div>
             </div>
         </div>
@@ -213,12 +213,18 @@
                                     <td class="px-6 py-4">
                                         <div class="text-sm text-white font-bold">{{ $p->method ?: '-' }}</div>
                                         <div class="text-xs text-slate-500 mt-1">{{ $p->participants_count ? number_format($p->participants_count) . ' peserta' : '' }}</div>
+                                        @if($p->notes)
+                                            <div class="text-xs text-slate-400 mt-1 italic border-l-2 border-slate-600 pl-2 bg-slate-900/40 p-1.5 rounded-r">{{ $p->notes }}</div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="text-sm text-white font-black">Rp {{ number_format((float) $p->amount, 0, ',', '.') }}</div>
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         @if($p->status === 'completed')
+                                            <button type="button" onclick="toggleEdit({{ $p->id }})" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest border border-slate-700 transition-colors mr-2">
+                                                Edit
+                                            </button>
                                             <form method="POST" action="{{ route('admin.reports.event-finance.payouts.destroy', $p) }}" onsubmit="return confirm('Batalkan payout ini?');" class="inline">
                                                 @csrf
                                                 @method('DELETE')
@@ -231,6 +237,42 @@
                                         @endif
                                     </td>
                                 </tr>
+                                @if($p->status === 'completed')
+                                    <tr id="edit-row-{{ $p->id }}" class="hidden bg-slate-900/80 border-b border-slate-700/50">
+                                        <td colspan="4" class="px-6 py-4">
+                                            <form method="POST" action="{{ route('admin.reports.event-finance.payouts.update', $p) }}" class="space-y-4">
+                                                @csrf
+                                                @method('PUT')
+                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                    <div>
+                                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tanggal</label>
+                                                        <input type="datetime-local" name="paid_at" value="{{ $p->paid_at ? $p->paid_at->format('Y-m-d\TH:i') : '' }}" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:border-red-500 focus:outline-none">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metode</label>
+                                                        <input type="text" name="method" value="{{ $p->method }}" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:border-red-500 focus:outline-none">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nominal (Rp)</label>
+                                                        <input type="number" step="0.01" name="amount" value="{{ $p->amount }}" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:border-red-500 focus:outline-none">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Peserta (Opsional)</label>
+                                                        <input type="number" name="participants_count" value="{{ $p->participants_count }}" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:border-red-500 focus:outline-none">
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Catatan</label>
+                                                    <textarea name="notes" rows="2" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:border-red-500 focus:outline-none">{{ $p->notes }}</textarea>
+                                                </div>
+                                                <div class="flex justify-end gap-2">
+                                                    <button type="button" onclick="toggleEdit({{ $p->id }})" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black uppercase tracking-widest border border-slate-700">Batal</button>
+                                                    <button type="submit" class="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-black uppercase tracking-widest">Simpan</button>
+                                                </div>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endif
                             @empty
                                 <tr>
                                     <td colspan="4" class="px-6 py-10 text-center text-slate-500">Belum ada payout.</td>
@@ -270,7 +312,7 @@
                                 <td class="px-6 py-4 text-right text-sm text-slate-200">Rp {{ number_format((float) $r['total_original'], 0, ',', '.') }}</td>
                                 <td class="px-6 py-4 text-right text-sm text-slate-200">Rp {{ number_format((float) $r['discount_amount'], 0, ',', '.') }}</td>
                                 <td class="px-6 py-4 text-right text-sm text-slate-200">Rp {{ number_format((float) $r['admin_fee'], 0, ',', '.') }}</td>
-                                <td class="px-6 py-4 text-right text-sm text-white font-black">Rp {{ number_format((float) $r['eo_amount'], 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-white font-black">{{ $r['eo_amount'] < 0 ? '- Rp ' . number_format(abs($r['eo_amount']), 0, ',', '.') : 'Rp ' . number_format($r['eo_amount'], 0, ',', '.') }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -290,7 +332,7 @@
                             <td class="px-6 py-4 text-right text-sm">Rp {{ number_format((float) $totGross, 0, ',', '.') }}</td>
                             <td class="px-6 py-4 text-right text-sm text-yellow-400">Rp {{ number_format((float) $totDisc, 0, ',', '.') }}</td>
                             <td class="px-6 py-4 text-right text-sm">Rp {{ number_format((float) $totFee, 0, ',', '.') }}</td>
-                            <td class="px-6 py-4 text-right text-sm text-green-400 font-black">Rp {{ number_format((float) $totEo, 0, ',', '.') }}</td>
+                            <td class="px-6 py-4 text-right text-sm text-green-400 font-black">{{ $totEo < 0 ? '- Rp ' . number_format(abs($totEo), 0, ',', '.') : 'Rp ' . number_format($totEo, 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -323,7 +365,7 @@
                                 <td class="px-6 py-4 text-right text-sm text-slate-200">{{ number_format($r['participants_count']) }}</td>
                                 <td class="px-6 py-4 text-right text-sm text-slate-200">Rp {{ number_format((float) $r['discount_amount'], 0, ',', '.') }}</td>
                                 <td class="px-6 py-4 text-right text-sm text-slate-200">Rp {{ number_format((float) $r['admin_fee'], 0, ',', '.') }}</td>
-                                <td class="px-6 py-4 text-right text-sm text-white font-black">Rp {{ number_format((float) $r['eo_amount'], 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-white font-black">{{ $r['eo_amount'] < 0 ? '- Rp ' . number_format(abs($r['eo_amount']), 0, ',', '.') : 'Rp ' . number_format($r['eo_amount'], 0, ',', '.') }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -346,7 +388,7 @@
                                 <td class="px-6 py-4 text-right text-sm">{{ number_format($totalParticipants) }}</td>
                                 <td class="px-6 py-4 text-right text-sm text-yellow-400">Rp {{ number_format((float) $totalDiscount, 0, ',', '.') }}</td>
                                 <td class="px-6 py-4 text-right text-sm">Rp {{ number_format((float) $totalFee, 0, ',', '.') }}</td>
-                                <td class="px-6 py-4 text-right text-sm text-green-400 font-black">Rp {{ number_format((float) $totalEo, 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-green-400 font-black">{{ $totalEo < 0 ? '- Rp ' . number_format(abs($totalEo), 0, ',', '.') : 'Rp ' . number_format($totalEo, 0, ',', '.') }}</td>
                             </tr>
                         </tfoot>
                     @endif
@@ -354,5 +396,14 @@
             </div>
         </div>
     </div>
-</div>
+@push('scripts')
+<script>
+    function toggleEdit(id) {
+        const row = document.getElementById('edit-row-' + id);
+        if (row) {
+            row.classList.toggle('hidden');
+        }
+    }
+</script>
+@endpush
 @endsection

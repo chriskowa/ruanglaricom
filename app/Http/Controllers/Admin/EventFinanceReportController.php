@@ -85,7 +85,7 @@ class EventFinanceReportController extends Controller
             })
             ->count();
 
-        $accruedToEo = max(0, (float) $paidAgg->final_amount - (float) $paidAgg->admin_fee);
+        $accruedToEo = (float) $paidAgg->final_amount - (float) $paidAgg->admin_fee;
 
         $payouts = collect();
         $settled = 0.0;
@@ -96,7 +96,7 @@ class EventFinanceReportController extends Controller
                 ->get();
             $settled = (float) $payouts->where('status', 'completed')->sum('amount');
         }
-        $remaining = max(0, $accruedToEo - $settled);
+        $remaining = $accruedToEo - $settled;
 
         $couponTxAgg = Transaction::query()
             ->where('event_id', $event->id)
@@ -141,7 +141,7 @@ class EventFinanceReportController extends Controller
                 'discount_amount' => (float) $txRow->discount_amount,
                 'admin_fee' => $fee,
                 'final_amount' => $final,
-                'eo_amount' => max(0, $final - $fee),
+                'eo_amount' => $final - $fee,
             ];
         })->values()->all();
 
@@ -248,7 +248,7 @@ class EventFinanceReportController extends Controller
                 'discount_amount' => (float) $onlineAgg->discount_amount,
                 'admin_fee' => (float) $onlineAgg->admin_fee,
                 'final_amount' => (float) $onlineAgg->final_amount,
-                'eo_amount' => max(0, (float) $onlineAgg->final_amount - (float) $onlineAgg->admin_fee),
+                'eo_amount' => (float) $onlineAgg->final_amount - (float) $onlineAgg->admin_fee,
             ],
             'manual' => [
                 'name' => 'Input Manual (Admin/EO)',
@@ -258,7 +258,7 @@ class EventFinanceReportController extends Controller
                 'discount_amount' => (float) $manualAgg->discount_amount,
                 'admin_fee' => (float) $manualAgg->admin_fee,
                 'final_amount' => (float) $manualAgg->final_amount,
-                'eo_amount' => max(0, (float) $manualAgg->final_amount - (float) $manualAgg->admin_fee),
+                'eo_amount' => (float) $manualAgg->final_amount - (float) $manualAgg->admin_fee,
             ],
             'manual_csv' => [
                 'name' => 'Import CSV (Manual CSV)',
@@ -268,7 +268,7 @@ class EventFinanceReportController extends Controller
                 'discount_amount' => (float) $csvAgg->discount_amount,
                 'admin_fee' => (float) $csvAgg->admin_fee,
                 'final_amount' => (float) $csvAgg->final_amount,
-                'eo_amount' => max(0, (float) $csvAgg->final_amount - (float) $csvAgg->admin_fee),
+                'eo_amount' => (float) $csvAgg->final_amount - (float) $csvAgg->admin_fee,
             ],
         ];
 
@@ -343,5 +343,32 @@ class EventFinanceReportController extends Controller
         return redirect()
             ->route('admin.reports.event-finance.show', $payout->event_id)
             ->with('success', 'Payout dibatalkan.');
+    }
+
+    public function updatePayout(Request $request, EventPayout $payout)
+    {
+        if (! Schema::hasTable('event_payouts')) {
+            abort(503, 'event_payouts table not found. Please run migrations.');
+        }
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'participants_count' => 'nullable|integer|min:1|max:1000000',
+            'paid_at' => 'nullable|date',
+            'method' => 'nullable|string|max:50',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $payout->update([
+            'amount' => $validated['amount'],
+            'participants_count' => $validated['participants_count'] ?? null,
+            'paid_at' => $validated['paid_at'] ?? $payout->paid_at,
+            'method' => $validated['method'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('admin.reports.event-finance.show', $payout->event_id)
+            ->with('success', 'Payout berhasil diperbarui.');
     }
 }

@@ -121,7 +121,7 @@ class StoreManualParticipantAction
                     'total_original' => $amount,
                     'coupon_id' => $coupon?->id,
                     'discount_amount' => $discountAmount,
-                    'admin_fee' => 0,
+                    'admin_fee' => $event->platform_fee ?? 0,
                     'final_amount' => $finalAmount,
                     'payment_status' => 'paid',
                     'paid_at' => now(),

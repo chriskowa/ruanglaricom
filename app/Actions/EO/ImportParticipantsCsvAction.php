@@ -551,7 +551,7 @@ class ImportParticipantsCsvAction
                         'total_original' => $totalOriginal,
                         'coupon_id' => $coupon?->id,
                         'discount_amount' => (int) $discountAmount,
-                        'admin_fee' => 0,
+                        'admin_fee' => ($event->platform_fee ?? 0) * count($participantPayloads),
                         'final_amount' => $finalAmount,
                         'payment_status' => $paymentStatus,
                         'paid_at' => $paidAt,
