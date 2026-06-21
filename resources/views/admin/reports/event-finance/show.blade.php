@@ -274,6 +274,25 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    @if(count($coupon_rows) > 0)
+                        @php
+                            $totalTx = array_sum(array_column($coupon_rows, 'tx_count'));
+                            $totalParticipants = array_sum(array_column($coupon_rows, 'participants_count'));
+                            $totalDiscount = array_sum(array_column($coupon_rows, 'discount_amount'));
+                            $totalFee = array_sum(array_column($coupon_rows, 'admin_fee'));
+                            $totalEo = array_sum(array_column($coupon_rows, 'eo_amount'));
+                        @endphp
+                        <tfoot class="bg-slate-900/60 border-t border-slate-700">
+                            <tr class="font-bold text-white">
+                                <td class="px-6 py-4 text-xs font-black text-slate-300 uppercase">Total</td>
+                                <td class="px-6 py-4 text-right text-sm">{{ number_format($totalTx) }}</td>
+                                <td class="px-6 py-4 text-right text-sm">{{ number_format($totalParticipants) }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-yellow-400">Rp {{ number_format((float) $totalDiscount, 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-right text-sm">Rp {{ number_format((float) $totalFee, 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-green-400 font-black">Rp {{ number_format((float) $totalEo, 0, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </div>
