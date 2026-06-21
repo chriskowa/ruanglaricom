@@ -7,9 +7,9 @@
 
 @section('content')
 <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto" id="finance-report-capture">
         <div class="mb-8 relative z-10" data-aos="fade-up">
-            <nav class="flex mb-2" aria-label="Breadcrumb">
+            <nav class="flex mb-2" aria-label="Breadcrumb" data-html2canvas-ignore="true">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
                     <li class="inline-flex items-center">
                         <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center text-sm font-medium text-slate-400 hover:text-white">
@@ -39,7 +39,15 @@
                     </h1>
                     <div class="text-slate-400 text-sm mt-1">{{ $event->name }} · EO: {{ $event->user ? $event->user->name : '-' }}</div>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2" data-html2canvas-ignore="true">
+                    <a href="{{ route('admin.reports.event-finance.export-excel', $event) }}" class="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-white text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-1.5 shadow-lg shadow-green-500/20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Export Excel
+                    </a>
+                    <button type="button" onclick="exportReportAsImage()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-1.5 shadow-lg shadow-blue-500/20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Export Gambar
+                    </button>
                     <a href="{{ route('admin.events.edit', $event) }}" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-widest border border-slate-700 transition-colors">
                         Edit Event
                     </a>
@@ -150,7 +158,7 @@
         </div>
 
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden">
+            <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden" data-html2canvas-ignore="true">
                 <div class="px-6 py-4 border-b border-slate-700">
                     <div class="text-white font-black uppercase tracking-widest text-sm">Catat Payout</div>
                 </div>
@@ -200,7 +208,7 @@
                                 <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Tanggal</th>
                                 <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Info</th>
                                 <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Nominal</th>
-                                <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Aksi</th>
+                                <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider" data-html2canvas-ignore="true">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800">
@@ -220,7 +228,7 @@
                                     <td class="px-6 py-4 text-right">
                                         <div class="text-sm text-white font-black">Rp {{ number_format((float) $p->amount, 0, ',', '.') }}</div>
                                     </td>
-                                    <td class="px-6 py-4 text-right">
+                                    <td class="px-6 py-4 text-right" data-html2canvas-ignore="true">
                                         @if($p->status === 'completed')
                                             <button type="button" onclick="toggleEdit({{ $p->id }})" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest border border-slate-700 transition-colors mr-2">
                                                 Edit
@@ -238,7 +246,7 @@
                                     </td>
                                 </tr>
                                 @if($p->status === 'completed')
-                                    <tr id="edit-row-{{ $p->id }}" class="hidden bg-slate-900/80 border-b border-slate-700/50">
+                                    <tr id="edit-row-{{ $p->id }}" class="hidden bg-slate-900/80 border-b border-slate-700/50" data-html2canvas-ignore="true">
                                         <td colspan="4" class="px-6 py-4">
                                             <form method="POST" action="{{ route('admin.reports.event-finance.payouts.update', $p) }}" class="space-y-4">
                                                 @csrf
@@ -397,12 +405,49 @@
         </div>
     </div>
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
     function toggleEdit(id) {
         const row = document.getElementById('edit-row-' + id);
         if (row) {
             row.classList.toggle('hidden');
         }
+    }
+
+    function exportReportAsImage() {
+        const target = document.getElementById('finance-report-capture');
+        if (!target) return;
+
+        const btn = document.querySelector('button[onclick="exportReportAsImage()"]');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generating Image...
+        `;
+        btn.disabled = true;
+
+        html2canvas(target, {
+            backgroundColor: '#0b0f19',
+            scale: 2,
+            useCORS: true,
+            logging: false
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'finance_report_{{ $event->slug }}_' + new Date().toISOString().slice(0, 10) + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error('Html2canvas capture error:', err);
+            alert('Gagal membuat gambar laporan.');
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        });
     }
 </script>
 @endpush

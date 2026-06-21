@@ -41,7 +41,7 @@ class EventFinanceReportController extends Controller
         ]);
     }
 
-    public function show(Event $event)
+    private function calculateFinanceReport(Event $event)
     {
         $event->load('user');
 
@@ -190,7 +190,7 @@ class EventFinanceReportController extends Controller
             ->selectRaw('COALESCE(SUM(admin_fee), 0) as admin_fee')
             ->selectRaw('COALESCE(SUM(final_amount), 0) as final_amount')
             ->first();
-        
+
         $onlineParticipantsCount = Participant::query()
             ->whereHas('transaction', function ($q) use ($event, $paidStatuses) {
                 $q->where('event_id', $event->id)
@@ -276,8 +276,7 @@ class EventFinanceReportController extends Controller
             return $b['participants_count'] <=> $a['participants_count'];
         });
 
-        return view('admin.reports.event-finance.show', [
-            'event' => $event,
+        return [
             'paid' => [
                 'tx_count' => (int) $paidAgg->tx_count,
                 'participants_count' => (int) $paidParticipants,
@@ -299,7 +298,164 @@ class EventFinanceReportController extends Controller
             'coupon_rows' => $couponRows,
             'addons' => $addonsSummary,
             'registration_breakdown' => $registrationBreakdown,
-        ]);
+        ];
+    }
+
+    public function show(Event $event)
+    {
+        $data = $this->calculateFinanceReport($event);
+        return view('admin.reports.event-finance.show', array_merge(['event' => $event], $data));
+    }
+
+    public function exportExcel(Event $event)
+    {
+        $data = $this->calculateFinanceReport($event);
+        $filename = 'finance_report_' . $event->slug . '_' . date('Y-m-d') . '.xlsx';
+
+        return response()->streamDownload(function () use ($event, $data) {
+            $writer = new \OpenSpout\Writer\XLSX\Writer;
+            $writer->openToFile('php://output');
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'LAPORAN KEUANGAN EVENT: ' . strtoupper($event->name)
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Penyelenggara / EO: ' . ($event->user ? $event->user->name : '-')
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Tanggal Laporan: ' . date('d M Y H:i')
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['RINGKASAN UTAMA']));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Parameter', 'Nilai'
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Hak EO (Accrued)', $data['paid']['eo_amount']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Sudah Dibayar (Payout)', $data['settled_amount']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Sisa Harus Dibayar', $data['remaining_amount']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Total Transaksi Lunas', $data['paid']['tx_count']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Total Peserta Lunas', $data['paid']['participants_count']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['DETAIL TRANSAKSI LUNAS']));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Item', 'Nominal'
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Gross Revenue (Termasuk Addons)', $data['paid']['total_original']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Total Addons', $data['addons']['total_amount']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Net Tiket (Tanpa Addons)', $data['paid']['total_original'] - $data['addons']['total_amount']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Diskon Kupon', $data['paid']['discount_amount']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Platform Fee', $data['paid']['admin_fee']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Unique Code', $data['paid']['unique_code']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Total Dibayar Peserta', $data['paid']['final_amount']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['TRANSAKSI PENDING']));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Jumlah Transaksi Pending', $data['pending']['tx_count']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Jumlah Peserta Pending', $data['pending']['participants_count']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Nominal Pending', $data['pending']['final_amount']
+            ]));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['BREAKDOWN ADDONS (LUNAS)']));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Nama Addon', 'Terjual (Qty)', 'Total Nominal'
+            ]));
+            foreach ($data['addons']['by_name'] as $name => $info) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                    $name, $info['count'], $info['total_amount']
+                ]));
+            }
+            if (empty($data['addons']['by_name'])) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['-', '-', 0]));
+            }
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['BREAKDOWN TIPE PENDAFTARAN (LUNAS)']));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Tipe Pendaftaran', 'Transaksi', 'Peserta', 'Gross', 'Diskon', 'Platform Fee', 'Hak EO'
+            ]));
+            foreach ($data['registration_breakdown'] as $r) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                    $r['name'],
+                    $r['tx_count'],
+                    $r['participants_count'],
+                    $r['total_original'],
+                    $r['discount_amount'],
+                    $r['admin_fee'],
+                    $r['eo_amount']
+                ]));
+            }
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['BREAKDOWN KUPON (LUNAS)']));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Kode Kupon', 'Transaksi', 'Peserta', 'Diskon', 'Fee', 'Hak EO'
+            ]));
+            foreach ($data['coupon_rows'] as $r) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                    $r['coupon_code'],
+                    $r['tx_count'],
+                    $r['participants_count'],
+                    $r['discount_amount'],
+                    $r['admin_fee'],
+                    $r['eo_amount']
+                ]));
+            }
+            if (empty($data['coupon_rows'])) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['-', 0, 0, 0, 0, 0]));
+            }
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([]));
+
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['RIWAYAT PAYOUT']));
+            $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                'Tanggal Payout', 'Metode', 'Peserta', 'Catatan', 'Nominal'
+            ]));
+            foreach ($data['payouts'] as $p) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues([
+                    $p->paid_at ? $p->paid_at->format('Y-m-d H:i') : ($p->created_at ? $p->created_at->format('Y-m-d H:i') : '-'),
+                    $p->method ?: '-',
+                    $p->participants_count ?: '-',
+                    $p->notes ?: '-',
+                    $p->amount
+                ]));
+            }
+            if ($data['payouts']->isEmpty()) {
+                $writer->addRow(\OpenSpout\Common\Entity\Row::fromValues(['-', '-', '-', '-', 0]));
+            }
+
+            $writer->close();
+        }, $filename);
     }
 
     public function storePayout(Request $request, Event $event)

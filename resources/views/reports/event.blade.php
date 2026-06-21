@@ -390,11 +390,11 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
                         Doorprize
                     </button>
-                    <a id="export-csv-btn" href="#" onclick="this.href=getExportUrl('csv')" class="px-4 py-2 rounded-xl bg-green-600 text-white font-bold hover:bg-green-500 transition flex items-center gap-2">
+                    <a id="export-csv-btn" href="#" onclick="window.location.href=getExportUrl('csv'); return false;" class="px-4 py-2 rounded-xl bg-green-600 text-white font-bold hover:bg-green-500 transition flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         Export CSV
                     </a>
-                    <a id="export-xlsx-btn" href="#" onclick="this.href=getExportUrl('xlsx')" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition flex items-center gap-2">
+                    <a id="export-xlsx-btn" href="#" onclick="window.location.href=getExportUrl('xlsx'); return false;" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         Export XLSX
                     </a>

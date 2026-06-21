@@ -853,6 +853,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('reports/event-finance', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'index'])->name('reports.event-finance.index');
         Route::get('reports/event-finance/{event}', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'show'])->name('reports.event-finance.show');
+        Route::get('reports/event-finance/{event}/export-excel', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'exportExcel'])->name('reports.event-finance.export-excel');
         Route::post('reports/event-finance/{event}/payouts', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'storePayout'])->name('reports.event-finance.payouts.store');
         Route::delete('reports/event-finance/payouts/{payout}', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'destroyPayout'])->name('reports.event-finance.payouts.destroy');
         Route::put('reports/event-finance/payouts/{payout}', [App\Http\Controllers\Admin\EventFinanceReportController::class, 'updatePayout'])->name('reports.event-finance.payouts.update');
