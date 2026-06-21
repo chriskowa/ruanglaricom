@@ -145,6 +145,40 @@ class EventFinanceReportController extends Controller
             ];
         })->values()->all();
 
+        $addonsSummary = [
+            'total_amount' => 0.0,
+            'by_name' => [],
+        ];
+        Participant::query()
+            ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+            ->where('transactions.event_id', $event->id)
+            ->whereIn('transactions.payment_status', $paidStatuses)
+            ->select('participants.addons')
+            ->chunk(500, function ($rows) use (&$addonsSummary) {
+                foreach ($rows as $p) {
+                    $addons = is_array($p->addons) ? $p->addons : [];
+                    foreach ($addons as $a) {
+                        if (is_array($a)) {
+                            $price = (float) ($a['price'] ?? $a['value'] ?? 0);
+                            $name = (string) ($a['name'] ?? 'Unknown');
+                            $addonsSummary['total_amount'] += $price;
+                            if (! isset($addonsSummary['by_name'][$name])) {
+                                $addonsSummary['by_name'][$name] = [
+                                    'count' => 0,
+                                    'total_amount' => 0.0
+                                ];
+                            }
+                            $addonsSummary['by_name'][$name]['count']++;
+                            $addonsSummary['by_name'][$name]['total_amount'] += $price;
+                        }
+                    }
+                }
+            });
+
+        uasort($addonsSummary['by_name'], function ($a, $b) {
+            return $b['total_amount'] <=> $a['total_amount'];
+        });
+
         usort($couponRows, function ($a, $b) {
             return $b['participants_count'] <=> $a['participants_count'];
         });
@@ -170,6 +204,7 @@ class EventFinanceReportController extends Controller
             'settled_amount' => $settled,
             'remaining_amount' => $remaining,
             'coupon_rows' => $couponRows,
+            'addons' => $addonsSummary,
         ]);
     }
 

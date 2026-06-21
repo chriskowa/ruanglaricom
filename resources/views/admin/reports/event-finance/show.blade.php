@@ -69,15 +69,23 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-700">
                     <div class="text-white font-black uppercase tracking-widest text-sm">Ringkasan Lunas</div>
                 </div>
                 <div class="p-6 space-y-3 text-sm">
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-400">Ticket Gross</span>
+                        <span class="text-slate-400">Gross (Termasuk Addons)</span>
                         <span class="text-white font-bold">Rp {{ number_format((float) $paid['total_original'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span class="text-slate-400">Total Addons</span>
+                        <span class="text-yellow-400 font-bold">Rp {{ number_format((float) $addons['total_amount'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <span class="text-slate-400">Net Tiket (Tanpa Addons)</span>
+                        <span class="text-white font-bold">Rp {{ number_format((float) ($paid['total_original'] - $addons['total_amount']), 0, ',', '.') }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-slate-400">Diskon Kupon</span>
@@ -87,9 +95,9 @@
                         <span class="text-slate-400">Platform Fee</span>
                         <span class="text-white font-bold">Rp {{ number_format((float) $paid['admin_fee'], 0, ',', '.') }}</span>
                     </div>
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between border-t border-slate-800 pt-2">
                         <span class="text-slate-400">Dibayar Peserta</span>
-                        <span class="text-white font-bold">Rp {{ number_format((float) $paid['final_amount'], 0, ',', '.') }}</span>
+                        <span class="text-white font-black text-base">Rp {{ number_format((float) $paid['final_amount'], 0, ',', '.') }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-slate-400">Unique Code</span>
@@ -115,6 +123,26 @@
                         <span class="text-slate-400">Nominal Pending</span>
                         <span class="text-white font-bold">Rp {{ number_format((float) $pending['final_amount'], 0, ',', '.') }}</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-700">
+                    <div class="text-white font-black uppercase tracking-widest text-sm">Breakdown Addons (Lunas)</div>
+                </div>
+                <div class="p-6 space-y-3 text-sm max-h-[240px] overflow-y-auto">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                        <span class="text-slate-300 font-bold">Nama Addon</span>
+                        <span class="text-slate-300 font-bold">Total</span>
+                    </div>
+                    @forelse($addons['by_name'] as $name => $info)
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="text-slate-400 break-words leading-tight">{{ $name }} <span class="text-[10px] text-slate-500 font-mono">({{ $info['count'] }}x)</span></span>
+                            <span class="text-white font-bold whitespace-nowrap">Rp {{ number_format((float) $info['total_amount'], 0, ',', '.') }}</span>
+                        </div>
+                    @empty
+                        <div class="text-slate-500 italic text-center py-4">Belum ada addons terjual</div>
+                    @endforelse
                 </div>
             </div>
         </div>
