@@ -244,6 +244,61 @@
 
         <div class="mt-8 bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-700">
+                <div class="text-white font-black uppercase tracking-widest text-sm">Breakdown Tipe Pendaftaran (Lunas)</div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-800">
+                    <thead class="bg-slate-900/40">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Tipe Pendaftaran</th>
+                            <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Tx</th>
+                            <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Peserta</th>
+                            <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Gross</th>
+                            <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Diskon</th>
+                            <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Platform Fee</th>
+                            <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Hak EO</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        @foreach($registration_breakdown as $type => $r)
+                            <tr class="hover:bg-slate-900/40 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-bold text-white">{{ $r['name'] }}</div>
+                                </td>
+                                <td class="px-6 py-4 text-right text-sm text-slate-200">{{ number_format($r['tx_count']) }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-slate-200">{{ number_format($r['participants_count']) }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-slate-200">Rp {{ number_format((float) $r['total_original'], 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-slate-200">Rp {{ number_format((float) $r['discount_amount'], 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-slate-200">Rp {{ number_format((float) $r['admin_fee'], 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-right text-sm text-white font-black">Rp {{ number_format((float) $r['eo_amount'], 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    @php
+                        $totTx = array_sum(array_column($registration_breakdown, 'tx_count'));
+                        $totPart = array_sum(array_column($registration_breakdown, 'participants_count'));
+                        $totGross = array_sum(array_column($registration_breakdown, 'total_original'));
+                        $totDisc = array_sum(array_column($registration_breakdown, 'discount_amount'));
+                        $totFee = array_sum(array_column($registration_breakdown, 'admin_fee'));
+                        $totEo = array_sum(array_column($registration_breakdown, 'eo_amount'));
+                    @endphp
+                    <tfoot class="bg-slate-900/60 border-t border-slate-700">
+                        <tr class="font-bold text-white">
+                            <td class="px-6 py-4 text-xs font-black text-slate-300 uppercase">Total</td>
+                            <td class="px-6 py-4 text-right text-sm">{{ number_format($totTx) }}</td>
+                            <td class="px-6 py-4 text-right text-sm">{{ number_format($totPart) }}</td>
+                            <td class="px-6 py-4 text-right text-sm">Rp {{ number_format((float) $totGross, 0, ',', '.') }}</td>
+                            <td class="px-6 py-4 text-right text-sm text-yellow-400">Rp {{ number_format((float) $totDisc, 0, ',', '.') }}</td>
+                            <td class="px-6 py-4 text-right text-sm">Rp {{ number_format((float) $totFee, 0, ',', '.') }}</td>
+                            <td class="px-6 py-4 text-right text-sm text-green-400 font-black">Rp {{ number_format((float) $totEo, 0, ',', '.') }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-700">
                 <div class="text-white font-black uppercase tracking-widest text-sm">Breakdown Kupon (Lunas)</div>
             </div>
             <div class="overflow-x-auto">

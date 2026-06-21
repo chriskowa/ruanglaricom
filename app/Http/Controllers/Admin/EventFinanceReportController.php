@@ -179,6 +179,99 @@ class EventFinanceReportController extends Controller
             return $b['total_amount'] <=> $a['total_amount'];
         });
 
+        // 1. Online
+        $onlineAgg = Transaction::query()
+            ->where('event_id', $event->id)
+            ->whereIn('payment_status', $paidStatuses)
+            ->whereNotIn('payment_gateway', ['manual', 'manual_csv'])
+            ->selectRaw('COUNT(*) as tx_count')
+            ->selectRaw('COALESCE(SUM(total_original), 0) as total_original')
+            ->selectRaw('COALESCE(SUM(discount_amount), 0) as discount_amount')
+            ->selectRaw('COALESCE(SUM(admin_fee), 0) as admin_fee')
+            ->selectRaw('COALESCE(SUM(final_amount), 0) as final_amount')
+            ->first();
+        
+        $onlineParticipantsCount = Participant::query()
+            ->whereHas('transaction', function ($q) use ($event, $paidStatuses) {
+                $q->where('event_id', $event->id)
+                  ->whereIn('payment_status', $paidStatuses)
+                  ->whereNotIn('payment_gateway', ['manual', 'manual_csv']);
+            })
+            ->count();
+
+        // 2. Manual Input
+        $manualAgg = Transaction::query()
+            ->where('event_id', $event->id)
+            ->whereIn('payment_status', $paidStatuses)
+            ->where('payment_gateway', 'manual')
+            ->selectRaw('COUNT(*) as tx_count')
+            ->selectRaw('COALESCE(SUM(total_original), 0) as total_original')
+            ->selectRaw('COALESCE(SUM(discount_amount), 0) as discount_amount')
+            ->selectRaw('COALESCE(SUM(admin_fee), 0) as admin_fee')
+            ->selectRaw('COALESCE(SUM(final_amount), 0) as final_amount')
+            ->first();
+
+        $manualParticipantsCount = Participant::query()
+            ->whereHas('transaction', function ($q) use ($event, $paidStatuses) {
+                $q->where('event_id', $event->id)
+                  ->whereIn('payment_status', $paidStatuses)
+                  ->where('payment_gateway', 'manual');
+            })
+            ->count();
+
+        // 3. Manual CSV
+        $csvAgg = Transaction::query()
+            ->where('event_id', $event->id)
+            ->whereIn('payment_status', $paidStatuses)
+            ->where('payment_gateway', 'manual_csv')
+            ->selectRaw('COUNT(*) as tx_count')
+            ->selectRaw('COALESCE(SUM(total_original), 0) as total_original')
+            ->selectRaw('COALESCE(SUM(discount_amount), 0) as discount_amount')
+            ->selectRaw('COALESCE(SUM(admin_fee), 0) as admin_fee')
+            ->selectRaw('COALESCE(SUM(final_amount), 0) as final_amount')
+            ->first();
+
+        $csvParticipantsCount = Participant::query()
+            ->whereHas('transaction', function ($q) use ($event, $paidStatuses) {
+                $q->where('event_id', $event->id)
+                  ->whereIn('payment_status', $paidStatuses)
+                  ->where('payment_gateway', 'manual_csv');
+            })
+            ->count();
+
+        $registrationBreakdown = [
+            'online' => [
+                'name' => 'Online (Payment Gateway)',
+                'tx_count' => (int) $onlineAgg->tx_count,
+                'participants_count' => $onlineParticipantsCount,
+                'total_original' => (float) $onlineAgg->total_original,
+                'discount_amount' => (float) $onlineAgg->discount_amount,
+                'admin_fee' => (float) $onlineAgg->admin_fee,
+                'final_amount' => (float) $onlineAgg->final_amount,
+                'eo_amount' => max(0, (float) $onlineAgg->final_amount - (float) $onlineAgg->admin_fee),
+            ],
+            'manual' => [
+                'name' => 'Input Manual (Admin/EO)',
+                'tx_count' => (int) $manualAgg->tx_count,
+                'participants_count' => $manualParticipantsCount,
+                'total_original' => (float) $manualAgg->total_original,
+                'discount_amount' => (float) $manualAgg->discount_amount,
+                'admin_fee' => (float) $manualAgg->admin_fee,
+                'final_amount' => (float) $manualAgg->final_amount,
+                'eo_amount' => max(0, (float) $manualAgg->final_amount - (float) $manualAgg->admin_fee),
+            ],
+            'manual_csv' => [
+                'name' => 'Import CSV (Manual CSV)',
+                'tx_count' => (int) $csvAgg->tx_count,
+                'participants_count' => $csvParticipantsCount,
+                'total_original' => (float) $csvAgg->total_original,
+                'discount_amount' => (float) $csvAgg->discount_amount,
+                'admin_fee' => (float) $csvAgg->admin_fee,
+                'final_amount' => (float) $csvAgg->final_amount,
+                'eo_amount' => max(0, (float) $csvAgg->final_amount - (float) $csvAgg->admin_fee),
+            ],
+        ];
+
         usort($couponRows, function ($a, $b) {
             return $b['participants_count'] <=> $a['participants_count'];
         });
@@ -205,6 +298,7 @@ class EventFinanceReportController extends Controller
             'remaining_amount' => $remaining,
             'coupon_rows' => $couponRows,
             'addons' => $addonsSummary,
+            'registration_breakdown' => $registrationBreakdown,
         ]);
     }
 
