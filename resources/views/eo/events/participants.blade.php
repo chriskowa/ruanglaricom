@@ -352,6 +352,17 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Gateway / Source</label>
+                    <select name="payment_gateway" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
+                        <option value="">All Gateways</option>
+                        <option value="midtrans" {{ request('payment_gateway') == 'midtrans' ? 'selected' : '' }}>Midtrans</option>
+                        <option value="moota" {{ request('payment_gateway') == 'moota' ? 'selected' : '' }}>Moota</option>
+                        <option value="cod" {{ request('payment_gateway') == 'cod' ? 'selected' : '' }}>COD</option>
+                        <option value="manual" {{ request('payment_gateway') == 'manual' ? 'selected' : '' }}>Input Manual</option>
+                        <option value="manual_csv" {{ request('payment_gateway') == 'manual_csv' ? 'selected' : '' }}>Manual CSV</option>
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Pickup Status</label>
                     <select name="is_picked_up" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                         <option value="">All Status</option>
@@ -478,6 +489,7 @@
                 </select>
                 <span class="text-slate-400">per page</span>
                 <input type="hidden" name="payment_status" value="{{ request('payment_status') }}">
+                <input type="hidden" name="payment_gateway" value="{{ request('payment_gateway') }}">
                 <input type="hidden" name="is_picked_up" value="{{ request('is_picked_up') }}">
                 <input type="hidden" name="gender" value="{{ request('gender') }}">
                 <input type="hidden" name="category_id" value="{{ request('category_id') }}">

@@ -836,6 +836,13 @@ class EventController extends Controller
             });
         }
 
+        // Filter by payment gateway / registration source
+        if (request()->has('payment_gateway') && request()->payment_gateway) {
+            $query->whereHas('transaction', function ($q) {
+                $q->where('payment_gateway', request()->payment_gateway);
+            });
+        }
+
         // Filter by picked up status
         if (request()->has('is_picked_up') && request()->is_picked_up !== '') {
             $query->where('is_picked_up', request()->is_picked_up == '1');
@@ -1204,6 +1211,13 @@ class EventController extends Controller
             $status = $request->query('payment_status');
             $query->whereHas('transaction', function ($q) use ($status) {
                 $q->where('payment_status', $status);
+            });
+        }
+
+        if ($request->filled('payment_gateway')) {
+            $gateway = $request->query('payment_gateway');
+            $query->whereHas('transaction', function ($q) use ($gateway) {
+                $q->where('payment_gateway', $gateway);
             });
         }
 
@@ -1905,6 +1919,12 @@ class EventController extends Controller
             });
         }
 
+        if (request()->has('payment_gateway') && request()->payment_gateway) {
+            $query->whereHas('transaction', function ($q) {
+                $q->where('payment_gateway', request()->payment_gateway);
+            });
+        }
+
         if (request()->has('is_picked_up') && request()->is_picked_up !== '') {
             $query->where('is_picked_up', request()->is_picked_up == '1');
         }
@@ -2089,6 +2109,12 @@ class EventController extends Controller
         if (request()->has('payment_status') && request()->payment_status) {
             $query->whereHas('transaction', function ($q) {
                 $q->where('payment_status', request()->payment_status);
+            });
+        }
+
+        if (request()->has('payment_gateway') && request()->payment_gateway) {
+            $query->whereHas('transaction', function ($q) {
+                $q->where('payment_gateway', request()->payment_gateway);
             });
         }
 

@@ -305,4 +305,94 @@ class ParticipantsExportAndApiTest extends TestCase
         $this->assertStringContainsString('Adult Runner', $content);
         $this->assertStringNotContainsString('Young Runner', $content);
     }
+
+    public function test_eo_participants_filters_by_payment_gateway(): void
+    {
+        $eo = User::factory()->create(['role' => 'eo']);
+        $event = Event::factory()->create(['user_id' => $eo->id]);
+
+        $category = RaceCategory::create([
+            'event_id' => $event->id,
+            'name' => '10K',
+            'distance_km' => 10,
+            'code' => '10K',
+            'price_regular' => 100000,
+            'reg_start_at' => now()->subDay(),
+            'reg_end_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $txManual = Transaction::create([
+            'event_id' => $event->id,
+            'user_id' => $eo->id,
+            'pic_data' => [],
+            'total_original' => 100000,
+            'discount_amount' => 0,
+            'admin_fee' => 0,
+            'final_amount' => 100000,
+            'payment_status' => 'paid',
+            'payment_gateway' => 'manual',
+            'unique_code' => 0,
+            'paid_at' => now(),
+        ]);
+
+        $txMidtrans = Transaction::create([
+            'event_id' => $event->id,
+            'user_id' => $eo->id,
+            'pic_data' => [],
+            'total_original' => 100000,
+            'discount_amount' => 0,
+            'admin_fee' => 0,
+            'final_amount' => 100000,
+            'payment_status' => 'paid',
+            'payment_gateway' => 'midtrans',
+            'unique_code' => 0,
+            'paid_at' => now(),
+        ]);
+
+        Participant::create([
+            'transaction_id' => $txManual->id,
+            'race_category_id' => $category->id,
+            'name' => 'Runner Manual',
+            'gender' => 'male',
+            'email' => 'manual@example.com',
+            'phone' => '081234567890',
+            'id_card' => '1234',
+            'status' => 'pending',
+            'is_picked_up' => false,
+        ]);
+
+        Participant::create([
+            'transaction_id' => $txMidtrans->id,
+            'race_category_id' => $category->id,
+            'name' => 'Runner Midtrans',
+            'gender' => 'male',
+            'email' => 'midtrans@example.com',
+            'phone' => '081234567891',
+            'id_card' => '12345',
+            'status' => 'pending',
+            'is_picked_up' => false,
+        ]);
+
+        // Test API filter: manual
+        $response = $this->actingAs($eo)->getJson(route('eo.events.participants', $event).'?payment_gateway=manual&per_page=50');
+        $response->assertOk();
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals('Runner Manual', $data[0]['name']);
+
+        // Test API filter: midtrans
+        $response = $this->actingAs($eo)->getJson(route('eo.events.participants', $event).'?payment_gateway=midtrans&per_page=50');
+        $response->assertOk();
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals('Runner Midtrans', $data[0]['name']);
+
+        // Test CSV Export filter: manual
+        $response = $this->actingAs($eo)->get(route('eo.events.participants.export', $event).'?payment_gateway=manual');
+        $response->assertOk();
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('Runner Manual', $content);
+        $this->assertStringNotContainsString('Runner Midtrans', $content);
+    }
 }
