@@ -72,7 +72,18 @@
                         {{ substr($enrollment->runner->name, 0, 1) }}
                     </div>
                     <div>
-                        <h1 class="text-3xl font-black text-white italic tracking-tighter leading-none">{{ $enrollment->runner->name }}</h1>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h1 class="text-3xl font-black text-white italic tracking-tighter leading-none">@{{ trainingProfile.name }}</h1>
+                            <!-- Strava Connected indicator and sync button -->
+                            <div v-if="trainingProfile.strava_connected" class="flex items-center gap-1.5 bg-[#FC4C02]/10 border border-[#FC4C02]/30 px-2.5 py-1 rounded-full text-[10px] font-black text-[#FC4C02] transition-all">
+                                <svg role="img" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+                                <span>STRAVA CONNECTED</span>
+                                <button type="button" @click="syncStrava" :disabled="loading" class="ml-1 px-2.5 py-0.5 rounded-lg bg-[#FC4C02] text-white hover:bg-[#e34402] transition font-bold disabled:opacity-50 text-[9px] flex items-center gap-1 shadow">
+                                    <span v-if="loading">Syncing...</span>
+                                    <span v-else>Sync Now</span>
+                                </button>
+                            </div>
+                        </div>
                         <p class="text-neon font-mono text-sm tracking-widest uppercase mt-1">{{ $enrollment->program->title }}</p>
                     </div>
                 </div>
@@ -1222,6 +1233,9 @@ createApp({
         const selectedSession = ref(null);
         const loading = ref(false);
         const trainingProfile = reactive(@json($trainingProfile) || {});
+        if (!trainingProfile.name) {
+            trainingProfile.name = @json($enrollment->runner->name);
+        }
         const profileTab = ref('training');
         const feedbackForm = reactive({
             coach_rating: 0,
@@ -2727,6 +2741,29 @@ createApp({
             }
         };
 
+        const syncStrava = async () => {
+            loading.value = true;
+            try {
+                const res = await fetch(`{{ route('coach.athletes.sync-strava', $enrollment->id) }}`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    if (calendar) {
+                        calendar.refetchEvents();
+                    }
+                } else {
+                    alert(data.message || "Gagal sinkronisasi.");
+                }
+            } catch (e) {
+                alert("Terjadi kesalahan saat sinkronisasi.");
+            } finally {
+                loading.value = false;
+            }
+        };
+
         const generateWeeklyReport = async () => {
             weeklyReportLoading.value = true;
             try {
@@ -2812,7 +2849,7 @@ createApp({
             chatContainer, chatState, toggleChatDrawer, loadChatMessages, sendChatMessage, formatChatTime,
             paceComplianceList, healthSummary,
             // Weekly Reports
-            nudgeStrava, generateWeeklyReport, publishWeeklyReport, selectWeeklyReport, formatDateShort,
+            nudgeStrava, syncStrava, generateWeeklyReport, publishWeeklyReport, selectWeeklyReport, formatDateShort,
             weeklyReportLoading, weeklyReportPublishing, weeklyReportsList, weeklyReportForm
         };
     }

@@ -161,6 +161,12 @@
                                     <span>Workout Library</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('coach.athletes.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('coach.athletes.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-users"></i></span>
+                                    <span>Manage Athlete</span>
+                                </a>
+                            </li>
                         @elseif(auth()->user()->isRunner())
                             <li>
                                 <a href="{{ route('runner.dashboard') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.dashboard') ? $activeClass : $inactiveClass }}">

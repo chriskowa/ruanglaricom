@@ -50,6 +50,10 @@
                         <i class="flaticon-381-layer-1"></i>
                         <span class="nav-text">Workout Library</span>
                     </a></li>
+                    <li><a class="ai-icon" href="{{ route('coach.athletes.index') }}" aria-expanded="false">
+                        <i class="flaticon-381-user-9"></i>
+                        <span class="nav-text">Manage Athlete</span>
+                    </a></li>
                 @elseif(auth()->user()->isRunner())
                     <li class="menu-title">Main</li>
                     <li><a class="ai-icon" href="{{ route('runner.dashboard') }}" aria-expanded="false">

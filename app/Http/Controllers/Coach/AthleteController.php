@@ -774,6 +774,296 @@ class AthleteController extends Controller
         ]);
     }
 
+    public function syncStrava(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $runner = $enrollment->runner;
+        if (! $runner->strava_access_token || ! $runner->strava_refresh_token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun Strava atlet belum tersambung.',
+            ], 422);
+        }
+
+        $config = \App\Models\Admin\StravaConfig::first();
+        $clientId = $config->client_id ?? env('STRAVA_CLIENT_ID');
+        $clientSecret = $config->client_secret ?? env('STRAVA_CLIENT_SECRET');
+        if (! $clientId || ! $clientSecret) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Strava belum dikonfigurasi oleh admin.',
+            ], 500);
+        }
+
+        try {
+            $accessToken = $runner->strava_access_token;
+            if ($runner->strava_expires_at && Carbon::parse($runner->strava_expires_at)->lte(now()->addMinute())) {
+                $refresh = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
+                    'grant_type' => 'refresh_token',
+                    'refresh_token' => $runner->strava_refresh_token,
+                ]);
+
+                if (! $refresh->successful()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal refresh token Strava atlet.',
+                    ], 401);
+                }
+
+                $tokenData = $refresh->json();
+                $accessToken = data_get($tokenData, 'access_token');
+
+                $runner->update([
+                    'strava_access_token' => $accessToken,
+                    'strava_refresh_token' => data_get($tokenData, 'refresh_token', $runner->strava_refresh_token),
+                    'strava_expires_at' => now()->addSeconds((int) data_get($tokenData, 'expires_in', 0)),
+                ]);
+            }
+
+            $after = StravaActivity::where('user_id', $runner->id)->max('start_date');
+            $afterEpoch = $after ? Carbon::parse($after)->subHours(6)->timestamp : now()->subDays(45)->timestamp;
+
+            $all = [];
+            for ($page = 1; $page <= 5; $page++) {
+                $res = \Illuminate\Support\Facades\Http::withoutVerifying()
+                    ->withToken($accessToken)
+                    ->get('https://www.strava.com/api/v3/athlete/activities', [
+                        'after' => $afterEpoch,
+                        'per_page' => 50,
+                        'page' => $page,
+                    ]);
+
+                if (! $res->successful()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal mengambil aktivitas Strava.',
+                    ], 502);
+                }
+
+                $items = $res->json();
+                if (! is_array($items) || empty($items)) {
+                    break;
+                }
+
+                $all = array_merge($all, $items);
+                if (count($items) < 50) {
+                    break;
+                }
+            }
+
+            $uniqueById = [];
+            foreach ($all as $row) {
+                $id = data_get($row, 'id');
+                if (is_numeric($id) && (string) $id !== '0') {
+                    $uniqueById[(string) $id] = $row;
+                }
+            }
+            $all = array_values($uniqueById);
+
+            $imported = 0;
+            $linked = 0;
+            $rangeStart = null;
+            $rangeEnd = null;
+            $warnings = [];
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($runner, $all, &$imported, &$linked, &$rangeStart, &$rangeEnd, &$warnings) {
+                foreach ($all as $a) {
+                    $activityId = data_get($a, 'id');
+                    if (! is_numeric($activityId) || (string) $activityId === '0') {
+                        continue;
+                    }
+                    $activityId = (string) $activityId;
+
+                    $startDate = data_get($a, 'start_date_local') ?: data_get($a, 'start_date');
+                    $start = null;
+                    if ($startDate) {
+                        try {
+                            $start = Carbon::parse($startDate)->setTimezone(config('app.timezone'));
+                        } catch (\Throwable $e) {
+                            $warnings[] = 'Aktivitas '.$activityId.' punya start_date tidak valid, dilewati.';
+                            $start = null;
+                        }
+                    }
+                    if ($start) {
+                        $rangeStart = $rangeStart ? min($rangeStart, $start) : $start;
+                        $rangeEnd = $rangeEnd ? max($rangeEnd, $start) : $start;
+                    }
+
+                    $payload = [
+                        'user_id' => $runner->id,
+                        'strava_activity_id' => $activityId,
+                        'name' => data_get($a, 'name'),
+                        'type' => data_get($a, 'type'),
+                        'start_date' => $start,
+                        'distance_m' => (int) round((float) data_get($a, 'distance', 0)),
+                        'moving_time_s' => (int) data_get($a, 'moving_time', 0),
+                        'elapsed_time_s' => (int) data_get($a, 'elapsed_time', 0),
+                        'average_speed' => data_get($a, 'average_speed'),
+                        'total_elevation_gain' => data_get($a, 'total_elevation_gain'),
+                        'raw' => $a,
+                    ];
+
+                    try {
+                        $row = StravaActivity::query()->where('strava_activity_id', $activityId)->first();
+                        if ($row) {
+                            $row->update($payload);
+                        } else {
+                            StravaActivity::create($payload);
+                            $imported++;
+                        }
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        $dup = (int) ($e->errorInfo[1] ?? 0) === 1062;
+                        if (! $dup) {
+                            throw $e;
+                        }
+                        $row = StravaActivity::query()->where('strava_activity_id', $activityId)->first();
+                        if ($row) {
+                            $row->update($payload);
+                        }
+                    }
+                }
+
+                if (! $rangeStart || ! $rangeEnd) {
+                    return;
+                }
+
+                $rangeStartDate = Carbon::parse($rangeStart)->startOfDay();
+                $rangeEndDate = Carbon::parse($rangeEnd)->endOfDay();
+
+                $activitiesByDate = StravaActivity::query()
+                    ->where('user_id', $runner->id)
+                    ->whereBetween('start_date', [$rangeStartDate, $rangeEndDate])
+                    ->get()
+                    ->filter(function ($act) {
+                        $t = strtolower((string) $act->type);
+
+                        return in_array($t, ['run', 'virtualrun', 'trailrun', 'treadmill']);
+                    })
+                    ->groupBy(fn ($act) => $act->local_start_date?->format('Y-m-d'))
+                    ->map(function ($group) {
+                        return $group->sortByDesc('distance_m')->first();
+                    });
+
+                if ($activitiesByDate->isEmpty()) {
+                    return;
+                }
+
+                $enrollments = ProgramEnrollment::where('runner_id', $runner->id)
+                    ->where('status', 'active')
+                    ->with('program')
+                    ->get();
+
+                foreach ($enrollments as $enrollment) {
+                    $program = $enrollment->program;
+                    if (! $program || ! $enrollment->start_date) {
+                        continue;
+                    }
+
+                    $sessions = data_get($program->program_json, 'sessions', []);
+                    if (! is_array($sessions) || empty($sessions)) {
+                        continue;
+                    }
+
+                    $trackings = ProgramSessionTracking::query()
+                        ->where('enrollment_id', $enrollment->id)
+                        ->get()
+                        ->keyBy('session_day');
+
+                    try {
+                        $startBase = Carbon::parse($enrollment->start_date);
+                    } catch (\Throwable $e) {
+                        continue;
+                    }
+                    $seenDays = [];
+                    foreach ($sessions as $session) {
+                        $day = (int) data_get($session, 'day', 0);
+                        if ($day <= 0) {
+                            continue;
+                        }
+                        if (isset($seenDays[$day])) {
+                            continue;
+                        }
+                        $seenDays[$day] = true;
+
+                        $date = $startBase->copy()->addDays($day - 1);
+                        $tracking = $trackings->get($day);
+                        if ($tracking && $tracking->rescheduled_date) {
+                            try {
+                                $date = Carbon::parse($tracking->rescheduled_date);
+                            } catch (\Throwable $e) {
+                            }
+                        }
+
+                        $key = $date->format('Y-m-d');
+                        $act = $activitiesByDate->get($key);
+                        if (! $act) {
+                            continue;
+                        }
+
+                        if (! $tracking) {
+                            try {
+                                $tracking = ProgramSessionTracking::firstOrCreate([
+                                    'enrollment_id' => $enrollment->id,
+                                    'session_day' => $day,
+                                ], [
+                                    'status' => 'pending',
+                                ]);
+                            } catch (\Illuminate\Database\QueryException $e) {
+                                $dup = (int) ($e->errorInfo[1] ?? 0) === 1062;
+                                if (! $dup) {
+                                    throw $e;
+                                }
+                                $tracking = ProgramSessionTracking::query()
+                                    ->where('enrollment_id', $enrollment->id)
+                                    ->where('session_day', $day)
+                                    ->first();
+                            }
+                            if ($tracking) {
+                                $trackings->put($day, $tracking);
+                            }
+                        }
+
+                        if (! $tracking) {
+                            continue;
+                        }
+                        if ($tracking->strava_link) {
+                            continue;
+                        }
+
+                        $newStatus = in_array($tracking->status, ['pending', 'started', null], true) ? 'completed' : $tracking->status;
+                        $tracking->update([
+                            'strava_link' => $act->strava_url,
+                            'notes' => $tracking->notes ?: 'Auto-linked dari Strava sync',
+                            'status' => $newStatus,
+                            'completed_at' => $tracking->completed_at ?: ($act->local_start_date ?: $act->start_date),
+                        ]);
+
+                        $linked++;
+                    }
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Aktivitas Strava berhasil disinkronkan!',
+                'imported' => $imported,
+                'linked_sessions' => $linked,
+                'warnings' => $warnings,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function generateWeeklyReport(Request $request, $enrollmentId)
     {
         $enrollment = ProgramEnrollment::with(['program', 'runner'])->findOrFail($enrollmentId);
