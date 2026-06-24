@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .rl-custom-icon-btn.active {
-            background-color: rgba(204, 255, 0, 0.15) !important;
-            border-color: #ccff00 !important;
-            box-shadow: 0 0 10px rgba(204, 255, 0, 0.25) !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            border-color: #ffffff !important;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.1) !important;
         }
         .leaflet-control{display: none;}
         #rl-route-map { height: calc(100vh - 190px); min-height: 520px; }
@@ -93,14 +93,14 @@
                         <div class="mt-4 space-y-3">
                             <div>
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Rute</label>
-                                <input id="rl-route-name" type="text" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" placeholder="Contoh: Long Run Minggu Pagi">
+                                <input id="rl-route-name" type="text" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500" placeholder="Contoh: Long Run Minggu Pagi">
                             </div>
 
                             <div>
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Lokasi</label>
                                 <div class="mt-1 relative group">
-                                    <input id="rl-search-q" type="text" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50 transition" placeholder="Ketik kota / landmark...">
-                                    <button id="rl-search-btn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-neon hover:bg-slate-800 transition">
+                                    <input id="rl-search-q" type="text" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-4 pr-12 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 transition" placeholder="Ketik kota / landmark...">
+                                    <button id="rl-search-btn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
                                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                     </button>
                                 </div>
@@ -111,13 +111,13 @@
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Pace</label>
                             <div class="mt-1 flex items-center gap-2">
             <input id="rl-pace-min" inputmode="numeric" type="number" min="0" 
-                class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" 
+                class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500" 
                 value="6" placeholder="00">
             
             <span class="text-slate-500 font-bold">:</span>
             
             <input id="rl-pace-sec" inputmode="numeric" type="number" min="0" max="59" 
-                class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50" 
+                class="w-20 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-3 text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500" 
                 value="0" placeholder="00">
             
             <span class="text-xs text-slate-500 font-bold whitespace-nowrap">/km</span>
@@ -125,8 +125,14 @@
                             </div>
 
                             <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Jam Start Aktivitas</label>
+                                <input id="rl-start-time" type="datetime-local" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500">
+                                <div id="rl-start-time-error" class="text-xs text-red-500 mt-1.5 hidden"></div>
+                            </div>
+
+                            <div>
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mode</label>
-                                <select id="rl-mode" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-neon/30 focus:border-neon/50">
+                                <select id="rl-mode" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500">
                                     <option value="tap">Tap titik di peta</option>
                                     <option value="freehand">Freehand (beta)</option>
                                 </select>
@@ -134,11 +140,11 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
-                                    <input id="rl-follow-road" type="checkbox" class="accent-neon" checked>
+                                    <input id="rl-follow-road" type="checkbox" class="accent-white" checked>
                                     Ikuti jalan (OSRM)
                                 </label>
                                 <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
-                                    <input id="rl-show-directions" type="checkbox" class="accent-neon" checked>
+                                    <input id="rl-show-directions" type="checkbox" class="accent-white" checked>
                                     Tampilkan arah rute
                                 </label>
                             </div>
@@ -148,27 +154,27 @@
                                 <div class="text-xs font-black tracking-wider text-slate-200 uppercase">Tambah Marker Rute</div>
                                 <div class="mt-2 text-xs text-slate-400 leading-relaxed">Pilih marker di bawah, lalu klik/tap pada peta untuk menaruhnya. Klik marker di peta untuk menambah keterangan/hapus.</div>
                                 <div class="mt-3 grid grid-cols-6 gap-2">
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-sky-500 text-sky-400 text-center transition relative group" title="Water Station" data-type="water">
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Water Station" data-type="water">
                                         <i class="fa-solid fa-droplet text-lg"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-orange-500 text-orange-400 text-center transition relative group" title="Bahaya / Warning" data-type="warning">
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Bahaya / Warning" data-type="warning">
                                         <i class="fa-solid fa-triangle-exclamation text-lg"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-lime-500 text-lime-400 text-center transition relative group" title="Perempatan / Intersection" data-type="intersection">
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Perempatan / Intersection" data-type="intersection">
                                         <i class="fa-solid fa-arrows-split-up-and-left text-lg"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-pink-500 text-pink-400 text-center transition relative group" title="Foto Spot" data-type="photo">
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Foto Spot" data-type="photo">
                                         <i class="fa-solid fa-camera text-lg"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-amber-500 text-amber-400 text-center transition relative group" title="Rest Stop / Cafe" data-type="rest">
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Rest Stop / Cafe" data-type="rest">
                                         <i class="fa-solid fa-mug-hot text-lg"></i>
                                     </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-purple-500 text-purple-400 text-center transition relative group" title="Toilet" data-type="toilet">
+                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Toilet" data-type="toilet">
                                         <i class="fa-solid fa-toilet text-lg"></i>
                                     </button>
                                 </div>
                                 <div id="rl-custom-marker-hint" class="mt-3 text-[10px] font-black text-slate-500 tracking-wide uppercase hidden">
-                                    <span class="text-neon animate-pulse">●</span> Tap peta untuk menaruh marker
+                                    <span class="text-white animate-pulse">●</span> Tap peta untuk menaruh marker
                                 </div>
                             </div>
 
@@ -201,8 +207,83 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div>                    <!-- AI Route Generator -->
+                    <div class="bg-slate-900/50 border border-slate-700/60 rounded-2xl p-4 md:p-5 relative overflow-hidden group">
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm font-semibold tracking-wider text-slate-200 uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-route text-slate-400 text-xs"></i>
+                                AI Route Generator
+                            </div>
+                            <span class="text-[10px] font-semibold text-slate-500 px-2 py-0.5 rounded border border-slate-700">BETA</span>
+                        </div>
 
+                        <div class="mt-4 space-y-3">
+                            <div class="text-[11px] text-slate-500 bg-slate-900/30 border border-slate-800/40 rounded-xl p-3">
+                                <strong>Tips:</strong> Klik peta 1x terlebih dahulu jika ingin menentukan lokasi Start sendiri. Jika tidak, AI akan menggunakan titik tengah peta saat ini.
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jarak Target (km)</label>
+                                <div class="mt-1 grid grid-cols-4 gap-2">
+                                    <button type="button" class="rl-ai-dist-btn py-2 rounded-xl bg-slate-700 border border-slate-500 text-white font-bold transition text-sm active" data-dist="5">5K</button>
+                                    <button type="button" class="rl-ai-dist-btn py-2 rounded-xl bg-transparent border border-slate-700 text-slate-400 font-bold hover:border-slate-500 hover:text-white transition text-sm" data-dist="10">10K</button>
+                                    <button type="button" class="rl-ai-dist-btn py-2 rounded-xl bg-transparent border border-slate-700 text-slate-400 font-bold hover:border-slate-500 hover:text-white transition text-sm" data-dist="21">21K</button>
+                                    <div class="relative">
+                                        <input id="rl-ai-custom-dist" type="number" step="0.5" min="1" max="100" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-2 py-2 text-white font-bold text-center text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500" placeholder="Lainnya">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Arah Rute</label>
+                                <select id="rl-ai-direction" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500">
+                                    <option value="random">Acak / Sembarang Arah</option>
+                                    <option value="north">Utara</option>
+                                    <option value="east">Timur</option>
+                                    <option value="south">Selatan</option>
+                                    <option value="west">Barat</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Opsi Rute & Larangan</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
+                                        <input id="rl-ai-loop" type="checkbox" class="accent-white" checked>
+                                        Kembali ke Start
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
+                                        <input id="rl-ai-avoid-toll" type="checkbox" class="accent-white" checked disabled>
+                                        Hindari Jalan Tol ⚠️
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
+                                        <input id="rl-ai-avoid-main" type="checkbox" class="accent-white" checked>
+                                        Hindari Jalan Besar
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer hover:border-slate-600 transition">
+                                        <input id="rl-ai-avoid-rail" type="checkbox" class="accent-white" checked>
+                                        Hindari Rel Kereta
+                                    </label>
+                                    <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-700/60 rounded-xl px-3 py-2 text-[11px] font-semibold text-slate-300 cursor-pointer col-span-2 hover:border-slate-600 transition">
+                                        <input id="rl-ai-avoid-intersection" type="checkbox" class="accent-white">
+                                        Hindari Perempatan Utama (Simpang)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <button id="rl-ai-generate-btn" type="button" class="py-3 rounded-xl bg-slate-100 text-slate-900 font-semibold text-xs hover:bg-white transition flex items-center justify-center gap-1.5 duration-200">
+                                    <i class="fa-solid fa-route text-xs"></i>
+                                    Gambar Rute
+                                </button>
+                                <button id="rl-ai-regenerate-btn" type="button" class="py-3 rounded-xl bg-transparent border border-slate-600 text-slate-400 hover:border-slate-400 hover:text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 duration-200">
+                                    <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                                    Reset & Ulang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
 
@@ -543,6 +624,7 @@
 
             var STORAGE_KEY = 'rl.routeBuilder.v1.saved';
             var STYLE_KEY = 'rl.routeBuilder.v1.style';
+            var timeIsValid = true;
 
             var els = {
                 status: document.getElementById('rl-route-status'),
@@ -552,6 +634,8 @@
                 results: document.getElementById('rl-search-results'),
                 paceMin: document.getElementById('rl-pace-min'),
                 paceSec: document.getElementById('rl-pace-sec'),
+                startTime: document.getElementById('rl-start-time'),
+                startTimeError: document.getElementById('rl-start-time-error'),
                 mode: document.getElementById('rl-mode'),
                 followRoad: document.getElementById('rl-follow-road'),
                 showDirections: document.getElementById('rl-show-directions'),
@@ -617,6 +701,15 @@
                 toggleMenu: document.getElementById('rl-toggle-menu'),
                 collapsibleButtons: document.getElementById('rl-collapsible-buttons'),
                 toggleChevron: document.getElementById('rl-toggle-menu-chevron'),
+                aiCustomDist: document.getElementById('rl-ai-custom-dist'),
+                aiDirection: document.getElementById('rl-ai-direction'),
+                aiGenerateBtn: document.getElementById('rl-ai-generate-btn'),
+                aiRegenerateBtn: document.getElementById('rl-ai-regenerate-btn'),
+                aiLoop: document.getElementById('rl-ai-loop'),
+                aiAvoidToll: document.getElementById('rl-ai-avoid-toll'),
+                aiAvoidMain: document.getElementById('rl-ai-avoid-main'),
+                aiAvoidRail: document.getElementById('rl-ai-avoid-rail'),
+                aiAvoidIntersection: document.getElementById('rl-ai-avoid-intersection'),
             };
 
             function setStatus(text) {
@@ -1259,6 +1352,11 @@
                 return total;
             }
 
+            function formatDateTimeDisplay(d) {
+                var pad = function (n) { return String(n).padStart(2, '0'); };
+                return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            }
+
             function updateStats() {
                 var dist = totalDistanceKm();
                 var segAvg = points.length > 1 ? (dist / (points.length - 1)) : 0;
@@ -1272,6 +1370,49 @@
                 
                 if (els.distanceKmCompact) els.distanceKmCompact.textContent = fmt2(dist);
                 if (els.estTimeCompact) els.estTimeCompact.textContent = fmtHMS(est);
+
+                // Start time & Finish time validation
+                if (els.startTime) {
+                    var startTimeVal = els.startTime.value;
+                    var startDt = startTimeVal ? new Date(startTimeVal) : null;
+                    if (startDt && !isNaN(startDt.getTime())) {
+                        var now = new Date();
+                        var durationMs = est * 1000;
+                        var finishDt = new Date(startDt.getTime() + durationMs);
+                        var isStartInFuture = startDt > now;
+                        var isFinishInFuture = finishDt > now;
+                        var msg = '';
+                        if (isStartInFuture) {
+                            msg = 'Waktu start tidak boleh melebihi waktu sekarang!';
+                        } else if (isFinishInFuture) {
+                            msg = 'Waktu finish (' + formatDateTimeDisplay(finishDt) + ') tidak boleh melebihi waktu sekarang!';
+                        }
+
+                        if (msg) {
+                            if (els.startTimeError) {
+                                els.startTimeError.textContent = msg;
+                                els.startTimeError.classList.remove('hidden');
+                            }
+                            els.startTime.classList.add('border-red-500', 'text-red-400');
+                            els.startTime.classList.remove('border-slate-700');
+                            timeIsValid = false;
+                        } else {
+                            if (els.startTimeError) {
+                                els.startTimeError.classList.add('hidden');
+                            }
+                            els.startTime.classList.remove('border-red-500', 'text-red-400');
+                            els.startTime.classList.add('border-slate-700');
+                            timeIsValid = true;
+                        }
+                    } else {
+                        if (els.startTimeError) {
+                            els.startTimeError.classList.add('hidden');
+                        }
+                        els.startTime.classList.remove('border-red-500', 'text-red-400');
+                        els.startTime.classList.add('border-slate-700');
+                        timeIsValid = true;
+                    }
+                }
             }
 
             // [Duplicate addPoint removed]
@@ -1518,6 +1659,11 @@
             }
 
             function exportGpx() {
+                if (!timeIsValid) {
+                    setStatus('Error: Waktu tidak valid');
+                    showInfoModal('Waktu Tidak Valid', 'Waktu start atau finish aktivitas melebihi waktu sekarang. Harap sesuaikan.');
+                    return;
+                }
                 if (routePoints.length < 2) {
                     setStatus('Minimal 2 titik');
                     return;
@@ -1577,6 +1723,11 @@
             }
 
             function saveCurrent() {
+                if (!timeIsValid) {
+                    setStatus('Error: Waktu tidak valid');
+                    showInfoModal('Waktu Tidak Valid', 'Waktu start atau finish aktivitas melebihi waktu sekarang. Harap sesuaikan.');
+                    return;
+                }
                 if (points.length < 2) {
                     setStatus('Minimal 2 titik');
                     return;
@@ -1736,7 +1887,9 @@
                     var baseName = (els.name.value || '').trim();
                     els.stravaName.value = baseName !== '' ? baseName : 'Easy Run';
                 }
-                if ((els.stravaStart.value || '').trim() === '') {
+                if (els.startTime && els.startTime.value) {
+                    els.stravaStart.value = els.startTime.value;
+                } else if ((els.stravaStart.value || '').trim() === '') {
                     els.stravaStart.value = toDatetimeLocalValue(new Date());
                 }
                 if ((els.stravaPace.value || '').trim() === '') {
@@ -1747,6 +1900,11 @@
             }
 
             function fillHiddenStravaFields(kind) {
+                if (!timeIsValid) {
+                    setStatus('Error: Waktu tidak valid');
+                    showInfoModal('Waktu Tidak Valid', 'Waktu start atau finish aktivitas melebihi waktu sekarang. Harap sesuaikan.');
+                    return false;
+                }
                 if (points.length < 2) {
                     showInfoModal('Belum ada rute', 'Tambahkan minimal 2 titik di peta sebelum export ke Strava.');
                     return false;
@@ -2014,12 +2172,24 @@
                 }
             }
 
-            function osrmRoute(waypoints) {
+            function osrmRoute(waypoints, profile, excludes) {
+                profile = profile || 'driving';
                 var coords = waypoints.map(function (p) { return p.lng.toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
-                // Gunakan profile 'driving' agar mengikuti arah jalan (one-way, dll)
-                var url = 'https://router.project-osrm.org/route/v1/driving/' + coords + '?overview=full&geometries=geojson&steps=false';
+                var url = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson&steps=false';
+                if (Array.isArray(excludes) && excludes.length > 0) {
+                    url += '&exclude=' + excludes.join(',');
+                }
                 return fetch(url, { headers: { 'Accept': 'application/json' } })
-                    .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); })
+                    .then(function (r) { 
+                        if (!r.ok && excludes && excludes.length > 0) {
+                            var fallbackUrl = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson&steps=false';
+                            return fetch(fallbackUrl, { headers: { 'Accept': 'application/json' } })
+                                .then(function(fallbackR) {
+                                    return fallbackR.json().then(function(j) { return { ok: fallbackR.ok, json: j }; });
+                                });
+                        }
+                        return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); 
+                    })
                     .then(function (res) {
                         if (!res.ok || !res.json || res.json.code !== 'Ok') {
                             throw new Error('osrm_failed');
@@ -2364,6 +2534,12 @@
             els.paceMin.addEventListener('input', updateStats);
             els.paceSec.addEventListener('input', updateStats);
 
+            if (els.startTime) {
+                var oneHourAgo = new Date(Date.now() - 3600 * 1000);
+                els.startTime.value = toDatetimeLocalValue(oneHourAgo);
+                els.startTime.addEventListener('input', updateStats);
+            }
+
             els.undo.addEventListener('click', undo);
             els.clear.addEventListener('click', clearAll);
             
@@ -2703,6 +2879,213 @@
                     pushState();
                 }
             }
+
+            // --- AI Route Generator Logic ---
+            var aiBtns = document.querySelectorAll('.rl-ai-dist-btn');
+            var activeAiDist = 5;
+
+            aiBtns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    aiBtns.forEach(function (b) {
+                        b.classList.remove('bg-slate-700', 'border-slate-500', 'text-white', 'active');
+                        b.classList.add('bg-transparent', 'border-slate-700', 'text-slate-400');
+                    });
+                    btn.classList.add('bg-slate-700', 'border-slate-500', 'text-white', 'active');
+                    btn.classList.remove('bg-transparent', 'border-slate-700', 'text-slate-400');
+                    activeAiDist = parseFloat(btn.getAttribute('data-dist'));
+                    if (els.aiCustomDist) els.aiCustomDist.value = '';
+                });
+            });
+
+            if (els.aiCustomDist) {
+                els.aiCustomDist.addEventListener('input', function () {
+                    var val = parseFloat(els.aiCustomDist.value);
+                    if (Number.isFinite(val) && val > 0) {
+                        aiBtns.forEach(function (b) {
+                            b.classList.remove('bg-slate-700', 'border-slate-500', 'text-white', 'active');
+                            b.classList.add('bg-transparent', 'border-slate-700', 'text-slate-400');
+                        });
+                        activeAiDist = val;
+                    }
+                });
+            }
+
+            if (els.aiGenerateBtn) {
+                els.aiGenerateBtn.addEventListener('click', function () {
+                    generateAiRoute(false);
+                });
+            }
+
+            if (els.aiRegenerateBtn) {
+                els.aiRegenerateBtn.addEventListener('click', function () {
+                    clearAll();
+                    generateAiRoute(true);
+                });
+            }
+
+            function getOffsetLatLng(base, distKm, angleRad) {
+                var RE = 6371;
+                var dLat = (distKm * Math.sin(angleRad) / RE) * (180 / Math.PI);
+                var dLng = (distKm * Math.cos(angleRad) / (RE * Math.cos(base.lat * Math.PI / 180))) * (180 / Math.PI);
+                return {
+                    lat: base.lat + dLat,
+                    lng: base.lng + dLng
+                };
+            }
+
+            function getAiWaypoints(start, targetDist, angleRad, isLoop, avoidIntersections) {
+                if (avoidIntersections) {
+                    angleRad += (Math.random() * 0.15 - 0.075);
+                }
+                if (isLoop) {
+                    var side = targetDist / 5.6;
+                    var p0 = start;
+                    var p1 = getOffsetLatLng(p0, side, angleRad - Math.PI / 4);
+                    var p2 = getOffsetLatLng(p0, side * Math.sqrt(2), angleRad);
+                    var p3 = getOffsetLatLng(p0, side, angleRad + Math.PI / 4);
+                    return [p0, p1, p2, p3, p0];
+                } else {
+                    var side = targetDist / 1.35;
+                    var p0 = start;
+                    var p1 = getOffsetLatLng(p0, side / 3, angleRad + (Math.random() * 0.1 - 0.05));
+                    var p2 = getOffsetLatLng(p0, side * 2 / 3, angleRad + (Math.random() * 0.1 - 0.05));
+                    var p3 = getOffsetLatLng(p0, side, angleRad + (Math.random() * 0.1 - 0.05));
+                    return [p0, p1, p2, p3];
+                }
+            }
+
+            function fetchLoopRoute(wpts, profile, excludes) {
+                var segmentPromises = [];
+                for (var i = 1; i < wpts.length; i++) {
+                    (function(idx) {
+                        var pPrev = wpts[idx-1];
+                        var pCurr = wpts[idx];
+                        segmentPromises.push(
+                            osrmRoute([pPrev, pCurr], profile, excludes)
+                                .then(function(coords) {
+                                    return { mode: 'osrm', segment: coords };
+                                })
+                                .catch(function() {
+                                    return { mode: 'direct', segment: [pPrev, pCurr] };
+                                })
+                        );
+                    })(i);
+                }
+                return Promise.all(segmentPromises).then(function(segments) {
+                    var totalDist = 0;
+                    var processedPoints = [];
+                    
+                    processedPoints.push({
+                        lat: wpts[0].lat,
+                        lng: wpts[0].lng,
+                        mode: 'osrm',
+                        segment: []
+                    });
+                    
+                    for (var i = 0; i < segments.length; i++) {
+                        var w = wpts[i+1];
+                        processedPoints.push({
+                            lat: w.lat,
+                            lng: w.lng,
+                            mode: segments[i].mode,
+                            segment: segments[i].segment
+                        });
+                        
+                        var seg = segments[i].segment;
+                        for (var j = 1; j < seg.length; j++) {
+                            totalDist += haversineKm(seg[j-1], seg[j]);
+                        }
+                    }
+                    
+                    return {
+                        points: processedPoints,
+                        distance: totalDist
+                    };
+                });
+            }
+
+            function generateAiRoute(forceCenter) {
+                var startLatLng;
+                if (!forceCenter && points.length > 0) {
+                    startLatLng = { lat: points[0].lat, lng: points[0].lng };
+                } else {
+                    var center = map.getCenter();
+                    startLatLng = { lat: center.lat, lng: center.lng };
+                }
+
+                var targetDist = activeAiDist;
+                if (!targetDist || targetDist <= 0) {
+                    setStatus('Jarak target tidak valid');
+                    return;
+                }
+
+                setStatus('Menghitung rute AI...');
+                
+                var savedStart = { lat: startLatLng.lat, lng: startLatLng.lng };
+                
+                clearAll();
+
+                var dir = els.aiDirection ? els.aiDirection.value : 'random';
+                var angleRad;
+                if (dir === 'north') angleRad = Math.PI / 2;
+                else if (dir === 'east') angleRad = 0;
+                else if (dir === 'south') angleRad = -Math.PI / 2;
+                else if (dir === 'west') angleRad = Math.PI;
+                else angleRad = Math.random() * Math.PI * 2;
+
+                var isLoop = els.aiLoop ? els.aiLoop.checked : true;
+                var avoidIntersections = els.aiAvoidIntersection ? els.aiAvoidIntersection.checked : false;
+
+                // Setup routing parameters
+                var profile = 'foot'; // Pedestrian profile for running to avoid highways/train tracks naturally
+                var excludes = [];
+                excludes.push('toll'); // Always avoid toll roads
+                
+                if (els.aiAvoidMain && els.aiAvoidMain.checked) {
+                    excludes.push('motorway', 'trunk');
+                }
+
+                var initialWpts = getAiWaypoints(savedStart, targetDist, angleRad, isLoop, avoidIntersections);
+
+                setStatus('Menganalisis jalan terdekat...');
+
+                fetchLoopRoute(initialWpts, profile, excludes)
+                    .then(function(res1) {
+                        var actualDist = res1.distance;
+                        if (actualDist <= 0) {
+                            throw new Error('distance_zero');
+                        }
+
+                        var factor = targetDist / actualDist;
+                        if (factor >= 0.5 && factor <= 2.0 && Math.abs(actualDist - targetDist) > 0.3) {
+                            setStatus('Menyesuaikan presisi rute...');
+                            var adjustedDist = targetDist * factor;
+                            var adjustedWpts = getAiWaypoints(savedStart, adjustedDist, angleRad, isLoop, avoidIntersections);
+                            return fetchLoopRoute(adjustedWpts, profile, excludes).catch(function() {
+                                return res1;
+                            });
+                        }
+                        return res1;
+                    })
+                    .then(function(finalRes) {
+                        points = finalRes.points;
+                        
+                        rebuildLine();
+                        rebuildMarkers();
+                        updateStats();
+                        updateElevation();
+                        
+                        setTimeout(fitRoute, 200);
+                        
+                        setStatus('Rute AI berhasil dibuat (' + fmt2(finalRes.distance) + ' km)');
+                        pushState();
+                    })
+                    .catch(function(err) {
+                        console.error('AI Generation failed:', err);
+                        setStatus('AI gagal membuat rute. Silakan coba lagi.');
+                    });
+            }
+
 
             map.on('click', function (e) {
                 if (freehandActive) return;
