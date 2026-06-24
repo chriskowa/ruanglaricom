@@ -19,7 +19,27 @@
                 fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
                 extend: {
                     colors: {
-                        neon: { green: '#10b981', blue: '#06b6d4', purple: '#8b5cf6', red: '#f43f5e', bg: '#0f172a', card: '#1e293b' }
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#1e293b',
+                            800: '#0f172a',
+                            900: '#080d1a',
+                            950: '#03050c',
+                        },
+                        neon: { 
+                            green: '#10b981', 
+                            blue: '#06b6d4', 
+                            purple: '#a855f7', 
+                            red: '#f43f5e', 
+                            bg: '#03050c', 
+                            card: '#080d1a' 
+                        }
                     },
                     animation: { 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
                 }
@@ -28,22 +48,65 @@
     </script>
 
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; touch-action: manipulation; }
+        body { 
+            background: radial-gradient(circle at top, #0c152b 0%, #03050c 100%); 
+            color: #f8fafc; 
+            touch-action: manipulation; 
+        }
         [v-cloak] { display: none; }
         
         /* Glassmorphism & Neon Effects */
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-        .neon-input { background: #0f172a; border: 1px solid #334155; transition: 0.3s; }
-        .neon-input:focus { border-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); outline: none; }
+        .glass { 
+            background: rgba(8, 13, 26, 0.75); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5), 0 5px 15px -5px rgba(0, 0, 0, 0.3);
+        }
+        .neon-input { 
+            background: rgba(3, 5, 12, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            color: #ffffff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .neon-input:focus { 
+            border-color: #10b981; 
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2), inset 0 0 8px rgba(16, 185, 129, 0.05); 
+            outline: none; 
+            background: rgba(3, 5, 12, 0.9);
+        }
         
         /* Balloon States */
-        .b-active { border: 2px solid #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); color: #10b981; }
-        .b-resting { border: 2px solid #eab308; background: rgba(234, 179, 8, 0.05); color: #eab308; }
-        .b-finished { border: 2px solid #64748b; background: #0f172a; color: #64748b; opacity: 0.8; }
+        .b-active { 
+            border: 2px solid #10b981; 
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.02)) !important;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.25), inset 0 0 10px rgba(16, 185, 129, 0.1); 
+            color: #10b981; 
+        }
+        .b-resting { 
+            border: 2px solid #eab308; 
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.12), rgba(234, 179, 8, 0.02)) !important;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.2), inset 0 0 10px rgba(234, 179, 8, 0.1); 
+            color: #eab308; 
+        }
+        .b-finished { 
+            border: 2px solid rgba(255, 255, 255, 0.1); 
+            background: rgba(3, 5, 12, 0.4) !important; 
+            color: #64748b; 
+            opacity: 0.5; 
+        }
         
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+        /* General Anim */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col overflow-hidden">

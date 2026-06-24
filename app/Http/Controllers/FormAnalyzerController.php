@@ -224,6 +224,44 @@ class FormAnalyzerController extends Controller
             [$score, $issues, $suggestions, $coachMessage, $positives, $formIssues, $strengthPlan, $recoveryPlan, $videoScore, $formScore] =
                 $this->makeFeedback($originalMeta, $meta['compression'], $compressionWarnings, $biomech);
 
+            // Attempt to enhance with OpenAI Chat API (without image payload)
+            if (is_array($biomech) && !empty(config('services.openai.api_key'))) {
+                try {
+                    $aiFeedback = $this->getAiFeedback($originalMeta, $meta['compression'], $compressionWarnings, $biomech, $metrics);
+                    if ($aiFeedback && isset($aiFeedback['score'])) {
+                        $score = (int) $aiFeedback['score'];
+                        $formScore = (int) ($aiFeedback['form_score'] ?? $score);
+                        if (isset($aiFeedback['positives']) && is_array($aiFeedback['positives'])) {
+                            $positives = $aiFeedback['positives'];
+                        }
+                        if (isset($aiFeedback['issues']) && is_array($aiFeedback['issues'])) {
+                            $issues = $aiFeedback['issues'];
+                        }
+                        if (isset($aiFeedback['suggestions']) && is_array($aiFeedback['suggestions'])) {
+                            $suggestions = $aiFeedback['suggestions'];
+                        }
+                        if (isset($aiFeedback['form_issues']) && is_array($aiFeedback['form_issues'])) {
+                            $formIssues = $aiFeedback['form_issues'];
+                        }
+                        if (isset($aiFeedback['strength_plan']) && is_array($aiFeedback['strength_plan'])) {
+                            $strengthPlan = $aiFeedback['strength_plan'];
+                        }
+                        if (isset($aiFeedback['recovery_plan']) && is_array($aiFeedback['recovery_plan'])) {
+                            $recoveryPlan = $aiFeedback['recovery_plan'];
+                        }
+                        if (isset($aiFeedback['coach_message']) && is_string($aiFeedback['coach_message'])) {
+                            $coachMessage = $aiFeedback['coach_message'];
+                        }
+                        if (isset($aiFeedback['form_report']) && is_array($aiFeedback['form_report'])) {
+                            $formReport = $aiFeedback['form_report'];
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('FormAnalyzer AI Feedback failed, using rule-based fallback: ' . $e->getMessage());
+                }
+            }
+
+
             // Save result to Cache for PDF generation
             $analysisId = (string) Str::uuid();
             $reportData = [
@@ -1475,5 +1513,144 @@ class FormAnalyzerController extends Controller
         $s = (int) round($seconds % 60);
 
         return ($m > 0 ? ($m.'m ') : '').$s.'s';
+    }
+
+    private function getAiFeedback(array $meta, array $compression, array $compressionWarnings, array $biomech, array $metrics): ?array
+    {
+        $openAiService = app(\App\Services\OpenAiService::class);
+        
+        $confidence = $biomech['confidence'] ?? 'unknown';
+        $samples = $biomech['samples'] ?? 'unknown';
+        $heelStrike = $biomech['heel_strike_pct'] ?? 'unknown';
+        $overstride = $biomech['overstride_pct'] ?? 'unknown';
+        $shinAngle = $biomech['shin_angle_deg'] ?? 'unknown';
+        $kneeFlex = $biomech['knee_flex_deg'] ?? 'unknown';
+        $trunkLean = $biomech['trunk_lean_deg'] ?? 'unknown';
+        $armCross = $biomech['arm_cross_pct'] ?? 'unknown';
+        $cadence = $biomech['cadence_spm'] ?? 'unknown';
+        $elbowAngle = $biomech['elbow_angle_deg'] ?? 'unknown';
+        $verticalOsc = $biomech['vertical_oscillation'] ?? 'unknown';
+        $asymmetry = $biomech['asymmetry'] ?? 'unknown';
+
+        $duration = $meta['duration_seconds'] ?? 'unknown';
+        $width = $meta['width'] ?? 'unknown';
+        $height = $meta['height'] ?? 'unknown';
+        $fps = $meta['fps'] ?? 'unknown';
+        $size = $meta['size_bytes'] ?? 'unknown';
+
+        $systemMessage = "Anda adalah Asisten Coach Lari AI Profesional dari Ruang Lari. Anda ahli dalam menganalisis biomekanika lari (running form) berdasarkan data kuantitatif yang dikirimkan. Analisis Anda harus detail, personal, memotivasi, dan akurat dalam Bahasa Indonesia yang kasual namun profesional (gaya 'Coach Gaul' Ruang Lari).
+
+Penting: Jawab HANYA dengan format JSON yang valid, tanpa penjelasan markdown (seperti ```json ... ```) di luar JSON tersebut.";
+
+        $prompt = "Berikut adalah data biomekanika lari dari pelari:
+Metrics Biomekanika:
+- Deteksi pose percaya diri (confidence): {$confidence}
+- Jumlah sampel frame dianalisis: {$samples}
+- Persentase Heel Strike: {$heelStrike}% (Tumit mendarat lebih dulu)
+- Persentase Overstride: {$overstride}% (Kaki mendarat terlalu jauh di depan pinggul)
+- Sudut tibia/tulang kering saat landing (shin angle): {$shinAngle}°
+- Sudut fleksi lutut saat landing (knee flexion): {$kneeFlex}°
+- Sudut kemiringan badan (trunk lean): {$trunkLean}°
+- Persentase ayunan tangan menyilang (arm cross): {$armCross}%
+- Cadence (langkah per menit): {$cadence} SPM
+- Sudut siku tangan (elbow angle): {$elbowAngle}°
+- Osilasi vertikal (vertical oscillation): {$verticalOsc}
+- Asimetri langkah (asymmetry): {$asymmetry}
+
+Metadata Video:
+- Durasi: {$duration} detik
+- Resolusi: {$width}x{$height}
+- FPS: {$fps}
+- Ukuran: {$size} bytes
+
+Panduan Biomekanika Acuan:
+- Heel strike: Tumit mendarat lebih dulu. Jika Heel strike > 70% dianggap tinggi/dominan. Idealnya mendarat di midfoot/forefoot (heel strike < 40%).
+- Overstride: Kaki mendarat jauh di depan pinggul. Idealnya kaki mendarat di bawah pinggul (overstride < 35%). Overstride > 60% dianggap tinggi.
+- Shin angle (sudut betis): Sudut betis saat menyentuh tanah. Idealnya <= 10 derajat. Jika >= 18 derajat, kaki mengerem gerakan maju (braking force tinggi).
+- Knee flexion (fleksi lutut): Sudut tekukan lutut saat landing. Idealnya antara 30 hingga 55 derajat untuk menyerap benturan (shock absorption). Jika < 20 derajat, pendaratan terlalu kaku dan membebani sendi lutut/pinggul.
+- Trunk lean (postur condong badan): Kemiringan badan ke depan dari pergelangan kaki. Idealnya 5 hingga 15 derajat. Jika > 18 derajat (terlalu condong dari pinggang) atau < -5 derajat (terlalu tegak atau condong ke belakang), postur kurang efisien.
+- Arm cross: Ayunan tangan menyilang garis tengah tubuh (midline). Idealnya tangan di samping tubuh sejajar arah lari (arm cross < 45%). Jika >= 55%, menyebabkan torso berputar dan membuang energi.
+- Cadence: Jumlah langkah per menit. Rentang efisien: 165 - 190 SPM. Di bawah 155 SPM terlalu rendah dan biasanya berhubungan dengan overstriding.
+- Vertical oscillation (bounce): Naik turunnya tubuh. Idealnya rendah (< 0.012 unit deteksi). Bounce tinggi memboroskan energi ke atas bukannya ke depan.
+- Asymmetry: Ketidakseimbangan langkah kanan dan kiri. Idealnya < 0.25. Jika >= 0.25, terdeteksi ketidakseimbangan yang dapat memicu cedera unilateral.
+
+Berdasarkan data di atas, tolong berikan analisis lengkap. Anda harus menghitung/menentukan:
+1. \"score\" (integer 0-100): Nilai form lari keseluruhan pelari berdasarkan biomekanika.
+2. \"form_score\" (integer 0-100): Nilai murni biomekanika lari.
+3. \"positives\" (array of objects): Hal-hal yang sudah bagus dari form lari pelari. Maksimal 3. Setiap objek harus memiliki:
+   - \"code\" (string, camelCase/snake_case)
+   - \"title\" (string, ringkas & jelas)
+   - \"message\" (string, penjelasan mengapa ini bagus)
+   - \"severity\" (selalu \"good\")
+4. \"issues\" (array of objects): Masalah kualitas video atau biomekanika ringan. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (string: \"info\", \"medium\", atau \"high\")
+5. \"suggestions\" (array of objects): Saran taktis koreksi form lari. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (string: \"info\", \"medium\", atau \"high\")
+6. \"form_issues\" (array of objects): Masalah khusus biomekanika yang terdeteksi. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (string: \"info\", \"medium\", atau \"high\")
+7. \"strength_plan\" (array of objects): Lencana latihan penguatan otot (strength training) yang disesuaikan dengan kelemahan form mereka. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (\"info\")
+8. \"recovery_plan\" (array of objects): Rencana pemulihan atau pencegahan cedera awal. Setiap objek harus memiliki:
+   - \"code\" (string)
+   - \"title\" (string)
+   - \"message\" (string)
+   - \"severity\" (\"info\")
+9. \"coach_message\" (string): Pesan motivasi & ringkasan dari Anda sebagai Coach AI Gaul Ruang Lari dalam Bahasa Indonesia. Berikan tips spesifik untuk pelari ini.
+10. \"form_report\" (array of 6 objects): Laporan detail untuk 6 fase/bagian form lari berikut:
+    - code: \"landing\" (pendaratan kaki/footstrike & overstride)
+    - code: \"lever\" (knee flex & shin angle)
+    - code: \"push\" (vertical oscillation / bounce)
+    - code: \"pull\" (swing/angkatan kaki)
+    - code: \"arm_swing\" (ayunan tangan)
+    - code: \"posture\" (posisi badan/trunk lean)
+    Setiap bagian di form_report wajib memiliki:
+    - \"code\" (string: \"landing\", \"lever\", \"push\", \"pull\", \"arm_swing\", atau \"posture\")
+    - \"title\" (string: \"Landing\", \"Lever (mid-stance)\", \"Push (toe-off)\", \"Pull (swing)\", \"Ayunan Tangan\", atau \"Postur & Stabilitas\")
+    - \"status\" (string: \"ok\", \"warn\", \"issue\", atau \"missing\")
+    - \"summary\" (string: kesimpulan singkat, contoh: \"Footstrike relatif aman\" atau \"Heel strike dominan\")
+    - \"findings\" (array of strings: temuan kuantitatif, contoh: [\"Heel strike: 45%\", \"Overstride: 12%\"])
+    - \"actions\" (array of strings: tindakan koreksi yang harus dilakukan)
+    - \"strength\" (array of strings: latihan kekuatan khusus untuk bagian ini)
+
+Format output harus JSON murni seperti ini:
+{
+  \"score\": 82,
+  \"form_score\": 82,
+  \"positives\": [...],
+  \"issues\": [...],
+  \"suggestions\": [...],
+  \"form_issues\": [...],
+  \"strength_plan\": [...],
+  \"recovery_plan\": [...],
+  \"coach_message\": \"...\",
+  \"form_report\": [...]
+}";
+
+        $responseContent = $openAiService->getAiResponse($prompt, $systemMessage);
+
+        if ($responseContent) {
+            $cleaned = $responseContent;
+            if (preg_match('/^\s*```(?:json)?\s*(.*?)\s*```\s*$/s', $cleaned, $matches)) {
+                $cleaned = $matches[1];
+            }
+            $decoded = json_decode($cleaned, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+        
+        return null;
     }
 }

@@ -296,11 +296,11 @@
                             <!-- Compact View Info (shown when minimized) -->
                             <div id="rl-compact-stats" class="hidden w-full flex items-center justify-between px-2">
                                 <div class="text-xs font-black text-slate-200 flex items-center gap-2.5">
-                                    <span>Jarak: <span id="rl-distance-km-compact" class="text-neon">0.00</span> km</span>
+                                    <span>Jarak: <span id="rl-distance-km-compact" class="text-slate-100 font-bold">0.00</span> km</span>
                                     <span class="text-slate-700">|</span>
                                     <span>Waktu: <span id="rl-est-time-compact" class="text-white">00:00:00</span></span>
                                 </div>
-                                <div class="text-[10px] font-black text-neon flex items-center gap-1 uppercase tracking-wider">
+                                <div class="text-[10px] font-black text-slate-300 flex items-center gap-1 uppercase tracking-wider">
                                     <span>Detail</span>
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7" /></svg>
                                 </div>
@@ -332,37 +332,37 @@
                         </div>
 
                         <div class="mt-3 md:mt-4 grid grid-cols-3 md:grid-cols-4 gap-2">
-                            <button id="rl-undo" type="button" class="px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition text-sm">
+                            <button id="rl-undo" type="button" class="px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-slate-500 hover:bg-slate-800 transition text-xs">
                                 Undo
                             </button>
-                            <button id="rl-clear" type="button" class="px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-red-500/60 hover:text-red-300 transition text-sm">
+                            <button id="rl-clear" type="button" class="px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-red-500/60 hover:text-red-300 transition text-xs">
                                 Reset
                             </button>
                             
                             <!-- Toggle Button for Mobile Menu -->
-                            <button id="rl-toggle-menu" type="button" class="md:hidden px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:bg-slate-700 transition text-sm flex items-center justify-center gap-1.5">
+                            <button id="rl-toggle-menu" type="button" class="md:hidden px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:bg-slate-800 transition text-xs flex items-center justify-center gap-1.5">
                                 <span>Menu</span>
-                                <svg id="rl-toggle-menu-chevron" class="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                <svg id="rl-toggle-menu-chevron" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                             </button>
 
                             <!-- Collapsible buttons container -->
                             <div id="rl-collapsible-buttons" class="hidden md:contents col-span-3 md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 md:mt-0">
-                                <button id="rl-save" type="button" class="col-span-1 px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition text-sm">
+                                <button id="rl-save" type="button" class="col-span-1 px-3 py-2 rounded-xl bg-slate-100 text-slate-900 font-bold hover:bg-white transition text-xs">
                                     Simpan
                                 </button>
-                                <button id="rl-load" type="button" class="col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition text-sm">
+                                <button id="rl-load" type="button" class="col-span-1 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-slate-500 hover:bg-slate-800 transition text-xs">
                                     Muat
                                 </button>
-                                <button id="rl-share" type="button" class="col-span-2 px-4 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-500 transition text-sm">
+                                <button id="rl-share" type="button" class="col-span-2 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-200 font-bold hover:bg-slate-700/80 hover:border-slate-500 transition text-xs">
                                     Share Link
                                 </button>
-                                <button id="rl-export-image" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-pink-600 text-white font-black hover:bg-pink-500 transition text-sm">
+                                <button id="rl-export-image" type="button" class="col-span-2 md:col-span-1 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-200 font-bold hover:bg-slate-700/80 hover:border-slate-500 transition text-xs">
                                     Export IMG
                                 </button>
-                                <button id="rl-export-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition text-sm">
+                                <button id="rl-export-gpx" type="button" class="col-span-2 md:col-span-1 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-slate-500 hover:bg-slate-800 transition text-xs">
                                     Export GPX
                                 </button>
-                                <button id="rl-import-gpx" type="button" class="col-span-2 md:col-span-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:border-slate-500 hover:bg-slate-700 transition text-sm">
+                                <button id="rl-import-gpx" type="button" class="col-span-2 md:col-span-1 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-slate-500 hover:bg-slate-800 transition text-xs">
                                     Import GPX
                                 </button>
                             </div>
@@ -381,7 +381,7 @@
                                         <div class="text-xs text-slate-500 font-semibold">Isi form lalu post activity otomatis setelah authorize.</div>
                                     </div>
                                 </div>
-                                <button id="rl-strava-toggle" type="button" class="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black hover:bg-slate-700 transition text-sm">
+                                <button id="rl-strava-toggle" type="button" class="px-2.5 py-1.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:bg-slate-800 transition text-xs">
                                     Buka
                                 </button>
                             </div>
@@ -389,19 +389,19 @@
                             <div id="rl-strava-panel-body" class="hidden mt-4 space-y-3">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Nama Aktivitas</label>
-                                        <input id="rl-strava-name" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="Mis. Easy Run">
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nama Aktivitas</label>
+                                        <input id="rl-strava-name" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="Mis. Easy Run">
                                     </div>
                                     <div>
-                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tanggal & Waktu</label>
-                                        <input id="rl-strava-start" type="datetime-local" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60">
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal & Waktu</label>
+                                        <input id="rl-strava-start" type="datetime-local" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs">
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Device</label>
-                                        <select id="rl-strava-device" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60">
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Device</label>
+                                        <select id="rl-strava-device" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs">
                                             <option value="">Pilih device</option>
                                             <option>Garmin</option>
                                             <option>Coros</option>
@@ -413,32 +413,32 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pace (menit/km)</label>
-                                        <input id="rl-strava-pace" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="Contoh: 4:30">
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pace (menit/km)</label>
+                                        <input id="rl-strava-pace" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="Contoh: 4:30">
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-3">
                                     <div>
-                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg HR</label>
-                                        <input id="rl-strava-hr" type="number" min="30" max="250" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="BPM">
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Avg HR</label>
+                                        <input id="rl-strava-hr" type="number" min="30" max="250" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="BPM">
                                     </div>
                                     <div>
-                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg Cadence</label>
-                                        <input id="rl-strava-cadence" type="number" min="60" max="300" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="SPM">
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Avg Cadence</label>
+                                        <input id="rl-strava-cadence" type="number" min="60" max="300" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="SPM">
                                     </div>
                                     <div>
-                                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg Power</label>
-                                        <input id="rl-strava-power" type="number" min="0" max="2000" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-4 py-3 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#FC4C02]/25 focus:border-[#FC4C02]/60" placeholder="W">
+                                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Avg Power</label>
+                                        <input id="rl-strava-power" type="number" min="0" max="2000" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="W">
                                     </div>
                                 </div>
 
                                 <div class="flex items-center justify-between gap-3">
-                                    <label class="inline-flex items-center gap-2 text-sm font-bold text-slate-300">
-                                        <input id="rl-strava-private" type="checkbox" class="accent-[#FC4C02]">
+                                    <label class="inline-flex items-center gap-2 text-xs font-bold text-slate-300">
+                                        <input id="rl-strava-private" type="checkbox" class="accent-white">
                                         Private
                                     </label>
-                                    <div class="text-xs text-slate-500 font-semibold">Rute diubah jadi GPX lalu diupload ke Strava.</div>
+                                    <div class="text-[11px] text-slate-500 font-semibold">Rute diubah jadi GPX lalu diupload ke Strava.</div>
                                 </div>
 
                                 @auth
@@ -454,7 +454,7 @@
                                             <input type="hidden" name="cadence" id="rl-strava-cadence-direct">
                                             <input type="hidden" name="power" id="rl-strava-power-direct">
                                             <input type="hidden" name="private" id="rl-strava-private-direct" value="0">
-                                            <button id="rl-strava-submit-direct" type="submit" class="w-full px-4 py-3 rounded-xl bg-[#FC4C02] text-white font-black hover:bg-[#E34402] transition">
+                                            <button id="rl-strava-submit-direct" type="submit" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs">
                                                 Export ke Strava
                                             </button>
                                         </form>
@@ -470,17 +470,17 @@
                                             <input type="hidden" name="cadence" id="rl-strava-cadence-auth">
                                             <input type="hidden" name="power" id="rl-strava-power-auth">
                                             <input type="hidden" name="private" id="rl-strava-private-auth" value="0">
-                                            <button id="rl-strava-submit-auth" type="submit" class="w-full px-4 py-3 rounded-xl bg-[#FC4C02] text-white font-black hover:bg-[#E34402] transition">
+                                            <button id="rl-strava-submit-auth" type="submit" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs">
                                                 Authorize & Post
                                             </button>
                                         </form>
                                     @endif
                                 @else
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        <a href="{{ route('login') }}" class="w-full px-4 py-3 rounded-xl bg-[#FC4C02] text-white font-black hover:bg-[#E34402] transition inline-flex items-center justify-center">
+                                        <a href="{{ route('login') }}" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs inline-flex items-center justify-center">
                                             Login untuk Post
                                         </a>
-                                        <a href="{{ route('register') }}" class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-black hover:bg-slate-700 transition inline-flex items-center justify-center">
+                                        <a href="{{ route('register') }}" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:bg-slate-800 transition text-xs inline-flex items-center justify-center">
                                             Daftar Akun
                                         </a>
                                     </div>

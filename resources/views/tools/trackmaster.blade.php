@@ -81,28 +81,28 @@
             --tm-border: #CBD5E1;
             --tm-text: #0F172A;
             --tm-muted: #475569;
-            --tm-primary: #65A30D;
-            --tm-primary-hover: #4D7C0F;
-            --tm-primary-soft: #ECFCCB;
-            --tm-warning: #CA8A04;
-            --tm-danger: #DC2626;
-            --tm-success: #16A34A;
+            --tm-primary: #10B981;
+            --tm-primary-hover: #059669;
+            --tm-primary-soft: #D1FAE5;
+            --tm-warning: #F59E0B;
+            --tm-danger: #EF4444;
+            --tm-success: #10B981;
         }
 
         :root.dark {
             /* Dark Theme Palette */
-            --tm-bg: #08111F;
-            --tm-surface: #0E1A2D;
-            --tm-surface-2: #111F35;
-            --tm-border: #1F2D44;
+            --tm-bg: #030712;
+            --tm-surface: #080d1a;
+            --tm-surface-2: #0f172a;
+            --tm-border: #1e293b;
             --tm-text: #F8FAFC;
             --tm-muted: #94A3B8;
-            --tm-primary: #B8FF00;
-            --tm-primary-hover: #9FE000;
-            --tm-primary-soft: rgba(184, 255, 0, 0.1);
+            --tm-primary: #10B981;
+            --tm-primary-hover: #059669;
+            --tm-primary-soft: rgba(16, 185, 129, 0.1);
             --tm-warning: #FACC15;
             --tm-danger: #EF4444;
-            --tm-success: #22C55E;
+            --tm-success: #10B981;
         }
 
         body { 
@@ -183,11 +183,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Nama Sesi Latihan</label>
-                        <input v-model="program.name" type="text" class="w-full h-11 bg-brand-bg border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Sesi Interval Selasa Sore">
+                        <input v-model="program.name" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Sesi Interval Selasa Sore">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Lokasi Latihan (Opsional)</label>
-                        <input v-model="program.location" type="text" class="w-full h-11 bg-brand-bg border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Stadion Lapangan Atletik">
+                        <input v-model="program.location" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Stadion Lapangan Atletik">
                     </div>
                 </div>
             </div>
@@ -211,26 +211,26 @@
                 <div class="grid grid-cols-3 gap-3 mt-4">
                     <div>
                         <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Repetisi</label>
-                        <input v-model.number="program.reps" type="number" min="1" class="w-full h-11 bg-brand-bg border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition">
+                        <input v-model.number="program.reps" type="number" min="1" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Jarak (m)</label>
-                        <input v-model.number="program.distance" type="number" min="1" class="w-full h-11 bg-brand-bg border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" @change="recalculateAllTargetsFromPace">
+                        <input v-model.number="program.distance" type="number" min="1" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" @change="recalculateAllTargetsFromPace">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Rest (detik)</label>
-                        <input v-model.number="program.rest" type="number" min="0" class="w-full h-11 bg-brand-bg border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" @change="syncRestTimeToAthletes">
+                        <input v-model.number="program.rest" type="number" min="0" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" @change="syncRestTimeToAthletes">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 mt-3">
                     <div>
                         <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Target Pace (Min:Det /km)</label>
-                        <input v-model="program.targetPace" type="text" class="w-full h-11 bg-brand-bg border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. 04:00" @input="recalculateTargetTimeFromPace">
+                        <input v-model="program.targetPace" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. 04:00" @input="recalculateTargetTimeFromPace">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-tm-muted uppercase block mb-1">Target Lap (detik)</label>
-                        <input v-model.number="program.targetTime" type="number" min="0" class="w-full h-11 bg-brand-bg border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. 96" @input="recalculateTargetPaceFromTime">
+                        <input v-model.number="program.targetTime" type="number" min="0" class="w-full h-11 bg-tm-surface2 border border-tm-border text-center font-mono text-base text-tm-text rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. 96" @input="recalculateTargetPaceFromTime">
                     </div>
                 </div>
             </div>
@@ -257,15 +257,15 @@
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end pr-8 sm:pr-0">
                             <div class="sm:col-span-6">
                                 <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Nama Atlet</label>
-                                <input v-model="a.name" class="w-full h-10 bg-brand-bg border border-tm-border text-sm text-tm-text font-bold px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="Masukkan nama atlet">
+                                <input v-model="a.name" class="w-full h-10 bg-tm-surface2 border border-tm-border text-sm text-tm-text font-bold px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="Masukkan nama atlet">
                             </div>
                             <div class="sm:col-span-3">
                                 <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Target Waktu (s)</label>
-                                <input v-model.number="a.target" type="number" class="w-full h-10 bg-brand-bg border border-tm-border text-center font-mono text-sm text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" @input="onSetupAthleteTargetTimeChange(a)">
+                                <input v-model.number="a.target" type="number" class="w-full h-10 bg-tm-surface2 border border-tm-border text-center font-mono text-sm text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" @input="onSetupAthleteTargetTimeChange(a)">
                             </div>
                             <div class="sm:col-span-3">
                                 <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Kesiapan</label>
-                                <select v-model="a.readiness" class="w-full h-10 bg-brand-bg border border-tm-border text-xs text-tm-text font-bold px-2 rounded-xl focus:border-tm-primary focus:outline-none transition">
+                                <select v-model="a.readiness" class="w-full h-10 bg-tm-surface2 border border-tm-border text-xs text-tm-text font-bold px-2 rounded-xl focus:border-tm-primary focus:outline-none transition">
                                     <option value="green">🟢 Siap</option>
                                     <option value="yellow">🟡 Lelah</option>
                                     <option value="red">🔴 Cedera</option>
@@ -746,19 +746,19 @@
             <div class="space-y-3 mb-5">
                 <div>
                     <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Kondisi Atlet</label>
-                    <input v-model="coachNotes.condition" type="text" class="w-full h-11 bg-brand-bg border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Segar / Lelah / Kaki berat">
+                    <input v-model="coachNotes.condition" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Segar / Lelah / Kaki berat">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Evaluasi Teknik</label>
-                    <textarea v-model="coachNotes.technique" class="w-full bg-brand-bg border border-tm-border text-base text-tm-text p-3 rounded-xl focus:border-tm-primary focus:outline-none transition h-20" placeholder="e.g. Langkah kaki stabil, pendaratan forefoot bagus"></textarea>
+                    <textarea v-model="coachNotes.technique" class="w-full bg-tm-surface2 border border-tm-border text-base text-tm-text p-3 rounded-xl focus:border-tm-primary focus:outline-none transition h-20" placeholder="e.g. Langkah kaki stabil, pendaratan forefoot bagus"></textarea>
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Rekomendasi Latihan</label>
-                    <input v-model="coachNotes.recommendation" type="text" class="w-full h-11 bg-brand-bg border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Kurangi pace di lap awal pada sesi berikutnya">
+                    <input v-model="coachNotes.recommendation" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Kurangi pace di lap awal pada sesi berikutnya">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-tm-muted uppercase tracking-wider block mb-1">Catatan Cedera Ringan (Jika Ada)</label>
-                    <input v-model="coachNotes.injury" type="text" class="w-full h-11 bg-brand-bg border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Nyeri betis kanan ringan / Tidak ada">
+                    <input v-model="coachNotes.injury" type="text" class="w-full h-11 bg-tm-surface2 border border-tm-border text-base text-tm-text px-3 rounded-xl focus:border-tm-primary focus:outline-none transition" placeholder="e.g. Nyeri betis kanan ringan / Tidak ada">
                 </div>
             </div>
 
