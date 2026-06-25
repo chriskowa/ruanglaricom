@@ -21,7 +21,13 @@
 
         <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6">
             <h1 class="text-2xl font-black text-white">Lanjutkan Pembayaran</h1>
-            <p class="text-sm text-slate-400 mt-2">Masukkan nomor WhatsApp/HP PIC dan (opsional) ID registrasi untuk menemukan transaksi pending.</p>
+            <p class="text-sm text-slate-400 mt-2">
+                @if(auth()->check() && count($autoTransactions) > 0)
+                    Kami menemukan transaksi pending Anda secara otomatis berdasarkan session login Anda.
+                @else
+                    Masukkan nomor WhatsApp/HP PIC dan (opsional) ID registrasi untuk menemukan transaksi pending.
+                @endif
+            </p>
 
             <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="md:col-span-2">
@@ -83,6 +89,7 @@
                 setMsg('', 'info');
 
                 transactions.forEach(tx => {
+                    const txPhone = tx.pic_phone_raw || phone;
                     const card = document.createElement('div');
                     card.className = 'bg-slate-950 border border-slate-700 rounded-2xl p-4 flex flex-col gap-3';
                     card.innerHTML = `
@@ -98,19 +105,19 @@
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-3">
-                            <button class="btnStatus bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl" data-id="${tx.id}">Cek Status</button>
-                            <button class="btnResume bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-xl" data-id="${tx.id}">Lanjutkan Pembayaran</button>
+                            <button class="btnStatus bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl">Cek Status</button>
+                            <button class="btnResume bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-xl">Lanjutkan Pembayaran</button>
                         </div>
                     `;
                     results.appendChild(card);
-                });
 
-                results.querySelectorAll('.btnStatus').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const id = btn.getAttribute('data-id');
-                        btn.disabled = true;
+                    const btnStatus = card.querySelector('.btnStatus');
+                    const btnResume = card.querySelector('.btnResume');
+
+                    btnStatus.addEventListener('click', async () => {
+                        btnStatus.disabled = true;
                         try {
-                            const r = await fetch(routes.status.replace(':id', id) + `?phone=${encodeURIComponent(phone)}`, {
+                            const r = await fetch(routes.status.replace(':id', tx.id) + `?phone=${encodeURIComponent(txPhone)}`, {
                                 credentials: 'same-origin',
                                 headers: { 'Accept': 'application/json' }
                             });
@@ -126,7 +133,7 @@
                                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                         'Accept': 'application/json'
                                     },
-                                    body: JSON.stringify({ phone, transaction_id: id })
+                                    body: JSON.stringify({ phone: txPhone, transaction_id: tx.id })
                                 });
                                 const data2 = await r2.json();
                                 renderTransactions(data2.transactions || [], phone);
@@ -134,17 +141,14 @@
                         } catch (e) {
                             setMsg(e.message || 'Terjadi kesalahan', 'error');
                         } finally {
-                            btn.disabled = false;
+                            btnStatus.disabled = false;
                         }
                     });
-                });
 
-                results.querySelectorAll('.btnResume').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const id = btn.getAttribute('data-id');
-                        btn.disabled = true;
+                    btnResume.addEventListener('click', async () => {
+                        btnResume.disabled = true;
                         try {
-                            const statusResp = await fetch(routes.status.replace(':id', id) + `?phone=${encodeURIComponent(phone)}`, {
+                            const statusResp = await fetch(routes.status.replace(':id', tx.id) + `?phone=${encodeURIComponent(txPhone)}`, {
                                 credentials: 'same-origin',
                                 headers: { 'Accept': 'application/json' }
                             });
@@ -159,14 +163,14 @@
                                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                         'Accept': 'application/json'
                                     },
-                                    body: JSON.stringify({ phone, transaction_id: id })
+                                    body: JSON.stringify({ phone: txPhone, transaction_id: tx.id })
                                 });
                                 const data2 = await r2.json();
                                 renderTransactions(data2.transactions || [], phone);
                                 return;
                             }
 
-                            const r = await fetch(routes.resume.replace(':id', id), {
+                            const r = await fetch(routes.resume.replace(':id', tx.id), {
                                 method: 'POST',
                                 credentials: 'same-origin',
                                 headers: {
@@ -174,16 +178,14 @@
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                     'Accept': 'application/json'
                                 },
-                                body: JSON.stringify({ phone })
+                                body: JSON.stringify({ phone: txPhone })
                             });
-                            // Handle 404/405 gracefully
                             if (!r.ok) {
                                 let msgText = 'Gagal melanjutkan pembayaran.';
                                 try {
                                     const err = await r.json();
                                     if (err && err.message) msgText = err.message;
                                 } catch (_) {}
-                                // 404: Not Found or invalid transaction for this event -> refresh pending list
                                 if (r.status === 404) {
                                     setMsg(msgText, 'error');
                                     const r2 = await fetch(routes.pending, {
@@ -194,7 +196,7 @@
                                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                             'Accept': 'application/json'
                                         },
-                                        body: JSON.stringify({ phone, transaction_id: id })
+                                        body: JSON.stringify({ phone: txPhone, transaction_id: tx.id })
                                     });
                                     const data2 = await r2.json();
                                     renderTransactions(data2.transactions || [], phone);
@@ -211,8 +213,7 @@
                                 onSuccess: async function (result) {
                                     setMsg('Pembayaran berhasil! Memverifikasi status...', 'ok');
                                     try {
-                                        // Force update status on server
-                                        await fetch(routes.status.replace(':id', id) + `?phone=${encodeURIComponent(phone)}`, {
+                                        await fetch(routes.status.replace(':id', tx.id) + `?phone=${encodeURIComponent(txPhone)}`, {
                                             credentials: 'same-origin',
                                             headers: { 'Accept': 'application/json' }
                                         });
@@ -234,7 +235,7 @@
                         } catch (e) {
                             setMsg(e.message || 'Terjadi kesalahan', 'error');
                         } finally {
-                            btn.disabled = false;
+                            btnResume.disabled = false;
                         }
                     });
                 });
@@ -267,6 +268,12 @@
                     const data = await r.json();
                     if (!data.success) throw new Error(data.message || 'Gagal mencari transaksi');
                     renderTransactions(data.transactions || [], phone);
+
+                    // Save to localStorage upon successful search
+                    if (data.transactions && data.transactions.length > 0) {
+                        localStorage.setItem('ruanglari_last_phone', phone);
+                        localStorage.setItem('ruanglari_phone_event_' + "{{ $event->slug }}", phone);
+                    }
                 } catch (e) {
                     setMsg(e.message || 'Terjadi kesalahan', 'error');
                 } finally {
@@ -280,7 +287,29 @@
                 results.classList.add('hidden');
                 results.innerHTML = '';
                 setMsg('', 'info');
+                // Clear localStorage key for this event on reset
+                localStorage.removeItem('ruanglari_phone_event_' + "{{ $event->slug }}");
             });
+
+            // Auto-load if user is authenticated and has pending transactions
+            const autoTransactions = @json($autoTransactions ?? []);
+            const userPhone = @json($userPhone ?? '');
+
+            if (autoTransactions && autoTransactions.length > 0) {
+                if (phoneEl && userPhone) {
+                    phoneEl.value = userPhone;
+                }
+                renderTransactions(autoTransactions, userPhone);
+            } else {
+                // For guest users, try loading from localStorage
+                const localKey = 'ruanglari_phone_event_' + "{{ $event->slug }}";
+                const savedPhone = localStorage.getItem(localKey) || localStorage.getItem('ruanglari_last_phone');
+                if (savedPhone && phoneEl) {
+                    phoneEl.value = savedPhone;
+                    // Auto-trigger search for guest
+                    btnFind.click();
+                }
+            }
         })();
     </script>
 @endsection

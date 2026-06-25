@@ -213,6 +213,109 @@
                     @endif
                 </div>
 
+                <!-- Event Lari Anda Section -->
+                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Events</div>
+                            <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Event Lari Anda</h2>
+                        </div>
+                        <div class="shrink-0">
+                            <a href="{{ route('events.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neon text-dark font-black text-xs transition hover:bg-neon/90">
+                                Jelajahi Event
+                            </a>
+                        </div>
+                    </div>
+
+                    @if($eventRegistrations->isEmpty())
+                        <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 text-center">
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Kamu belum mendaftar di event lari manapun saat ini. Yuk, temukan event lari seru dan tantang dirimu!
+                            </p>
+                            <a href="{{ route('events.index') }}" class="mt-3 inline-block px-4 py-2 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 transition">
+                                Cari Event Lari
+                            </a>
+                        </div>
+                    @else
+                        <div class="mt-5 space-y-4">
+                            @foreach($eventRegistrations as $reg)
+                                @php($evt = $reg->event)
+                                @if(!$evt) @continue @endif
+                                <div class="bg-slate-900/40 border border-slate-750 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-slate-650">
+                                    <div class="min-w-0 flex items-start gap-3">
+                                        <div class="p-2.5 bg-neon/10 border border-neon/20 rounded-xl text-neon shrink-0">
+                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <a href="{{ route('events.show', $evt->slug) }}" class="text-base font-bold text-white hover:text-neon transition truncate block">
+                                                {{ $evt->name }}
+                                            </a>
+                                            <div class="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                <span class="font-mono">{{ $evt->start_at ? $evt->start_at->format('d M Y') : '—' }}</span>
+                                                <span class="text-slate-600">•</span>
+                                                <span>{{ $evt->location_name ?? '—' }}</span>
+                                            </div>
+                                            <div class="text-[11px] text-slate-505 mt-2 flex flex-wrap items-center gap-1.5">
+                                                <span class="text-slate-400 font-medium">Kategori:</span>
+                                                @foreach($reg->participants as $p)
+                                                    <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[10px]">
+                                                        {{ $p->name }} ({{ $p->category->name ?? 'N/A' }})
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end justify-between md:justify-center gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-800">
+                                        <div class="text-left sm:text-right md:text-right">
+                                            <div class="text-xs text-slate-500">Status Pembayaran</div>
+                                            <div class="mt-1">
+                                                @if($reg->payment_status === 'paid' || $reg->payment_status === 'settlement' || $reg->payment_status === 'capture')
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-black uppercase tracking-wider">
+                                                        ⚡ Lunas
+                                                    </span>
+                                                @elseif($reg->payment_status === 'pending')
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-[10px] font-black uppercase tracking-wider">
+                                                        ⏳ Pending
+                                                    </span>
+                                                @elseif($reg->payment_status === 'cod')
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-black uppercase tracking-wider">
+                                                        💵 COD
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-wider">
+                                                        ❌ {{ ucfirst($reg->payment_status) }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="w-full sm:w-auto text-right">
+                                            @if($reg->payment_status === 'pending')
+                                                @if(($reg->payment_gateway ?? '') === 'midtrans')
+                                                    <a href="{{ route('events.payments.continue', $evt->slug) }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs transition">
+                                                        Bayar Sekarang
+                                                    </a>
+                                                @elseif(($reg->payment_gateway ?? '') === 'moota')
+                                                    <a href="{{ route('events.payment', ['slug' => $evt->slug, 'transaction' => $reg->id]) }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs transition">
+                                                        Bayar Sekarang
+                                                    </a>
+                                                @endif
+                                            @elseif($reg->payment_status === 'paid' || $reg->payment_status === 'settlement' || $reg->payment_status === 'capture' || $reg->payment_status === 'cod')
+                                                <a href="{{ route('events.show', $evt->slug) }}" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-750 transition">
+                                                    Lihat Event
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <div class="flex items-start justify-between gap-4">
                         <div>

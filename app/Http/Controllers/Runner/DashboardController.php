@@ -314,6 +314,14 @@ class DashboardController extends Controller
             default => 'Selamat malam',
         };
 
+        $eventRegistrations = \App\Models\Transaction::where('user_id', $user->id)
+            ->orWhereHas('participants', function ($query) use ($user) {
+                $query->where('email', $user->email);
+            })
+            ->with(['event', 'participants.category'])
+            ->orderBy('id', 'desc')
+            ->get();
+
         return view('runner.dashboard', [
             'activeEnrollments' => $activeEnrollments,
             'walletBalance' => $user->wallet ? $user->wallet->balance : 0,
@@ -334,6 +342,7 @@ class DashboardController extends Controller
             'todayWorkoutCount' => count($todayWorkouts),
             'greeting' => $greeting,
             'weeklyReports' => $weeklyReports,
+            'eventRegistrations' => $eventRegistrations,
         ]);
     }
 

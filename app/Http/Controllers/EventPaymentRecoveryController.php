@@ -13,8 +13,35 @@ class EventPaymentRecoveryController extends Controller
     {
         $event = Event::query()->where('slug', $slug)->firstOrFail();
 
+        $autoTransactions = [];
+        $userPhone = null;
+
+        if (auth()->check()) {
+            $user = auth()->user();
+            $userPhone = $user->phone;
+
+            // Find pending transactions for this user for this event
+            $txs = Transaction::query()
+                ->where('event_id', $event->id)
+                ->where('payment_status', 'pending')
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                          ->orWhereHas('participants', function ($q) use ($user) {
+                              $q->where('email', $user->email);
+                          });
+                })
+                ->orderByDesc('id')
+                ->get();
+
+            foreach ($txs as $tx) {
+                $autoTransactions[] = $this->serializeTransaction($tx, true);
+            }
+        }
+
         return view('events.continue-payment', [
             'event' => $event,
+            'autoTransactions' => $autoTransactions,
+            'userPhone' => $userPhone,
         ]);
     }
 
@@ -419,13 +446,13 @@ class EventPaymentRecoveryController extends Controller
         return null;
     }
 
-    private function serializeTransaction(Transaction $tx): array
+    private function serializeTransaction(Transaction $tx, bool $includeRawPhone = false): array
     {
         $pic = is_array($tx->pic_data) ? $tx->pic_data : [];
         $name = (string) ($pic['name'] ?? '');
         $phone = (string) ($pic['phone'] ?? '');
 
-        return [
+        $data = [
             'id' => $tx->id,
             'public_ref' => $tx->public_ref ?? null,
             'pic_name' => $name !== '' ? $name : null,
@@ -435,6 +462,12 @@ class EventPaymentRecoveryController extends Controller
             'midtrans_transaction_status' => $tx->midtrans_transaction_status,
             'created_at' => optional($tx->created_at)->toISOString(),
         ];
+
+        if ($includeRawPhone) {
+            $data['pic_phone_raw'] = $phone;
+        }
+
+        return $data;
     }
 
     private function maskPhone(string $phone): string
