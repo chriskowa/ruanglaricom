@@ -85,9 +85,27 @@ class PublicRunningEventController extends Controller
         $raceTypes = RaceType::whereHas('events', fn ($q) => $q->directory())->get();
         $raceDistances = RaceDistance::whereHas('events', fn ($q) => $q->directory())->get();
 
+        $featuredEvents = Event::whereIn('event_kind', ['directory', 'managed'])
+            ->published()
+            ->upcoming()
+            ->where('is_featured', true)
+            ->with(['city', 'raceType', 'raceDistances', 'categories'])
+            ->orderBy('start_at', 'asc')
+            ->get();
+
+        if ($featuredEvents->isEmpty()) {
+            $featuredEvents = Event::whereIn('event_kind', ['directory', 'managed'])
+                ->published()
+                ->upcoming()
+                ->with(['city', 'raceType', 'raceDistances', 'categories'])
+                ->orderBy('start_at', 'asc')
+                ->limit(3)
+                ->get();
+        }
+
         $events = $query->paginate(10);
 
-        return view('events.landing', compact('events', 'cities', 'raceTypes', 'raceDistances'));
+        return view('events.landing', compact('events', 'cities', 'raceTypes', 'raceDistances', 'featuredEvents'));
     }
 
     public function show($slug)

@@ -33,7 +33,7 @@
             <div class="grid md:grid-cols-2 gap-16 items-center">
                 <div data-aos="fade-right">
                     <div class="relative rounded-[2.5rem] overflow-hidden border-4 border-slate-800/50 shadow-2xl">
-                        <img src="https://images.unsplash.com/photo-1552674605-15c2145fb019?auto=format&fit=crop&q=80&w=800" alt="Running Community" class="w-full h-auto object-cover hover:scale-105 transition duration-700">
+                        <img src="https://ruanglari.com/storage/blog/media/3l1BGrryunIsbK1nQitzCXVUXpmwxsQ0vd5ziuA1.webp" alt="Running Community" class="w-full h-auto object-cover hover:scale-105 transition duration-700">
                         <div class="absolute inset-0 bg-gradient-to-t from-dark/80 to-transparent"></div>
                         <div class="absolute bottom-6 left-6 right-6">
                             <h3 class="text-2xl font-black text-white italic">BERSAMA KITA BISA</h3>

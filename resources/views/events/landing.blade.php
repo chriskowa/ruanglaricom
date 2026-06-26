@@ -49,30 +49,159 @@
                 </div>
             </div>
             
-            <!-- Hero Image/Banner -->
+            <!-- Hero Image/Banner / Slider Featured Event -->
             <div class="lg:col-span-5 relative group" data-aos="zoom-in" data-aos-delay="100">
                 <div class="absolute -inset-1.5 bg-gradient-to-r from-neon to-lime-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                <div class="relative bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
-                    <img 
-                        src="{{ asset('images/hero/jadwal-lari.webp') }}" 
-                        alt="Jadwal Lari 2026 Indonesia - Kalender Event Lari Ruang Lari" 
-                        class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
-                        width="800"
-                        height="450"
-                        loading="eager"
-                        fetchpriority="high"
+                
+                @if(isset($featuredEvents) && $featuredEvents->isNotEmpty())
+                    <!-- Slider Container -->
+                    <div 
+                        class="relative bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl"
+                        x-data="{ 
+                            activeIndex: 0, 
+                            total: {{ $featuredEvents->count() }}, 
+                            timer: null,
+                            startTimer() {
+                                this.timer = setInterval(() => {
+                                    this.activeIndex = (this.activeIndex + 1) % this.total;
+                                }, 5000);
+                            },
+                            stopTimer() {
+                                clearInterval(this.timer);
+                            }
+                        }"
+                        x-init="startTimer()"
+                        @mouseenter="stopTimer()"
+                        @mouseleave="startTimer()"
                     >
-                    <!-- Glassmorphism overlay card at the bottom of the image -->
-                    <div class="absolute bottom-0 inset-x-0 bg-slate-950/70 backdrop-blur-md border-t border-slate-800/80 p-4 flex justify-between items-center">
-                        <div class="text-left">
-                            <p class="text-[10px] font-bold text-neon uppercase tracking-widest">Update Berkala</p>
-                            <p class="text-xs font-black text-white tracking-tight uppercase">Kalender Lari Indonesia</p>
+                        <!-- Slides Wrapper -->
+                        <div class="flex transition-transform duration-700 ease-out" :style="`transform: translateX(-${activeIndex * 100}%)`">
+                            @foreach($featuredEvents as $event)
+                                <a href="{{ $event->public_url }}" class="block w-full flex-shrink-0 relative aspect-video overflow-hidden group/slide">
+                                    <!-- Event Image -->
+                                    <img 
+                                        src="{{ $event->getHeroImageUrl() ?: asset('images/hero/jadwal-lari.webp') }}" 
+                                        alt="{{ $event->name }}" 
+                                        class="w-full h-full object-cover transform group-hover/slide:scale-105 transition-transform duration-700 ease-out"
+                                        width="800"
+                                        height="450"
+                                        loading="eager"
+                                    >
+                                    
+                                    <!-- Gradients for readability -->
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-transparent opacity-90"></div>
+                                    
+                                    <!-- Content Overlay -->
+                                    <div class="absolute bottom-0 inset-x-0 p-4 sm:p-5 flex flex-col justify-end bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent">
+                                        <!-- Badges -->
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="px-2 py-0.5 text-[9px] font-extrabold tracking-wider text-neon bg-neon/10 border border-neon/30 rounded uppercase">
+                                                {{ $event->is_featured ? 'Featured Event' : 'Event Pilihan' }}
+                                            </span>
+                                            @if($event->raceType)
+                                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                                    {{ $event->raceType->name }}
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <!-- Title -->
+                                        <h3 class="text-white text-base sm:text-lg font-black tracking-tight line-clamp-1 uppercase group-hover/slide:text-neon transition-colors duration-300">
+                                            {{ $event->name }}
+                                        </h3>
+
+                                        <!-- Meta details (Date & Location) -->
+                                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-350 text-xs mt-1">
+                                            <div class="flex items-center gap-1 font-semibold">
+                                                <svg class="w-3.5 h-3.5 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <span>{{ $event->start_at ? $event->start_at->translatedFormat('d M Y') : '' }}</span>
+                                            </div>
+                                            <span class="text-slate-650 hidden sm:inline">•</span>
+                                            <div class="flex items-center gap-1 truncate max-w-[200px] text-slate-400">
+                                                <svg class="w-3.5 h-3.5 text-neon flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                <span class="truncate">{{ $event->city ? $event->city->name : $event->location_name }}</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Distances/Categories Badges -->
+                                        @if($event->distances->isNotEmpty())
+                                            <div class="flex flex-wrap gap-1 mt-2.5">
+                                                @foreach($event->distances as $distance)
+                                                    <span class="px-2 py-0.5 rounded-md bg-slate-950/80 border border-slate-800 text-[8px] font-black text-slate-300 uppercase tracking-tight">
+                                                        {{ $distance->name }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                </a>
+                            @endforeach
                         </div>
-                        <div class="px-2.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-bold text-slate-300 uppercase">
-                            2026 Edition
+
+                        <!-- Arrow Navigation Controls -->
+                        <button 
+                            type="button" 
+                            @click.prevent="activeIndex = (activeIndex - 1 + total) % total" 
+                            class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/70 hover:bg-neon hover:text-dark text-white border border-slate-800/50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-20 focus:outline-none"
+                            aria-label="Previous event"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <button 
+                            type="button" 
+                            @click.prevent="activeIndex = (activeIndex + 1) % total" 
+                            class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/70 hover:bg-neon hover:text-dark text-white border border-slate-800/50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-20 focus:outline-none"
+                            aria-label="Next event"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+
+                        <!-- Dots Progress Indicators -->
+                        <div class="absolute bottom-4 right-4 flex gap-1.5 z-20">
+                            <template x-for="(event, idx) in total" :key="idx">
+                                <button 
+                                    type="button" 
+                                    @click.prevent="activeIndex = idx" 
+                                    class="h-1.5 rounded-full transition-all duration-300 focus:outline-none"
+                                    :class="activeIndex === idx ? 'w-5 bg-neon' : 'w-1.5 bg-slate-500 hover:bg-slate-400'"
+                                    :aria-label="'Go to slide ' + (idx + 1)"
+                                ></button>
+                            </template>
                         </div>
                     </div>
-                </div>
+                @else
+                    <!-- Fallback: Original static hero image -->
+                    <div class="relative bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+                        <img 
+                            src="{{ asset('images/hero/jadwal-lari.webp') }}" 
+                            alt="Jadwal Lari 2026 Indonesia - Kalender Event Lari Ruang Lari" 
+                            class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                            width="800"
+                            height="450"
+                            loading="eager"
+                            fetchpriority="high"
+                        >
+                        <!-- Glassmorphism overlay card at the bottom of the image -->
+                        <div class="absolute bottom-0 inset-x-0 bg-slate-950/70 backdrop-blur-md border-t border-slate-800/80 p-4 flex justify-between items-center">
+                            <div class="text-left">
+                                <p class="text-[10px] font-bold text-neon uppercase tracking-widest">Update Berkala</p>
+                                <p class="text-xs font-black text-white tracking-tight uppercase">Kalender Lari Indonesia</p>
+                            </div>
+                            <div class="px-2.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-bold text-slate-300 uppercase">
+                                2026 Edition
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
