@@ -2683,6 +2683,49 @@ createApp({
                     if (type) cls.push('workout-' + type);
                     return cls;
                 },
+                eventContent: (arg) => {
+                    const props = arg.event.extendedProps || {};
+                    const isStrava = props.type === 'strava_activity' || props.event_type === 'strava_activity' || props.is_strava;
+                    
+                    const container = document.createElement('div');
+                    container.style.display = 'flex';
+                    container.style.alignItems = 'center';
+                    container.style.gap = '4px';
+                    container.style.overflow = 'hidden';
+                    container.style.textOverflow = 'ellipsis';
+                    container.style.whiteSpace = 'nowrap';
+                    container.style.width = '100%';
+
+                    if (!arg.event.allDay && arg.timeText) {
+                        const timeEl = document.createElement('span');
+                        timeEl.className = 'fc-event-time';
+                        timeEl.style.fontWeight = 'bold';
+                        timeEl.style.marginRight = '2px';
+                        timeEl.style.flexShrink = '0';
+                        timeEl.innerText = arg.timeText;
+                        container.appendChild(timeEl);
+                    }
+
+                    if (isStrava) {
+                        const svgSpan = document.createElement('span');
+                        svgSpan.style.display = 'inline-flex';
+                        svgSpan.style.alignItems = 'center';
+                        svgSpan.style.flexShrink = '0';
+                        svgSpan.innerHTML = `
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#FC4C02">
+                                <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-3.756l3.52 6.948h4.636L11.529 0 4 14.808h4.637l2.871-5.62z"/>
+                            </svg>
+                        `;
+                        container.appendChild(svgSpan);
+                    }
+
+                    const titleEl = document.createElement('span');
+                    titleEl.className = 'fc-event-title';
+                    titleEl.innerText = arg.event.title;
+                    container.appendChild(titleEl);
+
+                    return { domNodes: [container] };
+                },
                 dateClick: (info) => {
                     openForm(info.dateStr);
                 },

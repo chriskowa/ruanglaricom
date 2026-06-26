@@ -16,6 +16,7 @@ window.RLBuilderUtils = (function() {
     if (t === 'speed' || t === 'repetition' || t === 'intervals') return 'interval';
     if (t === 'threshold' || t === 'tempo_run') return 'tempo';
     if (t === 'long') return 'long_run';
+    if (t === 'time_trial' || t === 'timetrial' || t === 'tt') return 'time_trial';
     return t || 'easy_run';
   };
 
@@ -36,6 +37,12 @@ window.RLBuilderUtils = (function() {
         parts.push(`${bf.tempo.distanceKm}km @${bf.tempo.pace} ${bf.tempo.effort}`);
       } else {
         parts.push(`${bf.tempo.duration} @${bf.tempo.pace} ${bf.tempo.effort}`);
+      }
+    } else if (bf.type === 'time_trial') {
+      if (bf.timeTrial?.by==='distance') {
+        parts.push(`Time Trial ${bf.timeTrial.distanceKm}km${bf.timeTrial.pace ? ` @${bf.timeTrial.pace}` : ''}`);
+      } else {
+        parts.push(`Time Trial ${bf.timeTrial?.duration || ''}${bf.timeTrial?.pace ? ` @${bf.timeTrial.pace}` : ''}`);
       }
     } else if (bf.type === 'long_run') {
       parts.push(`Long Run ${bf.main.by==='distance'?bf.main.distanceKm+'km':bf.main.duration}`);
@@ -75,6 +82,9 @@ window.RLBuilderUtils = (function() {
     } else if (bf.type === 'tempo') {
       if (bf.tempo.by==='distance') total += Number(bf.tempo.distanceKm) || 0;
       else addByTime(bf.tempo.duration, bf.tempo.pace);
+    } else if (bf.type === 'time_trial') {
+      if (bf.timeTrial?.by==='distance') total += Number(bf.timeTrial.distanceKm) || 0;
+      else addByTime(bf.timeTrial.duration, bf.timeTrial.pace);
     } else if (bf.type === 'interval') {
       if (bf.interval.by==='distance') {
         total += (Number(bf.interval.reps)||0) * (Number(bf.interval.repDistanceKm)||0);

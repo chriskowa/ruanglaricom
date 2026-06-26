@@ -262,13 +262,13 @@ class CalendarController extends Controller
             }
 
             $t = strtolower((string) $act->type);
-            $emoji = in_array($t, ['run', 'virtualrun', 'trailrun', 'treadmill'], true) ? '🏃 ' : (str_contains($t, 'ride') ? '🚴 ' : '🏋️ ');
 
             $events[] = [
                 'id' => 'strava_'.$act->strava_activity_id,
-                'title' => $emoji.($act->name ?: 'Strava Activity'),
-                'start' => $act->local_start_date->format('Y-m-d'),
-                'allDay' => true,
+                'title' => 'Strava Activity',
+                'start' => $act->local_start_date->format('Y-m-d\TH:i:s'),
+                'end' => $act->local_start_date->copy()->addSeconds((int) ($act->elapsed_time_s ?: $act->moving_time_s ?: 3600))->format('Y-m-d\TH:i:s'),
+                'allDay' => false,
                 'editable' => false,
                 'backgroundColor' => '#1F2937',
                 'borderColor' => '#F97316',

@@ -13,7 +13,7 @@ class CustomWorkoutController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:easy_run,long_run,tempo,interval,strength,rest',
+            'type' => 'required|in:easy_run,long_run,tempo,interval,strength,rest,time_trial',
             'description' => 'nullable|string',
             'default_distance' => 'nullable|numeric|min:0',
             'default_duration' => 'nullable|string',
@@ -51,7 +51,7 @@ class CustomWorkoutController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:easy_run,long_run,tempo,interval,strength,rest',
+            'type' => 'required|in:easy_run,long_run,tempo,interval,strength,rest,time_trial',
             'description' => 'nullable|string',
             'default_distance' => 'nullable|numeric|min:0',
             'default_duration' => 'nullable|string',
@@ -102,7 +102,7 @@ class CustomWorkoutController extends Controller
         return match ($type) {
             'easy_run', 'rest' => 'low',
             'long_run', 'tempo' => 'medium',
-            'interval', 'strength' => 'high',
+            'interval', 'strength', 'time_trial' => 'high',
             default => 'low',
         };
     }

@@ -24,7 +24,7 @@ class MasterWorkoutController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:easy_run,long_run,tempo,interval,strength,rest',
+            'type' => 'required|in:easy_run,long_run,tempo,interval,strength,rest,time_trial',
             'description' => 'nullable|string',
             'default_distance' => 'nullable|numeric|min:0',
             'default_duration' => 'nullable|string', // Format HH:MM:SS or generic text
@@ -46,7 +46,7 @@ class MasterWorkoutController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:easy_run,long_run,tempo,interval,strength,rest',
+            'type' => 'required|in:easy_run,long_run,tempo,interval,strength,rest,time_trial',
             'description' => 'nullable|string',
             'default_distance' => 'nullable|numeric|min:0',
             'default_duration' => 'nullable|string',

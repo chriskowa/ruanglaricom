@@ -104,9 +104,8 @@
             <!-- Horizontal Workout Toolbar -->
             <div class="glass-panel rounded-2xl p-6 sticky top-4 z-30 shadow-2xl shadow-black/50 border-t border-white/10 overflow-visible">
                 <div class="flex flex-col gap-4">
-                    <!-- Tabs Header -->
                     <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-white/10">
-                        @foreach(['easy_run' => 'Easy', 'long_run' => 'Long', 'interval' => 'Speed', 'tempo' => 'Tempo', 'strength' => 'Strength', 'rest' => 'Rest', 'custom' => 'Custom'] as $type => $label)
+                        @foreach(['easy_run' => 'Easy', 'long_run' => 'Long', 'interval' => 'Speed', 'tempo' => 'Tempo', 'time_trial' => 'Time Trial', 'strength' => 'Strength', 'rest' => 'Rest', 'custom' => 'Custom'] as $type => $label)
                             <button type="button" 
                                 @click="activeTab = '{{ $type }}'"
                                 :class="{ 'bg-neon text-dark border-neon shadow-[0_0_15px_rgba(191,255,0,0.3)]': activeTab === '{{ $type }}', 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-slate-200': activeTab !== '{{ $type }}' }"
@@ -118,13 +117,14 @@
                 
                     <!-- Tabs Content -->
                     <div class="min-h-[140px] bg-slate-900/50 rounded-xl p-4 border border-white/5">
-                        @foreach(['easy_run' => 'Easy', 'long_run' => 'Long', 'interval' => 'Speed', 'tempo' => 'Tempo', 'strength' => 'Strength', 'rest' => 'Rest'] as $type => $label)
+                        @foreach(['easy_run' => 'Easy', 'long_run' => 'Long', 'interval' => 'Speed', 'tempo' => 'Tempo', 'time_trial' => 'Time Trial', 'strength' => 'Strength', 'rest' => 'Rest'] as $type => $label)
                              @php
                                 $colors = [
                                     'easy_run' => '#4CAF50',
                                     'long_run' => '#2196F3',
                                     'interval' => '#F44336',
                                     'tempo' => '#FFC107',
+                                    'time_trial' => '#FF5722',
                                     'strength' => '#9C27B0',
                                     'rest' => '#9E9E9E',
                                 ];
@@ -156,7 +156,7 @@
                                             <div class="text-xs font-bold text-white truncate w-full">Manual Rest</div>
                                             <i class="fa-solid fa-grip-vertical text-slate-600 group-hover:text-slate-400 text-[10px]"></i>
                                          </div>
-                                    </div>
+                                     </div>
                                 @endif
                             </div>
                         @endforeach
@@ -214,54 +214,127 @@
                     <button type="button" @click="currentWeek = Math.min(form.duration_weeks, currentWeek + 1)" class="p-2 hover:text-white text-slate-400 transition" :disabled="currentWeek === form.duration_weeks">Next Week →</button>
                 </div>
 
-                <!-- Day Grid for Current Week -->
-                <div class="grid grid-cols-7 gap-2 mb-4">
-                    <div v-for="day in 7" :key="day" class="text-center text-xs font-bold text-slate-500 uppercase py-2">
-                        Day @{{ day }}
+                <!-- Responsive Day Container -->
+                <!-- Mobile Day List (visible only on mobile) -->
+                <div class="block md:hidden space-y-3">
+                    <div v-for="day in 7" :key="day" 
+                         class="bg-slate-800/50 border border-slate-700 rounded-xl p-3 relative group transition-all flex flex-col gap-2"
+                         @dragover.prevent @drop="handleDrop($event, day)">
+                         
+                         <div class="flex justify-between items-center border-b border-slate-700/40 pb-1.5 mb-1">
+                             <div class="text-xs font-black text-slate-400 uppercase">Day @{{ day }}</div>
+                             <button type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-neon hover:text-dark text-[10px] font-black text-slate-300 transition"
+                                     @click.stop="openBuilderAdd(day)">
+                                 + Add Workout
+                             </button>
+                         </div>
+                         
+                         <!-- Dropped Sessions (Mobile) -->
+                         <div class="space-y-2">
+                             <template v-if="getSessions(currentWeek, day).length > 0">
+                                 <div v-for="(session, sIdx) in getSessions(currentWeek, day)" 
+                                     :key="session._id"
+                                     class="p-3 rounded-xl cursor-pointer hover:brightness-110 transition text-xs shadow-lg relative group flex flex-col gap-2"
+                                     :style="{ backgroundColor: getSessionColor(session.type), borderLeft: '3px solid rgba(255,255,255,0.3)' }"
+                                     draggable="true"
+                                     @dragstart="handleSessionDragStart($event, session)"
+                                     @dragover.prevent
+                                     @drop.stop="handleSessionDrop($event, session)"
+                                     @click.stop="openBuilderEdit(session)">
+                                     
+                                     <div class="flex justify-between items-start">
+                                         <div class="font-bold text-white truncate pr-2">@{{ session.title || session.type }}</div>
+                                         <div class="flex gap-2">
+                                             <!-- Swap buttons -->
+                                             <button type="button" class="text-white/80 hover:text-white text-[10px]" 
+                                                     @click.stop="moveWorkoutUp(session)" title="Move Up">
+                                                 <i class="fa-solid fa-arrow-up"></i>
+                                             </button>
+                                             <button type="button" class="text-white/80 hover:text-white text-[10px]" 
+                                                     @click.stop="moveWorkoutDown(session)" title="Move Down">
+                                                 <i class="fa-solid fa-arrow-down"></i>
+                                             </button>
+                                             <button type="button" class="text-white/80 hover:text-white" 
+                                                     @click.stop="duplicateWorkout(session._id)" title="Duplicate">
+                                                 <i class="fa-solid fa-copy"></i>
+                                             </button>
+                                             <button type="button" class="text-white/80 hover:text-white" 
+                                                     @click.stop="deleteWorkout(session._id)" title="Delete">
+                                                 <i class="fa-solid fa-trash-can"></i>
+                                             </button>
+                                         </div>
+                                     </div>
+                                     <div class="text-white/70 font-semibold">@{{ session.distance }} km</div>
+                                 </div>
+                             </template>
+                             <div v-else class="text-slate-500 text-xs py-2 italic text-center">
+                                 No workouts scheduled
+                             </div>
+                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-7 gap-2 h-[500px]">
-                    <div v-for="day in 7" :key="day" 
-                         class="bg-slate-800/50 border border-slate-700 rounded-xl p-2 relative group min-h-[100px] transition-all hover:bg-slate-800 flex flex-col gap-2 overflow-y-auto no-scrollbar"
-                         @dragover.prevent @drop="handleDrop($event, day)">
-                        
-                        <div class="absolute top-2 right-2 text-xs font-mono text-slate-600">@{{ day }}</div>
-                        
-                        <!-- Dropped Sessions -->
-                        <template v-if="getSessions(currentWeek, day).length > 0">
-                            <div v-for="session in getSessions(currentWeek, day)" 
-                                :key="session._id"
-                                class="p-2 rounded-lg cursor-pointer hover:brightness-110 transition text-xs shadow-lg relative z-10"
-                                :style="{ backgroundColor: getSessionColor(session.type), borderLeft: '3px solid rgba(255,255,255,0.3)' }"
-                                draggable="true"
-                                @dragstart="handleSessionDragStart($event, session)"
-                                @click.stop="openBuilderEdit(session)">
-                            <div class="flex justify-between items-start">
-                                <div class="font-bold text-white truncate pr-2">@{{ session.title || session.type }}</div>
-                                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                                    <button type="button" class="text-white/70 hover:text-white" 
-                                            @click.stop="duplicateWorkout(session._id)" title="Duplicate">
-                                        <i class="fa-solid fa-copy"></i>
-                                    </button>
-                                    <button type="button" class="text-white/70 hover:text-white" 
-                                            @click.stop="deleteWorkout(session._id)" title="Delete">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="text-white/70">@{{ session.distance }} km</div>
-                            </div>
-                        </template>
-                        
-                        <div v-else class="h-full w-full flex items-center justify-center text-slate-600 text-xs opacity-0 group-hover:opacity-100 pointer-events-none absolute inset-0">
-                            Drop here
+                <!-- Desktop Day Grid (visible on desktop) -->
+                <div class="hidden md:block">
+                    <!-- Day Grid for Current Week -->
+                    <div class="grid grid-cols-7 gap-2 mb-4">
+                        <div v-for="day in 7" :key="day" class="text-center text-xs font-bold text-slate-500 uppercase py-2">
+                            Day @{{ day }}
                         </div>
-                        
-                        <button type="button" class="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-slate-700/60 text-white text-[10px] font-bold hover:bg-neon hover:text-dark transition"
-                                @click.stop="openBuilderAdd(day)">
-                            Add
-                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-2 h-[500px]">
+                        <div v-for="day in 7" :key="day" 
+                             class="bg-slate-800/50 border border-slate-700 rounded-xl p-2 relative group min-h-[100px] transition-all hover:bg-slate-800 flex flex-col gap-2 overflow-y-auto no-scrollbar"
+                             @dragover.prevent @drop="handleDrop($event, day)">
+                            
+                            <div class="absolute top-2 right-2 text-xs font-mono text-slate-600">@{{ day }}</div>
+                            
+                            <!-- Dropped Sessions -->
+                            <template v-if="getSessions(currentWeek, day).length > 0">
+                                <div v-for="session in getSessions(currentWeek, day)" 
+                                    :key="session._id"
+                                    class="p-2 rounded-lg cursor-pointer hover:brightness-110 transition text-xs shadow-lg relative z-10 group"
+                                    :style="{ backgroundColor: getSessionColor(session.type), borderLeft: '3px solid rgba(255,255,255,0.3)' }"
+                                    draggable="true"
+                                    @dragstart="handleSessionDragStart($event, session)"
+                                    @dragover.prevent
+                                    @drop.stop="handleSessionDrop($event, session)"
+                                    @click.stop="openBuilderEdit(session)">
+                                    <div class="flex justify-between items-start">
+                                        <div class="font-bold text-white truncate pr-2">@{{ session.title || session.type }}</div>
+                                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                                            <button type="button" class="text-white/70 hover:text-white" 
+                                                    @click.stop="moveWorkoutUp(session)" title="Move Up">
+                                                <i class="fa-solid fa-arrow-up"></i>
+                                            </button>
+                                            <button type="button" class="text-white/70 hover:text-white" 
+                                                    @click.stop="moveWorkoutDown(session)" title="Move Down">
+                                                <i class="fa-solid fa-arrow-down"></i>
+                                            </button>
+                                            <button type="button" class="text-white/70 hover:text-white" 
+                                                    @click.stop="duplicateWorkout(session._id)" title="Duplicate">
+                                                <i class="fa-solid fa-copy"></i>
+                                            </button>
+                                            <button type="button" class="text-white/70 hover:text-white" 
+                                                    @click.stop="deleteWorkout(session._id)" title="Delete">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="text-white/70">@{{ session.distance }} km</div>
+                                </div>
+                            </template>
+                            
+                            <div v-else class="h-full w-full flex items-center justify-center text-slate-600 text-xs opacity-0 group-hover:opacity-100 pointer-events-none absolute inset-0">
+                                Drop here
+                            </div>
+                            
+                            <button type="button" class="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-slate-700/60 text-white text-[10px] font-bold hover:bg-neon hover:text-dark transition"
+                                    @click.stop="openBuilderAdd(day)">
+                                Add
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -286,6 +359,7 @@
                             <option value="long_run">Long Run</option>
                             <option value="tempo">Tempo</option>
                             <option value="interval">Intervals</option>
+                            <option value="time_trial">Time Trial</option>
                             <option value="strength">Strength</option>
                             <option value="rest">Rest</option>
                         </select>
@@ -434,6 +508,21 @@
                             </div>
                         </div>
                     </div>
+                    <div v-else-if="builderForm.type==='time_trial'">
+                        <div class="grid grid-cols-4 gap-2">
+                            <select v-model="builderForm.timeTrial.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="distance">Distance</option>
+                                <option value="time">Time</option>
+                            </select>
+                            <input v-if="builderForm.timeTrial.by==='distance'" type="number" step="0.1" v-model.number="builderForm.timeTrial.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                            <input v-else type="text" v-model="builderForm.timeTrial.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
+                            <input type="text" v-model="builderForm.timeTrial.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss) / Optional">
+                            <select v-model="builderForm.timeTrial.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                <option value="max_effort">Max Effort</option>
+                                <option value="race_pace">Race Pace</option>
+                            </select>
+                        </div>
+                    </div>
                     <div v-else-if="builderForm.type==='rest'">
                         <div class="text-slate-400 text-sm">Rest Day</div>
                     </div>
@@ -515,6 +604,21 @@
                                 <input type="text" v-model="cwForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Recovery">
                             </div>
                         </div>
+                        <div v-else-if="cwForm.type==='time_trial'">
+                            <div class="grid grid-cols-4 gap-2">
+                                <select v-model="cwForm.timeTrial.by" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="distance">Distance</option>
+                                    <option value="time">Time</option>
+                                </select>
+                                <input v-if="cwForm.timeTrial.by==='distance'" type="number" step="0.1" v-model.number="cwForm.timeTrial.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                                <input v-else type="text" v-model="cwForm.timeTrial.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
+                                <input type="text" v-model="cwForm.timeTrial.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss) / Optional">
+                                <select v-model="cwForm.timeTrial.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
+                                    <option value="max_effort">Max Effort</option>
+                                    <option value="race_pace">Race Pace</option>
+                                </select>
+                            </div>
+                        </div>
                         <div v-else-if="cwForm.type==='rest'">
                             <div class="text-slate-400 text-sm">{{ __('Rest Day') }}</div>
                         </div>
@@ -567,6 +671,7 @@
 
 @push('scripts')
 <script src="{{ asset('vendor/ckeditor/ckeditor.js') }}"></script>
+@include('layouts.components.advanced-builder-utils')
 <script>
 const { createApp, ref, reactive, computed, onMounted } = Vue;
 
@@ -601,6 +706,7 @@ createApp({
             type: 'easy_run',
             main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
             tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+            timeTrial: { by: 'distance', distanceKm: 5, duration: '', pace: '', effort: 'max_effort' },
             interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
             strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
         });
@@ -614,6 +720,7 @@ createApp({
             main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
             longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
             tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+            timeTrial: { by: 'distance', distanceKm: 5, duration: '', pace: '', effort: 'max_effort' },
             interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
             strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
         });
@@ -623,6 +730,7 @@ createApp({
             long_run: 'Long',
             interval: 'Speed',
             tempo: 'Tempo',
+            time_trial: 'Time Trial',
             strength: 'Strength',
             rest: 'Rest'
         };
@@ -687,8 +795,10 @@ createApp({
                 long_run: '#2196F3',
                 tempo: '#FFC107',
                 interval: '#F44336',
+                time_trial: '#FF5722',
                 strength: '#9C27B0',
-                rest: '#9E9E9E'
+                rest: '#9E9E9E',
+                custom: '#00BCD4'
             };
             return colors[type] || '#9E9E9E';
         };
@@ -810,6 +920,7 @@ createApp({
             Object.assign(builderForm.main, { by: 'distance', distanceKm: 0, duration: '', pace: '' });
             Object.assign(builderForm.longRun.fastFinish, { enabled: false, distanceKm: 0, pace: '' });
             Object.assign(builderForm.tempo, { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' });
+            Object.assign(builderForm.timeTrial, { by: 'distance', distanceKm: 5, duration: '', pace: '', effort: 'max_effort' });
             Object.assign(builderForm.interval, { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' });
             Object.assign(builderForm.strength, { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] });
             builderVisible.value = true;
@@ -835,97 +946,9 @@ createApp({
             builderVisible.value = true;
         };
 
-        const builderSummary = computed(() => {
-            const parts = [];
-            if (builderForm.warmup.enabled) {
-                parts.push(`WU: ${builderForm.warmup.by==='distance' ? `${builderForm.warmup.distanceKm}km` : builderForm.warmup.duration}`);
-            }
-            if (builderForm.type==='interval') {
-                if (builderForm.interval.by==='distance') {
-                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repDistanceKm}km${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
-                } else {
-                    parts.push(`${builderForm.interval.reps}x${builderForm.interval.repTime}${builderForm.interval.pace ? ` @${builderForm.interval.pace}`:''}`);
-                }
-                parts.push(`Rec ${builderForm.interval.recovery}`);
-            } else if (builderForm.type==='tempo') {
-                if (builderForm.tempo.by==='distance') {
-                    parts.push(`${builderForm.tempo.distanceKm}km${builderForm.tempo.pace ? ` @${builderForm.tempo.pace}`:''} ${builderForm.tempo.effort}`);
-                } else {
-                    parts.push(`${builderForm.tempo.duration}${builderForm.tempo.pace ? ` @${builderForm.tempo.pace}`:''} ${builderForm.tempo.effort}`);
-                }
-            } else if (builderForm.type==='long_run') {
-                if (builderForm.main.by==='distance') {
-                    parts.push(`${builderForm.main.distanceKm}km Long Run${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
-                } else {
-                    parts.push(`${builderForm.main.duration} Long Run${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
-                }
-                if (builderForm.longRun.fastFinish.enabled) {
-                    parts.push(`FF ${builderForm.longRun.fastFinish.distanceKm}km @${builderForm.longRun.fastFinish.pace}`);
-                }
-            } else if (builderForm.type==='easy_run') {
-                if (builderForm.main.by==='distance') {
-                    parts.push(`${builderForm.main.distanceKm}km Easy${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
-                } else {
-                    parts.push(`${builderForm.main.duration} Easy${builderForm.main.pace ? ` @${builderForm.main.pace}`:''}`);
-                }
-            } else if (builderForm.type==='strength') {
-                const cat = builderForm.strength.category ? builderForm.strength.category.replace('_',' ') : 'Strength';
-                if (builderForm.strength.plan && builderForm.strength.plan.length) {
-                    const items = builderForm.strength.plan.slice(0,3).map(i => i.name).join(', ');
-                    parts.push(`${cat}: ${items}${builderForm.strength.plan.length>3 ? ', ...' : ''}`);
-                } else {
-                    parts.push(cat);
-                }
-            } else if (builderForm.type==='rest') {
-                parts.push('Rest');
-            }
-            if (builderForm.cooldown.enabled) {
-                parts.push(`CD: ${builderForm.cooldown.by==='distance' ? `${builderForm.cooldown.distanceKm}km` : builderForm.cooldown.duration}`);
-            }
-            const base = parts.join(' | ');
-            return builderForm.intensity ? `${base} | Intensity: ${builderForm.intensity}` : base;
-        });
+        const builderSummary = computed(() => RLBuilderUtils.buildSummary(builderForm));
 
-        const builderTotalDistance = computed(() => {
-            let total = 0;
-            if (builderForm.warmup.enabled && builderForm.warmup.by==='distance') total += Number(builderForm.warmup.distanceKm)||0;
-            if (builderForm.cooldown.enabled && builderForm.cooldown.by==='distance') total += Number(builderForm.cooldown.distanceKm)||0;
-            if (builderForm.type==='interval') {
-                if (builderForm.interval.by==='distance') {
-                    total += (Number(builderForm.interval.reps)||0) * (Number(builderForm.interval.repDistanceKm)||0);
-                } else {
-                    const dMin = parseDurationMinutes(builderForm.interval.repTime);
-                    const pMin = parsePaceMinPerKm(builderForm.interval.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += (Number(builderForm.interval.reps)||0) * dist;
-                }
-            } else if (builderForm.type==='tempo') {
-                if (builderForm.tempo.by==='distance') total += Number(builderForm.tempo.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(builderForm.tempo.duration);
-                    const pMin = parsePaceMinPerKm(builderForm.tempo.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (builderForm.type==='long_run') {
-                if (builderForm.main.by==='distance') total += Number(builderForm.main.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(builderForm.main.duration);
-                    const pMin = parsePaceMinPerKm(builderForm.main.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (builderForm.type==='easy_run') {
-                if (builderForm.main.by==='distance') total += Number(builderForm.main.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(builderForm.main.duration);
-                    const pMin = parsePaceMinPerKm(builderForm.main.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            }
-            return Number(total.toFixed(1));
-        });
+        const builderTotalDistance = computed(() => RLBuilderUtils.computeTotalDistance(builderForm));
 
         const closeBuilder = () => { builderVisible.value = false; };
 
@@ -979,77 +1002,9 @@ createApp({
             return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
         };
 
-        const cwSummary = computed(() => {
-            const parts = [];
-            if (cwForm.type==='interval') {
-                if (cwForm.interval.by==='distance') {
-                    parts.push(`${cwForm.interval.reps}x${cwForm.interval.repDistanceKm}km${cwForm.interval.pace ? ` @${cwForm.interval.pace}`:''}`);
-                } else {
-                    parts.push(`${cwForm.interval.reps}x${cwForm.interval.repTime}${cwForm.interval.pace ? ` @${cwForm.interval.pace}`:''}`);
-                }
-                parts.push(`Rec ${cwForm.interval.recovery}`);
-            } else if (cwForm.type==='tempo') {
-                if (cwForm.tempo.by==='distance') {
-                    parts.push(`${cwForm.tempo.distanceKm}km${cwForm.tempo.pace ? ` @${cwForm.tempo.pace}`:''} ${cwForm.tempo.effort}`);
-                } else {
-                    parts.push(`${cwForm.tempo.duration}${cwForm.tempo.pace ? ` @${cwForm.tempo.pace}`:''} ${cwForm.tempo.effort}`);
-                }
-            } else if (cwForm.type==='long_run') {
-                if (cwForm.main.by==='distance') {
-                    parts.push(`${cwForm.main.distanceKm}km Long Run${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
-                } else {
-                    parts.push(`${cwForm.main.duration} Long Run${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
-                }
-            } else if (cwForm.type==='easy_run') {
-                if (cwForm.main.by==='distance') {
-                    parts.push(`${cwForm.main.distanceKm}km Easy${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
-                } else {
-                    parts.push(`${cwForm.main.duration} Easy${cwForm.main.pace ? ` @${cwForm.main.pace}`:''}`);
-                }
-            } else if (cwForm.type==='rest') {
-                parts.push('Rest');
-            }
-            return parts.join(' | ');
-        });
+        const cwSummary = computed(() => RLBuilderUtils.buildSummary(cwForm));
 
-        const cwTotalDistance = computed(() => {
-            let total = 0;
-            if (cwForm.type==='interval') {
-                if (cwForm.interval.by==='distance') {
-                    total += (Number(cwForm.interval.reps)||0) * (Number(cwForm.interval.repDistanceKm)||0);
-                } else {
-                    const dMin = parseDurationMinutes(cwForm.interval.repTime);
-                    const pMin = parsePaceMinPerKm(cwForm.interval.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += (Number(cwForm.interval.reps)||0) * dist;
-                }
-            } else if (cwForm.type==='tempo') {
-                if (cwForm.tempo.by==='distance') total += Number(cwForm.tempo.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(cwForm.tempo.duration);
-                    const pMin = parsePaceMinPerKm(cwForm.tempo.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (cwForm.type==='long_run') {
-                if (cwForm.main.by==='distance') total += Number(cwForm.main.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(cwForm.main.duration);
-                    const pMin = parsePaceMinPerKm(cwForm.main.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (cwForm.type==='easy_run') {
-                if (cwForm.main.by==='distance') total += Number(cwForm.main.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(cwForm.main.duration);
-                    const pMin = parsePaceMinPerKm(cwForm.main.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            }
-            return Number(total.toFixed(1));
-        });
+        const cwTotalDistance = computed(() => RLBuilderUtils.computeTotalDistance(cwForm));
 
         const saveCustomWorkout = async () => {
             try {
@@ -1071,6 +1026,9 @@ createApp({
                                 return '';
                             } else if (cwForm.type==='tempo') {
                                 if (cwForm.tempo.by==='time') return cwForm.tempo.duration || '';
+                                return '';
+                            } else if (cwForm.type==='time_trial') {
+                                if (cwForm.timeTrial.by==='time') return cwForm.timeTrial.duration || '';
                                 return '';
                             } else if (cwForm.type==='interval') {
                                 if (cwForm.interval.by==='time') {
@@ -1111,6 +1069,7 @@ createApp({
                         type: 'easy_run',
                         main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
                         tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
+                        timeTrial: { by: 'distance', distanceKm: 5, duration: '', pace: '', effort: 'max_effort' },
                         interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
                         strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
                     });
@@ -1343,6 +1302,86 @@ createApp({
             }
         };
 
+        const moveWorkoutUp = (session) => {
+            const idx = form.sessions.findIndex(s => s._id === session._id);
+            if (idx === -1) return;
+            
+            const daySessions = form.sessions.filter(s => s.day === session.day);
+            const subIdx = daySessions.findIndex(s => s._id === session._id);
+            if (subIdx <= 0) return; // Already at the top of the day
+            
+            const prevSession = daySessions[subIdx - 1];
+            const prevIdx = form.sessions.findIndex(s => s._id === prevSession._id);
+            
+            // Swap in form.sessions
+            const temp = form.sessions[idx];
+            form.sessions[idx] = form.sessions[prevIdx];
+            form.sessions[prevIdx] = temp;
+        };
+
+        const moveWorkoutDown = (session) => {
+            const idx = form.sessions.findIndex(s => s._id === session._id);
+            if (idx === -1) return;
+            
+            const daySessions = form.sessions.filter(s => s.day === session.day);
+            const subIdx = daySessions.findIndex(s => s._id === session._id);
+            if (subIdx === -1 || subIdx >= daySessions.length - 1) return; // Already at the bottom of the day
+            
+            const nextSession = daySessions[subIdx + 1];
+            const nextIdx = form.sessions.findIndex(s => s._id === nextSession._id);
+            
+            // Swap in form.sessions
+            const temp = form.sessions[idx];
+            form.sessions[idx] = form.sessions[nextIdx];
+            form.sessions[nextIdx] = temp;
+        };
+
+        const handleSessionDrop = (event, targetSession) => {
+            event.preventDefault();
+            event.stopPropagation();
+            try {
+                const jsonStr = event.dataTransfer.getData('json');
+                if (jsonStr) {
+                    const data = JSON.parse(jsonStr);
+                    
+                    if (data.mode === 'move' && data._id) {
+                        const draggedId = data._id;
+                        if (draggedId === targetSession._id) return;
+                        
+                        const draggedIdx = form.sessions.findIndex(s => s._id === draggedId);
+                        if (draggedIdx === -1) return;
+                        
+                        const [draggedSession] = form.sessions.splice(draggedIdx, 1);
+                        draggedSession.day = targetSession.day;
+                        
+                        const targetIdx = form.sessions.findIndex(s => s._id === targetSession._id);
+                        if (targetIdx !== -1) {
+                            form.sessions.splice(targetIdx, 0, draggedSession);
+                        } else {
+                            form.sessions.push(draggedSession);
+                        }
+                    } else {
+                        // Drop new workout on top of target session
+                        const targetIdx = form.sessions.findIndex(s => s._id === targetSession._id);
+                        if (targetIdx !== -1) {
+                            const newSession = {
+                                _id: generateId(),
+                                day: targetSession.day,
+                                type: data.type,
+                                title: data.title,
+                                distance: parseFloat(data.distance) || 0,
+                                description: data.description || '',
+                                duration: data.duration || ''
+                            };
+                            form.sessions.splice(targetIdx, 0, newSession);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Session drop error:', e);
+            }
+        };
+
         const handleFileChange = (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -1352,13 +1391,14 @@ createApp({
 
         return { 
             form, saving, currentWeek, activeTab, totalVolume, 
-            getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleDragStart, handleSessionDragStart,
+            getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleSessionDrop, handleDragStart, handleSessionDragStart,
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
             deleteWorkout, duplicateWorkout, builderIsEditing, builderSessionId,
             copyWeek, updateWeeks, addWeek, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes,
             masterWorkouts, cwForm, cwSummary, cwTotalDistance,
-            strengthOptions, addStrengthExercise, removeStrengthExercise
+            strengthOptions, addStrengthExercise, removeStrengthExercise,
+            moveWorkoutUp, moveWorkoutDown
         };
     }
 }).mount('#program-builder-app');
