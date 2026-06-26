@@ -7,8 +7,10 @@ use App\Models\Marketplace\MarketplaceBrand;
 use App\Models\Marketplace\MarketplaceCategory;
 use App\Models\Marketplace\MarketplaceConsignmentIntake;
 use App\Models\Marketplace\MarketplaceProduct;
+use App\Models\Marketplace\MarketplaceOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -17,7 +19,21 @@ class ProductController extends Controller
     {
         $products = MarketplaceProduct::where('user_id', Auth::id())->with('primaryImage')->latest()->paginate(10);
 
-        return view('marketplace.seller.products.index', compact('products'));
+        // Fetch active orders (pending, paid, shipped, disputed)
+        $activeOrders = MarketplaceOrder::where('seller_id', Auth::id())
+            ->whereIn('status', ['pending', 'paid', 'shipped', 'disputed'])
+            ->with(['items.product.primaryImage', 'buyer'])
+            ->latest()
+            ->get();
+
+        // Fetch sales history (completed, cancelled)
+        $salesHistory = MarketplaceOrder::where('seller_id', Auth::id())
+            ->whereIn('status', ['completed', 'cancelled'])
+            ->with(['items.product.primaryImage', 'buyer'])
+            ->latest()
+            ->get();
+
+        return view('marketplace.seller.products.index', compact('products', 'activeOrders', 'salesHistory'));
     }
 
     public function create()
@@ -201,5 +217,53 @@ class ProductController extends Controller
         $product->delete();
 
         return back()->with('success', 'Product deleted.');
+    }
+
+    public function processOrder(Request $request, MarketplaceOrder $order)
+    {
+        if ((int) $order->seller_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if ($order->status !== 'paid' && $order->status !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'Hanya pesanan paid atau pending yang dapat diproses.'], 400);
+        }
+
+        $trackingNumber = $request->input('tracking_number') ?: 'TRK-' . strtoupper(Str::random(10));
+
+        $order->update([
+            'status' => 'shipped',
+            'shipping_tracking_number' => $trackingNumber,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil diproses & ditandai sebagai dikirim.',
+            'tracking_number' => $trackingNumber
+        ]);
+    }
+
+    public function cancelOrder(MarketplaceOrder $order)
+    {
+        if ((int) $order->seller_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if (!in_array($order->status, ['pending', 'paid'])) {
+            return response()->json(['success' => false, 'message' => 'Hanya pesanan pending atau paid yang dapat dibatalkan.'], 400);
+        }
+
+        DB::transaction(function () use ($order) {
+            $order->update(['status' => 'cancelled']);
+
+            // Restore product stock
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
+        });
+
+        return response()->json(['success' => true, 'message' => 'Pesanan berhasil dibatalkan.']);
     }
 }

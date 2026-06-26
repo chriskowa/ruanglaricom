@@ -924,6 +924,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:runner,coach,eo,admin'])->prefix('marketplace')->name('marketplace.')->group(function () {
         // Seller Management
         Route::resource('seller/products', App\Http\Controllers\Marketplace\ProductController::class)->names('seller.products');
+        Route::post('seller/orders/{order}/process', [App\Http\Controllers\Marketplace\ProductController::class, 'processOrder'])->name('seller.orders.process');
+        Route::post('seller/orders/{order}/cancel', [App\Http\Controllers\Marketplace\ProductController::class, 'cancelOrder'])->name('seller.orders.cancel');
 
         Route::post('/product/{slug}/bid', [App\Http\Controllers\Marketplace\AuctionController::class, 'bid'])->name('auction.bid')->middleware('throttle:20,1');
 
