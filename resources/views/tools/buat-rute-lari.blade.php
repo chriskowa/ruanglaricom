@@ -1024,12 +1024,16 @@
                         updateElevation();
                         historyIndex = idx;
                         setStatus(idx === 0 ? 'Awal' : 'History ' + (idx + 1));
+                        isUndoing = false;
+                    }).catch(function(err) {
+                        console.error('loadState async error:', err);
+                        isUndoing = false;
                     });
 
                 } catch(e) {
                     console.error('LoadState Error:', e);
+                    isUndoing = false;
                 }
-                isUndoing = false;
             }
 
             function processLoadedPoints() {
@@ -1450,11 +1454,21 @@
 
             // Keyboard Shortcuts
             document.addEventListener('keydown', function(e) {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                // Ignore keyboard shortcuts if the user is typing in a text field or form input
+                var activeEl = document.activeElement;
+                if (activeEl) {
+                    var tag = activeEl.tagName.toLowerCase();
+                    if (tag === 'input' || tag === 'textarea' || activeEl.isContentEditable) {
+                        return;
+                    }
+                }
+
+                var key = e.key.toLowerCase();
+                if ((e.ctrlKey || e.metaKey) && key === 'z') {
                     e.preventDefault();
                     undo();
                 }
-                if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) {
+                if ((e.ctrlKey || e.metaKey) && (key === 'y' || (e.shiftKey && key === 'z'))) {
                     e.preventDefault();
                     redo();
                 }
