@@ -6,14 +6,41 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css">
 <style>
-.glass-panel{background:rgba(15,23,42,.8);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
+body {
+    background-color: #060a17 !important;
+}
+#main-content-wrapper {
+    background: linear-gradient(135deg, #060a17 0%, #0d162d 50%, #050814 100%) !important;
+}
+.glass-panel {
+    background: rgba(10, 18, 38, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(204, 255, 0, 0.08) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.glass-panel:hover {
+    border-color: rgba(204, 255, 0, 0.18) !important;
+    box-shadow: 0 12px 40px 0 rgba(204, 255, 0, 0.04) !important;
+}
+.glass-panel-orange {
+    background: rgba(10, 18, 38, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(249, 115, 22, 0.08) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.glass-panel-orange:hover {
+    border-color: rgba(249, 115, 22, 0.18) !important;
+    box-shadow: 0 12px 40px 0 rgba(249, 115, 22, 0.04) !important;
+}
 .fc .fc-toolbar-title{font-size: medium;font-weight:800;color:#e2e8f0}
 #loader[data-hidden="1"] { pointer-events: none !important; }
 #ph-sidebar-backdrop.hidden { display: none !important; }
 [v-cloak]{display:none !important;}
-.fc .fc-button{background:#1e293b;border-color:#334155;color:#cbd5e1}
+.fc .fc-button{background:#0a1226;border-color:#1e293b;color:#cbd5e1}
 .fc .fc-button:hover{color:#ccff00;border-color:#ccff00}
-.fc-event{background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:8px;padding:2px 6px}
+.fc-event{background:#0a1226;color:#e2e8f0;border:1px solid #1e293b;border-radius:8px;padding:2px 6px}
 .fc-event.difficulty-easy{border-left:4px solid #4CAF50}
 .fc-event.difficulty-moderate{border-left:4px solid #FF9800}
 .fc-event.difficulty-hard{border-left:4px solid #F44336}
@@ -243,42 +270,44 @@
         </div>
     </transition>
 
-    <main class="min-h-screen pb-28 md:pb-10 px-4 md:px-8 font-sans">
+    <main class="min-h-screen pb-28 md:pb-10 px-4 md:px-8 font-sans bg-[#060a17] bg-gradient-to-b from-[#060a17] via-[#0d162d] to-[#060a17] text-slate-100">
     <div class="max-w-7xl mx-auto pt-10">
-        <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
             <div>
-                <p class="text-neon font-mono text-sm tracking-widest uppercase">Training</p>
-                <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Runner Calendar</h1>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-none">
+                    Training <span class="text-neon">Runner Calendar</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-2 font-medium">Jadwal program latihan lari, race, dan pantau progres mingguan Anda</p>
             </div>
             <div class="relative z-[10] isolate pointer-events-auto w-full md:w-auto">
-                <div class="grid grid-cols-3 gap-2 md:hidden">
-                    <button type="button" @click="openMobileAddSheet" class="w-full px-3 py-2.5 rounded-2xl bg-neon text-dark font-black shadow-lg shadow-neon/20 active:scale-[0.99] transition flex items-center justify-center gap-2">
-                        <span class="text-base">＋</span>
-                        <span class="text-sm">Add</span>
+                <div class="grid grid-cols-3 gap-3 md:hidden">
+                    <button type="button" @click="openMobileAddSheet" class="w-full px-3 py-2 rounded-xl bg-neon text-dark font-bold shadow-md shadow-neon/10 active:scale-[0.97] transition flex items-center justify-center gap-1.5 text-xs">
+                        <span class="text-sm">＋</span>
+                        <span>Add</span>
                     </button>
-                    <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="w-full px-3 py-2.5 rounded-2xl bg-[#FC4C02] text-white font-black shadow-lg shadow-orange-600/20 active:scale-[0.99] transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                        <span v-if="isSyncingStrava" class="animate-spin">⟳</span>
-                        <span class="text-sm">Sync</span>
+                    <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold shadow-md shadow-orange-600/10 active:scale-[0.97] transition flex items-center justify-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed text-xs">
+                        <span v-if="isSyncingStrava" class="animate-spin text-xs">⟳</span>
+                        <span>Sync</span>
                     </button>
-                    <button type="button" @click="showHeaderActions = true" class="w-full px-3 py-2.5 rounded-2xl bg-slate-800 border border-slate-600 text-white font-black active:scale-[0.99] transition flex items-center justify-center gap-2">
-                        <span class="text-base">⋯</span>
-                        <span class="text-sm">More</span>
+                    <button type="button" @click="showHeaderActions = true" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-bold active:scale-[0.97] transition flex items-center justify-center gap-1.5 shadow-md text-xs">
+                        <span class="text-sm">⋯</span>
+                        <span>More</span>
                     </button>
                 </div>
 
-                <div class="hidden md:flex gap-2 md:gap-3 flex-wrap justify-end" data-debug="runner-calendar-header-actions">
-                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-500 transition text-sm shadow-lg shadow-purple-600/20">Generate VDOT</button>
-                    <button type="button" @click="openStravaAnalysisModal" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-purple-900/60 text-purple-200 border border-purple-500/30 font-bold hover:bg-purple-800/60 hover:text-white transition text-sm flex items-center gap-1.5">⚡ Analisis My Training</button>
-                    <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#E34402] transition text-sm shadow-lg shadow-orange-600/20 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                        <span v-if="isSyncingStrava" class="animate-spin">⟳</span>
+                <div class="hidden md:flex gap-2.5 flex-wrap justify-end" data-debug="runner-calendar-header-actions">
+                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Generate VDOT'); openVdotModal(); }" class="relative z-[5001] cursor-pointer px-3.5 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-500 transition text-xs shadow shadow-purple-600/10">Generate VDOT</button>
+                    <button type="button" @click="openStravaAnalysisModal" class="relative z-[5001] cursor-pointer px-3.5 py-2 rounded-xl bg-purple-900/60 text-purple-200 border border-purple-500/30 font-semibold hover:bg-purple-800/60 hover:text-white transition text-xs flex items-center gap-1.5 shadow">⚡ Analisis My Training</button>
+                    <button type="button" @click="syncStrava" :disabled="isSyncingStrava" class="relative z-[5001] cursor-pointer px-3.5 py-2 rounded-xl bg-[#FC4C02] text-white font-semibold hover:bg-[#E34402] transition text-xs shadow shadow-orange-600/10 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <span v-if="isSyncingStrava" class="animate-spin text-xs">⟳</span>
                         Sync Strava
                     </button>
                     @if($isEnrolled40Days)
-                    <a href="{{ route('challenge.create') }}" class="relative z-[5001] px-4 py-2 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-500 transition text-sm shadow-lg shadow-orange-600/20">Lapor Aktivitas</a>
+                    <a href="{{ route('challenge.create') }}" class="relative z-[5001] px-3.5 py-2 rounded-xl bg-orange-600 text-white font-semibold hover:bg-orange-500 transition text-xs shadow shadow-orange-600/10">Lapor Aktivitas</a>
                     @endif
-                    <a href="{{ route('programs.index') }}" class="relative z-[5001] px-4 py-2 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm font-bold">Browse Programs</a>
-                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Custom Workout'); openFormForToday(); }" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 text-sm">Add Custom Workout</button>
-                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Race'); openRaceForm(); }" class="relative z-[5001] cursor-pointer px-4 py-2 rounded-xl bg-yellow-500 text-black font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-sm">Add Race</button>
+                    <a href="{{ route('programs.index') }}" class="relative z-[5001] px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700/60 hover:text-white transition text-xs font-semibold shadow-sm">Browse Programs</a>
+                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Custom Workout'); openFormForToday(); }" class="relative z-[5001] cursor-pointer px-3.5 py-2 rounded-xl bg-neon text-dark font-semibold hover:opacity-90 transition shadow shadow-neon/10 text-xs">Add Custom Workout</button>
+                    <button type="button" @click="() => { console.log('[RunnerCalendar] Click: Add Race'); openRaceForm(); }" class="relative z-[5001] cursor-pointer px-3.5 py-2 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-400 transition shadow shadow-orange-500/10 text-xs">Add Race</button>
                 </div>
             </div>
         </div>
@@ -367,7 +396,7 @@
         </div>
 
         <!-- Weekly Volume Chart (Hidden per request) -->
-        <div class="hidden glass-panel rounded-2xl p-6 mb-8" v-if="weeklyVolume.length > 0">
+        <div class="hidden glass-panel rounded-2xl p-6 mb-6" v-if="weeklyVolume.length > 0">
             <!-- content hidden -->
         </div>
 
@@ -399,9 +428,9 @@
         </div>
 
         <!-- Programs Row (Active & Bag) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8" :class="activeMobileTab === 'programs' ? 'grid' : 'hidden md:grid'">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6" :class="activeMobileTab === 'programs' ? 'grid' : 'hidden md:grid'">
             <!-- Active Programs -->
-            <div class="glass-panel rounded-2xl p-4 md:p-6">
+            <div class="glass-panel-orange rounded-2xl p-4 md:p-6">
                 <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     Active Programs
@@ -485,8 +514,8 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 space-y-6">
                 <div class="glass-panel rounded-2xl p-4 md:p-6 relative overflow-hidden" :class="activeMobileTab === 'profile' ? 'block' : 'hidden lg:block'">
                     <div class="absolute top-0 right-0 p-4 opacity-10">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -686,7 +715,7 @@
                 </div>
 
                 <!-- Global Unlock Banner -->
-                <div v-if="hasUnpaidGenerator" class="mb-8 p-6 rounded-3xl bg-slate-900/80 border border-cyan-500/30 backdrop-blur-xl shadow-2xl overflow-hidden relative group" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
+                <div v-if="hasUnpaidGenerator" class="mb-6 p-6 rounded-3xl bg-slate-900/80 border border-cyan-500/30 backdrop-blur-xl shadow-2xl overflow-hidden relative group" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
                     <!-- Background Accent -->
                     <div class="absolute -right-20 -top-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all duration-700"></div>
                     
@@ -752,7 +781,7 @@
 
             <div class="space-y-6">
                 <!-- Plan List moved to sidebar for better UX -->
-                <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-plans-section" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
+                <div class="glass-panel-orange rounded-2xl p-4 md:p-6" id="runner-plans-section" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
                     <div class="flex flex-col sm:flex-row items-end justify-between mb-4 gap-4">
                         <div>
                             <h3 class="text-white font-bold text-lg tracking-tight italic uppercase">Plan List</h3>

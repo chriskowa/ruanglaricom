@@ -108,7 +108,7 @@
     <section class="py-20 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16" data-aos="fade-up">
-                <h2 class="text-3xl md:text-4xl font-black text-white mb-4">LAYANAN \u0026 <span class="text-neon">KEUNGGULAN</span></h2>
+                <h2 class="text-3xl md:text-4xl font-black text-white mb-4">LAYANAN & <span class="text-neon">KEUNGGULAN</span></h2>
                 <p class="text-slate-400 max-w-2xl mx-auto">Dibangun untuk konversi pendaftaran yang tinggi, data yang rapi, dan operasional event yang efisien.</p>
             </div>
 

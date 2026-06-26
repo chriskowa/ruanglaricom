@@ -813,7 +813,7 @@ class CalendarController extends Controller
     {
         $user = auth()->user();
 
-        if ($enrollment->runner_id !== $user->id) {
+        if ((int) $enrollment->runner_id !== (int) $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
