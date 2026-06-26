@@ -76,7 +76,7 @@ class CartController extends Controller
      */
     public function remove(Cart $cart)
     {
-        if ($cart->user_id !== Auth::id()) {
+        if ((int) $cart->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -90,7 +90,7 @@ class CartController extends Controller
      */
     public function update(Request $request, Cart $cart)
     {
-        if ($cart->user_id !== Auth::id()) {
+        if ((int) $cart->user_id !== (int) Auth::id()) {
             abort(403);
         }
 

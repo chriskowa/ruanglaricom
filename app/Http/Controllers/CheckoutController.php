@@ -253,7 +253,7 @@ class CheckoutController extends Controller
     {
         $user = Auth::user();
 
-        if ($order->user_id !== $user->id && (! $user || ! $user->isAdmin())) {
+        if ((int) $order->user_id !== (int) $user->id && (! $user || ! $user->isAdmin())) {
             return redirect()->route('marketplace.orders.index')
                 ->with('error', 'Order ini bukan milik Anda.');
         }
