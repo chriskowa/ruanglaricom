@@ -141,7 +141,8 @@
                                      :key="workout.id || workout.title"
                                      class="fc-event p-3 rounded-xl bg-slate-800 border border-slate-700 cursor-move hover:bg-slate-700 hover:border-slate-500 transition flex flex-col gap-2 group relative overflow-hidden"
                                      draggable="true"
-                                     @dragstart="handleDragStart($event, workout)">
+                                     @dragstart="handleDragStart($event, workout)"
+                                     @click="handleSourceClick(workout)">
                                      
                                      <div class="absolute left-0 top-0 bottom-0 w-1" :style="{ backgroundColor: getSessionColor(workout.type) }"></div>
                                      <div class="flex items-start justify-between gap-2 pl-2">
@@ -156,7 +157,8 @@
                                 @if($type === 'rest')
                                      <div class="fc-event p-3 rounded-xl bg-slate-800 border border-slate-700 cursor-move hover:bg-slate-700 hover:border-slate-500 transition flex flex-col gap-2 group relative overflow-hidden"
                                          draggable="true"
-                                         @dragstart="handleDragStart($event, { type: 'rest', title: 'Rest Day', description: 'Total recovery', distance: 0, duration: '' })">
+                                         @dragstart="handleDragStart($event, { type: 'rest', title: 'Rest Day', description: 'Total recovery', distance: 0, duration: '' })"
+                                         @click="handleSourceClick({ type: 'rest', title: 'Rest Day', description: 'Total recovery', distance: 0, duration: '' })">
                                          <div class="absolute left-0 top-0 bottom-0 w-1 bg-slate-500"></div>
                                          <div class="flex items-start justify-between gap-2 pl-2">
                                             <div class="text-xs font-bold text-white truncate w-full">Manual Rest</div>
@@ -180,7 +182,8 @@
                                         <div v-if="workout.coach_id"
                                              class="fc-event p-3 rounded-xl bg-slate-800 border border-slate-700 cursor-move hover:bg-slate-700 hover:border-slate-500 transition flex flex-col gap-2 group relative overflow-hidden"
                                              draggable="true"
-                                             @dragstart="handleDragStart($event, workout)">
+                                             @dragstart="handleDragStart($event, workout)"
+                                             @click="handleSourceClick(workout)">
                                              <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-500"></div>
                                              <div class="flex items-start justify-between gap-2 pl-2">
                                                 <div class="text-xs font-bold text-white truncate w-full" :title="workout.title">@{{ workout.title }}</div>
@@ -356,6 +359,20 @@
                     <h3 class="text-white font-bold text-lg">Advanced Workout Builder</h3>
                     <button class="text-slate-400 hover:text-white" @click="closeBuilder">×</button>
                 </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Target Week</label>
+                        <select v-model="builderTargetWeek" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-neon outline-none">
+                            <option v-for="w in form.duration_weeks" :key="w" :value="w">Week @{{ w }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Target Day</label>
+                        <select v-model="builderTargetDay" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-neon outline-none">
+                            <option v-for="d in 7" :key="d" :value="d">Day @{{ d }}</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="text-xs font-bold text-slate-400 uppercase">Type</label>
@@ -388,7 +405,13 @@
                                 <option value="distance">Distance</option>
                                 <option value="time">Time</option>
                             </select>
-                            <input v-if="builderForm.warmup.by==='distance'" type="number" step="0.1" v-model.number="builderForm.warmup.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                            <div v-if="builderForm.warmup.by==='distance'" class="flex gap-1">
+                                <input type="number" step="any" v-model.number="builderForm.warmup.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                                <select v-model="builderForm.warmup.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                </select>
+                            </div>
                             <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
                         </div>
                     </div>
@@ -405,7 +428,13 @@
                                 <option value="distance">Distance</option>
                                 <option value="time">Time</option>
                             </select>
-                            <input v-if="builderForm.cooldown.by==='distance'" type="number" step="0.1" v-model.number="builderForm.cooldown.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                            <div v-if="builderForm.cooldown.by==='distance'" class="flex gap-1">
+                                <input type="number" step="any" v-model.number="builderForm.cooldown.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                                <select v-model="builderForm.cooldown.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                </select>
+                            </div>
                             <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
                         </div>
                     </div>
@@ -418,7 +447,13 @@
                                 <option value="distance">Distance</option>
                                 <option value="time">Time</option>
                             </select>
-                            <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                            <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
+                                <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                                <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                </select>
+                            </div>
                             <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
                             <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
                         </div>
@@ -429,7 +464,13 @@
                                 <option value="distance">Distance</option>
                                 <option value="time">Time</option>
                             </select>
-                            <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Total Distance (km)">
+                            <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
+                                <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                                <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                </select>
+                            </div>
                             <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
                             <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
                         </div>
@@ -438,8 +479,12 @@
                                 <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
                                 Fast Finish
                             </label>
-                            <div class="grid grid-cols-2 gap-2" v-if="builderForm.longRun.fastFinish.enabled">
-                                <input type="number" step="0.1" v-model.number="builderForm.longRun.fastFinish.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                            <div class="grid grid-cols-3 gap-1" v-if="builderForm.longRun.fastFinish.enabled">
+                                <input type="number" step="any" v-model.number="builderForm.longRun.fastFinish.distance" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                                <select v-model="builderForm.longRun.fastFinish.unit" class="bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                </select>
                                 <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace">
                             </div>
                         </div>
@@ -450,7 +495,13 @@
                                 <option value="distance">Distance</option>
                                 <option value="time">Time</option>
                             </select>
-                            <input v-if="builderForm.tempo.by==='distance'" type="number" step="0.1" v-model.number="builderForm.tempo.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                            <div v-if="builderForm.tempo.by==='distance'" class="flex gap-1">
+                                <input type="number" step="any" v-model.number="builderForm.tempo.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                                <select v-model="builderForm.tempo.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                </select>
+                            </div>
                             <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
                             <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
                             <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
@@ -466,7 +517,13 @@
                                 <option value="distance">Distance</option>
                                 <option value="time">Time</option>
                             </select>
-                            <input v-if="builderForm.interval.by==='distance'" type="number" step="0.1" v-model.number="builderForm.interval.repDistanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep km">
+                            <div v-if="builderForm.interval.by==='distance'" class="flex gap-1">
+                                <input type="number" step="any" v-model.number="builderForm.interval.repDistance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep dist">
+                                <select v-model="builderForm.interval.repDistanceUnit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                </select>
+                            </div>
                             <input v-else type="text" v-model="builderForm.interval.repTime" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep 00:03:00">
                             <input type="text" v-model="builderForm.interval.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
                             <input type="text" v-model="builderForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Recovery">
@@ -509,7 +566,13 @@
                                 <option value="distance">Distance</option>
                                 <option value="time">Time</option>
                             </select>
-                            <input v-if="builderForm.timeTrial.by==='distance'" type="number" step="0.1" v-model.number="builderForm.timeTrial.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                            <div v-if="builderForm.timeTrial.by==='distance'" class="flex gap-1">
+                                <input type="number" step="any" v-model.number="builderForm.timeTrial.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                                <select v-model="builderForm.timeTrial.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                    <option value="km">km</option>
+                                    <option value="m">m</option>
+                                </select>
+                            </div>
                             <input v-else type="text" v-model="builderForm.timeTrial.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
                             <input type="text" v-model="builderForm.timeTrial.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss) / Optional">
                             <select v-model="builderForm.timeTrial.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
@@ -531,6 +594,10 @@
                             <option value="high">High</option>
                         </select>
                     </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Keterangan / Notes</label>
+                        <textarea v-model="builderForm.description" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-white text-sm focus:border-neon outline-none" placeholder="Lari santai, jaga HR tetap di zona 2..."></textarea>
+                    </div>
                 </div>
                 <div class="mt-4 glass-panel rounded-xl p-4">
                     <div class="text-xs font-bold text-slate-400 uppercase mb-2">Summary</div>
@@ -541,7 +608,7 @@
                     <div>
                          <button v-if="builderIsEditing" type="button" class="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 text-sm hover:bg-red-500/20 transition" @click="deleteWorkout(builderSessionId)">
                             Delete Workout
-                        </button>
+                         </button>
                     </div>
                     <div class="flex gap-2">
                         <button type="button" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm" @click="closeBuilder">Cancel</button>
@@ -670,6 +737,35 @@
             </div>
         </div>
 
+        <!-- Quick Add Target Day Modal (Mobile Friendly) -->
+        <div v-if="quickAddWorkout" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 animate-fade-in">
+            <div class="relative max-w-sm w-full bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
+                <h3 class="text-white font-bold text-base mb-2">Add to Week @{{ currentWeek }}</h3>
+                <p class="text-slate-400 text-xs mb-4">
+                    Select which day to add <span class="text-neon font-semibold">"@{{ quickAddWorkout.title }}"</span>:
+                </p>
+                
+                <div class="grid grid-cols-2 gap-2 mb-6">
+                    <button v-for="day in 7" :key="day" type="button"
+                            @click="confirmQuickAdd(day)"
+                            class="py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold hover:bg-neon hover:text-dark hover:border-neon transition-all">
+                        Day @{{ day }}
+                    </button>
+                </div>
+                
+                <div class="flex justify-between items-center border-t border-slate-800 pt-4">
+                    <button type="button" @click="openInBuilderFromQuickAdd"
+                            class="text-xs text-neon font-semibold hover:underline">
+                        Edit Details First
+                    </button>
+                    <button type="button" @click="quickAddWorkout = null"
+                            class="px-4 py-2 rounded-lg bg-slate-800 text-slate-400 text-xs hover:text-white transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
         
 
     </div>
@@ -693,7 +789,9 @@ createApp({
         const builderVisible = ref(false);
         const builderIsEditing = ref(false);
         const builderTargetDay = ref(1);
+        const builderTargetWeek = ref(1);
         const builderSessionId = ref(null);
+        const quickAddWorkout = ref(null);
         
         // Master Workouts from Backend
         const initialMasterWorkouts = @json($masterWorkouts ?? []);
@@ -733,13 +831,14 @@ createApp({
             type: 'easy_run',
             title: '',
             intensity: 'low',
-            warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
-            cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
-            main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
-            longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
-            tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
-            timeTrial: { by: 'distance', distanceKm: 5, duration: '', pace: '', effort: 'max_effort' },
-            interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+            description: '',
+            warmup: { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '' },
+            cooldown: { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '' },
+            main: { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '' },
+            longRun: { fastFinish: { enabled: false, distance: 0, unit: 'km', pace: '' } },
+            tempo: { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '', effort: 'moderate' },
+            timeTrial: { by: 'distance', distance: 5, unit: 'km', duration: '', pace: '', effort: 'max_effort' },
+            interval: { reps: 6, by: 'distance', repDistance: 0.8, repDistanceUnit: 'km', repTime: '', pace: '', recovery: 'Jog 2:00' },
             strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
         });
 
@@ -843,16 +942,17 @@ createApp({
 
         const openBuilderAdd = (day) => {
             builderIsEditing.value = false;
+            builderTargetWeek.value = currentWeek.value;
             builderTargetDay.value = day;
             builderSessionId.value = null;
-            Object.assign(builderForm, { type: 'easy_run', title: '' });
-            Object.assign(builderForm.warmup, { enabled: false, by: 'distance', distanceKm: 0, duration: '' });
-            Object.assign(builderForm.cooldown, { enabled: false, by: 'distance', distanceKm: 0, duration: '' });
-            Object.assign(builderForm.main, { by: 'distance', distanceKm: 0, duration: '', pace: '' });
-            Object.assign(builderForm.longRun.fastFinish, { enabled: false, distanceKm: 0, pace: '' });
-            Object.assign(builderForm.tempo, { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' });
-            Object.assign(builderForm.timeTrial, { by: 'distance', distanceKm: 5, duration: '', pace: '', effort: 'max_effort' });
-            Object.assign(builderForm.interval, { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' });
+            Object.assign(builderForm, { type: 'easy_run', title: '', description: '' });
+            Object.assign(builderForm.warmup, { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '' });
+            Object.assign(builderForm.cooldown, { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '' });
+            Object.assign(builderForm.main, { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '' });
+            Object.assign(builderForm.longRun.fastFinish, { enabled: false, distance: 0, unit: 'km', pace: '' });
+            Object.assign(builderForm.tempo, { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '', effort: 'moderate' });
+            Object.assign(builderForm.timeTrial, { by: 'distance', distance: 5, unit: 'km', duration: '', pace: '', effort: 'max_effort' });
+            Object.assign(builderForm.interval, { reps: 6, by: 'distance', repDistance: 0.8, repDistanceUnit: 'km', repTime: '', pace: '', recovery: 'Jog 2:00' });
             Object.assign(builderForm.strength, { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] });
             builderVisible.value = true;
         };
@@ -928,15 +1028,47 @@ createApp({
             const abs = session.day;
             const week = Math.ceil(abs / 7);
             const day = abs - (week - 1) * 7;
+            builderTargetWeek.value = week;
             builderTargetDay.value = day;
             builderForm.type = session.type;
             builderForm.title = session.title || '';
+            builderForm.description = session.description || '';
             try {
                 if (session.advanced_config) {
                     const cfg = typeof session.advanced_config === 'string' ? JSON.parse(session.advanced_config) : session.advanced_config;
                     Object.assign(builderForm, { ...builderForm, ...cfg });
+                    // Backward compatibility: map old distanceKm / repDistanceKm properties to new distance / unit
+                    if (builderForm.warmup && builderForm.warmup.distanceKm !== undefined) {
+                        builderForm.warmup.distance = builderForm.warmup.distanceKm;
+                        builderForm.warmup.unit = 'km';
+                    }
+                    if (builderForm.cooldown && builderForm.cooldown.distanceKm !== undefined) {
+                        builderForm.cooldown.distance = builderForm.cooldown.distanceKm;
+                        builderForm.cooldown.unit = 'km';
+                    }
+                    if (builderForm.main && builderForm.main.distanceKm !== undefined) {
+                        builderForm.main.distance = builderForm.main.distanceKm;
+                        builderForm.main.unit = 'km';
+                    }
+                    if (builderForm.longRun && builderForm.longRun.fastFinish && builderForm.longRun.fastFinish.distanceKm !== undefined) {
+                        builderForm.longRun.fastFinish.distance = builderForm.longRun.fastFinish.distanceKm;
+                        builderForm.longRun.fastFinish.unit = 'km';
+                    }
+                    if (builderForm.tempo && builderForm.tempo.distanceKm !== undefined) {
+                        builderForm.tempo.distance = builderForm.tempo.distanceKm;
+                        builderForm.tempo.unit = 'km';
+                    }
+                    if (builderForm.timeTrial && builderForm.timeTrial.distanceKm !== undefined) {
+                        builderForm.timeTrial.distance = builderForm.timeTrial.distanceKm;
+                        builderForm.timeTrial.unit = 'km';
+                    }
+                    if (builderForm.interval && builderForm.interval.repDistanceKm !== undefined) {
+                        builderForm.interval.repDistance = builderForm.interval.repDistanceKm;
+                        builderForm.interval.repDistanceUnit = 'km';
+                    }
                 } else {
-                    builderForm.main.distanceKm = session.distance || 0;
+                    builderForm.main.distance = session.distance || 0;
+                    builderForm.main.unit = 'km';
                 }
             } catch(e){}
             builderVisible.value = true;
@@ -1053,66 +1185,68 @@ createApp({
         
         const cwTotalDistance = computed(() => RLBuilderUtils.computeTotalDistance(cwForm));
 
-        const builderTotalDistance = computed(() => {
-            let total = 0;
-            if (builderForm.warmup.enabled && builderForm.warmup.by==='distance') total += Number(builderForm.warmup.distanceKm)||0;
-            if (builderForm.cooldown.enabled && builderForm.cooldown.by==='distance') total += Number(builderForm.cooldown.distanceKm)||0;
-            if (builderForm.type==='interval') {
-                if (builderForm.interval.by==='distance') {
-                    total += (Number(builderForm.interval.reps)||0) * (Number(builderForm.interval.repDistanceKm)||0);
-                } else {
-                    const dMin = parseDurationMinutes(builderForm.interval.repTime);
-                    const pMin = parsePaceMinPerKm(builderForm.interval.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += (Number(builderForm.interval.reps)||0) * dist;
-                }
-            } else if (builderForm.type==='time_trial') {
-                if (builderForm.timeTrial.by==='distance') total += Number(builderForm.timeTrial.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(builderForm.timeTrial.duration);
-                    const pMin = parsePaceMinPerKm(builderForm.timeTrial.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (builderForm.type==='tempo') {
-                if (builderForm.tempo.by==='distance') total += Number(builderForm.tempo.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(builderForm.tempo.duration);
-                    const pMin = parsePaceMinPerKm(builderForm.tempo.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (builderForm.type==='long_run') {
-                if (builderForm.main.by==='distance') total += Number(builderForm.main.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(builderForm.main.duration);
-                    const pMin = parsePaceMinPerKm(builderForm.main.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            } else if (builderForm.type==='easy_run') {
-                if (builderForm.main.by==='distance') total += Number(builderForm.main.distanceKm)||0;
-                else {
-                    const dMin = parseDurationMinutes(builderForm.main.duration);
-                    const pMin = parsePaceMinPerKm(builderForm.main.pace);
-                    const dist = !isNaN(dMin) && !isNaN(pMin) && pMin>0 ? dMin/pMin : 0;
-                    total += dist;
-                }
-            }
-            return Number(total.toFixed(1));
-        });
+        const builderTotalDistance = computed(() => RLBuilderUtils.computeTotalDistance(builderForm));
 
         const closeBuilder = () => { builderVisible.value = false; };
 
+        const handleSourceClick = (workout) => {
+            quickAddWorkout.value = workout;
+        };
+
+        const confirmQuickAdd = (day) => {
+            if (!quickAddWorkout.value) return;
+            const absDay = getAbsDay(currentWeek.value, day);
+            const newSession = {
+                _id: generateId(),
+                day: absDay,
+                type: quickAddWorkout.value.type,
+                title: quickAddWorkout.value.title || (quickAddWorkout.value.type === 'rest' ? 'Rest Day' : 'Workout'),
+                distance: parseFloat(quickAddWorkout.value.default_distance) || 0,
+                description: quickAddWorkout.value.description || '',
+                duration: quickAddWorkout.value.default_duration || ''
+            };
+            form.sessions.push(newSession);
+            quickAddWorkout.value = null;
+        };
+
+        const openInBuilderFromQuickAdd = () => {
+            if (!quickAddWorkout.value) return;
+            const wo = quickAddWorkout.value;
+            quickAddWorkout.value = null;
+            
+            builderIsEditing.value = false;
+            builderTargetWeek.value = currentWeek.value;
+            builderTargetDay.value = 1;
+            builderSessionId.value = null;
+            
+            // Populate builderForm
+            Object.assign(builderForm, { 
+                type: wo.type, 
+                title: wo.title || '', 
+                description: wo.description || '',
+                intensity: 'low'
+            });
+            Object.assign(builderForm.warmup, { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '' });
+            Object.assign(builderForm.cooldown, { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '' });
+            Object.assign(builderForm.main, { by: 'distance', distance: wo.default_distance || 0, unit: 'km', duration: wo.default_duration || '', pace: '' });
+            Object.assign(builderForm.longRun.fastFinish, { enabled: false, distance: 0, unit: 'km', pace: '' });
+            Object.assign(builderForm.tempo, { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '', effort: 'moderate' });
+            Object.assign(builderForm.timeTrial, { by: 'distance', distance: 5, unit: 'km', duration: '', pace: '', effort: 'max_effort' });
+            Object.assign(builderForm.interval, { reps: 6, by: 'distance', repDistance: 0.8, repDistanceUnit: 'km', repTime: '', pace: '', recovery: 'Jog 2:00' });
+            Object.assign(builderForm.strength, { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] });
+            
+            builderVisible.value = true;
+        };
+
         const saveBuilder = () => {
-            const absDay = getAbsDay(currentWeek.value, builderTargetDay.value);
+            const absDay = getAbsDay(builderTargetWeek.value, builderTargetDay.value);
             const payload = {
                 _id: builderSessionId.value || generateId(),
                 day: absDay,
                 type: builderForm.type,
                 title: builderForm.title || builderSummary.value,
                 distance: builderTotalDistance.value,
-                description: builderSummary.value,
+                description: builderForm.description || builderSummary.value,
                 duration: builderForm.main.duration || '',
                 advanced_config: JSON.stringify(builderForm)
             };
@@ -1467,12 +1601,12 @@ createApp({
             form, saving, currentWeek, activeTab, totalVolume, 
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleSessionDrop,
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
-            builderIsEditing, builderSessionId,
+            builderIsEditing, builderSessionId, builderTargetWeek, builderTargetDay,
             copyWeek, updateWeeks, addWeek, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes, masterWorkouts,
             cwForm, cwSummary, cwTotalDistance,
             handleDragStart, handleSessionDragStart, strengthOptions, addStrengthExercise, removeStrengthExercise, deleteWorkout, duplicateWorkout,
-            moveWorkoutUp, moveWorkoutDown
+            moveWorkoutUp, moveWorkoutDown, quickAddWorkout, handleSourceClick, confirmQuickAdd, openInBuilderFromQuickAdd
         };
     }
 }).mount('#program-builder-app');

@@ -879,7 +879,13 @@
                             <option value="distance">Distance</option>
                             <option value="time">Time</option>
                         </select>
-                        <input v-if="builderForm.warmup.by==='distance'" type="number" step="0.1" v-model.number="builderForm.warmup.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                        <div v-if="builderForm.warmup.by==='distance'" class="flex gap-1">
+                            <input type="number" step="any" v-model.number="builderForm.warmup.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                            <select v-model="builderForm.warmup.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                <option value="km">km</option>
+                                <option value="m">m</option>
+                            </select>
+                        </div>
                         <input v-else type="text" v-model="builderForm.warmup.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
                     </div>
                 </div>
@@ -896,7 +902,13 @@
                             <option value="distance">Distance</option>
                             <option value="time">Time</option>
                         </select>
-                        <input v-if="builderForm.cooldown.by==='distance'" type="number" step="0.1" v-model.number="builderForm.cooldown.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                        <div v-if="builderForm.cooldown.by==='distance'" class="flex gap-1">
+                            <input type="number" step="any" v-model.number="builderForm.cooldown.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                            <select v-model="builderForm.cooldown.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                <option value="km">km</option>
+                                <option value="m">m</option>
+                            </select>
+                        </div>
                         <input v-else type="text" v-model="builderForm.cooldown.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:10:00">
                     </div>
                 </div>
@@ -909,7 +921,13 @@
                             <option value="distance">Distance</option>
                             <option value="time">Time</option>
                         </select>
-                        <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                        <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
+                            <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                            <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                <option value="km">km</option>
+                                <option value="m">m</option>
+                            </select>
+                        </div>
                         <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
                         <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
                     </div>
@@ -920,7 +938,13 @@
                             <option value="distance">Distance</option>
                             <option value="time">Time</option>
                         </select>
-                        <input v-if="builderForm.main.by==='distance'" type="number" step="0.1" v-model.number="builderForm.main.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Total Distance (km)">
+                        <div v-if="builderForm.main.by==='distance'" class="flex gap-1">
+                            <input type="number" step="any" v-model.number="builderForm.main.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                            <select v-model="builderForm.main.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                <option value="km">km</option>
+                                <option value="m">m</option>
+                            </select>
+                        </div>
                         <input v-else type="text" v-model="builderForm.main.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:30:00">
                         <input type="text" v-model="builderForm.main.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
                     </div>
@@ -929,8 +953,12 @@
                             <input type="checkbox" v-model="builderForm.longRun.fastFinish.enabled" class="rounded bg-slate-900 border-slate-700 text-neon">
                             Fast Finish
                         </label>
-                        <div class="grid grid-cols-2 gap-2" v-if="builderForm.longRun.fastFinish.enabled">
-                            <input type="number" step="0.1" v-model.number="builderForm.longRun.fastFinish.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="km">
+                        <div class="grid grid-cols-3 gap-1" v-if="builderForm.longRun.fastFinish.enabled">
+                            <input type="number" step="any" v-model.number="builderForm.longRun.fastFinish.distance" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                            <select v-model="builderForm.longRun.fastFinish.unit" class="bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                <option value="km">km</option>
+                                <option value="m">m</option>
+                            </select>
                             <input type="text" v-model="builderForm.longRun.fastFinish.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace">
                         </div>
                     </div>
@@ -941,7 +969,13 @@
                             <option value="distance">Distance</option>
                             <option value="time">Time</option>
                         </select>
-                        <input v-if="builderForm.tempo.by==='distance'" type="number" step="0.1" v-model.number="builderForm.tempo.distanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Distance (km)">
+                        <div v-if="builderForm.tempo.by==='distance'" class="flex gap-1">
+                            <input type="number" step="any" v-model.number="builderForm.tempo.distance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Dist">
+                            <select v-model="builderForm.tempo.unit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                <option value="km">km</option>
+                                <option value="m">m</option>
+                            </select>
+                        </div>
                         <input v-else type="text" v-model="builderForm.tempo.duration" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="00:20:00">
                         <input type="text" v-model="builderForm.tempo.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
                         <select v-model="builderForm.tempo.effort" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm">
@@ -957,7 +991,13 @@
                             <option value="distance">Distance</option>
                             <option value="time">Time</option>
                         </select>
-                        <input v-if="builderForm.interval.by==='distance'" type="number" step="0.1" v-model.number="builderForm.interval.repDistanceKm" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep km">
+                        <div v-if="builderForm.interval.by==='distance'" class="flex gap-1">
+                            <input type="number" step="any" v-model.number="builderForm.interval.repDistance" class="w-2/3 bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep dist">
+                            <select v-model="builderForm.interval.repDistanceUnit" class="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-1 py-2 text-white text-xs">
+                                <option value="km">km</option>
+                                <option value="m">m</option>
+                            </select>
+                        </div>
                         <input v-else type="text" v-model="builderForm.interval.repTime" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Rep 00:03:00">
                         <input type="text" v-model="builderForm.interval.pace" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Pace (mm:ss)">
                         <input type="text" v-model="builderForm.interval.recovery" class="bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white text-sm" placeholder="Recovery">
@@ -1318,12 +1358,12 @@ createApp({
             title: '',
             notes: '',
             intensity: 'low',
-            warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
-            cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '' },
-            main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
-            longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
-            tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
-            interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+            warmup: { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '' },
+            cooldown: { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '' },
+            main: { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '' },
+            longRun: { fastFinish: { enabled: false, distance: 0, unit: 'km', pace: '' } },
+            tempo: { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '', effort: 'moderate' },
+            interval: { reps: 6, by: 'distance', repDistance: 0.8, repDistanceUnit: 'km', repTime: '', pace: '', recovery: 'Jog 2:00' },
             strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
         });
 
@@ -1421,12 +1461,12 @@ createApp({
                 title: '',
                 notes: '',
                 intensity: 'low',
-                warmup: { enabled: false, by: 'distance', distanceKm: 0, duration: '', pace: '' },
-                cooldown: { enabled: false, by: 'distance', distanceKm: 0, duration: '', pace: '' },
-                main: { by: 'distance', distanceKm: 0, duration: '', pace: '' },
-                longRun: { fastFinish: { enabled: false, distanceKm: 0, pace: '' } },
-                tempo: { by: 'distance', distanceKm: 0, duration: '', pace: '', effort: 'moderate' },
-                interval: { reps: 6, by: 'distance', repDistanceKm: 0.8, repTime: '', pace: '', recovery: 'Jog 2:00' },
+                warmup: { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '', pace: '' },
+                cooldown: { enabled: false, by: 'distance', distance: 0, unit: 'km', duration: '', pace: '' },
+                main: { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '' },
+                longRun: { fastFinish: { enabled: false, distance: 0, unit: 'km', pace: '' } },
+                tempo: { by: 'distance', distance: 0, unit: 'km', duration: '', pace: '', effort: 'moderate' },
+                interval: { reps: 6, by: 'distance', repDistance: 0.8, repDistanceUnit: 'km', repTime: '', pace: '', recovery: 'Jog 2:00' },
                 strength: { category: '', exercise: '', sets: '', reps: '', equipment: '', plan: [] }
             });
 
@@ -1441,10 +1481,36 @@ createApp({
                     Object.assign(builderForm, config);
                     // Ensure notes are synced if present in main form but not in advanced config (legacy support)
                     if (!builderForm.notes && form.notes) builderForm.notes = form.notes;
+                    
+                    // Backward compatibility: map old distanceKm / repDistanceKm properties to new distance / unit
+                    if (builderForm.warmup && builderForm.warmup.distanceKm !== undefined) {
+                        builderForm.warmup.distance = builderForm.warmup.distanceKm;
+                        builderForm.warmup.unit = 'km';
+                    }
+                    if (builderForm.cooldown && builderForm.cooldown.distanceKm !== undefined) {
+                        builderForm.cooldown.distance = builderForm.cooldown.distanceKm;
+                        builderForm.cooldown.unit = 'km';
+                    }
+                    if (builderForm.main && builderForm.main.distanceKm !== undefined) {
+                        builderForm.main.distance = builderForm.main.distanceKm;
+                        builderForm.main.unit = 'km';
+                    }
+                    if (builderForm.longRun && builderForm.longRun.fastFinish && builderForm.longRun.fastFinish.distanceKm !== undefined) {
+                        builderForm.longRun.fastFinish.distance = builderForm.longRun.fastFinish.distanceKm;
+                        builderForm.longRun.fastFinish.unit = 'km';
+                    }
+                    if (builderForm.tempo && builderForm.tempo.distanceKm !== undefined) {
+                        builderForm.tempo.distance = builderForm.tempo.distanceKm;
+                        builderForm.tempo.unit = 'km';
+                    }
+                    if (builderForm.interval && builderForm.interval.repDistanceKm !== undefined) {
+                        builderForm.interval.repDistance = builderForm.interval.repDistanceKm;
+                        builderForm.interval.repDistanceUnit = 'km';
+                    }
                 } else {
                     // If no advanced config, try to match type and pre-fill from basic form
                     // Map legacy/simple types to builder types
-            let targetType = RLBuilderUtils.normalizeType(form.type);
+                    let targetType = RLBuilderUtils.normalizeType(form.type);
                     
                     if (['easy_run', 'long_run', 'tempo', 'interval', 'strength', 'rest'].includes(targetType)) {
                         builderForm.type = targetType;
@@ -1454,7 +1520,8 @@ createApp({
                         if (['easy_run', 'long_run'].includes(targetType)) {
                             if (form.distance) {
                                 builderForm.main.by = 'distance';
-                                builderForm.main.distanceKm = form.distance;
+                                builderForm.main.distance = form.distance;
+                                builderForm.main.unit = 'km';
                             } else if (form.duration) {
                                 builderForm.main.by = 'time';
                                 builderForm.main.duration = form.duration;
@@ -1462,7 +1529,8 @@ createApp({
                         } else if (targetType === 'tempo') {
                             if (form.distance) {
                                 builderForm.tempo.by = 'distance';
-                                builderForm.tempo.distanceKm = form.distance;
+                                builderForm.tempo.distance = form.distance;
+                                builderForm.tempo.unit = 'km';
                             } else if (form.duration) {
                                 builderForm.tempo.by = 'time';
                                 builderForm.tempo.duration = form.duration;

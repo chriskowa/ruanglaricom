@@ -20,7 +20,8 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
+        $user = Auth::user();
+        if ((int) $order->user_id !== (int) $user->id && ! $user->isAdmin()) {
             abort(403);
         }
 
@@ -36,7 +37,8 @@ class OrderController extends Controller
      */
     public function invoice(Order $order)
     {
-        if ($order->user_id !== Auth::id()) {
+        $user = Auth::user();
+        if ((int) $order->user_id !== (int) $user->id && ! $user->isAdmin()) {
             abort(403);
         }
 
