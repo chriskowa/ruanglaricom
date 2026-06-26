@@ -941,6 +941,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/{order}', [App\Http\Controllers\Marketplace\OrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/shipped', [App\Http\Controllers\Marketplace\OrderController::class, 'markShipped'])->name('orders.shipped');
         Route::post('/orders/{order}/completed', [App\Http\Controllers\Marketplace\OrderController::class, 'markCompleted'])->name('orders.completed');
+        Route::delete('/orders/{order}', [App\Http\Controllers\Marketplace\OrderController::class, 'destroy'])->name('orders.destroy');
         Route::post('/cart/add/{program}', [App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
         Route::delete('/cart/{cart}', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
         Route::put('/cart/{cart}', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
@@ -956,6 +957,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/program-orders', [App\Http\Controllers\OrderController::class, 'index'])->name('program-orders.index');
         Route::get('/program-orders/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('program-orders.show');
         Route::get('/program-orders/{order}/invoice', [App\Http\Controllers\OrderController::class, 'invoice'])->name('program-orders.invoice');
+        Route::delete('/program-orders/{order}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('program-orders.destroy');
     });
 
     // Coach routes

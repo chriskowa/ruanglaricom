@@ -241,6 +241,15 @@
                                 </div>
                                 
                                 <div class="flex items-center gap-3">
+                                    @if($order->payment_status == 'pending')
+                                        <form action="{{ route('marketplace.program-orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan program ini?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white text-sm font-bold rounded-lg transition-all">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    @endif
                                     @if($order->payment_status == 'pending' && $order->payment_method === 'midtrans')
                                         <button onclick="payProgram({{ $order->id }}, this)" class="px-5 py-2 bg-neon text-slate-900 text-sm font-bold rounded-lg hover:bg-neon/90 hover:shadow-lg hover:shadow-neon/20 transition-all flex items-center gap-2">
                                             <span>Pay Now</span>
@@ -332,6 +341,15 @@
                                 </div>
                                 
                                 <div class="flex items-center gap-3">
+                                    @if($order->status == 'pending')
+                                        <form action="{{ route('marketplace.orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan produk ini?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white text-sm font-bold rounded-lg transition-all">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    @endif
                                     @if($order->status == 'pending')
                                         @if(empty($order->shipping_address))
                                             <a href="{{ route('marketplace.checkout.show', $order->id) }}" class="px-5 py-2 bg-amber-500 text-slate-900 text-sm font-bold rounded-lg hover:bg-amber-400 hover:shadow-lg hover:shadow-amber-500/20 transition-all flex items-center gap-2">

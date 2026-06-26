@@ -101,7 +101,7 @@ class CheckoutController extends Controller
 
     public function show(MarketplaceOrder $order)
     {
-        if ($order->buyer_id !== Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
+        if ((int) $order->buyer_id !== (int) Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
             return redirect()
                 ->route('marketplace.orders.index')
                 ->with('error', 'Order ini bukan milik Anda. Silakan checkout dari halaman produk untuk membuat order Anda sendiri.');
@@ -140,7 +140,7 @@ class CheckoutController extends Controller
 
     public function process(Request $request, MarketplaceOrder $order)
     {
-        if ($order->buyer_id !== Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
+        if ((int) $order->buyer_id !== (int) Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
             return redirect()
                 ->route('marketplace.orders.index')
                 ->with('error', 'Order ini bukan milik Anda. Silakan checkout dari halaman produk untuk membuat order Anda sendiri.');
@@ -301,7 +301,7 @@ class CheckoutController extends Controller
 
     public function pay(MarketplaceOrder $order)
     {
-        if ($order->buyer_id !== Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
+        if ((int) $order->buyer_id !== (int) Auth::id() && (! Auth::user() || ! Auth::user()->isAdmin())) {
             return redirect()
                 ->route('marketplace.orders.index')
                 ->with('error', 'Order ini bukan milik Anda. Silakan checkout dari halaman produk untuk membuat order Anda sendiri.');

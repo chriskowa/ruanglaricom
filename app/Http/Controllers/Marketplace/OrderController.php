@@ -40,7 +40,8 @@ class OrderController extends Controller
 
     public function show(MarketplaceOrder $order)
     {
-        if ($order->buyer_id !== Auth::id() && $order->seller_id !== Auth::id()) {
+        $user = Auth::user();
+        if ((int) $order->buyer_id !== (int) $user->id && (int) $order->seller_id !== (int) $user->id && ! $user->isAdmin()) {
             abort(403);
         }
 
@@ -51,7 +52,7 @@ class OrderController extends Controller
 
     public function markShipped(Request $request, MarketplaceOrder $order)
     {
-        if ($order->seller_id !== Auth::id()) {
+        if ((int) $order->seller_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -67,7 +68,7 @@ class OrderController extends Controller
 
     public function markCompleted(MarketplaceOrder $order)
     {
-        if ($order->buyer_id !== Auth::id()) {
+        if ((int) $order->buyer_id !== (int) Auth::id()) {
             abort(403);
         }
         if ($order->status !== 'shipped') {
@@ -123,5 +124,22 @@ class OrderController extends Controller
         });
 
         return back()->with('success', 'Order completed. Funds released to seller.');
+    }
+
+    public function destroy(MarketplaceOrder $order)
+    {
+        $user = Auth::user();
+        if ((int) $order->buyer_id !== (int) $user->id && ! $user->isAdmin()) {
+            abort(403);
+        }
+
+        if ($order->status !== 'pending') {
+            return back()->with('error', 'Hanya pesanan pending yang dapat dibatalkan.');
+        }
+
+        $order->items()->delete();
+        $order->delete();
+
+        return redirect()->route('marketplace.orders.index')->with('success', 'Pesanan berhasil dibatalkan.');
     }
 }
