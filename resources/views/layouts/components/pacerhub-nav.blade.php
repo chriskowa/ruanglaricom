@@ -20,9 +20,9 @@
                 </button>
                 @endif
                 <div class="flex items-center gap-1 nav-logo">
-                    <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-8 w-auto">
+                    <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-6 sm:h-8 w-auto">
                     <a href="{{ auth()->check() ? route(auth()->user()->role . '.dashboard') : route('home') }}" 
-                        class="text-lg xs:text-xl font-black italic tracking-tighter flex items-center {{ $lightMode ? 'text-slate-900' : 'text-white' }}">
+                        class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center {{ $lightMode ? 'text-slate-900' : 'text-white' }}">
                         RUANG<span class="pl-1" style="{{ $lightMode ? 'color: #000000ff;' : 'color: #ccff00;' }}">LARI</span>
                     </a>
                 </div>
@@ -170,9 +170,9 @@
                 @endauth
                 
                 @guest
-                <div class="flex items-center gap-3 xs:gap-2">
-                    <button onclick="openLoginModal()" class="text-sm font-bold {{ $lightMode ? 'text-slate-800 hover:text-slate-900' : 'text-slate-300 hover:text-white' }} transition-colors">Login</button>
-                    <button onclick="openRegisterModal()" class="px-4 py-2 text-sm font-bold bg-slate-900 text-white rounded-xl hover:bg-slate-800 hover:shadow-lg transition-all transform hover:-translate-y-0.5">Register</button>
+                <div class="flex items-center gap-1.5 sm:gap-3">
+                    <button onclick="openLoginModal()" class="text-xs sm:text-sm font-bold {{ $lightMode ? 'text-slate-800 hover:text-slate-900' : 'text-slate-300 hover:text-white' }} transition-colors px-1 py-1">Login</button>
+                    <button onclick="openRegisterModal()" class="px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold bg-slate-900 text-white rounded-xl hover:bg-slate-800 hover:shadow-lg transition-all transform hover:-translate-y-0.5">Register</button>
                 </div>
                 @endguest
                 

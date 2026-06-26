@@ -20,6 +20,23 @@
         -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1);
         color: transparent;
     }
+    /* Fix chat box overlap with mobile join bar */
+    #chatbox-toggle {
+        transition: bottom 0.3s ease-in-out, transform 0.3s ease;
+    }
+    @media (max-width: 1023px) {
+        #chatbox-toggle {
+            bottom: calc(1rem + env(safe-area-inset-bottom) + 5rem) !important;
+            z-index: 1000 !important;
+        }
+        #ph-chatbox {
+            bottom: calc(1rem + env(safe-area-inset-bottom) + 8.5rem) !important;
+            left: 1rem !important;
+            right: 1rem !important;
+            width: auto !important;
+            z-index: 1000 !important;
+        }
+    }
 </style>
 @endpush
 
