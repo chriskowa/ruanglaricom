@@ -910,6 +910,77 @@
         </div>
     </div>
 
+    <!-- Complete Profile Suggestion Modal -->
+    <div x-show="showProfileCompletionModal" 
+         x-cloak
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark/90 backdrop-blur-md"
+         @keydown.escape.window="showProfileCompletionModal = false">
+        
+        <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden"
+             @click.outside="showProfileCompletionModal = false"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+            
+            <!-- Glow Accent -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/15 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="p-6 md:p-8 relative z-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-3 bg-neon/10 border border-neon/20 rounded-xl text-neon">
+                        <svg class="w-6 h-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white uppercase italic tracking-tight">Lengkapi Profil Anda</h3>
+                        <p class="text-[10px] font-mono text-neon uppercase tracking-wider">Step to peak performance</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-400 leading-relaxed mb-6">
+                    Agar dapat menikmati seluruh fitur RuangLari dengan maksimal (coaching, pendaftaran event, dan sinkronisasi), silakan lengkapi informasi profil Anda:
+                </p>
+
+                <!-- Status List -->
+                <div class="space-y-3 mb-8">
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-850">
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">📸</span>
+                            <span class="text-xs font-bold text-slate-300">Foto Profil (Avatar)</span>
+                        </div>
+                        @if(auth()->user()->avatar)
+                            <span class="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-bold">Lengkap</span>
+                        @else
+                            <span class="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-bold">Belum Ada</span>
+                        @endif
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-850">
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">📞</span>
+                            <span class="text-xs font-bold text-slate-300">Nomor Handphone</span>
+                        </div>
+                        @if(auth()->user()->phone)
+                            <span class="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-[10px] font-bold">Lengkap</span>
+                        @else
+                            <span class="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-bold">Belum Ada</span>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col gap-2">
+                    <a href="{{ route('profile.show') }}" class="w-full py-3 bg-neon hover:bg-neon/90 text-dark font-black text-xs rounded-xl transition-all text-center tracking-wider uppercase shadow-lg shadow-neon/20">
+                        Lengkapi Profil Sekarang
+                    </a>
+                    <button type="button" @click="showProfileCompletionModal = false; sessionStorage.setItem('dismiss_profile_modal', 'true')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition-all text-center">
+                        Nanti Saja
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div x-show="notification" 
          x-transition:enter="transition ease-out duration-300"
@@ -959,6 +1030,7 @@
     function dashboardComponent() {
         return {
             openGenerateModal: {{ ($activeEnrollments->count() ?? 0) <= 0 ? 'true' : 'false' }},
+            showProfileCompletionModal: {{ (empty(auth()->user()->avatar) || empty(auth()->user()->phone)) ? 'true' : 'false' }},
             step: 1,
             loading: false,
             saving: false,
@@ -1002,6 +1074,11 @@
                 this.$watch('pb_distance', () => { this.suggestGoalTime(); this.recommendMileage(); });
                 this.$watch('target_distance', () => { this.suggestGoalTime(); this.recommendMileage(); });
                 this.$watch('runner_level', () => { this.suggestGoalTime(); this.recommendMileage(); });
+
+                // Check profile modal dismissal state in session storage
+                if (sessionStorage.getItem('dismiss_profile_modal') === 'true') {
+                    this.showProfileCompletionModal = false;
+                }
             },
 
             get distanceKm() {

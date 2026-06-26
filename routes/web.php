@@ -699,6 +699,10 @@ Route::middleware('auth')->group(function () {
     // Profile routes (accessible by all authenticated users)
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/upload-avatar', [App\Http\Controllers\ProfileController::class, 'uploadAvatar'])->name('profile.upload-avatar');
+    Route::post('/profile/upload-banner', [App\Http\Controllers\ProfileController::class, 'uploadBanner'])->name('profile.upload-banner');
+    Route::post('/profile/upload-gallery', [App\Http\Controllers\ProfileController::class, 'uploadGallery'])->name('profile.upload-gallery');
+    Route::post('/profile/delete-gallery', [App\Http\Controllers\ProfileController::class, 'deleteGalleryImage'])->name('profile.delete-gallery');
 
     // User list routes (accessible by all authenticated users)
     Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');

@@ -197,4 +197,111 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.show')->with('success', 'Profile berhasil diperbarui!');
     }
+
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
+
+        $user = Auth::user();
+
+        // Delete old avatar if exists
+        if ($user->avatar) {
+            $this->deleteImage($user->avatar);
+        }
+
+        $avatarPath = $this->processImage($request->file('avatar'), 'avatars', 75);
+        $user->avatar = $avatarPath;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Avatar updated successfully',
+            'url' => asset('storage/' . $avatarPath),
+        ]);
+    }
+
+    public function uploadBanner(Request $request)
+    {
+        $request->validate([
+            'banner' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
+
+        $user = Auth::user();
+
+        // Delete old banner if exists
+        if ($user->banner) {
+            $this->deleteImage($user->banner);
+        }
+
+        $bannerPath = $this->processImage($request->file('banner'), 'banners', 75);
+        $user->banner = $bannerPath;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Banner updated successfully',
+            'url' => asset('storage/' . $bannerPath),
+        ]);
+    }
+
+    public function uploadGallery(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ]);
+
+        $user = Auth::user();
+        $profileImages = $user->profile_images ?? [];
+
+        if (count($profileImages) >= 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maximum 3 gallery images allowed.',
+            ], 422);
+        }
+
+        $imagePath = $this->processImage($request->file('file'), 'profile_images', 75);
+        $profileImages[] = $imagePath;
+        
+        $user->profile_images = $profileImages;
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Image added to gallery',
+            'image' => $imagePath,
+            'url' => asset('storage/' . $imagePath),
+        ]);
+    }
+
+    public function deleteGalleryImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        $profileImages = $user->profile_images ?? [];
+        $targetImage = $request->input('image');
+
+        if (($key = array_search($targetImage, $profileImages)) !== false) {
+            unset($profileImages[$key]);
+            $this->deleteImage($targetImage);
+            
+            $user->profile_images = array_values($profileImages);
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Image removed from gallery',
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Image not found in gallery.',
+        ], 404);
+    }
 }

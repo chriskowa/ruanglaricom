@@ -26,26 +26,26 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-6">
                 <div class="glass rounded-2xl p-6 md:p-8">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <p class="text-slate-400 text-sm">Saldo Wallet</p>
-                            <p class="text-4xl md:text-5xl font-black text-white mt-1">Rp {{ number_format($wallet->balance ?? 0, 0, ',', '.') }}</p>
+                            <p class="text-3xl sm:text-4xl md:text-5xl font-black text-white mt-1">Rp {{ number_format($wallet->balance ?? 0, 0, ',', '.') }}</p>
                             <p class="text-slate-500 text-xs mt-2">Saldo tersedia untuk pembayaran</p>
                         </div>
-                        <div class="shrink-0 w-16 h-16 rounded-2xl bg-neon/10 border border-neon/30 flex items-center justify-center">
+                        <div class="shrink-0 w-16 h-16 rounded-2xl bg-neon/10 border border-neon/30 flex items-center justify-center self-start sm:self-auto">
                             <svg class="w-8 h-8 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h10M5 7h14a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z" /></svg>
                         </div>
                     </div>
                 </div>
 
                 <div class="glass rounded-2xl p-6 md:p-8">
-                    <div class="flex items-center justify-between mb-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                         <h2 class="text-xl font-bold text-white">Top-up Wallet</h2>
-                        <div class="flex gap-2">
-                            <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition quick-topup" data-amount="50000">Rp 50.000</button>
-                            <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition quick-topup" data-amount="100000">Rp 100.000</button>
-                            <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition quick-topup" data-amount="200000">Rp 200.000</button>
-                            <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition quick-topup" data-amount="500000">Rp 500.000</button>
+                        <div class="flex flex-wrap gap-2 w-full lg:w-auto">
+                            <button type="button" class="flex-1 sm:flex-initial text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition quick-topup whitespace-nowrap" data-amount="50000">Rp 50.000</button>
+                            <button type="button" class="flex-1 sm:flex-initial text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition quick-topup whitespace-nowrap" data-amount="100000">Rp 100.000</button>
+                            <button type="button" class="flex-1 sm:flex-initial text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition quick-topup whitespace-nowrap" data-amount="200000">Rp 200.000</button>
+                            <button type="button" class="flex-1 sm:flex-initial text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition quick-topup whitespace-nowrap" data-amount="500000">Rp 500.000</button>
                         </div>
                     </div>
 
