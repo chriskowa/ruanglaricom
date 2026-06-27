@@ -126,7 +126,7 @@
                                     <div class="text-xs text-slate-400">Supports PNG, JPG, JPEG up to 2MB</div>
                                 </div>
                                 <div v-else class="relative w-full h-full min-h-[120px] flex items-center justify-center">
-                                    <img :src="thumbnailPreview" @error="thumbnailPreview = ''" class="max-h-[140px] rounded-lg object-cover border border-slate-700" />
+                                    <img :src="thumbnailPreview" v-on:error="thumbnailPreview = ''" class="max-h-[140px] rounded-lg object-cover border border-slate-700" />
                                     <div class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-lg gap-2">
                                         <span class="text-xs font-bold text-white bg-slate-900/80 px-2 py-1.5 rounded-lg border border-white/10">Click to change image</span>
                                         <button type="button" @click.stop="removeThumbnail" class="p-1.5 bg-red-500 hover:bg-red-600 rounded-lg text-white transition">
