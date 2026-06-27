@@ -6,6 +6,47 @@
 @section('title', 'Edit Program')
 
 @section('content')
+<style>
+.ck-editor__editable_inline {
+    min-height: 280px !important;
+    background-color: #0f172a !important; /* matches dark theme input */
+    color: #ffffff !important;
+    border-color: #334155 !important;
+}
+.ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+    border-color: #334155 !important;
+}
+.ck.ck-editor__main>.ck-editor__editable.ck-focused {
+    border-color: #befd00 !important; /* neon border on focus */
+}
+.ck-toolbar {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+.ck.ck-button {
+    color: #cbd5e1 !important;
+}
+.ck.ck-button:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+.ck.ck-button.ck-on {
+    background-color: #befd00 !important;
+    color: #0f172a !important;
+}
+.ck.ck-dropdown .ck-dropdown__panel {
+    background-color: #1e293b !important;
+}
+.ck-list {
+    background-color: #1e293b !important;
+}
+.ck-list__item:hover {
+    background-color: #334155 !important;
+}
+.ck-list__item button {
+    color: #ffffff !important;
+}
+</style>
 <main class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans" id="program-builder-app" v-cloak>
     <div class="max-w-7xl mx-auto">
         <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
@@ -16,7 +57,7 @@
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Edit Program</h1>
                 <p class="text-slate-400 text-sm mt-1">Update your training plan.</p>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-3 flex-wrap">
                 <button type="button" @click="triggerImport" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -24,6 +65,21 @@
                     Import JSON
                 </button>
                 <input type="file" ref="fileInput" class="hidden" accept=".json" @change="handleImport">
+                
+                <button type="button" @click="triggerCsvImport" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Import CSV
+                </button>
+                <input type="file" ref="csvFileInput" class="hidden" accept=".csv" @change="handleCsvImport">
+
+                <button type="button" @click="downloadCsvTemplate" class="text-xs text-neon hover:underline flex items-center gap-1 self-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    CSV Template
+                </button>
 
                  <button type="button" @click="saveProgram" :disabled="saving" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center gap-2">
                     <span v-if="saving" class="animate-spin">⟳</span>
@@ -43,19 +99,44 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Description</label>
-                            <div class="w-full bg-white rounded-xl overflow-hidden text-slate-900">
+                            <div class="w-full rounded-xl overflow-hidden text-white">
                                 <div id="program_description_editor" class="min-h-[120px] px-4 py-3 text-sm"></div>
                             </div>
                             <textarea v-model="form.description" id="program_description" class="hidden"></textarea>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Feature Image (Thumbnail)</label>
-                            @if($program->thumbnail)
-                                <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $program->thumbnail) }}" alt="Current Thumbnail" class="h-20 w-auto rounded-lg border border-slate-700 object-cover">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Feature Image (Thumbnail)</label>
+                            <div 
+                                @dragover.prevent="dragOverThumbnail = true"
+                                @dragleave.prevent="dragOverThumbnail = false"
+                                @drop.prevent="handleThumbnailDrop"
+                                @click="triggerThumbnailSelect"
+                                :class="{'border-neon bg-neon/5': dragOverThumbnail, 'border-slate-700 bg-slate-900/40 hover:bg-slate-900/80': !dragOverThumbnail}"
+                                class="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center min-h-[140px] group relative overflow-hidden">
+                                
+                                <input type="file" ref="thumbnailInput" class="hidden" accept="image/*" @change="handleFileChange">
+                                
+                                <div v-if="!thumbnailPreview" class="space-y-2">
+                                    <div class="p-3 bg-slate-800/80 rounded-full inline-block group-hover:scale-110 transition-transform duration-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="text-sm font-bold text-white">Drag & drop your image here, or <span class="text-neon underline">browse</span></div>
+                                    <div class="text-xs text-slate-400">Supports PNG, JPG, JPEG up to 2MB</div>
                                 </div>
-                            @endif
-                            <input type="file" @change="handleFileChange" accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm focus:border-neon outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-slate-800 file:text-neon hover:file:bg-slate-700">
+                                <div v-else class="relative w-full h-full min-h-[120px] flex items-center justify-center">
+                                    <img :src="thumbnailPreview" @error="thumbnailPreview = ''" class="max-h-[140px] rounded-lg object-cover border border-slate-700" />
+                                    <div class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-lg gap-2">
+                                        <span class="text-xs font-bold text-white bg-slate-900/80 px-2 py-1.5 rounded-lg border border-white/10">Click to change image</span>
+                                        <button type="button" @click.stop="removeThumbnail" class="p-1.5 bg-red-500 hover:bg-red-600 rounded-lg text-white transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -107,7 +188,7 @@
             </div>
 
             <!-- Horizontal Workout Toolbar -->
-            <div class="glass-panel rounded-2xl p-6 sticky top-4 z-30 shadow-2xl shadow-black/50 border-t border-white/10 overflow-visible">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sticky top-4 z-30 shadow-2xl shadow-black/80 overflow-visible">
                 <div class="flex flex-col gap-4">
                     <!-- Tabs Header -->
                     <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-white/10">
@@ -786,12 +867,16 @@ createApp({
         const activeTab = ref('easy_run');
         const showCustomModal = ref(false);
         const fileInput = ref(null);
+        const csvFileInput = ref(null);
         const builderVisible = ref(false);
         const builderIsEditing = ref(false);
         const builderTargetDay = ref(1);
         const builderTargetWeek = ref(1);
         const builderSessionId = ref(null);
         const quickAddWorkout = ref(null);
+        const dragOverThumbnail = ref(false);
+        const thumbnailPreview = ref('{{ $program->thumbnail ? asset("storage/" . $program->thumbnail) : "" }}');
+        const thumbnailInput = ref(null);
         
         // Master Workouts from Backend
         const initialMasterWorkouts = @json($masterWorkouts ?? []);
@@ -861,7 +946,8 @@ createApp({
             duration_weeks: programData.duration_weeks,
             is_published: !!programData.is_published,
             is_challenge: !!programData.is_challenge,
-            sessions: programSessions
+            sessions: programSessions,
+            thumbnail: null
         });
 
         onMounted(() => {
@@ -1590,10 +1676,118 @@ createApp({
             }
         };
 
+        const triggerCsvImport = () => {
+            csvFileInput.value.click();
+        };
+
+        const handleCsvImport = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('csv_file', file);
+
+            try {
+                const res = await fetch('{{ route("coach.programs.import-csv") }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json' },
+                    body: formData
+                });
+                
+                let data;
+                try {
+                    data = await res.json();
+                } catch (jsonError) {
+                    console.error('Failed to parse CSV response:', jsonError);
+                    alert('Server returned an invalid response. Please check your file.');
+                    return;
+                }
+                
+                if (res.ok) {
+                    if (data.sessions && Array.isArray(data.sessions)) {
+                        form.sessions = data.sessions.map(s => ({...s, _id: s._id || generateId()}));
+                        if (data.duration_weeks) form.duration_weeks = data.duration_weeks;
+                        alert('CSV Program imported successfully!');
+                    } else {
+                        alert('Invalid CSV structure: Missing "sessions" array.');
+                    }
+                } else {
+                    alert(data.message || (data.errors && data.errors.csv_file ? data.errors.csv_file[0] : 'Import failed'));
+                }
+            } catch (e) {
+                console.error('Import error:', e);
+                alert('An error occurred during import. See console for details.');
+            } finally {
+                e.target.value = ''; // Reset input
+            }
+        };
+
+        const downloadCsvTemplate = () => {
+            const csvRows = [
+                ['day', 'type', 'distance', 'duration', 'description'],
+                [1, 'easy_run', 5, '00:35:00', 'Easy introductory run'],
+                [2, 'interval', 0, '00:45:00', 'Speed intervals: 6x800m'],
+                [3, 'easy_run', 5, '00:35:00', 'Recovery run'],
+                [4, 'tempo', 8, '00:45:00', 'Tempo run at target pace'],
+                [5, 'strength', 0, '00:30:00', 'Core and leg strength'],
+                [6, 'long_run', 12, '01:10:00', 'Long endurance run'],
+                [7, 'rest', 0, '', 'Rest and recovery'],
+                [25, 'time_trial', 5, '00:20:00', 'Time Trial 5K Max Effort']
+            ];
+
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + csvRows.map(e => e.map(val => `"${val}"`).join(",")).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "ruanglari_program_template.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        const setThumbnailFile = (file) => {
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file.');
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Image size exceeds 2MB limit.');
+                return;
+            }
+            form.thumbnail = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                thumbnailPreview.value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
         const handleFileChange = (event) => {
             const file = event.target.files[0];
             if (file) {
-                form.thumbnail = file;
+                setThumbnailFile(file);
+            }
+        };
+
+        const handleThumbnailDrop = (event) => {
+            dragOverThumbnail.value = false;
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                setThumbnailFile(file);
+            }
+        };
+
+        const triggerThumbnailSelect = () => {
+            thumbnailInput.value.click();
+        };
+
+        const removeThumbnail = () => {
+            form.thumbnail = null;
+            thumbnailPreview.value = null;
+            if (thumbnailInput.value) {
+                thumbnailInput.value.value = '';
             }
         };
 
@@ -1603,6 +1797,8 @@ createApp({
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
             builderIsEditing, builderSessionId, builderTargetWeek, builderTargetDay,
             copyWeek, updateWeeks, addWeek, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
+            csvFileInput, triggerCsvImport, handleCsvImport, downloadCsvTemplate,
+            dragOverThumbnail, thumbnailPreview, thumbnailInput, handleThumbnailDrop, triggerThumbnailSelect, removeThumbnail,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes, masterWorkouts,
             cwForm, cwSummary, cwTotalDistance,
             handleDragStart, handleSessionDragStart, strengthOptions, addStrengthExercise, removeStrengthExercise, deleteWorkout, duplicateWorkout,

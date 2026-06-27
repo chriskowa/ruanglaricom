@@ -975,6 +975,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('programs', App\Http\Controllers\Coach\ProgramController::class);
         Route::post('/programs/generate-template', [App\Http\Controllers\Coach\ProgramController::class, 'generateTemplate'])->name('programs.generate-template');
         Route::post('/programs/import-json', [App\Http\Controllers\Coach\ProgramController::class, 'importJson'])->name('programs.import-json');
+        Route::post('/programs/import-csv', [App\Http\Controllers\Coach\ProgramController::class, 'importCsv'])->name('programs.import-csv');
         Route::post('/programs/import-and-save', [App\Http\Controllers\Coach\ProgramController::class, 'importAndSaveJson'])->name('programs.import-and-save');
         Route::post('/programs/generate-vdot', [App\Http\Controllers\Coach\ProgramController::class, 'generateVDOT'])->name('programs.generate-vdot');
         Route::post('/programs/{program}/publish', [App\Http\Controllers\Coach\ProgramController::class, 'publish'])->name('programs.publish');
