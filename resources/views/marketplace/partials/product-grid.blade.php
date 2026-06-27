@@ -47,47 +47,46 @@
             </a>
             
             <!-- Details Section -->
-            <div class="p-4 flex flex-col flex-1">
-                <div class="flex justify-between items-center mb-1.5">
-                    <div class="text-[10px] text-neon font-mono uppercase tracking-wider">{{ $product->category->name }}</div>
+            <div class="p-4 flex flex-col flex-1 min-w-0">
+                <div class="flex justify-between items-center gap-2 mb-1.5 min-w-0">
+                    <div class="text-[9px] text-neon font-mono uppercase tracking-wider truncate">{{ $product->category->name }}</div>
                     @if($product->brand)
-                        <div class="text-[10px] text-slate-400 font-mono uppercase tracking-wider">{{ $product->brand->name }}</div>
+                        <div class="text-[9px] text-slate-500 font-mono uppercase tracking-wider truncate text-right">{{ $product->brand->name }}</div>
                     @endif
                 </div>
                 
-                <h3 class="font-bold text-white text-sm md:text-base leading-snug mb-2 line-clamp-2 group-hover:text-neon transition-colors">
+                <h3 class="font-bold text-white text-xs md:text-sm leading-snug mb-2 line-clamp-2 group-hover:text-neon transition-colors">
                     <a href="{{ route('marketplace.show', $product->slug) }}">{{ $product->title }}</a>
                 </h3>
 
-                <!-- Price & Seller Meta -->
-                <div class="mt-auto pt-3 border-t border-slate-800/80 flex justify-between items-end gap-2">
-                    <div>
-                        <div class="text-[10px] text-slate-500 uppercase tracking-wider font-mono mb-0.5">
-                            {{ $product->sale_type === 'auction' ? 'Current Bid' : 'Price' }}
-                        </div>
-                        <div class="text-base md:text-lg font-black text-white italic tracking-tight">
-                            Rp{{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}
-                        </div>
+                <!-- Price Section -->
+                <div class="mt-auto pt-2.5 border-t border-slate-800/80">
+                    <div class="text-[9px] text-slate-500 uppercase tracking-wider font-mono mb-0.5">
+                        {{ $product->sale_type === 'auction' ? 'Current Bid' : 'Price' }}
                     </div>
-                    
-                    <div class="flex flex-col items-end shrink-0 max-w-[100px]">
-                        <div class="flex items-center gap-1.5">
-                            <div class="w-5 h-5 rounded-full bg-slate-850 border border-slate-700/60 overflow-hidden shrink-0">
-                                <img src="https://ui-avatars.com/api/?name={{ urlencode($product->seller->name) }}&background=random" class="w-full h-full object-cover" alt="{{ $product->seller->name }}">
-                            </div>
-                            <span class="text-[10px] text-slate-400 font-medium truncate">
-                                {{ $product->seller->name }}
-                            </span>
+                    <div class="text-sm md:text-base font-black text-white italic tracking-tight truncate">
+                        Rp{{ number_format($product->sale_type === 'auction' ? ($product->current_price ?? $product->starting_price ?? $product->price) : $product->price, 0, ',', '.') }}
+                    </div>
+                </div>
+                
+                <!-- Seller Meta -->
+                <div class="pt-2 mt-1.5 border-t border-slate-850/40 flex items-center justify-between gap-1.5 min-w-0">
+                    <div class="flex items-center gap-1 min-w-0">
+                        <div class="w-4 h-4 rounded-full bg-slate-850 border border-slate-700/60 overflow-hidden shrink-0">
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode($product->seller->name) }}&background=random" class="w-full h-full object-cover" alt="{{ $product->seller->name }}">
                         </div>
-                        @if($product->seller->city)
-                        <span class="text-[9px] text-slate-500 flex items-center gap-0.5 mt-0.5 truncate">
-                            <svg class="w-2.5 h-2.5 text-slate-650 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            </svg>
-                            {{ $product->seller->city->name }}
+                        <span class="text-[9px] text-slate-400 font-medium truncate">
+                            {{ $product->seller->name }}
                         </span>
-                        @endif
                     </div>
+                    @if($product->seller->city)
+                    <span class="text-[9px] text-slate-500 flex items-center gap-0.5 shrink-0 max-w-[45%] truncate" title="{{ $product->seller->city->name }}">
+                        <svg class="w-2.5 h-2.5 text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        </svg>
+                        {{ $product->seller->city->name }}
+                    </span>
+                    @endif
                 </div>
 
                 <!-- Action Button / CTA -->
