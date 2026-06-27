@@ -910,6 +910,73 @@
         </div>
     </div>
 
+    <!-- Required Phone Number Update Modal -->
+    <div x-show="showPhoneModal" 
+         x-cloak
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark/95 backdrop-blur-md">
+        
+        <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+            
+            <!-- Glow Accent -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-neon/15 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="p-6 md:p-8 relative z-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-3 bg-neon/10 border border-neon/20 rounded-xl text-neon">
+                        <svg class="w-6 h-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white uppercase italic tracking-tight">Verifikasi Kontak</h3>
+                        <p class="text-[10px] font-mono text-neon uppercase tracking-wider">Nomor Handphone Wajib Diisi</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-400 leading-relaxed mb-6">
+                    Demi keamanan akun dan kelancaran proses pendaftaran event/coaching di RuangLari, silakan masukkan nomor handphone Anda yang aktif terlebih dahulu.
+                </p>
+
+                <form @submit.prevent="submitPhoneNumber()">
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Nomor Handphone</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 text-sm">📞</span>
+                                <input type="tel" 
+                                       x-model="inputPhone" 
+                                       required
+                                       placeholder="Contoh: 081234567890" 
+                                       class="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white font-bold text-sm focus:outline-none focus:border-neon transition-colors"
+                                       pattern="[0-9+ ]{8,20}">
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-1.5">Gunakan angka saja, minimal 8 digit.</p>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-col gap-2">
+                        <button type="submit" 
+                                :disabled="submittingPhone"
+                                class="w-full py-3 bg-neon hover:bg-neon/90 disabled:bg-slate-800 disabled:text-slate-655 text-dark font-black text-xs rounded-xl transition-all text-center tracking-wider uppercase shadow-lg shadow-neon/20 flex items-center justify-center gap-2">
+                            <span x-show="!submittingPhone">Simpan & Lanjutkan</span>
+                            <span x-show="submittingPhone" class="flex items-center gap-2">
+                                <svg class="animate-spin h-4 w-4 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Menyimpan...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Complete Profile Suggestion Modal -->
     <div x-show="showProfileCompletionModal" 
          x-cloak
@@ -1030,7 +1097,10 @@
     function dashboardComponent() {
         return {
             openGenerateModal: {{ ($activeEnrollments->count() ?? 0) <= 0 ? 'true' : 'false' }},
-            showProfileCompletionModal: {{ (empty(auth()->user()->avatar) || empty(auth()->user()->phone)) ? 'true' : 'false' }},
+            showPhoneModal: {{ empty(auth()->user()->phone) ? 'true' : 'false' }},
+            showProfileCompletionModal: {{ (empty(auth()->user()->avatar) && !empty(auth()->user()->phone)) ? 'true' : 'false' }},
+            inputPhone: '{{ auth()->user()->phone ?? "" }}',
+            submittingPhone: false,
             step: 1,
             loading: false,
             saving: false,
@@ -1058,6 +1128,42 @@
             
             result: null,
             errors: null,
+
+            async submitPhoneNumber() {
+                if (!this.inputPhone || this.inputPhone.trim().length < 8) {
+                    this.showNotification('Masukkan nomor handphone yang valid (minimal 8 digit)!', 'error');
+                    return;
+                }
+                this.submittingPhone = true;
+                try {
+                    const response = await fetch('{{ route("profile.update-phone") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            phone: this.inputPhone
+                        })
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        this.showNotification(data.message || 'Nomor HP berhasil disimpan!', 'success');
+                        this.showPhoneModal = false;
+                        @if(empty(auth()->user()->avatar))
+                            this.showProfileCompletionModal = true;
+                        @endif
+                    } else {
+                        this.showNotification(data.message || 'Gagal memperbarui nomor HP.', 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    this.showNotification('Terjadi kesalahan saat menyimpan nomor HP.', 'error');
+                } finally {
+                    this.submittingPhone = false;
+                }
+            },
 
             showNotification(message, type = 'success') {
                 this.notification = { message, type };

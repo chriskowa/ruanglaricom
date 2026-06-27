@@ -198,6 +198,22 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')->with('success', 'Profile berhasil diperbarui!');
     }
 
+    public function updatePhone(Request $request)
+    {
+        $validated = $request->validate([
+            'phone' => 'required|string|max:20',
+        ]);
+
+        $user = Auth::user();
+        $user->phone = $validated['phone'];
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Nomor HP berhasil diperbarui!',
+        ]);
+    }
+
     public function uploadAvatar(Request $request)
     {
         $request->validate([

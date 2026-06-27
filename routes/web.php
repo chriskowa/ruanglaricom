@@ -703,6 +703,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/upload-banner', [App\Http\Controllers\ProfileController::class, 'uploadBanner'])->name('profile.upload-banner');
     Route::post('/profile/upload-gallery', [App\Http\Controllers\ProfileController::class, 'uploadGallery'])->name('profile.upload-gallery');
     Route::post('/profile/delete-gallery', [App\Http\Controllers\ProfileController::class, 'deleteGalleryImage'])->name('profile.delete-gallery');
+    Route::post('/profile/update-phone', [App\Http\Controllers\ProfileController::class, 'updatePhone'])->name('profile.update-phone');
 
     // User list routes (accessible by all authenticated users)
     Route::get('/users', [App\Http\Controllers\UserController::class, 'index'])->name('users.index');
