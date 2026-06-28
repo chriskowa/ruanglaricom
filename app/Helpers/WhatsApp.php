@@ -61,6 +61,19 @@ class WhatsApp
             \Illuminate\Support\Facades\Log::warning('Failed to create WhatsApp DB log: ' . $e->getMessage());
         }
 
+        if (app()->environment('testing')) {
+            if ($log) {
+                try {
+                    $log->update([
+                        'status' => 'sent',
+                        'http_code' => 200,
+                        'response' => json_encode(['success' => true, 'message' => 'Testing mode: curl skipped']),
+                    ]);
+                } catch (\Exception $e) {}
+            }
+            return;
+        }
+
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => 'https://wa.jituproperty.com/api/create-message',

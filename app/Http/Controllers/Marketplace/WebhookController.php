@@ -97,6 +97,12 @@ class WebhookController extends Controller
                         }
                     }
                 });
+
+                try {
+                    \App\Jobs\ProcessPaidProgramOrder::dispatch($programOrder->id);
+                } catch (\Exception $e) {
+                    Log::error('Failed to dispatch ProcessPaidProgramOrder in Webhook: ' . $e->getMessage());
+                }
             }
         } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
             $programOrder->update([

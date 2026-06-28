@@ -27,10 +27,12 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     @php
-        $seoTitle = isset($seo['title']) && $seo['title'] ? $seo['title'] : $event->name . ' - ' . ($event->location_name ?? 'Official Event');
-        $seoDesc = isset($seo['description']) && $seo['description'] ? $seo['description'] : Str::limit(strip_tags($event->short_description ?: $event->full_description), 155);
-        $seoKeywords = isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
-        $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
+        $isGoldenRun = ($event->slug === 'golden-run-2026' || Str::contains(strtolower($event->name), 'golden run'));
+        
+        $seoTitle = $isGoldenRun ? 'Golden Run Malang 2026: Info Tiket, Jadwal, Rute, dan Registrasi' : (isset($seo['title']) && $seo['title'] ? $seo['title'] : $event->name . ' - ' . ($event->location_name ?? 'Official Event'));
+        $seoDesc = $isGoldenRun ? 'Golden Run Malang 2026 adalah event fun run dan DJ run di Malang Raya. Cek jadwal, lokasi, fasilitas peserta, harga tiket, dan link registrasi resmi di RuangLari.' : (isset($seo['description']) && $seo['description'] ? $seo['description'] : Str::limit(strip_tags($event->short_description ?: $event->full_description), 155));
+        $seoKeywords = $isGoldenRun ? 'golden run malang 2026, golden run malang, event lari malang 2026, fun run malang, daftar golden run malang, jadwal lari malang 2026' : (isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari');
+        $seoUrl = $isGoldenRun ? 'https://ruanglari.com/event/golden-run-2026' : (isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug));
         $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
 
         $minPrice = null;
@@ -62,6 +64,7 @@
     <meta name="description" content="{{ $seoDesc }}" />
     <meta name="keywords" content="{{ $seoKeywords }}">
     <link rel="canonical" href="{{ $seoUrl }}">
+    <meta name="robots" content="index, follow" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="event" />
@@ -82,7 +85,7 @@
     {
       "@@context": "https://schema.org",
       "@@type": "SportsEvent",
-      "name": "{{ $event->name }}",
+      "name": "{{ $isGoldenRun ? 'Golden Run Malang 2026' : $event->name }}",
       "description": "{{ $seoDesc }}",
       "image": "{{ $seoImage }}",
       "startDate": "{{ $event->start_at ? $event->start_at->toIso8601String() : '' }}",
@@ -94,7 +97,9 @@
         "name": "{{ $event->location_name ?? 'TBA' }}",
         "address": {
           "@@type": "PostalAddress",
+          "streetAddress": "{{ $event->location_address ?? '' }}",
           "addressLocality": "{{ $event->city ? $event->city->name : '' }}",
+          "addressRegion": "Jawa Timur",
           "addressCountry": "ID"
         }
       },
@@ -512,7 +517,7 @@
         <!-- Background -->
         <div class="fixed inset-0 z-0 pointer-events-none">
              @if($event->hero_image)
-                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover opacity-20 blur-sm scale-105 animate-pulse-slow">
+                <img src="{{ asset('storage/' . $event->hero_image) }}" alt="{{ $isGoldenRun ? 'Golden Run Malang 2026 Background' : $event->name }}" class="w-full h-full object-cover opacity-20 blur-sm scale-105 animate-pulse-slow">
             @else
                 <div class="w-full h-full bg-dark-950"></div>
                 <div class="absolute top-0 -left-4 w-96 h-96 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
@@ -527,9 +532,9 @@
             <!-- Logo/Name -->
             <div class="animate-fade-in-up">
                 @if($event->logo_image)
-                    <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-20 md:h-32 w-auto mx-auto mb-6 drop-shadow-2xl hover:scale-105 transition-transform duration-500">
+                    <img src="{{ asset('storage/' . $event->logo_image) }}" alt="{{ $isGoldenRun ? 'Golden Run Malang 2026 Logo' : $event->name }}" class="h-20 md:h-32 w-auto mx-auto mb-6 drop-shadow-2xl hover:scale-105 transition-transform duration-500">
                 @else
-                    <h1 class="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-white">{{ $event->name }}</h1>
+                    <h2 class="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-white">{{ $isGoldenRun ? 'Golden Run Malang 2026' : $event->name }}</h2>
                 @endif
             </div>
 
@@ -727,7 +732,7 @@
         <!-- Dynamic Background -->
         <div class="absolute inset-0 z-0">
             @if($event->hero_image)
-                <img src="{{ asset('storage/' . $event->hero_image) }}" class="w-full h-full object-cover opacity-60">
+                <img src="{{ asset('storage/' . $event->hero_image) }}" alt="{{ $isGoldenRun ? 'Golden Run Malang 2026 Banner' : $event->name }}" class="w-full h-full object-cover opacity-60">
                 <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/50 to-transparent hero-overlay-v"></div>
                 <div class="absolute inset-0 bg-gradient-to-r from-dark-950 via-dark-950/40 to-transparent hero-overlay-h"></div>
             @else
@@ -750,7 +755,7 @@
                     </div>
                     
                     <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none mb-6 drop-shadow-lg">
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-brand-500">{{ strtoupper($event->name) }}</span>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-brand-500">{{ $isGoldenRun ? 'Golden Run Malang 2026' : strtoupper($event->name) }}</span>
                     </h1>
                     <div class="text-white mb-10">
                         <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0 font-light">
@@ -874,9 +879,29 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div class="reveal">
-                    <span class="text-brand-400 font-bold uppercase tracking-widest text-sm mb-2 block">Tentang Event</span>
-                    <h2 class="text-4xl font-extrabold text-white mb-6 leading-tight">Bersinar dalam Setiap Langkah,<br>Lampaui Batasmu</h2>
+                    <span class="text-brand-400 font-bold uppercase tracking-widest text-sm mb-2 block">{{ $isGoldenRun ? 'Tentang Golden Run Malang 2026' : 'Tentang Event' }}</span>
+                    <h2 class="text-4xl font-extrabold text-white mb-6 leading-tight">
+                        @if($isGoldenRun)
+                            Tentang Golden Run Malang 2026: Bersinar & Lampaui Batasmu
+                        @else
+                            Bersinar dalam Setiap Langkah,<br>Lampaui Batasmu
+                        @endif
+                    </h2>
                     <div class="prose prose-lg text-slate-400">
+                        @if($isGoldenRun)
+                            <p class="mb-4">
+                                <a href="{{ route('events.show', $event->slug) }}" class="text-brand-400 font-bold hover:underline">Golden Run Malang 2026</a> hadir kembali sebagai salah satu agenda utama <a href="{{ route('legacy.events.index') }}" class="text-brand-400 hover:underline">event lari Malang 2026</a> yang paling dinanti. Diselenggarakan di kawasan Malang Raya, event olahraga ini memadukan konsep olahraga lari <strong>fun run</strong> sehat dengan sensasi hiburan musik panggung <strong>DJ run</strong> yang spektakuler.
+                            </p>
+                            <p class="mb-4">
+                                Kegiatan ini sangat ramah untuk semua kalangan pelari, mulai dari pelari pemula yang baru merintis kebiasaan sehat, berbagai perwakilan <a href="{{ route('legacy.events.index') }}" class="text-brand-400 hover:underline">komunitas lari</a> lokal di Jawa Timur, hingga masyarakat umum yang ingin menikmati suasana akhir pekan yang seru dan penuh energi.
+                            </p>
+                            <p class="mb-4">
+                                Temukan keseruan berlari di bawah naungan cahaya gemerlap, lengkap dengan panggung hiburan musik di garis finis. Ikuti <a href="{{ route('legacy.events.index') }}" class="text-brand-400 hover:underline">jadwal lari Malang 2026</a> ini untuk tantangan baru dalam perjalanan kebugaran Anda.
+                            </p>
+                            <p class="mb-6">
+                                Segera lakukan <a href="#register" class="text-brand-400 font-bold hover:underline">daftar Golden Run Malang</a> sekarang juga untuk mengamankan slot pendaftaran Anda. Kuota terbatas!
+                            </p>
+                        @endif
                         {!! $event->full_description ?? $event->short_description !!}
                     </div>
                     
@@ -907,7 +932,7 @@
                         @endphp
                         
                         @if($aboutImgSrc)
-                            <img src="{{ asset('storage/' . $aboutImgSrc) }}" class="w-full h-auto object-cover" loading="lazy">
+                            <img src="{{ asset('storage/' . $aboutImgSrc) }}" alt="{{ $isGoldenRun ? 'Golden Run Malang 2026' : $event->name }}" class="w-full h-auto object-cover" loading="lazy">
                         @else
                             <div class="bg-dark-800 w-full aspect-[4/3] flex items-center justify-center text-slate-500 font-bold">Event Image</div>
                         @endif
@@ -929,7 +954,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
                 @foreach(array_slice($event->gallery, 0, 8) as $index => $img)
                 <div class="group relative aspect-square rounded-2xl overflow-hidden shadow-md cursor-zoom-in border border-white/5" onclick="openLightbox({{ $index }})">
-                    <img src="{{ asset('storage/' . $img) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" loading="lazy">
+                    <img src="{{ asset('storage/' . $img) }}" alt="{{ $isGoldenRun ? 'Dokumentasi Golden Run Malang 2026 ' . ($index + 1) : $event->name . ' Gallery ' . ($index + 1) }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" loading="lazy">
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300"></div>
                     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
                         <svg class="w-10 h-10 text-brand-400 drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
@@ -945,8 +970,8 @@
     <section id="categories" class="py-24 bg-dark-950">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
-                <span class="text-brand-400 font-bold uppercase tracking-widest text-sm">Kategori Lomba</span>
-                <h2 class="text-3xl font-extrabold text-white sm:text-4xl mt-2">Pilih Tantanganmu</h2>
+                <span class="text-brand-400 font-bold uppercase tracking-widest text-sm">{{ $isGoldenRun ? 'Kategori Lari' : 'Kategori Lomba' }}</span>
+                <h2 class="text-3xl font-extrabold text-white sm:text-4xl mt-2">{{ $isGoldenRun ? 'Kategori Lari' : 'Pilih Tantanganmu' }}</h2>
                 <p class="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">Tersedia berbagai kategori jarak yang sesuai dengan target latihanmu.</p>
             </div>
 
@@ -1245,7 +1270,7 @@
             <div class="flex flex-col md:flex-row items-center gap-16">
                 <div class="flex-1 text-center md:text-left reveal">
                     <span class="text-brand-400 font-bold uppercase tracking-widest text-sm mb-2 block">Finisher Reward</span>
-                    <h2 class="text-4xl md:text-5xl font-black text-white mb-6">THE MEDAL</h2>
+                    <h2 class="text-4xl md:text-5xl font-black text-white mb-6">{{ $isGoldenRun ? 'Fasilitas Peserta - Finisher Medal' : 'THE MEDAL' }}</h2>
                     <p class="text-slate-400 text-lg mb-8 leading-relaxed">
                         Simbol pencapaian Anda menaklukkan rute ini. Didesain eksklusif dengan material Zinc Alloy 3D berkualitas tinggi, berat, dan solid.
                     </p>
@@ -1263,7 +1288,7 @@
                 <div class="flex-1 reveal delay-200">
                     <div class="relative group">
                         <div class="absolute inset-0 bg-brand-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                        <img src="{{ asset('storage/' . $event->medal_image) }}" class="relative w-full max-w-md mx-auto drop-shadow-2xl transform group-hover:scale-105 transition duration-500" loading="lazy">
+                        <img src="{{ asset('storage/' . $event->medal_image) }}" alt="{{ $isGoldenRun ? 'Golden Run Malang 2026 Finisher Medal' : $event->name . ' Medal' }}" class="relative w-full max-w-md mx-auto drop-shadow-2xl transform group-hover:scale-105 transition duration-500" loading="lazy">
                     </div>
                 </div>
             </div>
@@ -1276,7 +1301,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal">
                 <span class="text-brand-400 font-bold uppercase tracking-widest text-sm">Race Entitlements</span>
-                <h2 class="text-3xl font-extrabold text-white sm:text-4xl mt-2">Fasilitas & Race Pack</h2>
+                <h2 class="text-3xl font-extrabold text-white sm:text-4xl mt-2">{{ $isGoldenRun ? 'Fasilitas Peserta' : 'Fasilitas & Race Pack' }}</h2>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
@@ -1293,7 +1318,7 @@
                         <p class="text-slate-400 mb-8">Jersey lari eksklusif dengan bahan Dry-Fit premium yang ringan dan menyerap keringat.</p>
                         <div class="rounded-3xl overflow-hidden bg-dark-800 border border-white/10">
                              @if($event->jersey_image)
-                                <img src="{{ asset('storage/' . $event->jersey_image) }}" onclick="openLightbox('{{ asset('storage/' . $event->jersey_image) }}')" class="w-full h-auto object-cover hover:scale-105 transition duration-700 cursor-pointer" loading="lazy">
+                                <img src="{{ asset('storage/' . $event->jersey_image) }}" onclick="openLightbox('{{ asset('storage/' . $event->jersey_image) }}')" alt="{{ $isGoldenRun ? 'Golden Run Malang 2026 Official Jersey' : $event->name . ' Official Jersey' }}" class="w-full h-auto object-cover hover:scale-105 transition duration-700 cursor-pointer" loading="lazy">
                              @else
                                 <div class="aspect-video flex items-center justify-center text-slate-500 font-bold">Preview Jersey</div>
                              @endif
@@ -1362,7 +1387,7 @@
     @endphp
     <section id="info" class="py-24 bg-dark-950">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 {{ $isRpcEnabled ? 'md:grid-cols-2' : '' }} gap-12">
+            <div class="grid grid-cols-1 {{ ($isRpcEnabled || $isGoldenRun) ? 'md:grid-cols-2' : '' }} gap-12">
                 <!-- Race Day Info Card -->
                 <div class="md:col-span-2 bg-gradient-to-r from-brand-950/40 via-dark-900 to-accent-950/40 border border-white/10 rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden mb-6 reveal">
                     <div class="absolute -right-16 -top-16 w-48 h-48 bg-brand-500/10 rounded-full filter blur-xl"></div>
@@ -1371,7 +1396,7 @@
                     <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
                         <div>
                             <span class="text-brand-400 font-bold uppercase tracking-widest text-xs mb-2 block">Hari Pelaksanaan</span>
-                            <h3 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">Race Day Information</h3>
+                            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">{{ $isGoldenRun ? 'Informasi Event' : 'Race Day Information' }}</h2>
                             <p class="text-slate-400 max-w-xl">Persiapkan diri Anda untuk hari pelaksanaan lomba. Pastikan hadir tepat waktu di lokasi start.</p>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full lg:w-auto shrink-0">
@@ -1416,7 +1441,7 @@
                         <div class="w-10 h-10 bg-brand-500/20 rounded-full flex items-center justify-center text-brand-400">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </div>
-                        <h3 class="text-2xl font-bold text-white">Race Pack Collection</h3>
+                        <h2 class="text-2xl font-bold text-white">Race Pack Collection</h2>
                     </div>
                     <div class="bg-white/5 rounded-3xl p-8 border border-white/10">
                         <p class="text-slate-400 mb-6">Pengambilan race pack akan dilakukan pada:</p>
@@ -1454,13 +1479,58 @@
                 </div>
                 @endif
 
+                @if($isGoldenRun)
+                <!-- Jadwal Kegiatan -->
+                <div class="reveal">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-brand-500/20 rounded-full flex items-center justify-center text-brand-400">
+                            <i class="fas fa-clock text-xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Jadwal Kegiatan</h2>
+                    </div>
+                    <div class="bg-white/5 rounded-3xl p-8 border border-white/10">
+                        <p class="text-slate-400 mb-6">Rencana jadwal pelaksanaan (rundown) event lari Malang:</p>
+                        <ul class="space-y-4">
+                            <li class="flex gap-4 border-b border-white/5 pb-3">
+                                <span class="text-brand-400 font-bold font-mono">05:00 WIB</span>
+                                <div>
+                                    <strong class="block text-white">Open Gate & Berkumpul</strong>
+                                    <span class="text-slate-400 text-sm">Peserta memasuki area venue utama</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-4 border-b border-white/5 pb-3">
+                                <span class="text-brand-400 font-bold font-mono">05:30 WIB</span>
+                                <div>
+                                    <strong class="block text-white">Warming Up & Briefing</strong>
+                                    <span class="text-slate-400 text-sm">Pemanasan bersama instruktur & briefing rute</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-4 border-b border-white/5 pb-3">
+                                <span class="text-brand-400 font-bold font-mono">06:00 WIB</span>
+                                <div>
+                                    <strong class="block text-white">Flag Off Lomba</strong>
+                                    <span class="text-slate-400 text-sm">Pelepasan resmi seluruh kategori lari</span>
+                                </div>
+                            </li>
+                            <li class="flex gap-4">
+                                <span class="text-brand-400 font-bold font-mono">07:30 WIB</span>
+                                <div>
+                                    <strong class="block text-white">DJ Performance & Pemenang</strong>
+                                    <span class="text-slate-400 text-sm">Hiburan DJ run, pembagian medali, & doorprize</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Venue Info -->
-                <div class="reveal {{ !$isRpcEnabled ? 'md:col-span-2' : 'delay-200' }}" id="venue">
+                <div class="reveal {{ (!$isRpcEnabled && !$isGoldenRun) ? 'md:col-span-2' : 'delay-200' }}" id="venue">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 bg-accent-500/20 rounded-full flex items-center justify-center text-accent-400">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         </div>
-                        <h3 class="text-2xl font-bold text-white">Venue & Parking</h3>
+                        <h2 class="text-2xl font-bold text-white">{{ $isGoldenRun ? 'Lokasi Event' : 'Venue & Parking' }}</h2>
                     </div>
                     <div class="bg-dark-800 border border-white/10 shadow-lg rounded-3xl overflow-hidden h-full min-h-[300px] relative group">
                          @if($event->map_embed_url)
@@ -1615,7 +1685,7 @@
 
         $faqs = isset($event->premium_amenities['faq']['items']) ? $event->premium_amenities['faq']['items'] : [];
         $isFaqEnabled = isset($event->premium_amenities['faq']['enabled']) ? (bool)$event->premium_amenities['faq']['enabled'] : false;
-        
+
         // Filter out empty items
         $whatToBring = array_filter($whatToBring, function($item) {
             return !empty(trim($item ?? ''));
@@ -1629,7 +1699,7 @@
                 <!-- What to Bring -->
                 @if($isWhatToBringEnabled && !empty($whatToBring))
                 <div class="reveal">
-                    <h3 class="text-2xl font-bold text-white mb-8">What To Bring</h3>
+                    <h2 class="text-2xl font-bold text-white mb-8">What To Bring</h2>
                     <div class="grid grid-cols-2 gap-4">
                         @foreach($whatToBring as $item)
                         <div class="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center gap-3 hover:bg-white/10 transition">
@@ -1646,7 +1716,7 @@
                 <!-- FAQ -->
                 @if($isFaqEnabled && !empty($faqs))
                 <div class="reveal delay-200">
-                    <h3 class="text-2xl font-bold text-white mb-8">FAQ</h3>
+                    <h2 class="text-2xl font-bold text-white mb-8">FAQ</h2>
                     <div class="space-y-4">
                         @foreach($faqs as $faq)
                         <div class="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
@@ -1793,7 +1863,7 @@
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div class="text-center mb-12 reveal">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-white">Registrasi Peserta</h2>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white">{{ $isGoldenRun ? 'Cara Daftar' : 'Registrasi Peserta' }}</h2>
                 <p class="mt-4 text-slate-400">Pastikan data yang Anda masukkan sesuai dengan identitas (KTP/SIM). </p>
                 <div class="flex justify-center">
               <button type="button" onclick="openLightbox('https://res.cloudinary.com/dslfarxct/image/upload/v1769987180/Panduan_trajpm.webp', true)" 

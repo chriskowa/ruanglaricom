@@ -109,8 +109,51 @@
 <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @endpush
 
+@push('styles')
+<style>
+    .vertical-text {
+        writing-mode: vertical-lr;
+        text-orientation: mixed;
+    }
+    /* Reader friendly blog styling improvements */
+    .prose p {
+        font-size: 1.125rem;
+        line-height: 1.85;
+        color: #cbd5e1; /* slate-300 */
+        margin-bottom: 1.75rem;
+    }
+    .prose blockquote p {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: #f8fafc; /* slate-50 */
+    }
+    .prose h2, .prose h3, .prose h4 {
+        color: #ffffff !important;
+        font-weight: 800;
+        margin-top: 2.5rem;
+        margin-bottom: 1.25rem;
+    }
+    .prose h2 {
+        font-size: 1.875rem;
+    }
+    .prose h3 {
+        font-size: 1.5rem;
+    }
+    .prose img {
+        margin-top: 2.5rem;
+        margin-bottom: 2.5rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="min-h-screen bg-dark pt-6 pb-20">
+    <!-- Reading Progress Bar -->
+    <div class="fixed top-0 left-0 w-full h-1 bg-white/10 z-[100]">
+        <div id="readingProgress" class="h-full bg-brand-400 w-0 transition-all duration-100 shadow-[0_0_10px_#4ade80]"></div>
+    </div>
     
     <div class="container mx-auto px-4 md:px-8 py-4">
         <div class="flex items-center justify-between md:hidden">
@@ -161,47 +204,90 @@
         </div>
     </div>
 
-    <div class="relative w-full h-[40vh] md:h-[50vh] lg:h-[60vh] overflow-hidden rounded-3xl mx-auto container px-4 md:px-8 mt-4">
-        <div class="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50">
-            <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/20 to-transparent z-10"></div>
-            @if($bgImage)
-                <img src="{{ $bgImage }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
-            @else
-                {{-- Replaced gradient div with fallback image as requested --}}
-                <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
-            @endif
-            
-            <div class="absolute bottom-0 left-0 w-full z-20 pb-6 md:pb-16 pl-8 md:pl-12">
-                <div class="max-w-4xl">
-                    @if($article->category)
-                        <span class="inline-block max-w-[80vw] truncate px-3 py-1 mb-4 rounded-full bg-neon/20 text-neon border border-neon/50 text-xs font-bold uppercase tracking-wider backdrop-blur-md">
-                            {{ $article->category->name }}
-                        </span>
-                    @endif
-                    <h1 class="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight tracking-tight drop-shadow-lg">
-                        {{ $article->localized_title }}
-                    </h1>
-                    <div class="flex items-center gap-6 text-sm text-slate-200 font-mono">
-                        <span class="flex items-center gap-2 backdrop-blur-sm px-2 py-1 rounded-lg bg-black/30">
-                            <i class="far fa-calendar-alt text-neon"></i>
-                            {{ $article->published_at ? $article->published_at->format('d M Y') : $article->created_at->format('d M Y') }}
-                        </span>
-                        @if($article->user)
-                            <span class="flex items-center gap-2 backdrop-blur-sm px-2 py-1 rounded-lg bg-black/30">
-                                <i class="far fa-user text-neon"></i>
-                                {{ $article->user->name }}
-                            </span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Title and Image will be rendered cleanly inside the content grid below -->
 
-    <div class="relative z-20 mt-12">
+    <div class="relative z-20 mt-1 md:mt-4">
+        <!-- Desktop Floating Share Sidebar -->
+        @php
+            $shareUrl = urlencode(url()->current());
+            $shareText = urlencode($article->localized_title);
+        @endphp
+        <div class="hidden lg:flex flex-col items-center gap-3 fixed left-6 xl:left-12 top-1/2 -translate-y-1/2 z-40 bg-slate-900/60 backdrop-blur-lg border border-white/10 p-3 rounded-2xl shadow-2xl">
+            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest vertical-text mb-2 select-none">BAGIKAN</span>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-brand-500/30 hover:bg-brand-500/10 hover:text-brand-400 flex items-center justify-center text-slate-400 transition-all duration-300 hover:scale-110 relative group" aria-label="Share ke Facebook">
+                <i class="fab fa-facebook-f text-sm"></i>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-xl">Facebook</span>
+            </a>
+            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-400 flex items-center justify-center text-slate-400 transition-all duration-300 hover:scale-110 relative group" aria-label="Share ke X">
+                <i class="fab fa-x-twitter text-sm"></i>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-xl">X (Twitter)</span>
+            </a>
+            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 flex items-center justify-center text-slate-400 transition-all duration-300 hover:scale-110 relative group" aria-label="Share ke WhatsApp">
+                <i class="fab fa-whatsapp text-sm"></i>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-xl">WhatsApp</span>
+            </a>
+            <button onclick="copyArticleLink(this)" class="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:border-brand-400/30 hover:bg-brand-400/10 hover:text-brand-400 flex items-center justify-center text-slate-400 transition-all duration-300 hover:scale-110 relative group" aria-label="Salin Tautan">
+                <i class="fas fa-link text-sm"></i>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-xl">Salin Link</span>
+            </button>
+        </div>
+
         <div class="container mx-auto px-4 md:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
                 <div class="lg:col-span-8 lg:col-start-3">
+                    <!-- Article Header & Title (Editorial Style) -->
+                    <div class="mb-8 mt-1">
+                        @if($article->category)
+                            <a href="{{ route('blog.category', $article->category->slug) }}" class="inline-block px-3.5 py-1.5 mb-5 rounded-full bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 text-xs font-bold uppercase tracking-wider transition-all">
+                                {{ $article->category->name }}
+                            </a>
+                        @endif
+                        
+                        <h1 class="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight mb-6">
+                            {{ $article->localized_title }}
+                        </h1>
+                        
+                        <div class="flex items-center flex-wrap gap-3 text-xs text-slate-400 font-mono">
+                            <span class="flex items-center gap-1.5 py-1">
+                                <i class="far fa-calendar-alt text-brand-400"></i>
+                                {{ $article->published_at ? $article->published_at->format('d M Y') : $article->created_at->format('d M Y') }}
+                            </span>
+                            <span class="text-slate-600 font-sans select-none">•</span>
+                            @if($article->user)
+                                <span class="flex items-center gap-1.5 py-1">
+                                    <i class="far fa-user text-brand-400"></i>
+                                    {{ $article->user->name }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <!-- Mobile Share Bar -->
+                        <div class="flex lg:hidden items-center gap-2 mt-4 pt-3 border-t border-white/5">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mr-2">Bagikan:</span>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 active:bg-brand-500/20 active:text-brand-400" aria-label="Share ke Facebook">
+                                <i class="fab fa-facebook-f text-xs"></i>
+                            </a>
+                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 active:bg-sky-500/20 active:text-sky-400" aria-label="Share ke X">
+                                <i class="fab fa-x-twitter text-xs"></i>
+                            </a>
+                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 active:bg-emerald-500/20 active:text-emerald-400" aria-label="Share ke WhatsApp">
+                                <i class="fab fa-whatsapp text-xs"></i>
+                            </a>
+                            <button onclick="copyArticleLink(this)" class="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-400 active:bg-brand-400/20 active:text-brand-400" aria-label="Salin Tautan">
+                                <i class="fas fa-link text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Feature Image (Separated, rounded, premium aspect-ratio, no overlay) -->
+                    <div class="relative w-full h-[220px] md:h-[450px] overflow-hidden rounded-2xl border border-slate-700/50 shadow-2xl mb-12">
+                        @if($bgImage)
+                            <img src="{{ $bgImage }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
+                        @else
+                            <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
+                        @endif
+                    </div>
+
                     @if($article->localized_excerpt)
                         <div class="text-xl md:text-2xl text-slate-300 leading-relaxed font-light mb-10 border-l-4 border-neon pl-6 italic">
                             {{ $article->localized_excerpt }}
@@ -223,20 +309,25 @@
                         
                     </article>
 
-                    @php
-                        $shareUrl = urlencode(url()->current());
-                        $shareText = urlencode($article->localized_title);
-                    @endphp
-
-                    <div class="mt-16 pt-8 border-t border-slate-700/50 flex justify-between items-center">
-                        <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
+                    <div class="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row gap-6 justify-between items-center">
+                        <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors group text-sm font-bold">
                             <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
-                            <span>Kembali</span>
+                            <span>Kembali ke Beranda</span>
                         </a>
-                        <div class="flex gap-4">
-                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-neon transition-colors" aria-label="Share ke Facebook"><i class="fab fa-facebook-f"></i></a>
-                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-neon transition-colors" aria-label="Share ke X"><i class="fab fa-x-twitter"></i></a>
-                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-neon transition-colors" aria-label="Share ke WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Bagikan artikel:</span>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-xl bg-white/5 border border-white/5 hover:border-brand-500/30 hover:bg-brand-500/10 hover:text-brand-400 flex items-center justify-center text-slate-400 transition-colors" aria-label="Share ke Facebook">
+                                <i class="fab fa-facebook-f text-xs"></i>
+                            </a>
+                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-xl bg-white/5 border border-white/5 hover:border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-400 flex items-center justify-center text-slate-400 transition-colors" aria-label="Share ke X">
+                                <i class="fab fa-x-twitter text-xs"></i>
+                            </a>
+                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 flex items-center justify-center text-slate-400 transition-colors" aria-label="Share ke WhatsApp">
+                                <i class="fab fa-whatsapp text-xs"></i>
+                            </a>
+                            <button onclick="copyArticleLink(this)" class="w-9 h-9 rounded-xl bg-white/5 border border-white/5 hover:border-brand-400/30 hover:bg-brand-400/10 hover:text-brand-400 flex items-center justify-center text-slate-400 transition-colors" aria-label="Salin Tautan">
+                                <i class="fas fa-link text-xs"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -289,3 +380,39 @@
     <div class="pb-20"></div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    window.addEventListener('scroll', () => {
+        const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        const progressBar = document.getElementById('readingProgress');
+        if (progressBar) {
+            progressBar.style.width = scrolled + '%';
+        }
+    });
+
+    function copyArticleLink(btn) {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            const icon = btn.querySelector('i');
+            if (icon) {
+                const originalClass = icon.className;
+                icon.className = 'fas fa-check text-emerald-400';
+                setTimeout(() => {
+                    icon.className = originalClass;
+                }, 2000);
+            }
+            
+            const tooltip = btn.querySelector('span');
+            if (tooltip) {
+                const originalText = tooltip.innerText;
+                tooltip.innerText = 'Tersalin!';
+                setTimeout(() => {
+                    tooltip.innerText = originalText;
+                }, 2000);
+            }
+        });
+    }
+</script>
+@endpush

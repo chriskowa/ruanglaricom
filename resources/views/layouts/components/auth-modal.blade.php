@@ -5,14 +5,14 @@
      class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark/90 backdrop-blur-sm"
      @keydown.escape.window="open = false">
     
-    <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden"
+    <div class="relative w-full max-w-md max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
          @click.outside="open = false"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 scale-95"
          x-transition:enter-end="opacity-100 scale-100">
         
         <!-- Header -->
-        <div class="p-6 text-center border-b border-slate-800">
+        <div class="p-6 text-center border-b border-slate-800 flex-shrink-0">
             <h2 class="text-2xl font-black italic tracking-tighter text-white">
                 RUANG<span class="text-primary">LARI</span>
             </h2>
@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <div class="p-6">
+        <div class="p-6 overflow-y-auto flex-grow">
             <!-- Error Alert -->
             <div x-show="errorMessage" x-text="errorMessage" class="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold" x-cloak></div>
 

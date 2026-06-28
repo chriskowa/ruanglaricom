@@ -174,6 +174,12 @@ class CheckoutController extends Controller
                     'order_number' => $order->order_number,
                 ]);
 
+                try {
+                    \App\Jobs\ProcessPaidProgramOrder::dispatch($order->id);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to dispatch ProcessPaidProgramOrder: ' . $e->getMessage());
+                }
+
                 return redirect()->route('marketplace.program-orders.show', $order->id)
                     ->with('success', 'Pembelian berhasil! Program telah ditambahkan ke kalender Anda.');
             }
