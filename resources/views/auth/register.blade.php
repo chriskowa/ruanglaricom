@@ -108,7 +108,7 @@
                 <!-- Role Selection -->
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">I am a...</label>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-3 gap-3">
                         <label class="cursor-pointer">
                             <input type="radio" name="role" value="runner" class="role-radio hidden" {{ old('role', $role ?? 'runner') == 'runner' ? 'checked' : '' }}>
                             <div class="role-card border border-slate-700 rounded-xl p-3 text-center hover:bg-slate-800 transition-all h-full flex flex-col items-center justify-center gap-2">
@@ -127,7 +127,7 @@
                                 <span class="text-xs font-bold text-white">Coach</span>
                             </div>
                         </label>
-                        <!--<label class="cursor-pointer hidden">
+                        <label class="cursor-pointer">
                             <input type="radio" name="role" value="eo" class="role-radio hidden" {{ old('role', $role ?? '') == 'eo' ? 'checked' : '' }}>
                             <div class="role-card border border-slate-700 rounded-xl p-3 text-center hover:bg-slate-800 transition-all h-full flex flex-col items-center justify-center gap-2">
                                 <svg class="w-6 h-6 text-slate-400 role-icon transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,7 +135,7 @@
                                 </svg>
                                 <span class="text-xs font-bold text-white">Organizer</span>
                             </div>
-                        </label>-->
+                        </label>
                     </div>
                 </div>
 
@@ -146,7 +146,7 @@
                     <div class="grid grid-cols-1 gap-4">
                         <!-- Lite Package -->
                         <label class="cursor-pointer group">
-                            <input type="radio" name="package_tier" value="lite" class="package-radio hidden" {{ old('package_tier') == 'lite' ? 'checked' : '' }}>
+                            <input type="radio" name="package_tier" value="lite" class="package-radio hidden" {{ old('package_tier', request('package_tier')) == 'lite' ? 'checked' : '' }}>
                             <div class="package-card border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-all">
                                 <div class="flex justify-between items-center mb-2">
                                     <h3 class="text-lg font-bold text-white group-hover:text-neon transition-colors">LITE</h3>
@@ -163,7 +163,7 @@
 
                         <!-- Pro Package -->
                         <label class="cursor-pointer group">
-                            <input type="radio" name="package_tier" value="pro" class="package-radio hidden" {{ old('package_tier') == 'pro' ? 'checked' : '' }}>
+                            <input type="radio" name="package_tier" value="pro" class="package-radio hidden" {{ old('package_tier', request('package_tier')) == 'pro' ? 'checked' : '' }}>
                             <div class="package-card border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-all relative overflow-hidden">
                                 <div class="absolute top-0 right-0 bg-neon text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg">POPULAR</div>
                                 <div class="flex justify-between items-center mb-2">
@@ -181,7 +181,7 @@
 
                         <!-- Elite Package -->
                         <label class="cursor-pointer group">
-                            <input type="radio" name="package_tier" value="elite" class="package-radio hidden" {{ old('package_tier') == 'elite' ? 'checked' : '' }}>
+                            <input type="radio" name="package_tier" value="premium" class="package-radio hidden" {{ old('package_tier', request('package_tier')) == 'premium' ? 'checked' : '' }}>
                             <div class="package-card border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-all">
                                 <div class="flex justify-between items-center mb-2">
                                     <h3 class="text-lg font-bold text-white group-hover:text-neon transition-colors">ELITE</h3>

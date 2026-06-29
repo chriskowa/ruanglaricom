@@ -3,108 +3,56 @@
     $withSidebar = false;
     $packages = [
         [
-            'name' => 'LITE',
-            'tagline' => 'Budget-friendly, Fun Run, Quick Reg',
-            'description' => 'Cocok untuk komunitas kecil atau Fun Run lokal.',
+            'name' => 'Lite',
+            'slug' => 'lite',
+            'tagline' => 'Untuk event komunitas kecil atau fun run lokal',
+            'description' => 'Sistem pendaftaran dasar dengan fitur pembayaran otomatis yang andal.',
+            'badge' => 'Komunitas',
+            'is_recommended' => false,
             'features' => [
-                'Registrasi cepat online',
-                'Pembayaran praktis (VA, QR, e-wallet)',
-                'Landing page standar'
+                'Landing page pendaftaran standar',
+                'Form pendaftaran online (Quick Reg)',
+                'Integrasi payment gateway (VA, QRIS, E-Wallet)',
+                'Penomoran BIB otomatis sesuai urutan',
+                'Export data peserta ke Excel/CSV',
+                'Dukungan via Email & dokumentasi online'
             ],
-            // Visuals
-            'icon_class' => 'fas fa-leaf',
-            'icon_bg' => 'bg-slate-800',
-            'icon_text' => 'text-neon',
-            'border_hover' => 'hover:border-neon/30',
-            'shadow_hover' => 'hover:shadow-neon/20',
-            'badge' => 'Budget Friendly',
-            'badge_bg' => 'bg-slate-800',
-            'badge_text' => 'text-slate-300',
-            'button_bg' => 'bg-neon',
-            'button_text_color' => 'text-dark',
-            'button_hover' => 'hover:bg-neon/90',
-            'button_icon' => 'fas fa-rocket',
-            'button_label' => 'Mulai dari Paket LITE',
-            'ring_hover' => 'group-hover:ring-neon/30',
-            
-            'more_features' => [
-                 ['icon' => 'fas fa-globe', 'text' => '<span class="text-white font-bold">Landing Page</span>: Template standar dinamis (custom teks & gambar)', 'icon_color' => 'text-neon'],
-                 ['icon' => 'fas fa-clipboard-check', 'text' => '<span class="text-white font-bold">Registrasi</span>: Online form dengan sistem "Quick Reg"', 'icon_color' => 'text-neon'],
-                 ['icon' => 'fas fa-credit-card', 'text' => '<span class="text-white font-bold">Pembayaran</span>: Gateway otomatis (VA, QRIS, E-Wallet)', 'icon_color' => 'text-neon'],
-                 ['icon' => 'fas fa-database', 'text' => '<span class="text-white font-bold">Manajemen Peserta</span>: Dashboard untuk ekspor database pelari', 'icon_color' => 'text-neon'],
-                 ['icon' => 'fas fa-hashtag', 'text' => '<span class="text-white font-bold">Nomor BIB</span>: Penomoran otomatis sesuai urutan pendaftaran', 'icon_color' => 'text-neon'],
-                 ['icon' => 'fas fa-envelope-open-text', 'text' => '<span class="text-white font-bold">Support</span>: Email support & panduan penggunaan sistem', 'icon_color' => 'text-neon'],
-            ]
+            'cta_label' => 'Mulai dengan Lite',
         ],
         [
-            'name' => 'PRO',
-            'tagline' => 'Komunikasi otomatis, WhatsApp Blaster, 500–2000 peserta',
-            'description' => 'Ideal untuk event menengah dengan kebutuhan komunikasi otomatis.',
-            'features' => [
-                'Semua fitur LITE',
-                'WhatsApp otomatis (pengingat & nomor BIB)',
-                'Channel komunitas & pacer'
-            ],
-            // Visuals
-            'icon_class' => 'fas fa-bolt',
-            'icon_bg' => 'bg-slate-800',
-            'icon_text' => 'text-yellow-400',
-            'border_hover' => 'hover:border-neon/30',
-            'shadow_hover' => 'hover:shadow-neon/20',
+            'name' => 'Pro',
+            'slug' => 'pro',
+            'tagline' => 'Untuk event menengah dengan 500 – 2.000 peserta',
+            'description' => 'Solusi lengkap dengan integrasi komunikasi otomatis untuk kepuasan pelari.',
             'badge' => 'Recommended',
-            'badge_bg' => 'bg-yellow-500/20',
-            'badge_text' => 'text-yellow-300',
-            'button_bg' => 'bg-yellow-400',
-            'button_text_color' => 'text-black',
-            'button_hover' => 'hover:bg-yellow-300',
-            'button_icon' => 'fas fa-bolt',
-            'button_label' => 'Upgrade ke PRO',
-            'ring_hover' => 'group-hover:ring-yellow-300/40',
-            
-            'more_features' => [
-                 ['icon' => 'fas fa-check-circle', 'text' => 'Semua Fitur Paket LITE', 'icon_color' => 'text-yellow-400'],
-                 ['icon' => 'fab fa-whatsapp', 'text' => '<span class="text-white font-bold">WhatsApp Blaster</span>: Notifikasi otomatis daftar berhasil, pengingat pembayaran, dan pengiriman nomor BIB', 'icon_color' => 'text-green-400'],
-                 ['icon' => 'fas fa-users', 'text' => '<span class="text-white font-bold">Channel Pacer & Komunitas</span>: Koordinasi pacer dan integrasi grup komunitas partner ruanglari.com', 'icon_color' => 'text-yellow-400'],
-                 ['icon' => 'fas fa-list-ol', 'text' => '<span class="text-white font-bold">Manajemen BIB</span>: Kategori (10K, 5K, Kids Dash) dengan prefix BIB berbeda', 'icon_color' => 'text-yellow-400'],
-                 ['icon' => 'fas fa-trophy', 'text' => '<span class="text-white font-bold">Race Results</span>: Publikasi hasil lari langsung di landing page', 'icon_color' => 'text-yellow-400'],
-                 ['icon' => 'fas fa-headset', 'text' => '<span class="text-white font-bold">Support</span>: Dedicated Account Manager (WhatsApp support)', 'icon_color' => 'text-yellow-400'],
-            ]
+            'is_recommended' => true,
+            'features' => [
+                'Semua fitur paket Lite',
+                'WhatsApp Blaster otomatis (konfirmasi registrasi, pengingat bayar)',
+                'Pengiriman info nomor BIB via WhatsApp',
+                'Manajemen kuota per kategori lari (10K, 5K, HM, dll.)',
+                'Publikasi Race Results dinamis di landing page',
+                'Dukungan dedicated Account Manager via WhatsApp'
+            ],
+            'cta_label' => 'Mulai dengan Pro',
         ],
         [
             'name' => 'Premium',
-            'tagline' => 'Custom, Full Management, Event besar',
-            'description' => 'Untuk event besar & kompleks dengan dukungan penuh Race Director.',
+            'slug' => 'premium',
+            'tagline' => 'Untuk event skala besar dan kebutuhan kustom',
+            'description' => 'Dukungan penuh dari tim kami untuk memastikan operasional lomba berjalan lancar.',
+            'badge' => 'Kustom Ops',
+            'is_recommended' => false,
             'features' => [
-                'Semua fitur PRO',
-                'Landing page custom',
-                'Monitoring peserta & pembayaran real-time',
-                'Support penuh Race Director'
+                'Semua fitur paket Pro',
+                'Kustom desain landing page sesuai sponsor/branding',
+                'Dashboard khusus Race Director (arus kas, tren harian)',
+                'Integrasi penarikan dana (Wallet Integration) fleksibel',
+                'Race Management: Check-in RPC dengan sistem QR Code',
+                'Prioritas rekomendasi event ke database pelari aktif RuangLari',
+                'On-site technical support saat hari H pelaksanaan (opsional)'
             ],
-             // Visuals
-            'icon_class' => 'fas fa-crown',
-            'icon_bg' => 'bg-slate-800',
-            'icon_text' => 'text-purple-400',
-            'border_hover' => 'hover:border-neon/30',
-            'shadow_hover' => 'hover:shadow-neon/20',
-            'badge' => 'Premium',
-            'badge_bg' => 'bg-purple-500/20',
-            'badge_text' => 'text-purple-300',
-            'button_bg' => 'bg-purple-500',
-            'button_text_color' => 'text-white',
-            'button_hover' => 'hover:bg-purple-400',
-            'button_icon' => 'fas fa-crown',
-            'button_label' => 'Konsultasi Paket Premium',
-            'ring_hover' => 'group-hover:ring-purple-400/40',
-            
-            'more_features' => [
-                 ['icon' => 'fas fa-check-circle', 'text' => 'Semua Fitur Paket PRO', 'icon_color' => 'text-purple-400'],
-                 ['icon' => 'fas fa-paint-brush', 'text' => '<span class="text-white font-bold">Custom Landing Page</span>: Desain premium sesuai branding sponsor', 'icon_color' => 'text-purple-400'],
-                 ['icon' => 'fas fa-chart-line', 'text' => '<span class="text-white font-bold">Channel Race Director</span>: Dashboard analitik real-time (grafik pendaftaran, arus kas, demografi)', 'icon_color' => 'text-purple-400'],
-                 ['icon' => 'fas fa-wallet', 'text' => '<span class="text-white font-bold">Wallet Integration</span>: Pengelolaan dana pendaftaran lebih fleksibel bagi panitia', 'icon_color' => 'text-purple-400'],
-                 ['icon' => 'fas fa-qrcode', 'text' => '<span class="text-white font-bold">Race Management Advance</span>: Check-in RPC dengan QR Code', 'icon_color' => 'text-purple-400'],
-                 ['icon' => 'fas fa-database', 'text' => '<span class="text-white font-bold">Prioritas Database</span>: Rekomendasi event ke database pelari aktif ruanglari.com', 'icon_color' => 'text-purple-400'],
-                 ['icon' => 'fas fa-people-carry', 'text' => '<span class="text-white font-bold">Support</span>: On-site technical support saat hari H (opsional)', 'icon_color' => 'text-purple-400'],
-            ]
+            'cta_label' => 'Hubungi Kontak Kami',
         ]
     ];
 @endphp
@@ -115,230 +63,336 @@
 @section('canonical_url', url('/event-organizer'))
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-900">
-    <div class="max-w-6xl mx-auto px-4 pt-24 pb-20">
-        <div class="text-center mb-10">
-            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon/20 bg-neon/5 backdrop-blur-md text-neon text-xs font-bold uppercase tracking-wider">
-                Solusi Ticketing Event Lari
-            </span>
-            <h1 class="mt-5 text-4xl md:text-6xl font-black text-white tracking-tight">
-                Ticketing Event Lari <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon via-green-400 to-emerald-500">Advanced</span>
-            </h1>
-            <p class="mt-4 text-slate-400 max-w-3xl mx-auto">
-                Ruang Lari membantu Event Organizer menjual tiket lebih cepat dengan sistem yang dinamis: kategori & kuota real-time, promo/kupon, add-ons, pembayaran terintegrasi, notifikasi, dashboard, dan manajemen peserta.
-            </p>
+<div class="min-h-screen bg-slate-950 text-slate-300 antialiased selection:bg-brand-500/20 selection:text-brand-400">
+    
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 overflow-hidden">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-slate-300 text-xs font-semibold uppercase tracking-wider">
+                    Solusi Ticketing Event Lari
+                </span>
+                
+                <h1 class="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight max-w-4xl mx-auto">
+                    Ticketing Event Lari untuk Event Organizer yang <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-emerald-400">Butuh Sistem Rapi</span>
+                </h1>
+                
+                <p class="mt-6 text-base sm:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                    RuangLari membantu tim EO mengelola kategori tiket, kuota peserta, promo, pembayaran, komunikasi peserta, dan laporan event dalam satu sistem yang mudah dipantau.
+                </p>
 
-            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a href="{{ route('register', ['role' => 'eo']) }}" class="px-7 py-3.5 rounded-xl bg-neon text-dark font-black hover:bg-white transition w-full sm:w-auto text-center">
-                    Mulai Untuk EO
-                </a>
-                <a href="#paket" class="px-7 py-3.5 rounded-xl border border-slate-700 text-white font-bold hover:bg-slate-800 transition w-full sm:w-auto text-center">
-                    Lihat Paket
-                </a>
-                <a href="{{ route('events.index') }}" class="px-7 py-3.5 rounded-xl border border-slate-700 text-white font-bold hover:bg-slate-800 transition w-full sm:w-auto text-center">
-                    Contoh Event
-                </a>
+                <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-white hover:bg-brand-400 text-slate-950 font-bold transition-all text-center duration-200">
+                        Mulai untuk EO
+                    </a>
+                    <a href="#paket" class="w-full sm:w-auto px-8 py-4 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/40 text-white font-bold transition-all text-center duration-200">
+                        Lihat Paket
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-6">
-                <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-4">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                </div>
-                <div class="text-white font-black mb-1">Kategori & Kuota Real-time</div>
-                <div class="text-slate-400 text-sm">Cegah oversell, status sold-out otomatis, dan kontrol kuota per kategori.</div>
-            </div>
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-6">
-                <div class="w-12 h-12 rounded-xl bg-neon/10 border border-neon/20 flex items-center justify-center text-neon mb-4">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5 5.5L4 19l5.5-5.5M14 9l5.5-5.5L20 4l-5.5 5.5M6 6l12 12" /></svg>
-                </div>
-                <div class="text-white font-black mb-1">Promo/Kupon & Add-ons</div>
-                <div class="text-slate-400 text-sm">Pricing lebih lincah untuk early momentum: kupon dan add-ons per peserta.</div>
-            </div>
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-6">
-                <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-300 mb-4">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2v1c0 1.105 1.343 2 3 2s3 .895 3 2v1c0 1.105-1.343 2-3 2m0-14v2m0 16v2m9-10a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <div class="text-white font-black mb-1">Pembayaran Terintegrasi</div>
-                <div class="text-slate-400 text-sm">Checkout cepat dengan status pembayaran yang rapi dan mudah dipantau.</div>
-            </div>
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-6">
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-300 mb-4">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h2m-6 6h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2h2" /></svg>
-                </div>
-                <div class="text-white font-black mb-1">Dashboard & Race Ops</div>
-                <div class="text-slate-400 text-sm">Manajemen peserta, export data, dan dukungan operasional untuk hari-H.</div>
-            </div>
-        </div>
-
-        <div class="rounded-3xl border border-slate-800 bg-slate-900/50 p-8 md:p-10 mb-12">
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="md:col-span-1">
-                    <div class="text-neon text-xs font-black uppercase tracking-widest">Alur Kerja</div>
-                    <div class="mt-2 text-2xl md:text-3xl font-black text-white">Cara kerja yang simple untuk tim EO</div>
-                    <div class="mt-3 text-slate-400 text-sm">Dari setting event sampai peserta terkonfirmasi—tanpa spreadsheet yang berantakan.</div>
-                </div>
-                <div class="md:col-span-2 grid sm:grid-cols-3 gap-4">
-                    <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                        <div class="text-slate-400 text-xs font-black uppercase tracking-widest">Step 01</div>
-                        <div class="mt-2 text-white font-black">Setup Event</div>
-                        <div class="mt-2 text-slate-400 text-sm">Buat kategori tiket, kuota, harga, add-ons, dan periode registrasi.</div>
+            <!-- Realistic Product Dashboard Mockup -->
+            <div class="mt-20 relative rounded-2xl border border-slate-800 bg-slate-950/80 p-4 md:p-6 shadow-2xl max-w-4xl mx-auto overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-tr from-brand-500/5 via-transparent to-transparent pointer-events-none"></div>
+                <!-- Window header -->
+                <div class="flex items-center justify-between border-b border-slate-900 pb-4 mb-4">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
                     </div>
-                    <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                        <div class="text-slate-400 text-xs font-black uppercase tracking-widest">Step 02</div>
-                        <div class="mt-2 text-white font-black">Jual Tiket</div>
-                        <div class="mt-2 text-slate-400 text-sm">Peserta daftar, gunakan kupon, pilih add-ons, dan bayar via metode tersedia.</div>
-                    </div>
-                    <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                        <div class="text-slate-400 text-xs font-black uppercase tracking-widest">Step 03</div>
-                        <div class="mt-2 text-white font-black">Kelola Peserta</div>
-                        <div class="mt-2 text-slate-400 text-sm">Pantau transaksi, rapikan data, export, dan dukung kebutuhan race day.</div>
-                    </div>
+                    <div class="text-[11px] font-mono text-slate-600 tracking-wider">ruanglari.com/dashboard/eo</div>
+                    <div class="w-12"></div>
                 </div>
-            </div>
-        </div>
-
-        <div id="paket" class="grid md:grid-cols-3 gap-6">
-            @foreach($packages as $pkg)
-            <div class="group relative rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-6 {{ $pkg['border_hover'] }} transition-all shadow-lg {{ $pkg['shadow_hover'] }} flex flex-col h-full">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-xl {{ $pkg['icon_bg'] }} flex items-center justify-center {{ $pkg['icon_text'] }}">
-                            <i class="{{ $pkg['icon_class'] }}"></i>
+                <!-- Dashboard inner grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <!-- Sidebar mockup -->
+                    <div class="hidden md:block col-span-1 border-r border-slate-900 pr-4 space-y-3">
+                        <div class="h-6 bg-brand-500/10 border border-brand-500/20 rounded-lg w-full"></div>
+                        <div class="h-6 bg-slate-900 rounded-lg w-11/12"></div>
+                        <div class="h-6 bg-slate-900 rounded-lg w-10/12"></div>
+                        <div class="h-6 bg-slate-900 rounded-lg w-8/12"></div>
+                    </div>
+                    <!-- Main content mockup -->
+                    <div class="col-span-1 md:col-span-3 space-y-5">
+                        <!-- Stats -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                                <span class="text-[9px] font-mono text-slate-500 uppercase">Total Tiket</span>
+                                <div class="text-sm font-black text-white mt-1">1,250</div>
+                            </div>
+                            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                                <span class="text-[9px] font-mono text-slate-500 uppercase">Terjual</span>
+                                <div class="text-sm font-black text-brand-400 mt-1">984 <span class="text-[9px] text-slate-400 font-normal">(78%)</span></div>
+                            </div>
+                            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                                <span class="text-[9px] font-mono text-slate-500 uppercase">Pendapatan</span>
+                                <div class="text-sm font-black text-white mt-1">Rp 147.6M</div>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-white font-extrabold text-xl">{{ $pkg['name'] }}</h3>
+                        <!-- Recent Sales table -->
+                        <div class="bg-slate-900/50 rounded-xl border border-slate-800/80 p-4 space-y-3">
+                            <div class="text-xs font-semibold text-slate-400">Pendaftaran Terbaru</div>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-900">
+                                    <span class="text-slate-300 font-medium">Andi Wijaya</span>
+                                    <span class="text-slate-500">10K Runner</span>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">LUNAS</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-900">
+                                    <span class="text-slate-300 font-medium">Siti Rahma</span>
+                                    <span class="text-slate-500">5K Runner</span>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">LUNAS</span>
+                                </div>
+                                <div class="flex items-center justify-between text-xs py-1.5">
+                                    <span class="text-slate-300 font-medium">Budi Santoso</span>
+                                    <span class="text-slate-500">Half Marathon</span>
+                                    <span class="px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 text-[10px] font-bold">WAITING</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <span class="px-2 py-1 rounded-lg {{ $pkg['badge_bg'] }} {{ $pkg['badge_text'] }} text-xs font-bold">{{ $pkg['badge'] }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Benefits (Features) Section -->
+    <section class="py-24 border-t border-slate-900 bg-slate-950">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl font-extrabold text-white tracking-tight">Sistem Ticketing yang Didesain untuk Skala</h2>
+                <p class="mt-4 text-slate-400 leading-relaxed">Kelola seluruh kebutuhan operasional pendaftaran lomba lari Anda dengan fitur B2B SaaS yang solid dan andal.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 hover:border-slate-800 transition duration-200">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 mb-5 border border-slate-800">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <h3 class="text-white font-bold text-base mb-2">Kelola kategori & kuota</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Cegah oversell, status sold-out otomatis, dan kontrol kuota per kategori secara real-time.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 hover:border-slate-800 transition duration-200">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 mb-5 border border-slate-800">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-white font-bold text-base mb-2">Pantau bayar & registrasi</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Sistem checkout cepat terintegrasi dengan pencatatan pembayaran otomatis yang rapi.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 hover:border-slate-800 transition duration-200">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 mb-5 border border-slate-800">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 8V8m0 8h2m-2 0H8m4 0V9" />
+                        </svg>
+                    </div>
+                    <h3 class="text-white font-bold text-base mb-2">Atur kupon & add-ons</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Strategi pricing lebih dinamis untuk early momentum dengan diskon unik atau bundling.</p>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 hover:border-slate-800 transition duration-200">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 mb-5 border border-slate-800">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h4m-4 4h6m-6 4h6m2 0a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 0H7a2 2 0 00-2 2v9a2 2 0 002 2h2" />
+                        </svg>
+                    </div>
+                    <h3 class="text-white font-bold text-base mb-2">Akses dashboard & laporan</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Manajemen peserta lengkap, ekspor database excel sekali klik, dan monitoring operasional.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow Section -->
+    <section class="py-24 border-t border-slate-900 bg-slate-900/10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+                <div class="lg:col-span-1">
+                    <span class="text-xs font-semibold text-brand-400 uppercase tracking-widest">Alur Kerja</span>
+                    <h2 class="mt-3 text-3xl font-extrabold text-white tracking-tight">Cara kerja yang simple untuk tim EO</h2>
+                    <p class="mt-4 text-slate-400 text-sm leading-relaxed">Dari setting event sampai seluruh peserta terkonfirmasi—tanpa dokumen spreadsheet yang berantakan.</p>
                 </div>
                 
-                <div class="mb-4">
-                    <p class="text-xs text-neon font-bold uppercase tracking-wide mb-1">{{ $pkg['tagline'] }}</p>
-                    <p class="text-slate-300 text-sm">{{ $pkg['description'] }}</p>
+                <div class="lg:col-span-2 space-y-4">
+                    <!-- Step 1 -->
+                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">1</div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm">Setup Event</h4>
+                            <p class="mt-1 text-slate-400 text-xs">Buat kategori tiket, kuota, harga, add-ons, dan periode registrasi.</p>
+                        </div>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">2</div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm">Atur Tiket dan Kuota</h4>
+                            <p class="mt-1 text-slate-400 text-xs">Tentukan batas tiket sold-out otomatis dan masa berlaku early bird.</p>
+                        </div>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">3</div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm">Publikasikan Event</h4>
+                            <p class="mt-1 text-slate-400 text-xs">Landing page siap tayang dan pendaftaran resmi dibuka untuk umum.</p>
+                        </div>
+                    </div>
+                    <!-- Step 4 -->
+                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">4</div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm">Pantau Registrasi</h4>
+                            <p class="mt-1 text-slate-400 text-xs">Pantau transaksi masuk, sisa kuota kategori, dan status lunas secara langsung.</p>
+                        </div>
+                    </div>
+                    <!-- Step 5 -->
+                    <div class="flex gap-4 p-5 rounded-xl border border-slate-900 bg-slate-950/40">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-slate-850 flex items-center justify-center text-xs font-bold text-slate-300">5</div>
+                        <div>
+                            <h4 class="text-white font-bold text-sm">Export Data Peserta</h4>
+                            <p class="mt-1 text-slate-400 text-xs">Unduh data lengkap peserta untuk penyiapan race pack dan kebutuhan di hari-H.</p>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </section>
 
-                <ul class="space-y-2 text-sm mb-6">
-                    @foreach($pkg['features'] as $feature)
-                    <li class="flex items-start gap-3">
-                        <i class="fas fa-check text-neon mt-0.5"></i>
-                        <span class="text-white font-bold">{{ $feature }}</span>
-                    </li>
-                    @endforeach
-                </ul>
+    <!-- Pricing Section -->
+    <section id="paket" class="py-24 border-t border-slate-900 bg-slate-950">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl font-extrabold text-white tracking-tight">Pilihan Paket Kerjasama</h2>
+                <p class="mt-4 text-slate-400 leading-relaxed">Sistem pendaftaran dan biaya jasa transaksi yang fleksibel sesuai skala event Anda.</p>
+            </div>
 
-                <div class="mt-auto space-y-4">
-                    <!-- Accordion for more features -->
-                    <details class="group/accordion">
-                        <summary class="list-none cursor-pointer flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider select-none">
-                            <span>Fitur Lainnya</span>
-                            <i class="fas fa-chevron-down transition-transform group-open/accordion:rotate-180"></i>
-                        </summary>
-                        <ul class="space-y-2 text-sm mt-3 pt-3 border-t border-slate-800/50 animate-in fade-in slide-in-from-top-2 duration-300">
-                            @foreach($pkg['more_features'] as $more)
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                @foreach($packages as $pkg)
+                <div class="relative rounded-2xl border {{ $pkg['is_recommended'] ? 'border-brand-500/40 bg-slate-900/60 shadow-brand-500/5' : 'border-slate-900 bg-slate-900/30' }} p-8 flex flex-col h-full transition duration-300 hover:border-slate-800 shadow-lg">
+                    
+                    @if($pkg['is_recommended'])
+                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full border border-brand-500/20 bg-brand-500/10 text-brand-400 text-[10px] font-bold uppercase tracking-wider">
+                            Paling Populer
+                        </span>
+                    </div>
+                    @endif
+
+                    <div class="mb-6">
+                        <h3 class="text-white font-extrabold text-2xl">{{ $pkg['name'] }}</h3>
+                        <p class="mt-2 text-xs text-brand-400 font-semibold uppercase tracking-wider">{{ $pkg['tagline'] }}</p>
+                        <p class="mt-4 text-slate-400 text-sm leading-relaxed">{{ $pkg['description'] }}</p>
+                    </div>
+
+                    <div class="border-t border-slate-900 my-6"></div>
+
+                    <!-- Features -->
+                    <div class="flex-grow">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-4">Fitur Utama</span>
+                        <ul class="space-y-3.5">
+                            @foreach($pkg['features'] as $feature)
                             <li class="flex items-start gap-3">
-                                <i class="{{ $more['icon'] }} {{ $more['icon_color'] ?? 'text-neon' }} mt-0.5"></i>
-                                <div class="text-slate-300 text-xs">{!! $more['text'] !!}</div>
+                                <svg class="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span class="text-slate-200 text-xs font-medium leading-relaxed">{{ $feature }}</span>
                             </li>
                             @endforeach
                         </ul>
-                    </details>
+                    </div>
 
-                    <a href="{{ route('register', ['role' => 'eo']) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl {{ $pkg['button_bg'] }} {{ $pkg['button_text_color'] }} font-black {{ $pkg['button_hover'] }} transition relative z-10">
-                        <i class="{{ $pkg['button_icon'] }}"></i> {{ $pkg['button_label'] }}
-                    </a>
-                </div>
+                    <div class="border-t border-slate-900 my-6"></div>
 
-                <div class="absolute inset-0 rounded-2xl ring-1 ring-white/5 {{ $pkg['ring_hover'] }} transition pointer-events-none"></div>
-            </div>
-            @endforeach
-        </div>
-
-        <div class="mt-12 grid md:grid-cols-3 gap-6">
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                <div class="flex items-center gap-3 mb-3">
-                    <i class="fas fa-shield-alt text-neon"></i>
-                    <h4 class="text-white font-bold">Pembayaran Aman</h4>
+                    <!-- Action -->
+                    <div class="mt-auto">
+                        <a href="{{ route('register', ['role' => 'eo', 'package_tier' => $pkg['slug']]) }}" class="w-full inline-flex items-center justify-center px-5 py-3.5 rounded-xl {{ $pkg['is_recommended'] ? 'bg-white hover:bg-brand-400 text-slate-950' : 'bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white' }} font-bold transition duration-200 text-sm">
+                            {{ $pkg['cta_label'] }}
+                        </a>
+                    </div>
                 </div>
-                <p class="text-slate-400 text-sm">VA, QRIS, dan E-Wallet dengan settlement yang transparan.</p>
-            </div>
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                <div class="flex items-center gap-3 mb-3">
-                    <i class="fas fa-mobile-alt text-neon"></i>
-                    <h4 class="text-white font-bold">Komunikasi Otomatis</h4>
-                </div>
-                <p class="text-slate-400 text-sm">WhatsApp blaster terintegrasi agar peserta selalu terinformasi.</p>
-            </div>
-            <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                <div class="flex items-center gap-3 mb-3">
-                    <i class="fas fa-chart-pie text-neon"></i>
-                    <h4 class="text-white font-bold">Analitik & Dashboard</h4>
-                </div>
-                <p class="text-slate-400 text-sm">Pantau pendaftaran, demografi, dan status pembayaran secara real-time.</p>
+                @endforeach
             </div>
         </div>
+    </section>
 
-        <div class="mt-12 rounded-3xl border border-slate-800 bg-slate-900/50 p-8 md:p-10">
-            <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
-                <div>
-                    <div class="text-neon text-xs font-black uppercase tracking-widest">FAQ</div>
-                    <div class="mt-2 text-2xl md:text-3xl font-black text-white">Pertanyaan yang sering ditanyakan</div>
-                    <div class="mt-3 text-slate-400 text-sm max-w-2xl">Jawaban singkat untuk mempercepat keputusan dan eksekusi event.</div>
-                </div>
-                <div class="flex gap-3">
-                    <a href="{{ route('register', ['role' => 'eo']) }}" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-white transition">
-                        Mulai Sekarang
-                    </a>
-                    <a href="{{ route('home') }}" class="px-6 py-3 rounded-xl border border-slate-700 text-white font-bold hover:bg-slate-800 transition">
-                        Kembali ke Home
-                    </a>
-                </div>
+    <!-- Simple FAQ Section -->
+    <section class="py-24 border-t border-slate-900 bg-slate-950">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="text-center mb-16">
+                <span class="text-xs font-semibold text-brand-400 uppercase tracking-widest">Pertanyaan & Jawaban</span>
+                <h2 class="mt-3 text-3xl font-extrabold text-white tracking-tight">FAQ Sistem RuangLari</h2>
+                <p class="mt-3 text-slate-400 text-sm">Jawaban atas pertanyaan umum seputar pendaftaran dan kerjasama dengan RuangLari.</p>
             </div>
 
-            <div class="mt-8 space-y-3">
-                <details class="group rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                    <summary class="cursor-pointer list-none flex items-center justify-between gap-4">
-                        <span class="text-white font-black">Apakah bisa multi-kategori dan kuota per kategori?</span>
-                        <i class="fas fa-chevron-down text-slate-400 transition-transform group-open:rotate-180"></i>
+            <div class="space-y-4">
+                <details class="group rounded-xl border border-slate-900 bg-slate-900/10 p-5">
+                    <summary class="cursor-pointer list-none flex items-center justify-between gap-4 select-none">
+                        <span class="text-white font-bold text-sm">Apakah bisa multi-kategori dan kuota per kategori?</span>
+                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </summary>
-                    <div class="mt-3 text-slate-400 text-sm leading-relaxed">
-                        Bisa. Event dapat memiliki beberapa kategori (mis. 5K/10K/HM) dengan kuota masing-masing dan status sold-out yang mengikuti kuota.
+                    <div class="mt-3 text-slate-400 text-xs leading-relaxed border-t border-slate-900/50 pt-3">
+                        Bisa. Event dapat memiliki beberapa kategori sekaligus (seperti 5K, 10K, HM) dengan alokasi kuota tiket masing-masing. Sistem akan otomatis menutup penjualan saat kuota kategori tercapai.
                     </div>
                 </details>
 
-                <details class="group rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                    <summary class="cursor-pointer list-none flex items-center justify-between gap-4">
-                        <span class="text-white font-black">Apakah mendukung kupon/promo dan add-ons?</span>
-                        <i class="fas fa-chevron-down text-slate-400 transition-transform group-open:rotate-180"></i>
+                <details class="group rounded-xl border border-slate-900 bg-slate-900/10 p-5">
+                    <summary class="cursor-pointer list-none flex items-center justify-between gap-4 select-none">
+                        <span class="text-white font-bold text-sm">Apakah mendukung kupon/promo dan add-ons?</span>
+                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </summary>
-                    <div class="mt-3 text-slate-400 text-sm leading-relaxed">
-                        Ya. Kupon/promo dan add-ons bisa membantu strategi konversi (contoh: early momentum, bundling, upsell).
+                    <div class="mt-3 text-slate-400 text-xs leading-relaxed border-t border-slate-900/50 pt-3">
+                        Ya. Anda bisa menyetel kode kupon diskon (nominal atau persentase) dengan pembatasan jumlah pemakaian. Kebutuhan penjualan add-ons (seperti upgrade jersey atau merchandise) juga didukung dalam alur registrasi.
                     </div>
                 </details>
 
-                <details class="group rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                    <summary class="cursor-pointer list-none flex items-center justify-between gap-4">
-                        <span class="text-white font-black">Apakah peserta bisa daftar untuk beberapa orang dalam satu checkout?</span>
-                        <i class="fas fa-chevron-down text-slate-400 transition-transform group-open:rotate-180"></i>
+                <details class="group rounded-xl border border-slate-900 bg-slate-900/10 p-5">
+                    <summary class="cursor-pointer list-none flex items-center justify-between gap-4 select-none">
+                        <span class="text-white font-bold text-sm">Apakah peserta bisa daftar untuk beberapa orang dalam satu checkout?</span>
+                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </summary>
-                    <div class="mt-3 text-slate-400 text-sm leading-relaxed">
-                        Bisa. Alur pendaftaran mendukung input multi-peserta sehingga pembelian kolektif lebih mudah.
+                    <div class="mt-3 text-slate-400 text-xs leading-relaxed border-t border-slate-900/50 pt-3">
+                        Ya. Alur checkout mendukung input data multi-peserta sekaligus untuk mempercepat pendaftaran kolektif atau pendaftaran bersama keluarga/komunitas dalam satu kali transaksi pembayaran.
                     </div>
                 </details>
 
-                <details class="group rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-                    <summary class="cursor-pointer list-none flex items-center justify-between gap-4">
-                        <span class="text-white font-black">Bagaimana dengan data peserta dan kebutuhan race day?</span>
-                        <i class="fas fa-chevron-down text-slate-400 transition-transform group-open:rotate-180"></i>
+                <details class="group rounded-xl border border-slate-900 bg-slate-900/10 p-5">
+                    <summary class="cursor-pointer list-none flex items-center justify-between gap-4 select-none">
+                        <span class="text-white font-bold text-sm">Bagaimana dengan ekspor data peserta untuk race day?</span>
+                        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </summary>
-                    <div class="mt-3 text-slate-400 text-sm leading-relaxed">
-                        Anda bisa mengelola data peserta, ekspor data, dan menyiapkan operasional yang lebih rapi untuk hari-H.
+                    <div class="mt-3 text-slate-400 text-xs leading-relaxed border-t border-slate-900/50 pt-3">
+                        Tim EO memiliki akses penuh ke dashboard pendaftaran untuk mengunduh laporan real-time dan mengekspor seluruh database peserta (data profil, ukuran jersey, kontak WhatsApp) ke format Excel/CSV kapan saja.
                     </div>
                 </details>
+            </div>
+            
+            <div class="mt-16 text-center">
+                <a href="{{ route('register', ['role' => 'eo']) }}" class="inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white hover:bg-brand-400 text-slate-950 font-bold transition duration-200 text-sm">
+                    Mulai untuk EO Sekarang
+                </a>
             </div>
         </div>
-    </div>
+    </section>
+
 </div>
 @endsection
 
@@ -347,19 +401,19 @@
     $faqItems = [
         [
             'question' => 'Apakah bisa multi-kategori dan kuota per kategori?',
-            'answer' => 'Bisa. Event dapat memiliki beberapa kategori (mis. 5K/10K/HM) dengan kuota masing-masing dan status sold-out yang mengikuti kuota.',
+            'answer' => 'Bisa. Event dapat memiliki beberapa kategori sekaligus (seperti 5K, 10K, HM) dengan alokasi kuota tiket masing-masing. Sistem akan otomatis menutup penjualan saat kuota kategori tercapai.',
         ],
         [
             'question' => 'Apakah mendukung kupon/promo dan add-ons?',
-            'answer' => 'Ya. Kupon/promo dan add-ons bisa membantu strategi konversi (contoh: early momentum, bundling, upsell).',
+            'answer' => 'Ya. Anda bisa menyetel kode kupon diskon (nominal atau persentase) dengan pembatasan jumlah pemakaian. Kebutuhan penjualan add-ons (seperti upgrade jersey atau merchandise) juga didukung dalam alur registrasi.',
         ],
         [
             'question' => 'Apakah peserta bisa daftar untuk beberapa orang dalam satu checkout?',
-            'answer' => 'Bisa. Alur pendaftaran mendukung input multi-peserta sehingga pembelian kolektif lebih mudah.',
+            'answer' => 'Ya. Alur checkout mendukung pendaftaran multi-peserta sekaligus dalam satu kali pembayaran.',
         ],
         [
-            'question' => 'Bagaimana dengan data peserta dan kebutuhan race day?',
-            'answer' => 'Anda bisa mengelola data peserta, ekspor data, dan menyiapkan operasional yang lebih rapi untuk hari-H.',
+            'question' => 'Bagaimana dengan ekspor data peserta untuk race day?',
+            'answer' => 'Tim EO memiliki akses penuh ke dashboard untuk mengunduh laporan real-time dan mengekspor seluruh database peserta ke format Excel/CSV.',
         ],
     ];
 @endphp
