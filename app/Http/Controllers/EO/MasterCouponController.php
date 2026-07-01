@@ -30,6 +30,11 @@ class MasterCouponController extends Controller
         }
 
         $coupons = $query->with('event')->latest()->paginate(10);
+
+        if ($request->ajax()) {
+            return view('eo.coupons._list', compact('coupons'));
+        }
+
         $events = Event::where('user_id', auth()->id())->latest()->get(['id', 'name']);
 
         return view('eo.coupons.index', compact('coupons', 'events'));

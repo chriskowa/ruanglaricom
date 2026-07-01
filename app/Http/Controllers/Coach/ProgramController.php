@@ -15,6 +15,7 @@ class ProgramController extends Controller
     public function index()
     {
         $programs = Program::where('coach_id', auth()->id())
+            ->withCount('enrollments')
             ->latest()
             ->paginate(10);
 

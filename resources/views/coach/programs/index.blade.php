@@ -63,10 +63,18 @@
                                     </span>
                                 </td>
                                 <td class="py-4 text-sm font-mono pl-4">
-                                    {{ $program->enrollments()->count() }}
+                                    <a href="{{ route('coach.athletes.index', ['program_id' => $program->id]) }}" class="text-neon hover:underline font-bold" title="Manage enrolled athletes">
+                                        {{ $program->enrollments_count }}
+                                    </a>
                                 </td>
                                 <td class="py-4 text-right pr-4">
                                     <div class="flex justify-end gap-2">
+                                        <a href="{{ route('coach.athletes.index', ['program_id' => $program->id]) }}" class="p-2 rounded-lg bg-slate-800 text-neon hover:bg-neon hover:text-dark transition" title="Manage Athletes">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            </svg>
+                                        </a>
+                                        
                                         <a href="{{ route('coach.programs.edit', $program->id) }}" class="p-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition" title="Edit">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
