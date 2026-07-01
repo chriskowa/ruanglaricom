@@ -281,25 +281,77 @@
                 </select>
             </div>
 
-            <div>
-                <label for="enroll_name" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Nama Runner</label>
-                <input type="text" name="name" id="enroll_name" required placeholder="Contoh: John Doe" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
-            </div>
-
-            <div>
-                <label for="enroll_email" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Email Runner</label>
-                <input type="email" name="email" id="enroll_email" required placeholder="Contoh: johndoe@gmail.com" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="enroll_name" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Nama Runner</label>
+                    <input type="text" name="name" id="enroll_name" required placeholder="Contoh: John Doe" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                </div>
+                <div>
+                    <label for="enroll_phone" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">No HP / WhatsApp (Opsional)</label>
+                    <input type="text" name="phone" id="enroll_phone" placeholder="Contoh: 081234567890" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
+                    <label for="enroll_email" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Email Runner</label>
+                    <input type="email" name="email" id="enroll_email" required placeholder="Contoh: johndoe@gmail.com" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                </div>
+                <div>
                     <label for="enroll_start_date" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Tanggal Mulai</label>
                     <input type="date" name="start_date" id="enroll_start_date" required value="{{ date('Y-m-d') }}" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
                 </div>
-                <div>
-                    <label for="enroll_vdot" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">VDOT Score (Opsional)</label>
-                    <input type="number" name="vdot" id="enroll_vdot" placeholder="Contoh: 45" step="0.1" min="10" max="85" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+            </div>
+
+            <div>
+                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Metode Input Kebugaran (VDOT)</label>
+                <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button type="button" onclick="setVdotMode('direct')" id="btn-vdot-direct" class="py-2 text-[10px] md:text-xs font-black rounded-lg transition-all bg-neon text-dark">
+                        Direct VDOT
+                    </button>
+                    <button type="button" onclick="setVdotMode('pb')" id="btn-vdot-pb" class="py-2 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
+                        Personal Best
+                    </button>
+                    <button type="button" onclick="setVdotMode('balke')" id="btn-vdot-balke" class="py-2 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
+                        Balke Test
+                    </button>
                 </div>
+                <input type="hidden" name="vdot_mode" id="enroll_vdot_mode" value="direct">
+            </div>
+
+            <!-- VDOT Input Sections -->
+            <div id="sec-vdot-direct" class="space-y-2">
+                <label for="enroll_vdot" class="block text-xs font-mono text-cyan-400 uppercase tracking-wider">VDOT Score (Opsional)</label>
+                <input type="number" name="vdot" id="enroll_vdot" placeholder="Contoh: 45" step="0.1" min="10" max="85" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
+            </div>
+
+            <div id="sec-vdot-pb" class="space-y-3 hidden">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="enroll_pb_distance" class="block text-xs font-mono text-cyan-400 mb-1.5 uppercase tracking-wider">Jarak PB</label>
+                        <select name="pb_distance" id="enroll_pb_distance" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" onchange="calculatePreviewVDOT()">
+                            <option value="5k">5K (5.000m)</option>
+                            <option value="10k">10K (10.000m)</option>
+                            <option value="21k">Half Marathon (21.097m)</option>
+                            <option value="42k">Full Marathon (42.195m)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="enroll_pb_time" class="block text-xs font-mono text-cyan-400 mb-1.5 uppercase tracking-wider">Waktu (MM:SS / HH:MM:SS)</label>
+                        <input type="text" name="pb_time" id="enroll_pb_time" placeholder="Waktu (e.g. 22:30)" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="sec-vdot-balke" class="space-y-2 hidden">
+                <label for="enroll_pb_balke" class="block text-xs font-mono text-cyan-400 uppercase tracking-wider">Jarak Tempuh Balke (Meter - 15 Menit)</label>
+                <input type="number" name="pb_balke" id="enroll_pb_balke" placeholder="Contoh: 3100" min="100" max="10000" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon" oninput="calculatePreviewVDOT()">
+            </div>
+
+            <!-- Preview Box -->
+            <div id="vdot-preview-box" class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 flex justify-between items-center text-xs hidden">
+                <span class="text-slate-400 font-medium">Estimasi VDOT Score:</span>
+                <span class="text-neon font-black font-mono text-sm" id="vdot-preview-val">-</span>
             </div>
 
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
@@ -353,7 +405,7 @@
 
             <div class="bg-slate-800/40 border border-slate-800 rounded-xl p-4 text-xs space-y-2">
                 <p class="font-bold text-white uppercase tracking-wider">Panduan Format File:</p>
-                <p class="text-slate-400">File harus berisi kolom header berikut: <code class="text-neon font-mono">name</code>, <code class="text-neon font-mono">email</code>, <code class="text-neon font-mono">vdot</code>, <code class="text-neon font-mono">start_date</code>.</p>
+                <p class="text-slate-400">File harus berisi kolom header berikut: <code class="text-neon font-mono">name</code>, <code class="text-neon font-mono">email</code>, <code class="text-neon font-mono">phone</code> (opsional), <code class="text-neon font-mono">vdot</code> (opsional), <code class="text-neon font-mono">pb_distance</code>, <code class="text-neon font-mono">pb_time</code>, <code class="text-neon font-mono">pb_balke</code>, <code class="text-neon font-mono">start_date</code>.</p>
                 <div class="flex justify-between items-center pt-2">
                     <span class="text-slate-500">Unduh contoh template:</span>
                     <a href="{{ route('coach.athletes.import-template') }}" class="text-cyan-400 hover:text-cyan-300 font-bold underline flex items-center gap-1">
@@ -622,6 +674,116 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             fileLabel.textContent = 'Pilih file CSV atau JSON';
             fileLabel.classList.remove('text-neon');
+        }
+    };
+
+    // Set VDOT Mode Tabs
+    window.setVdotMode = function(mode) {
+        document.getElementById('enroll_vdot_mode').value = mode;
+
+        // Reset tab buttons styling
+        const btnDirect = document.getElementById('btn-vdot-direct');
+        const btnPb = document.getElementById('btn-vdot-pb');
+        const btnBalke = document.getElementById('btn-vdot-balke');
+
+        [btnDirect, btnPb, btnBalke].forEach(btn => {
+            btn.className = "py-2 text-[10px] md:text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+        });
+
+        // Set active button styling
+        const activeBtn = document.getElementById('btn-vdot-' + mode);
+        if (activeBtn) {
+            activeBtn.className = "py-2 text-[10px] md:text-xs font-black rounded-lg transition-all bg-neon text-dark";
+        }
+
+        // Hide/Show sections
+        document.getElementById('sec-vdot-direct').classList.add('hidden');
+        document.getElementById('sec-vdot-pb').classList.add('hidden');
+        document.getElementById('sec-vdot-balke').classList.add('hidden');
+
+        document.getElementById('sec-vdot-' + mode).classList.remove('hidden');
+
+        calculatePreviewVDOT();
+    };
+
+    // Calculate VDOT preview client-side
+    window.calculatePreviewVDOT = function() {
+        const mode = document.getElementById('enroll_vdot_mode').value;
+        const previewBox = document.getElementById('vdot-preview-box');
+        const previewVal = document.getElementById('vdot-preview-val');
+
+        if (mode === 'direct') {
+            const vdotVal = parseFloat(document.getElementById('enroll_vdot').value);
+            if (!isNaN(vdotVal) && vdotVal >= 10 && vdotVal <= 85) {
+                previewBox.classList.remove('hidden');
+                previewVal.textContent = vdotVal.toFixed(1);
+            } else {
+                previewBox.classList.add('hidden');
+            }
+        } else if (mode === 'pb') {
+            const distance = document.getElementById('enroll_pb_distance').value;
+            const timeStr = document.getElementById('enroll_pb_time').value.trim();
+
+            if (!timeStr) {
+                previewBox.classList.add('hidden');
+                return;
+            }
+
+            // Parse time MM:SS or HH:MM:SS
+            const parts = timeStr.split(':');
+            let totalSeconds = 0;
+            if (parts.length === 3) {
+                totalSeconds = (parseInt(parts[0]) * 3600) + (parseInt(parts[1]) * 60) + parseFloat(parts[2]);
+            } else if (parts.length === 2) {
+                totalSeconds = (parseInt(parts[0]) * 60) + parseFloat(parts[1]);
+            } else {
+                previewBox.classList.add('hidden');
+                return;
+            }
+
+            if (isNaN(totalSeconds) || totalSeconds <= 0) {
+                previewBox.classList.add('hidden');
+                return;
+            }
+
+            // Map distances
+            let meters = 5000;
+            let ratio = 0.957;
+            if (distance === '5k') { meters = 5000; ratio = 0.957; }
+            else if (distance === '10k') { meters = 10000; ratio = 0.915; }
+            else if (distance === '21k') { meters = 21097.5; ratio = 0.865; }
+            else if (distance === '42k') { meters = 42195; ratio = 0.815; }
+
+            const velocity = meters / totalSeconds;
+            const velocityMin = velocity * 60;
+
+            // VDOT estimation loop
+            let vdot = 50.0;
+            for (let i = 0; i < 5; i++) {
+                let adjRatio = ratio + (vdot - 50.0) * 0.0005;
+                if (adjRatio <= 0) adjRatio = 0.01;
+                const vVO2max = velocityMin / adjRatio;
+                const newVdot = -4.6 + 0.182258 * vVO2max + 0.000104 * vVO2max * vVO2max;
+                if (Math.abs(newVdot - vdot) < 0.01) {
+                    vdot = newVdot;
+                    break;
+                }
+                vdot = newVdot;
+            }
+
+            vdot = Math.max(10, Math.min(85, vdot));
+            previewBox.classList.remove('hidden');
+            previewVal.textContent = vdot.toFixed(1);
+        } else if (mode === 'balke') {
+            const meters = parseFloat(document.getElementById('enroll_pb_balke').value);
+            if (!isNaN(meters) && meters >= 100) {
+                let vdot = ((meters / 15) - 133) * 0.172 + 33.3;
+                vdot = Math.max(10, Math.min(85, vdot));
+                previewBox.classList.remove('hidden');
+                previewVal.textContent = vdot.toFixed(1);
+            } else {
+                previewBox.classList.add('hidden');
+            }
         }
     };
 });

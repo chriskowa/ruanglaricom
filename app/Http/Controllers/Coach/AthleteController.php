@@ -1355,13 +1355,41 @@ class AthleteController extends Controller
             'program_id' => 'required|exists:programs,id',
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
             'start_date' => 'required|date',
             'vdot' => 'nullable|numeric|min:10|max:85',
+            'vdot_mode' => 'nullable|string|in:direct,pb,balke',
+            'pb_distance' => 'nullable|string|in:5k,10k,21k,42k',
+            'pb_time' => 'nullable|string|regex:/^([0-9]{1,2}:)?[0-9]{1,2}:[0-9]{2}$/',
+            'pb_balke' => 'nullable|numeric|min:100|max:10000',
         ]);
 
         $program = \App\Models\Program::findOrFail($validated['program_id']);
         if ((int)$program->coach_id !== (int)auth()->id()) {
             return back()->with('error', 'Unauthorized action.');
+        }
+
+        // Calculate VDOT from input mode
+        $computedVdot = null;
+        $daniels = app(\App\Services\DanielsRunningService::class);
+
+        if (($validated['vdot_mode'] ?? 'direct') === 'direct') {
+            if (!empty($validated['vdot'])) {
+                $computedVdot = (float)$validated['vdot'];
+            }
+        } elseif ($validated['vdot_mode'] === 'pb' && !empty($validated['pb_distance']) && !empty($validated['pb_time'])) {
+            try {
+                $computedVdot = $daniels->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
+            } catch (\Exception $e) {
+                return back()->with('error', 'Gagal menghitung VDOT dari Personal Best. Format waktu salah (gunakan MM:SS atau HH:MM:SS).');
+            }
+        } elseif ($validated['vdot_mode'] === 'balke' && !empty($validated['pb_balke'])) {
+            try {
+                $computedVdot = (($validated['pb_balke'] / 15) - 133) * 0.172 + 33.3;
+                $computedVdot = max(10, min(85, round($computedVdot, 4)));
+            } catch (\Exception $e) {
+                // Ignore
+            }
         }
 
         // Find or create runner
@@ -1372,6 +1400,7 @@ class AthleteController extends Controller
             $runner = \App\Models\User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
                 'role' => 'runner',
                 'password' => \Illuminate\Support\Facades\Hash::make('password123'),
                 'is_active' => true,
@@ -1383,21 +1412,30 @@ class AthleteController extends Controller
                 'balance' => 0.00,
             ]);
             $runner->update(['wallet_id' => $wallet->id]);
+        } else {
+            // Update phone if provided and not yet set
+            if (!empty($validated['phone']) && empty($runner->phone)) {
+                $runner->update(['phone' => $validated['phone']]);
+            }
         }
 
-        // Calculate and set PB based on input VDOT
-        if (!empty($validated['vdot'])) {
-            $daniels = app(\App\Services\DanielsRunningService::class);
-            try {
-                $times = $daniels->calculateEquivalentRaceTimes((float)$validated['vdot']);
-                if (isset($times['5k']['time'])) {
-                    $runner->update([
-                        'pb_5k' => $times['5k']['time']
-                    ]);
-                }
-            } catch (\Exception $e) {
-                // Ignore calculation errors
+        // Update PB & VDOT fields on the User model
+        if ($computedVdot) {
+            $times = $daniels->calculateEquivalentRaceTimes($computedVdot);
+            $runnerUpdates = [];
+            if (isset($times['5k']['time'])) {
+                $runnerUpdates['pb_5k'] = $times['5k']['time'];
             }
+            if (($validated['vdot_mode'] ?? 'direct') === 'pb' && !empty($validated['pb_distance']) && !empty($validated['pb_time'])) {
+                $dist = $validated['pb_distance'];
+                if ($dist === '5k') $runnerUpdates['pb_5k'] = $validated['pb_time'];
+                elseif ($dist === '10k') $runnerUpdates['pb_10k'] = $validated['pb_time'];
+                elseif ($dist === '21k') $runnerUpdates['pb_hm'] = $validated['pb_time'];
+                elseif ($dist === '42k') $runnerUpdates['pb_fm'] = $validated['pb_time'];
+            } elseif (($validated['vdot_mode'] ?? 'direct') === 'balke' && !empty($validated['pb_balke'])) {
+                $runnerUpdates['pb_balke'] = $validated['pb_balke'];
+            }
+            $runner->update($runnerUpdates);
         }
 
         // Check if already enrolled in this program
@@ -1421,7 +1459,7 @@ class AthleteController extends Controller
             'end_date' => $endDate,
             'status' => 'active',
             'payment_status' => 'paid', // manually enrolled by coach
-            'current_vdot' => $validated['vdot'] ?? $runner->vdot,
+            'current_vdot' => $computedVdot ?? $runner->vdot,
         ]);
 
         return back()->with('success', "Runner {$runner->name} berhasil didaftarkan ke program {$program->title}.");
@@ -1458,7 +1496,11 @@ class AthleteController extends Controller
                     // Column mapping
                     $nameIdx = array_search('name', $header);
                     $emailIdx = array_search('email', $header);
+                    $phoneIdx = array_search('phone', $header);
                     $vdotIdx = array_search('vdot', $header);
+                    $pbDistanceIdx = array_search('pb_distance', $header);
+                    $pbTimeIdx = array_search('pb_time', $header);
+                    $pbBalkeIdx = array_search('pb_balke', $header);
                     $startDateIdx = array_search('start_date', $header);
 
                     if ($nameIdx === false || $emailIdx === false) {
@@ -1472,7 +1514,11 @@ class AthleteController extends Controller
                         $runnersData[] = [
                             'name' => trim($row[$nameIdx] ?? ''),
                             'email' => trim($row[$emailIdx] ?? ''),
+                            'phone' => $phoneIdx !== false && isset($row[$phoneIdx]) ? trim($row[$phoneIdx]) : null,
                             'vdot' => $vdotIdx !== false && isset($row[$vdotIdx]) && trim($row[$vdotIdx]) !== '' ? floatval($row[$vdotIdx]) : null,
+                            'pb_distance' => $pbDistanceIdx !== false && isset($row[$pbDistanceIdx]) ? trim($row[$pbDistanceIdx]) : null,
+                            'pb_time' => $pbTimeIdx !== false && isset($row[$pbTimeIdx]) ? trim($row[$pbTimeIdx]) : null,
+                            'pb_balke' => $pbBalkeIdx !== false && isset($row[$pbBalkeIdx]) && trim($row[$pbBalkeIdx]) !== '' ? floatval($row[$pbBalkeIdx]) : null,
                             'start_date' => $startDateIdx !== false && isset($row[$startDateIdx]) && trim($row[$startDateIdx]) !== '' ? trim($row[$startDateIdx]) : now()->format('Y-m-d'),
                         ];
                     }
@@ -1496,7 +1542,11 @@ class AthleteController extends Controller
                 $runnersData[] = [
                     'name' => trim($item['name'] ?? ''),
                     'email' => trim($item['email'] ?? ''),
+                    'phone' => isset($item['phone']) ? trim($item['phone']) : null,
                     'vdot' => isset($item['vdot']) && trim($item['vdot']) !== '' ? floatval($item['vdot']) : null,
+                    'pb_distance' => isset($item['pb_distance']) ? trim($item['pb_distance']) : null,
+                    'pb_time' => isset($item['pb_time']) ? trim($item['pb_time']) : null,
+                    'pb_balke' => isset($item['pb_balke']) && trim($item['pb_balke']) !== '' ? floatval($item['pb_balke']) : null,
                     'start_date' => isset($item['start_date']) && trim($item['start_date']) !== '' ? trim($item['start_date']) : now()->format('Y-m-d'),
                 ];
             }
@@ -1522,12 +1572,28 @@ class AthleteController extends Controller
                 continue;
             }
 
+            // Calculate VDOT
+            $computedVdot = null;
+            if (!empty($data['vdot'])) {
+                $computedVdot = (float)$data['vdot'];
+            } elseif (!empty($data['pb_distance']) && !empty($data['pb_time'])) {
+                try {
+                    $computedVdot = $daniels->calculateVDOT($data['pb_time'], $data['pb_distance']);
+                } catch (\Exception $e) {}
+            } elseif (!empty($data['pb_balke'])) {
+                try {
+                    $computedVdot = (($data['pb_balke'] / 15) - 133) * 0.172 + 33.3;
+                    $computedVdot = max(10, min(85, round($computedVdot, 4)));
+                } catch (\Exception $e) {}
+            }
+
             // Find or create runner
             $runner = \App\Models\User::where('email', $email)->first();
             if (!$runner) {
                 $runner = \App\Models\User::create([
                     'name' => $name,
                     'email' => $email,
+                    'phone' => $data['phone'] ?? null,
                     'role' => 'runner',
                     'password' => \Illuminate\Support\Facades\Hash::make('password123'),
                     'is_active' => true,
@@ -1539,20 +1605,29 @@ class AthleteController extends Controller
                     'balance' => 0.00,
                 ]);
                 $runner->update(['wallet_id' => $wallet->id]);
+            } else {
+                if (!empty($data['phone']) && empty($runner->phone)) {
+                    $runner->update(['phone' => $data['phone']]);
+                }
             }
 
-            // Update VDOT/PB if provided
-            if (!empty($data['vdot'])) {
-                try {
-                    $times = $daniels->calculateEquivalentRaceTimes((float)$data['vdot']);
-                    if (isset($times['5k']['time'])) {
-                        $runner->update([
-                            'pb_5k' => $times['5k']['time']
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    // Ignore calculation errors
+            // Update PB & VDOT fields on the User model
+            if ($computedVdot) {
+                $times = $daniels->calculateEquivalentRaceTimes($computedVdot);
+                $runnerUpdates = [];
+                if (isset($times['5k']['time'])) {
+                    $runnerUpdates['pb_5k'] = $times['5k']['time'];
                 }
+                if (!empty($data['pb_distance']) && !empty($data['pb_time'])) {
+                    $dist = $data['pb_distance'];
+                    if ($dist === '5k') $runnerUpdates['pb_5k'] = $data['pb_time'];
+                    elseif ($dist === '10k') $runnerUpdates['pb_10k'] = $data['pb_time'];
+                    elseif ($dist === '21k') $runnerUpdates['pb_hm'] = $data['pb_time'];
+                    elseif ($dist === '42k') $runnerUpdates['pb_fm'] = $data['pb_time'];
+                } elseif (!empty($data['pb_balke'])) {
+                    $runnerUpdates['pb_balke'] = $data['pb_balke'];
+                }
+                $runner->update($runnerUpdates);
             }
 
             // Check if already enrolled
@@ -1576,7 +1651,7 @@ class AthleteController extends Controller
                 'end_date' => $endDate,
                 'status' => 'active',
                 'payment_status' => 'paid',
-                'current_vdot' => $data['vdot'] ?? $runner->vdot,
+                'current_vdot' => $computedVdot ?? $runner->vdot,
             ]);
 
             $successCount++;
@@ -1597,9 +1672,10 @@ class AthleteController extends Controller
 
         $callback = function() {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['name', 'email', 'vdot', 'start_date']);
-            fputcsv($file, ['John Doe', 'johndoe@example.com', '45.5', '2026-07-01']);
-            fputcsv($file, ['Jane Smith', 'janesmith@example.com', '38.2', '2026-07-15']);
+            fputcsv($file, ['name', 'email', 'phone', 'vdot', 'pb_distance', 'pb_time', 'pb_balke', 'start_date']);
+            fputcsv($file, ['John Doe', 'johndoe@example.com', '081234567890', '45.5', '', '', '', '2026-07-01']);
+            fputcsv($file, ['Jane Smith', 'janesmith@example.com', '08987654321', '', '5k', '00:22:30', '', '2026-07-15']);
+            fputcsv($file, ['Budi Santoso', 'budi@example.com', '087711223344', '', '', '', '3100', '2026-07-20']);
             fclose($file);
         };
 
