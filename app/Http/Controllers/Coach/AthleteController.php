@@ -1345,4 +1345,264 @@ class AthleteController extends Controller
             'report' => $report
         ]);
     }
+
+    /**
+     * Enroll runner manually
+     */
+    public function enrollRunner(Request $request)
+    {
+        $validated = $request->validate([
+            'program_id' => 'required|exists:programs,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'start_date' => 'required|date',
+            'vdot' => 'nullable|numeric|min:10|max:85',
+        ]);
+
+        $program = \App\Models\Program::findOrFail($validated['program_id']);
+        if ((int)$program->coach_id !== (int)auth()->id()) {
+            return back()->with('error', 'Unauthorized action.');
+        }
+
+        // Find or create runner
+        $runner = \App\Models\User::where('email', $validated['email'])->first();
+
+        if (!$runner) {
+            // Create brand new runner
+            $runner = \App\Models\User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'role' => 'runner',
+                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'is_active' => true,
+            ]);
+            
+            // Create a wallet for the new runner
+            $wallet = \App\Models\Wallet::create([
+                'user_id' => $runner->id,
+                'balance' => 0.00,
+            ]);
+            $runner->update(['wallet_id' => $wallet->id]);
+        }
+
+        // Calculate and set PB based on input VDOT
+        if (!empty($validated['vdot'])) {
+            $daniels = app(\App\Services\DanielsRunningService::class);
+            try {
+                $times = $daniels->calculateEquivalentRaceTimes((float)$validated['vdot']);
+                if (isset($times['5k']['time'])) {
+                    $runner->update([
+                        'pb_5k' => $times['5k']['time']
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Ignore calculation errors
+            }
+        }
+
+        // Check if already enrolled in this program
+        $exists = ProgramEnrollment::where('program_id', $program->id)
+            ->where('runner_id', $runner->id)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', "Runner dengan email {$validated['email']} sudah terdaftar dalam program ini.");
+        }
+
+        // Enroll
+        $durationWeeks = $program->duration_weeks ?? 12;
+        $startDate = Carbon::parse($validated['start_date']);
+        $endDate = $startDate->copy()->addWeeks($durationWeeks);
+
+        ProgramEnrollment::create([
+            'program_id' => $program->id,
+            'runner_id' => $runner->id,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'status' => 'active',
+            'payment_status' => 'paid', // manually enrolled by coach
+            'current_vdot' => $validated['vdot'] ?? $runner->vdot,
+        ]);
+
+        return back()->with('success', "Runner {$runner->name} berhasil didaftarkan ke program {$program->title}.");
+    }
+
+    /**
+     * Import runners and enroll them from CSV or JSON
+     */
+    public function importEnroll(Request $request)
+    {
+        $validated = $request->validate([
+            'program_id' => 'required|exists:programs,id',
+            'file' => 'required|file|max:2048', // max 2MB
+        ]);
+
+        $program = \App\Models\Program::findOrFail($validated['program_id']);
+        if ((int)$program->coach_id !== (int)auth()->id()) {
+            return back()->with('error', 'Unauthorized action.');
+        }
+
+        $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        $runnersData = [];
+
+        if ($extension === 'csv') {
+            $path = $file->getRealPath();
+            if (($handle = fopen($path, 'r')) !== false) {
+                // Read header
+                $header = fgetcsv($handle, 1000, ',');
+                if ($header) {
+                    $header = array_map(fn($h) => strtolower(trim($h)), $header);
+                    
+                    // Column mapping
+                    $nameIdx = array_search('name', $header);
+                    $emailIdx = array_search('email', $header);
+                    $vdotIdx = array_search('vdot', $header);
+                    $startDateIdx = array_search('start_date', $header);
+
+                    if ($nameIdx === false || $emailIdx === false) {
+                        fclose($handle);
+                        return back()->with('error', 'CSV template tidak valid. Kolom "name" dan "email" wajib ada.');
+                    }
+
+                    while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+                        if (count($row) <= max($nameIdx, $emailIdx)) continue;
+                        
+                        $runnersData[] = [
+                            'name' => trim($row[$nameIdx] ?? ''),
+                            'email' => trim($row[$emailIdx] ?? ''),
+                            'vdot' => $vdotIdx !== false && isset($row[$vdotIdx]) && trim($row[$vdotIdx]) !== '' ? floatval($row[$vdotIdx]) : null,
+                            'start_date' => $startDateIdx !== false && isset($row[$startDateIdx]) && trim($row[$startDateIdx]) !== '' ? trim($row[$startDateIdx]) : now()->format('Y-m-d'),
+                        ];
+                    }
+                }
+                fclose($handle);
+            }
+        } elseif ($extension === 'json') {
+            $content = file_get_contents($file->getRealPath());
+            $json = json_decode($content, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return back()->with('error', 'Format JSON tidak valid.');
+            }
+
+            // Standardize array structure
+            $items = isset($json['runners']) ? $json['runners'] : $json;
+            if (!is_array($items)) {
+                return back()->with('error', 'Struktur JSON tidak valid. Harus berupa array runners.');
+            }
+
+            foreach ($items as $item) {
+                $runnersData[] = [
+                    'name' => trim($item['name'] ?? ''),
+                    'email' => trim($item['email'] ?? ''),
+                    'vdot' => isset($item['vdot']) && trim($item['vdot']) !== '' ? floatval($item['vdot']) : null,
+                    'start_date' => isset($item['start_date']) && trim($item['start_date']) !== '' ? trim($item['start_date']) : now()->format('Y-m-d'),
+                ];
+            }
+        } else {
+            return back()->with('error', 'Tipe file tidak didukung. Harap upload file CSV atau JSON.');
+        }
+
+        if (empty($runnersData)) {
+            return back()->with('error', 'Tidak ada data runner yang ditemukan dalam file.');
+        }
+
+        $successCount = 0;
+        $skippedCount = 0;
+
+        $daniels = app(\App\Services\DanielsRunningService::class);
+        $durationWeeks = $program->duration_weeks ?? 12;
+
+        foreach ($runnersData as $data) {
+            $email = $data['email'];
+            $name = $data['name'];
+            if (empty($email) || empty($name)) {
+                $skippedCount++;
+                continue;
+            }
+
+            // Find or create runner
+            $runner = \App\Models\User::where('email', $email)->first();
+            if (!$runner) {
+                $runner = \App\Models\User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'role' => 'runner',
+                    'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                    'is_active' => true,
+                ]);
+
+                // Create a wallet for the new runner
+                $wallet = \App\Models\Wallet::create([
+                    'user_id' => $runner->id,
+                    'balance' => 0.00,
+                ]);
+                $runner->update(['wallet_id' => $wallet->id]);
+            }
+
+            // Update VDOT/PB if provided
+            if (!empty($data['vdot'])) {
+                try {
+                    $times = $daniels->calculateEquivalentRaceTimes((float)$data['vdot']);
+                    if (isset($times['5k']['time'])) {
+                        $runner->update([
+                            'pb_5k' => $times['5k']['time']
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    // Ignore calculation errors
+                }
+            }
+
+            // Check if already enrolled
+            $exists = ProgramEnrollment::where('program_id', $program->id)
+                ->where('runner_id', $runner->id)
+                ->exists();
+
+            if ($exists) {
+                $skippedCount++;
+                continue;
+            }
+
+            // Enroll
+            $startDate = Carbon::parse($data['start_date'] ?? now());
+            $endDate = $startDate->copy()->addWeeks($durationWeeks);
+
+            ProgramEnrollment::create([
+                'program_id' => $program->id,
+                'runner_id' => $runner->id,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'status' => 'active',
+                'payment_status' => 'paid',
+                'current_vdot' => $data['vdot'] ?? $runner->vdot,
+            ]);
+
+            $successCount++;
+        }
+
+        return back()->with('success', "Berhasil mengimpor runner: {$successCount} sukses, {$skippedCount} dilewati (data tidak valid atau sudah terdaftar).");
+    }
+
+    /**
+     * Download import CSV template
+     */
+    public function downloadImportTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="runner_import_template.csv"',
+        ];
+
+        $callback = function() {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['name', 'email', 'vdot', 'start_date']);
+            fputcsv($file, ['John Doe', 'johndoe@example.com', '45.5', '2026-07-01']);
+            fputcsv($file, ['Jane Smith', 'janesmith@example.com', '38.2', '2026-07-15']);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

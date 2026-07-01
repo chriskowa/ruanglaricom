@@ -990,6 +990,9 @@ Route::middleware('auth')->group(function () {
 
         // Athlete Monitoring
         Route::get('/athletes', [App\Http\Controllers\Coach\AthleteController::class, 'index'])->name('athletes.index');
+        Route::post('/athletes/enroll', [App\Http\Controllers\Coach\AthleteController::class, 'enrollRunner'])->name('athletes.enroll');
+        Route::post('/athletes/import-enroll', [App\Http\Controllers\Coach\AthleteController::class, 'importEnroll'])->name('athletes.import-enroll');
+        Route::get('/athletes/import-template', [App\Http\Controllers\Coach\AthleteController::class, 'downloadImportTemplate'])->name('athletes.import-template');
         Route::get('/athletes/{enrollment}', [App\Http\Controllers\Coach\AthleteController::class, 'show'])->name('athletes.show');
         Route::get('/athletes/{enrollment}/events', [App\Http\Controllers\Coach\AthleteController::class, 'calendarEvents'])->name('athletes.events');
         Route::get('/athletes/{enrollment}/strava/activities/{stravaActivityId}/details', [App\Http\Controllers\Coach\AthleteController::class, 'stravaActivityDetails'])->name('athletes.strava.activities.details');

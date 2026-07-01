@@ -8,16 +8,54 @@
 @section('content')
 <div class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans">
     <div class="max-w-7xl mx-auto">
-        <div class="flex justify-between items-end mb-8">
+        @if(session('success'))
+            <div class="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 flex items-center gap-3 text-sm">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center gap-3 text-sm">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                <ul class="list-disc list-inside">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
             <div>
                 <p class="text-neon font-mono text-sm tracking-widest uppercase">Monitoring</p>
                 <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">My Athletes</h1>
             </div>
-            <!-- Mobile Filter Trigger -->
-            <button onclick="document.getElementById('mobileFilterSheet').classList.remove('translate-y-full')" class="md:hidden p-3 rounded-xl bg-slate-800 border border-slate-700 text-neon flex items-center gap-2 font-black text-xs">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                FILTER
-            </button>
+            <div class="flex gap-2 w-full sm:w-auto">
+                <button onclick="openEnrollModal()" class="px-4 py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center gap-2 text-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Daftarkan Runner
+                </button>
+                <button onclick="openImportModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 font-bold hover:bg-slate-700 transition flex items-center gap-2 text-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Import CSV/JSON
+                </button>
+                <!-- Mobile Filter Trigger -->
+                <button onclick="document.getElementById('mobileFilterSheet').classList.remove('translate-y-full')" class="md:hidden p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-neon flex items-center gap-2 font-black text-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    FILTER
+                </button>
+            </div>
         </div>
 
         <!-- Filter Section (Desktop) -->
@@ -210,6 +248,127 @@
                 </a>
                 <button type="submit" class="flex-[2] py-4 text-sm font-black text-dark bg-neon rounded-2xl shadow-lg shadow-neon/20">
                     APPLY FILTER
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Manual Enrollment Modal -->
+<div id="enrollModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeEnrollModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 md:p-8 shadow-2xl mx-4 transition-all duration-300 scale-95 opacity-0 transform" id="enrollModalContent">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h3 class="text-xl font-black text-white italic tracking-tight uppercase">Daftarkan Runner Manual</h3>
+                <p class="text-xs text-slate-400 mt-1">Daftarkan atlet baru atau hubungkan atlet yang sudah terdaftar.</p>
+            </div>
+            <button onclick="closeEnrollModal()" class="text-slate-500 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <form action="{{ route('coach.athletes.enroll') }}" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label for="enroll_program_id" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Pilih Program Latihan</label>
+                <select name="program_id" id="enroll_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                    @foreach($programs as $program)
+                        <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
+                            {{ $program->title }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label for="enroll_name" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Nama Runner</label>
+                <input type="text" name="name" id="enroll_name" required placeholder="Contoh: John Doe" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+            </div>
+
+            <div>
+                <label for="enroll_email" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Email Runner</label>
+                <input type="email" name="email" id="enroll_email" required placeholder="Contoh: johndoe@gmail.com" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="enroll_start_date" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Tanggal Mulai</label>
+                    <input type="date" name="start_date" id="enroll_start_date" required value="{{ date('Y-m-d') }}" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                </div>
+                <div>
+                    <label for="enroll_vdot" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">VDOT Score (Opsional)</label>
+                    <input type="number" name="vdot" id="enroll_vdot" placeholder="Contoh: 45" step="0.1" min="10" max="85" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
+                <button type="button" onclick="closeEnrollModal()" class="px-5 py-3 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-6 py-3 text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
+                    Daftarkan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Import CSV/JSON Modal -->
+<div id="importModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeImportModal()"></div>
+    <div class="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 md:p-8 shadow-2xl mx-4 transition-all duration-300 scale-95 opacity-0 transform" id="importModalContent">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h3 class="text-xl font-black text-white italic tracking-tight uppercase">Import Runner</h3>
+                <p class="text-xs text-slate-400 mt-1">Import beberapa runner sekaligus menggunakan file CSV atau JSON.</p>
+            </div>
+            <button onclick="closeImportModal()" class="text-slate-500 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <form action="{{ route('coach.athletes.import-enroll') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+            @csrf
+            <div>
+                <label for="import_program_id" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Pilih Program Latihan</label>
+                <select name="program_id" id="import_program_id" required class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+                    @foreach($programs as $program)
+                        <option value="{{ $program->id }}" {{ $programId == $program->id ? 'selected' : '' }}>
+                            {{ $program->title }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Upload File (CSV / JSON)</label>
+                <div class="border-2 border-dashed border-slate-700 rounded-2xl p-6 text-center hover:border-neon/60 transition-colors relative cursor-pointer group bg-slate-800/20">
+                    <input type="file" name="file" id="import_file" required accept=".csv,.json" class="absolute inset-0 opacity-0 cursor-pointer" onchange="updateFileName(this)">
+                    <svg class="w-10 h-10 text-slate-500 mx-auto mb-2 group-hover:text-neon transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <p class="text-sm text-slate-300 font-bold" id="file_label">Pilih file CSV atau JSON</p>
+                    <p class="text-xs text-slate-500 mt-1">Maksimum ukuran file: 2MB</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/40 border border-slate-800 rounded-xl p-4 text-xs space-y-2">
+                <p class="font-bold text-white uppercase tracking-wider">Panduan Format File:</p>
+                <p class="text-slate-400">File harus berisi kolom header berikut: <code class="text-neon font-mono">name</code>, <code class="text-neon font-mono">email</code>, <code class="text-neon font-mono">vdot</code>, <code class="text-neon font-mono">start_date</code>.</p>
+                <div class="flex justify-between items-center pt-2">
+                    <span class="text-slate-500">Unduh contoh template:</span>
+                    <a href="{{ route('coach.athletes.import-template') }}" class="text-cyan-400 hover:text-cyan-300 font-bold underline flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download Template CSV
+                    </a>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-800/80">
+                <button type="button" onclick="closeImportModal()" class="px-5 py-3 text-sm font-bold text-slate-400 bg-slate-800 rounded-xl hover:bg-slate-700 transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-6 py-3 text-sm font-black text-dark bg-neon rounded-xl hover:bg-white transition-all shadow-lg hover:shadow-neon-cyan">
+                    Mulai Import
                 </button>
             </div>
         </form>
@@ -411,6 +570,59 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         submitFilters();
+    };
+
+    // Modal controls
+    const enrollModal = document.getElementById('enrollModal');
+    const enrollModalContent = document.getElementById('enrollModalContent');
+    const importModal = document.getElementById('importModal');
+    const importModalContent = document.getElementById('importModalContent');
+
+    window.openEnrollModal = function() {
+        if (!enrollModal || !enrollModalContent) return;
+        enrollModal.classList.remove('hidden');
+        setTimeout(() => {
+            enrollModalContent.classList.remove('scale-95', 'opacity-0');
+            enrollModalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+
+    window.closeEnrollModal = function() {
+        if (!enrollModal || !enrollModalContent) return;
+        enrollModalContent.classList.remove('scale-100', 'opacity-100');
+        enrollModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            enrollModal.classList.add('hidden');
+        }, 300);
+    };
+
+    window.openImportModal = function() {
+        if (!importModal || !importModalContent) return;
+        importModal.classList.remove('hidden');
+        setTimeout(() => {
+            importModalContent.classList.remove('scale-95', 'opacity-0');
+            importModalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    };
+
+    window.closeImportModal = function() {
+        if (!importModal || !importModalContent) return;
+        importModalContent.classList.remove('scale-100', 'opacity-100');
+        importModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            importModal.classList.add('hidden');
+        }, 300);
+    };
+
+    window.updateFileName = function(input) {
+        const fileLabel = document.getElementById('file_label');
+        if (input.files && input.files.length > 0) {
+            fileLabel.textContent = input.files[0].name;
+            fileLabel.classList.add('text-neon');
+        } else {
+            fileLabel.textContent = 'Pilih file CSV atau JSON';
+            fileLabel.classList.remove('text-neon');
+        }
     };
 });
 </script>
