@@ -905,7 +905,27 @@ class AthleteController extends Controller
 
         try {
             $accessToken = $runner->strava_access_token;
-            if ($runner->strava_expires_at && Carbon::parse($runner->strava_expires_at)->lte(now()->addMinute())) {
+
+            // Check if dummy token
+            if (str_contains($accessToken, 'dummy') || str_contains($runner->strava_refresh_token, 'dummy')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Koneksi Strava atlet tidak valid (token dummy). Silakan minta atlet untuk menghubungkan akun Strava riil dari dashboard mereka.',
+                ], 400);
+            }
+
+            $needsRefresh = false;
+            if ($runner->strava_expires_at) {
+                try {
+                    $needsRefresh = Carbon::parse($runner->strava_expires_at)->lte(now()->addMinute());
+                } catch (\Throwable $e) {
+                    $needsRefresh = true;
+                }
+            } else {
+                $needsRefresh = true;
+            }
+
+            if ($needsRefresh) {
                 $refresh = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
                     'client_id' => $clientId,
                     'client_secret' => $clientSecret,
@@ -913,27 +933,30 @@ class AthleteController extends Controller
                     'refresh_token' => $runner->strava_refresh_token,
                 ]);
 
-                if (! $refresh->successful()) {
+                if ($refresh->successful()) {
+                    $tokenData = $refresh->json();
+                    $accessToken = data_get($tokenData, 'access_token');
+
+                    $runner->update([
+                        'strava_access_token' => $accessToken,
+                        'strava_refresh_token' => data_get($tokenData, 'refresh_token', $runner->strava_refresh_token),
+                        'strava_expires_at' => now()->addSeconds((int) data_get($tokenData, 'expires_in', 0)),
+                    ]);
+                } else {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Gagal refresh token Strava atlet.',
+                        'message' => 'Koneksi Strava atlet kedaluwarsa dan gagal diperbarui. Minta atlet menghubungkan ulang akun Strava mereka.',
                     ], 401);
                 }
-
-                $tokenData = $refresh->json();
-                $accessToken = data_get($tokenData, 'access_token');
-
-                $runner->update([
-                    'strava_access_token' => $accessToken,
-                    'strava_refresh_token' => data_get($tokenData, 'refresh_token', $runner->strava_refresh_token),
-                    'strava_expires_at' => now()->addSeconds((int) data_get($tokenData, 'expires_in', 0)),
-                ]);
             }
 
             $after = StravaActivity::where('user_id', $runner->id)->max('start_date');
             $afterEpoch = $after ? Carbon::parse($after)->subHours(6)->timestamp : now()->subDays(45)->timestamp;
 
             $all = [];
+            $apiFailed = false;
+            $apiErrorStatus = null;
+
             for ($page = 1; $page <= 5; $page++) {
                 $res = \Illuminate\Support\Facades\Http::withoutVerifying()
                     ->withToken($accessToken)
@@ -944,10 +967,9 @@ class AthleteController extends Controller
                     ]);
 
                 if (! $res->successful()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Gagal mengambil aktivitas Strava.',
-                    ], 502);
+                    $apiFailed = true;
+                    $apiErrorStatus = $res->status();
+                    break;
                 }
 
                 $items = $res->json();
@@ -959,6 +981,62 @@ class AthleteController extends Controller
                 if (count($items) < 50) {
                     break;
                 }
+            }
+
+            // If the initial API call returned 401, try to refresh token (even if we didn't think it was expired)
+            if ($apiFailed && $apiErrorStatus === 401) {
+                $refresh = \Illuminate\Support\Facades\Http::withoutVerifying()->post('https://www.strava.com/oauth/token', [
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
+                    'grant_type' => 'refresh_token',
+                    'refresh_token' => $runner->strava_refresh_token,
+                ]);
+
+                if ($refresh->successful()) {
+                    $tokenData = $refresh->json();
+                    $accessToken = data_get($tokenData, 'access_token');
+
+                    $runner->update([
+                        'strava_access_token' => $accessToken,
+                        'strava_refresh_token' => data_get($tokenData, 'refresh_token', $runner->strava_refresh_token),
+                        'strava_expires_at' => now()->addSeconds((int) data_get($tokenData, 'expires_in', 0)),
+                    ]);
+
+                    // Retry API call
+                    $all = [];
+                    $apiFailed = false;
+                    for ($page = 1; $page <= 5; $page++) {
+                        $res = \Illuminate\Support\Facades\Http::withoutVerifying()
+                            ->withToken($accessToken)
+                            ->get('https://www.strava.com/api/v3/athlete/activities', [
+                                'after' => $afterEpoch,
+                                'per_page' => 50,
+                                'page' => $page,
+                            ]);
+
+                        if (! $res->successful()) {
+                            $apiFailed = true;
+                            break;
+                        }
+
+                        $items = $res->json();
+                        if (! is_array($items) || empty($items)) {
+                            break;
+                        }
+
+                        $all = array_merge($all, $items);
+                        if (count($items) < 50) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ($apiFailed) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengambil aktivitas Strava. Silakan minta atlet untuk menghubungkan kembali akun Strava mereka.',
+                ], 502);
             }
 
             $uniqueById = [];
