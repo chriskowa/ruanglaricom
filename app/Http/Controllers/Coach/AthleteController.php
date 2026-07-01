@@ -20,6 +20,12 @@ class AthleteController extends Controller
         $coachId = auth()->id();
         $search = $request->input('search');
         $programId = $request->input('program_id');
+        $vdotMin = $request->input('vdot_min');
+        $vdotMax = $request->input('vdot_max');
+        $proximityRunnerId = $request->input('proximity_runner_id');
+        $proximityDiff = $request->input('proximity_diff', 3.0);
+        $sortBy = $request->input('sort_by', 'latest');
+        $tab = $request->input('tab', 'all'); // 'all' or 'clusters'
 
         // Get enrollments for programs created by this coach
         $query = ProgramEnrollment::whereHas('program', function ($q) use ($coachId) {
@@ -38,18 +44,116 @@ class AthleteController extends Controller
             $query->where('program_id', $programId);
         }
 
-        $enrollments = $query->latest()->paginate(10);
+        // Fetch all matching records first to filter/sort by PHP dynamic attributes (vdot)
+        $allEnrollments = $query->get();
 
-        if ($request->ajax()) {
-            return view('coach.athletes._list', compact('enrollments'))->render();
+        // Filter by VDOT range in PHP
+        if ($vdotMin !== null && $vdotMin !== '') {
+            $allEnrollments = $allEnrollments->filter(fn($e) => ($e->runner->vdot ?? 0) >= (float)$vdotMin);
         }
+        if ($vdotMax !== null && $vdotMax !== '') {
+            $allEnrollments = $allEnrollments->filter(fn($e) => ($e->runner->vdot ?? 999) <= (float)$vdotMax);
+        }
+
+        // Proximity filter
+        if ($proximityRunnerId) {
+            $refRunner = \App\Models\User::find($proximityRunnerId);
+            if ($refRunner && $refRunner->vdot) {
+                $refVdot = $refRunner->vdot;
+                $allEnrollments = $allEnrollments->filter(fn($e) => abs(($e->runner->vdot ?? 0) - $refVdot) <= (float)$proximityDiff);
+            }
+        }
+
+        // Calculate clusters from the filtered list (for the clusters view)
+        $sortedForClusters = $allEnrollments->filter(fn($e) => $e->runner->vdot !== null)
+            ->sortByDesc(fn($e) => $e->runner->vdot);
+
+        $vdotClusters = [];
+        $currentCluster = [];
+        $lastVdot = null;
+
+        foreach ($sortedForClusters as $e) {
+            $vdot = $e->runner->vdot;
+            if ($lastVdot === null) {
+                $currentCluster[] = $e;
+            } elseif (abs($lastVdot - $vdot) <= 3.0) {
+                $currentCluster[] = $e;
+            } else {
+                $vdotClusters[] = $currentCluster;
+                $currentCluster = [$e];
+            }
+            $lastVdot = $vdot;
+        }
+        if (!empty($currentCluster)) {
+            $vdotClusters[] = $currentCluster;
+        }
+
+        $noVdotAthletes = $allEnrollments->filter(fn($e) => $e->runner->vdot === null)->values();
+
+        // Sort collection for flat list
+        if ($sortBy === 'vdot_desc') {
+            $allEnrollments = $allEnrollments->sortByDesc(fn($e) => $e->runner->vdot ?? -1);
+        } elseif ($sortBy === 'vdot_asc') {
+            $allEnrollments = $allEnrollments->sortBy(fn($e) => $e->runner->vdot ?? 999);
+        } elseif ($sortBy === 'name') {
+            $allEnrollments = $allEnrollments->sortBy(fn($e) => strtolower($e->runner->name));
+        } else {
+            $allEnrollments = $allEnrollments->sortByDesc('created_at');
+        }
+
+        // Paginate manually for the flat list view
+        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 10;
+        $currentItems = $allEnrollments->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        
+        $enrollments = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentItems,
+            $allEnrollments->count(),
+            $perPage,
+            $currentPage,
+            ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
+        );
 
         // Get coach's programs for filter dropdown
         $programs = \App\Models\Program::where('coach_id', $coachId)
             ->orderBy('title')
             ->get();
 
-        return view('coach.athletes.index', compact('enrollments', 'programs', 'search', 'programId'));
+        // Get unique list of coach's athletes for proximity reference
+        $allCoachAthletes = ProgramEnrollment::whereHas('program', function ($q) use ($coachId) {
+            $q->where('coach_id', $coachId);
+        })
+            ->with('runner')
+            ->get()
+            ->unique('runner_id')
+            ->map(fn($e) => $e->runner)
+            ->filter(fn($r) => $r->vdot !== null)
+            ->sortBy('name');
+
+        if ($request->ajax()) {
+            return view('coach.athletes._list', compact(
+                'enrollments', 
+                'vdotClusters', 
+                'noVdotAthletes', 
+                'tab'
+            ))->render();
+        }
+
+        return view('coach.athletes.index', compact(
+            'enrollments', 
+            'programs', 
+            'search', 
+            'programId',
+            'vdotMin',
+            'vdotMax',
+            'proximityRunnerId',
+            'proximityDiff',
+            'sortBy',
+            'tab',
+            'allCoachAthletes',
+            'vdotClusters',
+            'noVdotAthletes'
+        ));
     }
 
     /**
