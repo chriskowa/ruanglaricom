@@ -47,6 +47,9 @@ body {
     font-size: 0.72rem !important;
     font-weight: 500 !important;
 }
+.fc-event-main, .fc-event-title {
+    color: #f8fafc !important;
+}
 .fc-event.difficulty-easy{border-left:3px solid #10b981 !important}
 .fc-event.difficulty-moderate{border-left:3px solid #f59e0b !important}
 .fc-event.difficulty-hard{border-left:3px solid #ef4444 !important}
@@ -477,7 +480,7 @@ body {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
                 <div class="glass-panel rounded-2xl p-4 md:p-6 relative overflow-hidden" :class="activeMobileTab === 'profile' ? 'block' : 'hidden lg:block'">
-                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none" style="pointer-events: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
@@ -493,16 +496,16 @@ body {
                                 </h3>
                                 <p class="text-xs text-slate-400">Based on your Personal Best (PB)</p>
                             </div>
-                            <div class="flex flex-wrap gap-1.5 justify-end">
-                                <button @click="syncTraining" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded-[4px] border border-slate-700/80 hover:text-white transition flex items-center gap-1" :disabled="syncLoading">
+                            <div class="flex flex-wrap gap-1.5 justify-end relative z-10">
+                                <button type="button" @click.stop="syncTraining" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded-[4px] border border-slate-700/80 hover:text-white transition flex items-center gap-1" :disabled="syncLoading">
                                     <span v-if="syncLoading" class="animate-spin">⟳</span>
                                     <span v-else>⟳</span>
                                     Sync Training
                                 </button>
-                                <button @click="openStravaAnalysisModal" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded-[4px] border border-slate-700/80 hover:text-white transition flex items-center gap-1">
+                                <button type="button" @click.stop="openStravaAnalysisModal" class="text-[11px] bg-slate-800 text-slate-300 px-2 py-1 rounded-[4px] border border-slate-700/80 hover:text-white transition flex items-center gap-1">
                                     <span>⚡</span> Analisis AI MCP
                                 </button>
-                                <button @click="showPbModal = true" class="text-[11px] text-neon hover:underline font-bold px-1.5 py-1">Update PB</button>
+                                <button type="button" @click.stop="openPbModal" class="text-[11px] text-neon hover:underline font-bold px-1.5 py-1">Update PB</button>
                             </div>
                         </div>
 
@@ -1350,7 +1353,9 @@ body {
                             <div class="text-[10px] text-slate-500 font-mono">@{{ guidedStepsDoneCount }}/@{{ guidedSteps.length }}</div>
                         </div>
                         <div class="h-2 rounded-[4px] bg-slate-800 border border-slate-700 overflow-hidden mb-3">
-                                        <div class="space-y-1">
+                            <div class="h-full bg-neon transition-all duration-300" :style="{ width: guidedStepsProgressPct + '%' }"></div>
+                        </div>
+                        <div class="space-y-1">
                             <button v-for="(step, idx) in guidedSteps" :key="step.id" type="button" class="w-full flex justify-between items-center text-xs p-2 rounded-[6px] border transition"
                                     :class="guidedStepChecked(step) ? 'bg-green-500/10 border-green-500/30' : 'bg-slate-800 border-slate-700 hover:border-neon/30'"
                                     @click="toggleGuidedStep(step)">
@@ -1374,7 +1379,6 @@ body {
                                 </div>
                             </button>
                         </div>
-                    </div>
 
 
                     <div v-if="detail.strava_link" class="mt-3 text-sm">
@@ -1470,6 +1474,8 @@ body {
                                 <li v-for="(item, idx) in detail.ai_analysis.risk_flags" :key="'risk-' + idx">• @{{ item }}</li>
                             </ul>
                         </div>
+                    </div>
+                </div>
                    <!-- Action Buttons -->
                 <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'repetition' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race'" class="mt-3.5 border-t border-slate-700/60 pt-3.5">
                     <div v-if="detail.status === 'pending' || !detail.status">
@@ -1529,6 +1535,7 @@ body {
                     <button class="px-2.5 py-1.5 rounded-[6px] bg-slate-800 text-slate-300 border border-slate-700 text-[11px] ml-auto font-bold uppercase tracking-wider" @click="closeDetail">Close</button>
                 </div>
             </div>
+        </div>
         </div>
         </div>
 
@@ -1955,7 +1962,7 @@ body {
 
                     <!-- Header -->
                     <div class="relative bg-gradient-to-r from-slate-900 via-purple-900/40 to-slate-900 px-5 py-4 border-b border-slate-700/60">
-                        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background: radial-gradient(ellipse at top, #a855f7, transparent)"></div>
+                        <div class="absolute inset-0 opacity-10 pointer-events-none" style="pointer-events: none; background: radial-gradient(ellipse at top, #a855f7, transparent)"></div>
                         <div class="flex justify-between items-start relative z-10">
                             <div>
                                 <div class="flex items-center gap-2 mb-1">
@@ -2578,7 +2585,7 @@ body {
             </div>
         </div>
 
-    </div>
+    </main>
 </div>
 @endsection
 @push('scripts')
@@ -3070,6 +3077,18 @@ createApp({
         });
 
         const showPbModal = ref(false);
+        const openPbModal = async () => {
+            showDetailModal.value = false;
+            showStravaAnalysisModal.value = false;
+            showVdotModal.value = false;
+            showFormModal.value = false;
+            showRaceModal.value = false;
+            showPbModal.value = false;
+            
+            await nextTick();
+            
+            showPbModal.value = true;
+        };
         const pbLoading = ref(false);
         const pbForm = reactive({
             pb_5k: trainingProfile.value.pb?.['5k'] || '',
@@ -4828,6 +4847,7 @@ createApp({
             showVdotModal.value = false;
             showFormModal.value = false;
             showRaceModal.value = false;
+            showStravaAnalysisModal.value = false;
             
             const props = info.event.extendedProps || {};
             const type = props.type || null;
@@ -4902,6 +4922,10 @@ createApp({
         };
 
         const showPlanDetail = (plan) => {
+            showStravaAnalysisModal.value = false;
+            showVdotModal.value = false;
+            showFormModal.value = false;
+            showRaceModal.value = false;
             detail.session = plan.session || null;
             detailTitle.value = plan.program_title || 'Program Session';
             detail.date_formatted = plan.date_formatted || null;
@@ -5204,6 +5228,10 @@ createApp({
         };
 
         const openStravaAnalysisModal = async () => {
+            showDetailModal.value = false;
+            showVdotModal.value = false;
+            showFormModal.value = false;
+            showRaceModal.value = false;
             showStravaAnalysisModal.value = true;
             stravaAnalysisResult.value = null;
             stravaAnalysisLoading.value = false;
@@ -5334,7 +5362,7 @@ createApp({
             showDetailModal, detail, detailTitle, closeDetail, deleteCustomWorkout,
             showFormModal, form, openFormForToday, closeForm, saveCustomWorkout, showPlanDetail, updateSessionStatus, deleteEnrollment,
             resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
-            trainingProfile, formatPace, showPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
+            trainingProfile, formatPace, showPbModal, openPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
             stravaLinkInput, notesInput, rpeInput, feelingInput, finishActivityWithLink, profileTab, chatCoach,
             aiCoachSummary, aiCoachCues, workoutGoalText, workoutEffectText, guidedSteps, guidedStepsDoneCount, guidedStepsProgressPct, guidedStepChecked, toggleGuidedStep,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, isSyncingStrava, syncStrava, weeklyVolume, maxVolume,
