@@ -33,7 +33,7 @@
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     Calendar
                 </a>
-                <a href="{{ route('programs.index') }}" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-sm flex items-center justify-center gap-2">
+                <a href="{{ route('runner.programs') }}" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-sm flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                     Programs
                 </a>
@@ -170,7 +170,7 @@
                                     </button>
 
                                     <!-- Card 2: Coach Programs -->
-                                    <a href="{{ route('programs.index') }}" class="relative group overflow-hidden rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:border-neon/50 p-6 text-left transition-all hover:scale-[1.01] duration-300">
+                                    <a href="{{ route('runner.programs') }}" class="relative group overflow-hidden rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:border-neon/50 p-6 text-left transition-all hover:scale-[1.01] duration-300 font-bold">
                                         <div class="absolute -inset-px bg-gradient-to-r from-neon/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                                         <div class="flex items-start justify-between gap-4 relative z-10">
                                             <div class="p-3 bg-neon/15 rounded-xl text-neon group-hover:scale-110 transition-transform">
@@ -448,6 +448,105 @@
                     </script>
                 @endif
 
+                <!-- Card Update Personal Best -->
+                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute -right-10 -top-10 w-24 h-24 bg-neon/5 rounded-full blur-2xl group-hover:bg-neon/10 transition-all duration-700"></div>
+                    
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-lg">⚡</span>
+                        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Personal Best & Parameter Test</div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Jarak / Parameter Test</label>
+                            <select x-model="card_pb_distance" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-neon transition-colors cursor-pointer">
+                                <option value="5k">5 Kilometer (5K)</option>
+                                <option value="10k">10 Kilometer (10K)</option>
+                                <option value="21k">Half Marathon (21K)</option>
+                                <option value="42k">Full Marathon (42K)</option>
+                                <option value="balke">Balke Test (15 Menit Run)</option>
+                            </select>
+                        </div>
+
+                        <!-- Time inputs for standard distances -->
+                        <div x-show="card_pb_distance !== 'balke'" class="space-y-1">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Catatan Waktu Terkini (PB)</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="flex flex-col items-center">
+                                    <input x-model="card_pb_hours" type="number" min="0" max="99" class="w-full px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs focus:outline-none focus:border-neon" placeholder="HH">
+                                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Jam</span>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <input x-model="card_pb_minutes" type="number" min="0" max="59" class="w-full px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs focus:outline-none focus:border-neon" placeholder="MM">
+                                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Menit</span>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <input x-model="card_pb_seconds" type="number" min="0" max="59" class="w-full px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-center font-bold text-xs focus:outline-none focus:border-neon" placeholder="SS">
+                                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Detik</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Distance input for Balke test -->
+                        <div x-show="card_pb_distance === 'balke'" class="space-y-1">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Jarak yang Ditempuh (15 Menit)</label>
+                            <div class="relative">
+                                <input x-model="card_pb_balke" type="number" min="0" max="10000" class="w-full pl-3 pr-12 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold text-xs focus:outline-none focus:border-neon" placeholder="Contoh: 3200">
+                                <span class="absolute right-3 top-2.5 text-[10px] font-bold text-slate-500 uppercase">Meter</span>
+                            </div>
+                            <span class="text-[9px] text-slate-500 leading-tight block mt-1">
+                                Jarak ini akan dihitung ke VDOT score menggunakan Balke 15-minute formula.
+                            </span>
+                        </div>
+
+                        <button @click="submitCardPb()" :disabled="card_pb_loading" class="w-full py-2.5 rounded-xl bg-neon hover:bg-neon/90 text-dark font-black text-xs transition duration-300 flex items-center justify-center gap-2">
+                            <span x-show="!card_pb_loading">Update & Hitung Ulang VDOT</span>
+                            <span x-show="card_pb_loading" class="flex items-center gap-1">
+                                <svg class="animate-spin h-3 w-3 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Memproses...
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Current PBs at a glance -->
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-[10px]">
+                        @if(auth()->user()->pb_5k)
+                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850">
+                                <span class="text-slate-500">5K:</span>
+                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_5k }}</span>
+                            </div>
+                        @endif
+                        @if(auth()->user()->pb_10k)
+                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850">
+                                <span class="text-slate-500">10K:</span>
+                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_10k }}</span>
+                            </div>
+                        @endif
+                        @if(auth()->user()->pb_hm)
+                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850">
+                                <span class="text-slate-500">HM:</span>
+                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_hm }}</span>
+                            </div>
+                        @endif
+                        @if(auth()->user()->pb_fm)
+                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850">
+                                <span class="text-slate-500">FM:</span>
+                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_fm }}</span>
+                            </div>
+                        @endif
+                        @if(auth()->user()->pb_balke)
+                            <div class="flex justify-between px-2 py-1 bg-slate-900/40 rounded border border-slate-850 col-span-2">
+                                <span class="text-slate-500">Balke Test (15m):</span>
+                                <span class="font-bold text-white font-mono">{{ auth()->user()->pb_balke }}m</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
                     <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Progress</div>
                     <div class="mt-2 flex items-end justify-between gap-3">
@@ -539,7 +638,7 @@
                             <div class="text-xs text-slate-400">Training</div>
                             <div class="text-sm font-black text-white">Calendar</div>
                         </a>
-                        <a href="{{ route('programs.index') }}" class="p-3 rounded-xl bg-slate-900/40 border border-slate-700/60 hover:border-neon/40 transition">
+                        <a href="{{ route('runner.programs') }}" class="p-3 rounded-xl bg-slate-900/40 border border-slate-700/60 hover:border-neon/40 transition">
                             <div class="text-xs text-slate-400">Explore</div>
                             <div class="text-sm font-black text-white">Programs</div>
                         </a>
@@ -1105,6 +1204,108 @@
             loading: false,
             saving: false,
             notification: null,
+
+            card_pb_distance: '5k',
+            card_pb_hours: '',
+            card_pb_minutes: '',
+            card_pb_seconds: '',
+            card_pb_balke: '',
+            card_pb_loading: false,
+            pbs: {
+                '5k': '{{ auth()->user()->pb_5k ?? "" }}',
+                '10k': '{{ auth()->user()->pb_10k ?? "" }}',
+                '21k': '{{ auth()->user()->pb_hm ?? "" }}',
+                '42k': '{{ auth()->user()->pb_fm ?? "" }}',
+                'balke': '{{ auth()->user()->pb_balke ?? "" }}'
+            },
+
+            onCardPbDistanceChange() {
+                const dist = this.card_pb_distance;
+                const value = this.pbs[dist] || '';
+                if (dist === 'balke') {
+                    this.card_pb_balke = value;
+                } else {
+                    if (value && value.includes(':')) {
+                        const parts = value.split(':');
+                        this.card_pb_hours = parts[0] || '';
+                        this.card_pb_minutes = parts[1] || '';
+                        this.card_pb_seconds = parts[2] || '';
+                    } else {
+                        this.card_pb_hours = '';
+                        this.card_pb_minutes = '';
+                        this.card_pb_seconds = '';
+                    }
+                }
+            },
+
+            async submitCardPb() {
+                this.card_pb_loading = true;
+                
+                const payload = {};
+                if (this.card_pb_distance === 'balke') {
+                    if (!this.card_pb_balke || parseInt(this.card_pb_balke) <= 0) {
+                        this.showNotification('Harap masukkan jarak balke test yang valid dalam meter!', 'error');
+                        this.card_pb_loading = false;
+                        return;
+                    }
+                    payload.pb_balke = parseInt(this.card_pb_balke);
+                } else {
+                    const h = String(this.card_pb_hours || 0).padStart(2, '0');
+                    const m = String(this.card_pb_minutes || 0).padStart(2, '0');
+                    const s = String(this.card_pb_seconds || 0).padStart(2, '0');
+                    const pb_time = `${h}:${m}:${s}`;
+                    
+                    if (parseInt(h) === 0 && parseInt(m) === 0 && parseInt(s) === 0) {
+                        this.showNotification('Harap isi waktu parameter test/PB!', 'error');
+                        this.card_pb_loading = false;
+                        return;
+                    }
+
+                    if (this.card_pb_distance === '5k') payload.pb_5k = pb_time;
+                    if (this.card_pb_distance === '10k') payload.pb_10k = pb_time;
+                    if (this.card_pb_distance === '21k') payload.pb_hm = pb_time;
+                    if (this.card_pb_distance === '42k') payload.pb_fm = pb_time;
+                }
+
+                try {
+                    const response = await fetch('{{ route("runner.calendar.update-pb") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.showNotification('Personal Best / Parameter Test berhasil diperbarui!', 'success');
+                        
+                        if (this.card_pb_distance === 'balke') {
+                            this.pbs['balke'] = this.card_pb_balke;
+                        } else {
+                            const h = String(this.card_pb_hours || 0).padStart(2, '0');
+                            const m = String(this.card_pb_minutes || 0).padStart(2, '0');
+                            const s = String(this.card_pb_seconds || 0).padStart(2, '0');
+                            const pb_time = `${h}:${m}:${s}`;
+                            this.pbs[this.card_pb_distance] = pb_time;
+                        }
+
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1200);
+                    } else {
+                        this.showNotification(data.message || 'Gagal memperbarui Personal Best.', 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    this.showNotification('Terjadi kesalahan sistem saat memperbarui Personal Best.', 'error');
+                } finally {
+                    this.card_pb_loading = false;
+                }
+            },
             
             pb_distance: '5k',
             pb_hours: '',
@@ -1173,6 +1374,9 @@
             },
 
             init() {
+                this.onCardPbDistanceChange();
+                this.$watch('card_pb_distance', () => this.onCardPbDistanceChange());
+
                 // Auto suggest target time when pb or target distance changes
                 this.$watch('pb_hours', () => this.suggestGoalTime());
                 this.$watch('pb_minutes', () => this.suggestGoalTime());

@@ -872,6 +872,7 @@ Route::middleware('auth')->group(function () {
     // Runner routes
     Route::middleware('role:runner')->prefix('runner')->name('runner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/programs', [App\Http\Controllers\Runner\ProgramController::class, 'index'])->name('programs');
 
         Route::get('/strava/connect', [App\Http\Controllers\Runner\StravaController::class, 'connect'])->name('strava.connect');
         Route::get('/strava/callback', [App\Http\Controllers\Runner\StravaController::class, 'callback'])->name('strava.callback');

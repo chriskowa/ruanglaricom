@@ -1287,6 +1287,7 @@ class CalendarController extends Controller
             'pb_10k' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
             'pb_hm' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
             'pb_fm' => 'nullable|regex:/^[0-9]{2}:[0-5][0-9]:[0-5][0-9]$/',
+            'pb_balke' => 'nullable|integer|min:0|max:10000',
         ]);
 
         $user = auth()->user();

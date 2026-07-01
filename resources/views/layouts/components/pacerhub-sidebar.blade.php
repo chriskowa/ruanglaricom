@@ -187,7 +187,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('programs.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('programs.*') ? $activeClass : $inactiveClass }}">
+                                <a href="{{ route('runner.programs') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.programs') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-clipboard-list"></i></span>
                                     <span>Programs</span>
                                 </a>

@@ -57,6 +57,7 @@ class User extends Authenticatable
         'pb_10k',
         'pb_hm',
         'pb_fm',
+        'pb_balke',
         'audit_history',
         'weekly_volume',
         'weekly_km_target',
@@ -315,6 +316,17 @@ class User extends Authenticatable
                 } catch (\Exception $e) {
                     continue;
                 }
+            }
+        }
+
+        // Balke Test 15-Minute Run (in meters)
+        if ($this->pb_balke) {
+            try {
+                $balkeVdot = (($this->pb_balke / 15) - 133) * 0.172 + 33.3;
+                if ($balkeVdot > $bestVdot) {
+                    $bestVdot = $balkeVdot;
+                }
+            } catch (\Exception $e) {
             }
         }
 
