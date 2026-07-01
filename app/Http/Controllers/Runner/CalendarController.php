@@ -70,11 +70,20 @@ class CalendarController extends Controller
     public function events(Request $request)
     {
         $user = auth()->user();
-        $start = $request->get('start'); // ISO date string
-        $end = $request->get('end'); // ISO date string
-
-        // Get user training paces
+        $start = $request->get('start');
+        $end = $request->get('end');
         $paces = $user->training_paces;
+
+        $startCarbon = null;
+        $endCarbon = null;
+        if ($start && $end) {
+            try {
+                $startCarbon = Carbon::parse($start);
+                $endCarbon = Carbon::parse($end);
+            } catch (\Exception $e) {
+                // Ignore parsing errors
+            }
+        }
 
         $enrollments = ProgramEnrollment::where('runner_id', $user->id)
             ->where('status', 'active')
@@ -83,6 +92,11 @@ class CalendarController extends Controller
             })
             ->with('program')
             ->get();
+
+        $enrollmentIds = $enrollments->pluck('id')->toArray();
+        $trackings = ProgramSessionTracking::whereIn('enrollment_id', $enrollmentIds)
+            ->get()
+            ->groupBy('enrollment_id');
 
         $events = [];
 
@@ -105,36 +119,31 @@ class CalendarController extends Controller
             $difficulty = $program->difficulty ?? 'beginner';
             $isUnpaidGenerator = ($program->is_self_generated ?? false) && ($enrollment->payment_status !== 'paid');
 
+            $enrollmentTrackings = $trackings->get($enrollment->id) ?? collect();
+
             foreach ($sessions as $index => $session) {
                 if (! isset($session['day']) || ! is_numeric($session['day'])) {
                     continue;
                 }
 
+                $day = (int) $session['day'];
+
                 try {
-                    $sessionDate = $startDate->copy()->addDays((int) $session['day'] - 1);
+                    $sessionDate = $startDate->copy()->addDays($day - 1);
                 } catch (\Exception $e) {
                     continue;
                 }
 
                 // Check for rescheduled date
-                $tracking = ProgramSessionTracking::where('enrollment_id', $enrollment->id)
-                    ->where('session_day', (int) $session['day'])
-                    ->first();
+                $tracking = $enrollmentTrackings->firstWhere('session_day', $day);
 
                 if ($tracking && $tracking->rescheduled_date) {
                     $sessionDate = Carbon::parse($tracking->rescheduled_date);
                 }
 
                 // Only include sessions within the requested date range
-                if ($start && $end) {
-                    try {
-                        $startCarbon = Carbon::parse($start);
-                        $endCarbon = Carbon::parse($end);
-
-                        if ($sessionDate->lt($startCarbon) || $sessionDate->gt($endCarbon)) {
-                            continue;
-                        }
-                    } catch (\Exception $e) {
+                if ($startCarbon && $endCarbon) {
+                    if ($sessionDate->lt($startCarbon) || $sessionDate->gt($endCarbon)) {
                         continue;
                     }
                 }
@@ -412,6 +421,11 @@ class CalendarController extends Controller
                 ->with('program')
                 ->get();
 
+            $enrollmentIds = $enrollments->pluck('id')->toArray();
+            $trackings = ProgramSessionTracking::whereIn('enrollment_id', $enrollmentIds)
+                ->get()
+                ->groupBy('enrollment_id');
+
             $workoutPlans = [];
             $plansByDate = [];
 
@@ -435,22 +449,24 @@ class CalendarController extends Controller
                     continue;
                 }
 
+                $enrollmentTrackings = $trackings->get($enrollment->id) ?? collect();
+
                 foreach ($sessions as $index => $session) {
                     // Skip if session doesn't have 'day' field
                     if (! isset($session['day']) || ! is_numeric($session['day'])) {
                         continue;
                     }
 
+                    $day = (int) $session['day'];
+
                     try {
-                        $sessionDate = $startDate->copy()->addDays((int) $session['day'] - 1);
+                        $sessionDate = $startDate->copy()->addDays($day - 1);
                     } catch (\Exception $e) {
                         continue;
                     }
 
                     // Get tracking status and rescheduled date
-                    $tracking = ProgramSessionTracking::where('enrollment_id', $enrollment->id)
-                        ->where('session_day', (int) $session['day'])
-                        ->first();
+                    $tracking = $enrollmentTrackings->firstWhere('session_day', $day);
 
                     if ($tracking && $tracking->rescheduled_date) {
                         $sessionDate = Carbon::parse($tracking->rescheduled_date);
