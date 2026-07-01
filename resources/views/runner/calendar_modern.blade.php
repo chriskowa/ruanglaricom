@@ -308,7 +308,7 @@ body {
                         <span class="text-slate-400">›</span>
                     </button>
                     <button type="button" class="w-full px-3 py-2.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between" @click="showHeaderActions = false; openStravaAnalysisModal();">
-                        <span>⚡ Analisis My Training (AI)</span>
+                        <span>Analisis My Training (AI)</span>
                         <span class="text-slate-400">›</span>
                     </button>
                     <a href="{{ route('programs.index') }}" class="w-full px-3 py-2.5 rounded-[4px] bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-between">
@@ -1737,7 +1737,7 @@ body {
             <div class="relative z-10 max-w-2xl mx-auto my-10 bg-slate-900 border border-slate-700 rounded-[6px] p-5 shadow-2xl">
                 <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
                     <h3 class="text-white font-black text-xl flex items-center gap-2">
-                        <span class="text-purple-400">⚡</span> Strava AI Training Analyzer (MCP)
+                        Strava AI Training Analyzer (MCP)
                     </h3>
                     <button @click="showStravaAnalysisModal = false" class="text-slate-400 hover:text-white text-2xl font-bold">✕</button>
                 </div>
@@ -1965,8 +1965,7 @@ body {
                         <div class="absolute inset-0 opacity-10 pointer-events-none" style="pointer-events: none; background: radial-gradient(ellipse at top, #a855f7, transparent)"></div>
                         <div class="flex justify-between items-start relative z-10">
                             <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-base">🚀</span>
+                                <div class="flex items-center gap-2 mb-1">                                    
                                     <h3 class="text-white font-bold text-base tracking-tight">
                                         <span v-if="insightType === 'generate'">Program Performance Projection</span>
                                         <span v-else>PB Update — Performance Analysis</span>
@@ -2394,7 +2393,7 @@ body {
             <div class="relative z-10 max-w-lg mx-auto my-10 bg-slate-900 border border-slate-700 rounded-[6px] p-5 shadow-2xl">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-white font-bold text-base flex items-center gap-2">
-                        <span class="text-xl">📅</span> Reschedule Program
+                        Reschedule Program
                     </h3>
                     <button class="text-slate-400 hover:text-white" @click="showRescheduleModal = false">✕</button>
                 </div>
