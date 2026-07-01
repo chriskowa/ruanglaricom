@@ -201,12 +201,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 @foreach($marketPrograms as $prog)
                     @php $coach = $prog->coach; @endphp
-                    <a href="{{ route('programs.show', $prog->slug) }}" class="group rounded-2xl bg-slate-900/40 border border-slate-800/60 overflow-hidden hover:border-neon/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
-                        <div>
+                    <div class="group rounded-2xl bg-slate-900/40 border border-slate-800/60 overflow-hidden hover:border-neon/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
+                        <a href="{{ route('programs.show', $prog->slug) }}" class="block">
                             <!-- Cover Image -->
                             <div class="relative aspect-video w-full bg-slate-900 overflow-hidden">
-                                @if($prog->image)
-                                    <img src="{{ asset('storage/' . $prog->image) }}" alt="{{ $prog->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                @if($prog->thumbnail)
+                                    <img src="{{ $prog->thumbnail_url }}" alt="{{ $prog->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                @elseif($prog->banner)
+                                    <img src="{{ $prog->banner_url }}" alt="{{ $prog->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 @else
                                     <div class="w-full h-full bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center text-slate-700">
                                         <i class="fas fa-running text-3xl"></i>
@@ -230,26 +232,61 @@
                                     <span><i class="fas fa-map-marker-alt mr-1"></i>{{ $prog->city->name ?? 'Online' }}</span>
                                 </div>
                             </div>
-                        </div>
+                        </a>
 
-                        <!-- Footer / Pricing -->
-                        <div class="p-5 pt-0 border-t border-slate-800/40 mt-3 flex items-center justify-between">
-                            @if($coach)
-                            <div class="flex items-center gap-2">
-                                <img src="{{ $coach->avatar ? (str_starts_with($coach->avatar, 'http') ? $coach->avatar : (str_starts_with($coach->avatar, '/storage') ? asset(ltrim($coach->avatar, '/')) : asset('storage/' . $coach->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ $coach->name }}" class="w-5 h-5 rounded-full object-cover">
-                                <span class="text-[10px] text-slate-400 font-bold truncate max-w-[80px]">{{ $coach->name }}</span>
+                        <!-- Footer / Pricing & Actions -->
+                        <div class="p-5 pt-0 border-t border-slate-800/40 mt-3 flex flex-col gap-4">
+                            <div class="flex items-center justify-between mt-3">
+                                @if($coach)
+                                <div class="flex items-center gap-2">
+                                    <img src="{{ $coach->avatar ? (str_starts_with($coach->avatar, 'http') ? $coach->avatar : (str_starts_with($coach->avatar, '/storage') ? asset(ltrim($coach->avatar, '/')) : asset('storage/' . $coach->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ $coach->name }}" class="w-5 h-5 rounded-full object-cover">
+                                    <span class="text-[10px] text-slate-400 font-bold truncate max-w-[80px]">{{ $coach->name }}</span>
+                                </div>
+                                @endif
+
+                                <div class="text-xs font-black text-neon">
+                                    @if($prog->price == 0)
+                                        GRATIS
+                                    @else
+                                        Rp{{ number_format($prog->price, 0, ',', '.') }}
+                                    @endif
+                                </div>
                             </div>
-                            @endif
 
-                            <div class="text-xs font-black text-neon">
-                                @if($prog->price == 0)
-                                    GRATIS
+                            @php
+                                $isEnrolled = auth()->user() ? \App\Models\ProgramEnrollment::where('runner_id', auth()->id())
+                                    ->where('program_id', $prog->id)
+                                    ->exists() : false;
+                            @endphp
+
+                            <div class="w-full">
+                                @if($isEnrolled)
+                                    <a href="{{ route('runner.calendar') }}" class="w-full py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-350 hover:border-neon hover:text-neon font-bold text-xs transition flex items-center justify-center gap-1.5">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        Sudah Diambil
+                                    </a>
                                 @else
-                                    Rp{{ number_format($prog->price, 0, ',', '.') }}
+                                    @if($prog->price == 0)
+                                        <form action="{{ route('runner.programs.enroll-free', $prog->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="w-full py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 hover:shadow-neon/20 transition flex items-center justify-center gap-1.5">
+                                                <i class="fas fa-plus-circle"></i>
+                                                Ambil Gratis
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('marketplace.cart.add', $prog->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="w-full py-2.5 rounded-xl bg-neon text-dark font-black text-xs hover:bg-neon/90 hover:shadow-neon/20 transition flex items-center justify-center gap-1.5">
+                                                <i class="fas fa-shopping-cart"></i>
+                                                Beli Sekarang
+                                            </button>
+                                        </form>
+                                    @endif
                                 @endif
                             </div>
                         </div>
-                    </a>
+                    </div>
                 @endforeach
             </div>
         @else
