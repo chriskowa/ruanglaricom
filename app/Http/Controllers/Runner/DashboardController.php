@@ -322,6 +322,38 @@ class DashboardController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
+        // Get active enrollments with program.coach for calendar
+        $enrollments = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'active')
+            ->whereHas('program', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->with(['program.coach'])
+            ->get();
+
+        // Get Program Bag (Purchased)
+        $programBag = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'purchased')
+            ->with(['program.coach'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Get Cancelled Programs (History/Archive)
+        $cancelledPrograms = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'cancelled')
+            ->with(['program.coach'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        // Training Profile Data via service
+        $trainingProfile = app(\App\Services\RunningProfileService::class)->getProfile($user);
+
+        // Check 40 Days Challenge Enrollment
+        $isEnrolled40Days = $enrollments->contains(function ($enrollment) {
+            return $enrollment->program_id == 9 ||
+                   ($enrollment->program && ($enrollment->program->hardcoded === '40days' || \Illuminate\Support\Str::contains($enrollment->program->slug, '40days')));
+        });
+
         return view('runner.dashboard', [
             'activeEnrollments' => $activeEnrollments,
             'walletBalance' => $user->wallet ? $user->wallet->balance : 0,
@@ -343,6 +375,12 @@ class DashboardController extends Controller
             'greeting' => $greeting,
             'weeklyReports' => $weeklyReports,
             'eventRegistrations' => $eventRegistrations,
+            // Calendar fields
+            'enrollments' => $enrollments,
+            'programBag' => $programBag,
+            'cancelledPrograms' => $cancelledPrograms,
+            'trainingProfile' => $trainingProfile,
+            'isEnrolled40Days' => $isEnrolled40Days,
         ]);
     }
 

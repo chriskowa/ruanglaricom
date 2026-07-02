@@ -3,13 +3,64 @@
 
 @section('title', 'Runner Dashboard')
 
+@push('styles')
+    @include('runner.calendar.styles')
+    <style>
+        .tab-btn {
+            position: relative;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            color: #ccff00 !important;
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #ccff00;
+        }
+    </style>
+@endpush
+
 @section('content')
-<div x-data="dashboardComponent()" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
+<div class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17] bg-gradient-to-b from-[#060a17] via-[#0d162d] to-[#060a17]">
     <div class="max-w-7xl mx-auto">
-        <div class="mt-6 md:mt-10 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div class="mt-6 md:mt-10 flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-slate-800/80 pb-4">
             <div class="min-w-0">
                 <div class="text-neon font-mono text-xs tracking-widest uppercase">{{ $greeting }}, Runner</div>
                 <h1 class="text-3xl md:text-5xl font-black text-white italic tracking-tighter truncate">{{ strtoupper(auth()->user()->name) }}</h1>
+                
+                <!-- Tab Switching Pills -->
+                <div class="mt-6 flex gap-6">
+                    <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn pb-2 font-black italic uppercase tracking-wider text-sm transition-all text-slate-400 hover:text-white active">
+                        Ringkasan (Overview)
+                    </button>
+                    <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="tab-btn pb-2 font-black italic uppercase tracking-wider text-sm transition-all text-slate-400 hover:text-white">
+                        Jadwal Lari (Calendar)
+                    </button>
+                    <button onclick="switchTab('strava')" id="tab-btn-strava" class="tab-btn pb-2 font-black italic uppercase tracking-wider text-sm transition-all text-slate-400 hover:text-white">
+                        Strava Activity
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 w-full md:w-auto md:flex">
+                <button onclick="switchTab('calendar')" id="dashboard-calendar-btn" class="px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all shadow-lg shadow-neon/20 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    Calendar
+                </button>
+                <a href="{{ route('runner.programs') }}" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-sm flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    Programs
+                </a>
+            </div>
+        </div>
+
+        <!-- Tab Content Overview (Alpine.js component wrapper) -->
+        <div id="tab-content-overview" class="tab-content mt-6">
+            <div x-data="dashboardComponent()">
                 <div class="mt-3 flex flex-wrap items-center gap-2">
                     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/50 border border-slate-700/60 text-xs text-slate-300">
                         <span class="text-slate-400">Hari ini</span>
@@ -18,27 +69,15 @@
                         <span id="runner-dashboard-time" class="font-mono text-slate-300"></span>
                     </div>
                     @if(!empty($nextWorkout))
-                        <a href="{{ route('runner.calendar') }}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neon/10 border border-neon/20 text-xs text-neon hover:bg-neon/15 transition">
+                        <button onclick="switchTab('calendar')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neon/10 border border-neon/20 text-xs text-neon hover:bg-neon/15 transition">
                             <span class="font-bold">Next</span>
                             <span class="text-slate-200">{{ ucwords(str_replace('_', ' ', (string) ($nextWorkout['type'] ?? 'Run'))) }}</span>
                             @if(!empty($nextWorkout['distance'])) <span class="text-slate-400">•</span> <span class="text-slate-200">{{ $nextWorkout['distance'] }} km</span> @endif
                             <span class="text-slate-400">•</span>
                             <span class="text-slate-200">{{ $nextWorkout['date_label'] ?? '' }}</span>
-                        </a>
+                        </button>
                     @endif
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 w-full md:w-auto md:flex">
-                <a href="{{ route('runner.calendar') }}" class="px-4 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition-all shadow-lg shadow-neon/20 flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    Calendar
-                </a>
-                <a href="{{ route('runner.programs') }}" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition-all font-bold text-sm flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                    Programs
-                </a>
-            </div>
-        </div>
 
         @if (session('success'))
             <div class="mt-6 p-4 rounded-2xl bg-green-900/30 border border-green-500/30 text-green-200">
@@ -1165,7 +1204,21 @@
         </div>
     </div>
 
-</div>
+            </div> <!-- closes x-data="dashboardComponent()" -->
+        </div> <!-- closes id="tab-content-overview" -->
+
+        <!-- Tab Content Calendar (Vue.js component wrapper) -->
+        <div id="tab-content-calendar" class="tab-content mt-6 hidden">
+            @include('runner.calendar.html')
+        </div>
+        
+        <!-- Tab Content Strava (Iframe loader) -->
+        <div id="tab-content-strava" class="tab-content mt-6 hidden">
+            <iframe id="strava-iframe" src="/calendar?embed=1#strava" class="w-full min-h-[800px] border-0 bg-transparent" scrolling="no"></iframe>
+        </div>
+
+    </div> <!-- closes max-w-7xl mx-auto -->
+</div> <!-- closes wrapper -->
 @push('scripts')
 <script>
     (function () {
@@ -1759,5 +1812,58 @@
         };
     }
 </script>
+
+<script>
+    function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        
+        // Show target tab content
+        const targetContent = document.getElementById('tab-content-' + tabName);
+        if (targetContent) targetContent.classList.remove('hidden');
+
+        // Update active class on tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        const targetBtn = document.getElementById('tab-btn-' + tabName);
+        if (targetBtn) targetBtn.classList.add('active');
+
+        // Update URL query parameter
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tabName);
+        window.history.pushState({}, '', url);
+
+        // If calendar tab, trigger window resize event to force FullCalendar to re-render
+        if (tabName === 'calendar') {
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 100);
+        }
+    }
+
+    // Auto-switch based on URL parameter on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab === 'calendar') {
+            switchTab('calendar');
+        } else if (tab === 'strava') {
+            switchTab('strava');
+        } else {
+            switchTab('overview');
+        }
+    });
+
+    // Listen for iframe height adjustments to make it look native
+    window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'resize-iframe') {
+            const iframe = document.getElementById('strava-iframe');
+            if (iframe && e.data.height) {
+                // Add minor padding to prevent clipping
+                iframe.style.height = (e.data.height + 20) + 'px';
+            }
+        }
+    }, false);
+</script>
+@include('runner.calendar.scripts')
 @endpush
 @endsection

@@ -3,6 +3,31 @@
 @section('title', 'Ruanglari - Race Calendar & Ruang Lari Strava Premium')
 
 @section('content')
+    @if(request()->has('embed'))
+        <style>
+            #ph-sidebar { display: none !important; }
+            #main-content-wrapper { padding-left: 0 !important; padding-top: 0 !important; margin: 0 !important; }
+            #pacerhub-nav { display: none !important; }
+            #chatbox-toggle { display: none !important; }
+            body { padding-top: 0 !important; background: transparent !important; overflow: hidden !important; }
+            header { display: none !important; }
+            main { padding-top: 0 !important; margin: 0 !important; }
+            .max-w-7xl { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+        </style>
+        <script>
+            (function() {
+                if (window.parent && window.parent !== window) {
+                    function reportHeight() {
+                        const height = document.documentElement.scrollHeight || document.body.scrollHeight;
+                        window.parent.postMessage({ type: 'resize-iframe', height: height }, '*');
+                    }
+                    window.addEventListener('load', reportHeight);
+                    window.addEventListener('resize', reportHeight);
+                    setInterval(reportHeight, 400);
+                }
+            })();
+        </script>
+    @endif
         <header class="pt-32 pb-6 px-4 text-center">
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
                 TRAINING & <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">RACE DAY</span>
@@ -44,7 +69,8 @@
             <div v-if="!loading && activeTab === 'strava' && !isStravaConnected" class="flex flex-col items-center justify-center py-20">
                 <div class="bg-card border border-slate-700 p-8 rounded-2xl text-center max-w-md">
                     <svg class="w-16 h-16 text-[#FC4C02] mx-auto mb-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                    <h3 class="text-2xl font-bold text-white mb-2">Connect Strava</h3>
+                    <div class="text-[10px] font-mono text-[#FC4C02] uppercase tracking-widest mb-1">Integration</div>
+                    <h3 class="text-xl font-black text-white italic tracking-tight uppercase mb-2">Connect Strava</h3>
                     <p class="text-slate-400 mb-6">Untuk lihat aktivitas & analisis Strava di RuangLari, kamu harus login dulu.</p>
                     @auth
                         <a href="{{ route('calendar.strava.connect', ['return_to' => '/calendar#strava']) }}" class="bg-[#FC4C02] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#E34402] transition inline-flex items-center gap-2">
@@ -76,8 +102,9 @@
                 
                     <div class="flex justify-between items-center flex-wrap gap-4">
                         <div>
-                            <h3 class="text-xl font-bold text-white">Your Strava Dashboard</h3>
-                            <p class="text-xs text-slate-400">Analysis Range: @{{ analysisWeeks }} Weeks</p>
+                            <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Strava</div>
+                            <h3 class="text-lg md:text-xl font-black text-white italic tracking-tight uppercase mt-1">Your Strava Dashboard</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Analysis Range: @{{ analysisWeeks }} Weeks</p>
                         </div>
                         <div class="flex items-center gap-4 flex-wrap">
                              <div class="flex items-center gap-2">
@@ -312,8 +339,9 @@
         <!-- Header -->
         <div class="p-6 border-b border-slate-800 flex justify-between items-start shrink-0">
             <div>
-                <h2 class="text-2xl font-black text-white italic tracking-tighter">@{{ detail.name }}</h2>
-                <p class="text-slate-400 text-sm">@{{ formatDateFull(detail.date) }} • @{{ detail.type }}</p>
+                <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Activity Detail</div>
+                <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight uppercase mt-1">@{{ detail.name }}</h2>
+                <p class="text-slate-400 text-xs mt-0.5">@{{ formatDateFull(detail.date) }} • @{{ detail.type }}</p>
             </div>
             <button @click="showDetailModal = false" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -359,9 +387,10 @@
 
                 <!-- Analysis (if available) -->
                 <div v-if="detail.analysis" class="bg-slate-800/30 border border-slate-700 rounded-xl p-4 mb-6">
-                    <h3 class="text-neon font-bold text-sm mb-2 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Analysis
+                    <div class="text-[10px] font-mono text-neon/80 uppercase tracking-widest mb-1">AI Coach</div>
+                    <h3 class="text-sm font-black text-white italic tracking-tight uppercase flex items-center gap-2 mb-2">
+                        <svg class="w-4 h-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Analysis & Suggestion
                     </h3>
                     <p class="text-sm text-slate-300 mb-2">@{{ detail.analysis }}</p>
                     <p class="text-xs text-slate-400 italic">Suggestion: @{{ detail.suggestion }}</p>
@@ -374,7 +403,8 @@
 
                 <!-- Splits Table -->
                 <div v-if="detail.strava_splits && detail.strava_splits.length > 0">
-                    <h3 class="text-white font-bold mb-3">Splits</h3>
+                    <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Splits</div>
+                    <h3 class="text-sm font-black text-white italic tracking-tight uppercase mb-3">Split Breakdown</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="text-xs text-slate-400 uppercase bg-slate-800/50">
@@ -1021,7 +1051,10 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-card border border-slate-700 rounded-xl p-6">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="font-bold text-white">Weekly Activity Analysis</h3>
+                            <div>
+                                <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Analysis</div>
+                                <h3 class="text-sm font-black text-white italic tracking-tight uppercase mt-1">Weekly Activity Analysis</h3>
+                            </div>
                             <div class="flex gap-2">
                                 <span class="text-[10px] text-slate-400 uppercase border border-slate-600 px-2 py-1 rounded">Volume (km)</span>
                             </div>
@@ -1087,7 +1120,8 @@
                         <div class="w-20 h-20 rounded-full border-2 border-[#FC4C02] p-1 mb-3">
                             <img :src="athlete.profile || 'https://via.placeholder.com/150'" class="w-full h-full rounded-full object-cover bg-slate-800">
                         </div>
-                        <h3 class="text-xl font-bold text-white">@{{ athlete.firstname }} @{{ athlete.lastname }}</h3>
+                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-2">Athlete</div>
+                        <h3 class="text-base font-black text-white italic tracking-tight uppercase mt-1">@{{ athlete.firstname }} @{{ athlete.lastname }}</h3>
                         <p class="text-slate-400 text-sm mb-4">@{{ athlete.city || 'Indonesia' }}</p>
                         <div class="grid grid-cols-2 gap-4 w-full text-sm border-t border-slate-700 pt-4">
                             <div>
@@ -1110,10 +1144,13 @@
                     </div>
                     
                     <div class="flex justify-between items-start mb-4 relative z-10">
-                        <h3 class="font-bold text-white flex items-center gap-2">
-                            <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                            Performance Summary
-                        </h3>
+                        <div>
+                            <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Insights</div>
+                            <h3 class="text-base font-black text-white italic tracking-tight uppercase mt-1 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                Performance Summary
+                            </h3>
+                        </div>
                     </div>
 
                     <div class="relative z-10">
@@ -1125,7 +1162,8 @@
 
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
-                        <h3 class="font-bold text-white flex items-center gap-2">
+                        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">History</div>
+                        <h3 class="text-base font-black text-white italic tracking-tight uppercase mt-1 flex items-center gap-2">
                             Recent Activities 
                             <span class="text-xs font-normal text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">@{{ filteredActivities.length }}</span>
                         </h3>

@@ -13,15 +13,20 @@ use Illuminate\Support\Facades\Validator;
 
 class CalendarController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $stravaToken = null;
         if (auth()->check()) {
             $stravaToken = app(StravaApiService::class)->getValidAccessToken(auth()->user());
         }
 
+        $embed = $request->boolean('embed');
+
         return view('calendar.index', [
             'stravaToken' => $stravaToken,
+            'hideNav' => $embed,
+            'hideFooter' => $embed,
+            'hideChat' => $embed,
         ]);
     }
 

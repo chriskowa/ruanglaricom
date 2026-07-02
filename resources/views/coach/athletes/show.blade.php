@@ -56,6 +56,18 @@
     .fc .fc-button { padding: 0.25rem 0.5rem; font-size: 0.7rem; }
 }
 </style>
+@if(request()->has('embed'))
+<style>
+    #ph-sidebar { display: none !important; }
+    #main-content-wrapper { padding-left: 0 !important; }
+    #pacerhub-nav { display: none !important; }
+    #chatbox-toggle { display: none !important; }
+    body { padding-top: 0 !important; }
+    #coach-monitor-app { padding-top: 1rem !important; }
+    /* Hide back link */
+    a[href*="athletes"] { display: none !important; }
+</style>
+@endif
 @endpush
 
 @section('content')
