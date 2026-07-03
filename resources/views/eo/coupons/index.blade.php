@@ -57,16 +57,19 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+            <div class="flex items-end gap-2">
+                <button type="submit" class="flex-1 bg-yellow-500 hover:bg-yellow-400 text-black font-black py-2 px-4 rounded-lg transition-colors text-sm">
                     Filter
+                </button>
+                <button type="button" id="reset-filters" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">
+                    Reset
                 </button>
             </div>
         </form>
     </div>
 
     <!-- Table -->
-    <div id="coupons-list-container" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative z-10 transition-opacity duration-200">
+    <div id="coupons-list-container" class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative z-10 transition-opacity duration-205 min-h-[200px]">
         @include('eo.coupons._list')
     </div>
 </div>
@@ -81,15 +84,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const searchInput = filterForm.querySelector('input[name="search"]');
     const eventSelect = filterForm.querySelector('select[name="event_id"]');
+    const resetButton = document.getElementById('reset-filters');
     let debounceTimeout = null;
 
-    async function fetchCoupons(url) {
-        listContainer.style.opacity = '0.5';
+    function showLoading() {
+        listContainer.classList.add('opacity-50', 'pointer-events-none');
+        let loader = document.getElementById('coupons-list-loader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'coupons-list-loader';
+            loader.className = 'absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center z-20 rounded-2xl transition-all duration-200';
+            loader.innerHTML = '<span class="animate-spin inline-block w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full"></span>';
+            listContainer.appendChild(loader);
+        } else {
+            loader.style.display = 'flex';
+        }
+    }
+
+    function hideLoading() {
+        listContainer.classList.remove('opacity-50', 'pointer-events-none');
+        const loader = document.getElementById('coupons-list-loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    }
+
+    async function fetchCoupons(url, pushState = true) {
+        showLoading();
 
         try {
-            const urlObj = new URL(url);
+            // Force relative or absolute URL to resolve relative to current browser origin
+            const urlObj = new URL(url, window.location.origin);
+            urlObj.protocol = window.location.protocol;
+            urlObj.host = window.location.host;
             
-            // Set params from inputs
+            // Set params from inputs if we are submitting standard search or filter change
+            // If the URL already contains page query param, we keep it, otherwise delete it.
             if (searchInput && searchInput.value) {
                 urlObj.searchParams.set('search', searchInput.value);
             } else {
@@ -114,17 +144,20 @@ document.addEventListener('DOMContentLoaded', function() {
             listContainer.innerHTML = html;
 
             // Update browser URL history
-            window.history.pushState({}, '', urlObj.toString());
+            if (pushState) {
+                window.history.pushState({}, '', urlObj.toString());
+            }
 
         } catch (error) {
             console.error('Error fetching coupons:', error);
         } finally {
-            listContainer.style.opacity = '1';
+            hideLoading();
         }
     }
 
     function submitFilters() {
-        fetchCoupons('{{ route("eo.coupons.index") }}');
+        // Use relative URL to avoid APP_URL protocol/domain mismatch in development
+        fetchCoupons('{{ route("eo.coupons.index", [], false) }}');
     }
 
     // Intercept form submissions
@@ -146,6 +179,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Reset filters handler
+    if (resetButton) {
+        resetButton.addEventListener('click', function() {
+            if (searchInput) searchInput.value = '';
+            if (eventSelect) eventSelect.value = '';
+            submitFilters();
+        });
+    }
+
     // Intercept pagination clicks
     listContainer.addEventListener('click', function(e) {
         const targetLink = e.target.closest('.ajax-pagination a, .pagination a');
@@ -156,6 +198,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetchCoupons(url);
             }
         }
+    });
+
+    // History popstate navigation handler (for back/forward buttons)
+    window.addEventListener('popstate', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (searchInput) {
+            searchInput.value = urlParams.get('search') || '';
+        }
+        if (eventSelect) {
+            eventSelect.value = urlParams.get('event_id') || '';
+        }
+        fetchCoupons(window.location.href, false);
     });
 });
 </script>

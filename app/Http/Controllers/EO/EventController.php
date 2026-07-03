@@ -1910,7 +1910,7 @@ class EventController extends Controller
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
-            ->with(['transaction.coupon', 'category']);
+            ->with(['transaction.coupon', 'transaction.participants', 'category']);
 
         // Apply same filters as list
         if (request()->has('payment_status') && request()->payment_status) {
@@ -2055,6 +2055,25 @@ class EventController extends Controller
                 ->chunk(1000, function ($participants) use ($file, &$rowNumber) {
                 foreach ($participants as $participant) {
                     $rowNumber++;
+                    
+                    $priceType = $participant->price_type ?? 'regular';
+                    $ticketPrice = 0;
+                    if ($participant->category) {
+                        if ($priceType === 'early' && isset($participant->category->price_early) && $participant->category->price_early > 0) {
+                            $ticketPrice = (float) $participant->category->price_early;
+                        } elseif ($priceType === 'late' && isset($participant->category->price_late) && $participant->category->price_late > 0) {
+                            $ticketPrice = (float) $participant->category->price_late;
+                        } else {
+                            $ticketPrice = (float) ($participant->category->price_regular ?? 0);
+                        }
+                    }
+
+                    $txParticipantsCount = $participant->transaction && $participant->transaction->participants ? $participant->transaction->participants->count() : 1;
+                    $txParticipantsCount = max(1, $txParticipantsCount);
+
+                    $couponDiscount = $participant->transaction ? ((float) $participant->transaction->discount_amount / $txParticipantsCount) : 0.0;
+                    $platformFee = $participant->transaction ? ((float) $participant->transaction->admin_fee / $txParticipantsCount) : 0.0;
+
                     fputcsv($file, [
                         $rowNumber,
                         $participant->name,
@@ -2071,6 +2090,9 @@ class EventController extends Controller
                         (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
                         $participant->transaction && $participant->transaction->coupon ? $participant->transaction->coupon->code : '-',
+                        $couponDiscount,
+                        $ticketPrice,
+                        $platformFee,
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
@@ -2104,7 +2126,7 @@ class EventController extends Controller
         $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
         })
-            ->with(['transaction.coupon', 'category']);
+            ->with(['transaction.coupon', 'transaction.participants', 'category']);
 
         if (request()->has('payment_status') && request()->payment_status) {
             $query->whereHas('transaction', function ($q) {
@@ -2238,6 +2260,25 @@ class EventController extends Controller
                 $rows = [];
                 foreach ($participants as $participant) {
                     $rowNumber++;
+
+                    $priceType = $participant->price_type ?? 'regular';
+                    $ticketPrice = 0;
+                    if ($participant->category) {
+                        if ($priceType === 'early' && isset($participant->category->price_early) && $participant->category->price_early > 0) {
+                            $ticketPrice = (float) $participant->category->price_early;
+                        } elseif ($priceType === 'late' && isset($participant->category->price_late) && $participant->category->price_late > 0) {
+                            $ticketPrice = (float) $participant->category->price_late;
+                        } else {
+                            $ticketPrice = (float) ($participant->category->price_regular ?? 0);
+                        }
+                    }
+
+                    $txParticipantsCount = $participant->transaction && $participant->transaction->participants ? $participant->transaction->participants->count() : 1;
+                    $txParticipantsCount = max(1, $txParticipantsCount);
+
+                    $couponDiscount = $participant->transaction ? ((float) $participant->transaction->discount_amount / $txParticipantsCount) : 0.0;
+                    $platformFee = $participant->transaction ? ((float) $participant->transaction->admin_fee / $txParticipantsCount) : 0.0;
+
                     $rows[] = \OpenSpout\Common\Entity\Row::fromValues([
                         $rowNumber,
                         $participant->name,
@@ -2254,6 +2295,9 @@ class EventController extends Controller
                         (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
                         $participant->transaction && $participant->transaction->coupon ? $participant->transaction->coupon->code : '-',
+                        $couponDiscount,
+                        $ticketPrice,
+                        $platformFee,
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
