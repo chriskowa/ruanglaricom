@@ -672,6 +672,18 @@ class PublicEventReportController extends Controller
                     $couponDiscount = $participant->transaction ? ((float) $participant->transaction->discount_amount / $txParticipantsCount) : 0.0;
                     $platformFee = $participant->transaction ? ((float) $participant->transaction->admin_fee / $txParticipantsCount) : 0.0;
 
+                    $rawGateway = $participant->transaction->payment_gateway ?? '-';
+                    $inputMethodName = match($rawGateway) {
+                        'manual' => 'Manual',
+                        'manual_csv' => 'Manual CSV',
+                        'midtrans' => 'Midtrans',
+                        'moota' => 'Moota',
+                        'cod' => 'COD',
+                        'community_import' => 'Community Import',
+                        '-' => '-',
+                        default => ucfirst($rawGateway),
+                    };
+
                     fputcsv($file, [
                         $rowNumber,
                         $participant->name,
@@ -694,6 +706,7 @@ class PublicEventReportController extends Controller
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
+                        $inputMethodName,
                         $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
                         $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '-',
                         $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : '-',
@@ -764,6 +777,18 @@ class PublicEventReportController extends Controller
                     $couponDiscount = $participant->transaction ? ((float) $participant->transaction->discount_amount / $txParticipantsCount) : 0.0;
                     $platformFee = $participant->transaction ? ((float) $participant->transaction->admin_fee / $txParticipantsCount) : 0.0;
 
+                    $rawGateway = $participant->transaction->payment_gateway ?? '-';
+                    $inputMethodName = match($rawGateway) {
+                        'manual' => 'Manual',
+                        'manual_csv' => 'Manual CSV',
+                        'midtrans' => 'Midtrans',
+                        'moota' => 'Moota',
+                        'cod' => 'COD',
+                        'community_import' => 'Community Import',
+                        '-' => '-',
+                        default => ucfirst($rawGateway),
+                    };
+
                     $rows[] = \OpenSpout\Common\Entity\Row::fromValues([
                         $rowNumber,
                         $participant->name,
@@ -786,6 +811,7 @@ class PublicEventReportController extends Controller
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
+                        $inputMethodName,
                         $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
                         $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '-',
                         $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : '-',

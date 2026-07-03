@@ -26,6 +26,7 @@ class GoogleSheetsParticipantExporter
         'Nama Kontak Darurat',
         'No. Kontak Darurat',
         'Status Pembayaran',
+        'Metode Input',
         'Status Pengambilan',
         'Tanggal Registrasi',
         'Tanggal Pengambilan',
