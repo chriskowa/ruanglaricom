@@ -19,8 +19,8 @@
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-neon/10 text-neon mb-4 uppercase tracking-widest font-mono">
                 <span class="w-1.5 h-1.5 rounded-full bg-neon animate-ping"></span> Marketplace
             </span>
-            <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tight mb-4 uppercase">
-                Find Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">Perfect Running Program</span>
+            <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tight mb-4 uppercase pr-4 md:pr-6">
+                Find Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400 pr-2">Perfect Running Program</span>
             </h1>
             <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-8 font-light leading-relaxed">
                 Pilih program latihan dari pelatih profesional terverifikasi
@@ -30,7 +30,7 @@
                 <!-- Search bar -->
                 <div class="relative w-full sm:flex-1">
                     <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Cari judul program atau pelatih..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-5 py-4 pl-12 text-white focus:border-neon focus:ring-1 focus:ring-neon focus:outline-none transition-all placeholder-slate-500 shadow-inner">
-                    <svg class="w-5 h-5 text-slate-500 absolute left-4 top-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-5 h-5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
