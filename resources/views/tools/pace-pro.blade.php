@@ -223,7 +223,7 @@
 
 @push('scripts')
     <script>
-        window.RL_MAPBOX_TOKEN = "{{ env('MAPBOX_TOKEN') }}";
+        window.RL_MAPBOX_TOKEN = "{{ config('services.mapbox.token') }}";
     </script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -324,6 +324,29 @@
 
             function osrmRoute(waypoints) {
                 var coords = waypoints.map(function (p) { return (p.lng||p.lon).toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
+                var token = window.RL_MAPBOX_TOKEN;
+                if (token) {
+                    var mapboxUrl = 'https://api.mapbox.com/directions/v5/mapbox/walking/' + coords + '?geometries=geojson&overview=full&steps=false&access_token=' + token;
+                    return fetch(mapboxUrl, { headers: { 'Accept': 'application/json' } })
+                        .then(function (r) {
+                            if (!r.ok) throw new Error('Mapbox route failed');
+                            return r.json();
+                        })
+                        .then(function (data) {
+                            if (!data.routes || !data.routes[0]) throw new Error('No route');
+                            var coords = data.routes[0].geometry.coordinates;
+                            return coords.map(function (c) { return { lat: c[1], lng: c[0] }; });
+                        })
+                        .catch(function (err) {
+                            console.warn('Mapbox routing failed, falling back to OSRM:', err);
+                            return fetchOsrmFallback(coords);
+                        });
+                } else {
+                    return fetchOsrmFallback(coords);
+                }
+            }
+
+            function fetchOsrmFallback(coords) {
                 var url = 'https://router.project-osrm.org/route/v1/foot/' + coords + '?overview=full&geometries=geojson&steps=false';
                 return fetch(url, { headers: { 'Accept': 'application/json' } })
                     .then(function (r) { return r.json(); })

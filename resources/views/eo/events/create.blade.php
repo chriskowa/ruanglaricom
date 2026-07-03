@@ -1312,7 +1312,7 @@
 
     // Mapbox Map
     document.addEventListener('DOMContentLoaded', function() {
-        const mapboxToken = '{{ env('MAPBOX_TOKEN') }}';
+        const mapboxToken = '{{ config('services.mapbox.token') }}';
         if (!mapboxToken) {
             console.error('Mapbox token is missing in .env (expected MAPBOX_TOKEN)');
             return;

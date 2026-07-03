@@ -615,7 +615,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-        window.RL_MAPBOX_TOKEN = "{{ env('MAPBOX_TOKEN') }}";
+        window.RL_MAPBOX_TOKEN = "{{ config('services.mapbox.token') }}";
     </script>
     <script>
         (function () {
@@ -1482,7 +1482,7 @@
             }
 
             function centerToUser() {
-                if (points.length > 0) {
+                if (points.length > 0 && points[0] && typeof points[0].lat === 'number' && typeof points[0].lng === 'number') {
                     map.setView([points[0].lat, points[0].lng], 16);
                     setStatus('Peta dipusatkan ke Start');
                     return;
@@ -1494,16 +1494,26 @@
                     return;
                 }
                 setStatus('Mencari lokasi...');
-                navigator.geolocation.getCurrentPosition(function (pos) {
-                    var lat = pos.coords.latitude;
-                    var lng = pos.coords.longitude;
-                    map.setView([lat, lng], 16);
-                    setStatus('Lokasi ditemukan');
-                }, function (err) {
-                    console.warn('Geolocation failed:', err);
+                try {
+                    navigator.geolocation.getCurrentPosition(function (pos) {
+                        if (pos && pos.coords && typeof pos.coords.latitude === 'number' && typeof pos.coords.longitude === 'number') {
+                            var lat = pos.coords.latitude;
+                            var lng = pos.coords.longitude;
+                            map.setView([lat, lng], 16);
+                            setStatus('Lokasi ditemukan');
+                        } else {
+                            throw new Error('invalid_coords');
+                        }
+                    }, function (err) {
+                        console.warn('Geolocation failed:', err);
+                        setStatus('Gagal akses GPS. Mencari via IP...');
+                        getIpLocation();
+                    }, { enableHighAccuracy: false, timeout: 5000 });
+                } catch (e) {
+                    console.error('Geolocation exception:', e);
                     setStatus('Gagal akses GPS. Mencari via IP...');
                     getIpLocation();
-                }, { enableHighAccuracy: false, timeout: 5000 });
+                }
             }
 
             function getIpLocation() {
@@ -2189,26 +2199,46 @@
             function osrmRoute(waypoints, profile, excludes) {
                 profile = profile || 'driving';
                 var coords = waypoints.map(function (p) { return p.lng.toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
-                var url = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson&steps=false';
-                if (Array.isArray(excludes) && excludes.length > 0) {
-                    url += '&exclude=' + excludes.join(',');
+                var token = window.RL_MAPBOX_TOKEN;
+
+                if (token) {
+                    var mapboxProfile = profile === 'foot' ? 'mapbox/walking' : 'mapbox/' + profile;
+                    var mapboxUrl = 'https://api.mapbox.com/directions/v5/' + mapboxProfile + '/' + coords + '?geometries=geojson&overview=full&steps=false&access_token=' + token;
+                    return fetch(mapboxUrl, { headers: { 'Accept': 'application/json' } })
+                        .then(function (r) {
+                            if (!r.ok) throw new Error('mapbox_api_error');
+                            return r.json();
+                        })
+                        .then(function (data) {
+                            var coords = data.routes && data.routes[0] && data.routes[0].geometry && data.routes[0].geometry.coordinates;
+                            if (!Array.isArray(coords) || coords.length < 2) {
+                                throw new Error('mapbox_no_geometry');
+                            }
+                            return coords.map(function (c) { return { lat: c[1], lng: c[0] }; });
+                        })
+                        .catch(function (err) {
+                            console.warn('Mapbox routing failed, falling back to OSRM:', err);
+                            return fetchOsrmFallback(waypoints, profile, excludes);
+                        });
+                } else {
+                    return fetchOsrmFallback(waypoints, profile, excludes);
                 }
+            }
+
+            function fetchOsrmFallback(waypoints, profile, excludes) {
+                profile = profile || 'driving';
+                var coords = waypoints.map(function (p) { return p.lng.toFixed(6) + ',' + p.lat.toFixed(6); }).join(';');
+                // The public OSRM server (router.project-osrm.org) does not support the 'exclude' parameter.
+                // So we do not append it to prevent 400 Bad Request errors.
+                var url = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson&steps=false';
                 return fetch(url, { headers: { 'Accept': 'application/json' } })
-                    .then(function (r) { 
-                        if (!r.ok && excludes && excludes.length > 0) {
-                            var fallbackUrl = 'https://router.project-osrm.org/route/v1/' + profile + '/' + coords + '?overview=full&geometries=geojson&steps=false';
-                            return fetch(fallbackUrl, { headers: { 'Accept': 'application/json' } })
-                                .then(function(fallbackR) {
-                                    return fallbackR.json().then(function(j) { return { ok: fallbackR.ok, json: j }; });
-                                });
-                        }
-                        return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); 
+                    .then(function (r) {
+                        if (!r.ok) throw new Error('osrm_api_error: ' + r.status);
+                        return r.json();
                     })
-                    .then(function (res) {
-                        if (!res.ok || !res.json || res.json.code !== 'Ok') {
-                            throw new Error('osrm_failed');
-                        }
-                        var coords = res.json.routes && res.json.routes[0] && res.json.routes[0].geometry && res.json.routes[0].geometry.coordinates;
+                    .then(function (json) {
+                        if (json.code !== 'Ok') throw new Error('osrm_failed_code: ' + json.code);
+                        var coords = json.routes && json.routes[0] && json.routes[0].geometry && json.routes[0].geometry.coordinates;
                         if (!Array.isArray(coords) || coords.length < 2) {
                             throw new Error('osrm_no_geometry');
                         }
