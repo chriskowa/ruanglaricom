@@ -23,12 +23,23 @@ jobs:
           script: |
             cd /home/ruangdid/app.ruanglari.com
             git pull origin main
-            composer install --no-dev
+            
+            # Install package baru Laravel 13
+            composer install --no-dev --optimize-autoloader
+            
+            # Jalankan migrasi database
             php artisan migrate --force
-            php artisan db:seed
-            php artisan config:clear
-            php artisan route:clear
-            php artisan cache:clear
-            php artisan view:clear
+            
+            # Jalankan kompilasi asset jika NPM tersedia di server
+            npm install
+            npm run build
+            
+            # Optimasi cache untuk performa maksimal di produksi
             php artisan optimize:clear
+            php artisan optimize
+            php artisan view:cache
+            
+            # Restart queue worker agar memuat kode Laravel 13 yang baru
+            php artisan queue:restart
+
 
