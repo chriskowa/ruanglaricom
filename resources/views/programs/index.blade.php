@@ -10,22 +10,39 @@
 <div id="programs-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans bg-dark text-slate-200" v-cloak>
     
     <!-- Hero Section -->
-    <div class="mb-10 relative z-10 mt-10" data-aos="fade-down">
-        <div class="text-center max-w-4xl mx-auto">
-            <p class="text-neon font-mono text-sm tracking-widest uppercase mb-2">Marketplace</p>
-            <h1 class="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-6 uppercase">
-                Program Lari & <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400 pr-2">Training Plan Terbaik</span> Untuk Personal Best Anda
+    <div class="relative rounded-3xl overflow-hidden mb-12 border border-slate-800 bg-slate-950/80" data-aos="fade-down">
+        <!-- Abstract gradient background circles -->
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-neon/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-green-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div class="px-6 py-16 md:py-24 max-w-4xl mx-auto text-center relative z-10">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-neon/10 text-neon mb-4 uppercase tracking-widest font-mono">
+                <span class="w-1.5 h-1.5 rounded-full bg-neon animate-ping"></span> Marketplace
+            </span>
+            <h1 class="text-4xl md:text-6xl font-black text-white italic tracking-tight mb-4 uppercase">
+                Find Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-green-400">Perfect Running Program</span>
             </h1>
-            <p class="text-slate-400 text-base leading-relaxed text-justify md:text-center">
-                Selamat datang di marketplace program lari Ruang Lari, tempat terbaik untuk menemukan training program yang dirancang secara ilmiah untuk membantu Anda mencapai target kebugaran dan performa lari optimal. Apakah Anda sedang mempersiapkan program 5K pertama Anda, menargetkan finish kuat di 10K, atau menjalani program latihan marathon penuh yang menuntut disiplin tinggi, kami menyediakan berbagai pilihan rencana latihan terstruktur dari layanan coaching lari terbaik di Indonesia. Di sini, Anda dapat dengan mudah mencari program lari berdasarkan kategori jarak, tingkat kesulitan, serta rentang harga yang sesuai. 
+            <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-8 font-light leading-relaxed">
+                Pilih program latihan dari pelatih profesional terverifikasi
             </p>
-            <p class="text-slate-400 text-base leading-relaxed text-justify md:text-center mt-3">
-                Selain program latihan yang dibuat oleh <a href="{{ route('coaches.index') }}" class="text-neon hover:underline font-bold">coach profesional terverifikasi</a>, kami juga menyediakan fitur "realistic program"—sebuah generator program latihan pintar berbasis AI dan formula VDOT Jack Daniels yang dapat Anda akses melalui kalkulator <a href="{{ url('/tools/realistic-running-program') }}" class="text-neon hover:underline font-bold">Realistic Running Program</a> khusus kami. Fitur ini secara otomatis menyusun jadwal lari mingguan yang dipersonalisasi sesuai dengan waktu target realistis Anda saat ini. Gunakan filter di sebelah kiri untuk menyaring program berdasarkan target jarak lari Anda, atau langsung mulai kustomisasi program latihan personal Anda sekarang!
-            </p>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto">
+                <!-- Search bar -->
+                <div class="relative w-full sm:flex-1">
+                    <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Cari judul program atau pelatih..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-5 py-4 pl-12 text-white focus:border-neon focus:ring-1 focus:ring-neon focus:outline-none transition-all placeholder-slate-500 shadow-inner">
+                    <svg class="w-5 h-5 text-slate-500 absolute left-4 top-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <!-- CTA Button -->
+                <button @click="scrollToFilters" class="w-full sm:w-auto px-8 py-4 bg-neon hover:bg-neon/90 text-dark font-black rounded-xl text-base shadow-lg shadow-neon/20 hover:shadow-neon/30 transition-all uppercase tracking-wider">
+                    Cari Program
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="flex flex-col lg:flex-row gap-8 relative z-10">
+    <div id="filters-section" class="flex flex-col lg:flex-row gap-8 relative z-10">
         
         <!-- Mobile Filter Button -->
         <div class="lg:hidden mb-4">
@@ -37,12 +54,6 @@
 
         <!-- Sidebar Filters (Desktop) -->
         <aside class="hidden lg:block w-72 shrink-0 space-y-8 sticky top-24 h-fit">
-            <!-- Search -->
-            <div class="relative">
-                <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Search programs..." class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 pl-10 text-white focus:border-neon focus:ring-1 focus:ring-neon transition-all placeholder-slate-500">
-                <svg class="w-5 h-5 text-slate-500 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            </div>
-
             <!-- Categories -->
             <div>
                 <h3 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Category</h3>
@@ -74,6 +85,29 @@
                         class="px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition-all">
                         @{{ level.label }}
                     </button>
+                </div>
+            </div>
+
+            <!-- Rating -->
+            <div>
+                <h3 class="text-white font-bold mb-4 uppercase text-sm tracking-wider">Rating</h3>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative flex items-center">
+                            <input type="radio" v-model="filters.rating" value="" class="peer appearance-none w-5 h-5 border-2 border-slate-600 rounded-full checked:border-neon checked:bg-slate-800 transition-colors">
+                            <div class="absolute inset-0 m-auto w-2.5 h-2.5 rounded-full bg-neon scale-0 peer-checked:scale-100 transition-transform"></div>
+                        </div>
+                        <span class="text-slate-400 group-hover:text-white transition-colors">All Ratings</span>
+                    </label>
+                    <label v-for="rate in [5, 4, 3]" :key="rate" class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative flex items-center">
+                            <input type="radio" v-model="filters.rating" :value="rate" class="peer appearance-none w-5 h-5 border-2 border-slate-600 rounded-full checked:border-neon checked:bg-slate-800 transition-colors">
+                            <div class="absolute inset-0 m-auto w-2.5 h-2.5 rounded-full bg-neon scale-0 peer-checked:scale-100 transition-transform"></div>
+                        </div>
+                        <span class="text-slate-400 group-hover:text-white transition-colors flex items-center gap-1">
+                            @{{ rate }}+ <i class="fas fa-star text-yellow-500 text-xs"></i>
+                        </span>
+                    </label>
                 </div>
             </div>
 
@@ -271,184 +305,29 @@
         </div>
     </div>
 
-    <!-- Kategori Program Lari Populer -->
+    <!-- Footer CTA Section -->
     <div class="mt-20 border-t border-slate-800 pt-16">
-        <h2 class="text-3xl font-extrabold text-white text-center mb-12">
-            Kategori <span class="text-neon">Program Lari</span> Terpopuler
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 hover:border-neon/30 transition-all duration-300">
-                <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-neon/10 text-neon flex items-center justify-center text-sm font-mono font-bold">1</span>
-                    Program 5K & 10K untuk Pemula
-                </h2>
-                <p class="text-slate-400 leading-relaxed mb-4 text-sm">
-                    Mulailah perjalanan lari Anda dengan aman dan terstruktur. Kategori ini dirancang khusus untuk membangun daya tahan kardiovaskular, membiasakan otot dengan beban latihan, serta menetapkan dasar teknik lari yang benar untuk menghindari cedera umum.
+        <div class="relative bg-gradient-to-r from-neon/10 via-transparent to-green-500/10 border border-neon/20 rounded-3xl p-8 md:p-12 text-center overflow-hidden">
+            <div class="absolute inset-0 bg-dark/60 backdrop-blur-sm -z-10"></div>
+            <div class="absolute -top-12 -left-12 w-48 h-48 bg-neon/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-green-500/10 rounded-full blur-3xl"></div>
+            
+            <div class="relative z-10 max-w-2xl mx-auto">
+                <h3 class="text-2xl md:text-3xl font-black text-white italic uppercase mb-4">
+                    Belum menemukan program yang tepat?
+                </h3>
+                <p class="text-slate-300 text-sm md:text-base mb-8 leading-relaxed">
+                    Buat custom program latihan personal gratis yang disesuaikan secara ilmiah dengan target Anda menggunakan AI Generator berbasis VDOT kami, atau hubungi pelatih profesional untuk konsultasi privat.
                 </p>
-                <a href="?category=5k" class="text-neon hover:underline text-sm font-bold flex items-center gap-1">
-                    Cari Program 5K & 10K <i class="fas fa-arrow-right text-xs"></i>
-                </a>
-            </div>
-            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 hover:border-neon/30 transition-all duration-300">
-                <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm font-mono font-bold">2</span>
-                    Program Half Marathon (21K) & Latihan Marathon (42K)
-                </h2>
-                <p class="text-slate-400 leading-relaxed mb-4 text-sm">
-                    Kembangkan kekuatan, kecepatan, dan ketahanan mental Anda untuk jarak jauh. Program ini mencakup long run akhir pekan yang terukur, latihan tempo, interval, serta strategi nutrisi dan hidrasi yang krusial untuk menaklukkan garis finish perlombaan marathon Anda.
-                </p>
-                <a href="?category=42k" class="text-neon hover:underline text-sm font-bold flex items-center gap-1">
-                    Cari Program Marathon <i class="fas fa-arrow-right text-xs"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Kenapa Pilih Program di RuangLari -->
-    <div class="mt-20 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-8 md:p-12 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-96 h-96 bg-neon/5 rounded-full blur-[120px]"></div>
-        <div class="relative z-10">
-            <h2 class="text-3xl font-extrabold text-white mb-6">
-                Kenapa Pilih <span class="text-neon">Program Lari</span> di Ruang Lari?
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
-                <div class="space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-neon/10 text-neon flex items-center justify-center text-xl">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <h4 class="text-lg font-bold text-white">Coach Profesional Terverifikasi</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Seluruh rencana latihan disusun oleh <a href="{{ route('coaches.index') }}" class="text-neon hover:underline font-bold">coach profesional</a> berpengalaman yang siap membimbing Anda mencapai personal best secara aman.
-                    </p>
-                </div>
-                <div class="space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <h4 class="text-lg font-bold text-white">Integrasi Kalender & Aktivitas</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Jadwal latihan lari Anda tersinkronisasi langsung ke dashboard personal Anda, memudahkan pemantauan harian serta progres mingguan.
-                    </p>
-                </div>
-                <div class="space-y-3">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl">
-                        <i class="fas fa-laptop-code"></i>
-                    </div>
-                    <h4 class="text-lg font-bold text-white">Teknologi Realistic Program AI</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Butuh program instan berbasis data performa terkini? Coba kalkulator pintar <a href="{{ url('/tools/realistic-running-program') }}" class="text-neon hover:underline font-bold">Realistic Running Program</a> kami.
-                    </p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="{{ url('/tools/realistic-running-program') }}" class="px-6 py-3.5 bg-neon hover:bg-neon/90 text-dark font-black rounded-xl text-sm transition-all uppercase tracking-wider shadow-lg shadow-neon/10 hover:shadow-neon/20">
+                        Buat Custom Program (AI)
+                    </a>
+                    <a href="{{ url('/coaches') }}" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-sm transition-colors border border-slate-700 uppercase tracking-wider">
+                        Konsultasi dengan Coach
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Testimonial Section -->
-    <div class="mt-20">
-        <h2 class="text-3xl font-extrabold text-white text-center mb-4">
-            Cerita Sukses <span class="text-neon">Runners</span> Kami
-        </h2>
-        <p class="text-slate-400 text-center max-w-2xl mx-auto mb-12 text-sm">
-            Lihat bagaimana program latihan lari di Ruang Lari telah membantu pelari dari berbagai tingkat kemampuan mencapai target mereka.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
-                <div>
-                    <div class="flex text-yellow-500 text-xs mb-4">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="text-slate-300 text-sm italic mb-6">
-                        "Program latihan marathon 16 minggu dari Coach di Ruang Lari benar-benar mengubah cara saya berlari. Sebelumnya saya selalu cedera ITB, tapi dengan menu kekuatan otot tambahan, saya berhasil finish Full Marathon pertama saya dengan tangguh!"
-                    </p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-neon font-bold">R</div>
-                    <div>
-                        <h5 class="text-sm font-bold text-white">Rian D.</h5>
-                        <p class="text-[11px] text-slate-500">Marathon Finisher</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
-                <div>
-                    <div class="flex text-yellow-500 text-xs mb-4">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="text-slate-300 text-sm italic mb-6">
-                        "Saya mencari program lari untuk pemula karena baru mulai lari 3 bulan lalu. Mengikuti program 5K di sini sangat menyenangkan. Durasi latihan bertambah bertahap dan sangat realistis bagi pekerja kantoran seperti saya."
-                    </p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-neon font-bold">S</div>
-                    <div>
-                        <h5 class="text-sm font-bold text-white">Siti A.</h5>
-                        <p class="text-[11px] text-slate-500">5K Runner</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
-                <div>
-                    <div class="flex text-yellow-500 text-xs mb-4">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="text-slate-300 text-sm italic mb-6">
-                        "Fitur Realistic Program berbasis VDOT benar-benar akurat. Saya menginput waktu 10K terakhir saya, dan program latihan yang di-generate langsung menyesuaikan pace latihan interval saya dengan presisi tinggi."
-                    </p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-neon font-bold">A</div>
-                    <div>
-                        <h5 class="text-sm font-bold text-white">Aditya K.</h5>
-                        <p class="text-[11px] text-slate-500">Sub-50 10K Runner</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FAQ Section -->
-    <div class="mt-20 border-t border-slate-800 pt-16">
-        <h2 class="text-3xl font-extrabold text-white text-center mb-12">
-            FAQ - Pertanyaan Umum Seputar <span class="text-neon">Program Lari</span>
-        </h2>
-        <div class="max-w-3xl mx-auto space-y-4">
-            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
-                <h4 class="text-lg font-bold text-white mb-2">Bagaimana cara memilih program lari untuk pemula yang tepat?</h4>
-                <p class="text-slate-400 text-sm leading-relaxed">
-                    Bagi pemula, pilihlah program yang berfokus pada pembangunan daya tahan kardio dasar (base building) secara perlahan, seperti program latihan 5K. Pastikan program tersebut memiliki porsi hari istirahat (recovery days) yang cukup dan instruksi teknik lari dasar agar terhindar dari cedera otot.
-                </p>
-            </div>
-            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
-                <h4 class="text-lg font-bold text-white mb-2">Idealnya, program marathon berapa minggu sebelum hari perlombaan?</h4>
-                <p class="text-slate-400 text-sm leading-relaxed">
-                    Untuk jarak Full Marathon (42.195K), durasi program latihan marathon yang ideal adalah 16 hingga 20 minggu. Durasi ini memberikan waktu yang cukup bagi tubuh untuk melakukan penyesuaian volume lari mingguan (weekly mileage) dan latihan long run terjadwal tanpa memicu overtraining.
-                </p>
-            </div>
-            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
-                <h4 class="text-lg font-bold text-white mb-2">Apa keuntungan menggunakan program lari dari coach profesional?</h4>
-                <p class="text-slate-400 text-sm leading-relaxed">
-                    Layanan coaching lari terpandu menawarkan rencana latihan yang disesuaikan secara dinamis dengan kondisi fisik dan kesibukan harian Anda. Anda juga bisa membaca wawasan lari mendalam di <a href="/blog/kategori/program-lari" class="text-neon hover:underline font-bold">Blog Kategori Program Lari</a> untuk menunjang wawasan latihan harian Anda.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- CTA Section -->
-    <div class="mt-20 text-center py-16 bg-gradient-to-r from-neon/10 via-transparent to-green-500/10 border border-neon/20 rounded-3xl relative overflow-hidden">
-        <div class="absolute inset-0 bg-dark/60 backdrop-blur-sm -z-10"></div>
-        <h2 class="text-3xl md:text-4xl font-black text-white italic mb-4">
-            SIAP UNTUK MENJADI LEBIH CEPAT & LEBIH KUAT?
-        </h2>
-        <p class="text-slate-300 max-w-xl mx-auto mb-8 text-base">
-            Mulai langkah pertama Anda sekarang dengan program latihan terstruktur. Pilih program terbaik atau rancang program personal lari Anda hari ini.
-        </p>
-        <div class="flex flex-wrap justify-center gap-4">
-            <button @click="resetFilters" class="px-8 py-4 bg-neon hover:bg-neon/90 text-dark font-black rounded-xl text-base shadow-lg shadow-neon/20 transition-all uppercase tracking-wider">
-                Mulai Program Lari Sekarang
-            </button>
-            <a href="{{ url('/tools/realistic-running-program') }}" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-base transition-colors border border-slate-700 uppercase tracking-wider">
-                Rancang Realistic Program
-            </a>
         </div>
     </div>
 
@@ -456,66 +335,34 @@
 
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org",
-  "@type": "ItemList",
+  "@@context": "https://schema.org",
+  "@@type": "ItemList",
   "name": "Program Lari & Training Plan Ruang Lari",
   "description": "Daftar program latihan lari terstruktur dari coach lari profesional.",
   "numberOfItems": {{ $programs->total() }},
   "itemListElement": [
     @foreach($programs as $index => $prog)
     {
-      "@type": "ListItem",
+      "@@type": "ListItem",
       "position": {{ $index + 1 }},
       "item": {
-        "@type": "Product",
+        "@@type": "Product",
         "name": {!! json_encode($prog->title) !!},
         "description": {!! json_encode(Str::limit(strip_tags($prog->description), 150)) !!},
         "image": "{{ $prog->image_url ?? asset('images/ruanglari.png') }}",
         "offers": {
-          "@type": "Offer",
+          "@@type": "Offer",
           "price": "{{ $prog->price }}",
           "priceCurrency": "IDR",
           "availability": "https://schema.org/InStock"
         },
         "provider": {
-          "@type": "Person",
+          "@@type": "Person",
           "name": {!! json_encode($prog->coach->name ?? 'Coach Ruang Lari') !!}
         }
       }
     }{{ !$loop->last ? ',' : '' }}
     @endforeach
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Bagaimana cara memilih program lari untuk pemula yang tepat?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Bagi pemula, pilihlah program lari untuk pemula yang berfokus pada pembangunan daya tahan dasar (base building) seperti Program 5K. Hindari langsung memulai program dengan intensitas tinggi untuk mencegah cedera."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Idealnya, program marathon berapa minggu sebelum hari perlombaan?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Untuk perlombaan Full Marathon, program marathon idealnya berlangsung selama 16 hingga 20 minggu. Ini memberikan waktu yang cukup bagi tubuh untuk beradaptasi dengan peningkatan jarak lari secara bertahap."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Apa itu Realistic Program di Ruang Lari?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Realistic Program adalah generator program latihan pintar berbasis web yang menyesuaikan target dan performa lari Anda secara otomatis berdasarkan rumus ilmiah VDOT."
-      }
-    }
   ]
 }
 </script>
@@ -597,6 +444,7 @@
             // Watchers for immediate filtering
             watch(() => filters.category, () => { filters.page = 1; fetchPrograms(); });
             watch(() => filters.sort, () => { filters.page = 1; fetchPrograms(); });
+            watch(() => filters.rating, () => { filters.page = 1; fetchPrograms(); });
             
             const toggleDifficulty = (val) => {
                 filters.difficulty = filters.difficulty === val ? '' : val;
@@ -614,6 +462,7 @@
                 filters.search = '';
                 filters.category = '';
                 filters.difficulty = '';
+                filters.rating = '';
                 filters.price_min = '';
                 filters.price_max = '';
                 filters.sort = 'newest';
@@ -652,6 +501,13 @@
                 return map[diff] || 'bg-slate-400';
             };
 
+            const scrollToFilters = () => {
+                const el = document.getElementById('filters-section');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            };
+
             return {
                 programs,
                 filters,
@@ -667,7 +523,8 @@
                 formatPrice,
                 formatCategory,
                 getDifficultyColor,
-                getCoachAvatar
+                getCoachAvatar,
+                scrollToFilters
             };
         }
     }).mount('#programs-app');
