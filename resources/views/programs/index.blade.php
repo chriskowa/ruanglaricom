@@ -1,10 +1,10 @@
 @extends('layouts.pacerhub')
 @php($withSidebar = true)
 
-@section('title', 'Program Lari & Training Plan Terbaik - Ruang Lari')
-@section('meta_title', 'Program Lari & Training Plan Terbaik - Ruang Lari')
-@section('meta_description', 'Temukan program lari dan training plan terbaik dari coach profesional di Ruang Lari. Rencana program latihan terstruktur untuk 5K, 10K, HM, hingga Marathon.')
-@section('meta_keywords', 'program lari, training plan lari, coach profesional, program latihan, running program, pelatih lari, marathon training')
+@section('title', 'Program Latihan Lari 5K, 10K & Half Marathon | Ruang Lari')
+@section('meta_title', 'Program Latihan Lari 5K, 10K & Half Marathon | Ruang Lari')
+@section('meta_description', 'Temukan program latihan lari 5K, 10K, half marathon, hingga target personal best bersama coach Ruang Lari. Pilih program sesuai level, pace, durasi, dan tujuan race.')
+@section('meta_keywords', 'program latihan lari, program lari 5k, program lari 10k, program half marathon, coach lari online, training plan lari pemula, race preparation')
 
 @section('content')
 <div id="programs-app" class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans bg-dark text-slate-200" v-cloak>
@@ -305,6 +305,171 @@
         </div>
     </div>
 
+    <!-- SEO Content & FAQ Section -->
+    <div class="mt-20 border-t border-slate-800 pt-16">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left 2 Cols: SEO Guide -->
+            <div class="lg:col-span-2 space-y-8">
+                <div class="glass-panel rounded-3xl p-8 border border-slate-800/80">
+                    <h2 class="text-2xl md:text-3xl font-black text-white italic uppercase mb-6 tracking-tight">
+                        Program Latihan Lari untuk Semua Level
+                    </h2>
+                    
+                    <div class="prose prose-invert max-w-none text-slate-400 text-sm md:text-base leading-relaxed space-y-6">
+                        <p>
+                            Berlari bukan sekadar melangkahkan kaki sejauh mungkin. Tanpa perencanaan yang matang, Anda sangat rentan terhadap kejenuhan, kelelahan berlebih, dan cedera fisik. <strong>Ruang Lari</strong> hadir sebagai platform marketplace program latihan lari terstruktur (training plan) dan pembinaan online (online coaching) pertama dan terbaik di Indonesia. Kami mempertemukan Anda dengan coach lari profesional bersertifikasi untuk membantu Anda mencapai target personal best secara aman dan efisien.
+                        </p>
+
+                        <h2 class="text-xl font-bold text-white uppercase tracking-wider pt-4">Program Lari 5K</h2>
+                        <p>
+                            Jarak 5 kilometer adalah garis start ideal untuk memulai petualangan lari Anda. Bagi pelari pemula, program ini didesain untuk membangun daya tahan kardiovaskular secara bertahap tanpa memicu cedera sendi. Bagi pelari berpengalaman, program lari 5K berfokus pada peningkatan VO2 Max dan efisiensi langkah kaki untuk menembus target waktu yang lebih cepat.
+                        </p>
+
+                        <h2 class="text-xl font-bold text-white uppercase tracking-wider pt-4">Program Lari 10K</h2>
+                        <p>
+                            Ingin meningkatkan jarak tempuh Anda? Program 10K adalah jembatan sempurna untuk naik kelas dari 5K. Di level ini, menu latihan mulai mengenalkan variasi <em>tempo run</em> untuk menaikkan ambang laktat (lactate threshold), sehingga Anda mampu berlari dengan kecepatan konstan dalam durasi yang lebih lama tanpa merasakan kelelahan yang ekstrem.
+                        </p>
+
+                        <h2 class="text-xl font-bold text-white uppercase tracking-wider pt-4">Program Half Marathon</h2>
+                        <p>
+                            Menaklukkan jarak 21K membutuhkan perencanaan volume lari mingguan (weekly mileage) yang presisi serta pemahaman strategi hidrasi dan nutrisi yang matang. Training plan Half Marathon kami dirancang khusus selama 12 hingga 16 minggu untuk membiasakan otot kaki dan mental Anda menahan beban lari jarak jauh dengan selamat sampai garis finish.
+                        </p>
+
+                        <h2 class="text-xl font-bold text-white uppercase tracking-wider pt-4">Program untuk Pemula</h2>
+                        <p>
+                            Jika Anda belum pernah berolahraga sebelumnya, mulailah dengan program khusus pemula kami. Menggunakan kombinasi interval lari-jalan (run-walk method) yang aman, tubuh Anda akan beradaptasi secara alami. Fokus utama program ini adalah membangun konsistensi latihan dan kebiasaan hidup aktif yang menyenangkan.
+                        </p>
+
+                        <h2 class="text-xl font-bold text-white uppercase tracking-wider pt-4">Program untuk Personal Best</h2>
+                        <p>
+                            Bagi para pemburu podium dan waktu tercepat, kami menyediakan training plan berintensitas tinggi untuk mengejar target ambisius seperti Sub-20 Menit 5K, Sub-50 Menit 10K, atau Sub-2 Jam Half Marathon. Program ini melibatkan menu latihan kecepatan berkualitas tinggi seperti <em>interval track session</em>, <em>hill repeats</em>, dan <em>speed endurance</em>.
+                        </p>
+
+                        <h2 class="text-xl font-bold text-white uppercase tracking-wider pt-4">Cara Memilih Program Lari yang Tepat</h2>
+                        <p>
+                            Pilihlah program latihan yang paling sesuai dengan tingkat kebugaran Anda saat ini, bukan target ambisius Anda di masa depan. Gunakan filter praktis di halaman ini untuk menyaring program berdasarkan kategori jarak target (5K, 10K, HM, FM), tingkat kesulitan (Beginner, Intermediate, Advanced), rating peserta, dan harga. Selalu mulailah secara bertahap demi keselamatan performa lari Anda.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Col: Accordion FAQ -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass-panel rounded-3xl p-6 border border-slate-800/80">
+                    <h3 class="text-lg font-black text-white italic uppercase mb-6 tracking-tight">
+                        Pertanyaan Umum (FAQ)
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <!-- FAQ Item 1 -->
+                        <details class="group border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                            <summary class="flex justify-between items-center p-4 font-bold text-white text-sm cursor-pointer select-none hover:bg-slate-900/30 transition-colors list-none">
+                                <span>Program cocok untuk pemula?</span>
+                                <svg class="w-4 h-4 text-slate-400 transform group-open:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div class="p-4 border-t border-slate-900/80 bg-slate-950/20 text-slate-400 text-xs leading-relaxed">
+                                Sangat cocok! Kami menyediakan program lari terstruktur mulai dari level nol (beginner) yang menggunakan metode kombinasi lari-jalan yang sangat bersahabat bagi sendi dan jantung pemula.
+                            </div>
+                        </details>
+
+                        <!-- FAQ Item 2 -->
+                        <details class="group border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                            <summary class="flex justify-between items-center p-4 font-bold text-white text-sm cursor-pointer select-none hover:bg-slate-900/30 transition-colors list-none">
+                                <span>Berapa kali latihan seminggu?</span>
+                                <svg class="w-4 h-4 text-slate-400 transform group-open:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div class="p-4 border-t border-slate-900/80 bg-slate-950/20 text-slate-400 text-xs leading-relaxed">
+                                Umumnya program latihan lari kami membutuhkan 3 hingga 5 sesi latihan per minggu, dengan sisa harinya dialokasikan untuk istirahat total (rest day) atau latihan kekuatan otot (strength training).
+                            </div>
+                        </details>
+
+                        <!-- FAQ Item 3 -->
+                        <details class="group border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                            <summary class="flex justify-between items-center p-4 font-bold text-white text-sm cursor-pointer select-none hover:bg-slate-900/30 transition-colors list-none">
+                                <span>Berapa lama durasi program?</span>
+                                <svg class="w-4 h-4 text-slate-400 transform group-open:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div class="p-4 border-t border-slate-900/80 bg-slate-950/20 text-slate-400 text-xs leading-relaxed">
+                                Sebagian besar program latihan lari kami berdurasi antara 8 hingga 16 minggu. Ini memberikan waktu yang aman bagi tubuh Anda untuk beradaptasi dan meningkatkan stamina aerobik.
+                            </div>
+                        </details>
+
+                        <!-- FAQ Item 4 -->
+                        <details class="group border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                            <summary class="flex justify-between items-center p-4 font-bold text-white text-sm cursor-pointer select-none hover:bg-slate-900/30 transition-colors list-none">
+                                <span>Cocok untuk persiapan race?</span>
+                                <svg class="w-4 h-4 text-slate-400 transform group-open:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div class="p-4 border-t border-slate-900/80 bg-slate-950/20 text-slate-400 text-xs leading-relaxed">
+                                Ya! Kami memiliki program spesifik "Race Preparation" yang menyertakan panduan tapering (pengurangan beban latihan secara aman) menjelang hari pelaksanaan lomba lari Anda.
+                            </div>
+                        </details>
+
+                        <!-- FAQ Item 5 -->
+                        <details class="group border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                            <summary class="flex justify-between items-center p-4 font-bold text-white text-sm cursor-pointer select-none hover:bg-slate-900/30 transition-colors list-none">
+                                <span>Apakah ada panduan pace?</span>
+                                <svg class="w-4 h-4 text-slate-400 transform group-open:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div class="p-4 border-t border-slate-900/80 bg-slate-950/20 text-slate-400 text-xs leading-relaxed">
+                                Ya. Seluruh program di Ruang Lari dilengkapi dengan target intensitas latihan (baik berbasis Heart Rate Zone, Rate of Perceived Exertion/RPE, maupun target menit per km).
+                            </div>
+                        </details>
+
+                        <!-- FAQ Item 6 -->
+                        <details class="group border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                            <summary class="flex justify-between items-center p-4 font-bold text-white text-sm cursor-pointer select-none hover:bg-slate-900/30 transition-colors list-none">
+                                <span>Bisa ikut jika belum pernah event?</span>
+                                <svg class="w-4 h-4 text-slate-400 transform group-open:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div class="p-4 border-t border-slate-900/80 bg-slate-950/20 text-slate-400 text-xs leading-relaxed">
+                                Sangat bisa! Program kami ditujukan bagi siapa saja yang ingin memiliki latihan lari terstruktur harian. Anda tidak harus terdaftar di event perlombaan lari mana pun.
+                            </div>
+                        </details>
+
+                        <!-- FAQ Item 7 -->
+                        <details class="group border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                            <summary class="flex justify-between items-center p-4 font-bold text-white text-sm cursor-pointer select-none hover:bg-slate-900/30 transition-colors list-none">
+                                <span>Akses setelah pembayaran?</span>
+                                <svg class="w-4 h-4 text-slate-400 transform group-open:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div class="p-4 border-t border-slate-900/80 bg-slate-950/20 text-slate-400 text-xs leading-relaxed">
+                                Setelah pembayaran Anda terverifikasi secara otomatis, program latihan akan langsung masuk ke Kalender Lari personal Anda dan dapat diakses selamanya.
+                            </div>
+                        </details>
+
+                        <!-- FAQ Item 8 -->
+                        <details class="group border border-slate-800 rounded-xl bg-slate-950/40 overflow-hidden">
+                            <summary class="flex justify-between items-center p-4 font-bold text-white text-sm cursor-pointer select-none hover:bg-slate-900/30 transition-colors list-none">
+                                <span>Apakah ada pemantauan coach?</span>
+                                <svg class="w-4 h-4 text-slate-400 transform group-open:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </summary>
+                            <div class="p-4 border-t border-slate-900/80 bg-slate-950/20 text-slate-400 text-xs leading-relaxed">
+                                Untuk program berbayar premium, Anda akan mendapatkan akses ke fitur chat coach dan evaluasi berkala. Sedangkan program gratis mandiri berjalan tanpa pemantauan langsung.
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer CTA Section -->
     <div class="mt-20 border-t border-slate-800 pt-16">
         <div class="relative bg-gradient-to-r from-neon/10 via-transparent to-green-500/10 border border-neon/20 rounded-3xl p-8 md:p-12 text-center overflow-hidden">
@@ -336,33 +501,78 @@
 <script type="application/ld+json">
 {
   "@@context": "https://schema.org",
-  "@@type": "ItemList",
-  "name": "Program Lari & Training Plan Ruang Lari",
-  "description": "Daftar program latihan lari terstruktur dari coach lari profesional.",
-  "numberOfItems": {{ $programs->total() }},
-  "itemListElement": [
-    @foreach($programs as $index => $prog)
+  "@@graph": [
     {
-      "@@type": "ListItem",
-      "position": {{ $index + 1 }},
-      "item": {
-        "@@type": "Product",
-        "name": {!! json_encode($prog->title) !!},
-        "description": {!! json_encode(Str::limit(strip_tags($prog->description), 150)) !!},
-        "image": "{{ $prog->image_url ?? asset('images/ruanglari.png') }}",
-        "offers": {
-          "@@type": "Offer",
-          "price": "{{ $prog->price }}",
-          "priceCurrency": "IDR",
-          "availability": "https://schema.org/InStock"
-        },
-        "provider": {
-          "@@type": "Person",
-          "name": {!! json_encode($prog->coach->name ?? 'Coach Ruang Lari') !!}
-        }
+      "@@type": "WebSite",
+      "@@id": "{{ url('/') }}/#website",
+      "url": "{{ url('/') }}",
+      "name": "Ruang Lari",
+      "description": "Platform Latihan Lari dan Pendampingan Coach Profesional Terbaik di Indonesia",
+      "publisher": {
+        "@@id": "{{ url('/') }}/#organization"
       }
-    }{{ !$loop->last ? ',' : '' }}
-    @endforeach
+    },
+    {
+      "@@type": "Organization",
+      "@@id": "{{ url('/') }}/#organization",
+      "name": "Ruang Lari",
+      "url": "{{ url('/') }}",
+      "logo": {
+        "@@type": "ImageObject",
+        "url": "{{ asset('images/logo.png') }}"
+      },
+      "sameAs": [
+        "https://www.instagram.com/ruanglari"
+      ]
+    },
+    {
+      "@@type": "BreadcrumbList",
+      "@@id": "{{ url('/programs') }}#breadcrumb",
+      "itemListElement": [
+        {
+          "@@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "{{ url('/') }}"
+        },
+        {
+          "@@type": "ListItem",
+          "position": 2,
+          "name": "Programs",
+          "item": "{{ url('/programs') }}"
+        }
+      ]
+    },
+    {
+      "@@type": "ItemList",
+      "name": "Program Lari & Training Plan Ruang Lari",
+      "description": "Daftar program latihan lari terstruktur dari coach lari profesional.",
+      "numberOfItems": {{ $programs->total() }},
+      "itemListElement": [
+        @foreach($programs as $index => $prog)
+        {
+          "@@type": "ListItem",
+          "position": {{ $index + 1 }},
+          "item": {
+            "@@type": "Product",
+            "name": {!! json_encode($prog->title) !!},
+            "description": {!! json_encode(Str::limit(strip_tags($prog->description), 150)) !!},
+            "image": "{{ $prog->image_url ?? asset('images/ruanglari.png') }}",
+            "offers": {
+              "@@type": "Offer",
+              "price": "{{ $prog->price }}",
+              "priceCurrency": "IDR",
+              "availability": "https://schema.org/InStock"
+            },
+            "provider": {
+              "@@type": "Person",
+              "name": {!! json_encode($prog->coach->name ?? 'Coach Ruang Lari') !!}
+            }
+          }
+        }{{ !$loop->last ? ',' : '' }}
+        @endforeach
+      ]
+    }
   ]
 }
 </script>

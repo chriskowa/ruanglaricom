@@ -403,8 +403,22 @@ Route::get('/reports/{event}/doorprize-list', [App\Http\Controllers\PublicEventR
 Route::get('/coach-ladder-program', function () {
     return view('coach.hub');
 })->name('coach.hub');
+
+// 301 Redirects for Clean SEO Slugs
+Route::redirect('/programs/beginner-5k-training-plan-6a1266c2896ee', '/programs/program-lari-5k-pemula', 301);
+Route::redirect('/programs/advanced-5k-training-plan-6982840438301', '/programs/program-lari-5k-advanced', 301);
+Route::redirect('/programs/program-5k-sub-20-menit-6972facae618a', '/programs/program-lari-5k-sub-20-menit', 301);
+
 Route::get('/programs', [App\Http\Controllers\PublicProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{slug}', [App\Http\Controllers\PublicProgramController::class, 'show'])->name('programs.show');
+
+// SEO Keyword Landing Pages
+Route::get('/program-lari-5k', [App\Http\Controllers\ProgramLandingPageController::class, 'program5k'])->name('landing.program-lari-5k');
+Route::get('/program-lari-5k-pemula', [App\Http\Controllers\ProgramLandingPageController::class, 'program5kPemula'])->name('landing.program-lari-5k-pemula');
+Route::get('/program-lari-10k', [App\Http\Controllers\ProgramLandingPageController::class, 'program10k'])->name('landing.program-lari-10k');
+Route::get('/program-half-marathon', [App\Http\Controllers\ProgramLandingPageController::class, 'programHalfMarathon'])->name('landing.program-half-marathon');
+Route::get('/program-lari-sub-20', [App\Http\Controllers\ProgramLandingPageController::class, 'programSub20'])->name('landing.program-lari-sub-20');
+Route::get('/coach-lari-online', [App\Http\Controllers\ProgramLandingPageController::class, 'coachOnline'])->name('landing.coach-lari-online');
 
 // Public Coach Listing
 Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');

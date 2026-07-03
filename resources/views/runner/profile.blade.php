@@ -193,6 +193,180 @@
             <!-- Right Column: Gallery & Recent Activity -->
             <div class="lg:col-span-2 space-y-6">
                 
+                @if($user->role === 'coach')
+                @php
+                $coachDetails = [
+                    'coach-raka' => [
+                        'certifications' => ['PASI Athletics Coach Level 1', 'World Athletics Coach Education Level 1', 'Physiotherapy & Sports Injury Certified'],
+                        'experience' => 'Mulai melatih sejak tahun 2018. Telah membimbing lebih dari 150+ pelari pemula hingga berhasil finish marathon pertama mereka tanpa cedera.',
+                        'specialties' => ['Marathon Training Plan', '5K & 10K Speed Development', 'Injury Prevention & Recovery'],
+                        'races' => ['Borobudur Marathon 2023 (Full Marathon)', 'Jakarta Marathon 2022', 'Maybank Marathon Bali 2023'],
+                        'testimonials' => [
+                            ['name' => 'Aditya Pratama', 'text' => 'Coach Raka sangat detail memantau heart rate saya. Berkat dia, saya berhasil finish Maybank Marathon sub-4 jam!', 'rating' => 5],
+                            ['name' => 'Siti Aminah', 'text' => 'Program Couch to 5K dari Coach Raka gampang banget diikutin, bebas cedera shin splints!', 'rating' => 5]
+                        ]
+                    ],
+                    'jefri-angga' => [
+                        'certifications' => ['World Athletics Coach Level 2', 'Certified Strength & Conditioning Specialist (CSCS)'],
+                        'experience' => 'Berpengalaman melatih atlet daerah dan pelari komunitas sejak tahun 2019, berfokus pada mekanika biomekanik lari efisien.',
+                        'specialties' => ['10K Speed Performance', 'Half Marathon Strategy', 'Strength Training for Runners'],
+                        'races' => ['Pocari Sweat Run 2023 (Half Marathon)', 'Singapore Marathon 2022'],
+                        'testimonials' => [
+                            ['name' => 'Budi Santoso', 'text' => 'Program strength trainingnya luar biasa, lutut saya ga pernah sakit lagi pas tanjakan!', 'rating' => 5]
+                        ]
+                    ]
+                ];
+
+                $currentCoach = $coachDetails[$user->username] ?? [
+                    'certifications' => ['Certified Athletic Coach', 'Running Specialist'],
+                    'experience' => 'Berpengalaman membimbing pelari komunitas dalam menyusun program latihan terstruktur baik jarak pendek maupun maraton.',
+                    'specialties' => ['5K & 10K Training', 'Heart Rate Zone Training', 'Running Form Analysis'],
+                    'races' => ['Maybank Marathon Bali', 'Pocari Sweat Run', 'Borobudur Marathon'],
+                    'testimonials' => [
+                        ['name' => 'Rian H.', 'text' => 'Program latihannya sangat terstruktur dan mudah diikuti via aplikasi.', 'rating' => 5]
+                    ]
+                ];
+                @endphp
+
+                <!-- Coach Professional Profile Details -->
+                <div class="glass-panel rounded-3xl p-6 space-y-6">
+                    <h2 class="text-xl font-black text-white italic uppercase tracking-tight pb-2 border-b border-slate-800">
+                        Professional Coaching Profile
+                    </h2>
+                    
+                    <!-- Certifications -->
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Sertifikasi & Lisensi Resmi</h4>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($currentCoach['certifications'] as $cert)
+                                <span class="px-3 py-1.5 bg-slate-900/90 text-neon border border-slate-800 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5">
+                                    <i class="fas fa-certificate text-neon"></i> {{ $cert }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Specialties -->
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Spesialisasi Program</h4>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($currentCoach['specialties'] as $spec)
+                                <span class="px-3 py-1.5 bg-neon/10 text-white border border-neon/20 rounded-xl text-xs font-bold">
+                                    {{ $spec }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Experience & Bio -->
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-1">Pengalaman Melatih</h4>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            {{ $currentCoach['experience'] }}
+                        </p>
+                    </div>
+
+                    <!-- Race Experience -->
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Pengalaman Race Utama</h4>
+                        <div class="space-y-1.5">
+                            @foreach($currentCoach['races'] as $race)
+                                <div class="flex items-center gap-2 text-sm text-slate-400">
+                                    <i class="fas fa-running text-slate-500"></i>
+                                    <span>{{ $race }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Personal Bests (PB) -->
+                    @if($user->pb_5k || $user->pb_10k || $user->pb_hm || $user->pb_fm)
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Personal Bests (PB)</h4>
+                        <div class="grid grid-cols-4 gap-2">
+                            @if($user->pb_5k)
+                            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-500 uppercase">5K</p>
+                                <p class="text-sm font-bold text-white">{{ $user->pb_5k }}</p>
+                            </div>
+                            @endif
+                            @if($user->pb_10k)
+                            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-500 uppercase">10K</p>
+                                <p class="text-sm font-bold text-white">{{ $user->pb_10k }}</p>
+                            </div>
+                            @endif
+                            @if($user->pb_hm)
+                            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-500 uppercase">HM (21K)</p>
+                                <p class="text-sm font-bold text-white">{{ $user->pb_hm }}</p>
+                            </div>
+                            @endif
+                            @if($user->pb_fm)
+                            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800 text-center">
+                                <p class="text-[10px] text-slate-500 uppercase">FM (42K)</p>
+                                <p class="text-sm font-bold text-white">{{ $user->pb_fm }}</p>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Testimonials -->
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Testimoni Peserta Program</h4>
+                        <div class="space-y-3">
+                            @foreach($currentCoach['testimonials'] as $testi)
+                                <div class="bg-slate-950/40 p-4 border border-slate-900 rounded-xl space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-white">{{ $testi['name'] }}</span>
+                                        <div class="flex text-yellow-500 text-[10px]">
+                                            @for($i=1; $i<=5; $i++)
+                                                <i class="fas fa-star"></i>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-slate-400 leading-relaxed italic">
+                                        "{{ $testi['text'] }}"
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Active Created Programs -->
+                    @if($user->programs()->exists())
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Daftar Program Latihan yang Dibuat</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach($user->programs()->where('is_published', true)->get() as $p)
+                                <div class="bg-slate-900/30 hover:bg-slate-900/60 p-4 border border-slate-800 hover:border-neon/30 rounded-xl flex flex-col justify-between transition-colors">
+                                    <div>
+                                        <span class="px-2 py-0.5 rounded bg-slate-800 text-[9px] font-bold text-slate-300 border border-slate-700">
+                                            {{ strtoupper($p->distance_target) }}
+                                        </span>
+                                        <h5 class="text-sm font-bold text-white mt-2 mb-1 group-hover:text-neon">
+                                            <a href="{{ url('/programs/' . $p->slug) }}" class="hover:text-neon transition-colors">{{ $p->title }}</a>
+                                        </h5>
+                                        <p class="text-xs text-slate-500 mb-3">{{ $p->duration_weeks }} Minggu • {{ $p->sessions_per_week }} Sesi/Minggu</p>
+                                    </div>
+                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/80">
+                                        <span class="text-sm font-black text-white">
+                                            {{ $p->price > 0 ? 'Rp ' . number_format($p->price, 0, ',', '.') : 'GRATIS' }}
+                                        </span>
+                                        <a href="{{ url('/programs/' . $p->slug) }}" class="text-xs text-neon font-bold hover:underline">
+                                            Detail Program →
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                </div>
+                @endif
+
                 <!-- Gallery Carousel -->
                 @if($user->profile_images && count($user->profile_images) > 0)
                 <div class="glass-panel rounded-2xl p-6">
@@ -251,4 +425,30 @@
 
     </div>
 </main>
+
+@if($user->role === 'coach')
+@push('scripts')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@graph": [
+    {
+      "@@type": "ProfilePage",
+      "@@id": "{{ Request::url() }}#webpage",
+      "url": "{{ Request::url() }}",
+      "name": {!! json_encode($user->name . ' - Coach Lari Profesional | Ruang Lari') !!},
+      "description": {!! json_encode($user->name . ' adalah coach lari terverifikasi di Ruang Lari. Temukan program latihan lari, pengalaman, dan ulasan peserta.') !!},
+      "mainEntity": {
+        "@@type": "Person",
+        "name": {!! json_encode($user->name) !!},
+        "image": "{{ $user->avatar_url }}",
+        "description": {!! json_encode($user->bio ?? 'Coach Lari Profesional di Ruang Lari') !!},
+        "jobTitle": "Running Coach"
+      }
+    }
+  ]
+}
+</script>
+@endpush
+@endif
 @endsection

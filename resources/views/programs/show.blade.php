@@ -1,9 +1,44 @@
 @extends('layouts.pacerhub')
 @php($withSidebar = true)
 
-@section('title', $program->title . ' | Program Lari')
-@section('meta_title', $program->title . ' | Ruang Lari')
-@section('meta_description', Str::limit(strip_tags($program->description), 150))
+@php
+    $distanceName = '';
+    $dt = strtolower($program->distance_target ?? '');
+    if ($dt === '5k') {
+        $distanceName = '5K';
+    } elseif ($dt === '10k') {
+        $distanceName = '10K';
+    } elseif ($dt === '21k' || $dt === 'hm') {
+        $distanceName = 'Half Marathon 21K';
+    } elseif ($dt === '42k' || $dt === 'fm') {
+        $distanceName = 'Marathon 42K';
+    } else {
+        $distanceName = strtoupper($program->distance_target);
+    }
+
+    $difficultyName = ucfirst($program->difficulty ?? 'Pemula');
+    $weeks = $program->duration_weeks ?? 12;
+    $coachName = $program->coach->name ?? 'Coach Ruang Lari';
+
+    // Build dynamic SEO Title
+    if ($dt === '5k') {
+        $seoTitle = "Program Lari 5K {$difficultyName} {$weeks} Minggu | Ruang Lari";
+    } elseif ($dt === '10k') {
+        $seoTitle = "Program Lari 10K {$difficultyName} bersama Coach {$coachName}";
+    } elseif ($dt === '21k' || $dt === 'hm') {
+        $seoTitle = "Program Half Marathon 21K untuk Race Preparation | Ruang Lari";
+    } else {
+        $seoTitle = "Program Lari {$distanceName} {$difficultyName} - {$program->title} | Ruang Lari";
+    }
+
+    // Build dynamic Meta Description
+    $rawDescription = strip_tags($program->description ?? '');
+    $seoDesc = "Ikuti program latihan {$distanceName} ({$difficultyName}) selama {$weeks} minggu bersama Coach {$coachName}. " . Str::limit($rawDescription, 110);
+@endphp
+
+@section('title', $seoTitle)
+@section('meta_title', $seoTitle)
+@section('meta_description', $seoDesc)
 @section('og_image', $program->image_url ?? $program->banner_url ?? asset('images/ruanglari-cover.jpg'))
 
 @push('styles')
@@ -427,5 +462,86 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+</script>
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@graph": [
+    {
+      "@@type": "Product",
+      "@@id": "{{ url('/programs/' . $program->slug) }}#product",
+      "name": {!! json_encode($seoTitle) !!},
+      "description": {!! json_encode(Str::limit(strip_tags($program->description), 200)) !!},
+      "image": "{{ $program->image_url ?? $program->banner_url ?? asset('images/ruanglari.png') }}",
+      "category": "Sports",
+      "brand": {
+        "@@type": "Brand",
+        "name": "Ruang Lari"
+      },
+      "provider": {
+        "@@type": "Person",
+        "name": {!! json_encode($coachName) !!},
+        "url": "{{ route('runner.profile.show', $program->coach->username ?? $program->coach->id) }}"
+      },
+      "offers": {
+        "@@type": "Offer",
+        "url": "{{ url('/programs/' . $program->slug) }}",
+        "priceCurrency": "IDR",
+        "price": "{{ $program->price }}",
+        "availability": "{{ $program->is_active ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}"
+      }
+      @if($program->average_rating && $program->total_reviews > 0)
+      ,"aggregateRating": {
+        "@@type": "AggregateRating",
+        "ratingValue": "{{ $program->average_rating }}",
+        "reviewCount": "{{ $program->total_reviews }}"
+      }
+      @endif
+      @if($reviews->count() > 0)
+      ,"review": [
+        @foreach($reviews as $rev)
+        {
+          "@@type": "Review",
+          "author": {
+            "@@type": "Person",
+            "name": {!! json_encode($rev->runner->name ?? 'Runner') !!}
+          },
+          "datePublished": "{{ $rev->created_at->toIso8601String() }}",
+          "reviewBody": {!! json_encode($rev->review) !!},
+          "reviewRating": {
+            "@@type": "Rating",
+            "ratingValue": "{{ $rev->rating }}"
+          }
+        }{{ !$loop->last ? ',' : '' }}
+        @endforeach
+      ]
+      @endif
+    },
+    {
+      "@@type": "BreadcrumbList",
+      "@@id": "{{ url('/programs/' . $program->slug) }}#breadcrumb",
+      "itemListElement": [
+        {
+          "@@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "{{ url('/') }}"
+        },
+        {
+          "@@type": "ListItem",
+          "position": 2,
+          "name": "Programs",
+          "item": "{{ url('/programs') }}"
+        },
+        {
+          "@@type": "ListItem",
+          "position": 3,
+          "name": {!! json_encode($program->title) !!},
+          "item": "{{ url('/programs/' . $program->slug) }}"
+        }
+      ]
+    }
+  ]
+}
 </script>
 @endpush
