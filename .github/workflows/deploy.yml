@@ -25,21 +25,26 @@ jobs:
             git pull origin main
             
             # Install package baru Laravel 13
-            composer install --no-dev --optimize-autoloader
+            # composer install --no-dev --optimize-autoloader
+            composer install --no-dev
             
             # Jalankan migrasi database
             php artisan migrate --force
             
             # Jalankan kompilasi asset jika NPM tersedia di server
-            npm install
-            npm run build
+            # npm install
+            # npm run build
             
             # Optimasi cache untuk performa maksimal di produksi
             php artisan optimize:clear
             php artisan optimize
             php artisan view:cache
+            php artisan config:clear
+            php artisan route:clear
+            php artisan cache:clear
+            php artisan view:clear
             
             # Restart queue worker agar memuat kode Laravel 13 yang baru
-            php artisan queue:restart
+            # php artisan queue:restart
 
 
