@@ -9,7 +9,7 @@
                 <div class="p-6 flex flex-col h-full relative z-10">
                     <div class="flex items-start justify-between mb-6">
                         <div class="flex items-center gap-4">
-                            <img src="{{ $coach->avatar ? asset('storage/'.$coach->avatar) : asset('images/profile/default.png') }}" class="w-16 h-16 rounded-2xl object-cover border-2 border-slate-700 group-hover:border-neon transition-colors" alt="{{ $coach->name }}">
+                            <img src="{{ $coach->avatar_url }}" class="w-16 h-16 rounded-2xl object-cover border-2 border-slate-700 group-hover:border-neon transition-colors" alt="{{ $coach->name }}">
                             <div>
                                 <h3 class="text-lg font-bold text-white group-hover:text-neon transition-colors">{{ $coach->name }}</h3>
                                 <p class="text-sm text-slate-400 flex items-center gap-1">

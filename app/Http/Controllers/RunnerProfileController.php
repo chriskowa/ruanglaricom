@@ -12,9 +12,10 @@ class RunnerProfileController extends Controller
         if (is_numeric($username)) {
             $user = User::where('id', $username)->first();
 
-            // If not found by ID, try username just in case user has numeric username (unlikely but possible)
             if (! $user) {
                 $user = User::where('username', $username)->firstOrFail();
+            } elseif ($user->username) {
+                return redirect()->route('runner.profile.show', $user->username);
             }
         } else {
             $user = User::where('username', $username)->firstOrFail();

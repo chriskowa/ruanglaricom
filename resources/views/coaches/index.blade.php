@@ -1,5 +1,10 @@
 @extends('layouts.pacerhub')
 
+@section('title', 'Daftar Coach / Pelatih Lari Profesional - Ruang Lari')
+@section('meta_title', 'Daftar Coach / Pelatih Lari Profesional - Ruang Lari')
+@section('meta_description', 'Latih potensi lari terbaik Anda dengan bimbingan dari coach dan pelatih lari profesional. Rencana latihan terstruktur untuk 5K, 10K, Half Marathon, hingga Full Marathon.')
+@section('meta_keywords', 'pelatih lari, coach lari, training plan lari, ruang lari coach, lari marathon, teknik lari')
+
 @section('content')
 <div class="min-h-screen pt-24 pb-12 px-4 md:px-8 relative overflow-hidden">
     <!-- Background Effects -->

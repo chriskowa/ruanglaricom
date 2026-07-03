@@ -12,6 +12,20 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            if (empty($user->username) && !empty($user->name)) {
+                $username = \Illuminate\Support\Str::slug($user->name);
+                $count = 1;
+                while (static::where('username', $username)->exists()) {
+                    $username = \Illuminate\Support\Str::slug($user->name) . $count++;
+                }
+                $user->username = $username;
+            }
+        });
+    }
+
     protected $appends = ['avatar_url', 'vdot', 'training_paces'];
 
     /**
@@ -72,7 +86,7 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute(): string
     {
         if (! $this->avatar) {
-            return asset('images/profile/17.jpg');
+            return $this->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg');
         }
 
         if (str_starts_with($this->avatar, 'http')) {
