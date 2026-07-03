@@ -43,7 +43,7 @@
 
     <!-- Filters -->
     <div class="mb-6 bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-xl p-4 relative z-10">
-        <form action="{{ route('eo.coupons.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <form id="coupon-filter-form" action="{{ route('eo.coupons.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Cari Kode</label>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Contoh: DISKON50" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-500 transition-colors">
@@ -79,7 +79,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const listContainer = document.getElementById('coupons-list-container');
-    const filterForm = document.querySelector('form');
+    const filterForm = document.getElementById('coupon-filter-form');
     if (!listContainer || !filterForm) return;
 
     const searchInput = filterForm.querySelector('input[name="search"]');
