@@ -295,6 +295,93 @@
             </div>
         </section>
 
+        <!-- CARI TEMAN LARI (RUN CONNECT) INTRO SECTION -->
+        <section class="py-24 relative overflow-hidden bg-[#08111F] border-t border-[#1F2D44]">
+            <!-- Subtle Glows -->
+            <div class="absolute top-[20%] left-[-10%] w-[450px] h-[450px] bg-blue-600/5 rounded-full blur-[130px] pointer-events-none"></div>
+            <div class="absolute bottom-[20%] right-[-10%] w-[450px] h-[450px] bg-[#B8FF00]/5 rounded-full blur-[130px] pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+                    
+                    <!-- Text Content -->
+                    <div data-aos="fade-right">
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#B8FF00]/25 bg-[#B8FF00]/5 backdrop-blur-md text-[#B8FF00] text-xs font-bold uppercase tracking-wider mb-6">
+                            Fitur Baru
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-black text-white tracking-tight uppercase leading-none mb-6">
+                            Temukan Teman Lari <br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Terdekat Anda!</span>
+                        </h2>
+                        
+                        <p class="text-[#94A3B8] text-base md:text-lg mb-8 leading-relaxed font-normal">
+                            Ingin lari pagi di GBK atau sore hari di Malang Kayutangan tapi tidak ada teman? Dengan fitur <strong>Cari Teman Lari</strong>, Anda bisa menemukan pelari terdekat di kota Anda, membuat jadwal lari bersama, dan mengobrol secara langsung dalam obrolan grup. 
+                        </p>
+
+                        <!-- Key Points -->
+                        <div class="space-y-4 mb-10">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0 mt-0.5 border border-blue-500/20">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white mb-0.5">Pemetaan Real-time</h4>
+                                    <p class="text-xs text-[#94A3B8]">Lihat rute lari aktif dan lokasi pelari lain di kota Anda secara interaktif di atas peta.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-[#B8FF00]/10 flex items-center justify-center text-[#B8FF00] shrink-0 mt-0.5 border border-[#B8FF00]/20">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white mb-0.5">Jodoh Lari (Match Buddy)</h4>
+                                    <p class="text-xs text-[#94A3B8]">Masukkan preferensi target jarak dan pace Anda untuk dicocokkan otomatis dengan teman lari yang sesuai.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5 border border-emerald-500/20">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white mb-0.5">Obrolan Grup Lari</h4>
+                                    <p class="text-xs text-[#94A3B8]">Koordinasikan tempat berkumpul, barang bawaan, dan obrolan persiapan lari secara langsung di dalam thread.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CTA Button -->
+                        <div class="flex flex-col sm:flex-row gap-4 justify-start">
+                            <a href="{{ route('run-connect.index') }}" class="px-8 py-4 bg-[#B8FF00] text-[#08111F] font-black rounded-xl hover:bg-[#9FE000] hover:scale-105 transition transform text-center shadow-lg shadow-[#B8FF00]/20 uppercase tracking-wider text-sm flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                Cari Teman Lari Sekarang
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Image / Preview Content -->
+                    <div class="relative" data-aos="fade-left" data-aos-delay="200">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-[2rem] transform rotate-3 scale-95 opacity-25 blur-sm z-0"></div>
+                        <div class="relative z-10 rounded-[2rem] overflow-hidden border border-[#1F2D44] shadow-2xl bg-[#0E1A2D]">
+                            <img src="https://ruanglari.com/storage/blog/media/Eg6tJAZfqg7uRUqFufYDcPdFzd1uCJy1Uad4A2xg.webp" alt="Cari Teman Lari Ruang Lari" class="w-full h-[380px] md:h-[420px] object-cover object-center">
+                            <!-- Overlay Badge -->
+                            <div class="absolute bottom-6 left-6 right-6 z-20 bg-[#0E1A2D]/95 backdrop-blur-md p-4 rounded-xl border border-[#1F2D44]">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h5 class="text-xs font-bold text-white">100% Aman & Terverifikasi</h5>
+                                        <p class="text-[10px] text-[#94A3B8] mt-0.5">Gabung dengan komunitas pelari terverifikasi di wilayah sekitar Anda.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
         <!-- KELOLA EVENT LARI TANPA RIBET (EO SECTION) -->
         <section class="py-24 bg-[#08111F] relative overflow-hidden border-t border-[#1F2D44]">
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none"></div>

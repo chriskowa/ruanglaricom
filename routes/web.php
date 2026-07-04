@@ -422,7 +422,7 @@ Route::get('/coach-lari-online', [App\Http\Controllers\ProgramLandingPageControl
 
 // Run Connect Feature Routes
 use App\Http\Controllers\RunConnectController;
-Route::get('/run-connect', [RunConnectController::class, 'index'])->name('run-connect.index');
+Route::get('/cari-teman-lari', [RunConnectController::class, 'index'])->name('run-connect.index');
 Route::get('/api/run-connect/threads', [RunConnectController::class, 'getThreads'])->name('api.run-connect.threads');
 Route::get('/api/run-connect/threads/{id}', [RunConnectController::class, 'showThread'])->name('api.run-connect.thread');
 Route::post('/api/run-connect/threads', [RunConnectController::class, 'storeThread'])->name('api.run-connect.store');

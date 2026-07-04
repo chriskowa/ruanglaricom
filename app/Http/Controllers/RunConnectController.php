@@ -151,6 +151,41 @@ class RunConnectController extends Controller
             $query->where('is_women_friendly', true);
         }
 
+        // Filter Host Gender (Male / Female)
+        if ($request->filled('host_gender')) {
+            $query->whereHas('creator', function($q) use ($request) {
+                $q->where('gender', $request->host_gender);
+            });
+        }
+
+        // Filter Host Age Range
+        if ($request->filled('host_age_range')) {
+            $range = $request->host_age_range;
+            if ($range === 'under_20') {
+                $maxDate = now()->subYears(20)->toDateString();
+                $query->whereHas('creator', function($q) use ($maxDate) {
+                    $q->where('date_of_birth', '>', $maxDate);
+                });
+            } elseif ($range === '20_30') {
+                $minDate = now()->subYears(20)->toDateString();
+                $maxDate = now()->subYears(31)->toDateString();
+                $query->whereHas('creator', function($q) use ($minDate, $maxDate) {
+                    $q->whereBetween('date_of_birth', [$maxDate, $minDate]);
+                });
+            } elseif ($range === '30_40') {
+                $minDate = now()->subYears(30)->toDateString();
+                $maxDate = now()->subYears(41)->toDateString();
+                $query->whereHas('creator', function($q) use ($minDate, $maxDate) {
+                    $q->whereBetween('date_of_birth', [$maxDate, $minDate]);
+                });
+            } elseif ($range === 'above_40') {
+                $minDate = now()->subYears(40)->toDateString();
+                $query->whereHas('creator', function($q) use ($minDate) {
+                    $q->where('date_of_birth', '<', $minDate);
+                });
+            }
+        }
+
         // Ordering & Pagination
         if ($hasCoords) {
             $query->orderBy('distance', 'asc');

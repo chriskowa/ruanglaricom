@@ -99,11 +99,26 @@ class User extends Authenticatable
             return asset($this->avatar);
         }
 
-        if (str_starts_with($this->avatar, '/storage')) {
-            return asset(ltrim($this->avatar, '/'));
+        // Normalize path: trim spaces and trim leading/trailing slashes
+        $path = trim($this->avatar);
+        
+        // Strip out existing storage prefix if stored in DB to prevent duplicates
+        if (str_starts_with($path, '/storage/')) {
+            $path = substr($path, 9);
+        } elseif (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8);
+        } elseif ($path === 'storage' || $path === '/storage') {
+            $path = '';
         }
 
-        return asset('storage/'.$this->avatar);
+        // Strip leading slash
+        $path = ltrim($path, '/');
+
+        if ($path === '') {
+            return $this->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg');
+        }
+
+        return asset('storage/' . $path);
     }
 
     public function pacer()

@@ -430,7 +430,7 @@
                             <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Riwayat Run Connect</h2>
                         </div>
                         <div class="shrink-0">
-                            <a href="/run-connect" class="px-3 py-1.5 rounded-lg bg-neon/15 border border-neon/30 text-[10px] text-neon hover:bg-neon/20 transition-all font-black uppercase tracking-wider">
+                            <a href="{{ route('run-connect.index') }}" class="px-3 py-1.5 rounded-lg bg-neon/15 border border-neon/30 text-[10px] text-neon hover:bg-neon/20 transition-all font-black uppercase tracking-wider">
                                 Cari Buddy Lari
                             </a>
                         </div>
@@ -475,7 +475,7 @@
                                             <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400 text-[9px] font-black uppercase tracking-wider">{{ $status }}</span>
                                         @endif
                                     </div>
-                                    <a href="/run-connect" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-750 hover:bg-slate-850 transition">
+                                    <a href="{{ route('run-connect.index') }}" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-750 hover:bg-slate-850 transition">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                         </svg>
@@ -485,7 +485,7 @@
                         @empty
                             <div class="text-xs text-slate-400 text-center py-8">
                                 <p>Belum ada riwayat lari bersama di Run Connect.</p>
-                                <a href="/run-connect" class="inline-block mt-3 text-neon hover:underline font-bold text-[10px] uppercase tracking-wider">Mulai Cari Buddy Lari →</a>
+                                <a href="{{ route('run-connect.index') }}" class="inline-block mt-3 text-neon hover:underline font-bold text-[10px] uppercase tracking-wider">Mulai Cari Buddy Lari →</a>
                             </div>
                         @endforelse
                     </div>

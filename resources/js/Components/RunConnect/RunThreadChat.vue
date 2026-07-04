@@ -66,7 +66,7 @@ const formatTime = (isoString) => {
 
 onMounted(() => {
     fetchMessages();
-    pollInterval = setInterval(fetchMessages, 5000); // Poll every 5s
+    pollInterval = setInterval(fetchMessages, 1500); // Poll every 1.5s (near-realtime feel)
 });
 
 onUnmounted(() => {

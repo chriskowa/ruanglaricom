@@ -39,12 +39,16 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
     <!-- Scripts -->
     @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
     @inertiaHead
     <style>
         .loader-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
+        .loader-text { font-family: 'Inter', sans-serif; font-weight: 800; font-style: italic; letter-spacing: -0.05em; }
         .text-primary { color: #ccff00; }
         .animate-pulse { animation: loaderPulse 1.5s ease-in-out infinite; }
         @keyframes loaderPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.98)} }
@@ -52,7 +56,7 @@
 </head>
 <body class="font-sans antialiased">
     <div id="loader" class="loader-overlay">
-        <div class="text-4xl font-black italic tracking-tighter animate-pulse">
+        <div class="text-4xl loader-text animate-pulse text-white">
             RUANG<span class="text-primary">LARI</span>
         </div>
     </div>

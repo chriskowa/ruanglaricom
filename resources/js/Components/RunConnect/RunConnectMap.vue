@@ -108,7 +108,10 @@ const getAvatarUrl = (user) => {
     if (user.avatar && !user.avatar.includes('default-')) {
         if (user.avatar.startsWith('http')) return user.avatar;
         if (user.avatar.startsWith('images/')) return '/' + user.avatar;
-        return '/storage/' + user.avatar;
+        let path = user.avatar;
+        if (path.startsWith('/')) path = path.substring(1);
+        if (path.startsWith('storage/')) return '/' + path;
+        return `/storage/${path}`;
     }
     if (user.gender === 'female') {
         return 'https://avatar.iran.liara.run/public/girl?username=' + encodeURIComponent(user.name);
@@ -512,5 +515,10 @@ onUnmounted(() => {
         transform: scale(1.5);
         opacity: 0;
     }
+}
+
+/* Hide Mapbox Logo for a cleaner layout */
+.mapboxgl-ctrl-logo {
+    display: none !important;
 }
 </style>

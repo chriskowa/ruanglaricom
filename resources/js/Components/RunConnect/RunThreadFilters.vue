@@ -35,7 +35,9 @@ const resetAll = () => {
         start_time_filter: '',
         slot_available: false,
         beginner_friendly: false,
-        women_friendly: false
+        women_friendly: false,
+        host_gender: '',
+        host_age_range: ''
     };
     emit('update:filters', defaulted);
     emit('change', defaulted);
@@ -199,9 +201,57 @@ const paces = [
                 </select>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-2">
+                <!-- Gender Host -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest mb-2">Gender Host</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <button 
+                            v-for="g in [
+                                { label: 'Semua', value: '' },
+                                { label: 'Pria', value: 'male' },
+                                { label: 'Wanita', value: 'female' }
+                            ]" 
+                            :key="g.value"
+                            @click="updateFilter('host_gender', g.value)"
+                            :class="filters.host_gender === g.value 
+                                ? 'bg-blue-600 dark:bg-[#ccff00] text-white dark:text-slate-950 font-black' 
+                                : 'bg-slate-50 dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800'"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                        >
+                            {{ g.label }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Rentang Umur Host -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest mb-2">Umur Host</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <button 
+                            v-for="age in [
+                                { label: 'Semua', value: '' },
+                                { label: '< 20', value: 'under_20' },
+                                { label: '20-30', value: '20_30' },
+                                { label: '30-40', value: '30_40' },
+                                { label: '40+', value: 'above_40' }
+                            ]" 
+                            :key="age.value"
+                            @click="updateFilter('host_age_range', age.value)"
+                            :class="filters.host_age_range === age.value 
+                                ? 'bg-blue-600 dark:bg-[#ccff00] text-white dark:text-slate-950 font-black' 
+                                : 'bg-slate-50 dark:bg-slate-950/50 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                        >
+                            {{ age.label }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Custom switches/toggles -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-350">
+                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
                     <input 
                         type="checkbox"
                         :checked="filters.slot_available"
@@ -211,7 +261,7 @@ const paces = [
                     <span>Hanya Kuota Tersedia</span>
                 </label>
 
-                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-350">
+                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
                     <input 
                         type="checkbox"
                         :checked="filters.beginner_friendly"
@@ -221,7 +271,7 @@ const paces = [
                     <span>Ramah Pemula</span>
                 </label>
 
-                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-350">
+                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
                     <input 
                         type="checkbox"
                         :checked="filters.women_friendly"

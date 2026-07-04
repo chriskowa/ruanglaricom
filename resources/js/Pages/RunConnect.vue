@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, defineAsyncComponent, nextTick } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 
@@ -61,7 +61,15 @@ const toggleTheme = () => {
 };
 
 // App State
-const userLocation = ref(null);
+const getCachedLocation = () => {
+    try {
+        const cached = localStorage.getItem('run-connect-user-location');
+        return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+        return null;
+    }
+};
+const userLocation = ref(getCachedLocation());
 const permissionDenied = ref(false);
 const viewMode = ref('map'); // 'map' or 'list'
 const threads = ref([]);
@@ -84,8 +92,10 @@ const isFabOpen = ref(false);
 const getUserAvatar = (user) => {
     if (!user?.avatar) return '/images/profile/17.jpg';
     if (user.avatar.startsWith('http')) return user.avatar;
-    if (user.avatar.startsWith('/storage')) return user.avatar;
-    return `/storage/${user.avatar}`;
+    let path = user.avatar;
+    if (path.startsWith('/')) path = path.substring(1);
+    if (path.startsWith('storage/')) return '/' + path;
+    return `/storage/${path}`;
 };
 
 const getUserInitials = (user) => {
@@ -101,7 +111,9 @@ const filters = ref({
     start_time_filter: '',
     slot_available: false,
     beginner_friendly: false,
-    women_friendly: false
+    women_friendly: false,
+    host_gender: '',
+    host_age_range: ''
 });
 
 // Computed properties
@@ -112,13 +124,16 @@ const hasActiveFilters = computed(() => {
            filters.value.start_time_filter !== '' || 
            filters.value.slot_available || 
            filters.value.beginner_friendly || 
-           filters.value.women_friendly;
+           filters.value.women_friendly ||
+           filters.value.host_gender !== '' ||
+           filters.value.host_age_range !== '';
 });
 
 // Methods
 const handleLocationSelected = (location) => {
     userLocation.value = location;
     permissionDenied.value = false;
+    localStorage.setItem('run-connect-user-location', JSON.stringify(location));
     fetchThreads();
 };
 
@@ -142,10 +157,16 @@ const fetchThreads = async () => {
                 start_time_filter: filters.value.start_time_filter,
                 slot_available: filters.value.slot_available ? 'true' : 'false',
                 beginner_friendly: filters.value.beginner_friendly ? 'true' : 'false',
-                women_friendly: filters.value.women_friendly ? 'true' : 'false'
+                women_friendly: filters.value.women_friendly ? 'true' : 'false',
+                host_gender: filters.value.host_gender,
+                host_age_range: filters.value.host_age_range
             }
         });
         threads.value = res.data.data || [];
+        nextTick(() => {
+            activeCarouselIndex.value = 0;
+            startCarouselAutoSlide();
+        });
     } catch (err) {
         console.error('Error fetching threads:', err);
     } finally {
@@ -154,12 +175,14 @@ const fetchThreads = async () => {
 };
 
 const handleMapMoved = (center) => {
-    userLocation.value = {
+    const loc = {
         ...userLocation.value,
         lat: center.lat,
         lng: center.lng,
         isApprox: true
     };
+    userLocation.value = loc;
+    localStorage.setItem('run-connect-user-location', JSON.stringify(loc));
     fetchThreads();
 };
 
@@ -370,12 +393,42 @@ const handleOutsideClick = (e) => {
     }
 };
 
+let threadsInterval = null;
+const activeCarouselIndex = ref(0);
+let carouselInterval = null;
+
+const startCarouselAutoSlide = () => {
+    stopCarouselAutoSlide();
+    if (threads.value.length <= 1) return;
+
+    carouselInterval = setInterval(() => {
+        const container = document.getElementById('map-threads-slider');
+        if (!container) return;
+
+        activeCarouselIndex.value = (activeCarouselIndex.value + 1) % threads.value.length;
+        const targetElement = container.children[activeCarouselIndex.value];
+        if (targetElement) {
+            container.scrollTo({
+                left: targetElement.offsetLeft - container.offsetLeft,
+                behavior: 'smooth'
+            });
+        }
+    }, 5000);
+};
+
+const stopCarouselAutoSlide = () => {
+    if (carouselInterval) {
+        clearInterval(carouselInterval);
+        carouselInterval = null;
+    }
+};
+
 onMounted(() => {
     initTheme();
     requestNotificationPermission();
     if (props.auth?.user) {
         fetchNotifications();
-        notificationInterval = setInterval(fetchNotifications, 10000); // poll every 10s
+        notificationInterval = setInterval(fetchNotifications, 3000); // poll every 3s
     }
     window.addEventListener('click', handleOutsideClick);
 
@@ -383,6 +436,9 @@ onMounted(() => {
     bgSliderInterval = setInterval(() => {
         currentBgIndex.value = (currentBgIndex.value + 1) % backgroundImages.length;
     }, 6000);
+
+    // Active discovery auto-refresh interval (for new joiners/threads)
+    threadsInterval = setInterval(fetchThreads, 20000); // poll every 20s
 });
 
 onUnmounted(() => {
@@ -391,6 +447,12 @@ onUnmounted(() => {
     }
     if (bgSliderInterval) {
         clearInterval(bgSliderInterval);
+    }
+    if (threadsInterval) {
+        clearInterval(threadsInterval);
+    }
+    if (carouselInterval) {
+        clearInterval(carouselInterval);
     }
     window.removeEventListener('click', handleOutsideClick);
 });
@@ -410,13 +472,13 @@ onUnmounted(() => {
     <div :class="theme" class="min-h-screen transition-colors duration-300">
         <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col">
             <!-- Header -->
-            <header class="border-b border-slate-200 dark:border-slate-850 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-30 transition-colors duration-300">
+            <header class="border-b border-slate-200 dark:border-slate-850 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-[100] transition-colors duration-300">
                 <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <a href="/" class="flex items-center gap-2 cursor-pointer">
                             <img :src="logoSrc" alt="RuangLari" class="h-6 sm:h-8 w-auto">
-                            <div class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center text-slate-900 dark:text-white">
-                                RUANG<span class="pl-1 text-slate-900 dark:text-[#ccff00]">LARI</span>
+                            <div class="text-sm sm:text-lg md:text-xl flex items-center text-slate-900 dark:text-white" style="font-family: 'Inter', sans-serif; font-weight: 800; font-style: italic; letter-spacing: -0.05em;">
+                                RUANG<span class="pl-0.5 text-slate-900 dark:text-[#ccff00]" style="font-family: 'Inter', sans-serif; font-weight: 800;">LARI</span>
                             </div>
                         </a>    
                         <span class="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full hidden md:inline"></span>
@@ -578,6 +640,39 @@ onUnmounted(() => {
 
                 <!-- Active Discovery Interface -->
                 <template v-else>
+                    <!-- Space Iklan (2 Kolom) -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <a 
+                            href="https://api.whatsapp.com/send/?phone=6287866950667&text=hai+saya+tertarik+untuk+memasang+iklan+di+cari-teman-lari&type=phone_number&app_absent=0" 
+                            target="_blank" 
+                            class="relative h-20 sm:h-24 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 group overflow-hidden shadow-sm hover:shadow-md hover:border-blue-500/40 dark:hover:border-[#ccff00]/40 transition-all text-center"
+                        >
+                            <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <span class="text-[9px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500 mb-0.5">Iklan Sponsor</span>
+                            <span class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-[#ccff00] transition-colors">Space Iklan Tersedia</span>
+                            <span class="text-[9px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1 font-medium justify-center">Hubungi Kami via WhatsApp <svg class="w-2.5 h-2.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></span>
+                        </a>
+                        <a 
+                            href="https://api.whatsapp.com/send/?phone=6287866950667&text=hai+saya+tertarik+untuk+memasang+iklan+di+cari-teman-lari&type=phone_number&app_absent=0" 
+                            target="_blank" 
+                            class="relative h-20 sm:h-24 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 group overflow-hidden shadow-sm hover:shadow-md hover:border-blue-500/40 dark:hover:border-[#ccff00]/40 transition-all text-center"
+                        >
+                            <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <span class="text-[9px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500 mb-0.5">Iklan Sponsor</span>
+                            <span class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-[#ccff00] transition-colors">Space Iklan Tersedia</span>
+                            <span class="text-[9px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1 font-medium justify-center">Hubungi Kami via WhatsApp <svg class="w-2.5 h-2.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></span>
+                        </a>
+                    </div>
+
+                    <!-- Search Filters at the top (Collapsible, visible in both views) -->
+                    <div class="mb-4">
+                        <RunThreadFilters 
+                            v-model:filters="filters"
+                            :theme="theme"
+                            @change="fetchThreads"
+                        />
+                    </div>
+
                     <!-- Mobile Toggle View Bar (Only visible on mobile) -->
                     <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 mb-4 lg:hidden transition-colors duration-300">
                         <div class="flex bg-slate-100 dark:bg-slate-950 rounded-xl p-1 w-full">
@@ -607,17 +702,11 @@ onUnmounted(() => {
                     <!-- Split-Screen Grid Layout -->
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-grow">
                         
-                        <!-- LEFT COLUMN: Filters + List (Hidden on mobile if viewMode is 'map') -->
+                        <!-- LEFT COLUMN: List only (Hidden on mobile if viewMode is 'map') -->
                         <div 
                             :class="{'hidden lg:flex': viewMode === 'map', 'flex': viewMode === 'list'}"
                             class="lg:col-span-5 xl:col-span-4 flex-col space-y-4 h-full"
                         >
-                            <RunThreadFilters 
-                                v-model:filters="filters"
-                                :theme="theme"
-                                @change="fetchThreads"
-                            />
-                            
                             <div class="flex-grow overflow-y-auto max-h-[70vh] pr-1 scroll-thin">
                                 <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Running Threads Terdekat</h3>
                                 <RunThreadList 
@@ -639,7 +728,7 @@ onUnmounted(() => {
                         <!-- RIGHT COLUMN: Mapbox (Hidden on mobile if viewMode is 'list') -->
                         <div 
                             :class="{'hidden lg:block': viewMode === 'list', 'block': viewMode === 'map'}"
-                            class="lg:col-span-7 xl:col-span-8 sticky top-24"
+                            class="lg:col-span-7 xl:col-span-8 sticky top-24 flex flex-col"
                         >
                              <RunConnectMap 
                                  :mapbox-token="mapboxToken"
@@ -650,6 +739,70 @@ onUnmounted(() => {
                                  @map-moved="handleMapMoved"
                                  @location-selected="handleLocationSelected"
                              />
+
+                             <!-- Horizontal Auto-Sliding List / Slider of Threads under the map -->
+                             <div v-if="threads.length > 0" class="mt-4 relative z-10 w-full">
+                                 <h4 class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 pl-1">Rute Terdekat</h4>
+                                 <div 
+                                     @mouseenter="stopCarouselAutoSlide"
+                                     @mouseleave="startCarouselAutoSlide"
+                                     class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 scroll-thin" 
+                                     id="map-threads-slider"
+                                 >
+                                     <div 
+                                         v-for="thread in threads" 
+                                         :key="thread.id"
+                                         class="flex-shrink-0 w-[280px] sm:w-[320px] snap-center"
+                                     >
+                                         <div 
+                                             @click="handleSelectThread(thread)"
+                                             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between h-36 border-l-4"
+                                             :class="[
+                                                 selectedThread && selectedThread.id === thread.id ? 'ring-2 ring-blue-650 dark:ring-[#ccff00]' : '',
+                                                 thread.type === 'Casual Run' ? 'border-l-green-500' :
+                                                 thread.type === 'Long Run' ? 'border-l-blue-500' :
+                                                 thread.type === 'Speed Session' ? 'border-l-red-500' :
+                                                 thread.type === 'Recovery Run' ? 'border-l-amber-500' :
+                                                 thread.type === 'Race Prep' ? 'border-l-purple-500' :
+                                                 'border-l-indigo-500'
+                                             ]"
+                                         >
+                                             <div>
+                                                 <div class="flex justify-between items-center">
+                                                     <span 
+                                                         class="px-2 py-0.5 rounded text-[8px] font-black uppercase"
+                                                         :class="[
+                                                             thread.type === 'Casual Run' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
+                                                             thread.type === 'Long Run' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                                             thread.type === 'Speed Session' ? 'bg-red-500/10 text-red-600 dark:text-red-400' :
+                                                             thread.type === 'Recovery Run' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                                                             thread.type === 'Race Prep' ? 'bg-purple-500/10 text-purple-650 dark:text-purple-400' :
+                                                             'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                                                         ]"
+                                                     >
+                                                         {{ thread.type }}
+                                                     </span>
+                                                     <span class="text-[9px] text-slate-400 dark:text-slate-500 font-mono font-semibold">
+                                                         {{ thread.start_date.substring(5,10) }} • {{ thread.start_time.substring(0,5) }}
+                                                     </span>
+                                                 </div>
+                                                 <h4 class="text-xs font-black text-slate-800 dark:text-white truncate mt-2">{{ thread.title }}</h4>
+                                                 <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5">{{ thread.start_location_name }}</p>
+                                             </div>
+                                             
+                                             <div class="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                                                 <div class="flex items-center gap-1.5 min-w-0">
+                                                     <img :src="getUserAvatar(thread.creator)" class="w-5 h-5 rounded-full object-cover border border-slate-150 dark:border-slate-700" />
+                                                     <span class="text-[9px] font-bold text-slate-600 dark:text-slate-350 truncate max-w-[90px]">{{ thread.creator?.name }}</span>
+                                                 </div>
+                                                 <span class="text-[9px] bg-slate-100 dark:bg-slate-850 px-2 py-0.5 border border-slate-150 dark:border-slate-800 rounded-lg font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                                                     👥 {{ thread.participants?.length || 1 }}/{{ thread.quota }}
+                                                 </span>
+                                             </div>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
                         </div>
 
                     </div>
@@ -720,13 +873,26 @@ onUnmounted(() => {
                         v-if="isFabOpen" 
                         class="flex flex-col items-end gap-3 mb-1"
                     >
+                        <!-- Buat Rute Lari Button -->
+                        <a 
+                            href="/buat-rute-lari"
+                            class="flex items-center gap-2 px-4.5 py-2.5 bg-blue-650 dark:bg-emerald-600 hover:bg-blue-700 dark:hover:bg-emerald-500 text-white text-xs font-bold rounded-full shadow-lg cursor-pointer transform transition hover:scale-105"
+                        >
+                            <span>Buat Rute Lari</span>
+                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                        </a>
+
                         <!-- Match Buddy Button -->
                         <button 
                             @click="auth.user ? (isMatchOpen = true) : (isLoginOpen = true); isFabOpen = false"
                             class="flex items-center gap-2 px-4.5 py-2.5 bg-blue-650 dark:bg-indigo-650 hover:bg-blue-700 dark:hover:bg-indigo-600 text-white text-xs font-bold rounded-full shadow-lg cursor-pointer transform transition hover:scale-105"
                         >
                             <span>Match Buddy</span>
-                            <span class="text-sm">🎯</span>
+                            <svg class="w-4 h-4 text-white dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
                         </button>
 
                         <!-- Buat Thread Button -->
@@ -735,7 +901,9 @@ onUnmounted(() => {
                             class="flex items-center gap-2 px-4.5 py-2.5 bg-blue-650 dark:bg-[#ccff00] hover:bg-blue-700 dark:hover:bg-white text-white dark:text-slate-950 text-xs font-bold rounded-full shadow-lg cursor-pointer transform transition hover:scale-105"
                         >
                             <span>Buat Thread Lari</span>
-                            <span class="text-sm">🏃</span>
+                            <svg class="w-4 h-4 text-white dark:text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
                         </button>
                     </div>
                 </transition>

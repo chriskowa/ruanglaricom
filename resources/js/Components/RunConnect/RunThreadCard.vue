@@ -71,7 +71,10 @@ const avatarUrl = computed(() => {
     if (creator.avatar && !creator.avatar.includes('default-')) {
         if (creator.avatar.startsWith('http')) return creator.avatar;
         if (creator.avatar.startsWith('images/')) return '/' + creator.avatar;
-        return '/storage/' + creator.avatar;
+        let path = creator.avatar;
+        if (path.startsWith('/')) path = path.substring(1);
+        if (path.startsWith('storage/')) return '/' + path;
+        return `/storage/${path}`;
     }
     
     if (creator.gender === 'female') {
