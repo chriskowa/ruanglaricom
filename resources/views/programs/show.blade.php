@@ -36,10 +36,10 @@
     $seoDesc = "Ikuti program latihan {$distanceName} ({$difficultyName}) selama {$weeks} minggu bersama Coach {$coachName}. " . Str::limit($rawDescription, 110);
 @endphp
 
-@section('title', $seoTitle)
-@section('meta_title', $seoTitle)
-@section('meta_description', $seoDesc)
-@section('og_image', $program->image_url ?? $program->banner_url ?? asset('images/ruanglari-cover.jpg'))
+@section('title'){{ $seoTitle }}@endsection
+@section('meta_title'){{ $seoTitle }}@endsection
+@section('meta_description'){{ $seoDesc }}@endsection
+@section('og_image'){{ $program->image_url ?? $program->banner_url ?? asset('images/ruanglari-cover.jpg') }}@endsection
 
 @push('styles')
 <script>
