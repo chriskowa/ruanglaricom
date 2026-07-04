@@ -32,7 +32,7 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|string',
             'password' => 'required',
-            'g-recaptcha-response' => [$requireRecaptcha ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($requireRecaptcha, $request) {
+            'g-recaptcha-response' => [$requireRecaptcha ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($requireRecaptcha, $request, $recaptchaSecret) {
                 if (! $requireRecaptcha) {
                     return;
                 }

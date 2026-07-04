@@ -391,6 +391,14 @@ const handleOutsideClick = (e) => {
     if (userMenu && !userMenu.contains(e.target)) {
         isUserMenuOpen.value = false;
     }
+    // Close notifications panel on click outside
+    if (isNotificationsOpen.value) {
+        const isNotifBtn = e.target.closest('.notifications-dropdown-btn');
+        const isNotifPanel = e.target.closest('.notifications-dropdown-container');
+        if (!isNotifBtn && !isNotifPanel) {
+            isNotificationsOpen.value = false;
+        }
+    }
 };
 
 let threadsInterval = null;
@@ -493,10 +501,10 @@ onUnmounted(() => {
                         </div>
 
                         <!-- Notifications Dropdown -->
-                        <div v-if="auth.user" class="relative">
+                        <div v-if="auth.user" class="relative notifications-dropdown-container">
                             <button 
                                 @click="isNotificationsOpen = !isNotificationsOpen" 
-                                class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors cursor-pointer relative"
+                                class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors cursor-pointer relative notifications-dropdown-btn"
                                 title="Notifikasi"
                             >
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -506,7 +514,7 @@ onUnmounted(() => {
                             </button>
 
                             <!-- Notifications Panel -->
-                            <div v-if="isNotificationsOpen" class="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 py-2">
+                            <div v-if="isNotificationsOpen" class="fixed top-16 inset-x-4 sm:absolute sm:top-auto sm:right-0 sm:left-auto sm:w-80 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 py-2">
                                 <div class="px-4 py-2 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900">
                                     <span class="font-bold text-xs text-slate-800 dark:text-white">Notifikasi</span>
                                     <button @click="markAllNotificationsRead" class="text-[10px] text-blue-650 dark:text-[#ccff00] hover:underline font-bold cursor-pointer">Tandai semua dibaca</button>
