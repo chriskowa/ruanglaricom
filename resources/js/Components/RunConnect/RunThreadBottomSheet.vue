@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import axios from 'axios';
 import RunThreadChat from './RunThreadChat.vue';
 
@@ -138,6 +138,17 @@ const isFull = computed(() => {
     if (!props.thread) return false;
     return joinedCount.value >= props.thread.quota;
 });
+
+watch(() => props.thread, (newThread) => {
+    if (newThread && isCreator.value && pendingParticipants.value.length > 0) {
+        nextTick(() => {
+            const el = document.getElementById('pending-requests-section');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    }
+}, { immediate: true });
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -297,7 +308,7 @@ const typeColors = {
         </div>
 
         <!-- Pending Requests (Host Only) -->
-        <div v-if="isCreator && pendingParticipants.length > 0" class="mb-6">
+        <div v-if="isCreator && pendingParticipants.length > 0" id="pending-requests-section" class="mb-6">
             <h4 class="text-xs font-bold text-amber-600 dark:text-[#ccff00] uppercase tracking-widest mb-3">Permintaan Bergabung ({{ pendingParticipants.length }})</h4>
             <div class="space-y-2 bg-amber-500/5 dark:bg-slate-950/20 p-3 rounded-xl border border-amber-500/10 dark:border-slate-850">
                 <div 

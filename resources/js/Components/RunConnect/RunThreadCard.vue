@@ -28,7 +28,12 @@ const joinedParticipants = computed(() => {
 
 const isUserJoined = computed(() => {
     if (!props.user) return false;
-    return joinedParticipants.value.some(p => p.user_id === props.user.id && p.status === 'joined');
+    return (props.thread.participants || []).some(p => p.user_id === props.user.id && p.status === 'joined');
+});
+
+const isUserPending = computed(() => {
+    if (!props.user) return false;
+    return (props.thread.participants || []).some(p => p.user_id === props.user.id && p.status === 'pending');
 });
 
 const isCreator = computed(() => {
@@ -37,7 +42,7 @@ const isCreator = computed(() => {
 });
 
 const joinedCount = computed(() => {
-    return joinedParticipants.value.length;
+    return (props.thread.participants || []).filter(p => p.status === 'joined').length;
 });
 
 const isFull = computed(() => {
@@ -196,6 +201,13 @@ const avatarUrl = computed(() => {
                         class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 border border-red-500/20 hover:border-red-500/30 text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-50"
                     >
                         Joined
+                    </button>
+                    <button 
+                        v-else-if="isUserPending"
+                        disabled
+                        class="px-3 py-1.5 bg-slate-105 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700 cursor-not-allowed"
+                    >
+                        Pending
                     </button>
                     <button 
                         v-else-if="isFull"

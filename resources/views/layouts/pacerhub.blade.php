@@ -115,6 +115,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" sizes="192x192" href="/images/android-icon-192x192.png">
     
+    <!-- Preconnect & Preload for Speed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preload" href="https://cdn.tailwindcss.com?plugins=typography" as="script">
+
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     
     @if(empty($skipHeavyAssets))
