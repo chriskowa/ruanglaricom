@@ -647,7 +647,7 @@ onUnmounted(() => {
                         <!-- Hamburger Menu for Mobile -->
                         <div v-if="auth.user" class="md:hidden relative">
                             <button 
-                                @click="isUserMenuOpen = !isUserMenuOpen" 
+                                @click.stop="isUserMenuOpen = !isUserMenuOpen" 
                                 class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors cursor-pointer"
                             >
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

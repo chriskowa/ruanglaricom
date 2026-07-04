@@ -4,6 +4,13 @@ import axios from 'axios';
 import RunThreadChat from './RunThreadChat.vue';
 
 const activeTab = ref('info'); // 'info', 'chat', 'gpx'
+const sheetContainer = ref(null);
+
+watch(activeTab, () => {
+    if (sheetContainer.value) {
+        sheetContainer.value.scrollTop = 0;
+    }
+});
 
 const props = defineProps({
     thread: {
@@ -214,7 +221,8 @@ const typeColors = {
 <template>
     <div 
         v-if="thread"
-        class="fixed inset-x-0 bottom-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-3xl shadow-2xl p-6 transition-transform duration-300 max-h-[85vh] overflow-y-auto no-scrollbar md:max-w-xl md:mx-auto md:bottom-4 md:rounded-3xl md:border text-slate-800 dark:text-slate-100"
+        ref="sheetContainer"
+        class="fixed inset-x-0 bottom-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-3xl shadow-2xl p-6 transition-transform duration-300 h-[80vh] md:h-[75vh] overflow-y-auto no-scrollbar md:max-w-xl md:mx-auto md:bottom-4 md:rounded-3xl md:border text-slate-800 dark:text-slate-100"
     >
         <!-- Pull bar for mobile -->
         <div class="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-4 md:hidden"></div>
@@ -244,7 +252,7 @@ const typeColors = {
         <!-- Tabs -->
         <div class="flex gap-4 mb-4 border-b border-slate-200 dark:border-slate-800">
             <button @click="activeTab = 'info'" :class="activeTab === 'info' ? 'text-blue-600 dark:text-[#ccff00] border-b-2 border-blue-600 dark:border-[#ccff00] font-bold' : 'text-slate-500 dark:text-slate-400 border-b-2 border-transparent'" class="pb-2 px-2 text-xs transition-all uppercase tracking-wider">Info Detail</button>
-            <button v-if="isUserJoined" @click="activeTab = 'chat'" :class="activeTab === 'chat' ? 'text-blue-600 dark:text-[#ccff00] border-b-2 border-blue-600 dark:border-[#ccff00] font-bold' : 'text-slate-500 dark:text-slate-400 border-b-2 border-transparent'" class="pb-2 px-2 text-xs transition-all uppercase tracking-wider">Group Chat</button>
+            <button @click="activeTab = 'chat'" :class="activeTab === 'chat' ? 'text-blue-600 dark:text-[#ccff00] border-b-2 border-blue-600 dark:border-[#ccff00] font-bold' : 'text-slate-500 dark:text-slate-400 border-b-2 border-transparent'" class="pb-2 px-2 text-xs transition-all uppercase tracking-wider">Group Chat</button>
             <button @click="activeTab = 'gpx'" :class="activeTab === 'gpx' ? 'text-blue-600 dark:text-[#ccff00] border-b-2 border-blue-600 dark:border-[#ccff00] font-bold' : 'text-slate-500 dark:text-slate-400 border-b-2 border-transparent'" class="pb-2 px-2 text-xs transition-all uppercase tracking-wider">Rute GPX</button>
         </div>
 
@@ -378,7 +386,16 @@ const typeColors = {
 
         <!-- Chat Tab -->
         <div v-if="activeTab === 'chat'" class="mb-4">
-            <RunThreadChat :thread="thread" :auth="{ user }" />
+            <RunThreadChat v-if="isUserJoined" :thread="thread" :auth="{ user }" />
+            <div v-else class="bg-slate-50 dark:bg-slate-950/20 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center gap-3">
+                <svg class="w-10 h-10 text-slate-400 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <div>
+                    <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200">Group Chat Terkunci</h5>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Fitur chat grup ini hanya dapat diakses oleh runner yang telah resmi bergabung.</p>
+                </div>
+            </div>
         </div>
 
         <!-- GPX Tab -->
@@ -446,10 +463,14 @@ const typeColors = {
                     
                     <button 
                         v-else-if="isUserPending"
-                        disabled
-                        class="w-full py-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-xs font-bold rounded-xl text-center cursor-default"
+                        @click="$emit('leave', thread.id)"
+                        :disabled="isJoining"
+                        class="w-full py-3 bg-amber-500/10 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-xs font-bold rounded-xl text-center cursor-pointer transition-all flex items-center justify-center gap-1.5"
                     >
-                        Menunggu Persetujuan Host
+                        <svg class="w-4 h-4 text-amber-500 dark:text-amber-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Menunggu Persetujuan (Batalkan)</span>
                     </button>
 
                     <button 

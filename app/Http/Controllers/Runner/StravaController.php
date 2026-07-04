@@ -790,7 +790,7 @@ class StravaController extends Controller
         }
     }
 
-    private function buildRecentTrainingContext(int $userId, StravaActivity $currentActivity, array $profile): array
+    public function buildRecentTrainingContext(int $userId, StravaActivity $currentActivity, array $profile): array
     {
         $end = $currentActivity->local_start_date ?: $currentActivity->start_date ?: now();
         $start7 = $end->copy()->subDays(7);
@@ -878,7 +878,7 @@ class StravaController extends Controller
         ];
     }
 
-    private function buildAiWorkoutPayload(
+    public function buildAiWorkoutPayload(
         StravaActivity $activity,
         array $details,
         array $streams,
@@ -1187,7 +1187,7 @@ class StravaController extends Controller
         ];
     }
 
-    private function normalizeAiAnalysis(array $decoded): array
+    public function normalizeAiAnalysis(array $decoded): array
     {
         return [
             'workout_classification' => [

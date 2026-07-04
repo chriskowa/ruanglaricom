@@ -20,8 +20,12 @@ class ProgramPurchaseController extends Controller
     {
         $user = auth()->user();
 
-        // Check if already enrolled
-        if ($program->enrollments()->where('runner_id', $user->id)->exists()) {
+        // Check if already enrolled and active
+        $hasActiveEnrollment = $program->enrollments()
+            ->where('runner_id', $user->id)
+            ->whereIn('status', ['purchased', 'active'])
+            ->exists();
+        if ($hasActiveEnrollment) {
             return redirect()->route('runner.calendar')
                 ->with('error', 'Anda sudah terdaftar di program ini.');
         }

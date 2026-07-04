@@ -96,8 +96,8 @@ class Program extends Model
      */
     public function canBePurchasedBy(User $user): bool
     {
-        // Check if already enrolled
-        if ($this->enrollments()->where('runner_id', $user->id)->exists()) {
+        // Check if already enrolled in an active or purchased program
+        if ($this->enrollments()->where('runner_id', $user->id)->whereIn('status', ['purchased', 'active'])->exists()) {
             return false;
         }
 

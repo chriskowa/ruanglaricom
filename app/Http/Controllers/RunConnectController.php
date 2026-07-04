@@ -389,21 +389,46 @@ class RunConnectController extends Controller
 
         $participant = RunThreadParticipant::where('run_thread_id', $id)
             ->where('user_id', $userId)
+            ->whereIn('status', ['joined', 'pending'])
             ->first();
 
-        if (!$participant || $participant->status !== 'joined') {
-            return response()->json(['message' => 'Anda belum bergabung dengan lari ini.'], 422);
+        if (!$participant) {
+            return response()->json(['message' => 'Anda belum bergabung atau meminta bergabung dengan lari ini.'], 422);
         }
 
+        $oldStatus = $participant->status;
         $participant->update(['status' => 'left']);
 
         // Check if thread was full and is now open again
-        if ($thread->status === 'full') {
+        if ($thread->status === 'full' && $oldStatus === 'joined') {
             $thread->update(['status' => 'open']);
         }
 
+        // Notify host
+        if ($oldStatus === 'joined') {
+            SendRunConnectNotification::dispatch(
+                $thread->creator_id,
+                'run_connect_left',
+                'Runner Keluar',
+                Auth::user()->name . ' telah keluar dari thread lari Anda: ' . $thread->title,
+                'RunThread',
+                $thread->id
+            );
+        } else if ($oldStatus === 'pending') {
+            SendRunConnectNotification::dispatch(
+                $thread->creator_id,
+                'run_connect_cancelled_request',
+                'Permintaan Dibatalkan',
+                Auth::user()->name . ' membatalkan permintaan gabung di thread lari Anda: ' . $thread->title,
+                'RunThread',
+                $thread->id
+            );
+        }
+
+        $msg = $oldStatus === 'joined' ? 'Anda berhasil keluar dari program lari.' : 'Permintaan bergabung berhasil dibatalkan.';
+
         return response()->json([
-            'message' => 'Anda berhasil keluar dari program lari.',
+            'message' => $msg,
             'thread' => $thread->load(['creator', 'participants' => function($q) {
                 $q->whereIn('status', ['joined', 'pending'])->with('user');
             }])

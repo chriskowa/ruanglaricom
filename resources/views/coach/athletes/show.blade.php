@@ -692,6 +692,74 @@
                                 </div>
                             </div>
 
+                            <!-- AI Workout Analysis (Aligned with Runner View) -->
+                            <div v-if="stravaMetrics" class="mb-3 bg-slate-800/40 border border-slate-700 rounded-xl p-4">
+                                <div class="flex items-center justify-between gap-3 mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-5 h-5 rounded-[4px] bg-purple-400 flex items-center justify-center text-dark font-bold text-[10px]">AI</div>
+                                        <span class="text-xs font-bold text-purple-300">AI Workout Analysis</span>
+                                    </div>
+                                    <button class="px-2.5 py-1 rounded-[4px] bg-purple-500/20 text-purple-200 border border-purple-500/30 text-[10px] font-bold hover:bg-purple-500/30 transition disabled:opacity-50"
+                                            :disabled="stravaAiAnalysisLoading"
+                                            @click="loadStravaForActivity(stravaMetrics.strava_activity_id, true)">
+                                        @{{ stravaAiAnalysisLoading ? 'Analyzing...' : 'Refresh AI' }}
+                                    </button>
+                                </div>
+
+                                <div v-if="stravaAiAnalysisLoading" class="text-xs text-slate-400">AI sedang menganalisis workout dan konteks latihan atlet...</div>
+                                <div v-else-if="!stravaAiAnalysis" class="text-xs text-slate-550 italic">Analisis AI belum tersedia. Klik Refresh AI untuk memicu analisis baru.</div>
+                                <div v-else class="space-y-3 text-xs">
+                                    <div v-if="stravaAiAnalysis.summary" class="text-slate-200 leading-relaxed text-sm">@{{ stravaAiAnalysis.summary }}</div>
+                                    <div class="text-xs text-slate-350">
+                                        <span class="text-slate-400 font-mono text-[10px] uppercase">Junk Miles Risk:</span>
+                                        <span class="font-bold text-white capitalize">@{{ stravaAiAnalysis.junk_miles_risk?.level || 'unknown' }}</span>
+                                    </div>
+
+                                    <div v-if="stravaAiAnalysis.what_went_well?.length">
+                                        <div class="text-[10px] font-bold text-green-300 uppercase mb-1">Yang Sudah Bagus</div>
+                                        <ul class="space-y-0.5 text-slate-300">
+                                            <li v-for="(item, idx) in stravaAiAnalysis.what_went_well" :key="'well-' + idx">• @{{ item }}</li>
+                                        </ul>
+                                    </div>
+
+                                    <div v-if="stravaAiAnalysis.what_to_improve?.length">
+                                        <div class="text-[10px] font-bold text-amber-300 uppercase mb-1">Yang Perlu Ditingkatkan</div>
+                                        <ul class="space-y-0.5 text-slate-300">
+                                            <li v-for="(item, idx) in stravaAiAnalysis.what_to_improve" :key="'improve-' + idx">• @{{ item }}</li>
+                                        </ul>
+                                    </div>
+
+                                    <div v-if="stravaAiAnalysis.next_workout_suggestion?.type || stravaAiAnalysis.next_workout_suggestion?.reason" class="rounded-[6px] bg-slate-900/80 border border-slate-700 p-2.5">
+                                        <div class="text-[10px] font-bold text-neon uppercase mb-1">Saran Workout Berikutnya</div>
+                                        <div class="text-white font-bold text-xs">@{{ stravaAiAnalysis.next_workout_suggestion.type || '-' }}</div>
+                                        <div v-if="stravaAiAnalysis.next_workout_suggestion.duration" class="text-[10px] text-slate-400 mt-0.5">Durasi: @{{ stravaAiAnalysis.next_workout_suggestion.duration }}</div>
+                                        <div v-if="stravaAiAnalysis.next_workout_suggestion.target" class="text-[10px] text-slate-400">Target: @{{ stravaAiAnalysis.next_workout_suggestion.target }}</div>
+                                        <div v-if="stravaAiAnalysis.next_workout_suggestion.reason" class="text-xs text-slate-300 mt-1 leading-relaxed">@{{ stravaAiAnalysis.next_workout_suggestion.reason }}</div>
+                                    </div>
+
+                                    <div v-if="stravaAiAnalysis.recovery_advice?.length">
+                                        <div class="text-[10px] font-bold text-sky-300 uppercase mb-1">Recovery Advice</div>
+                                        <ul class="space-y-0.5 text-slate-300">
+                                            <li v-for="(item, idx) in stravaAiAnalysis.recovery_advice" :key="'recovery-' + idx">• @{{ item }}</li>
+                                        </ul>
+                                    </div>
+
+                                    <div v-if="stravaAiAnalysis.improve_next_time?.length">
+                                        <div class="text-[10px] font-bold text-purple-300 uppercase mb-1">Improve Next Time</div>
+                                        <ul class="space-y-0.5 text-slate-300">
+                                            <li v-for="(item, idx) in stravaAiAnalysis.improve_next_time" :key="'next-' + idx">• @{{ item }}</li>
+                                        </ul>
+                                    </div>
+
+                                    <div v-if="stravaAiAnalysis.risk_flags?.length" class="rounded-[6px] bg-red-500/10 border border-red-500/20 p-2.5">
+                                        <div class="text-[10px] font-bold text-red-300 uppercase mb-1">Risk Flags</div>
+                                        <ul class="space-y-0.5 text-red-100">
+                                            <li v-for="(item, idx) in stravaAiAnalysis.risk_flags" :key="'risk-' + idx">• @{{ item }}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div v-if="stravaMetrics.media && stravaMetrics.media.length" class="mb-3 border-t border-slate-700 pt-3">
                                 <div class="text-[11px] font-bold text-slate-400 uppercase mb-2">Media</div>
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -1306,6 +1374,8 @@ createApp({
         const stravaZoneAnalysis = ref('');
         const stravaZoneEffect = ref('');
         const stravaZoneSuggestion = ref('');
+        const stravaAiAnalysis = ref(null);
+        const stravaAiAnalysisLoading = ref(false);
         let stravaChart = null;
 
         // Weekly Target State
@@ -2142,10 +2212,12 @@ createApp({
             stravaZoneAnalysis.value = '';
             stravaZoneEffect.value = '';
             stravaZoneSuggestion.value = '';
+            stravaAiAnalysis.value = null;
+            stravaAiAnalysisLoading.value = false;
             destroyStravaChart();
         };
 
-        const loadStravaForActivity = async (activityId) => {
+        const loadStravaForActivity = async (activityId, force = false) => {
             const id = parseInt(activityId || 0, 10);
             if (!id) return;
 
@@ -2175,6 +2247,25 @@ createApp({
                     stravaZoneEffect.value = zoneInsight?.effect || '';
                     stravaZoneSuggestion.value = zoneInsight?.suggestion || '';
                 }
+
+                // Fetch AI analysis asynchronously
+                stravaAiAnalysisLoading.value = true;
+                const aiUrl = new URL(`${coachUrl}/athletes/${enrollmentId}/strava/activities/${id}/ai-analysis`, window.location.origin);
+                if (force) {
+                    aiUrl.searchParams.set('force', '1');
+                }
+                fetch(aiUrl.toString(), { headers: { 'Accept': 'application/json' } })
+                    .then(res => res.json())
+                    .then(aiJson => {
+                        if (aiJson && aiJson.success) {
+                            stravaAiAnalysis.value = aiJson.analysis || null;
+                        }
+                    })
+                    .catch(e => console.error('Error fetching Strava AI Analysis:', e))
+                    .finally(() => {
+                        stravaAiAnalysisLoading.value = false;
+                    });
+
             } catch (e) {
                 stravaDetailsError.value = 'Gagal mengambil detail Strava.';
             } finally {
@@ -2741,6 +2832,48 @@ createApp({
             }
         });
 
+        const handleEventDrop = async (info) => {
+            if (!confirm(`Reschedule ${info.event.title} ke ${info.event.startStr}?`)) {
+                info.revert();
+                return;
+            }
+
+            const props = info.event.extendedProps;
+            const payload = {
+                type: props.is_custom ? 'custom_workout' : 'program_session',
+                new_date: info.event.startStr,
+            };
+
+            if (payload.type === 'custom_workout') {
+                payload.workout_id = props.id;
+            } else {
+                payload.session_day = props.session_day;
+            }
+
+            try {
+                const res = await fetch(`${coachUrl}/athletes/${enrollmentId}/reschedule`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (data.message && data.message.includes('ditukar')) {
+                        alert(data.message);
+                    }
+                    calendar.refetchEvents();
+                    fetchAnalyticsData();
+                } else {
+                    alert(data.message || 'Failed to reschedule');
+                    info.revert();
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Connection error');
+                info.revert();
+            }
+        };
+
         onMounted(() => {
             const el = document.getElementById('calendar');
             const isMobile = window.innerWidth < 768;
@@ -2755,7 +2888,8 @@ createApp({
                 events: '{{ route("coach.athletes.events", $enrollment->id) }}',
                 locale: 'id',
                 firstDay: 1,
-                editable: false,
+                editable: true,
+                eventDrop: handleEventDrop,
                 eventClassNames: (arg) => {
                     const cls = [];
                     const props = arg.event.extendedProps || {};
@@ -2962,6 +3096,7 @@ createApp({
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps, stravaStreams, formatSeconds,
+            stravaAiAnalysis, stravaAiAnalysisLoading,
             showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance, deleteCustomWorkout,
             // Advanced Builder

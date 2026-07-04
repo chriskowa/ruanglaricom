@@ -1759,4 +1759,265 @@ class AthleteController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    /**
+     * Reschedule a workout (Drag & Drop) for coach
+     */
+    public function reschedule(Request $request, $enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'type' => 'required|in:program_session,custom_workout',
+            'new_date' => 'required|date',
+            // For custom workout
+            'workout_id' => 'nullable|required_if:type,custom_workout|exists:custom_workouts,id',
+            // For program session
+            'session_day' => 'nullable|required_if:type,program_session|integer',
+        ]);
+
+        $newDate = Carbon::parse($validated['new_date']);
+        $runnerId = $enrollment->runner_id;
+
+        if ($validated['type'] === 'custom_workout') {
+            $workout = \App\Models\CustomWorkout::where('id', $validated['workout_id'])
+                ->where('runner_id', $runnerId)
+                ->firstOrFail();
+
+            try {
+                $workout->update(['workout_date' => $newDate]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Swapping if duplicate date constraint
+                if ($e->errorInfo[1] == 1062) {
+                    $existingWorkout = \App\Models\CustomWorkout::where('runner_id', $runnerId)
+                        ->where('workout_date', $newDate->format('Y-m-d'))
+                        ->first();
+
+                    if ($existingWorkout) {
+                        \DB::transaction(function () use ($workout, $existingWorkout, $newDate) {
+                            $originalDate = $workout->workout_date;
+                            $tempDate = Carbon::parse('1970-01-01');
+                            while (\App\Models\CustomWorkout::where('runner_id', $workout->runner_id)->where('workout_date', $tempDate->format('Y-m-d'))->exists()) {
+                                $tempDate->subDay();
+                            }
+
+                            $existingWorkout->update(['workout_date' => $tempDate]);
+                            $workout->update(['workout_date' => $newDate]);
+                            $existingWorkout->update(['workout_date' => $originalDate]);
+                        });
+
+                        // Notify Runner
+                        \App\Models\Notification::create([
+                            'user_id' => $runnerId,
+                            'type' => 'workout_rescheduled',
+                            'title' => 'Workout Rescheduled',
+                            'message' => 'Coach ' . auth()->user()->name . ' swapped your workouts for ' . $newDate->format('d M Y'),
+                            'reference_type' => 'custom_workout',
+                            'reference_id' => $workout->id,
+                            'is_read' => false,
+                        ]);
+
+                        return response()->json(['success' => true, 'message' => 'Jadwal latihan ditukar karena tanggal tujuan sudah terisi.']);
+                    }
+                }
+                throw $e;
+            }
+
+            // Notify Runner
+            \App\Models\Notification::create([
+                'user_id' => $runnerId,
+                'type' => 'workout_rescheduled',
+                'title' => 'Workout Rescheduled',
+                'message' => 'Coach ' . auth()->user()->name . ' rescheduled your workout to ' . $newDate->format('d M Y'),
+                'reference_type' => 'custom_workout',
+                'reference_id' => $workout->id,
+                'is_read' => false,
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Custom workout rescheduled']);
+        } else {
+            ProgramSessionTracking::updateOrCreate(
+                [
+                    'enrollment_id' => $enrollment->id,
+                    'session_day' => $validated['session_day'],
+                ],
+                [
+                    'rescheduled_date' => $newDate,
+                ]
+            );
+
+            // Notify Runner
+            \App\Models\Notification::create([
+                'user_id' => $runnerId,
+                'type' => 'workout_rescheduled',
+                'title' => 'Workout Rescheduled',
+                'message' => 'Coach ' . auth()->user()->name . ' rescheduled your program session to ' . $newDate->format('d M Y'),
+                'reference_type' => 'program_enrollment',
+                'reference_id' => $enrollment->id,
+                'is_read' => false,
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Program session rescheduled']);
+        }
+    }
+
+    /**
+     * Athlete Strava Activity AI Analysis
+     */
+    public function stravaActivityAiAnalysis(Request $request, $enrollmentId, $stravaActivityId)
+    {
+        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        if (! is_numeric($stravaActivityId) || (string) $stravaActivityId === '0') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid activity id.',
+            ], 422);
+        }
+
+        $runner = $enrollment->runner;
+        $activity = StravaActivity::query()
+            ->where('user_id', $runner->id)
+            ->where('strava_activity_id', $stravaActivityId)
+            ->first();
+
+        if (! $activity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Activity tidak ditemukan.',
+            ], 404);
+        }
+
+        try {
+            $api = app(StravaApiService::class);
+            $raw = is_array($activity->raw) ? $activity->raw : [];
+
+            $details = data_get($raw, 'details');
+            if (! is_array($details) || empty($details)) {
+                $details = $api->fetchActivityDetails($runner, $stravaActivityId);
+                if (! $details) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal mengambil detail aktivitas Strava untuk AI.',
+                    ], 422);
+                }
+                $raw['details'] = $details;
+            }
+
+            $streams = data_get($raw, 'streams');
+            if (! is_array($streams) || empty($streams)) {
+                $streams = $api->fetchActivityStreams($runner, $stravaActivityId);
+                if (is_array($streams) && ! empty($streams)) {
+                    $raw['streams'] = $streams;
+                } else {
+                    $streams = [];
+                }
+            }
+
+            $activity->update(['raw' => $raw]);
+
+            $profile = app(\App\Services\RunningProfileService::class)->getProfile($runner);
+            
+            $stravaCtrl = new \App\Http\Controllers\Runner\StravaController();
+            $context = $stravaCtrl->buildRecentTrainingContext($runner->id, $activity, $profile);
+            $metrics = $stravaCtrl->buildAiWorkoutPayload($activity, $details, $streams, $profile, $context, $api);
+            $inputHash = md5(json_encode($metrics));
+
+            $cachedHash = data_get($raw, 'ai_analysis.input_hash');
+            $cachedResult = data_get($raw, 'ai_analysis.result');
+            $force = $request->boolean('force');
+
+            if (! $force && $cachedHash === $inputHash && is_array($cachedResult)) {
+                return response()->json([
+                    'success' => true,
+                    'analysis' => $cachedResult,
+                    'cached' => true,
+                ]);
+            }
+
+            $systemPrompt = "Anda adalah AI Running Coach Ruang Lari. "
+                ."Analisis workout lari berdasarkan data Strava dan konteks latihan mingguan. "
+                ."Jawab hanya dalam Bahasa Indonesia yang ringkas, spesifik, dan actionable. "
+                ."Jangan mengarang metrik yang tidak ada. Jika data kurang, katakan secara eksplisit. "
+                ."Return HARUS JSON valid tanpa markdown dan tanpa teks lain.";
+
+            $userPrompt = "Analisis workout berikut dan berikan insight pelatihan.\n"
+                ."Wajib identifikasi jenis sesi berdasarkan variasi pace (split/stream) dan konteks pace latihan runner.\n"
+                ."Jika konteks menyebut 'junk_miles_risk.level' = medium/high, tambahkan 1 item ke risk_flags dengan format: \"Junk miles risk: <level> - <alasan singkat>\".\n"
+                ."Summary WAJIB diawali dengan 'Jenis sesi: <type>.'\n"
+                ."Format output JSON:\n"
+                ."{\n"
+                ."  \"workout_classification\": {\n"
+                ."    \"type\": \"easy|interval|tempo|threshold|mixed|unknown\",\n"
+                ."    \"evidence\": [\"...\"]\n"
+                ."  },\n"
+                ."  \"summary\": \"...\",\n"
+                ."  \"what_went_well\": [\"...\"],\n"
+                ."  \"what_to_improve\": [\"...\"],\n"
+                ."  \"risk_flags\": [\"...\"],\n"
+                ."  \"next_workout_suggestion\": {\n"
+                ."    \"type\": \"easy_run|recovery|tempo|interval|long_run|rest|cross_training\",\n"
+                ."    \"reason\": \"...\",\n"
+                ."    \"duration\": \"...\",\n"
+                ."    \"target\": \"...\"\n"
+                ."  },\n"
+                ."  \"recovery_advice\": [\"...\"],\n"
+                ."  \"improve_next_time\": [\"...\"],\n"
+                ."  \"confidence\": \"low|medium|high\"\n"
+                ."}\n\n"
+                ."Data workout:\n".json_encode($metrics, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+            $aiRaw = app(\App\Services\OpenAiService::class)->getAiResponse($userPrompt, $systemPrompt, 'gpt-4o');
+            if (! $aiRaw) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI tidak mengembalikan respons.',
+                ], 502);
+            }
+
+            $jsonStr = trim(str_replace(["```json", "```"], '', $aiRaw));
+            if (preg_match('/\{[\s\S]*\}/', $jsonStr, $matches)) {
+                $jsonStr = $matches[0];
+            }
+
+            $decoded = json_decode($jsonStr, true);
+            if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI mengembalikan format analisis yang tidak valid.',
+                    'raw' => $aiRaw,
+                ], 500);
+            }
+
+            $decoded = $stravaCtrl->normalizeAiAnalysis($decoded);
+            $decoded['junk_miles_risk'] = data_get($metrics, 'recent_training_context.junk_miles_risk', [
+                'level' => 'unknown',
+                'evidence' => [],
+            ]);
+            $raw['ai_analysis'] = [
+                'model' => 'gpt-4o',
+                'created_at' => now()->toIso8601String(),
+                'input_hash' => $inputHash,
+                'result' => $decoded,
+            ];
+            $activity->update(['raw' => $raw]);
+
+            return response()->json([
+                'success' => true,
+                'analysis' => $decoded,
+                'cached' => false,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menganalisis workout: '.$e->getMessage(),
+            ], 500);
+        }
+    }
 }
