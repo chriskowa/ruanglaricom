@@ -126,10 +126,43 @@ class PublicProgramController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        // Build dynamic SEO Title & Meta Description
+        $dt = strtolower($program->distance_target ?? '');
+        if ($dt === '5k') {
+            $distanceName = '5K';
+        } elseif ($dt === '10k') {
+            $distanceName = '10K';
+        } elseif ($dt === '21k' || $dt === 'hm') {
+            $distanceName = 'Half Marathon 21K';
+        } elseif ($dt === '42k' || $dt === 'fm') {
+            $distanceName = 'Marathon 42K';
+        } else {
+            $distanceName = strtoupper($program->distance_target ?? '');
+        }
+
+        $difficultyName = ucfirst($program->difficulty ?? 'Pemula');
+        $weeks = $program->duration_weeks ?? 12;
+        $coachName = $program->coach->name ?? 'Coach Ruang Lari';
+
+        if ($dt === '5k') {
+            $seoTitle = "Program Lari 5K {$difficultyName} {$weeks} Minggu | Ruang Lari";
+        } elseif ($dt === '10k') {
+            $seoTitle = "Program Lari 10K {$difficultyName} bersama Coach {$coachName}";
+        } elseif ($dt === '21k' || $dt === 'hm') {
+            $seoTitle = "Program Half Marathon 21K untuk Race Preparation | Ruang Lari";
+        } else {
+            $seoTitle = "Program Lari {$distanceName} {$difficultyName} - {$program->title} | Ruang Lari";
+        }
+
+        $rawDescription = strip_tags($program->description ?? '');
+        $seoDesc = "Ikuti program latihan {$distanceName} ({$difficultyName}) selama {$weeks} minggu bersama Coach {$coachName}. " . \Illuminate\Support\Str::limit($rawDescription, 110);
+
         return view('programs.show', [
             'program' => $program,
             'isEnrolled' => $isEnrolled,
             'reviews' => $reviews,
+            'seoTitle' => $seoTitle,
+            'seoDesc' => $seoDesc,
         ]);
     }
 }

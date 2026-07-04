@@ -1,6 +1,5 @@
 @extends('layouts.pacerhub')
 @php($withSidebar = true)
-
 @php
     $distanceName = '';
     $dt = strtolower($program->distance_target ?? '');
@@ -13,27 +12,12 @@
     } elseif ($dt === '42k' || $dt === 'fm') {
         $distanceName = 'Marathon 42K';
     } else {
-        $distanceName = strtoupper($program->distance_target);
+        $distanceName = strtoupper($program->distance_target ?? '');
     }
 
     $difficultyName = ucfirst($program->difficulty ?? 'Pemula');
     $weeks = $program->duration_weeks ?? 12;
     $coachName = $program->coach->name ?? 'Coach Ruang Lari';
-
-    // Build dynamic SEO Title
-    if ($dt === '5k') {
-        $seoTitle = "Program Lari 5K {$difficultyName} {$weeks} Minggu | Ruang Lari";
-    } elseif ($dt === '10k') {
-        $seoTitle = "Program Lari 10K {$difficultyName} bersama Coach {$coachName}";
-    } elseif ($dt === '21k' || $dt === 'hm') {
-        $seoTitle = "Program Half Marathon 21K untuk Race Preparation | Ruang Lari";
-    } else {
-        $seoTitle = "Program Lari {$distanceName} {$difficultyName} - {$program->title} | Ruang Lari";
-    }
-
-    // Build dynamic Meta Description
-    $rawDescription = strip_tags($program->description ?? '');
-    $seoDesc = "Ikuti program latihan {$distanceName} ({$difficultyName}) selama {$weeks} minggu bersama Coach {$coachName}. " . Str::limit($rawDescription, 110);
 @endphp
 
 @section('title'){{ $seoTitle }}@endsection
