@@ -58,13 +58,22 @@
     </div>
     @inertia
     <script>
-        window.addEventListener('load', function() {
-            var loader = document.getElementById('loader');
-            if (loader) {
+        (function() {
+            function hideLoader() {
+                var loader = document.getElementById('loader');
+                if (!loader) return;
+                if (loader.dataset.hidden === '1') return;
                 loader.style.opacity = '0';
-                setTimeout(function(){ loader.style.display = 'none'; }, 500);
+                setTimeout(function(){
+                    loader.dataset.hidden = '1';
+                    try { loader.remove(); } catch (e) { loader.style.display = 'none'; }
+                }, 500);
             }
-        });
+            window.phHideLoader = hideLoader;
+            window.addEventListener('load', hideLoader);
+            document.addEventListener('DOMContentLoaded', hideLoader);
+            window.addEventListener('pageshow', hideLoader);
+        })();
     </script>
 </body>
 </html>

@@ -33,6 +33,76 @@ const detectingLocation = ref(false);
 
 const defaultToken = '';
 
+const searchQuery = ref('');
+const suggestions = ref([]);
+const showSuggestions = ref(false);
+let debounceTimeout = null;
+
+const onSearchInput = () => {
+    if (debounceTimeout) clearTimeout(debounceTimeout);
+    if (!searchQuery.value.trim()) {
+        suggestions.value = [];
+        showSuggestions.value = false;
+        return;
+    }
+
+    debounceTimeout = setTimeout(async () => {
+        const token = props.mapboxToken || defaultToken;
+        if (!token) return;
+
+        try {
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery.value)}.json?access_token=${token}&autocomplete=true&limit=5&country=id`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Geocoding request failed');
+            const data = await response.json();
+            suggestions.value = data.features || [];
+            showSuggestions.value = true;
+        } catch (err) {
+            console.error('Error fetching geocoding suggestions:', err);
+        }
+    }, 350);
+};
+
+const triggerSearch = () => {
+    if (suggestions.value.length > 0) {
+        selectSuggestion(suggestions.value[0]);
+    }
+};
+
+const selectSuggestion = (place) => {
+    if (!place.center || !map.value) return;
+    
+    const [lng, lat] = place.center;
+    searchQuery.value = place.text;
+    showSuggestions.value = false;
+
+    // Fly to position
+    map.value.flyTo({
+        center: [lng, lat],
+        zoom: 14,
+        essential: true
+    });
+
+    // Emit map-moved to trigger thread loading
+    emit('map-moved', {
+        lat: lat,
+        lng: lng
+    });
+};
+
+const clearSearch = () => {
+    searchQuery.value = '';
+    suggestions.value = [];
+    showSuggestions.value = false;
+};
+
+const handleSearchOutsideClick = (e) => {
+    const container = document.getElementById('map-search-container');
+    if (container && !container.contains(e.target)) {
+        showSuggestions.value = false;
+    }
+};
+
 const getAvatarUrl = (user) => {
     if (!user) return 'https://avatar.iran.liara.run/public/boy';
     if (user.avatar && !user.avatar.includes('default-')) {
@@ -252,18 +322,64 @@ watch(() => props.theme, (newTheme) => {
 
 onMounted(() => {
     initMap();
+    window.addEventListener('click', handleSearchOutsideClick);
 });
 
 onUnmounted(() => {
     if (map.value) {
         map.value.remove();
     }
+    window.removeEventListener('click', handleSearchOutsideClick);
 });
 </script>
 
 <template>
     <div class="relative w-full h-[450px] md:h-[600px] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl">
         <div ref="mapContainer" class="w-full h-full"></div>
+
+        <!-- Location Search Bar -->
+        <div id="map-search-container" class="absolute top-4 left-4 z-10 w-64 sm:w-72 md:w-80">
+            <div class="relative flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden focus-within:ring-1 focus-within:ring-blue-600 dark:focus-within:ring-[#ccff00] transition-all">
+                <div class="pl-3.5 text-slate-400 dark:text-slate-500">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input 
+                    type="text" 
+                    v-model="searchQuery" 
+                    @input="onSearchInput"
+                    @keydown.enter="triggerSearch"
+                    placeholder="Cari lokasi lari..." 
+                    class="w-full bg-transparent border-none py-2.5 px-3 text-xs outline-none text-slate-800 dark:text-white"
+                />
+                <button 
+                    v-if="searchQuery"
+                    @click="clearSearch"
+                    class="pr-3 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer flex items-center"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Suggestions Dropdown -->
+            <div 
+                v-if="showSuggestions && suggestions.length > 0" 
+                class="absolute left-0 right-0 mt-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden z-20 max-h-56 overflow-y-auto scroll-thin"
+            >
+                <button 
+                    v-for="place in suggestions" 
+                    :key="place.id"
+                    @click="selectSuggestion(place)"
+                    class="w-full text-left px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-800/80 text-xs text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-850/50 last:border-b-0 cursor-pointer transition-colors"
+                >
+                    <p class="font-bold truncate text-slate-800 dark:text-white">{{ place.text }}</p>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-550 truncate mt-0.5">{{ place.place_name }}</p>
+                </button>
+            </div>
+        </div>
         
         <!-- Lokasi Terkini Button -->
         <button 

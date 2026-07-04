@@ -355,6 +355,14 @@ const handleLogout = async () => {
 
 let notificationInterval = null;
 
+const backgroundImages = [
+    'https://ruanglari.com/storage/blog/media/Eg6tJAZfqg7uRUqFufYDcPdFzd1uCJy1Uad4A2xg.webp',
+    'https://ruanglari.com/storage/blog/media/TP2HIXV2ZatmqTKN0h5IDyc7Fr2ZUOi6sKBknEOh.webp',
+    'https://ruanglari.com/storage/blog/media/0bE9f1y5RC55IIRdh7hOVUvVV9uBpl9E3afV9zTV.webp'
+];
+const currentBgIndex = ref(0);
+let bgSliderInterval = null;
+
 const handleOutsideClick = (e) => {
     const userMenu = document.getElementById('user-menu-container');
     if (userMenu && !userMenu.contains(e.target)) {
@@ -370,11 +378,19 @@ onMounted(() => {
         notificationInterval = setInterval(fetchNotifications, 10000); // poll every 10s
     }
     window.addEventListener('click', handleOutsideClick);
+
+    // Background slider interval (Ken Burns crossfade)
+    bgSliderInterval = setInterval(() => {
+        currentBgIndex.value = (currentBgIndex.value + 1) % backgroundImages.length;
+    }, 6000);
 });
 
 onUnmounted(() => {
     if (notificationInterval) {
         clearInterval(notificationInterval);
+    }
+    if (bgSliderInterval) {
+        clearInterval(bgSliderInterval);
     }
     window.removeEventListener('click', handleOutsideClick);
 });
@@ -536,9 +552,25 @@ onUnmounted(() => {
             <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 flex flex-col">
                 
                 <!-- Location Permission / Setup Phase -->
-                <div v-if="!userLocation" class="flex-grow flex items-center justify-center">
+                <div v-if="!userLocation" class="flex-grow relative flex items-center justify-center overflow-hidden rounded-3xl min-h-[520px] md:min-h-[600px] border border-slate-200 dark:border-slate-800 shadow-2xl transition-colors duration-300">
+                    <!-- Full Cover Parallax Slider Background (Ken Burns Crossfade Zoom Out) -->
+                    <div class="absolute inset-0 overflow-hidden z-0">
+                        <div 
+                            v-for="(img, idx) in backgroundImages" 
+                            :key="img"
+                            class="absolute inset-0 bg-cover bg-center transition-all duration-[2500ms] ease-in-out transform"
+                            :class="{
+                                'opacity-100 scale-100 z-10': currentBgIndex === idx,
+                                'opacity-0 scale-110 z-0': currentBgIndex !== idx
+                            }"
+                            :style="{ backgroundImage: `url(${img})` }"
+                        ></div>
+                        <div class="absolute inset-0 bg-slate-950/45 dark:bg-slate-950/60 backdrop-blur-[2.5px] z-20"></div>
+                    </div>
+
                     <LocationPermissionState 
                         :theme="theme"
+                        class="relative z-30 my-8 shadow-2xl backdrop-blur-md max-w-md w-full mx-4"
                         @location-selected="handleLocationSelected"
                         @permission-denied="handlePermissionDenied"
                     />
@@ -552,16 +584,22 @@ onUnmounted(() => {
                             <button 
                                 @click="viewMode = 'map'"
                                 :class="viewMode === 'map' ? 'bg-blue-600 dark:bg-[#ccff00] text-white dark:text-slate-950 font-black shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'"
-                                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
                             >
-                                🗺️ Map View
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                                Map View
                             </button>
                             <button 
                                 @click="viewMode = 'list'"
                                 :class="viewMode === 'list' ? 'bg-blue-600 dark:bg-[#ccff00] text-white dark:text-slate-950 font-black shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'"
-                                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
                             >
-                                📋 List View
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                </svg>
+                                List View
                             </button>
                         </div>
                     </div>

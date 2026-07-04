@@ -62,9 +62,15 @@ const requestLocation = () => {
 // Preset cities fallback
 const cities = [
     { name: 'Jakarta (GBK)', lat: -6.2183, lng: 106.8025 },
+    { name: 'Malang (Kayutangan Heritage)', lat: -7.9786, lng: 112.6318 },
+    { name: 'Jogja', lat: -7.7926, lng: 110.3658 },
     { name: 'Bandung (Saparua)', lat: -6.9079, lng: 107.6186 },
     { name: 'Surabaya (Kertajaya)', lat: -7.2759, lng: 112.7663 },
-    { name: 'Bali (Bajra Sandhi)', lat: -8.6723, lng: 115.2341 }
+    { name: 'Bali (Bajra Sandhi)', lat: -8.6723, lng: 115.2341 },
+    { name: 'Semarang (Simpang Lima)', lat: -6.9902, lng: 110.4226 },
+    { name: 'Solo (Manahan)', lat: -7.5552, lng: 110.8091 },
+    { name: 'Medan (Lapangan Merdeka)', lat: 3.5894, lng: 98.6738 },
+    { name: 'Makassar (Pantai Losari)', lat: -5.1441, lng: 119.4082 }
 ];
 
 const selectCity = (city) => {
@@ -77,7 +83,7 @@ const selectCity = (city) => {
 </script>
 
 <template>
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none rounded-3xl p-8 max-w-md w-full text-center space-y-6 transition-colors duration-300">
+    <div class="backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-800/85 shadow-2xl rounded-3xl p-8 max-w-md w-full text-center space-y-6 transition-all duration-300">
         <!-- Pulse Icon -->
         <div class="relative w-16 h-16 mx-auto flex items-center justify-center bg-blue-50 dark:bg-slate-950 rounded-full border border-blue-100 dark:border-slate-800">
             <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-blue-400 dark:bg-neon/30 opacity-75"></span>
@@ -117,7 +123,7 @@ const selectCity = (city) => {
                 v-for="city in cities" 
                 :key="city.name"
                 @click="selectCity(city)"
-                class="p-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/60 rounded-xl text-xs font-semibold text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-850 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer text-center"
+                class="p-2.5 bg-white/40 dark:bg-slate-950/40 border border-slate-205/30 dark:border-slate-800/50 rounded-xl text-xs font-semibold text-slate-700 dark:text-white hover:bg-white/80 dark:hover:bg-slate-950/80 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer text-center"
             >
                 {{ city.name }}
             </button>

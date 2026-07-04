@@ -24,7 +24,7 @@ class RunConnectController extends Controller
     public function index()
     {
         return Inertia::render('RunConnect', [
-            'mapboxToken' => env('MAPBOX_TOKEN'),
+            'mapboxToken' => config('services.mapbox.token'),
             'auth' => [
                 'user' => Auth::user(),
             ]
