@@ -142,7 +142,7 @@ class PublicProgramController extends Controller
 
         $difficultyName = ucfirst($program->difficulty ?? 'Pemula');
         $weeks = $program->duration_weeks ?? 12;
-        $coachName = $program->coach->name ?? 'Coach Ruang Lari';
+        $coachName = $program->coach?->name ?? 'Coach Ruang Lari';
 
         if ($dt === '5k') {
             $seoTitle = "Program Lari 5K {$difficultyName} {$weeks} Minggu | Ruang Lari";
@@ -163,6 +163,10 @@ class PublicProgramController extends Controller
             'reviews' => $reviews,
             'seoTitle' => $seoTitle,
             'seoDesc' => $seoDesc,
+            'distanceName' => $distanceName,
+            'difficultyName' => $difficultyName,
+            'weeks' => $weeks,
+            'coachName' => $coachName,
         ]);
     }
 }

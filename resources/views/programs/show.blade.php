@@ -1,24 +1,6 @@
 @extends('layouts.pacerhub')
 @php($withSidebar = true)
-@php
-    $distanceName = '';
-    $dt = strtolower($program->distance_target ?? '');
-    if ($dt === '5k') {
-        $distanceName = '5K';
-    } elseif ($dt === '10k') {
-        $distanceName = '10K';
-    } elseif ($dt === '21k' || $dt === 'hm') {
-        $distanceName = 'Half Marathon 21K';
-    } elseif ($dt === '42k' || $dt === 'fm') {
-        $distanceName = 'Marathon 42K';
-    } else {
-        $distanceName = strtoupper($program->distance_target ?? '');
-    }
 
-    $difficultyName = ucfirst($program->difficulty ?? 'Pemula');
-    $weeks = $program->duration_weeks ?? 12;
-    $coachName = $program->coach->name ?? 'Coach Ruang Lari';
-@endphp
 
 @section('title'){{ $seoTitle }}@endsection
 @section('meta_title'){{ $seoTitle }}@endsection
@@ -465,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
       "provider": {
         "@@type": "Person",
         "name": {!! json_encode($coachName) !!},
-        "url": "{{ route('runner.profile.show', $program->coach->username ?? $program->coach->id) }}"
+        "url": "{{ $program->coach ? route('runner.profile.show', $program->coach->username ?? $program->coach->id) : '#' }}"
       },
       "offers": {
         "@@type": "Offer",
