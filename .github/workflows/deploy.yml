@@ -32,8 +32,8 @@ jobs:
             php artisan migrate --force
             
             # Jalankan kompilasi asset jika NPM tersedia di server
-            # npm install
-            # npm run build
+            npm install
+            npm run build
             
             # Optimasi cache untuk performa maksimal di produksi
             php artisan optimize:clear
