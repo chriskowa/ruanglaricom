@@ -395,20 +395,12 @@ const openThreadFromNotification = async (notification) => {
             threads.value[existingIdx] = { ...threads.value[existingIdx], ...freshThread };
         }
         
-        if (notification.type === 'run_connect_request' && freshThread.creator_id === props.auth?.user?.id) {
-            isApprovalOpen.value = true;
-        } else {
-            selectedThread.value = freshThread;
-        }
+        selectedThread.value = freshThread;
     } catch (err) {
         // Fallback to local data if API fails
         const thread = threads.value.find(t => t.id === notification.reference_id);
         if (thread) {
-            if (notification.type === 'run_connect_request' && thread.creator_id === props.auth?.user?.id) {
-                isApprovalOpen.value = true;
-            } else {
-                selectedThread.value = thread;
-            }
+            selectedThread.value = thread;
         }
     }
 };

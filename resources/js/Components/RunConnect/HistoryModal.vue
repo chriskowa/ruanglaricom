@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -36,6 +36,32 @@ watch(() => props.isOpen, (newVal) => {
     }
 });
 
+const activeTab = ref('upcoming');
+
+const upcomingThreads = computed(() => {
+    const now = new Date();
+    return threads.value.filter(t => {
+        if (t.status === 'cancelled' || t.status === 'completed') return false;
+        const startStr = t.start_date.substring(0, 10) + 'T' + t.start_time;
+        const startDate = new Date(startStr);
+        return startDate >= now;
+    });
+});
+
+const pastThreads = computed(() => {
+    const now = new Date();
+    return threads.value.filter(t => {
+        if (t.status === 'cancelled' || t.status === 'completed') return true;
+        const startStr = t.start_date.substring(0, 10) + 'T' + t.start_time;
+        const startDate = new Date(startStr);
+        return startDate < now;
+    });
+});
+
+const filteredThreads = computed(() => {
+    return activeTab.value === 'upcoming' ? upcomingThreads.value : pastThreads.value;
+});
+
 const getStatusBadge = (thread) => {
     switch(thread.status) {
         case 'open': return { text: 'Terbuka', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' };
@@ -44,6 +70,23 @@ const getStatusBadge = (thread) => {
         case 'cancelled': return { text: 'Batal', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' };
         default: return { text: thread.status, class: 'bg-slate-100 text-slate-700' };
     }
+};
+
+const getUserRoleBadge = (thread) => {
+    if (!props.user) return null;
+    if (thread.creator_id === props.user.id) {
+        return { text: 'Host Saya', class: 'bg-blue-500/10 text-blue-600 dark:text-[#ccff00] border-blue-500/20' };
+    }
+    const participant = (thread.participants || []).find(p => p.user_id === props.user.id);
+    if (participant) {
+        if (participant.status === 'joined') {
+            return { text: 'Joined', class: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20' };
+        }
+        if (participant.status === 'pending') {
+            return { text: 'Pending', class: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' };
+        }
+    }
+    return null;
 };
 </script>
 
@@ -60,10 +103,28 @@ const getStatusBadge = (thread) => {
                 </button>
             </div>
 
+            <!-- Tabs -->
+            <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 flex gap-4 select-none">
+                <button 
+                    @click="activeTab = 'upcoming'" 
+                    :class="activeTab === 'upcoming' ? 'text-blue-600 dark:text-[#ccff00] border-b-2 border-blue-600 dark:border-[#ccff00] font-black' : 'text-slate-500 dark:text-slate-400 border-b-2 border-transparent'" 
+                    class="pb-1 text-xs uppercase tracking-wider transition-all cursor-pointer"
+                >
+                    Mendatang ({{ upcomingThreads.length }})
+                </button>
+                <button 
+                    @click="activeTab = 'past'" 
+                    :class="activeTab === 'past' ? 'text-blue-600 dark:text-[#ccff00] border-b-2 border-blue-600 dark:border-[#ccff00] font-black' : 'text-slate-500 dark:text-slate-400 border-b-2 border-transparent'" 
+                    class="pb-1 text-xs uppercase tracking-wider transition-all cursor-pointer"
+                >
+                    Riwayat ({{ pastThreads.length }})
+                </button>
+            </div>
+
             <!-- Body -->
             <div class="p-4 overflow-y-auto scroll-thin flex-1 bg-slate-50 dark:bg-slate-900">
                 <div v-if="isLoading" class="py-8 text-center text-slate-500 text-sm font-medium">Memuat data...</div>
-                <div v-else-if="threads.length === 0" class="py-12 text-center text-slate-400">
+                <div v-else-if="filteredThreads.length === 0" class="py-12 text-center text-slate-400">
                     <svg class="w-12 h-12 mx-auto mb-3 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -71,14 +132,21 @@ const getStatusBadge = (thread) => {
                 </div>
                 <div v-else class="space-y-3">
                     <div 
-                        v-for="thread in threads" 
+                        v-for="thread in filteredThreads" 
                         :key="thread.id" 
                         @click="emit('select', thread); emit('close')"
                         class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-150 dark:border-slate-750 flex flex-col gap-2 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
                     >
-                        <div class="flex justify-between items-start">
-                            <h4 class="font-bold text-sm text-slate-800 dark:text-white">{{ thread.title }}</h4>
-                            <span :class="['px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider', getStatusBadge(thread).class]">
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex flex-col gap-1">
+                                <h4 class="font-bold text-sm text-slate-800 dark:text-white leading-tight">{{ thread.title }}</h4>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span v-if="getUserRoleBadge(thread)" :class="['px-2 py-0.5 rounded text-[9px] font-black uppercase border', getUserRoleBadge(thread).class]">
+                                        {{ getUserRoleBadge(thread).text }}
+                                    </span>
+                                </div>
+                            </div>
+                            <span :class="['px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0', getStatusBadge(thread).class]">
                                 {{ getStatusBadge(thread).text }}
                             </span>
                         </div>

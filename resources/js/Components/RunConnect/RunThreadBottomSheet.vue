@@ -115,7 +115,7 @@ const pendingParticipants = computed(() => {
 
 const isUserJoined = computed(() => {
     if (!props.user || !props.thread) return false;
-    return joinedParticipants.value.some(p => p.user_id === props.user.id);
+    return isCreator.value || joinedParticipants.value.some(p => p.user_id === props.user.id);
 });
 
 const isUserPending = computed(() => {
