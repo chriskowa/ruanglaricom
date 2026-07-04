@@ -797,9 +797,13 @@ class RunConnectController extends Controller
      */
     public function approveParticipant($threadId, $participantId)
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu.'], 401);
+        }
+
         $thread = RunThread::findOrFail($threadId);
         
-        if ($thread->creator_id !== Auth::id()) {
+        if ((int)$thread->creator_id !== (int)Auth::id()) {
             return response()->json(['message' => 'Hanya pembuat thread yang dapat menyetujui peserta.'], 403);
         }
 
@@ -863,9 +867,13 @@ class RunConnectController extends Controller
      */
     public function rejectParticipant($threadId, $participantId)
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu.'], 401);
+        }
+
         $thread = RunThread::findOrFail($threadId);
         
-        if ($thread->creator_id !== Auth::id()) {
+        if ((int)$thread->creator_id !== (int)Auth::id()) {
             return response()->json(['message' => 'Hanya pembuat thread yang dapat menolak peserta.'], 403);
         }
 

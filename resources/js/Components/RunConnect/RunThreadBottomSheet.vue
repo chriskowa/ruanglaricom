@@ -24,7 +24,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['close', 'join', 'leave', 'report-success', 'edit', 'deleted']);
+const emit = defineEmits(['close', 'join', 'leave', 'report-success', 'edit', 'deleted', 'updated']);
 
 const reporting = ref(false);
 const reportReason = ref('');
@@ -80,8 +80,7 @@ const approveUser = async (participantId) => {
     processingApproval.value = true;
     try {
         const res = await axios.post(`/api/run-connect/threads/${props.thread.id}/approve/${participantId}`);
-        emit('report-success');
-        alert(res.data.message || 'Runner berhasil disetujui!');
+        emit('updated', res.data.thread, res.data.message);
     } catch (err) {
         console.error('Error approving user:', err);
         alert(err.response?.data?.message || 'Gagal menyetujui runner.');
@@ -97,8 +96,7 @@ const rejectUser = async (participantId) => {
     processingApproval.value = true;
     try {
         const res = await axios.post(`/api/run-connect/threads/${props.thread.id}/reject/${participantId}`);
-        emit('report-success');
-        alert(res.data.message || 'Runner berhasil ditolak.');
+        emit('updated', res.data.thread, res.data.message);
     } catch (err) {
         console.error('Error rejecting user:', err);
         alert(err.response?.data?.message || 'Gagal menolak runner.');

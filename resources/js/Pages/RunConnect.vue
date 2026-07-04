@@ -284,6 +284,13 @@ const handleThreadUpdated = (updatedThread) => {
     }
 };
 
+const handleBottomSheetUpdated = (updatedThread, message) => {
+    handleThreadUpdated(updatedThread);
+    if (message) {
+        showToast(message, 'success');
+    }
+};
+
 const fetchNotifications = async () => {
     try {
         const res = await axios.get('/api/notifications');
@@ -940,6 +947,7 @@ onUnmounted(() => {
                 @report-success="fetchThreads"
                 @edit="handleEditThread"
                 @deleted="handleDeletedThread"
+                @updated="handleBottomSheetUpdated"
             />
 
             <!-- Multi-step Creation Modal -->
