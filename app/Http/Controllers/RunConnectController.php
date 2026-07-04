@@ -54,7 +54,7 @@ class RunConnectController extends Controller
         }
 
         $query = RunThread::with(['creator', 'participants' => function($q) {
-            $q->where('status', 'joined')->with('user');
+            $q->whereIn('status', ['joined', 'pending'])->with('user');
         }]);
 
         // Base criteria: exclude cancelled and completed threads, only future or current date threads
@@ -204,7 +204,7 @@ class RunConnectController extends Controller
     public function showThread($id)
     {
         $thread = RunThread::with(['creator', 'participants' => function($q) {
-            $q->where('status', 'joined')->with('user');
+            $q->whereIn('status', ['joined', 'pending'])->with('user');
         }])->findOrFail($id);
 
         return response()->json($thread);
@@ -345,7 +345,7 @@ class RunConnectController extends Controller
         return response()->json([
             'message' => 'Permintaan bergabung berhasil dikirim ke host!',
             'thread' => $thread->load(['creator', 'participants' => function($q) {
-                $q->with('user');
+                $q->whereIn('status', ['joined', 'pending'])->with('user');
             }])
         ]);
     }
@@ -385,7 +385,7 @@ class RunConnectController extends Controller
         return response()->json([
             'message' => 'Anda berhasil keluar dari program lari.',
             'thread' => $thread->load(['creator', 'participants' => function($q) {
-                $q->where('status', 'joined')->with('user');
+                $q->whereIn('status', ['joined', 'pending'])->with('user');
             }])
         ]);
     }
@@ -832,7 +832,9 @@ class RunConnectController extends Controller
 
         return response()->json([
             'message' => 'Peserta berhasil disetujui!',
-            'thread' => $thread->load(['creator', 'participants.user'])
+            'thread' => $thread->load(['creator', 'participants' => function($q) {
+                $q->whereIn('status', ['joined', 'pending'])->with('user');
+            }])
         ]);
     }
 
@@ -872,7 +874,9 @@ class RunConnectController extends Controller
 
         return response()->json([
             'message' => 'Peserta berhasil ditolak.',
-            'thread' => $thread->load(['creator', 'participants.user'])
+            'thread' => $thread->load(['creator', 'participants' => function($q) {
+                $q->whereIn('status', ['joined', 'pending'])->with('user');
+            }])
         ]);
     }
 }

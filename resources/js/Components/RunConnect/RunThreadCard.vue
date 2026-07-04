@@ -22,10 +22,6 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'join', 'leave']);
 
-const joinedParticipants = computed(() => {
-    return props.thread.participants || [];
-});
-
 const isUserJoined = computed(() => {
     if (!props.user) return false;
     return (props.thread.participants || []).some(p => p.user_id === props.user.id && p.status === 'joined');

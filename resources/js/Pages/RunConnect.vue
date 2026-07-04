@@ -190,6 +190,15 @@ const handleSelectThread = (thread) => {
     selectedThread.value = thread;
 };
 
+// Toast notification system
+const toast = ref({ show: false, message: '', type: 'success' });
+let toastTimer = null;
+const showToast = (message, type = 'success') => {
+    toast.value = { show: true, message, type };
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.value.show = false; }, 4000);
+};
+
 const handleJoinThread = async (threadId) => {
     if (!props.auth.user) {
         isLoginOpen.value = true;
@@ -206,9 +215,9 @@ const handleJoinThread = async (threadId) => {
         if (selectedThread.value && selectedThread.value.id === threadId) {
             selectedThread.value = { ...selectedThread.value, ...updated };
         }
-        alert(res.data.message || 'Berhasil bergabung!');
+        showToast(res.data.message || 'Permintaan bergabung berhasil dikirim ke host!', 'success');
     } catch (err) {
-        alert(err.response?.data?.message || 'Gagal bergabung dengan running thread.');
+        showToast(err.response?.data?.message || 'Gagal bergabung dengan running thread.', 'error');
     } finally {
         isJoining.value = false;
     }
@@ -225,9 +234,9 @@ const handleLeaveThread = async (threadId) => {
         if (selectedThread.value && selectedThread.value.id === threadId) {
             selectedThread.value = { ...selectedThread.value, ...updated };
         }
-        alert(res.data.message || 'Berhasil keluar.');
+        showToast(res.data.message || 'Berhasil keluar.', 'success');
     } catch (err) {
-        alert(err.response?.data?.message || 'Gagal keluar dari running thread.');
+        showToast(err.response?.data?.message || 'Gagal keluar dari running thread.', 'error');
     } finally {
         isJoining.value = false;
     }
@@ -308,21 +317,46 @@ const requestNotificationPermission = () => {
 };
 
 const markNotificationRead = async (notification) => {
-    if (notification.is_read) return;
+    if (notification.is_read) {
+        // Even if already read, still handle the click action for navigation
+        if (notification.reference_type === 'RunThread' && notification.reference_id) {
+            await openThreadFromNotification(notification);
+        }
+        return;
+    }
     try {
         await axios.post(`/api/notifications/${notification.id}/read`);
         notification.is_read = true;
         
-        // Optionally select referenced thread
+        // Navigate to the referenced thread
         if (notification.reference_type === 'RunThread' && notification.reference_id) {
-            const thread = threads.value.find(t => t.id === notification.reference_id);
-            if (thread) {
-                selectedThread.value = thread;
-                isNotificationsOpen.value = false;
-            }
+            await openThreadFromNotification(notification);
         }
     } catch (err) {
         console.error('Error marking notification read:', err);
+    }
+};
+
+const openThreadFromNotification = async (notification) => {
+    isNotificationsOpen.value = false;
+    try {
+        // Always fetch fresh thread detail (includes pending participants for approval)
+        const res = await axios.get(`/api/run-connect/threads/${notification.reference_id}`);
+        const freshThread = res.data;
+        
+        // Update local threads list with fresh data
+        const existingIdx = threads.value.findIndex(t => t.id === freshThread.id);
+        if (existingIdx >= 0) {
+            threads.value[existingIdx] = { ...threads.value[existingIdx], ...freshThread };
+        }
+        
+        selectedThread.value = freshThread;
+    } catch (err) {
+        // Fallback to local data if API fails
+        const thread = threads.value.find(t => t.id === notification.reference_id);
+        if (thread) {
+            selectedThread.value = thread;
+        }
     }
 };
 
@@ -937,6 +971,37 @@ onUnmounted(() => {
                 @success="handleLoginSuccess"
             />
         </div>
+
+        <!-- Toast Notification -->
+        <transition
+            enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="opacity-0 -translate-y-4"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition-all duration-200 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 -translate-y-4"
+        >
+            <div 
+                v-if="toast.show" 
+                class="fixed top-20 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 max-w-sm border backdrop-blur-md"
+                :class="toast.type === 'success' 
+                    ? 'bg-green-500/90 dark:bg-green-600/90 text-white border-green-400/30' 
+                    : 'bg-red-500/90 dark:bg-red-600/90 text-white border-red-400/30'"
+            >
+                <svg v-if="toast.type === 'success'" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                </svg>
+                <svg v-else class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{{ toast.message }}</span>
+                <button @click="toast.show = false" class="ml-2 opacity-70 hover:opacity-100 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </transition>
     </div>
 </template>
 
