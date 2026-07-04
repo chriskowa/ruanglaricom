@@ -430,7 +430,8 @@ Route::post('/api/run-connect/threads/{id}/join', [RunConnectController::class, 
 Route::post('/api/run-connect/threads/{id}/leave', [RunConnectController::class, 'leaveThread'])->name('api.run-connect.leave');
 Route::post('/api/run-connect/threads/{id}/report', [RunConnectController::class, 'reportThread'])->name('api.run-connect.report');
 Route::get('/api/run-connect/random-match', [RunConnectController::class, 'randomMatch'])->name('api.run-connect.random-match');
-
+Route::get('/api/run-connect/history', [RunConnectController::class, 'getHistory'])->name('api.run-connect.history');
+Route::get('/api/run-connect/approvals', [RunConnectController::class, 'getApprovals'])->name('api.run-connect.approvals');
 // Run Connect Enhancements
 Route::get('/api/run-connect/threads/{id}/messages', [RunConnectController::class, 'getMessages'])->name('api.run-connect.messages');
 Route::post('/api/run-connect/threads/{id}/messages', [RunConnectController::class, 'sendMessage'])->name('api.run-connect.messages.store');

@@ -13,6 +13,8 @@ import CreateRunThreadModal from '../Components/RunConnect/CreateRunThreadModal.
 import RandomMatchModal from '../Components/RunConnect/RandomMatchModal.vue';
 import RunThreadRatingModal from '../Components/RunConnect/RunThreadRatingModal.vue';
 import LoginModal from '../Components/RunConnect/LoginModal.vue';
+import HistoryModal from '../Components/RunConnect/HistoryModal.vue';
+import ApprovalModal from '../Components/RunConnect/ApprovalModal.vue';
 
 const props = defineProps({
     mapboxToken: {
@@ -79,6 +81,8 @@ const selectedThread = ref(null);
 const isCreateOpen = ref(false);
 const isMatchOpen = ref(false);
 const isRatingOpen = ref(false);
+const isHistoryOpen = ref(false);
+const isApprovalOpen = ref(false);
 
 const editingThread = ref(null);
 const notifications = ref([]);
@@ -350,12 +354,20 @@ const openThreadFromNotification = async (notification) => {
             threads.value[existingIdx] = { ...threads.value[existingIdx], ...freshThread };
         }
         
-        selectedThread.value = freshThread;
+        if (notification.type === 'run_connect_request' && freshThread.creator_id === props.auth?.user?.id) {
+            isApprovalOpen.value = true;
+        } else {
+            selectedThread.value = freshThread;
+        }
     } catch (err) {
         // Fallback to local data if API fails
         const thread = threads.value.find(t => t.id === notification.reference_id);
         if (thread) {
-            selectedThread.value = thread;
+            if (notification.type === 'run_connect_request' && thread.creator_id === props.auth?.user?.id) {
+                isApprovalOpen.value = true;
+            } else {
+                selectedThread.value = thread;
+            }
         }
     }
 };
@@ -468,6 +480,9 @@ const stopCarouselAutoSlide = () => {
 onMounted(() => {
     initTheme();
     requestNotificationPermission();
+    if (userLocation.value) {
+        fetchThreads();
+    }
     if (props.auth?.user) {
         fetchNotifications();
         notificationInterval = setInterval(fetchNotifications, 3000); // poll every 3s
@@ -590,6 +605,24 @@ onUnmounted(() => {
                             </svg>
                         </button>
 
+                        <!-- Desktop Links -->
+                        <nav v-if="auth.user" class="hidden md:flex items-center gap-3 mr-2">
+                            <button @click="isHistoryOpen = true" class="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-350 dark:hover:text-white transition-colors cursor-pointer px-2">My Threads</button>
+                            <button @click="isApprovalOpen = true" class="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-350 dark:hover:text-white transition-colors cursor-pointer px-2">Approval</button>
+                        </nav>
+
+                        <!-- Hamburger Menu for Mobile -->
+                        <div v-if="auth.user" class="md:hidden relative">
+                            <button 
+                                @click="isUserMenuOpen = !isUserMenuOpen" 
+                                class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+                            >
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            </button>
+                        </div>
+
                         <!-- Auth Actions -->
                         <div class="flex items-center gap-2">
                             <button 
@@ -636,6 +669,15 @@ onUnmounted(() => {
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                             Profile
                                         </a>
+                                        <!-- Mobile only links -->
+                                        <button @click="isHistoryOpen = true; isUserMenuOpen = false" class="md:hidden w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white rounded-lg transition-colors text-left">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            My Threads
+                                        </button>
+                                        <button @click="isApprovalOpen = true; isUserMenuOpen = false" class="md:hidden w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white rounded-lg transition-colors text-left">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            Approval Runners
+                                        </button>
                                         <div class="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
                                         <button 
                                             @click="handleLogout"
@@ -969,6 +1011,19 @@ onUnmounted(() => {
                 :theme="theme"
                 @close="isLoginOpen = false"
                 @success="handleLoginSuccess"
+            />
+
+            <HistoryModal 
+                :is-open="isHistoryOpen"
+                :user="auth.user"
+                @close="isHistoryOpen = false"
+                @edit="handleEditThread"
+            />
+
+            <ApprovalModal 
+                :is-open="isApprovalOpen"
+                @close="isApprovalOpen = false"
+                @updated="handleThreadUpdated"
             />
         </div>
 

@@ -296,6 +296,26 @@ class RunConnectController extends Controller
             return response()->json(['message' => 'Thread lari ini sudah dimulai, penuh, atau dibatalkan.'], 422);
         }
 
+        // Prevent joining if user is the creator
+        if ($thread->creator_id === $userId) {
+            return response()->json(['message' => 'Anda tidak dapat bergabung ke thread buatan sendiri.'], 422);
+        }
+
+        // Check if user is hosting another thread within 2 hours of this thread's start time
+        $targetDateTime = \Carbon\Carbon::parse($thread->start_date->format('Y-m-d') . ' ' . $thread->start_time);
+        $hostConflict = RunThread::where('creator_id', $userId)
+            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', 'completed')
+            ->get()
+            ->filter(function($t) use ($targetDateTime) {
+                $tDateTime = \Carbon\Carbon::parse($t->start_date->format('Y-m-d') . ' ' . $t->start_time);
+                return $tDateTime->diffInHours($targetDateTime) <= 2;
+            })->first();
+
+        if ($hostConflict) {
+            return response()->json(['message' => 'Anda tidak bisa bergabung karena Anda menjadi host di lari lain (rentang waktu 2 jam).'], 422);
+        }
+
         // Check quota
         $joinedCount = $thread->participants->where('status', 'joined')->count();
         if ($joinedCount >= $thread->quota) {
@@ -878,5 +898,55 @@ class RunConnectController extends Controller
                 $q->whereIn('status', ['joined', 'pending'])->with('user');
             }])
         ]);
+    }
+
+    /**
+     * Get user history (joined and hosted threads)
+     */
+    public function getHistory(Request $request)
+    {
+        $userId = Auth::id();
+        if (!$userId) return response()->json(['message' => 'Unauthorized'], 401);
+
+        $threads = RunThread::with(['creator', 'participants' => function($q) {
+                $q->whereIn('status', ['joined', 'pending'])->with('user');
+            }])
+            ->where(function($query) use ($userId) {
+                $query->where('creator_id', $userId)
+                      ->orWhereHas('participants', function($q) use ($userId) {
+                          $q->where('user_id', $userId)
+                            ->whereIn('status', ['joined', 'pending']);
+                      });
+            })
+            ->orderBy('start_date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->paginate(20);
+
+        return response()->json($threads);
+    }
+
+    /**
+     * Get hosted threads that have pending approvals
+     */
+    public function getApprovals(Request $request)
+    {
+        $userId = Auth::id();
+        if (!$userId) return response()->json(['message' => 'Unauthorized'], 401);
+
+        $threads = RunThread::with(['creator', 'participants' => function($q) {
+                $q->whereIn('status', ['joined', 'pending'])->with('user');
+            }])
+            ->where('creator_id', $userId)
+            ->where('status', 'open') // usually only open threads have pending requests that matter, or exclude cancelled/completed
+            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', 'completed')
+            ->whereHas('participants', function($q) {
+                $q->where('status', 'pending');
+            })
+            ->orderBy('start_date', 'asc')
+            ->orderBy('start_time', 'asc')
+            ->get(); // we can use get() because approvals should be relatively few active threads
+
+        return response()->json($threads);
     }
 }
