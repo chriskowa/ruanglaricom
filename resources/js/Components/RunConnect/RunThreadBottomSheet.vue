@@ -122,17 +122,17 @@ const pendingParticipants = computed(() => {
 
 const isUserJoined = computed(() => {
     if (!props.user || !props.thread) return false;
-    return isCreator.value || joinedParticipants.value.some(p => p.user_id === props.user.id);
+    return isCreator.value || joinedParticipants.value.some(p => p.user_id == props.user.id);
 });
 
 const isUserPending = computed(() => {
     if (!props.user || !props.thread) return false;
-    return (props.thread?.participants || []).some(p => p.user_id === props.user.id && p.status === 'pending');
+    return (props.thread?.participants || []).some(p => p.user_id == props.user.id && p.status === 'pending');
 });
 
 const isCreator = computed(() => {
     if (!props.user || !props.thread) return false;
-    return props.thread.creator_id === props.user.id;
+    return props.thread.creator_id == props.user.id;
 });
 
 const joinedCount = computed(() => {

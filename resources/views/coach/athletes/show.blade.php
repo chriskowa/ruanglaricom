@@ -597,6 +597,24 @@
                         </div>
                         <div v-else-if="stravaMetrics" class="mb-6 border-t border-slate-700 pt-4">
                             <h4 class="text-[#FC4C02] font-black text-xs uppercase mb-3">Strava Details</h4>
+
+                            <!-- Workout Classification Summary -->
+                            <div v-if="stravaWorkoutClassification" class="mb-3 p-3.5 rounded-xl border flex flex-col gap-1.5" :class="stravaWorkoutClassification.colorClass">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[9px] font-bold uppercase tracking-wider opacity-70">Kesimpulan Sesi (@{{ stravaWorkoutClassification.source }})</span>
+                                    <span class="text-[9px] font-bold bg-white/10 px-2 py-0.5 rounded uppercase">Classified</span>
+                                </div>
+                                <div class="text-sm font-black italic uppercase tracking-tight">
+                                    @{{ stravaWorkoutClassification.type }}
+                                </div>
+                                <div v-if="stravaWorkoutClassification.evidence.length" class="mt-1 space-y-0.5 border-t border-white/10 pt-1.5">
+                                    <div v-for="(ev, idx) in stravaWorkoutClassification.evidence" :key="idx" class="text-[10px] opacity-85 flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        <span>@{{ ev }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-2 gap-2 mb-3">
                                 <div class="bg-slate-800 p-2 rounded">
                                     <div class="text-[10px] text-slate-500">Distance</div>
@@ -1376,6 +1394,66 @@ createApp({
         const stravaZoneSuggestion = ref('');
         const stravaAiAnalysis = ref(null);
         const stravaAiAnalysisLoading = ref(false);
+
+        const stravaWorkoutClassification = computed(() => {
+            // If AI analysis is loaded, use it as primary
+            if (stravaAiAnalysis.value && stravaAiAnalysis.value.workout_classification) {
+                const type = stravaAiAnalysis.value.workout_classification.type || 'unknown';
+                const evidence = stravaAiAnalysis.value.workout_classification.evidence || [];
+                return {
+                    source: 'AI Coach',
+                    type: type.toUpperCase(),
+                    evidence: evidence,
+                    colorClass: type === 'easy' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
+                                type === 'tempo' || type === 'threshold' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' :
+                                type === 'interval' || type === 'speed' ? 'text-orange-400 border-orange-500/30 bg-orange-500/10' :
+                                'text-blue-400 border-blue-500/30 bg-blue-500/10'
+                };
+            }
+
+            // Fallback: Rules-based using pace distribution & heart rate zones
+            if (!stravaPaceZones.value && !stravaHrZones.value) return null;
+
+            let type = 'EASY RUN / RECOVERY';
+            const evidence = [];
+            let colorClass = 'text-green-400 border-green-500/30 bg-green-500/10';
+
+            const easyPace = parseFloat(stravaPaceZones.value?.summary?.easy || 0);
+            const tempoPace = parseFloat(stravaPaceZones.value?.summary?.tempo || 0);
+            const speedPace = parseFloat(stravaPaceZones.value?.summary?.speed || 0);
+
+            const z1 = parseFloat(stravaHrZones.value?.Z1 || 0);
+            const z2 = parseFloat(stravaHrZones.value?.Z2 || 0);
+            const z3 = parseFloat(stravaHrZones.value?.Z3 || 0);
+            const z4 = parseFloat(stravaHrZones.value?.Z4 || 0);
+            const z5 = parseFloat(stravaHrZones.value?.Z5 || 0);
+
+            // Classification logic
+            if (speedPace > 15 || (z4 + z5) > 20) {
+                type = 'INTERVAL / SPEED SESSION';
+                colorClass = 'text-orange-400 border-orange-500/30 bg-orange-500/10';
+                if (speedPace > 15) evidence.push(`Proporsi pace Speed/Interval tinggi (${speedPace.toFixed(0)}%).`);
+                if ((z4 + z5) > 20) evidence.push(`Detak jantung di Zone 4 & 5 dominan (${(z4 + z5).toFixed(0)}%).`);
+            } else if (tempoPace > 25 || z3 > 30) {
+                type = 'TEMPO / THRESHOLD RUN';
+                colorClass = 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10';
+                if (tempoPace > 25) evidence.push(`Pace Tempo mendominasi latihan (${tempoPace.toFixed(0)}%).`);
+                if (z3 > 30) evidence.push(`Detak jantung berada di Zone 3 (Aerobic/Tempo) cukup lama (${z3.toFixed(0)}%).`);
+            } else {
+                type = 'EASY RUN / RECOVERY';
+                colorClass = 'text-green-400 border-green-500/30 bg-green-500/10';
+                evidence.push(`Mayoritas pace di zona Easy/Moderate (${easyPace.toFixed(0)}%).`);
+                evidence.push(`Detak jantung stabil di Zone 1 & Zone 2 (${(z1 + z2).toFixed(0)}%).`);
+            }
+
+            return {
+                source: 'Aturan Sistem',
+                type: type,
+                evidence: evidence,
+                colorClass: colorClass
+            };
+        });
+
         let stravaChart = null;
 
         // Weekly Target State
@@ -3096,7 +3174,7 @@ createApp({
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
             stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps, stravaStreams, formatSeconds,
-            stravaAiAnalysis, stravaAiAnalysisLoading,
+            stravaAiAnalysis, stravaAiAnalysisLoading, stravaWorkoutClassification,
             showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             showFormModal, form, openForm, saveCustomWorkout, addStep, removeStep, moveStep, calculateTotalDistance, deleteCustomWorkout,
             // Advanced Builder

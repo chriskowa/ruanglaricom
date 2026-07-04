@@ -567,8 +567,12 @@ class RunConnectController extends Controller
     {
         $thread = RunThread::findOrFail($id);
         
-        // Ensure user is participant and status is joined
-        if (!Auth::check() || !$thread->participants()->where('user_id', Auth::id())->where('status', 'joined')->exists()) {
+        // Ensure user is creator OR participant with status is joined
+        $isAuthorized = Auth::check() && (
+            (int) $thread->creator_id === (int) Auth::id() ||
+            $thread->participants()->where('user_id', Auth::id())->where('status', 'joined')->exists()
+        );
+        if (!$isAuthorized) {
             return response()->json(['message' => 'Unauthorized. Anda harus bergabung dengan status disetujui terlebih dahulu.'], 403);
         }
 
@@ -584,7 +588,11 @@ class RunConnectController extends Controller
         $request->validate(['message' => 'required|string|max:1000']);
         $thread = RunThread::findOrFail($id);
 
-        if (!Auth::check() || !$thread->participants()->where('user_id', Auth::id())->where('status', 'joined')->exists()) {
+        $isAuthorized = Auth::check() && (
+            (int) $thread->creator_id === (int) Auth::id() ||
+            $thread->participants()->where('user_id', Auth::id())->where('status', 'joined')->exists()
+        );
+        if (!$isAuthorized) {
             return response()->json(['message' => 'Unauthorized. Anda harus bergabung dengan status disetujui terlebih dahulu.'], 403);
         }
 
