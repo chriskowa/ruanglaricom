@@ -292,17 +292,51 @@ const fetchNotifications = async () => {
         
         // Trigger browser push notification for newly arrived unread notifications
         if (oldNotifications.length > 0) {
+            let hasNew = false;
             notifications.value.forEach(notification => {
                 if (!notification.is_read) {
                     const isNew = !oldNotifications.some(old => old.id === notification.id);
                     if (isNew) {
+                        hasNew = true;
                         triggerBrowserPushNotification(notification.title, notification.message);
                     }
                 }
             });
+            if (hasNew) {
+                playNotificationSound();
+            }
         }
     } catch (err) {
         console.error('Error fetching notifications:', err);
+    }
+};
+
+const playNotificationSound = () => {
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const context = new AudioContextClass();
+        
+        const osc = context.createOscillator();
+        const gain = context.createGain();
+        
+        osc.connect(gain);
+        gain.connect(context.destination);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, context.currentTime); // D5
+        gain.gain.setValueAtTime(0.12, context.currentTime);
+        
+        osc.start();
+        
+        // Second note (A5)
+        osc.frequency.setValueAtTime(880.00, context.currentTime + 0.1);
+        
+        // Fade out
+        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.45);
+        osc.stop(context.currentTime + 0.45);
+    } catch (e) {
+        console.warn("Audio playback failed or was blocked by browser autoplay policy:", e);
     }
 };
 
@@ -1018,6 +1052,7 @@ onUnmounted(() => {
                 :user="auth.user"
                 @close="isHistoryOpen = false"
                 @edit="handleEditThread"
+                @select="handleSelectThread"
             />
 
             <ApprovalModal 

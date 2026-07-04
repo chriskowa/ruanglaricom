@@ -13,7 +13,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['close', 'edit']);
+const emit = defineEmits(['close', 'edit', 'select']);
 
 const threads = ref([]);
 const isLoading = ref(false);
@@ -70,7 +70,12 @@ const getStatusBadge = (thread) => {
                     <p class="text-sm font-semibold">Belum ada thread.</p>
                 </div>
                 <div v-else class="space-y-3">
-                    <div v-for="thread in threads" :key="thread.id" class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-150 dark:border-slate-750 flex flex-col gap-2">
+                    <div 
+                        v-for="thread in threads" 
+                        :key="thread.id" 
+                        @click="emit('select', thread); emit('close')"
+                        class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-150 dark:border-slate-750 flex flex-col gap-2 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
+                    >
                         <div class="flex justify-between items-start">
                             <h4 class="font-bold text-sm text-slate-800 dark:text-white">{{ thread.title }}</h4>
                             <span :class="['px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider', getStatusBadge(thread).class]">
@@ -91,7 +96,7 @@ const getStatusBadge = (thread) => {
                             {{ thread.start_location_name || 'Lokasi tidak ditentukan' }}
                         </div>
                         <div v-if="user && thread.creator_id === user.id" class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-                            <button @click="emit('edit', thread); emit('close')" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors">
+                            <button @click.stop="emit('edit', thread); emit('close')" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                 Edit Thread
                             </button>
