@@ -420,6 +420,32 @@ Route::get('/program-half-marathon', [App\Http\Controllers\ProgramLandingPageCon
 Route::get('/program-lari-sub-20', [App\Http\Controllers\ProgramLandingPageController::class, 'programSub20'])->name('landing.program-lari-sub-20');
 Route::get('/coach-lari-online', [App\Http\Controllers\ProgramLandingPageController::class, 'coachOnline'])->name('landing.coach-lari-online');
 
+// Run Connect Feature Routes
+use App\Http\Controllers\RunConnectController;
+Route::get('/run-connect', [RunConnectController::class, 'index'])->name('run-connect.index');
+Route::get('/api/run-connect/threads', [RunConnectController::class, 'getThreads'])->name('api.run-connect.threads');
+Route::get('/api/run-connect/threads/{id}', [RunConnectController::class, 'showThread'])->name('api.run-connect.thread');
+Route::post('/api/run-connect/threads', [RunConnectController::class, 'storeThread'])->name('api.run-connect.store');
+Route::post('/api/run-connect/threads/{id}/join', [RunConnectController::class, 'joinThread'])->name('api.run-connect.join');
+Route::post('/api/run-connect/threads/{id}/leave', [RunConnectController::class, 'leaveThread'])->name('api.run-connect.leave');
+Route::post('/api/run-connect/threads/{id}/report', [RunConnectController::class, 'reportThread'])->name('api.run-connect.report');
+Route::get('/api/run-connect/random-match', [RunConnectController::class, 'randomMatch'])->name('api.run-connect.random-match');
+
+// Run Connect Enhancements
+Route::get('/api/run-connect/threads/{id}/messages', [RunConnectController::class, 'getMessages'])->name('api.run-connect.messages');
+Route::post('/api/run-connect/threads/{id}/messages', [RunConnectController::class, 'sendMessage'])->name('api.run-connect.messages.store');
+Route::post('/api/run-connect/threads/{id}/rate', [RunConnectController::class, 'rateThread'])->name('api.run-connect.rate');
+Route::post('/api/run-connect/threads/{id}/upload-gpx', [RunConnectController::class, 'uploadGpx'])->name('api.run-connect.gpx');
+Route::put('/api/run-connect/threads/{id}', [RunConnectController::class, 'updateThread'])->name('api.run-connect.update');
+Route::delete('/api/run-connect/threads/{id}', [RunConnectController::class, 'destroyThread'])->name('api.run-connect.destroy');
+Route::post('/api/run-connect/threads/{id}/approve/{participantId}', [RunConnectController::class, 'approveParticipant'])->name('api.run-connect.approve');
+Route::post('/api/run-connect/threads/{id}/reject/{participantId}', [RunConnectController::class, 'rejectParticipant'])->name('api.run-connect.reject');
+
+// Notifications API
+Route::get('/api/notifications', [RunConnectController::class, 'getNotifications'])->name('api.notifications.index');
+Route::post('/api/notifications/read-all', [RunConnectController::class, 'readAllNotifications'])->name('api.notifications.read-all');
+Route::post('/api/notifications/{id}/read', [RunConnectController::class, 'readNotification'])->name('api.notifications.read');
+
 // Public Coach Listing
 Route::get('/coaches', [App\Http\Controllers\CoachListController::class, 'index'])->name('coaches.index');
 

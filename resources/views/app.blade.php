@@ -3,14 +3,44 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title inertia>{{ config('app.name', 'Ruang Lari') }}</title>
+    <title inertia>{{ config('app.name', 'Ruang Lari') }} - Temukan Buddy Lari Terdekat | Run Connect</title>
+    <meta name="description" content="Cari teman lari (running buddy) terdekat, buat running thread, dan bergabung dengan komunitas pelari di sekitar Anda secara real-time melalui Run Connect Ruang Lari.">
+    <meta name="keywords" content="teman lari, running buddy, komunitas lari, run connect, ruang lari, cari teman lari, peta pelari, jadwal lari">
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    
+    <!-- OpenGraph (OG) Meta Tags -->
+    <meta property="og:title" content="Ruang Lari - Temukan Buddy Lari Terdekat | Run Connect">
+    <meta property="og:description" content="Cari teman lari (running buddy) terdekat, buat running thread, dan bergabung dengan komunitas pelari di sekitar Anda secara real-time melalui Run Connect Ruang Lari.">
+    <meta property="og:image" content="/images/ruanglari-512x512.png">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ruang Lari - Temukan Buddy Lari Terdekat | Run Connect">
+    <meta name="twitter:description" content="Cari teman lari terdekat dan buat running thread melalui platform Run Connect Ruang Lari.">
+    <meta name="twitter:image" content="/images/ruanglari-512x512.png">
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "WebApplication",
+      "name": "Run Connect - Ruang Lari",
+      "url": "{{ url()->current() }}",
+      "description": "Temukan buddy lari terdekat, buat running thread, dan bergabung dengan komunitas pelari di sekitar Anda secara real-time.",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript. Requires HTML5."
+    }
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     
     <!-- Scripts -->
-    @routes
     @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
     @inertiaHead
     <style>

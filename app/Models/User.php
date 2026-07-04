@@ -78,6 +78,8 @@ class User extends Authenticatable
         'current_package_id',
         'membership_expires_at',
         'membership_status',
+        'run_points',
+        'buddy_rating',
     ];
 
     /**
@@ -174,6 +176,18 @@ class User extends Authenticatable
     }
 
     // Relationships
+    public function createdRunThreads()
+    {
+        return $this->hasMany(RunThread::class, 'creator_id');
+    }
+
+    public function joinedRunThreads()
+    {
+        return $this->belongsToMany(RunThread::class, 'run_thread_participants', 'user_id', 'run_thread_id')
+            ->withPivot('status', 'joined_at')
+            ->withTimestamps();
+    }
+
     public function city()
     {
         return $this->belongsTo(City::class);
@@ -286,6 +300,22 @@ class User extends Authenticatable
     public function articles()
     {
         return $this->hasMany(Article::class);
+    }
+
+    // Run Connect Enhancements
+    public function achievements()
+    {
+        return $this->hasMany(UserAchievement::class);
+    }
+
+    public function ratingsReceived()
+    {
+        return $this->hasMany(UserRating::class, 'reviewee_id');
+    }
+
+    public function ratingsGiven()
+    {
+        return $this->hasMany(UserRating::class, 'reviewer_id');
     }
 
     // Notification relationships

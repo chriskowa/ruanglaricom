@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -8,4 +10,41 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    
+    /* Override blue palette dynamically using CSS custom properties */
+    --color-blue-50: var(--blue-50-var);
+    --color-blue-100: var(--blue-100-var);
+    --color-blue-200: var(--blue-200-var);
+    --color-blue-300: var(--blue-300-var);
+    --color-blue-500: var(--blue-500-var);
+    --color-blue-600: var(--blue-600-var);
+    --color-blue-650: var(--blue-650-var);
+    --color-blue-700: var(--blue-700-var);
+    --color-blue-750: var(--blue-750-var);
+}
+
+:root {
+    /* Light Mode: Map all blue colors to Ruang Lari brand red #c11e09 and its shades */
+    --blue-50-var: #fef2f2;
+    --blue-100-var: #fee2e2;
+    --blue-200-var: #fecaca;
+    --blue-300-var: #fca5a5;
+    --blue-500-var: #ef4444;
+    --blue-600-var: #c11e09;
+    --blue-650-var: #c11e09;
+    --blue-700-var: #a81707;
+    --blue-750-var: #911105;
+}
+
+.dark {
+    /* Dark Mode: Restore normal blue colors */
+    --blue-50-var: #eff6ff;
+    --blue-100-var: #dbeafe;
+    --blue-200-var: #bfdbfe;
+    --blue-300-var: #93c5fd;
+    --blue-500-var: #3b82f6;
+    --blue-600-var: #2563eb;
+    --blue-650-var: #1d4ed8;
+    --blue-700-var: #1d4ed8;
+    --blue-750-var: #1e40af;
 }

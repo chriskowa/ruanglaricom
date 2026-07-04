@@ -421,6 +421,75 @@
                         @endforelse
                     </div>
                 </div>
+
+                <!-- Riwayat Run Connect Section -->
+                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 mb-5">
+                        <div class="min-w-0">
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Connect</div>
+                            <h2 class="text-xl md:text-2xl font-black text-white italic tracking-tight mt-1">Riwayat Run Connect</h2>
+                        </div>
+                        <div class="shrink-0">
+                            <a href="/run-connect" class="px-3 py-1.5 rounded-lg bg-neon/15 border border-neon/30 text-[10px] text-neon hover:bg-neon/20 transition-all font-black uppercase tracking-wider">
+                                Cari Buddy Lari
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3.5 max-h-[400px] overflow-y-auto pr-1 scroll-thin">
+                        @forelse($runConnectHistory as $thread)
+                            @php($isCreator = $thread->creator_id === auth()->id())
+                            @php($participant = $thread->participants->where('user_id', auth()->id())->first())
+                            @php($status = $isCreator ? 'host' : ($participant ? $participant->status : ''))
+                            
+                            <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-850 hover:border-slate-750 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="font-bold text-sm text-white truncate max-w-[200px] sm:max-w-xs">{{ $thread->title }}</h4>
+                                        <span class="text-[8px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider {{ $thread->status === 'cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : ($thread->status === 'completed' ? 'bg-slate-800 text-slate-400 border border-slate-700' : 'bg-green-500/10 text-green-400 border border-green-500/20') }}">
+                                            {{ $thread->status }}
+                                        </span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <span class="font-bold text-slate-300">{{ $thread->type }}</span>
+                                        <span class="text-slate-700">•</span>
+                                        <span class="text-slate-300 font-semibold">{{ $thread->run_distance_km }} km</span>
+                                        <span class="text-slate-700">•</span>
+                                        <span class="text-slate-400 truncate max-w-[150px] sm:max-w-xs">{{ $thread->start_location_name }}</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 mt-1.5 flex items-center gap-1.5 flex-wrap">
+                                        <span>📅 {{ $thread->start_date->format('d M Y') }} • {{ \Carbon\Carbon::parse($thread->start_time)->format('H:i') }}</span>
+                                        <span class="text-slate-800">•</span>
+                                        <span>Buddy: {{ $thread->participants->where('status', 'joined')->count() }}/{{ $thread->quota }}</span>
+                                    </div>
+                                </div>
+                                <div class="shrink-0 flex items-center justify-between sm:justify-end gap-3.5 border-t border-slate-900/50 sm:border-0 pt-2.5 sm:pt-0">
+                                    <div>
+                                        @if($status === 'host')
+                                            <span class="px-2 py-0.5 rounded bg-neon/10 border border-neon/30 text-neon text-[9px] font-black uppercase tracking-wider">Host</span>
+                                        @elseif($status === 'joined')
+                                            <span class="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/30 text-green-400 text-[9px] font-black uppercase tracking-wider">Terdaftar</span>
+                                        @elseif($status === 'pending')
+                                            <span class="px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-[9px] font-black uppercase tracking-wider">Menunggu</span>
+                                        @else
+                                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400 text-[9px] font-black uppercase tracking-wider">{{ $status }}</span>
+                                        @endif
+                                    </div>
+                                    <a href="/run-connect" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-750 hover:bg-slate-850 transition">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-xs text-slate-400 text-center py-8">
+                                <p>Belum ada riwayat lari bersama di Run Connect.</p>
+                                <a href="/run-connect" class="inline-block mt-3 text-neon hover:underline font-bold text-[10px] uppercase tracking-wider">Mulai Cari Buddy Lari →</a>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
             </div>
 
             <div class="space-y-6">

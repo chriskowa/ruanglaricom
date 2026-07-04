@@ -27,12 +27,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $recaptchaSecret = env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY');
+        $requireRecaptcha = $recaptchaSecret && !$request->wantsJson();
 
         $request->validate([
             'email' => 'required|string',
             'password' => 'required',
-            'g-recaptcha-response' => [$recaptchaSecret ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($recaptchaSecret, $request) {
-                if (! $recaptchaSecret) {
+            'g-recaptcha-response' => [$requireRecaptcha ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($requireRecaptcha, $request) {
+                if (! $requireRecaptcha) {
                     return;
                 }
 
@@ -159,6 +160,13 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout berhasil'
+            ]);
+        }
 
         return redirect()->route('login');
     }

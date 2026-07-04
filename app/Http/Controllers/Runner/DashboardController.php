@@ -354,6 +354,17 @@ class DashboardController extends Controller
                    ($enrollment->program && ($enrollment->program->hardcoded === '40days' || \Illuminate\Support\Str::contains($enrollment->program->slug, '40days')));
         });
 
+        // Get Run Connect history
+        $runConnectHistory = \App\Models\RunThread::where('creator_id', $user->id)
+            ->orWhereHas('participants', function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->whereIn('status', ['joined', 'pending']);
+            })
+            ->with(['creator', 'participants.user'])
+            ->orderBy('start_date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->get();
+
         return view('runner.dashboard', [
             'activeEnrollments' => $activeEnrollments,
             'walletBalance' => $user->wallet ? $user->wallet->balance : 0,
@@ -381,6 +392,7 @@ class DashboardController extends Controller
             'cancelledPrograms' => $cancelledPrograms,
             'trainingProfile' => $trainingProfile,
             'isEnrolled40Days' => $isEnrolled40Days,
+            'runConnectHistory' => $runConnectHistory,
         ]);
     }
 

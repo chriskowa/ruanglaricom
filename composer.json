@@ -16,7 +16,8 @@
         "midtrans/midtrans-php": "^2.6",
         "openspout/openspout": "^4.28",
         "predis/predis": "^2.2",
-        "tecnickcom/tcpdf": "^6.11"
+        "tecnickcom/tcpdf": "^6.11",
+        "tightenco/ziggy": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
