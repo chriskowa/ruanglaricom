@@ -574,13 +574,33 @@ class ProgramController extends Controller
             abort(403);
         }
 
+        $programJson = $program->program_json;
+        $rawSessions = $programJson['sessions'] ?? [];
+        $sessions = [];
+
+        foreach ($rawSessions as $session) {
+            $advancedConfig = $session['advanced_config'] ?? null;
+            if (is_string($advancedConfig)) {
+                $advancedConfig = json_decode($advancedConfig, true) ?? [];
+            }
+
+            $sessions[] = [
+                'day' => (int) ($session['day'] ?? 1),
+                'type' => $session['type'] ?? 'easy_run',
+                'distance' => isset($session['distance']) && $session['distance'] !== '' ? (float) $session['distance'] : null,
+                'duration' => $session['duration'] ?? '',
+                'description' => $session['description'] ?? '',
+                'advanced_config' => $advancedConfig
+            ];
+        }
+
         $programData = [
             'title' => $program->title,
             'description' => $program->description,
             'difficulty' => $program->difficulty,
             'distance_target' => $program->distance_target,
-            'program_json' => $program->program_json,
-            'duration_weeks' => $program->duration_weeks,
+            'duration_weeks' => (int) $program->duration_weeks,
+            'sessions' => $sessions,
         ];
 
         return response()->json($programData)
@@ -612,38 +632,34 @@ class ProgramController extends Controller
             'Expires' => '0'
         ];
 
-        $callback = function() use ($sessions, $program) {
+        $callback = function() use ($sessions) {
             $file = fopen('php://output', 'w');
             
             // Add UTF-8 BOM for proper Excel encoding
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            // Write metadata
-            fputcsv($file, ['Nama Program', $program->title]);
-            fputcsv($file, ['Deskripsi', strip_tags($program->description)]);
-            fputcsv($file, ['Kesulitan', $program->difficulty]);
-            fputcsv($file, ['Jarak Target', $program->distance_target]);
-            fputcsv($file, ['Durasi (Minggu)', $program->duration_weeks]);
-            fputcsv($file, []); // blank row
-
-            // Write table header
-            fputcsv($file, ['Minggu', 'Hari Ke-', 'Workout / Tipe', 'Jarak (km)', 'Durasi', 'Detail Latihan']);
+            // Write table header matching CSV template columns
+            fputcsv($file, ['day', 'type', 'distance', 'duration', 'description', 'advanced_config']);
 
             foreach ($sessions as $session) {
                 $day = $session['day'] ?? 1;
-                $week = ceil($day / 7);
-                $type = $session['type'] ?? 'Workout';
-                $distance = $session['distance'] ?? '-';
-                $duration = $session['duration'] ?? '-';
+                $type = $session['type'] ?? 'easy_run';
+                $distance = $session['distance'] ?? '';
+                $duration = $session['duration'] ?? '';
                 $description = $session['description'] ?? '';
+                
+                $advancedConfig = $session['advanced_config'] ?? null;
+                if (is_array($advancedConfig)) {
+                    $advancedConfig = json_encode($advancedConfig);
+                }
 
                 fputcsv($file, [
-                    $week,
                     $day,
                     $type,
                     $distance,
                     $duration,
-                    $description
+                    $description,
+                    $advancedConfig
                 ]);
             }
 
