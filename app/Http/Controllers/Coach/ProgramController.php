@@ -586,4 +586,70 @@ class ProgramController extends Controller
         return response()->json($programData)
             ->header('Content-Disposition', 'attachment; filename="'.Str::slug($program->title).'.json"');
     }
+
+    /**
+     * Export program as CSV
+     */
+    public function exportCsv(Program $program)
+    {
+        if ((int) $program->coach_id !== (int) auth()->id()) {
+            abort(403);
+        }
+
+        $programJson = $program->program_json;
+        $sessions = $programJson['sessions'] ?? [];
+
+        // Sort sessions by day
+        usort($sessions, function($a, $b) {
+            return ($a['day'] ?? 0) <=> ($b['day'] ?? 0);
+        });
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . Str::slug($program->title) . '.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($sessions, $program) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for proper Excel encoding
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Write metadata
+            fputcsv($file, ['Nama Program', $program->title]);
+            fputcsv($file, ['Deskripsi', strip_tags($program->description)]);
+            fputcsv($file, ['Kesulitan', $program->difficulty]);
+            fputcsv($file, ['Jarak Target', $program->distance_target]);
+            fputcsv($file, ['Durasi (Minggu)', $program->duration_weeks]);
+            fputcsv($file, []); // blank row
+
+            // Write table header
+            fputcsv($file, ['Minggu', 'Hari Ke-', 'Workout / Tipe', 'Jarak (km)', 'Durasi', 'Detail Latihan']);
+
+            foreach ($sessions as $session) {
+                $day = $session['day'] ?? 1;
+                $week = ceil($day / 7);
+                $type = $session['type'] ?? 'Workout';
+                $distance = $session['distance'] ?? '-';
+                $duration = $session['duration'] ?? '-';
+                $description = $session['description'] ?? '';
+
+                fputcsv($file, [
+                    $week,
+                    $day,
+                    $type,
+                    $distance,
+                    $duration,
+                    $description
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

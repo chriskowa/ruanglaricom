@@ -74,12 +74,32 @@
                 </button>
                 <input type="file" ref="csvFileInput" class="hidden" accept=".csv" @change="handleCsvImport">
 
-                <button type="button" @click="downloadCsvTemplate" class="text-xs text-neon hover:underline flex items-center gap-1 self-center">
+                <button type="button" @click="downloadCsvTemplate" class="text-xs text-neon hover:underline flex items-center gap-1 self-center mr-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     CSV Template
                 </button>
+
+                <!-- Export Buttons -->
+                <a href="{{ route('coach.programs.export-excel', $program->id) }}" class="px-4 py-3 rounded-xl bg-green-900/30 border border-green-600/50 text-green-400 hover:bg-green-600 hover:text-white transition text-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export Excel
+                </a>
+                <a href="{{ route('coach.programs.export-csv', $program->id) }}" class="px-4 py-3 rounded-xl bg-cyan-900/30 border border-cyan-600/50 text-cyan-400 hover:bg-cyan-600 hover:text-white transition text-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export CSV
+                </a>
+                <a href="{{ route('coach.programs.export-json', $program->id) }}" class="px-4 py-3 rounded-xl bg-yellow-900/30 border border-yellow-600/50 text-yellow-400 hover:bg-yellow-600 hover:text-white transition text-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export JSON
+                </a>
 
                  <button type="button" @click="saveProgram" :disabled="saving" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center gap-2">
                     <span v-if="saving" class="animate-spin">⟳</span>

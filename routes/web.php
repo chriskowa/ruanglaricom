@@ -1024,6 +1024,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/programs/{program}/publish', [App\Http\Controllers\Coach\ProgramController::class, 'publish'])->name('programs.publish');
         Route::post('/programs/{program}/unpublish', [App\Http\Controllers\Coach\ProgramController::class, 'unpublish'])->name('programs.unpublish');
         Route::get('/programs/{program}/export-json', [App\Http\Controllers\Coach\ProgramController::class, 'exportJson'])->name('programs.export-json');
+        Route::get('/programs/{program}/export-csv', [App\Http\Controllers\Coach\ProgramController::class, 'exportCsv'])->name('programs.export-csv');
+        Route::get('/programs/{program}/export-excel', [App\Http\Controllers\Coach\ProgramController::class, 'exportCsv'])->name('programs.export-excel');
 
         // Withdrawals
         Route::get('/withdrawals', [App\Http\Controllers\Coach\WithdrawalController::class, 'index'])->name('withdrawals.index');

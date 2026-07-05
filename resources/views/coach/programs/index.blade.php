@@ -80,6 +80,19 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                         </a>
+
+                                        <!-- Export Actions -->
+                                        <a href="{{ route('coach.programs.export-excel', $program->id) }}" class="p-2 rounded-lg bg-slate-800 text-green-400 hover:bg-green-500 hover:text-dark transition flex items-center justify-center" title="Export Excel" style="width: 32px; height: 32px;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 00-4-4H5a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                            </svg>
+                                        </a>
+                                        <a href="{{ route('coach.programs.export-csv', $program->id) }}" class="p-2 rounded-lg bg-slate-800 text-cyan-400 hover:bg-cyan-500 hover:text-dark transition flex items-center justify-center font-bold text-[9px]" title="Export CSV" style="width: 32px; height: 32px;">
+                                            CSV
+                                        </a>
+                                        <a href="{{ route('coach.programs.export-json', $program->id) }}" class="p-2 rounded-lg bg-slate-800 text-yellow-400 hover:bg-yellow-500 hover:text-dark transition flex items-center justify-center font-bold text-[9px]" title="Export JSON" style="width: 32px; height: 32px;">
+                                            JSON
+                                        </a>
                                         
                                         @if($program->is_published)
                                             <form action="{{ route('coach.programs.unpublish', $program->id) }}" method="POST" onsubmit="return confirm('Unpublish this program? It will be hidden from the marketplace.')">
