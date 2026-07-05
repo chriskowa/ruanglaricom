@@ -1035,6 +1035,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/athletes/import-enroll', [App\Http\Controllers\Coach\AthleteController::class, 'importEnroll'])->name('athletes.import-enroll');
         Route::get('/athletes/import-template', [App\Http\Controllers\Coach\AthleteController::class, 'downloadImportTemplate'])->name('athletes.import-template');
         Route::get('/athletes/{enrollment}', [App\Http\Controllers\Coach\AthleteController::class, 'show'])->name('athletes.show');
+        Route::delete('/athletes/{enrollment}', [App\Http\Controllers\Coach\AthleteController::class, 'destroy'])->name('athletes.destroy');
         Route::get('/athletes/{enrollment}/events', [App\Http\Controllers\Coach\AthleteController::class, 'calendarEvents'])->name('athletes.events');
         Route::get('/athletes/{enrollment}/strava/activities/{stravaActivityId}/details', [App\Http\Controllers\Coach\AthleteController::class, 'stravaActivityDetails'])->name('athletes.strava.activities.details');
         Route::get('/athletes/{enrollment}/strava/activities/{stravaActivityId}/streams', [App\Http\Controllers\Coach\AthleteController::class, 'stravaActivityStreams'])->name('athletes.strava.activities.streams');

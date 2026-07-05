@@ -2020,4 +2020,43 @@ class AthleteController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Delete an athlete's enrollment
+     */
+    public function destroy($enrollmentId)
+    {
+        $enrollment = ProgramEnrollment::with('program')->findOrFail($enrollmentId);
+
+        // Verify this enrollment belongs to a program owned by the coach
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            // Delete all tracking records
+            ProgramSessionTracking::where('enrollment_id', $enrollmentId)->delete();
+
+            // Delete enrollment permanently
+            $enrollment->delete();
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Atlet berhasil dihapus dari program ini.',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus atlet: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

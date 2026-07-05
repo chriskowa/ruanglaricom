@@ -784,7 +784,38 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 previewBox.classList.add('hidden');
             }
+    };
+
+    window.confirmDeleteAthlete = function(enrollmentId, runnerName, programTitle) {
+        if (!confirm(`Apakah Anda yakin ingin menghapus atlet "${runnerName}" dari program "${programTitle}"?\nSemua log tracking latihan atlet tersebut pada program ini juga akan dihapus secara permanen.`)) {
+            return;
         }
+
+        fetch(`/coach/athletes/${enrollmentId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Atlet berhasil dihapus.');
+                if (typeof submitFilters === 'function') {
+                    submitFilters();
+                } else {
+                    location.reload();
+                }
+            } else {
+                alert(data.message || 'Gagal menghapus atlet.');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Terjadi kesalahan koneksi.');
+        });
     };
 });
 </script>
