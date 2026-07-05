@@ -447,8 +447,9 @@
                     </div>
                 </div>
                 
-                <div class="mt-4 flex justify-end">
+                <div class="mt-4 flex flex-col items-end gap-2">
                     <button type="button" @click="copyWeek" class="text-xs text-neon hover:underline">Copy this week to next week</button>
+                    <button type="button" @click="deleteWeekSessions" class="text-xs text-red-500 hover:underline">Delete program this week</button>
                 </div>
             </div>
         </form>
@@ -1446,6 +1447,17 @@ createApp({
             alert(`Week ${currentWeek.value} copied to Week ${nextWeek}`);
             currentWeek.value = nextWeek;
         };
+
+        const deleteWeekSessions = () => {
+            if (!confirm(`Apakah Anda yakin ingin menghapus semua sesi latihan di Minggu ${currentWeek.value}?`)) {
+                return;
+            }
+            
+            const startCurrent = (currentWeek.value - 1) * 7 + 1;
+            const endCurrent = startCurrent + 6;
+            
+            form.sessions = form.sessions.filter(s => s.day < startCurrent || s.day > endCurrent);
+        };
         
         const addWeek = () => {
             form.duration_weeks = Number(form.duration_weeks) + 1;
@@ -1816,7 +1828,7 @@ createApp({
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleSessionDrop,
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
             builderIsEditing, builderSessionId, builderTargetWeek, builderTargetDay,
-            copyWeek, updateWeeks, addWeek, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
+            copyWeek, deleteWeekSessions, updateWeeks, addWeek, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             csvFileInput, triggerCsvImport, handleCsvImport, downloadCsvTemplate,
             dragOverThumbnail, thumbnailPreview, thumbnailInput, handleThumbnailDrop, triggerThumbnailSelect, removeThumbnail,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes, masterWorkouts,
