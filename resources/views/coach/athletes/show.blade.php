@@ -500,15 +500,30 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-[2.5rem] p-4 md:p-8">
+                <div class="glass-panel rounded-[2.5rem] p-4 md:p-8" id="coach-calendar-section">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                         <div>
                             <h3 class="text-white font-black text-2xl italic tracking-tight">Training Calendar</h3>
                             <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">Review & Plan workouts</p>
                         </div>
-                        <button @click="openRaceForm" class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-yellow-500 text-dark font-black hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/20 text-sm flex items-center justify-center gap-2">
-                            <span>🏆</span> Add Race Event
-                        </button>
+                        <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                            <!-- Export Buttons -->
+                            <button @click="exportCalendar('image')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Export Image
+                            </button>
+                            <button @click="exportCalendar('pdf')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                Export PDF
+                            </button>
+                            <button @click="openRaceForm" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-yellow-500 text-dark font-black hover:bg-yellow-400 transition shadow text-xs flex items-center justify-center gap-1.5">
+                                🏆 Add Race Event
+                            </button>
+                        </div>
                     </div>
                     <div id="calendar" class="fc-modern"></div>
                 </div>
@@ -1361,6 +1376,8 @@
 @include('layouts.components.advanced-builder-utils')
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script src="{{ asset('vendor/chart-js/chart.bundle.min.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const { createApp, ref, reactive, onMounted, watch, computed } = Vue;
 
@@ -3169,10 +3186,238 @@ createApp({
             return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
         };
 
+        const exportCalendar = async (type) => {
+            try {
+                const response = await fetch('{{ route("coach.athletes.events", $enrollment->id) }}');
+                const list = await response.json();
+                if (!list || list.length === 0) {
+                    alert('Tidak ada data program aktif untuk diekspor.');
+                    return;
+                }
+
+                const programTitle = @json($enrollment->program->title);
+                const runnerName = @json($enrollment->runner->name);
+                const sortedPlans = [...list].sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                const opt = {
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#0b1220',
+                    scale: 2,
+                    logging: false
+                };
+
+                const getRowHtml = (plan, globalIdx) => {
+                    const dateObj = new Date(plan.start);
+                    const dateStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const dayStr = dateObj.toLocaleDateString('id-ID', { weekday: 'long' });
+                    
+                    const props = plan.extendedProps || {};
+                    const desc = props.description || plan.title;
+                    const title = desc ? desc.split('\n')[0].replace(/^✅\s*|^❌\s*/, '') : 'Sesi Latihan';
+                    const wType = props.type || 'Workout';
+                    const target = props.distance ? `${props.distance} km` : (props.duration || '-');
+                    
+                    let statusTextStr = 'Pending';
+                    let statusBg = '#33415515';
+                    let statusColor = '#94a3b8';
+                    if (props.status === 'completed' || props.status === 'imported') {
+                        statusTextStr = 'Selesai';
+                        statusBg = '#10b98115';
+                        statusColor = '#10b981';
+                    } else if (props.status === 'started') {
+                        statusTextStr = 'Mulai';
+                        statusBg = '#eab30815';
+                        statusColor = '#eab308';
+                    } else if (props.status === 'missed') {
+                        statusTextStr = 'Missed';
+                        statusBg = '#ef444415';
+                        statusColor = '#ef4444';
+                    }
+
+                    let typeColor = '#3b82f6';
+                    if (wType.toLowerCase().includes('easy') || wType.toLowerCase().includes('recovery')) typeColor = '#10b981';
+                    else if (wType.toLowerCase().includes('tempo') || wType.toLowerCase().includes('threshold')) typeColor = '#f97316';
+                    else if (wType.toLowerCase().includes('interval') || wType.toLowerCase().includes('speed')) typeColor = '#ef4444';
+                    else if (wType.toLowerCase().includes('long')) typeColor = '#6366f1';
+                    else if (wType.toLowerCase().includes('rest')) typeColor = '#64748b';
+
+                    return `
+                        <tr style="border-bottom: 1px solid #1e293b;">
+                            <td style="padding: 12px 8px; font-size: 12px; color: #64748b; font-family: monospace;">${globalIdx + 1}</td>
+                            <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ccff00;">${dayStr}</td>
+                            <td style="padding: 12px 8px; font-size: 12px; color: #cbd5e1;">${dateStr}</td>
+                            <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ffffff;">
+                                ${title}
+                                <span style="display: inline-block; font-size: 9px; font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background-color: ${typeColor}15; color: ${typeColor}; border: 1px solid ${typeColor}30; margin-left: 8px;">
+                                    ${wType}
+                                </span>
+                            </td>
+                            <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ccff00; text-align: center;">${target}</td>
+                            <td style="padding: 12px 8px; text-align: center;">
+                                <span style="display: inline-block; font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background-color: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusColor}30;">
+                                    ${statusTextStr}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                };
+
+                const getTableHeaderHtml = () => `
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #334155; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
+                                <th style="padding: 10px 8px; width: 40px;">No</th>
+                                <th style="padding: 10px 8px; width: 100px;">Hari</th>
+                                <th style="padding: 10px 8px; width: 110px;">Tanggal</th>
+                                <th style="padding: 10px 8px;">Detail Latihan</th>
+                                <th style="padding: 10px 8px; width: 90px; text-align: center;">Target</th>
+                                <th style="padding: 10px 8px; width: 90px; text-align: center;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                if (type === 'image') {
+                    // Image option renders everything in a single long scrollable canvas
+                    const container = document.createElement('div');
+                    container.style.position = 'absolute';
+                    container.style.left = '-9999px';
+                    container.style.top = '-9999px';
+                    container.style.width = '800px';
+                    container.style.padding = '40px';
+                    container.style.backgroundColor = '#0b1220';
+                    container.style.color = '#e2e8f0';
+                    container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+
+                    const headerHtml = `
+                        <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <h1 style="color: #ffffff; font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
+                                <p style="color: #94a3b8; font-size: 11px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan (Coach Monitor)</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <h3 style="color: #ccff00; font-size: 14px; font-weight: 800; margin: 0;">${programTitle}</h3>
+                                <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0 0;">Runner: ${runnerName}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    let tableRows = '';
+                    sortedPlans.forEach((plan, idx) => {
+                        tableRows += getRowHtml(plan, idx);
+                    });
+
+                    container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
+                    document.body.appendChild(container);
+
+                    html2canvas(container, opt).then(canvas => {
+                        document.body.removeChild(container);
+                        const imgData = canvas.toDataURL('image/png');
+                        const link = document.createElement('a');
+                        link.download = `kalender-latihan-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+                        link.href = imgData;
+                        link.click();
+                    }).catch(err => {
+                        if (document.body.contains(container)) document.body.removeChild(container);
+                        console.error('Export image failed:', err);
+                        alert('Gagal mengekspor gambar.');
+                    });
+
+                } else if (type === 'pdf') {
+                    // PDF option renders page-by-page (15 rows per page) to prevent row splitting across pages
+                    const rowsPerPage = 15;
+                    const totalPages = Math.ceil(sortedPlans.length / rowsPerPage);
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 190;
+
+                    const renderPage = async (pageIdx) => {
+                        const startIdx = pageIdx * rowsPerPage;
+                        const endIdx = Math.min(startIdx + rowsPerPage, sortedPlans.length);
+                        const pagePlans = sortedPlans.slice(startIdx, endIdx);
+
+                        const container = document.createElement('div');
+                        container.style.position = 'absolute';
+                        container.style.left = '-9999px';
+                        container.style.top = '-9999px';
+                        container.style.width = '800px';
+                        container.style.height = '1120px'; // Fixed A4 proportional height
+                        container.style.padding = '40px';
+                        container.style.backgroundColor = '#0b1220';
+                        container.style.color = '#e2e8f0';
+                        container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                        container.style.boxSizing = 'border-box';
+                        container.style.display = 'flex';
+                        container.style.flexDirection = 'column';
+
+                        const headerHtml = `
+                            <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+                                <div>
+                                    <h1 style="color: #ffffff; font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
+                                    <p style="color: #94a3b8; font-size: 11px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan (Coach Monitor)</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <h3 style="color: #ccff00; font-size: 14px; font-weight: 800; margin: 0;">${programTitle}</h3>
+                                    <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0 0;">Halaman ${pageIdx + 1} dari ${totalPages}</p>
+                                </div>
+                            </div>
+                        `;
+
+                        let tableRows = '';
+                        pagePlans.forEach((plan, localIdx) => {
+                            tableRows += getRowHtml(plan, startIdx + localIdx);
+                        });
+
+                        // Add content
+                        container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
+                        
+                        // Add footer pushing it to bottom of A4
+                        const footerDiv = document.createElement('div');
+                        footerDiv.style.marginTop = 'auto';
+                        footerDiv.style.paddingTop = '15px';
+                        footerDiv.style.borderTop = '1px solid #1e293b';
+                        footerDiv.style.display = 'flex';
+                        footerDiv.style.justifyContent = 'space-between';
+                        footerDiv.style.fontSize = '10px';
+                        footerDiv.style.color = '#64748b';
+                        footerDiv.innerHTML = `
+                            <span>Runner: ${runnerName}</span>
+                            <span>Generated via Ruang Lari</span>
+                        `;
+                        container.appendChild(footerDiv);
+
+                        document.body.appendChild(container);
+                        const canvas = await html2canvas(container, opt);
+                        document.body.removeChild(container);
+                        return canvas.toDataURL('image/png');
+                    };
+
+                    // Sequential rendering of pages
+                    (async () => {
+                        for (let i = 0; i < totalPages; i++) {
+                            if (i > 0) pdf.addPage();
+                            const imgData = await renderPage(i);
+                            pdf.addImage(imgData, 'PNG', 10, 8.5, imgWidth, 280);
+                        }
+                        pdf.save(`kalender-latihan-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`);
+                    })().catch(err => {
+                        console.error('PDF generation failed:', err);
+                        alert('Gagal mengekspor PDF.');
+                    });
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert('Gagal mengambil data dari server untuk ekspor.');
+            }
+        };
+
         return { 
             trainingProfile, profileTab, formatPace,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
             selectedSession, statusClass, formatDate, feedbackForm, saveFeedback, loading, getPaceInfo, 
+            exportCalendar,
             stravaDetailsLoading, stravaDetailsError, stravaMetrics, stravaSplits, stravaLaps, stravaStreams, formatSeconds,
             stravaAiAnalysis, stravaAiAnalysisLoading, stravaWorkoutClassification,
             showRaceModal, raceForm, openRaceForm, saveRace, ruangLariEvents, loadingEvents, onSelectRuangLariEvent, fetchRuangLariEvents, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,

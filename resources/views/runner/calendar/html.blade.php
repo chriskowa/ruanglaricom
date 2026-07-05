@@ -516,6 +516,26 @@
                 </div>
 
                 <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-calendar-section" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-850 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-neon animate-pulse"></span>
+                            <span class="text-xs font-bold text-slate-350 uppercase tracking-widest font-mono">Program Kalender Aktif</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button @click="exportCalendar('image')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold uppercase transition flex items-center gap-1.5 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Gambar (PNG)
+                            </button>
+                            <button @click="exportCalendar('pdf')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold uppercase transition flex items-center gap-1.5 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                PDF
+                            </button>
+                        </div>
+                    </div>
                     <div id="calendar"></div>
                 </div>
             </div>
