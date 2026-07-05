@@ -74,7 +74,7 @@ class ProgramController extends Controller
             abort(403);
         }
 
-        return view('coach.programs.show', compact('program'));
+        return redirect()->route('programs.show', $program->slug);
     }
 
     public function edit(Program $program)

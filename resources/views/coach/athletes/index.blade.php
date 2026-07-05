@@ -784,6 +784,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 previewBox.classList.add('hidden');
             }
+        }
     };
 
     window.confirmDeleteAthlete = function(enrollmentId, runnerName, programTitle) {
