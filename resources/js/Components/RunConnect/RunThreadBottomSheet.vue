@@ -204,7 +204,10 @@ const getShareUrl = () => {
 const getShareText = () => {
     if (!props.thread) return '';
     const t = props.thread;
-    const date = new Date(t.start_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+    const dateStr = (typeof t.start_date === 'string' ? t.start_date : t.start_date.toString()).substring(0, 10);
+    const [year, month, day] = dateStr.split('-');
+    const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const date = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
     const time = t.start_time?.substring(0, 5) || '';
     return `🏃 Yuk lari bareng!\n\n*${t.title}*\n📍 ${t.start_location_name}\n📅 ${date} jam ${time} WIB\n🎯 ${Number(t.run_distance_km).toFixed(1)} KM | Pace ${t.pace_min && t.pace_max ? t.pace_min + '-' + t.pace_max : 'Bebas'}\n👥 Kuota: ${t.quota} orang\n\nGabung sekarang:`;
 };
@@ -250,7 +253,14 @@ const updateCountdown = () => {
     }
     const t = props.thread;
     const dateStr = (typeof t.start_date === 'string' ? t.start_date : t.start_date).substring(0, 10);
-    const target = new Date(`${dateStr}T${t.start_time}`);
+    const [year, month, day] = dateStr.split('-');
+    let hour = 0, minute = 0;
+    if (t.start_time) {
+        const parts = t.start_time.split(':');
+        hour = parseInt(parts[0], 10) || 0;
+        minute = parseInt(parts[1], 10) || 0;
+    }
+    const target = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, minute);
     const now = new Date();
     const diff = target - now;
 
@@ -488,7 +498,9 @@ watch(() => props.thread, (newThread) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
+    const dateStr = (typeof dateString === 'string' ? dateString : dateString.toString()).substring(0, 10);
+    const [year, month, day] = dateStr.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 };
 

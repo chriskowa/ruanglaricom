@@ -42,8 +42,16 @@ const upcomingThreads = computed(() => {
     const now = new Date();
     return threads.value.filter(t => {
         if (t.status === 'cancelled' || t.status === 'completed') return false;
-        const startStr = t.start_date.substring(0, 10) + 'T' + t.start_time;
-        const startDate = new Date(startStr);
+        
+        const [year, month, day] = t.start_date.substring(0, 10).split('-');
+        let hour = 0, minute = 0;
+        if (t.start_time) {
+            const parts = t.start_time.split(':');
+            hour = parseInt(parts[0], 10) || 0;
+            minute = parseInt(parts[1], 10) || 0;
+        }
+        const startDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, minute);
+        
         return startDate >= now;
     });
 });
@@ -52,8 +60,16 @@ const pastThreads = computed(() => {
     const now = new Date();
     return threads.value.filter(t => {
         if (t.status === 'cancelled' || t.status === 'completed') return true;
-        const startStr = t.start_date.substring(0, 10) + 'T' + t.start_time;
-        const startDate = new Date(startStr);
+        
+        const [year, month, day] = t.start_date.substring(0, 10).split('-');
+        let hour = 0, minute = 0;
+        if (t.start_time) {
+            const parts = t.start_time.split(':');
+            hour = parseInt(parts[0], 10) || 0;
+            minute = parseInt(parts[1], 10) || 0;
+        }
+        const startDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, minute);
+        
         return startDate < now;
     });
 });
@@ -87,6 +103,14 @@ const getUserRoleBadge = (thread) => {
         }
     }
     return null;
+};
+
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const dateStr = (typeof dateString === 'string' ? dateString : dateString.toString()).substring(0, 10);
+    const [year, month, day] = dateStr.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
 };
 </script>
 
@@ -154,7 +178,7 @@ const getUserRoleBadge = (thread) => {
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            {{ new Date(thread.start_date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) }} &bull; {{ thread.start_time.substring(0,5) }}
+                            {{ formatDate(thread.start_date) }} &bull; {{ thread.start_time.substring(0,5) }}
                         </div>
                         <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-1">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

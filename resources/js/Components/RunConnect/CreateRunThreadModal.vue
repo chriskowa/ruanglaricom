@@ -33,6 +33,12 @@ const step = ref(1);
 const loading = ref(false);
 const errors = ref({});
 
+const getLocalDateString = (d = new Date()) => {
+    const tzOffsetMs = d.getTimezoneOffset() * 60000;
+    const localDate = new Date(d.getTime() - tzOffsetMs);
+    return localDate.toISOString().substring(0, 10);
+};
+
 const initialForm = {
     title: '',
     description: '',
@@ -40,7 +46,7 @@ const initialForm = {
     run_distance_km: 5,
     pace_min: '6:00',
     pace_max: '7:00',
-    start_date: new Date().toISOString().substring(0, 10),
+    start_date: getLocalDateString(),
     start_time: '06:00',
     start_location_name: '',
     start_latitude: '',
@@ -76,8 +82,8 @@ const resetForm = () => {
         });
         if (props.editThread.start_date) {
             // format start_date to YYYY-MM-DD
-            const d = new Date(props.editThread.start_date);
-            form.start_date = d.toISOString().substring(0, 10);
+            const dateStr = (typeof props.editThread.start_date === 'string' ? props.editThread.start_date : props.editThread.start_date.toString()).substring(0, 10);
+            form.start_date = dateStr;
         }
     } else {
         Object.assign(form, initialForm);
