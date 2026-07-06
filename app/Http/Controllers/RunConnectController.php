@@ -297,7 +297,7 @@ class RunConnectController extends Controller
         }
 
         // Prevent joining if user is the creator
-        if ($thread->creator_id === $userId) {
+        if ((int)$thread->creator_id === (int)$userId) {
             return response()->json(['message' => 'Anda tidak dapat bergabung ke thread buatan sendiri.'], 422);
         }
 
@@ -351,7 +351,7 @@ class RunConnectController extends Controller
         }
 
         // Create join request notification for the thread creator
-        if ($thread->creator_id !== $userId) {
+        if ((int)$thread->creator_id !== (int)$userId) {
             SendRunConnectNotification::dispatch(
                 $thread->creator_id,
                 'run_connect_request',
@@ -383,7 +383,7 @@ class RunConnectController extends Controller
         $thread = RunThread::findOrFail($id);
 
         // Creator cannot leave their own thread, they must cancel/delete it
-        if ($thread->creator_id === $userId) {
+        if ((int)$thread->creator_id === (int)$userId) {
             return response()->json(['message' => 'Sebagai pembuat thread, Anda tidak bisa keluar. Anda bisa mengubah status lari menjadi batal.'], 422);
         }
 
@@ -633,7 +633,7 @@ class RunConnectController extends Controller
 
         $thread = RunThread::findOrFail($id);
         
-        if ($thread->creator_id !== Auth::id()) {
+        if ((int)$thread->creator_id !== (int)Auth::id()) {
             return response()->json(['message' => 'Only the creator can upload GPX.'], 403);
         }
 
@@ -745,7 +745,7 @@ class RunConnectController extends Controller
     {
         $thread = RunThread::findOrFail($id);
 
-        if ($thread->creator_id !== Auth::id()) {
+        if ((int)$thread->creator_id !== (int)Auth::id()) {
             return response()->json(['message' => 'Hanya pembuat thread yang dapat mengedit thread ini.'], 403);
         }
 
@@ -801,7 +801,7 @@ class RunConnectController extends Controller
     {
         $thread = RunThread::findOrFail($id);
 
-        if ($thread->creator_id !== Auth::id()) {
+        if ((int)$thread->creator_id !== (int)Auth::id()) {
             return response()->json(['message' => 'Hanya pembuat thread yang dapat membatalkan thread ini.'], 403);
         }
 
