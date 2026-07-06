@@ -46,7 +46,7 @@ class RunThread extends Model
         'is_beginner_friendly' => 'boolean',
         'is_women_friendly' => 'boolean',
         'is_recurring' => 'boolean',
-        'start_date' => 'date',
+        'start_date' => 'date:Y-m-d',
     ];
 
     public function creator()
