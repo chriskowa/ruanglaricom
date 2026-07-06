@@ -187,23 +187,11 @@ const handleStartExploration = () => {
                     </a>
                 </div>
                 
-                <div class="relative flex py-1 items-center">
-                    <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-                    <span class="flex-shrink-0 mx-4 text-slate-400 text-[10px] uppercase font-semibold">Atau</span>
-                    <div class="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                <div class="mt-4 flex flex-col gap-2">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium px-4">
+                        Silakan login untuk mencari teman lari dan mengeksplorasi peta di sekitar Anda.
+                    </p>
                 </div>
-
-                <button 
-                    @click="handleStartExploration" 
-                    :disabled="loading"
-                    class="w-full bg-transparent border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300 text-xs font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                    <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Eksplorasi Peta (Guest)
-                </button>
             </template>
 
             <template v-else>
@@ -221,24 +209,26 @@ const handleStartExploration = () => {
             </template>
         </div>
 
-        <!-- Preset Cities Divider -->
-        <div class="relative flex py-1 items-center mt-4">
-            <div class="flex-grow border-t border-slate-150 dark:border-slate-800/80"></div>
-            <span class="flex-shrink mx-4 text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Atau Pilih Kota</span>
-            <div class="flex-grow border-t border-slate-150 dark:border-slate-800/80"></div>
-        </div>
+        <!-- Preset Cities Divider (Only for logged in) -->
+        <template v-if="auth.user">
+            <div class="relative flex py-1 items-center mt-4">
+                <div class="flex-grow border-t border-slate-150 dark:border-slate-800/80"></div>
+                <span class="flex-shrink mx-4 text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Atau Pilih Kota</span>
+                <div class="flex-grow border-t border-slate-150 dark:border-slate-800/80"></div>
+            </div>
 
-        <!-- Presets Grid -->
-        <div class="grid grid-cols-2 gap-2.5">
-            <button 
-                v-for="city in cities" 
-                :key="city.name"
-                @click="selectCity(city)"
-                class="p-2 bg-white/40 dark:bg-slate-950/40 border border-slate-205/30 dark:border-slate-800/50 rounded-xl text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-950/80 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer text-center"
-            >
-                {{ city.name }}
-            </button>
-        </div>
+            <!-- Presets Grid -->
+            <div class="grid grid-cols-2 gap-2.5">
+                <button 
+                    v-for="city in cities" 
+                    :key="city.name"
+                    @click="selectCity(city)"
+                    class="p-2 bg-white/40 dark:bg-slate-950/40 border border-slate-205/30 dark:border-slate-800/50 rounded-xl text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-950/80 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer text-center"
+                >
+                    {{ city.name }}
+                </button>
+            </div>
+        </template>
 
     </div>
 </template>
