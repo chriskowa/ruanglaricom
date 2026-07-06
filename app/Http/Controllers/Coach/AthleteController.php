@@ -1440,6 +1440,7 @@ class AthleteController extends Controller
             'pb_distance' => 'nullable|string|in:5k,10k,21k,42k',
             'pb_time' => 'nullable|string|regex:/^([0-9]{1,2}:)?[0-9]{1,2}:[0-9]{2}$/',
             'pb_balke' => 'nullable|numeric|min:100|max:10000',
+            'password' => 'nullable|string|min:6',
         ]);
 
         $program = \App\Models\Program::findOrFail($validated['program_id']);
@@ -1473,15 +1474,21 @@ class AthleteController extends Controller
         // Find or create runner
         $runner = \App\Models\User::where('email', $validated['email'])->first();
 
+        $isNewUser = false;
+        $cleartextPassword = null;
+
         if (!$runner) {
+            $isNewUser = true;
+            $cleartextPassword = $validated['password'] ?? \Illuminate\Support\Str::random(8);
+
             // Create brand new runner
             $runner = \App\Models\User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
                 'role' => 'runner',
-                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
-                'is_active' => true,
+                'password' => \Illuminate\Support\Facades\Hash::make($cleartextPassword),
+                'is_active' => 1,
             ]);
             
             // Create a wallet for the new runner
@@ -1539,6 +1546,16 @@ class AthleteController extends Controller
             'payment_status' => 'paid', // manually enrolled by coach
             'current_vdot' => $computedVdot ?? $runner->vdot,
         ]);
+
+        // Generate Magic Link (expires in 7 days)
+        $magicLink = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'login.token', now()->addDays(7), ['user' => $runner->id]
+        );
+
+        // Send Email
+        \Illuminate\Support\Facades\Mail::to($runner->email)->queue(
+            new \App\Mail\RunnerEnrolledMail($runner, $program, $cleartextPassword, $magicLink)
+        );
 
         return back()->with('success', "Runner {$runner->name} berhasil didaftarkan ke program {$program->title}.");
     }

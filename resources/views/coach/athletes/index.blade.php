@@ -304,6 +304,11 @@
             </div>
 
             <div>
+                <label for="enroll_password" class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Password (Opsional)</label>
+                <input type="text" name="password" id="enroll_password" placeholder="Kosongkan untuk auto-generate" class="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl p-3 focus:ring-neon focus:border-neon">
+            </div>
+
+            <div>
                 <label class="block text-xs font-mono text-cyan-400 mb-2 uppercase tracking-wider">Metode Input Kebugaran (VDOT)</label>
                 <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
                     <button type="button" onclick="setVdotMode('direct')" id="btn-vdot-direct" class="py-2 text-[10px] md:text-xs font-black rounded-lg transition-all bg-neon text-dark">
