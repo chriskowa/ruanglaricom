@@ -56,9 +56,7 @@ const typeColors = {
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
-    const dateStr = (typeof dateString === 'string' ? dateString : dateString.toString()).substring(0, 10);
-    const [year, month, day] = dateStr.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
 };
 
@@ -75,15 +73,11 @@ let countdownTimer = null;
 const updateCountdown = () => {
     const t = props.thread;
     if (!t) return;
-    const dateStr = (typeof t.start_date === 'string' ? t.start_date : t.start_date).substring(0, 10);
-    const [year, month, day] = dateStr.split('-');
-    let hour = 0, minute = 0;
+    const target = new Date(t.start_date);
     if (t.start_time) {
         const parts = t.start_time.split(':');
-        hour = parseInt(parts[0], 10) || 0;
-        minute = parseInt(parts[1], 10) || 0;
+        target.setHours(parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0, 0, 0);
     }
-    const target = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, minute);
     const now = new Date();
     const diff = target - now;
 

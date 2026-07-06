@@ -204,10 +204,7 @@ const getShareUrl = () => {
 const getShareText = () => {
     if (!props.thread) return '';
     const t = props.thread;
-    const dateStr = (typeof t.start_date === 'string' ? t.start_date : t.start_date.toString()).substring(0, 10);
-    const [year, month, day] = dateStr.split('-');
-    const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    const date = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+    const date = new Date(t.start_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
     const time = t.start_time?.substring(0, 5) || '';
     return `🏃 Yuk lari bareng!\n\n*${t.title}*\n📍 ${t.start_location_name}\n📅 ${date} jam ${time} WIB\n🎯 ${Number(t.run_distance_km).toFixed(1)} KM | Pace ${t.pace_min && t.pace_max ? t.pace_min + '-' + t.pace_max : 'Bebas'}\n👥 Kuota: ${t.quota} orang\n\nGabung sekarang:`;
 };
@@ -252,15 +249,11 @@ const updateCountdown = () => {
         return;
     }
     const t = props.thread;
-    const dateStr = (typeof t.start_date === 'string' ? t.start_date : t.start_date).substring(0, 10);
-    const [year, month, day] = dateStr.split('-');
-    let hour = 0, minute = 0;
+    const target = new Date(t.start_date);
     if (t.start_time) {
         const parts = t.start_time.split(':');
-        hour = parseInt(parts[0], 10) || 0;
-        minute = parseInt(parts[1], 10) || 0;
+        target.setHours(parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0, 0, 0);
     }
-    const target = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, minute);
     const now = new Date();
     const diff = target - now;
 
@@ -498,9 +491,7 @@ watch(() => props.thread, (newThread) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
-    const dateStr = (typeof dateString === 'string' ? dateString : dateString.toString()).substring(0, 10);
-    const [year, month, day] = dateStr.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 };
 
@@ -761,17 +752,17 @@ const typeColors = {
                     <p class="text-[10px] text-slate-500 mb-2">Peta rute GPX tersedia. Anda bisa mengunduhnya:</p>
                     <div class="flex gap-2 items-center mb-4">
                         <a :href="thread.gpx_file_path" download class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-blue-700 dark:text-blue-400 rounded-lg text-xs font-bold transition-colors">Download GPX</a>
-                        <button v-if="thread.creator_id === user?.id" @click="deleteGpx" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-800/50 text-red-700 dark:text-red-400 rounded-lg text-xs font-bold transition-colors">Hapus GPX</button>
+                        <button v-if="isCreator" @click="deleteGpx" class="px-3 py-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-800/50 text-red-700 dark:text-red-400 rounded-lg text-xs font-bold transition-colors">Hapus GPX</button>
                     </div>
                     
-                    <div v-if="thread.creator_id === user?.id" class="mt-4 border-t border-slate-200 dark:border-slate-800 pt-4">
+                    <div v-if="isCreator" class="mt-4 border-t border-slate-200 dark:border-slate-800 pt-4">
                         <label class="block mb-2 text-xs font-bold text-slate-700 dark:text-slate-200">Ganti File GPX (Max 5MB)</label>
                         <input type="file" @change="uploadGpx" accept=".gpx,.xml" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-[#ccff00]/10 dark:file:text-[#ccff00]" />
                     </div>
                 </template>
                 <template v-else>
                     <p class="text-xs text-slate-500 mb-3">Rute GPX belum diunggah oleh pembuat thread.</p>
-                    <div v-if="thread.creator_id === user?.id">
+                    <div v-if="isCreator">
                         <label class="block mb-2 text-xs font-bold text-slate-700 dark:text-slate-200">Unggah File GPX (Max 5MB)</label>
                         <input type="file" @change="uploadGpx" accept=".gpx,.xml" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-[#ccff00]/10 dark:file:text-[#ccff00]" />
                     </div>

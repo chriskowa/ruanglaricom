@@ -43,15 +43,11 @@ const upcomingThreads = computed(() => {
     return threads.value.filter(t => {
         if (t.status === 'cancelled' || t.status === 'completed') return false;
         
-        const [year, month, day] = t.start_date.substring(0, 10).split('-');
-        let hour = 0, minute = 0;
+        const startDate = new Date(t.start_date);
         if (t.start_time) {
             const parts = t.start_time.split(':');
-            hour = parseInt(parts[0], 10) || 0;
-            minute = parseInt(parts[1], 10) || 0;
+            startDate.setHours(parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0, 0, 0);
         }
-        const startDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, minute);
-        
         return startDate >= now;
     });
 });
@@ -61,15 +57,11 @@ const pastThreads = computed(() => {
     return threads.value.filter(t => {
         if (t.status === 'cancelled' || t.status === 'completed') return true;
         
-        const [year, month, day] = t.start_date.substring(0, 10).split('-');
-        let hour = 0, minute = 0;
+        const startDate = new Date(t.start_date);
         if (t.start_time) {
             const parts = t.start_time.split(':');
-            hour = parseInt(parts[0], 10) || 0;
-            minute = parseInt(parts[1], 10) || 0;
+            startDate.setHours(parseInt(parts[0], 10) || 0, parseInt(parts[1], 10) || 0, 0, 0);
         }
-        const startDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, minute);
-        
         return startDate < now;
     });
 });
@@ -107,9 +99,7 @@ const getUserRoleBadge = (thread) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
-    const dateStr = (typeof dateString === 'string' ? dateString : dateString.toString()).substring(0, 10);
-    const [year, month, day] = dateStr.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
 };
 </script>
