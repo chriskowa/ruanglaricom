@@ -4,7 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 
 // Import Components using relative paths
-import LocationPermissionState from '../Components/RunConnect/LocationPermissionState.vue';
+import RunConnectWelcome from '../Components/RunConnect/RunConnectWelcome.vue';
 import RunThreadFilters from '../Components/RunConnect/RunThreadFilters.vue';
 const RunConnectMap = defineAsyncComponent(() => import('../Components/RunConnect/RunConnectMap.vue'));
 import RunThreadList from '../Components/RunConnect/RunThreadList.vue';
@@ -65,6 +65,8 @@ const toggleTheme = () => {
 };
 
 // App State
+const showWelcomeScreen = ref(true);
+
 const getCachedLocation = () => {
     try {
         const cached = localStorage.getItem('run-connect-user-location');
@@ -73,8 +75,12 @@ const getCachedLocation = () => {
         return null;
     }
 };
+
 const userLocation = ref(getCachedLocation());
 const permissionDenied = ref(false);
+
+// We need a separate ref to pass to Welcome screen if it exists
+const cachedLocation = computed(() => getCachedLocation());
 const viewMode = ref('map'); // 'map' or 'list'
 const threads = ref([]);
 const isLoading = ref(false);
@@ -142,6 +148,7 @@ const handleLocationSelected = (location) => {
     userLocation.value = location;
     permissionDenied.value = false;
     localStorage.setItem('run-connect-user-location', JSON.stringify(location));
+    showWelcomeScreen.value = false;
     fetchThreads();
 };
 
@@ -777,7 +784,7 @@ onUnmounted(() => {
             <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 flex flex-col">
                 
                 <!-- Location Permission / Setup Phase -->
-                <div v-if="!userLocation" class="flex-grow relative flex items-center justify-center overflow-hidden rounded-3xl min-h-[520px] md:min-h-[600px] border border-slate-200 dark:border-slate-800 shadow-2xl transition-colors duration-300">
+                <div v-if="showWelcomeScreen" class="flex-grow relative flex items-center justify-center overflow-hidden rounded-3xl min-h-[520px] md:min-h-[600px] border border-slate-200 dark:border-slate-800 shadow-2xl transition-colors duration-300">
                     <!-- Full Cover Parallax Slider Background (Ken Burns Crossfade Zoom Out) -->
                     <div class="absolute inset-0 overflow-hidden z-0">
                         <div 
@@ -793,11 +800,14 @@ onUnmounted(() => {
                         <div class="absolute inset-0 bg-slate-950/45 dark:bg-slate-950/60 backdrop-blur-[2.5px] z-20"></div>
                     </div>
 
-                    <LocationPermissionState 
+                    <RunConnectWelcome 
                         :theme="theme"
+                        :auth="auth"
+                        :cached-location="cachedLocation"
                         class="relative z-30 my-8 shadow-2xl backdrop-blur-md max-w-md w-full mx-4"
                         @location-selected="handleLocationSelected"
                         @permission-denied="handlePermissionDenied"
+                        @open-login="isLoginOpen = true"
                     />
                 </div>
 

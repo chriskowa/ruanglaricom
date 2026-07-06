@@ -17,18 +17,32 @@ const messages = ref([]);
 const newMessage = ref('');
 const isSubmitting = ref(false);
 const chatContainer = ref(null);
-let pollInterval = null;
+const isLoading = ref(false);
 
-const fetchMessages = async () => {
+const fetchMessages = async (silent = false) => {
+    if (!silent) isLoading.value = true;
     try {
         const res = await axios.get(`/api/run-connect/threads/${props.thread.id}/messages`);
-        const oldLength = messages.value.length;
         messages.value = res.data.messages;
-        if (messages.value.length > oldLength) {
-            scrollToBottom();
+        if (!silent) {
+            nextTick(() => {
+                scrollToBottom();
+            });
         }
     } catch (err) {
         console.error('Error fetching chat:', err);
+    } finally {
+        if (!silent) isLoading.value = false;
+    }
+};
+
+const handleIncomingMessage = (e) => {
+    // Only add if not already present (prevent duplicates from self-sent)
+    if (!messages.value.find(m => m.id === e.message.id)) {
+        messages.value.push(e.message);
+        nextTick(() => {
+            scrollToBottom();
+        });
     }
 };
 
@@ -66,11 +80,20 @@ const formatTime = (isoString) => {
 
 onMounted(() => {
     fetchMessages();
-    pollInterval = setInterval(fetchMessages, 1500); // Poll every 1.5s (near-realtime feel)
+    
+    // Use Laravel Echo for real-time WebSocket chat
+    if (window.Echo) {
+        window.Echo.private(`thread.${props.thread.id}`)
+            .listen('.RunThreadMessageSent', (e) => {
+                handleIncomingMessage(e);
+            });
+    }
 });
 
 onUnmounted(() => {
-    if (pollInterval) clearInterval(pollInterval);
+    if (window.Echo) {
+        window.Echo.leave(`thread.${props.thread.id}`);
+    }
 });
 </script>
 

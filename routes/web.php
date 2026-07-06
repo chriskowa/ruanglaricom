@@ -434,7 +434,7 @@ Route::get('/api/run-connect/history', [RunConnectController::class, 'getHistory
 Route::get('/api/run-connect/approvals', [RunConnectController::class, 'getApprovals'])->name('api.run-connect.approvals');
 // Run Connect Enhancements
 Route::get('/api/run-connect/threads/{id}/messages', [RunConnectController::class, 'getMessages'])->name('api.run-connect.messages');
-Route::post('/api/run-connect/threads/{id}/messages', [RunConnectController::class, 'sendMessage'])->name('api.run-connect.messages.store');
+Route::post('/api/run-connect/threads/{id}/messages', [RunConnectController::class, 'sendMessage'])->middleware('throttle:30,1')->name('api.run-connect.messages.store');
 Route::post('/api/run-connect/threads/{id}/rate', [RunConnectController::class, 'rateThread'])->name('api.run-connect.rate');
 Route::post('/api/run-connect/threads/{id}/upload-gpx', [RunConnectController::class, 'uploadGpx'])->name('api.run-connect.gpx');
 Route::delete('/api/run-connect/threads/{id}/gpx', [RunConnectController::class, 'deleteGpx'])->name('api.run-connect.gpx.delete');

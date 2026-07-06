@@ -604,6 +604,8 @@ class RunConnectController extends Controller
             'message' => $request->message
         ]);
 
+        broadcast(new \App\Events\RunThreadMessageSent($msg));
+
         // Send notifications to other participants (queued)
         $participantIds = $thread->users()->where('user_id', '!=', Auth::id())->pluck('user_id')->toArray();
         if (!empty($participantIds)) {
