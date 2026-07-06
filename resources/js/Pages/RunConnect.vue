@@ -156,10 +156,10 @@ const handlePermissionDenied = () => {
     permissionDenied.value = true;
 };
 
-const fetchThreads = async () => {
+const fetchThreads = async (background = false) => {
     if (!userLocation.value) return;
 
-    isLoading.value = true;
+    if (!background) isLoading.value = true;
     try {
         const res = await axios.get('/api/run-connect/threads', {
             params: {
@@ -581,7 +581,7 @@ onMounted(() => {
     }, 6000);
 
     // Active discovery auto-refresh interval (for new joiners/threads)
-    threadsInterval = setInterval(fetchThreads, 20000); // poll every 20s
+    threadsInterval = setInterval(() => fetchThreads(true), 20000); // poll every 20s
 });
 
 onUnmounted(() => {
