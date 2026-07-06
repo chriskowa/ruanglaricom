@@ -29,6 +29,10 @@ class RunThread extends Model
         'quota',
         'status',
         'visibility',
+        'is_recurring',
+        'parent_thread_id',
+        'recap_notes',
+        'recap_image_path',
         'is_beginner_friendly',
         'is_women_friendly',
         'notes',
@@ -41,6 +45,7 @@ class RunThread extends Model
         'quota' => 'integer',
         'is_beginner_friendly' => 'boolean',
         'is_women_friendly' => 'boolean',
+        'is_recurring' => 'boolean',
         'start_date' => 'date',
     ];
 

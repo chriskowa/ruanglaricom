@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
     thread: {
@@ -65,6 +65,58 @@ const formatTime = (timeString) => {
     return timeString.substring(0, 5);
 };
 
+// Countdown timer
+const countdownLabel = ref('');
+const countdownBadgeClass = ref('');
+let countdownTimer = null;
+
+const updateCountdown = () => {
+    const t = props.thread;
+    if (!t) return;
+    const dateStr = (typeof t.start_date === 'string' ? t.start_date : t.start_date).substring(0, 10);
+    const target = new Date(`${dateStr}T${t.start_time}`);
+    const now = new Date();
+    const diff = target - now;
+
+    if (diff <= 0) {
+        const hoursAgo = Math.floor(Math.abs(diff) / (1000 * 60 * 60));
+        if (hoursAgo < 1) {
+            countdownLabel.value = '🏃 Berlangsung';
+            countdownBadgeClass.value = 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/25';
+        } else {
+            countdownLabel.value = '';
+        }
+        return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) {
+        countdownLabel.value = `${days}h ${hours}j lagi`;
+        countdownBadgeClass.value = 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20';
+    } else if (hours > 0) {
+        countdownLabel.value = `${hours}j ${minutes}m lagi`;
+        countdownBadgeClass.value = 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+    } else if (minutes > 0) {
+        countdownLabel.value = `🔥 ${minutes}m lagi`;
+        countdownBadgeClass.value = 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20 animate-pulse';
+    } else {
+        countdownLabel.value = '🏃 Sekarang!';
+        countdownBadgeClass.value = 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/25 animate-pulse';
+    }
+};
+
+onMounted(() => {
+    updateCountdown();
+    countdownTimer = setInterval(updateCountdown, 60000); // every 60s
+});
+
+onUnmounted(() => {
+    if (countdownTimer) clearInterval(countdownTimer);
+});
+
 const avatarUrl = computed(() => {
     const creator = props.thread.creator;
     if (!creator) return 'https://avatar.iran.liara.run/public/boy';
@@ -101,6 +153,12 @@ const avatarUrl = computed(() => {
                 </span>
                 
                 <div class="flex items-center gap-1">
+                    <span v-if="countdownLabel" 
+                        :class="countdownBadgeClass" 
+                        class="px-1.5 py-0.5 rounded border text-[8px] font-bold"
+                    >
+                        {{ countdownLabel }}
+                    </span>
                     <span v-if="thread.distance !== undefined" class="text-xs font-mono font-bold text-blue-600 dark:text-[#ccff00]">
                         {{ Number(thread.distance).toFixed(1) }} km
                     </span>

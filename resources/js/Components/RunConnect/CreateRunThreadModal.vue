@@ -50,6 +50,7 @@ const initialForm = {
     visibility: 'public',
     is_beginner_friendly: false,
     is_women_friendly: false,
+    is_recurring: false,
     notes: ''
 };
 
@@ -175,6 +176,65 @@ const updateMarkerFromInputs = () => {
     }
 };
 
+const searchQuery = ref('');
+const suggestions = ref([]);
+const showSuggestions = ref(false);
+let debounceTimeout = null;
+
+const onSearchInput = () => {
+    if (debounceTimeout) clearTimeout(debounceTimeout);
+    if (!searchQuery.value.trim()) {
+        suggestions.value = [];
+        showSuggestions.value = false;
+        return;
+    }
+
+    debounceTimeout = setTimeout(async () => {
+        const token = props.mapboxToken || '';
+        if (!token) return;
+
+        try {
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery.value)}.json?access_token=${token}&autocomplete=true&limit=5&country=id`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Geocoding request failed');
+            const data = await response.json();
+            suggestions.value = data.features || [];
+            showSuggestions.value = true;
+        } catch (err) {
+            console.error('Error fetching geocoding suggestions:', err);
+        }
+    }, 350);
+};
+
+const selectSuggestion = (place) => {
+    if (!place.center || !miniMap.value) return;
+    
+    const [lng, lat] = place.center;
+    searchQuery.value = place.text;
+    form.start_location_name = place.text;
+    showSuggestions.value = false;
+
+    // Fly to position
+    miniMap.value.flyTo({
+        center: [lng, lat],
+        zoom: 15,
+        essential: true
+    });
+    
+    if (miniMarker.value) {
+        miniMarker.value.setLngLat([lng, lat]);
+    }
+    
+    form.start_latitude = parseFloat(lat.toFixed(6));
+    form.start_longitude = parseFloat(lng.toFixed(6));
+};
+
+const clearSearch = () => {
+    searchQuery.value = '';
+    suggestions.value = [];
+    showSuggestions.value = false;
+};
+
 const useCurrentLocation = () => {
     if (props.userLocation) {
         form.start_latitude = parseFloat(props.userLocation.lat.toFixed(6));
@@ -223,6 +283,7 @@ const submitForm = async () => {
             ...form,
             is_beginner_friendly: form.is_beginner_friendly ? 1 : 0,
             is_women_friendly: form.is_women_friendly ? 1 : 0,
+            is_recurring: form.is_recurring ? 1 : 0,
         };
 
         let res;
@@ -408,9 +469,46 @@ const typeColors = {
                             />
                         </div>
                         
-                        <!-- Map Selection -->
-                        <div ref="miniMapContainer" class="w-full h-48 rounded-xl overflow-hidden mt-3 border border-slate-200 dark:border-slate-800"></div>
-                        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Geser pin biru atau klik di peta untuk memilih lokasi secara presisi.</p>
+                        <!-- Map Selection with Search -->
+                        <div class="relative w-full h-56 rounded-xl overflow-hidden mt-3 border border-slate-200 dark:border-slate-800">
+                            <!-- Search Bar Overlay -->
+                            <div class="absolute top-2 left-2 right-12 z-10">
+                                <div class="relative flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-blue-600 dark:focus-within:ring-[#ccff00]">
+                                    <div class="pl-3 text-slate-400 dark:text-slate-500">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        v-model="searchQuery" 
+                                        @input="onSearchInput"
+                                        placeholder="Cari lokasi map..." 
+                                        class="w-full bg-transparent border-none text-xs text-slate-800 dark:text-slate-200 py-2 px-2 focus:ring-0 outline-none"
+                                    />
+                                    <button v-if="searchQuery" @click="clearSearch" class="px-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <!-- Suggestions -->
+                                <ul v-if="showSuggestions && suggestions.length > 0" class="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg max-h-48 overflow-y-auto">
+                                    <li 
+                                        v-for="place in suggestions" 
+                                        :key="place.id"
+                                        @click="selectSuggestion(place)"
+                                        class="px-3 py-2 text-xs border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-700 dark:text-slate-300 flex items-start gap-2"
+                                    >
+                                        <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        <span class="truncate">{{ place.place_name }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- Map Container -->
+                            <div ref="miniMapContainer" class="w-full h-full"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Gunakan pencarian, geser pin biru, atau klik di peta untuk memilih lokasi secara presisi.</p>
 
                         <p v-if="errors.coordinates" class="text-xs text-red-500 mt-1">{{ errors.coordinates }}</p>
                         <p v-if="errors.start_latitude" class="text-xs text-red-500 mt-1">{{ Array.isArray(errors.start_latitude) ? errors.start_latitude[0] : errors.start_latitude }}</p>
@@ -544,6 +642,20 @@ const typeColors = {
                             class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-sm text-slate-800 dark:text-slate-200 outline-none focus:ring-1 focus:ring-blue-600 dark:focus:ring-[#ccff00]"
                         />
                         <p v-if="errors.notes" class="text-xs text-red-500 mt-1">{{ Array.isArray(errors.notes) ? errors.notes[0] : errors.notes }}</p>
+                    </div>
+
+                    <!-- Recurring Option -->
+                    <div class="flex items-center gap-3 bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <input 
+                            type="checkbox" 
+                            id="is_recurring" 
+                            v-model="form.is_recurring"
+                            class="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-[#ccff00] dark:ring-offset-slate-900 focus:ring-2 dark:bg-slate-900 dark:border-slate-700"
+                        />
+                        <label for="is_recurring" class="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer flex-1">
+                            Ulangi thread ini setiap minggu
+                            <span class="block text-[10px] text-slate-500 font-normal mt-0.5">Thread baru akan otomatis dibuat untuk 7 hari ke depan setelah thread ini berlalu.</span>
+                        </label>
                     </div>
 
                     <!-- Thread Preview Card -->

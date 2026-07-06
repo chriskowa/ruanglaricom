@@ -19,6 +19,10 @@ const props = defineProps({
     theme: {
         type: String,
         default: 'dark'
+    },
+    selectedThread: {
+        type: Object,
+        default: null
     }
 });
 

@@ -15,6 +15,8 @@ import RunThreadRatingModal from '../Components/RunConnect/RunThreadRatingModal.
 import LoginModal from '../Components/RunConnect/LoginModal.vue';
 import HistoryModal from '../Components/RunConnect/HistoryModal.vue';
 import ApprovalModal from '../Components/RunConnect/ApprovalModal.vue';
+import RunningBuddiesModal from '../Components/RunConnect/RunningBuddiesModal.vue';
+import LeaderboardModal from '../Components/RunConnect/LeaderboardModal.vue';
 
 const props = defineProps({
     mapboxToken: {
@@ -83,6 +85,8 @@ const isMatchOpen = ref(false);
 const isRatingOpen = ref(false);
 const isHistoryOpen = ref(false);
 const isApprovalOpen = ref(false);
+const isBuddiesOpen = ref(false);
+const isLeaderboardOpen = ref(false);
 
 const editingThread = ref(null);
 const notifications = ref([]);
@@ -201,6 +205,27 @@ const showToast = (message, type = 'success') => {
     toast.value = { show: true, message, type };
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { toast.value.show = false; }, 4000);
+};
+
+// History & Buddies
+const handleHistoryClick = () => {
+    if (!props.auth?.user) {
+        isLoginOpen.value = true;
+        return;
+    }
+    isHistoryOpen.value = true;
+};
+
+const handleBuddiesClick = () => {
+    if (!props.auth?.user) {
+        isLoginOpen.value = true;
+        return;
+    }
+    isBuddiesOpen.value = true;
+};
+
+const handleInviteBuddy = (buddy) => {
+    showToast(`Undangan dikirim ke ${buddy.name}! (Simulasi)`, 'success');
 };
 
 const handleJoinThread = async (threadId) => {
@@ -513,6 +538,27 @@ const stopCarouselAutoSlide = () => {
 onMounted(() => {
     initTheme();
     requestNotificationPermission();
+
+    // Check for deep link (share URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const threadId = urlParams.get('thread');
+    if (threadId) {
+        axios.get(`/api/run-connect/threads/${threadId}`)
+            .then(res => {
+                const thread = res.data;
+                if (!threads.value.find(t => t.id === thread.id)) {
+                    threads.value.unshift(thread);
+                }
+                selectedThread.value = thread;
+                // Update URL without reloading to clear param
+                window.history.replaceState({}, document.title, window.location.pathname);
+            })
+            .catch(err => {
+                console.error('Error fetching deep linked thread:', err);
+                showToast('Thread tidak ditemukan atau sudah dihapus.', 'error');
+            });
+    }
+
     if (userLocation.value) {
         fetchThreads();
     }
@@ -640,7 +686,7 @@ onUnmounted(() => {
 
                         <!-- Desktop Links -->
                         <nav v-if="auth.user" class="hidden md:flex items-center gap-3 mr-2">
-                            <button @click="isHistoryOpen = true" class="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-350 dark:hover:text-white transition-colors cursor-pointer px-2">My Threads</button>
+                            <button @click="handleHistoryClick" class="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-350 dark:hover:text-white transition-colors cursor-pointer px-2">My Threads</button>
                             <button @click="isApprovalOpen = true" class="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-350 dark:hover:text-white transition-colors cursor-pointer px-2">Approval</button>
                         </nav>
 
@@ -703,7 +749,7 @@ onUnmounted(() => {
                                             Profile
                                         </a>
                                         <!-- Mobile only links -->
-                                        <button @click="isHistoryOpen = true; isUserMenuOpen = false" class="md:hidden w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white rounded-lg transition-colors text-left">
+                                        <button @click="handleHistoryClick(); isUserMenuOpen = false" class="md:hidden w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white rounded-lg transition-colors text-left">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             My Threads
                                         </button>
@@ -782,12 +828,34 @@ onUnmounted(() => {
                     </div>
 
                     <!-- Search Filters at the top (Collapsible, visible in both views) -->
-                    <div class="mb-4">
-                        <RunThreadFilters 
-                            v-model:filters="filters"
-                            :theme="theme"
-                            @change="fetchThreads"
-                        />
+                    <div class="mb-4 flex items-center gap-2">
+                        <button 
+                            @click="isLeaderboardOpen = true"
+                            class="hidden md:flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer border border-red-500/20"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            Leaderboard
+                        </button>
+
+                        <button 
+                            @click="handleBuddiesClick"
+                            class="hidden md:flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer border border-red-500/20"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            Teman Lari
+                        </button>
+                        
+                        <div class="flex-grow">
+                            <RunThreadFilters 
+                                v-model:filters="filters"
+                                :theme="theme"
+                                @change="fetchThreads"
+                            />
+                        </div>
                     </div>
 
                     <!-- Mobile Toggle View Bar (Only visible on mobile) -->
@@ -852,6 +920,7 @@ onUnmounted(() => {
                                  :user-location="userLocation"
                                  :threads="threads"
                                  :theme="theme"
+                                 :selected-thread="selectedThread"
                                  @select-thread="handleSelectThread"
                                  @map-moved="handleMapMoved"
                                  @location-selected="handleLocationSelected"
@@ -932,6 +1001,7 @@ onUnmounted(() => {
                 :user="auth.user"
                 :is-joining="isJoining"
                 :theme="theme"
+                :mapbox-token="mapboxToken"
                 @close="selectedThread = null"
                 @join="handleJoinThread"
                 @leave="handleLeaveThread"
@@ -1053,6 +1123,17 @@ onUnmounted(() => {
                 @close="isHistoryOpen = false"
                 @edit="handleEditThread"
                 @select="handleSelectThread"
+            />
+
+            <RunningBuddiesModal
+                :is-open="isBuddiesOpen"
+                @close="isBuddiesOpen = false"
+                @invite="handleInviteBuddy"
+            />
+
+            <LeaderboardModal
+                :is-open="isLeaderboardOpen"
+                @close="isLeaderboardOpen = false"
             />
 
             <ApprovalModal 

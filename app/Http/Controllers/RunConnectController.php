@@ -243,6 +243,7 @@ class RunConnectController extends Controller
             'visibility' => 'required|string|in:public,community',
             'is_beginner_friendly' => 'boolean',
             'is_women_friendly' => 'boolean',
+            'is_recurring' => 'boolean',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -628,7 +629,7 @@ class RunConnectController extends Controller
     public function uploadGpx(Request $request, $id)
     {
         $request->validate([
-            'gpx_file' => 'required|file|mimes:gpx,xml|max:5120' // max 5MB
+            'gpx_file' => 'required|file|max:5120' // max 5MB, removed mimes because gpx mime type varies
         ]);
 
         $thread = RunThread::findOrFail($id);
@@ -637,10 +638,36 @@ class RunConnectController extends Controller
             return response()->json(['message' => 'Only the creator can upload GPX.'], 403);
         }
 
+        // Delete old file if exists
+        if ($thread->gpx_file_path) {
+            $oldPath = str_replace('/storage/', '', $thread->gpx_file_path);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+        }
+
         $path = $request->file('gpx_file')->store('gpx', 'public');
         $thread->update(['gpx_file_path' => '/storage/' . $path]);
 
         return response()->json(['message' => 'GPX file uploaded successfully.', 'path' => $thread->gpx_file_path]);
+    }
+
+    /**
+     * Delete GPX file for a thread (creator only)
+     */
+    public function deleteGpx(Request $request, $id)
+    {
+        $thread = RunThread::findOrFail($id);
+        
+        if ((int)$thread->creator_id !== (int)Auth::id()) {
+            return response()->json(['message' => 'Only the creator can delete GPX.'], 403);
+        }
+
+        if ($thread->gpx_file_path) {
+            $oldPath = str_replace('/storage/', '', $thread->gpx_file_path);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+            $thread->update(['gpx_file_path' => null]);
+        }
+
+        return response()->json(['message' => 'GPX file deleted successfully.']);
     }
 
     /**
@@ -766,6 +793,7 @@ class RunConnectController extends Controller
             'visibility' => 'required|string|in:public,community',
             'is_beginner_friendly' => 'boolean',
             'is_women_friendly' => 'boolean',
+            'is_recurring' => 'boolean',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -989,5 +1017,162 @@ class RunConnectController extends Controller
             ->get(); // we can use get() because approvals should be relatively few active threads
 
         return response()->json($threads);
+    }
+
+    /**
+     * Get runner mini-profile for Run Connect
+     */
+    public function getRunnerProfile($userId)
+    {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu.'], 401);
+        }
+
+        $user = \App\Models\User::select([
+            'id', 'name', 'avatar', 'gender', 'date_of_birth',
+            'pb_5k', 'pb_10k', 'pb_hm', 'pb_fm',
+            'run_points', 'buddy_rating'
+        ])->findOrFail($userId);
+
+        // Count threads hosted
+        $threadsHosted = RunThread::where('creator_id', $userId)->count();
+
+        // Count threads joined (as participant, not host)
+        $threadsJoined = RunThreadParticipant::where('user_id', $userId)
+            ->where('status', 'joined')
+            ->count();
+
+        $data = $user->toArray();
+        $data['threads_hosted'] = $threadsHosted;
+        $data['threads_joined'] = $threadsJoined;
+        $data['total_threads'] = $threadsHosted + $threadsJoined;
+
+        return response()->json($data);
+    }
+
+    /**
+     * Get users who have run together with the authenticated user
+     */
+    public function getRunningBuddies()
+    {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu.'], 401);
+        }
+
+        $userId = Auth::id();
+
+        // Find threads where the user was a participant or creator
+        $threadIds = RunThread::where('creator_id', $userId)
+            ->orWhereHas('participants', function($q) use ($userId) {
+                $q->where('user_id', $userId)->where('status', 'joined');
+            })
+            ->pluck('id');
+
+        if ($threadIds->isEmpty()) {
+            return response()->json([]);
+        }
+
+        // Find other users who joined these threads
+        $buddies = \App\Models\User::select('users.id', 'users.name', 'users.avatar', 'users.gender', 'users.run_points', 'users.buddy_rating')
+            ->join('run_thread_participants', 'users.id', '=', 'run_thread_participants.user_id')
+            ->whereIn('run_thread_participants.run_thread_id', $threadIds)
+            ->where('run_thread_participants.status', 'joined')
+            ->where('users.id', '!=', $userId)
+            ->groupBy('users.id', 'users.name', 'users.avatar', 'users.gender', 'users.run_points', 'users.buddy_rating')
+            ->get();
+
+        // Also add creators of those threads if they are not the current user
+        $creators = \App\Models\User::select('users.id', 'users.name', 'users.avatar', 'users.gender', 'users.run_points', 'users.buddy_rating')
+            ->join('run_threads', 'users.id', '=', 'run_threads.creator_id')
+            ->whereIn('run_threads.id', $threadIds)
+            ->where('users.id', '!=', $userId)
+            ->groupBy('users.id', 'users.name', 'users.avatar', 'users.gender', 'users.run_points', 'users.buddy_rating')
+            ->get();
+
+        // Merge and unique
+        $merged = $buddies->merge($creators)->unique('id')->values();
+
+        return response()->json($merged);
+    }
+
+    /**
+     * Upload recap for a completed thread
+     */
+    public function uploadRecap(Request $request, $id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Silakan login terlebih dahulu.'], 401);
+        }
+
+        $thread = RunThread::findOrFail($id);
+
+        if ((int)$thread->creator_id !== (int)Auth::id()) {
+            return response()->json(['message' => 'Hanya host yang dapat mengunggah rekap.'], 403);
+        }
+
+        if ($thread->status !== 'completed') {
+            return response()->json(['message' => 'Thread belum selesai.'], 422);
+        }
+
+        $request->validate([
+            'recap_notes' => 'nullable|string|max:1000',
+            'recap_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
+        ]);
+
+        if ($request->has('recap_notes')) {
+            $thread->recap_notes = $request->recap_notes;
+        }
+
+        if ($request->hasFile('recap_image')) {
+            $path = $request->file('recap_image')->store('run_threads/recaps', 'public');
+            $thread->recap_image_path = 'storage/' . $path;
+        }
+
+        $thread->save();
+
+        // Gamification bonus for uploading recap
+        if ($request->hasFile('recap_image')) {
+            $user = Auth::user();
+            \App\Models\UserAchievement::firstOrCreate([
+                'user_id' => $user->id,
+                'activity_type' => 'upload_recap',
+                'reference_id' => (string) $thread->id,
+            ], [
+                'points' => 20
+            ]);
+            $user->increment('run_points', 20);
+        }
+
+        return response()->json([
+            'message' => 'Rekap berhasil disimpan.',
+            'thread' => $thread->load(['creator', 'participants' => function($q) {
+                $q->whereIn('status', ['joined', 'pending'])->with('user');
+            }])
+        ]);
+    }
+
+    /**
+     * Get local community leaderboard
+     */
+    public function getLeaderboard(Request $request)
+    {
+        $timeframe = $request->query('timeframe', 'all_time'); // 'weekly', 'monthly', 'all_time'
+        
+        $query = \App\Models\User::select('id', 'name', 'avatar', 'run_points', 'buddy_rating')
+            ->where('run_points', '>', 0);
+            
+        // For simplicity, we just order by run_points.
+        // In a real app with timeframe, we might query UserAchievement within dates and group by user
+        if ($timeframe === 'weekly') {
+            // Simplified: we would normally join with achievements and sum points in the last 7 days
+            // For now, we return the same or add a small fake variation
+        }
+        
+        $leaderboard = $query->orderBy('run_points', 'desc')
+            ->orderBy('buddy_rating', 'desc')
+            ->limit(50)
+            ->get();
+            
+        return response()->json($leaderboard);
     }
 }

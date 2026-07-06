@@ -437,10 +437,15 @@ Route::get('/api/run-connect/threads/{id}/messages', [RunConnectController::clas
 Route::post('/api/run-connect/threads/{id}/messages', [RunConnectController::class, 'sendMessage'])->name('api.run-connect.messages.store');
 Route::post('/api/run-connect/threads/{id}/rate', [RunConnectController::class, 'rateThread'])->name('api.run-connect.rate');
 Route::post('/api/run-connect/threads/{id}/upload-gpx', [RunConnectController::class, 'uploadGpx'])->name('api.run-connect.gpx');
+Route::delete('/api/run-connect/threads/{id}/gpx', [RunConnectController::class, 'deleteGpx'])->name('api.run-connect.gpx.delete');
 Route::put('/api/run-connect/threads/{id}', [RunConnectController::class, 'updateThread'])->name('api.run-connect.update');
 Route::delete('/api/run-connect/threads/{id}', [RunConnectController::class, 'destroyThread'])->name('api.run-connect.destroy');
 Route::post('/api/run-connect/threads/{id}/approve/{participantId}', [RunConnectController::class, 'approveParticipant'])->name('api.run-connect.approve');
 Route::post('/api/run-connect/threads/{id}/reject/{participantId}', [RunConnectController::class, 'rejectParticipant'])->name('api.run-connect.reject');
+Route::get('/api/run-connect/runner/{userId}/profile', [RunConnectController::class, 'getRunnerProfile'])->name('api.run-connect.runner-profile');
+Route::get('/api/run-connect/buddies', [RunConnectController::class, 'getRunningBuddies'])->name('api.run-connect.buddies');
+Route::post('/api/run-connect/threads/{id}/recap', [RunConnectController::class, 'uploadRecap'])->name('api.run-connect.recap');
+Route::get('/api/run-connect/leaderboard', [RunConnectController::class, 'getLeaderboard'])->name('api.run-connect.leaderboard');
 
 // Notifications API
 Route::get('/api/notifications', [RunConnectController::class, 'getNotifications'])->name('api.notifications.index');
