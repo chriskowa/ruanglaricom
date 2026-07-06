@@ -615,7 +615,7 @@
                                             <div class="flex items-center pt-8">
                                                 <label class="flex items-center gap-3 cursor-pointer">
                                                     <input type="hidden" name="is_active" value="0">
-                                                    <input type="checkbox" name="is_active" value="1" x-model="selectedUser.is_active" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500 w-5 h-5">
+                                                    <input type="checkbox" name="is_active" value="1" :checked="selectedUser.is_active" @change="selectedUser.is_active = $event.target.checked" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500 w-5 h-5">
                                                     <span class="text-sm font-medium text-slate-300">Account Active</span>
                                                 </label>
                                             </div>
