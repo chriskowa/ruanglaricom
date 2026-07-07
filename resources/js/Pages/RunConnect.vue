@@ -1073,7 +1073,7 @@ onUnmounted(() => {
                     >
                         <!-- Buat Rute Lari Button -->
                         <a 
-                            href="/buat-rute-lari"
+                            href="/tools/buat-rute-lari"
                             class="flex items-center gap-2 px-4.5 py-2.5 bg-blue-650 dark:bg-emerald-600 hover:bg-blue-700 dark:hover:bg-emerald-500 text-white text-xs font-bold rounded-full shadow-lg cursor-pointer transform transition hover:scale-105"
                         >
                             <span>Buat Rute Lari</span>

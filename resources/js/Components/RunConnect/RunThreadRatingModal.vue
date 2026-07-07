@@ -10,7 +10,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'rated']);
 
 const participants = computed(() => {
-    return props.thread?.participants?.filter(p => p.user_id !== props.user.id) || [];
+    return (props.thread?.participants || []).filter(p => p.user_id != props.user.id && p.status === 'joined');
 });
 
 const ratings = ref({});
@@ -26,32 +26,48 @@ const setRating = (userId, star) => {
 const submitRatings = async () => {
     isSubmitting.value = true;
     try {
-        const promises = Object.keys(ratings.value).map(userId => {
-            if (ratings.value[userId].rating > 0) {
-                return axios.post(`/api/run-connect/threads/${props.thread.id}/rate`, {
-                    reviewee_id: userId,
-                    rating: ratings.value[userId].rating,
-                    comment: ratings.value[userId].comment || ''
-                });
-            }
-            return Promise.resolve();
-        });
+        const ratingEntries = Object.keys(ratings.value).filter(userId => ratings.value[userId].rating > 0);
         
-        await Promise.all(promises);
+        if (ratingEntries.length === 0) {
+            alert('Silakan beri rating minimal 1 peserta.');
+            isSubmitting.value = false;
+            return;
+        }
+
+        for (const userId of ratingEntries) {
+            await axios.post(`/api/run-connect/threads/${props.thread.id}/rate`, {
+                reviewee_id: parseInt(userId),
+                rating: ratings.value[userId].rating,
+                comment: ratings.value[userId].comment || ''
+            });
+        }
+        
         alert('Terima kasih atas ulasan Anda!');
         emit('rated');
         emit('close');
     } catch (err) {
         console.error('Error submitting ratings:', err);
-        alert('Gagal mengirim ulasan.');
+        const msg = err.response?.data?.message || err.response?.data?.errors || 'Gagal mengirim ulasan. Silakan coba lagi.';
+        alert(typeof msg === 'object' ? JSON.stringify(msg) : msg);
     } finally {
         isSubmitting.value = false;
     }
 };
 
-const getAvatarUrl = (u) => {
-    if (u.avatar) return u.avatar;
-    return 'https://avatar.iran.liara.run/public/boy?username=' + encodeURIComponent(u.name);
+const getAvatarUrl = (user) => {
+    if (!user) return 'https://avatar.iran.liara.run/public/boy';
+    if (user.avatar && !user.avatar.includes('default-')) {
+        if (user.avatar.startsWith('http')) return user.avatar;
+        if (user.avatar.startsWith('images/')) return '/' + user.avatar;
+        let path = user.avatar;
+        if (path.startsWith('/')) path = path.substring(1);
+        if (path.startsWith('storage/')) return '/' + path;
+        return `/storage/${path}`;
+    }
+    if (user.gender === 'female') {
+        return 'https://avatar.iran.liara.run/public/girl?username=' + encodeURIComponent(user.name);
+    }
+    return 'https://avatar.iran.liara.run/public/boy?username=' + encodeURIComponent(user.name);
 };
 </script>
 

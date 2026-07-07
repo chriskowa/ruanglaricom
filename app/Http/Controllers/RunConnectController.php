@@ -686,10 +686,12 @@ class RunConnectController extends Controller
         $thread = RunThread::findOrFail($id);
         $reviewerId = Auth::id();
 
-        // Check if both are participants
-        if (!$thread->users()->where('user_id', $reviewerId)->exists() || 
-            !$thread->users()->where('user_id', $request->reviewee_id)->exists()) {
-            return response()->json(['message' => 'Both users must be participants.'], 403);
+        // Check if both are participants or thread creator
+        $isReviewerParticipant = $thread->users()->where('user_id', $reviewerId)->exists() || (int)$thread->creator_id === (int)$reviewerId;
+        $isRevieweeParticipant = $thread->users()->where('user_id', $request->reviewee_id)->exists() || (int)$thread->creator_id === (int)$request->reviewee_id;
+        
+        if (!$isReviewerParticipant || !$isRevieweeParticipant) {
+            return response()->json(['message' => 'Both users must be participants of this thread.'], 403);
         }
 
         if ($reviewerId == $request->reviewee_id) {

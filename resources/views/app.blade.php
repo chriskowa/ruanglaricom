@@ -10,6 +10,16 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/images/logo.png">
     
+    <!-- PWA / Web App Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    
+    <!-- iOS / Safari Web App Settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RuangLari">
+    <link rel="apple-touch-icon" href="/images/ruanglari-512x512.png">
+    
     <!-- OpenGraph (OG) Meta Tags -->
     <meta property="og:title" content="Ruang Lari - Temukan Buddy Lari Terdekat | Run Connect">
     <meta property="og:description" content="Cari teman lari (running buddy) terdekat, buat running thread, dan bergabung dengan komunitas pelari di sekitar Anda secara real-time melalui Run Connect Ruang Lari.">

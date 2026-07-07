@@ -203,6 +203,18 @@ const reportLoading = ref(false);
 // Share functionality
 const isShareOpen = ref(false);
 const shareCopied = ref(false);
+const shareSection = ref(null);
+
+const toggleShare = () => {
+    isShareOpen.value = !isShareOpen.value;
+    if (isShareOpen.value) {
+        nextTick(() => {
+            if (shareSection.value) {
+                shareSection.value.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    }
+};
 
 const getShareUrl = () => {
     return `${window.location.origin}/cari-teman-lari?thread=${props.thread?.id}`;
@@ -213,7 +225,7 @@ const getShareText = () => {
     const t = props.thread;
     const date = new Date(t.start_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
     const time = t.start_time?.substring(0, 5) || '';
-    return `🏃 Yuk lari bareng!\n\n*${t.title}*\n📍 ${t.start_location_name}\n📅 ${date} jam ${time} WIB\n🎯 ${Number(t.run_distance_km).toFixed(1)} KM | Pace ${t.pace_min && t.pace_max ? t.pace_min + '-' + t.pace_max : 'Bebas'}\n👥 Kuota: ${t.quota} orang\n\nGabung sekarang:`;
+    return `Yuk lari bareng!\n\n*${t.title}*\nLokasi: ${t.start_location_name}\nWaktu: ${date} jam ${time} WIB\nTarget: ${Number(t.run_distance_km).toFixed(1)} KM | Pace ${t.pace_min && t.pace_max ? t.pace_min + '-' + t.pace_max : 'Bebas'}\nKuota: ${t.quota} orang\n\nGabung sekarang:`;
 };
 
 const shareWhatsApp = () => {
@@ -269,13 +281,13 @@ const updateCountdown = () => {
         const absDiff = Math.abs(diff);
         const hoursAgo = Math.floor(absDiff / (1000 * 60 * 60));
         if (hoursAgo < 1) {
-            countdownText.value = '🏃 Sedang berlangsung!';
+            countdownText.value = 'Sedang berlangsung!';
             countdownClass.value = 'text-green-500 bg-green-500/10 border-green-500/20';
         } else if (hoursAgo < 3) {
-            countdownText.value = '🏁 Baru selesai';
+            countdownText.value = 'Baru selesai';
             countdownClass.value = 'text-blue-500 bg-blue-500/10 border-blue-500/20';
         } else {
-            countdownText.value = '✅ Selesai';
+            countdownText.value = 'Selesai';
             countdownClass.value = 'text-slate-400 bg-slate-500/10 border-slate-500/20';
         }
         return;
@@ -286,16 +298,16 @@ const updateCountdown = () => {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
     if (days > 0) {
-        countdownText.value = `⏱️ Mulai dalam ${days}h ${hours}j ${minutes}m`;
+        countdownText.value = `Mulai dalam ${days}h ${hours}j ${minutes}m`;
         countdownClass.value = 'text-slate-500 bg-slate-500/10 border-slate-500/20';
     } else if (hours > 0) {
-        countdownText.value = `⏱️ Mulai dalam ${hours}j ${minutes}m`;
+        countdownText.value = `Mulai dalam ${hours}j ${minutes}m`;
         countdownClass.value = 'text-amber-500 bg-amber-500/10 border-amber-500/20';
     } else if (minutes > 0) {
-        countdownText.value = `🔥 Segera! ${minutes} menit lagi`;
+        countdownText.value = `Segera! ${minutes} menit lagi`;
         countdownClass.value = 'text-red-500 bg-red-500/10 border-red-500/20 animate-pulse';
     } else {
-        countdownText.value = '🏃 Mulai sekarang!';
+        countdownText.value = 'Mulai sekarang!';
         countdownClass.value = 'text-green-500 bg-green-500/10 border-green-500/20 animate-pulse';
     }
 };
@@ -566,7 +578,7 @@ const typeColors = {
     <div 
         v-if="thread"
         ref="sheetContainer"
-        class="fixed inset-x-0 bottom-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-3xl shadow-2xl p-6 transition-transform duration-300 h-[80vh] md:h-[75vh] overflow-y-auto no-scrollbar md:max-w-xl md:mx-auto md:bottom-4 md:rounded-3xl md:border text-slate-800 dark:text-slate-100"
+        class="fixed inset-x-0 bottom-0 top-16 md:top-auto z-50 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 rounded-t-3xl shadow-2xl p-6 transition-transform duration-300 md:max-h-[85vh] overflow-y-auto no-scrollbar md:max-w-xl md:mx-auto md:bottom-4 md:rounded-3xl md:border text-slate-800 dark:text-slate-100"
     >
         <!-- Pull bar for mobile -->
         <div class="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-4 md:hidden"></div>
@@ -811,7 +823,10 @@ const typeColors = {
             </template>
             <template v-else>
                 <div class="bg-slate-50 dark:bg-slate-950/20 p-6 rounded-xl border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center gap-3">
-                    <span class="text-2xl">📸</span>
+                    <svg class="w-8 h-8 text-slate-400 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
                     <div>
                         <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200">Belum ada Recap</h5>
                         <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Host belum mengunggah catatan atau foto setelah lari ini.</p>
@@ -824,7 +839,7 @@ const typeColors = {
         <div class="flex items-center gap-3">
             <!-- Share Button -->
             <button 
-                @click="isShareOpen = !isShareOpen"
+                @click="toggleShare"
                 class="p-3 bg-blue-500/10 dark:bg-blue-500/10 hover:bg-blue-500/20 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 rounded-xl transition-all cursor-pointer text-xs font-semibold border border-blue-500/20"
                 title="Bagikan Thread"
             >
@@ -971,7 +986,7 @@ const typeColors = {
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 translate-y-4"
         >
-            <div v-if="isShareOpen" class="mt-5 p-4 border border-blue-500/20 dark:border-blue-500/25 bg-blue-500/5 dark:bg-blue-500/5 rounded-xl space-y-3">
+            <div v-if="isShareOpen" ref="shareSection" class="mt-5 p-4 border border-blue-500/20 dark:border-blue-500/25 bg-blue-500/5 dark:bg-blue-500/5 rounded-xl space-y-3">
                 <h5 class="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />

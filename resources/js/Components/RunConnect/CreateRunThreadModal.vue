@@ -333,9 +333,9 @@ const typeColors = {
 <template>
     <div 
         v-if="isOpen" 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+        class="fixed top-16 bottom-0 inset-x-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-slate-950/80 backdrop-blur-sm"
     >
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col w-full max-w-lg max-h-[90vh]">
+        <div class="bg-white dark:bg-slate-900 border-t sm:border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col w-full sm:max-w-lg max-h-full sm:max-h-[85vh]">
             
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900">
@@ -392,7 +392,7 @@ const typeColors = {
 
                     <div>
                         <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Tipe Running Thread *</label>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-2 gap-2 sm:gap-3">
                             <button 
                                 v-for="type in runTypes" 
                                 :key="type"
@@ -401,7 +401,7 @@ const typeColors = {
                                 :class="form.type === type 
                                     ? (theme === 'light' ? 'border-blue-600 bg-blue-50 text-blue-600 font-bold' : 'border-[#ccff00] bg-[#ccff00]/5 text-[#ccff00] font-black') 
                                     : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-650 dark:text-slate-300'"
-                                class="p-2.5 rounded-xl border text-xs text-center transition-all cursor-pointer font-semibold"
+                                class="p-2 sm:p-2.5 rounded-xl border text-[11px] sm:text-xs text-center transition-all cursor-pointer font-semibold leading-tight flex items-center justify-center min-h-[44px]"
                             >
                                 {{ type }}
                             </button>
