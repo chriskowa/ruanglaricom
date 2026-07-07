@@ -21,9 +21,9 @@
     <link rel="apple-touch-icon" href="/images/ruanglari-512x512.png">
     
     <!-- OpenGraph (OG) Meta Tags -->
-    <meta property="og:title" content="Ruang Lari - Temukan Buddy Lari Terdekat | Run Connect">
-    <meta property="og:description" content="Cari teman lari (running buddy) terdekat, buat running thread, dan bergabung dengan komunitas pelari di sekitar Anda secara real-time melalui Run Connect Ruang Lari.">
-    <meta property="og:image" content="/images/ruanglari-512x512.png">
+    <meta property="og:title" content="{{ $meta_title ?? 'Ruang Lari - Temukan Buddy Lari Terdekat | Run Connect' }}">
+    <meta property="og:description" content="{{ $meta_description ?? 'Cari teman lari (running buddy) terdekat, buat running thread, dan bergabung dengan komunitas pelari di sekitar Anda secara real-time melalui Run Connect Ruang Lari.' }}">
+    <meta property="og:image" content="{{ $meta_image ?? url('/images/ruanglari-512x512.png') }}">
     <meta property="og:type" content="website">
     
     <!-- Twitter Card Meta Tags -->

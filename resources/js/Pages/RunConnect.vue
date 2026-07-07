@@ -548,7 +548,8 @@ onMounted(() => {
 
     // Check for deep link (share URL)
     const urlParams = new URLSearchParams(window.location.search);
-    const threadId = urlParams.get('thread');
+    const threadParam = urlParams.get('thread');
+    const threadId = threadParam ? threadParam.split('-')[0] : null;
     if (threadId) {
         axios.get(`/api/run-connect/threads/${threadId}`)
             .then(res => {

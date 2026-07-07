@@ -217,7 +217,9 @@ const toggleShare = () => {
 };
 
 const getShareUrl = () => {
-    return `${window.location.origin}/cari-teman-lari?thread=${props.thread?.id}`;
+    if (!props.thread) return '';
+    let slug = props.thread.title ? props.thread.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+    return `${window.location.origin}/cari-teman-lari?thread=${props.thread.id}${slug ? '-' + slug : ''}`;
 };
 
 const getShareText = () => {
