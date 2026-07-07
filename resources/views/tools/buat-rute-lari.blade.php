@@ -130,13 +130,6 @@
                                 <div id="rl-start-time-error" class="text-xs text-red-500 mt-1.5 hidden"></div>
                             </div>
 
-                            <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Mode</label>
-                                <select id="rl-mode" class="mt-1 w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500">
-                                    <option value="tap">Tap titik di peta</option>
-                                    <option value="freehand">Freehand (beta)</option>
-                                </select>
-                            </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <label class="flex items-center gap-2 bg-slate-900/40 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-200">
@@ -149,34 +142,6 @@
                                 </label>
                             </div>
 
-                            <!-- Custom Markers Block -->
-                            <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
-                                <div class="text-xs font-black tracking-wider text-slate-200 uppercase">Tambah Marker Rute</div>
-                                <div class="mt-2 text-xs text-slate-400 leading-relaxed">Pilih marker di bawah, lalu klik/tap pada peta untuk menaruhnya. Klik marker di peta untuk menambah keterangan/hapus.</div>
-                                <div class="mt-3 grid grid-cols-6 gap-2">
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Water Station" data-type="water">
-                                        <i class="fa-solid fa-droplet text-lg"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Bahaya / Warning" data-type="warning">
-                                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Perempatan / Intersection" data-type="intersection">
-                                        <i class="fa-solid fa-arrows-split-up-and-left text-lg"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Foto Spot" data-type="photo">
-                                        <i class="fa-solid fa-camera text-lg"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Rest Stop / Cafe" data-type="rest">
-                                        <i class="fa-solid fa-mug-hot text-lg"></i>
-                                    </button>
-                                    <button type="button" class="rl-custom-icon-btn p-2.5 rounded-xl bg-slate-950/40 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white text-center transition relative group" title="Toilet" data-type="toilet">
-                                        <i class="fa-solid fa-toilet text-lg"></i>
-                                    </button>
-                                </div>
-                                <div id="rl-custom-marker-hint" class="mt-3 text-[10px] font-black text-slate-500 tracking-wide uppercase hidden">
-                                    <span class="text-white animate-pulse">●</span> Tap peta untuk menaruh marker
-                                </div>
-                            </div>
 
                             <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
                                 <div class="text-xs font-black tracking-wider text-slate-200 uppercase">Tampilan</div>
@@ -331,14 +296,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-3 md:mt-4 grid grid-cols-3 md:grid-cols-4 gap-2">
-                            <button id="rl-undo" type="button" class="px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-slate-500 hover:bg-slate-800 transition text-xs">
-                                Undo
-                            </button>
-                            <button id="rl-clear" type="button" class="px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:border-red-500/60 hover:text-red-300 transition text-xs">
-                                Reset
-                            </button>
-                            
+                        <div class="mt-3 md:mt-4 grid grid-cols-1 md:grid-cols-4 gap-2">
                             <!-- Toggle Button for Mobile Menu -->
                             <button id="rl-toggle-menu" type="button" class="md:hidden px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300 font-bold hover:bg-slate-800 transition text-xs flex items-center justify-center gap-1.5">
                                 <span>Menu</span>
@@ -494,7 +452,47 @@
                         </div> <!-- End of rl-expanded-content -->
                     </div>
                     <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl overflow-hidden relative">
+                        <!-- Marker Palette (Left) -->
+                        <div class="absolute top-3 left-3 z-[500] flex flex-col gap-2">
+                            <button id="rl-marker-palette-toggle" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Tambah Marker Rute">
+                                <i class="fa-solid fa-map-pin"></i>
+                            </button>
+                            <div id="rl-marker-palette" class="hidden flex-col gap-1.5 bg-slate-900/95 backdrop-blur border border-slate-700 p-2 rounded-xl shadow-xl">
+                                <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Water Station" data-type="water">
+                                    <i class="fa-solid fa-droplet text-sm"></i>
+                                </button>
+                                <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Bahaya / Warning" data-type="warning">
+                                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                                </button>
+                                <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Perempatan / Intersection" data-type="intersection">
+                                    <i class="fa-solid fa-arrows-split-up-and-left text-sm"></i>
+                                </button>
+                                <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Foto Spot" data-type="photo">
+                                    <i class="fa-solid fa-camera text-sm"></i>
+                                </button>
+                                <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Rest Stop / Cafe" data-type="rest">
+                                    <i class="fa-solid fa-mug-hot text-sm"></i>
+                                </button>
+                                <button type="button" class="rl-custom-icon-btn w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition relative group flex items-center justify-center" title="Toilet" data-type="toilet">
+                                    <i class="fa-solid fa-toilet text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Drawing Controls (Right) -->
                         <div class="absolute top-3 right-3 z-[500] flex flex-col gap-2">
+                            <button id="rl-mode-toggle" type="button" class="w-10 h-10 rounded-xl bg-blue-600/90 border border-blue-500 text-white transition flex items-center justify-center shadow-lg" title="Mode: Tap (Ubah ke Freehand)">
+                                <i class="fa-solid fa-hand-pointer"></i>
+                            </button>
+                            <button id="rl-undo" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white transition flex items-center justify-center shadow-lg" title="Undo">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                            <button id="rl-clear" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-red-400 transition flex items-center justify-center shadow-lg" title="Reset/Hapus Semua">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            
+                            <div class="w-6 h-px bg-slate-700 mx-auto my-0.5"></div>
+
                             <button id="rl-center" type="button" class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-200 hover:text-white hover:border-neon transition flex items-center justify-center shadow-lg" title="Center Map">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                             </button>
@@ -636,7 +634,9 @@
                 paceSec: document.getElementById('rl-pace-sec'),
                 startTime: document.getElementById('rl-start-time'),
                 startTimeError: document.getElementById('rl-start-time-error'),
-                mode: document.getElementById('rl-mode'),
+                modeToggle: document.getElementById('rl-mode-toggle'),
+                markerPaletteToggle: document.getElementById('rl-marker-palette-toggle'),
+                markerPalette: document.getElementById('rl-marker-palette'),
                 followRoad: document.getElementById('rl-follow-road'),
                 showDirections: document.getElementById('rl-show-directions'),
                 colorRoute: document.getElementById('rl-color-route'),
@@ -1463,7 +1463,7 @@
                     }
                 }
 
-                var key = e.key.toLowerCase();
+                var key = (e.key || '').toLowerCase();
                 if ((e.ctrlKey || e.metaKey) && key === 'z') {
                     e.preventDefault();
                     undo();
@@ -2666,10 +2666,42 @@
                 });
             });
 
-            els.mode.addEventListener('change', function () {
-                freehandActive = (els.mode.value === 'freehand');
-                setStatus(freehandActive ? 'Freehand aktif' : 'Tap mode');
-            });
+            if (els.modeToggle) {
+                els.modeToggle.addEventListener('click', function () {
+                    freehandActive = !freehandActive;
+                    
+                    // Update UI button appearance
+                    if (freehandActive) {
+                        els.modeToggle.innerHTML = '<i class="fa-solid fa-pencil"></i>';
+                        els.modeToggle.title = 'Mode: Freehand (Ubah ke Tap)';
+                        els.modeToggle.classList.replace('bg-blue-600/90', 'bg-neon/90');
+                        els.modeToggle.classList.replace('border-blue-500', 'border-neon');
+                        els.modeToggle.classList.replace('text-white', 'text-slate-900');
+                    } else {
+                        els.modeToggle.innerHTML = '<i class="fa-solid fa-hand-pointer"></i>';
+                        els.modeToggle.title = 'Mode: Tap (Ubah ke Freehand)';
+                        els.modeToggle.classList.replace('bg-neon/90', 'bg-blue-600/90');
+                        els.modeToggle.classList.replace('border-neon', 'border-blue-500');
+                        els.modeToggle.classList.replace('text-slate-900', 'text-white');
+                    }
+                    
+                    setStatus(freehandActive ? 'Freehand aktif' : 'Tap mode');
+                });
+            }
+
+            if (els.markerPaletteToggle && els.markerPalette) {
+                els.markerPaletteToggle.addEventListener('click', function () {
+                    els.markerPalette.classList.toggle('hidden');
+                    els.markerPalette.classList.toggle('flex');
+                    if(els.markerPalette.classList.contains('flex')) {
+                        els.markerPaletteToggle.classList.add('bg-neon/90', 'text-slate-900');
+                        els.markerPaletteToggle.classList.remove('bg-slate-900/90', 'text-slate-200');
+                    } else {
+                        els.markerPaletteToggle.classList.remove('bg-neon/90', 'text-slate-900');
+                        els.markerPaletteToggle.classList.add('bg-slate-900/90', 'text-slate-200');
+                    }
+                });
+            }
 
             if (els.followRoad) {
                 els.followRoad.addEventListener('change', function () {
