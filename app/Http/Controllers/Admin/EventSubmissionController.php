@@ -119,6 +119,16 @@ class EventSubmissionController extends Controller
             'review_note' => $request->input('review_note'),
         ]);
 
+        if (!empty($submission->contributor_email)) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($submission->contributor_email)->send(
+                    new \App\Mail\EventSubmissionRejectedMail($submission)
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim email penolakan event submission: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->route('admin.event-submissions.index')->with('success', 'Submission ditolak.');
     }
 
