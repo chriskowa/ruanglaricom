@@ -674,8 +674,7 @@
                                      @click="previewExercise(exercise)">
                                     <!-- Thumbnail Placeholder -->
                                     <div class="w-12 h-12 rounded-[4px] bg-slate-700 flex-shrink-0 overflow-hidden relative">
-                                        <div class="absolute inset-0 flex items-center justify-center text-xl group-hover:scale-110 transition">
-                                            @{{ getExerciseIcon(exercise.name) }}
+                                        <div class="absolute inset-0 flex items-center justify-center text-xl group-hover:scale-110 transition" v-html="getExerciseIcon(exercise.name)">
                                         </div>
                                     </div>
                                     

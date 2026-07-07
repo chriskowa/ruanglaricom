@@ -434,7 +434,7 @@
                                      :class="getSessionClass(day.type)">
                                     <div class="flex justify-between items-start">
                                         <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Day @{{ day.day }}</span>
-                                        <span class="text-xl group-hover:scale-125 transition-transform duration-300">@{{ getSessionIcon(day.type) }}</span>
+                                        <span class="text-xl group-hover:scale-125 transition-transform duration-300" v-html="getSessionIcon(day.type)"></span>
                                     </div>
                                     <div>
                                         <h4 class="text-[10px] font-black text-white leading-tight mb-1 uppercase">@{{ day.type.replace('_', ' ') }}</h4>
@@ -445,17 +445,7 @@
                             </div>
                         </div>
 
-                        <!-- Info Overlay for remaining weeks -->
-                        <div class="card-dark p-12 text-center rounded-3xl border-dashed bg-slate-900/30">
-                            <div class="max-w-md mx-auto">
-                                <div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-500 border border-slate-700">🔒</div>
-                                <h4 class="text-white font-bold mb-2">Sisa Program Terkunci</h4>
-                                <p class="text-slate-400 text-sm mb-6 leading-relaxed">
-                                    Minggu @{{ freeWeeksCount + 1 }} sampai @{{ result?.weeks || '-' }} akan di-unlock secara otomatis setelah Anda menyimpannya ke kalender.
-                                </p>
-                                <button @click="saveAndOpenCalendar" class="text-brand-400 font-black text-xs uppercase tracking-widest hover:text-brand-300 transition-colors">Simpan Sekarang →</button>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -674,14 +664,12 @@
 
             const freePreviewSessions = computed(() => {
                 if (!result.value) return [];
-                const totalWeeks = result.value.weeks || 8;
-                const freeWeeks = Math.max(1, Math.floor(totalWeeks / 2));
-                return result.value.sessions.filter(s => s.week <= freeWeeks);
+                return result.value.sessions; // Show all sessions
             });
 
             const freeWeeksCount = computed(() => {
                 if (!result.value) return 0;
-                return Math.max(1, Math.floor(result.value.weeks / 2));
+                return result.value.weeks; // Show full program in preview
             });
 
             const sessionsByWeek = computed(() => {
@@ -836,28 +824,30 @@
 
             const getSessionClass = (type) => {
                 const classes = {
-                    'easy_run': 'bg-green-900/20 border-green-500/20',
-                    'long_run': 'bg-blue-900/20 border-blue-500/20',
-                    'marathon': 'bg-blue-900/20 border-blue-500/20',
-                    'threshold': 'bg-orange-900/20 border-orange-500/20',
-                    'interval': 'bg-red-900/20 border-red-500/20',
-                    'repetition': 'bg-purple-900/20 border-purple-500/20',
-                    'rest': 'bg-slate-900/40 border-slate-800 opacity-60'
+                    'easy_run': 'bg-green-900/20 border-green-500/20 text-green-400',
+                    'long_run': 'bg-blue-900/20 border-blue-500/20 text-blue-400',
+                    'marathon': 'bg-cyan-900/20 border-cyan-500/20 text-cyan-400',
+                    'tempo': 'bg-orange-900/20 border-orange-500/20 text-orange-400',
+                    'threshold': 'bg-orange-900/20 border-orange-500/20 text-orange-400',
+                    'interval': 'bg-red-900/20 border-red-500/20 text-red-400',
+                    'repetition': 'bg-fuchsia-900/20 border-fuchsia-500/20 text-fuchsia-400',
+                    'rest': 'bg-slate-900/40 border-slate-800 opacity-60 text-slate-400'
                 };
                 return classes[type] || 'bg-slate-900/40 border-slate-800';
             };
 
             const getSessionIcon = (type) => {
                 const icons = {
-                    'easy_run': '🍃',
-                    'rest': '🧘',
-                    'long_run': '🔋',
-                    'marathon': '🏁',
-                    'threshold': '🔥',
-                    'interval': '⚡',
-                    'repetition': '🚀'
+                    'easy_run': '<i class="fa-solid fa-leaf"></i>',
+                    'rest': '<i class="fa-solid fa-bed"></i>',
+                    'long_run': '<i class="fa-solid fa-battery-full"></i>',
+                    'marathon': '<i class="fa-solid fa-flag-checkered"></i>',
+                    'tempo': '<i class="fa-solid fa-fire"></i>',
+                    'threshold': '<i class="fa-solid fa-fire"></i>',
+                    'interval': '<i class="fa-solid fa-bolt"></i>',
+                    'repetition': '<i class="fa-solid fa-rocket"></i>'
                 };
-                return icons[type] || '🏃';
+                return icons[type] || '<i class="fa-solid fa-person-running"></i>';
             };
 
             return {

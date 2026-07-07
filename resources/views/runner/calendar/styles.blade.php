@@ -99,6 +99,16 @@ body {
   background-color: rgba(100, 116, 139, 0.06) !important;
   color: #94a3b8 !important;
 }
+.fc-event.workout-marathon {
+  border-left: 3px solid #06b6d4 !important;
+  background-color: rgba(6, 182, 212, 0.06) !important;
+  color: #06b6d4 !important;
+}
+.fc-event.workout-repetition {
+  border-left: 3px solid #d946ef !important;
+  background-color: rgba(217, 70, 239, 0.06) !important;
+  color: #d946ef !important;
+}
 .fc-event.workout-race {
   border-left: 3px solid #f97316 !important;
   background-color: rgba(249, 115, 22, 0.08) !important;
@@ -138,6 +148,8 @@ body {
 .fc-list-event.workout-strength { border-left: 3px solid #8b5cf6 !important; }
 .fc-list-event.workout-race { border-left: 3px solid #f97316 !important; }
 .fc-list-event.workout-rest { border-left: 3px solid #64748b !important; }
+.fc-list-event.workout-marathon { border-left: 3px solid #06b6d4 !important; }
+.fc-list-event.workout-repetition { border-left: 3px solid #d946ef !important; }
 
 @media (max-width: 640px) {
     .fc .fc-header-toolbar {

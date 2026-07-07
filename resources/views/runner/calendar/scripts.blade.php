@@ -858,13 +858,13 @@ createApp({
 
         const getExerciseIcon = (name) => {
             const n = String(name || '').toLowerCase();
-            if (n.includes('squat')) return '🏋️';
-            if (n.includes('push')) return '💪';
-            if (n.includes('plank') || n.includes('core')) return '🧱';
-            if (n.includes('lunge')) return '🦵';
-            if (n.includes('run') || n.includes('warm')) return '🏃';
-            if (n.includes('yoga') || n.includes('stretch')) return '🧘';
-            return '⚡';
+            if (n.includes('squat')) return '<i class="fa-solid fa-dumbbell"></i>';
+            if (n.includes('push')) return '<i class="fa-solid fa-hand-fist"></i>';
+            if (n.includes('plank') || n.includes('core')) return '<i class="fa-solid fa-cubes"></i>';
+            if (n.includes('lunge')) return '<i class="fa-solid fa-shoe-prints"></i>';
+            if (n.includes('run') || n.includes('warm')) return '<i class="fa-solid fa-person-running"></i>';
+            if (n.includes('yoga') || n.includes('stretch')) return '<i class="fa-solid fa-child-reaching"></i>';
+            return '<i class="fa-solid fa-bolt"></i>';
         };
 
         const formatTimer = (s) => {
