@@ -49,7 +49,7 @@ class ProgramController extends Controller
         ]);
 
         $validated['coach_id'] = auth()->id();
-        $validated['slug'] = Str::slug($validated['title']).'-'.uniqid();
+        $validated['slug'] = $this->generateUniqueSlug($validated['title']);
         $validated['program_json'] = json_decode($validated['program_json'], true);
         $validated['is_published'] = $request->has('is_published') ? (bool) $request->is_published : false;
         $validated['is_challenge'] = $request->boolean('is_challenge');
@@ -111,7 +111,7 @@ class ProgramController extends Controller
         ]);
 
         if ($validated['title'] !== $program->title) {
-            $validated['slug'] = Str::slug($validated['title']).'-'.uniqid();
+            $validated['slug'] = $this->generateUniqueSlug($validated['title'], $program->id);
         }
 
         $validated['program_json'] = json_decode($validated['program_json'], true);
@@ -541,7 +541,7 @@ class ProgramController extends Controller
         }
 
         $title = $json['title'] ?? 'Imported Program ' . date('Y-m-d H:i');
-        $slug = Str::slug($title) . '-' . uniqid();
+        $slug = $this->generateUniqueSlug($title);
 
         $program = Program::create([
             'coach_id' => auth()->id(),
@@ -667,5 +667,26 @@ class ProgramController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    private function generateUniqueSlug(string $title, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (true) {
+            $query = Program::where('slug', $slug);
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+            if (!$query->exists()) {
+                break;
+            }
+            $slug = $originalSlug . '-' . $count;
+            $count++;
+        }
+
+        return $slug;
     }
 }

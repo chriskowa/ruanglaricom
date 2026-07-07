@@ -76,10 +76,11 @@ class SelfGeneratedProgramController extends Controller
             $startDate = $targetDate->copy()->subDays($totalDays - 1)->startOfWeek();
 
             // 1. Create Program
+            $title = "AI " . strtoupper($form['target_distance']) . " Plan (" . $result['vdot'] . ")";
             $program = Program::create([
                 'coach_id' => $user->id,
-                'title' => "AI " . strtoupper($form['target_distance']) . " Plan (" . $result['vdot'] . ")",
-                'slug' => 'ai-' . strtolower($form['target_distance']) . '-' . Str::random(8),
+                'title' => $title,
+                'slug' => $this->generateUniqueSlug($title),
                 'description' => "Program latihan lari periodisasi yang di-generate menggunakan algoritma Daniels' VDOT v2.0.",
                 'distance_target' => $form['target_distance'],
                 'duration_weeks' => $durationWeeks,
@@ -364,10 +365,11 @@ class SelfGeneratedProgramController extends Controller
             $startDate = $targetDate->copy()->subDays($totalDays - 1)->startOfWeek();
 
             // Create a virtual program record
+            $title = "AI " . strtoupper($form['target_distance']) . " Plan (" . $result['vdot'] . ")";
             $program = Program::create([
                 'coach_id' => $user->id,
-                'title' => "AI " . strtoupper($form['target_distance']) . " Plan (" . $result['vdot'] . ")",
-                'slug' => 'gen-' . Str::random(10),
+                'title' => $title,
+                'slug' => $this->generateUniqueSlug($title),
                 'description' => "AI Generated Program for " . strtoupper($form['target_distance']),
                 'distance_target' => $form['target_distance'],
                 'duration_weeks' => $durationWeeks,
@@ -1000,5 +1002,26 @@ class SelfGeneratedProgramController extends Controller
             Log::warning('AI refine generator_v2 failed: '.$e->getMessage());
             return $sessions;
         }
+    }
+
+    private function generateUniqueSlug(string $title, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (true) {
+            $query = Program::where('slug', $slug);
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+            if (!$query->exists()) {
+                break;
+            }
+            $slug = $originalSlug . '-' . $count;
+            $count++;
+        }
+
+        return $slug;
     }
 }

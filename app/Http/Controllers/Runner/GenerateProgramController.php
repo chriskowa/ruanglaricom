@@ -157,10 +157,11 @@ class GenerateProgramController extends Controller
             }
 
             // Create program
+            $title = 'Program VDOT AI: '.strtoupper($validated['goal_distance']).' ('.$durationWeeks.' Weeks)';
             $program = Program::create([
                 'coach_id' => $user->id,
-                'title' => 'Program VDOT AI: '.strtoupper($validated['goal_distance']).' ('.$durationWeeks.' Weeks)',
-                'slug' => 'vdot-ai-'.strtolower($validated['goal_distance']).'-'.Str::random(8),
+                'title' => $title,
+                'slug' => $this->generateUniqueSlug($title),
                 'description' => "AI VDOT periodized program for " . strtoupper($validated['goal_distance']),
                 'difficulty' => $this->determineDifficulty($effectiveWeeklyMileage),
                 'distance_target' => $validated['goal_distance'],
@@ -1039,5 +1040,26 @@ class GenerateProgramController extends Controller
             Log::warning('AI refine generator failed: '.$e->getMessage());
             return $sessions;
         }
+    }
+
+    private function generateUniqueSlug(string $title, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (true) {
+            $query = Program::where('slug', $slug);
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+            if (!$query->exists()) {
+                break;
+            }
+            $slug = $originalSlug . '-' . $count;
+            $count++;
+        }
+
+        return $slug;
     }
 }
