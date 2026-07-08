@@ -1367,6 +1367,10 @@
                             <label class="text-[10px] text-slate-400 block mb-1">Full Marathon (HH:MM:SS)</label>
                             <input type="text" v-model="pbForm.pb_fm" placeholder="03:50:00" pattern="[0-9]{2}:[0-5][0-9]:[0-5][0-9]" class="w-full bg-slate-950 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs focus:border-neon focus:outline-none transition">
                         </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Balke 15-Min Test (Meters)</label>
+                            <input type="number" v-model="pbForm.pb_balke" min="0" placeholder="e.g. 3200" class="w-full bg-slate-950 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs focus:border-neon focus:outline-none transition">
+                        </div>
 
                         <div class="pt-3.5 border-t border-slate-700/60 flex justify-end gap-2">
                             <button type="button" class="px-3.5 py-2 rounded-[6px] bg-slate-800 text-slate-300 border border-slate-700 text-xs hover:bg-slate-700 transition uppercase tracking-wider font-bold" @click="showPbModal = false">Cancel</button>

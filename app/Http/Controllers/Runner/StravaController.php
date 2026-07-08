@@ -447,6 +447,43 @@ class StravaController extends Controller
         }
     }
 
+    private function findOrFetchActivity($user, string $activityId): ?StravaActivity
+    {
+        $activity = StravaActivity::query()
+            ->where('user_id', $user->id)
+            ->where('strava_activity_id', $activityId)
+            ->first();
+
+        if ($activity) {
+            return $activity;
+        }
+
+        $api = app(StravaApiService::class);
+        $details = $api->fetchActivityDetails($user, $activityId);
+
+        if (! $details) {
+            return null;
+        }
+
+        return StravaActivity::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'strava_activity_id' => $activityId,
+            ],
+            [
+                'name' => data_get($details, 'name'),
+                'type' => data_get($details, 'sport_type') ?? data_get($details, 'type'),
+                'start_date' => data_get($details, 'start_date') ? \Carbon\Carbon::parse(data_get($details, 'start_date'))->format('Y-m-d H:i:s') : null,
+                'distance_m' => data_get($details, 'distance'),
+                'moving_time_s' => data_get($details, 'moving_time'),
+                'elapsed_time_s' => data_get($details, 'elapsed_time'),
+                'average_speed' => data_get($details, 'average_speed'),
+                'total_elevation_gain' => data_get($details, 'total_elevation_gain'),
+                'raw' => ['details' => $details],
+            ]
+        );
+    }
+
     public function activityDetails(Request $request, string $stravaActivityId)
     {
         $user = auth()->user();
@@ -458,15 +495,12 @@ class StravaController extends Controller
         }
         $activityId = (string) $stravaActivityId;
 
-        $activity = StravaActivity::query()
-            ->where('user_id', $user->id)
-            ->where('strava_activity_id', $activityId)
-            ->first();
+        $activity = $this->findOrFetchActivity($user, $activityId);
 
         if (! $activity) {
             return response()->json([
                 'success' => false,
-                'message' => 'Activity tidak ditemukan.',
+                'message' => 'Activity tidak ditemukan atau gagal diakses dari Strava.',
             ], 404);
         }
 
@@ -603,15 +637,12 @@ class StravaController extends Controller
         }
         $activityId = (string) $stravaActivityId;
 
-        $activity = StravaActivity::query()
-            ->where('user_id', $user->id)
-            ->where('strava_activity_id', $activityId)
-            ->first();
+        $activity = $this->findOrFetchActivity($user, $activityId);
 
         if (! $activity) {
             return response()->json([
                 'success' => false,
-                'message' => 'Activity tidak ditemukan.',
+                'message' => 'Activity tidak ditemukan atau gagal diakses dari Strava.',
             ], 404);
         }
 
@@ -658,15 +689,13 @@ class StravaController extends Controller
         }
 
         $activityId = (string) $stravaActivityId;
-        $activity = StravaActivity::query()
-            ->where('user_id', $user->id)
-            ->where('strava_activity_id', $activityId)
-            ->first();
+        
+        $activity = $this->findOrFetchActivity($user, $activityId);
 
         if (! $activity) {
             return response()->json([
                 'success' => false,
-                'message' => 'Activity tidak ditemukan.',
+                'message' => 'Activity tidak ditemukan atau gagal diakses dari Strava.',
             ], 404);
         }
 

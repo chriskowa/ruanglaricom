@@ -505,6 +505,7 @@ createApp({
             pb_10k: trainingProfile.value.pb?.['10k'] || '',
             pb_hm: trainingProfile.value.pb?.hm || '',
             pb_fm: trainingProfile.value.pb?.fm || '',
+            pb_balke: trainingProfile.value.pb?.balke || '',
         });
 
         // VDOT Form State
@@ -3016,7 +3017,8 @@ createApp({
             showInsightModal, insightData, insightType,
             showStravaAnalysisModal, stravaAnalysisLoading, stravaAnalysisRange, stravaAnalysisResult, straCustomStartDate, straCustomEndDate,
             stravaStatus, stravaStatusLoading, connectStravaFirst, syncStravaFirst,
-            openStravaAnalysisModal, runStravaAnalysis, applyAnalysisToGenerator, parseMarkdown
+            openStravaAnalysisModal, runStravaAnalysis, applyAnalysisToGenerator, parseMarkdown,
+            ttsSupported, speakDetailDescription
         };
     }
 

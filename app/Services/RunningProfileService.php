@@ -42,6 +42,7 @@ class RunningProfileService
                 '10k' => $pbs['10k'],
                 'hm' => $pbs['21k'],
                 'fm' => $pbs['42k'],
+                'balke' => $user->pb_balke,
             ],
             'vdot' => $bestVdot,
             'vo2max' => $bestVdot, // Approximation aligned with VDOT scale
