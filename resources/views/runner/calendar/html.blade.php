@@ -182,7 +182,7 @@
                             <div class="text-white font-bold">@{{ en.program.title }}</div>
                             <div class="text-[11px] text-slate-500 font-mono">Start: @{{ formatDate(en.start_date) }} • End: @{{ formatDate(en.end_date) }}</div>
                             <div v-if="en.program && en.program.coach" class="mt-2 flex items-center gap-3">
-                                <img :src="en.program.coach.avatar ? (assetStorage + '/' + en.program.coach.avatar) : assetProfile" class="w-8 h-8 rounded-full border border-slate-600" :alt="en.program.coach.name">
+                                <img :src="en.program.coach.avatar_url || assetProfile" class="w-8 h-8 rounded-full border border-slate-600" :alt="en.program.coach.name">
                                 <div class="flex-1">
                                     <div class="text-slate-300 text-sm">@{{ en.program.coach.name }}</div>
                                     <div class="flex gap-2 mt-1">
@@ -2014,8 +2014,17 @@
                         <select v-model="form.type" class="w-full bg-slate-950 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs">
                             <option value="run">Run</option>
                             <option value="easy_run">Easy Run</option>
+                            <option value="recovery_run">Recovery Run</option>
+                            <option value="long_run">Long Run</option>
+                            <option value="long_run_quality">Long Run Quality</option>
                             <option value="interval">Interval</option>
+                            <option value="repetition">Repetition</option>
+                            <option value="threshold">Threshold</option>
                             <option value="tempo">Tempo</option>
+                            <option value="progression">Progression</option>
+                            <option value="marathon_pace">Marathon Pace</option>
+                            <option value="race">Race</option>
+                            <option value="strength">Strength</option>
                             <option value="yoga">Yoga</option>
                             <option value="cycling">Cycling</option>
                             <option value="rest">Rest</option>

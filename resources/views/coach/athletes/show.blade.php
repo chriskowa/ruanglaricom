@@ -49,6 +49,8 @@
 .fc-event.workout-strength, .fc-list-event.workout-strength { border-left: 4px solid #9C27B0 !important; }
 .fc-event.workout-rest, .fc-list-event.workout-rest { border-left: 4px solid #9E9E9E !important; }
 .fc-event.workout-race, .fc-list-event.workout-race { border-left: 4px solid #FFD700 !important; }
+.fc-event.workout-threshold, .fc-event.workout-treshold, .fc-list-event.workout-threshold, .fc-list-event.workout-treshold { border-left: 4px solid #E91E63 !important; }
+.fc-event.workout-recovery_run, .fc-list-event.workout-recovery_run { border-left: 4px solid #00BCD4 !important; }
 
 @media (max-width: 640px) {
     .fc .fc-header-toolbar { margin-bottom: 1rem; flex-direction: column; gap: 0.5rem; }

@@ -148,9 +148,9 @@
                     </div>
                 </div>
 
-                <div class="lg:col-span-7 flex justify-center order-1 lg:order-2">
-                    <div class="relative w-[340px] h-[680px] bg-slate-950 border-[8px] border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden ring-1 ring-slate-700 flex flex-col">
-                        <div class="absolute top-0 w-full h-8 bg-black/50 z-50 flex justify-between items-center px-6">
+                <div class="lg:col-span-7 flex justify-center order-1 lg:order-2 w-full">
+                    <div class="relative w-full min-h-[85vh] md:min-h-0 md:w-[340px] md:h-[680px] bg-slate-950 md:border-[8px] md:border-slate-800 rounded-2xl md:rounded-[3rem] shadow-2xl overflow-hidden ring-1 ring-slate-800 md:ring-slate-700 flex flex-col">
+                        <div class="absolute top-0 w-full h-8 bg-black/50 z-50 flex justify-between items-center px-6 hidden md:flex">
                             <span class="text-[10px] font-bold text-white">RUANGLARI AI</span>
                             <div class="flex items-center gap-2">
                                 <div id="rlfa-supporter-badge" class="hidden text-[9px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/60">
@@ -205,41 +205,41 @@
                                     </div>
 
                                     <div id="rlfa-photo-slots" class="mt-4 hidden space-y-2">
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <button type="button" id="rlfa-photo-btn-landing" class="rlfa-photo-btn flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
-                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                        <div class="flex overflow-x-auto gap-3 pb-2 no-scrollbar snap-x">
+                                            <button type="button" id="rlfa-photo-btn-landing" class="rlfa-photo-btn snap-start flex-none flex flex-col items-center justify-center gap-2 w-[100px] py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-[10px] font-bold">
+                                                <span class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
                                                     <img id="rlfa-photo-prev-landing" class="hidden w-full h-full object-cover" alt="Landing">
-                                                    <i id="rlfa-photo-ico-landing" class="fa-regular fa-image text-slate-500"></i>
+                                                    <i id="rlfa-photo-ico-landing" class="fa-regular fa-image text-slate-500 text-lg"></i>
                                                 </span>
                                                 <span>Landing</span>
                                             </button>
-                                            <button type="button" id="rlfa-photo-btn-lever" class="rlfa-photo-btn flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
-                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                            <button type="button" id="rlfa-photo-btn-lever" class="rlfa-photo-btn snap-start flex-none flex flex-col items-center justify-center gap-2 w-[100px] py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-[10px] font-bold">
+                                                <span class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
                                                     <img id="rlfa-photo-prev-lever" class="hidden w-full h-full object-cover" alt="Lever">
-                                                    <i id="rlfa-photo-ico-lever" class="fa-regular fa-image text-slate-500"></i>
+                                                    <i id="rlfa-photo-ico-lever" class="fa-regular fa-image text-slate-500 text-lg"></i>
                                                 </span>
                                                 <span>Lever</span>
                                             </button>
-                                            <button type="button" id="rlfa-photo-btn-push" class="rlfa-photo-btn flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
-                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                            <button type="button" id="rlfa-photo-btn-push" class="rlfa-photo-btn snap-start flex-none flex flex-col items-center justify-center gap-2 w-[100px] py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-[10px] font-bold">
+                                                <span class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
                                                     <img id="rlfa-photo-prev-push" class="hidden w-full h-full object-cover" alt="Push">
-                                                    <i id="rlfa-photo-ico-push" class="fa-regular fa-image text-slate-500"></i>
+                                                    <i id="rlfa-photo-ico-push" class="fa-regular fa-image text-slate-500 text-lg"></i>
                                                 </span>
                                                 <span>Push</span>
                                             </button>
-                                            <button type="button" id="rlfa-photo-btn-pull" class="rlfa-photo-btn flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
-                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                            <button type="button" id="rlfa-photo-btn-pull" class="rlfa-photo-btn snap-start flex-none flex flex-col items-center justify-center gap-2 w-[100px] py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-[10px] font-bold">
+                                                <span class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
                                                     <img id="rlfa-photo-prev-pull" class="hidden w-full h-full object-cover" alt="Pull">
-                                                    <i id="rlfa-photo-ico-pull" class="fa-regular fa-image text-slate-500"></i>
+                                                    <i id="rlfa-photo-ico-pull" class="fa-regular fa-image text-slate-500 text-lg"></i>
                                                 </span>
                                                 <span>Pull</span>
                                             </button>
-                                            <button type="button" id="rlfa-photo-btn-front" class="rlfa-photo-btn col-span-2 flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-xs font-bold">
-                                                <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
+                                            <button type="button" id="rlfa-photo-btn-front" class="rlfa-photo-btn snap-start flex-none flex flex-col items-center justify-center gap-2 w-[100px] py-3 rounded-xl border border-slate-800 bg-slate-900/60 text-slate-200 text-[10px] font-bold">
+                                                <span class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center">
                                                     <img id="rlfa-photo-prev-front" class="hidden w-full h-full object-cover" alt="Front">
-                                                    <i id="rlfa-photo-ico-front" class="fa-regular fa-image text-slate-500"></i>
+                                                    <i id="rlfa-photo-ico-front" class="fa-regular fa-image text-slate-500 text-lg"></i>
                                                 </span>
-                                                <span>Front (opsional)</span>
+                                                <span>Front</span>
                                             </button>
                                         </div>
 
@@ -331,7 +331,7 @@
                                     </div>
                                 </div>
 
-                                <div class="p-5 space-y-4 pb-20">
+                                <div class="p-5 space-y-4 pb-0 flex-1 flex flex-col">
                                     <div id="rlfa-visualization-wrap" class="hidden mb-6">
                                         <div class="flex items-center justify-between mb-2">
                                             <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Visualisasi</h4>
@@ -401,29 +401,62 @@
                                         <p class="text-sm text-slate-200 leading-relaxed mt-2" id="rlfa-coach-message"></p>
                                     </div>
 
-                                    <div id="rlfa-positives-wrap" class="space-y-3 hidden">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Yang Sudah Bagus</h4>
-                                        <div id="rlfa-positives" class="space-y-2"></div>
-                                    </div>
+                                    <details id="rlfa-positives-wrap" class="group bg-slate-900/40 border border-slate-800 rounded-xl hidden" open>
+                                        <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-4 text-xs text-slate-300 uppercase tracking-widest">
+                                            <span><i class="fa-solid fa-check text-emerald-500 mr-2"></i> Yang Sudah Bagus</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <i class="fa-solid fa-chevron-down text-slate-500"></i>
+                                            </span>
+                                        </summary>
+                                        <div class="p-4 pt-0">
+                                            <div id="rlfa-positives" class="space-y-2"></div>
+                                        </div>
+                                    </details>
 
-                                    <div id="rlfa-issues-wrap" class="space-y-3 hidden">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Catatan Penting</h4>
-                                        <div id="rlfa-issues" class="space-y-2"></div>
-                                    </div>
+                                    <details id="rlfa-issues-wrap" class="group bg-slate-900/40 border border-slate-800 rounded-xl hidden" open>
+                                        <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-4 text-xs text-slate-300 uppercase tracking-widest">
+                                            <span><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-2"></i> Catatan Penting</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <i class="fa-solid fa-chevron-down text-slate-500"></i>
+                                            </span>
+                                        </summary>
+                                        <div class="p-4 pt-0">
+                                            <div id="rlfa-issues" class="space-y-2"></div>
+                                        </div>
+                                    </details>
 
-                                    <div id="rlfa-suggestions-wrap" class="space-y-3 hidden">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Saran Perbaikan</h4>
-                                        <div id="rlfa-suggestions" class="space-y-2"></div>
-                                    </div>
+                                    <details id="rlfa-suggestions-wrap" class="group bg-slate-900/40 border border-slate-800 rounded-xl hidden" open>
+                                        <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-4 text-xs text-slate-300 uppercase tracking-widest">
+                                            <span><i class="fa-solid fa-lightbulb text-yellow-400 mr-2"></i> Saran Perbaikan</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <i class="fa-solid fa-chevron-down text-slate-500"></i>
+                                            </span>
+                                        </summary>
+                                        <div class="p-4 pt-0">
+                                            <div id="rlfa-suggestions" class="space-y-2"></div>
+                                        </div>
+                                    </details>
 
-                                    <div id="rlfa-formissues-wrap" class="space-y-3 hidden">
-                                            <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Analisis Form (Beta)</h4>
-                                        <div id="rlfa-formissues" class="space-y-2"></div>
-                                    </div>
+                                    <details id="rlfa-formissues-wrap" class="group bg-slate-900/40 border border-slate-800 rounded-xl hidden">
+                                        <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-4 text-xs text-slate-300 uppercase tracking-widest">
+                                            <span><i class="fa-solid fa-person-running text-blue-400 mr-2"></i> Analisis Form (Beta)</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <i class="fa-solid fa-chevron-down text-slate-500"></i>
+                                            </span>
+                                        </summary>
+                                        <div class="p-4 pt-0">
+                                            <div id="rlfa-formissues" class="space-y-2"></div>
+                                        </div>
+                                    </details>
 
-                                    <div id="rlfa-leg-wrap" class="space-y-3 hidden">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Deteksi Kaki X/O</h4>
-                                        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3">
+                                    <details id="rlfa-leg-wrap" class="group bg-slate-900/40 border border-slate-800 rounded-xl hidden">
+                                        <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-4 text-xs text-slate-300 uppercase tracking-widest">
+                                            <span><i class="fa-solid fa-shoe-prints text-indigo-400 mr-2"></i> Deteksi Kaki X/O</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <i class="fa-solid fa-chevron-down text-slate-500"></i>
+                                            </span>
+                                        </summary>
+                                        <div class="p-4 pt-0 space-y-3">
                                             <div class="flex items-center justify-between">
                                                 <span id="rlfa-leg-label" class="text-sm font-bold text-white">--</span>
                                                 <span id="rlfa-leg-badge" class="px-2 py-1 rounded text-[10px] font-bold border">--</span>
@@ -431,47 +464,70 @@
                                             <p id="rlfa-leg-desc" class="text-xs text-slate-300 leading-relaxed"></p>
                                             <div id="rlfa-leg-solutions" class="space-y-2"></div>
                                         </div>
-                                    </div>
+                                    </details>
 
-                                    <div id="rlfa-formreport-wrap" class="space-y-3 hidden">
-                                            <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Laporan Form (Beta)</h4>
-                                        <div id="rlfa-formreport" class="space-y-3"></div>
-                                    </div>
+                                    <details id="rlfa-formreport-wrap" class="group bg-slate-900/40 border border-slate-800 rounded-xl hidden">
+                                        <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-4 text-xs text-slate-300 uppercase tracking-widest">
+                                            <span><i class="fa-solid fa-clipboard-list text-purple-400 mr-2"></i> Laporan Form (Beta)</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <i class="fa-solid fa-chevron-down text-slate-500"></i>
+                                            </span>
+                                        </summary>
+                                        <div class="p-4 pt-0">
+                                            <div id="rlfa-formreport" class="space-y-3"></div>
+                                        </div>
+                                    </details>
 
-                                    <div id="rlfa-strength-wrap" class="space-y-3 hidden">
-                                            <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Solusi Penguatan</h4>
-                                        <div id="rlfa-strength" class="space-y-2"></div>
-                                    </div>
+                                    <details id="rlfa-strength-wrap" class="group bg-slate-900/40 border border-slate-800 rounded-xl hidden">
+                                        <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-4 text-xs text-slate-300 uppercase tracking-widest">
+                                            <span><i class="fa-solid fa-dumbbell text-slate-400 mr-2"></i> Solusi Penguatan</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <i class="fa-solid fa-chevron-down text-slate-500"></i>
+                                            </span>
+                                        </summary>
+                                        <div class="p-4 pt-0">
+                                            <div id="rlfa-strength" class="space-y-2"></div>
+                                        </div>
+                                    </details>
 
-                                    <div id="rlfa-recovery-wrap" class="space-y-3 hidden">
-                                        <h4 class="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Pemulihan & Pengobatan Awal</h4>
-                                        <div id="rlfa-recovery" class="space-y-2"></div>
-                                    </div>
+                                    <details id="rlfa-recovery-wrap" class="group bg-slate-900/40 border border-slate-800 rounded-xl hidden">
+                                        <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-4 text-xs text-slate-300 uppercase tracking-widest">
+                                            <span><i class="fa-solid fa-heart-pulse text-red-400 mr-2"></i> Pemulihan & Pengobatan</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <i class="fa-solid fa-chevron-down text-slate-500"></i>
+                                            </span>
+                                        </summary>
+                                        <div class="p-4 pt-0">
+                                            <div id="rlfa-recovery" class="space-y-2"></div>
+                                        </div>
+                                    </details>
 
-                                    <div class="pt-4 space-y-2">
-                                        <button id="rlfa-advanced-btn" type="button" class="w-full bg-neon text-dark font-bold py-3 rounded-xl text-sm hover:bg-white">
+                                    <div class="sticky bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pt-6 pb-4 -mx-5 px-5 mt-auto z-20 space-y-2">
+                                        <button id="rlfa-advanced-btn" type="button" class="w-full bg-neon text-dark font-bold py-3 rounded-xl text-sm hover:bg-white transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)]">
                                             Lihat Analisis Lari
                                         </button>
-                                        <button id="rlfa-download-gif-btn" type="button" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-xl text-sm hover:from-emerald-500 hover:to-teal-500 transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                                            <i class="fa-solid fa-film"></i>
-                                            Download GIF Gerak (Skeleton)
-                                        </button>
-                                        <button id="rlfa-download-mp4-btn" type="button" class="hidden w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold py-3 rounded-xl text-sm hover:from-indigo-500 hover:to-violet-500 transition flex items-center justify-center gap-2 shadow-lg shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                                            <i class="fa-solid fa-video"></i>
-                                            Download MP4 / WebM Gerak (Pro)
-                                        </button>
-                                        <button id="rlfa-download-pdf-btn" type="button" class="w-full bg-slate-900 text-slate-100 font-bold py-3 rounded-xl text-sm border border-slate-700 hover:bg-slate-800">
-                                            Download PDF Hasil Analisis
-                                        </button>
-                                        <button id="rlfa-download-image-btn" type="button" class="w-full bg-slate-900 text-slate-100 font-bold py-3 rounded-xl text-sm border border-slate-700 hover:bg-slate-800">
-                                            Download Image Hasil Analisis
-                                        </button>
-                                        <button id="rlfa-retry-btn" type="button" class="w-full bg-white text-dark font-bold py-3 rounded-xl text-sm hover:bg-slate-200">
-                                            Ulangi Analisis
-                                        </button>
-                                        <button id="rlfa-back-btn" type="button" class="w-full text-slate-500 text-xs py-3 hover:text-white">
-                                            Kembali
-                                        </button>
+                                        <div class="flex gap-2">
+                                            <button id="rlfa-download-pdf-btn" type="button" class="flex-1 bg-slate-800 text-slate-100 font-bold py-3 rounded-xl text-sm hover:bg-slate-700 border border-slate-700 transition">
+                                                Unduh PDF
+                                            </button>
+                                            <button id="rlfa-retry-btn" type="button" class="flex-1 bg-white text-dark font-bold py-3 rounded-xl text-sm hover:bg-slate-200 transition">
+                                                Ulangi
+                                            </button>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2 mt-2">
+                                            <button id="rlfa-download-gif-btn" type="button" class="hidden w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-2 rounded-xl text-xs hover:from-emerald-500 hover:to-teal-500 transition flex items-center justify-center gap-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <i class="fa-solid fa-film"></i> GIF (Skeleton)
+                                            </button>
+                                            <button id="rlfa-download-mp4-btn" type="button" class="hidden w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold py-2 rounded-xl text-xs hover:from-indigo-500 hover:to-violet-500 transition flex items-center justify-center gap-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <i class="fa-solid fa-video"></i> MP4 (Pro)
+                                            </button>
+                                            <button id="rlfa-download-image-btn" type="button" class="w-full bg-slate-900 text-slate-400 font-bold py-2 rounded-xl text-[10px] border border-slate-700 hover:bg-slate-800 hover:text-white transition">
+                                                Unduh Gambar
+                                            </button>
+                                            <button id="rlfa-back-btn" type="button" class="w-full text-slate-500 text-[10px] py-2 hover:text-white transition font-bold">
+                                                Kembali
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -263,8 +263,17 @@
                         <select class="form-control" id="workout_type" name="type" required>
                             <option value="run">Run</option>
                             <option value="easy_run">Easy Run</option>
+                            <option value="recovery_run">Recovery Run</option>
+                            <option value="long_run">Long Run</option>
+                            <option value="long_run_quality">Long Run Quality</option>
                             <option value="interval">Interval</option>
+                            <option value="repetition">Repetition</option>
+                            <option value="threshold">Threshold</option>
                             <option value="tempo">Tempo</option>
+                            <option value="progression">Progression</option>
+                            <option value="marathon_pace">Marathon Pace</option>
+                            <option value="race">Race</option>
+                            <option value="strength">Strength</option>
                             <option value="yoga">Yoga</option>
                             <option value="cycling">Cycling</option>
                             <option value="rest">Rest</option>

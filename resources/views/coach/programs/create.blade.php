@@ -191,7 +191,7 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sticky top-4 z-30 shadow-2xl shadow-black/80 overflow-visible">
                 <div class="flex flex-col gap-4">
                     <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-white/10">
-                        @foreach(['easy_run' => 'Easy', 'long_run' => 'Long', 'interval' => 'Speed', 'tempo' => 'Tempo', 'time_trial' => 'Time Trial', 'strength' => 'Strength', 'rest' => 'Rest', 'custom' => 'Custom'] as $type => $label)
+                        @foreach(['easy_run' => 'Easy', 'recovery_run' => 'Recovery', 'long_run' => 'Long', 'long_run_quality' => 'Long Q', 'interval' => 'Interval', 'repetition' => 'Repetition', 'threshold' => 'Threshold', 'tempo' => 'Tempo', 'progression' => 'Progression', 'marathon_pace' => 'Marathon P', 'time_trial' => 'Time Trial', 'strength' => 'Strength', 'rest' => 'Rest', 'custom' => 'Custom'] as $type => $label)
                             <button type="button" 
                                 @click="activeTab = '{{ $type }}'"
                                 :class="{ 'bg-neon text-dark border-neon shadow-[0_0_15px_rgba(191,255,0,0.3)]': activeTab === '{{ $type }}', 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-slate-200': activeTab !== '{{ $type }}' }"
@@ -203,13 +203,19 @@
                 
                     <!-- Tabs Content -->
                     <div class="min-h-[140px] bg-slate-900/50 rounded-xl p-4 border border-white/5">
-                        @foreach(['easy_run' => 'Easy', 'long_run' => 'Long', 'interval' => 'Speed', 'tempo' => 'Tempo', 'time_trial' => 'Time Trial', 'strength' => 'Strength', 'rest' => 'Rest'] as $type => $label)
+                        @foreach(['easy_run' => 'Easy', 'recovery_run' => 'Recovery', 'long_run' => 'Long', 'long_run_quality' => 'Long Q', 'interval' => 'Interval', 'repetition' => 'Repetition', 'threshold' => 'Threshold', 'tempo' => 'Tempo', 'progression' => 'Progression', 'marathon_pace' => 'Marathon P', 'time_trial' => 'Time Trial', 'strength' => 'Strength', 'rest' => 'Rest'] as $type => $label)
                              @php
                                 $colors = [
                                     'easy_run' => '#4CAF50',
+                                    'recovery_run' => '#00BCD4',
                                     'long_run' => '#2196F3',
+                                    'long_run_quality' => '#3F51B5',
                                     'interval' => '#F44336',
+                                    'repetition' => '#E91E63',
+                                    'threshold' => '#E91E63',
                                     'tempo' => '#FFC107',
+                                    'progression' => '#FF9800',
+                                    'marathon_pace' => '#00BCD4',
                                     'time_trial' => '#FF5722',
                                     'strength' => '#9C27B0',
                                     'rest' => '#9E9E9E',
@@ -459,9 +465,15 @@
                         <label class="text-xs font-bold text-slate-400 uppercase">Type</label>
                         <select v-model="builderForm.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
                             <option value="easy_run">Easy Run</option>
+                            <option value="recovery_run">Recovery Run</option>
                             <option value="long_run">Long Run</option>
-                            <option value="tempo">Tempo</option>
+                            <option value="long_run_quality">Long Run Quality</option>
                             <option value="interval">Intervals</option>
+                            <option value="repetition">Repetition</option>
+                            <option value="threshold">Threshold</option>
+                            <option value="tempo">Tempo</option>
+                            <option value="progression">Progression</option>
+                            <option value="marathon_pace">Marathon Pace</option>
                             <option value="time_trial">Time Trial</option>
                             <option value="strength">Strength</option>
                             <option value="rest">Rest</option>
@@ -916,9 +928,15 @@ createApp({
 
         const workoutTypes = {
             easy_run: 'Easy',
+            recovery_run: 'Recovery',
             long_run: 'Long',
-            interval: 'Speed',
+            long_run_quality: 'Long Q',
+            interval: 'Interval',
+            repetition: 'Repetition',
+            threshold: 'Threshold',
             tempo: 'Tempo',
+            progression: 'Progression',
+            marathon_pace: 'Marathon P',
             time_trial: 'Time Trial',
             strength: 'Strength',
             rest: 'Rest'
@@ -981,9 +999,15 @@ createApp({
         const getSessionColor = (type) => {
             const colors = {
                 easy_run: '#4CAF50',
+                recovery_run: '#00BCD4',
                 long_run: '#2196F3',
-                tempo: '#FFC107',
+                long_run_quality: '#3F51B5',
                 interval: '#F44336',
+                repetition: '#E91E63',
+                threshold: '#E91E63',
+                tempo: '#FFC107',
+                progression: '#FF9800',
+                marathon_pace: '#00BCD4',
                 time_trial: '#FF5722',
                 strength: '#9C27B0',
                 rest: '#9E9E9E',
