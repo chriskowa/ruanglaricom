@@ -426,6 +426,7 @@ Route::get('/cari-teman-lari', [RunConnectController::class, 'index'])->name('ru
 Route::get('/api/run-connect/threads', [RunConnectController::class, 'getThreads'])->name('api.run-connect.threads');
 Route::get('/api/run-connect/threads/{id}', [RunConnectController::class, 'showThread'])->name('api.run-connect.thread');
 Route::post('/api/run-connect/threads', [RunConnectController::class, 'storeThread'])->name('api.run-connect.store');
+Route::post('/api/run-connect/generate-description', [RunConnectController::class, 'generateAiDescription'])->middleware('throttle:10,1')->name('api.run-connect.generate-description');
 Route::post('/api/run-connect/threads/{id}/join', [RunConnectController::class, 'joinThread'])->name('api.run-connect.join');
 Route::post('/api/run-connect/threads/{id}/leave', [RunConnectController::class, 'leaveThread'])->name('api.run-connect.leave');
 Route::post('/api/run-connect/threads/{id}/report', [RunConnectController::class, 'reportThread'])->name('api.run-connect.report');

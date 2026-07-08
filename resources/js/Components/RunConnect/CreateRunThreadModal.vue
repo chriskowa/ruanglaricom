@@ -57,7 +57,8 @@ const initialForm = {
     is_beginner_friendly: false,
     is_women_friendly: false,
     is_recurring: false,
-    notes: ''
+      gpx_file: null,
+      notes: ''
 };
 
 const form = reactive({ ...initialForm });
@@ -71,7 +72,35 @@ const runTypes = [
     'Community Run'
 ];
 
-const paces = ['4:00', '4:30', '5:00', '5:30', '6:00', '6:30', '7:00', '7:30', '8:00', 'Bebas'];
+const paces = ['3:00', '3:30', '4:00', '4:30', '5:00', '5:30', '6:00', '6:30', '7:00', '7:30', '8:00', 'Bebas'];
+
+
+const isGeneratingAi = ref(false);
+
+const generateDescription = async () => {
+    if (!form.title) {
+        alert('Mohon isi Judul Acara terlebih dahulu sebelum menggunakan AI.');
+        return;
+    }
+    
+    isGeneratingAi.value = true;
+    try {
+        const res = await axios.post('/api/run-connect/generate-description', {
+            title: form.title,
+            type: form.type,
+            distance: form.run_distance_km
+        });
+        
+        if (res.data && res.data.description) {
+            form.description = res.data.description;
+        }
+    } catch (err) {
+        alert('Gagal membuat deskripsi dengan AI. Silakan coba lagi.');
+        console.error(err);
+    } finally {
+        isGeneratingAi.value = false;
+    }
+};
 
 const resetForm = () => {
     if (props.editThread) {
@@ -285,19 +314,30 @@ const submitForm = async () => {
     errors.value = {};
 
     try {
-        const payload = {
-            ...form,
-            is_beginner_friendly: form.is_beginner_friendly ? 1 : 0,
-            is_women_friendly: form.is_women_friendly ? 1 : 0,
-            is_recurring: form.is_recurring ? 1 : 0,
-        };
+        const formData = new FormData();
+        Object.keys(form).forEach(key => {
+            if (key === 'is_beginner_friendly' || key === 'is_women_friendly' || key === 'is_recurring') {
+                formData.append(key, form[key] ? '1' : '0');
+            } else if (key === 'gpx_file') {
+                if (form[key]) {
+                    formData.append(key, form[key]);
+                }
+            } else if (form[key] !== null && form[key] !== undefined) {
+                formData.append(key, form[key]);
+            }
+        });
 
         let res;
         if (props.editThread) {
-            res = await axios.put(`/api/run-connect/threads/${props.editThread.id}`, payload);
+            formData.append('_method', 'PUT');
+            res = await axios.post(`/api/run-connect/threads/${props.editThread.id}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             emit('updated', res.data.thread);
         } else {
-            res = await axios.post('/api/run-connect/threads', payload);
+            res = await axios.post('/api/run-connect/threads', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             emit('created', res.data.thread);
         }
         resetForm();
@@ -628,6 +668,18 @@ const typeColors = {
                 <div v-if="step === 4" class="space-y-4">
                     <h4 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-2">Catatan Rute & Publikasi</h4>
                     
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 dark:text-slate-555 uppercase mb-2">Upload Rute (GPX / FIT)</label>
+                        <input 
+                            type="file" 
+                            accept=".gpx,.fit"
+                            @change="e => form.gpx_file = e.target.files[0]"
+                            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2 text-sm text-slate-800 dark:text-slate-200 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-[#ccff00]/10 dark:file:text-[#ccff00] dark:hover:file:bg-[#ccff00]/20"
+                        />
+                        <p class="text-[10px] text-slate-400 mt-1">Opsional: Upload file rute agar peserta bisa melihat rute di peta atau mendownloadnya ke smartwatch mereka.</p>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-bold text-slate-400 dark:text-slate-550 uppercase mb-2">Tautan Rute (Opsional)</label>
                         <input 

@@ -69,6 +69,17 @@ class RunConnectController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        if ($request->has('start_date') && $request->has('start_time')) {
+            try {
+                $startDateTime = \Carbon\Carbon::parse($request->start_date . ' ' . $request->start_time);
+                if ($startDateTime->lessThanOrEqualTo(now()->addMinutes(1))) {
+                    return response()->json(['errors' => ['start_time' => ['Waktu mulai acara lari harus di masa depan (minimal 1 menit dari sekarang).']]], 422);
+                }
+            } catch (\Exception $e) {
+                // Ignore parse errors, let standard validation handle it
+            }
+        }
+
         $query = RunThread::with(['creator', 'participants' => function($q) {
             $q->whereIn('status', ['joined', 'pending'])->with('user');
         }]);
@@ -258,20 +269,44 @@ class RunConnectController extends Controller
             'quota' => 'required|integer|min:2|max:100',
             'visibility' => 'required|string|in:public,community',
             'is_beginner_friendly' => 'boolean',
-            'is_women_friendly' => 'boolean',
-            'is_recurring' => 'boolean',
+            'is_women_friendly' => 'boolean',            'is_recurring' => 'boolean',
             'notes' => 'nullable|string|max:500',
+            'gpx_file' => 'nullable|file|max:5120',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        if ($request->has('start_date') && $request->has('start_time')) {
+            try {
+                $startDateTime = \Carbon\Carbon::parse($request->start_date . ' ' . $request->start_time);
+                if ($startDateTime->lessThanOrEqualTo(now()->addMinutes(1))) {
+                    return response()->json(['errors' => ['start_time' => ['Waktu mulai acara lari harus di masa depan (minimal 1 menit dari sekarang).']]], 422);
+                }
+            } catch (\Exception $e) {
+                // Ignore parse errors, let standard validation handle it
+            }
+        }
+
         $data = $validator->validated();
         $data['creator_id'] = Auth::id();
         $data['status'] = 'open';
 
+        // Extract gpx_file from data before creating
+        $gpxFile = null;
+        if ($request->hasFile('gpx_file')) {
+            $gpxFile = $request->file('gpx_file');
+            unset($data['gpx_file']);
+        }
+
         $thread = RunThread::create($data);
+
+        // Store GPX file if provided
+        if ($gpxFile) {
+            $path = $gpxFile->store('gpx', 'public');
+            $thread->update(['gpx_file_path' => '/storage/' . $path]);
+        }
 
         // Creator automatically joins the thread
         RunThreadParticipant::create([
@@ -470,6 +505,17 @@ class RunConnectController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        if ($request->has('start_date') && $request->has('start_time')) {
+            try {
+                $startDateTime = \Carbon\Carbon::parse($request->start_date . ' ' . $request->start_time);
+                if ($startDateTime->lessThanOrEqualTo(now()->addMinutes(1))) {
+                    return response()->json(['errors' => ['start_time' => ['Waktu mulai acara lari harus di masa depan (minimal 1 menit dari sekarang).']]], 422);
+                }
+            } catch (\Exception $e) {
+                // Ignore parse errors, let standard validation handle it
+            }
+        }
+
         RunThreadReport::create([
             'run_thread_id' => $id,
             'reporter_id' => Auth::id(),
@@ -496,6 +542,17 @@ class RunConnectController extends Controller
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        if ($request->has('start_date') && $request->has('start_time')) {
+            try {
+                $startDateTime = \Carbon\Carbon::parse($request->start_date . ' ' . $request->start_time);
+                if ($startDateTime->lessThanOrEqualTo(now()->addMinutes(1))) {
+                    return response()->json(['errors' => ['start_time' => ['Waktu mulai acara lari harus di masa depan (minimal 1 menit dari sekarang).']]], 422);
+                }
+            } catch (\Exception $e) {
+                // Ignore parse errors, let standard validation handle it
+            }
         }
 
         $lat = (float) $request->latitude;
@@ -640,6 +697,44 @@ class RunConnectController extends Controller
             'data' => $msg->load('user:id,name,avatar')
         ]);
     }
+    /**
+     * Generate an AI description for a run thread
+     */
+    public function generateAiDescription(Request $request, \App\Services\OpenAiService $openAiService)
+    {
+        $request->validate([
+            'title' => 'required|string|max:100',
+            'type' => 'nullable|string',
+            'distance' => 'nullable|numeric'
+        ]);
+
+        $title = $request->input('title');
+        $type = $request->input('type', 'Casual Run');
+        $distance = $request->input('distance', 0);
+        
+        $prompt = "Tolong buatkan deskripsi singkat, menarik, dan friendly untuk acara lari bersama (running thread). ";
+        $prompt .= "Judul: {$title}. Tipe Lari: {$type}. ";
+        if ($distance > 0) {
+            $prompt .= "Jarak: {$distance} km. ";
+        }
+        $prompt .= "Tuliskan dalam 2-3 paragraf pendek. Gunakan bahasa Indonesia kasual, semangat, mengundang orang untuk ikut, dan sebutkan bahwa ini terbuka untuk komunitas. Tidak perlu berlebihan, cukup padat dan jelas.";
+        
+        $system = "Anda adalah asisten AI Ruang Lari yang bertugas menulis deskripsi acara lari yang asyik dan memotivasi. Dilarang menggunakan format markdown rumit, cukup teks biasa dengan enter/paragraf, dan gunakan emoji secukupnya.";
+        
+        try {
+            $description = $openAiService->getAiResponseOrThrow($prompt, $system);
+            
+            // Clean markdown tags if OpenAI accidentally returns them
+            $description = preg_replace('/^```(?:html|text)?\s*/i', '', $description);
+            $description = preg_replace('/```$/', '', $description);
+            $description = trim($description);
+            
+            return response()->json(['description' => $description]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Gagal generate AI: ' . $e->getMessage()], 500);
+        }
+    }
+
 
     /**
      * Upload GPX file for a thread (creator only)
@@ -812,13 +907,24 @@ class RunConnectController extends Controller
             'quota' => 'required|integer|min:2|max:100',
             'visibility' => 'required|string|in:public,community',
             'is_beginner_friendly' => 'boolean',
-            'is_women_friendly' => 'boolean',
-            'is_recurring' => 'boolean',
+            'is_women_friendly' => 'boolean',            'is_recurring' => 'boolean',
             'notes' => 'nullable|string|max:500',
+            'gpx_file' => 'nullable|file|max:5120',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        if ($request->has('start_date') && $request->has('start_time')) {
+            try {
+                $startDateTime = \Carbon\Carbon::parse($request->start_date . ' ' . $request->start_time);
+                if ($startDateTime->lessThanOrEqualTo(now()->addMinutes(1))) {
+                    return response()->json(['errors' => ['start_time' => ['Waktu mulai acara lari harus di masa depan (minimal 1 menit dari sekarang).']]], 422);
+                }
+            } catch (\Exception $e) {
+                // Ignore parse errors, let standard validation handle it
+            }
         }
 
         $thread->update($validator->validated());
