@@ -2611,6 +2611,33 @@ createApp({
                 });
             } catch (e) {
             }
+
+            window.addEventListener('open-strava-detail', (e) => {
+                const data = e.detail;
+                if (data && data.id) {
+                    showStravaAnalysisModal.value = false;
+                    showVdotModal.value = false;
+                    showFormModal.value = false;
+                    showRaceModal.value = false;
+                    
+                    detailTitle.value = data.name || 'Strava Activity';
+                    detail.type = 'strava_activity';
+                    detail.description = data.name || null;
+                    detail.strava_activity_id = data.id;
+                    detail.date = data.date || null;
+                    
+                    stravaDetailsLoading.value = false;
+                    stravaDetailsError.value = '';
+                    detail.strava_metrics = null;
+                    detail.strava_splits = [];
+                    detail.strava_laps = [];
+                    detail.actual_pace = null;
+                    detail.ai_analysis = null;
+
+                    loadStravaDetails(data.id);
+                    showDetailModal.value = true;
+                }
+            });
         });
 
         // Strava AI Analysis (Strava MCP) State

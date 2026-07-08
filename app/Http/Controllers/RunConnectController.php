@@ -23,7 +23,10 @@ class RunConnectController extends Controller
      */
     public function index(Request $request)
     {
-        $viewData = [];
+        $viewData = [
+            'meta_image' => 'https://ruanglari.com/storage/blog/media/Eg6tJAZfqg7uRUqFufYDcPdFzd1uCJy1Uad4A2xg.webp'
+        ];
+
         if ($request->has('thread')) {
             $threadParam = $request->query('thread');
             // Extract ID from slug format (e.g. "5-lari-pagi")
@@ -33,7 +36,6 @@ class RunConnectController extends Controller
             if ($thread) {
                 $viewData['meta_title'] = $thread->title . ' | Run Connect RuangLari';
                 $viewData['meta_description'] = 'Jadwal Lari: ' . \Carbon\Carbon::parse($thread->start_date)->translatedFormat('l, d F Y') . ' jam ' . $thread->start_time . ' di ' . $thread->start_location_name . '. Jarak ' . $thread->run_distance_km . 'km.';
-                $viewData['meta_image'] = url('/images/ruanglari-512x512.png'); // Default OpenGraph image
             }
         }
 

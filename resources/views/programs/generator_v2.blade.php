@@ -262,6 +262,7 @@
                                     <option value="10k">10K</option>
                                     <option value="21k">Half Marathon</option>
                                     <option value="42k">Full Marathon</option>
+                                    <option value="cooper12">Cooper 12 Min</option>
                                 </select>
                             </div>
                             <div class="space-y-2">
@@ -503,14 +504,16 @@
                 '5k': 5,
                 '10k': 10,
                 '21k': 21.0975,
-                '42k': 42.195
+                '42k': 42.195,
+                'cooper12': 3.2
             };
 
             const distanceMeters = {
                 '5k': 5000,
                 '10k': 10000,
                 '21k': 21097.5,
-                '42k': 42195
+                '42k': 42195,
+                'cooper12': 3200
             };
 
             const getRatioForDistance = (distanceKey, vdot) => {
@@ -518,7 +521,8 @@
                     '5k': 0.957,
                     '10k': 0.915,
                     '21k': 0.865,
-                    '42k': 0.815
+                    '42k': 0.815,
+                    'cooper12': 0.99
                 };
                 const base = ratios[distanceKey] ?? 0.957;
                 return base + (vdot - 50) * 0.0005;
@@ -585,7 +589,8 @@
                     '5k': 0.06,
                     '10k': 0.05,
                     '21k': 0.04,
-                    '42k': 0.03
+                    '42k': 0.03,
+                    'cooper12': 0.07
                 };
                 const levelFactor = {
                     'beginner': 0.85,

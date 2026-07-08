@@ -454,6 +454,10 @@
                 if (session.duration) {
                     content += '<p><strong>Durasi:</strong> ' + session.duration + '</p>';
                 }
+                if (session.target_pace) {
+                    var cleanPace = session.target_pace.replace('@ ', '');
+                    content += '<p><strong>Target Pace:</strong> <span class="badge bg-primary text-white" style="background-color: var(--neon); color: #0b1220 !important;">' + cleanPace + '</span></p>';
+                }
                 if (props.difficulty) {
                     content += '<p><strong>Kesulitan:</strong> <span class="difficulty-badge difficulty-' + props.difficulty + '">' + props.difficulty.toUpperCase() + '</span></p>';
                 }
@@ -481,6 +485,10 @@
                 }
                 if (workout.duration) {
                     content += '<p><strong>Durasi:</strong> ' + workout.duration + '</p>';
+                }
+                if (workout.target_pace) {
+                    var cleanPace = workout.target_pace.replace('@ ', '');
+                    content += '<p><strong>Target Pace:</strong> <span class="badge bg-primary text-white" style="background-color: var(--neon); color: #0b1220 !important;">' + cleanPace + '</span></p>';
                 }
                 if (workout.difficulty) {
                     content += '<p><strong>Kesulitan:</strong> <span class="difficulty-badge difficulty-' + workout.difficulty + '">' + workout.difficulty.toUpperCase() + '</span></p>';
@@ -600,6 +608,10 @@
             }
             if (plan.duration) {
                 content += '<p><strong>Durasi:</strong> ' + plan.duration + '</p>';
+            }
+            if (plan.target_pace) {
+                var cleanPace = plan.target_pace.replace('@ ', '');
+                content += '<p><strong>Target Pace:</strong> <span class="badge bg-primary text-white" style="background-color: var(--neon); color: #0b1220 !important;">' + cleanPace + '</span></p>';
             }
             if (plan.program_difficulty) {
                 content += '<p><strong>Kesulitan:</strong> <span class="difficulty-badge difficulty-' + plan.program_difficulty + '">' + plan.program_difficulty.toUpperCase() + '</span></p>';

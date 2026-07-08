@@ -826,7 +826,7 @@
                                 <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Recent</div>
                                 <div class="space-y-2">
                                     @foreach($recentStravaActivities as $act)
-                                        <div class="bg-slate-900/40 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between" style="border-left: 3px solid {{ $act->border_color }};">
+                                        <div onclick="window.dispatchEvent(new CustomEvent('open-strava-detail', {detail: {id: '{{ $act->strava_activity_id }}', name: {{ Js::from($act->name) }}, date: '{{ $act->start_date ? $act->start_date->format('Y-m-d') : '' }}'}}))" class="bg-slate-900/40 border border-slate-700/60 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-slate-800 transition shadow-sm hover:shadow-neon/10" style="border-left: 3px solid {{ $act->border_color }};">
                                             <div class="flex items-center gap-3 min-w-0">
                                                 <div class="text-xl">{{ $act->icon }}</div>
                                                 <div class="min-w-0">
@@ -931,6 +931,7 @@
                                 <option value="10k">10K</option>
                                 <option value="21k">Half Marathon</option>
                                 <option value="42k">Full Marathon</option>
+                                <option value="cooper12">Cooper 12 Min</option>
                             </select>
                         </div>
                         <div class="space-y-1">
@@ -1529,7 +1530,8 @@
                     '5k': 5000,
                     '10k': 10000,
                     '21k': 21097.5,
-                    '42k': 42195
+                    '42k': 42195,
+                    'cooper12': 3200
                 };
             },
 
@@ -1538,7 +1540,8 @@
                     '5k': 0.957,
                     '10k': 0.915,
                     '21k': 0.865,
-                    '42k': 0.815
+                    '42k': 0.815,
+                    'cooper12': 0.99
                 };
                 const base = ratios[distanceKey] ?? 0.957;
                 return base + (vdot - 50) * 0.0005;
@@ -1605,7 +1608,8 @@
                     '5k': 0.06,
                     '10k': 0.05,
                     '21k': 0.04,
-                    '42k': 0.03
+                    '42k': 0.03,
+                    'cooper12': 0.07
                 };
                 const levelFactor = {
                     'beginner': 0.85,
@@ -1660,7 +1664,7 @@
             },
 
             get idealMileage() {
-                const map = { '5k': 30, '10k': 45, '21k': 65, '42k': 85 };
+                const map = { '5k': 30, '10k': 45, '21k': 65, '42k': 85, 'cooper12': 20 };
                 const levelFactor = {
                     'beginner': 0.9,
                     'intermediate': 1,

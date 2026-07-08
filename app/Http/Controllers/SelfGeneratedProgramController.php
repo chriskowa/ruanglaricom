@@ -136,7 +136,7 @@ class SelfGeneratedProgramController extends Controller
         $validated = $request->validate([
             'pb_distance' => 'required|in:5k,10k,21k,42k',
             'pb_time' => 'required|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
-            'target_distance' => 'required|in:5k,10k,21k,42k',
+            'target_distance' => 'required|in:5k,10k,21k,42k,cooper12',
             'target_date' => 'required|date|after_or_equal:today',
             'goal_time' => 'required|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
             'weekly_mileage' => 'required|numeric|min:5|max:200',
@@ -156,30 +156,31 @@ class SelfGeneratedProgramController extends Controller
             $currentVdot = $this->danielsService->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
             $targetVdot = $this->danielsService->calculateVDOT($validated['goal_time'], $validated['target_distance']);
             
-            // Limit the improvement to a realistic level based on runner level
-            $maxVdotImprovement = 3.0;
+            // Limit the improvement to a realistic level based on percentage of current VDOT
+            $maxVdotImprovementPercent = 0.08; // 8% for intermediate
             if ($validated['runner_level'] === 'beginner') {
-                $maxVdotImprovement = 2.0;
+                $maxVdotImprovementPercent = 0.06;
             } elseif ($validated['runner_level'] === 'advanced') {
-                $maxVdotImprovement = 4.0;
+                $maxVdotImprovementPercent = 0.10;
             }
-            $safeTargetVdot = min($targetVdot, $currentVdot + $maxVdotImprovement);
+            $safeTargetVdot = min($targetVdot, $currentVdot * (1 + $maxVdotImprovementPercent));
 
             $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
             // Calculate base and adjusted training paces
             $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
             if ($isTropical) {
-                $paces['E'] += 0.25;  // +15s/km
-                $paces['M'] += 0.20;  // +12s/km
-                $paces['T'] += 0.167; // +10s/km
-                $paces['I'] += 0.133; // +8s/km
-                $paces['R'] += 0.083; // +5s/km
+                // Tropical offset: +5% for E/M, +4% for T, +3% for I, +2% for R
+                $paces['E'] *= 1.05;
+                $paces['M'] *= 1.05;
+                $paces['T'] *= 1.04;
+                $paces['I'] *= 1.03;
+                $paces['R'] *= 1.02;
             }
 
-            // Calculate target Heart Rate zones based on age (Haskell & Fox formula: 220 - age)
+            // Calculate target Heart Rate zones based on age (Tanaka formula: 208 - 0.7 * age)
             $age = (int) $validated['age'];
-            $maxHr = 220 - $age;
+            $maxHr = (int) round(208 - (0.7 * $age));
             $hrZones = [
                 'E' => [
                     'min' => (int) round($maxHr * 0.60),
@@ -508,6 +509,12 @@ class SelfGeneratedProgramController extends Controller
         $longRunDay = $config['long_run_day'] ?? 'sunday';
         $isTropical = $config['is_tropical'] ?? false;
 
+        if ($targetDistance === 'cooper12') {
+            $libraryPath = config_path('workout_library.php');
+            $library = file_exists($libraryPath) ? include($libraryPath) : [];
+            return $this->buildCooper12Program($config, $library);
+        }
+
         // Adjust training frequency by level to optimize recovery and prevent injuries
         if ($runnerLevel === 'beginner') {
             $frequency = min($frequency, 4);
@@ -540,10 +547,18 @@ class SelfGeneratedProgramController extends Controller
         $sessions = [];
         $dayCount = 1;
 
-        // Phases: 25% Base, 25% Strength, 40% Speed, 10% Taper
-        $p1 = (int)($weeks * 0.25);
-        $p2 = (int)($weeks * 0.25);
-        $p3 = (int)($weeks * 0.40);
+        // Dynamic Phases based on Target Distance
+        if ($targetDistance === '42k') {
+            $baseRatio = 0.40; $strengthRatio = 0.30; $speedRatio = 0.20;
+        } elseif ($targetDistance === '21k') {
+            $baseRatio = 0.30; $strengthRatio = 0.30; $speedRatio = 0.30;
+        } else {
+            $baseRatio = 0.20; $strengthRatio = 0.30; $speedRatio = 0.40;
+        }
+
+        $p1 = (int)($weeks * $baseRatio);
+        $p2 = (int)($weeks * $strengthRatio);
+        $p3 = (int)($weeks * $speedRatio);
 
         $deltaVdot = $targetVdot - $initialVdot;
         $strengthStart = $p1 + 1;
@@ -573,11 +588,11 @@ class SelfGeneratedProgramController extends Controller
 
             $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
             if ($isTropical) {
-                $paces['E'] += 0.25;
-                $paces['M'] += 0.20;
-                $paces['T'] += 0.167;
-                $paces['I'] += 0.133;
-                $paces['R'] += 0.083;
+                $paces['E'] *= 1.05;
+                $paces['M'] *= 1.05;
+                $paces['T'] *= 1.04;
+                $paces['I'] *= 1.03;
+                $paces['R'] *= 1.02;
             }
 
             $currentMileage = $mileage;
@@ -586,12 +601,15 @@ class SelfGeneratedProgramController extends Controller
 
             $isDeload = ($w % 4 === 0);
 
-            // Determine long run distance (standard ratio)
-            $longRunRatio = 0.24;
+            // Determine long run distance (dynamic ratio and floor)
+            $longRunRatio = 0.20;
+            $minLongRunFloor = 5.0;
             if ($targetDistance === '42k') {
                 $longRunRatio = 0.30;
+                $minLongRunFloor = 18.0;
             } elseif ($targetDistance === '21k') {
-                $longRunRatio = 0.26;
+                $longRunRatio = 0.25;
+                $minLongRunFloor = 12.0;
             }
             $longRunDistance = round($currentMileage * $longRunRatio, 1);
             $longRunDistance = min($longRunDistance, round($currentMileage * 0.35, 1));
@@ -601,6 +619,16 @@ class SelfGeneratedProgramController extends Controller
                 $longRunDistance = round($longRunDistance * 0.9, 1);
             } elseif ($runnerLevel === 'advanced') {
                 $longRunDistance = round($longRunDistance * 1.1, 1);
+            }
+
+            // Apply Long Run Floor
+            $mileageWarning = false;
+            if ($longRunDistance < $minLongRunFloor) {
+                $longRunDistance = $minLongRunFloor;
+                // If it forces long run to be > 40% of weekly mileage, flag warning
+                if ($longRunDistance > $currentMileage * 0.40) {
+                    $mileageWarning = true;
+                }
             }
 
             // Determine how many quality sessions to schedule this week
@@ -702,6 +730,7 @@ class SelfGeneratedProgramController extends Controller
                     'type' => 'rest',
                     'description' => 'Rest Day',
                     'distance' => 0,
+                    'duration' => null,
                     'target_pace' => null
                 ];
 
@@ -709,29 +738,49 @@ class SelfGeneratedProgramController extends Controller
                     $session['type'] = 'long_run';
                     $session['distance'] = $longRunDistance;
                     $session['target_pace'] = $this->formatPace($paces['E']);
+                    $session['duration'] = $this->calculateDuration($longRunDistance, $paces['E']);
+                    
+                    $paceFast = max(0, $paces['E'] - (5/60));
+                    $paceSlow = $paces['E'] + (10/60);
+                    $rangeStr = sprintf('%d:%02d - %d:%02d/km', floor($paceFast), round(($paceFast - floor($paceFast))*60), floor($paceSlow), round(($paceSlow - floor($paceSlow))*60));
+                    
                     $session['description'] = $isDeload 
-                        ? 'Long Easy Run (De-load) - Berlari santai dengan volume dikurangi untuk pemulihan.'
-                        : 'Long Easy Run - Fokus pada daya tahan kardio.';
+                        ? "Long Easy Run (De-load) - Berlari santai dengan volume dikurangi untuk pemulihan.\nTarget: $rangeStr (RPE 3-4)"
+                        : "Long Easy Run - Fokus pada daya tahan kardio.\nTarget: $rangeStr (RPE 3-4)";
+                        
+                    if (isset($mileageWarning) && $mileageWarning) {
+                        $session['description'] .= "\n\n[WARNING: Weekly mileage Anda terlalu rendah untuk mengadaptasi jarak lari ini dengan optimal. Kami telah memaksakan batas minimal untuk Long Run ini.]";
+                    }
                 } elseif ($assignment['type'] === 'quality') {
                     $workout = $assignment['workout'];
                     $scaledMainSet = $this->scaleWorkoutVolume($workout['main_set'], $volumeFactor);
 
                     $workoutPaceKey = 'E';
+                    $rpe = '3-4';
                     if ($workout['type'] === 'interval') {
                         $workoutPaceKey = 'I';
+                        $rpe = '9-10';
                     } elseif ($workout['type'] === 'threshold' || $workout['type'] === 'progression') {
                         $workoutPaceKey = 'T';
+                        $rpe = '7-8';
                     } elseif ($workout['type'] === 'marathon_pace') {
                         $workoutPaceKey = 'M';
+                        $rpe = '5-6';
                     } elseif ($workout['type'] === 'repetition') {
                         $workoutPaceKey = 'R';
+                        $rpe = '9-10';
                     }
                     
                     $targetPaceStr = $this->formatPace($paces[$workoutPaceKey]);
+                    $session['duration'] = $this->calculateDuration($qualityDistances[$d], $paces[$workoutPaceKey]);
+                    
+                    $paceFast = max(0, $paces[$workoutPaceKey] - (5/60));
+                    $paceSlow = $paces[$workoutPaceKey] + (10/60);
+                    $rangeStr = sprintf('%d:%02d - %d:%02d/km', floor($paceFast), round(($paceFast - floor($paceFast))*60), floor($paceSlow), round(($paceSlow - floor($paceSlow))*60));
                     
                     $mainSetText = str_replace(
                         ['{distance_km}', '{target_pace}'],
-                        [$scaledMainSet, $targetPaceStr],
+                        [$scaledMainSet, $rangeStr . " (RPE $rpe)"],
                         $scaledMainSet
                     );
 
@@ -743,7 +792,7 @@ class SelfGeneratedProgramController extends Controller
                         "Main Set: " . $mainSetText,
                         "Recovery: " . $workout['recovery'],
                         "Cool Down: " . $coolDownText,
-                        "Intensity: " . ($workout['intensity'] ?? 'Target pace'),
+                        "Intensity: " . ($workout['intensity'] ?? "Target pace: $rangeStr (RPE $rpe)"),
                         "Reason: " . ($workout['best_for'] ?? $workout['focus'] ?? 'Meningkatkan performa lari') . " (" . ($workout['focus'] ?? '') . ")"
                     ];
 
@@ -757,10 +806,17 @@ class SelfGeneratedProgramController extends Controller
                     $session['type'] = $assignment['type'];
                     $session['distance'] = $easyDistance;
                     $session['target_pace'] = $this->formatPace($paces['E']);
+                    $session['duration'] = $this->calculateDuration($easyDistance, $paces['E']);
+                    
+                    $paceFast = max(0, $paces['E'] - (5/60));
+                    $paceSlow = $paces['E'] + (10/60);
+                    $rangeStr = sprintf('%d:%02d - %d:%02d/km', floor($paceFast), round(($paceFast - floor($paceFast))*60), floor($paceSlow), round(($paceSlow - floor($paceSlow))*60));
+                    
                     $session['description'] = $assignment['type'] === 'recovery_run'
-                        ? ($isDeload ? 'Recovery Run (De-load) - Lari pemulihan sangat santai.' : 'Recovery Run - Membantu pemulihan otot pasca latihan keras.')
-                        : 'Easy Aerobic Run - Membangun daya tahan dasar.';
+                        ? ($isDeload ? "Recovery Run (De-load) - Lari pemulihan sangat santai.\nTarget: $rangeStr (RPE < 3)" : "Recovery Run - Membantu pemulihan otot pasca latihan keras.\nTarget: $rangeStr (RPE < 3)")
+                        : "Easy Aerobic Run - Membangun daya tahan dasar.\nTarget: $rangeStr (RPE 3-4)";
                 } else {
+                    $session['duration'] = '00:00:00';
                     if ($runnerLevel === 'beginner') {
                         $session['description'] = 'Rest Day - Istirahat total atau peregangan otot ringan untuk pemulihan.';
                     } elseif ($runnerLevel === 'intermediate') {
@@ -888,6 +944,16 @@ class SelfGeneratedProgramController extends Controller
         return sprintf('@ %d:%02d/km', $m, $s);
     }
 
+    private function calculateDuration(float $distanceKm, float $paceMinPerKm): string
+    {
+        $totalSeconds = round($distanceKm * $paceMinPerKm * 60);
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        $seconds = $totalSeconds % 60;
+
+        return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+    }
+
     private function improveProgramSessionsWithAi(array $sessions, array $context): array
     {
         $hasKey = (bool) (config('services.openai.api_key') ?: env('OPENAI_API_KEY'));
@@ -1002,6 +1068,162 @@ class SelfGeneratedProgramController extends Controller
             Log::warning('AI refine generator_v2 failed: '.$e->getMessage());
             return $sessions;
         }
+    }
+
+    private function buildCooper12Program(array $config, array $library)
+    {
+        $weeks = $config['weeks'];
+        $frequency = $config['frequency'];
+        $mileage = $config['weekly_mileage'];
+        $runnerLevel = $config['runner_level'] ?? 'intermediate';
+        $longRunDay = $config['long_run_day'] ?? 'sunday';
+        
+        $hardSessionsCount = 1;
+        if ($runnerLevel === 'intermediate') {
+            $hardSessionsCount = rand(1, 2);
+        } elseif ($runnerLevel === 'advanced') {
+            $hardSessionsCount = 2;
+        }
+
+        $cooperWorkouts = collect($library['COOPER_12_MIN_GENERAL'] ?? [])->keyBy('id');
+        
+        $sessions = [];
+        $dayCount = 1;
+        $totalDistance = 0;
+        $totalSessions = 0;
+        $maxLongRun = 0;
+        $peakMileage = 0;
+
+        $longRunDayIndex = $longRunDay === 'saturday' ? 6 : 7;
+        
+        // 1-based index mapping for 8-week cycle
+        $primaryWorkouts = [
+            1 => 'cooper12_3x6min_threshold',
+            2 => 'cooper12_8x400_target_pace',
+            3 => 'cooper12_5x600_overpace',
+            4 => 'cooper12_full_12min_time_trial',
+            5 => 'cooper12_6x800_target_effort',
+            6 => 'cooper12_4x1000_controlled',
+            7 => 'cooper12_3x1200_race_pressure',
+            0 => 'cooper12_12x200_sharpening', // week 8 maps to 0 for mod 8
+        ];
+
+        $secondaryWorkouts = [
+            'cooper12_hill_10x30sec',
+            'cooper12_10x300_fast_relaxed',
+            'cooper12_20min_threshold'
+        ];
+
+        for ($w = 1; $w <= $weeks; $w++) {
+            $mod = $w % 8;
+            $primaryId = $primaryWorkouts[$mod];
+            
+            $currentMileage = $mileage;
+            if ($w % 4 === 0) $currentMileage *= 0.8;
+            
+            $peakMileage = max($peakMileage, $currentMileage);
+            
+            $longRunDistance = min(round($currentMileage * 0.25, 1), 12);
+            $maxLongRun = max($maxLongRun, $longRunDistance);
+            
+            $activeDays = [];
+            if ($frequency >= 3) {
+                $activeDays = [2, 4, $longRunDayIndex];
+            }
+            if ($frequency >= 4) {
+                $activeDays = [2, 4, 5, $longRunDayIndex];
+            }
+            if ($frequency >= 5) {
+                $activeDays = [2, 3, 4, 5, $longRunDayIndex];
+            }
+            if ($frequency >= 6) {
+                $activeDays = [1, 2, 3, 4, 5, $longRunDayIndex];
+            }
+            if ($frequency === 7) {
+                $activeDays = [1, 2, 3, 4, 5, 6, 7];
+            }
+            
+            $qualityDaysAssigned = 0;
+
+            for ($d = 1; $d <= 7; $d++) {
+                if (!in_array($d, $activeDays)) {
+                    if ($d === 1 || $d === 3) {
+                        $sessions[] = [
+                            'day' => $dayCount,
+                            'date_offset' => $dayCount - 1,
+                            'type' => 'strength',
+                            'distance' => null,
+                            'duration' => '30 mins',
+                            'description' => "Strength training: squat, calf raise, lunge, plank, hip bridge, plyometric ringan.",
+                            'workout_id' => null,
+                            'target_pace' => null
+                        ];
+                        $totalSessions++;
+                    }
+                    $dayCount++;
+                    continue;
+                }
+
+                $type = 'easy_run';
+                $dist = round($currentMileage * 0.15, 1);
+                $desc = "Easy run. Jaga detak jantung tetap rendah.";
+                $wId = null;
+
+                if ($d === $longRunDayIndex) {
+                    $type = 'long_run';
+                    $dist = $longRunDistance;
+                    $desc = "Long run santai. Bangun aerobic base.";
+                    
+                    if ($w === $weeks) {
+                        $type = 'time_trial';
+                        $dist = 3.2;
+                        $desc = "Tes 12 Menit Cooper (Target 3200m - 3400m)";
+                        $wId = 'cooper12_full_12min_time_trial';
+                    }
+                } elseif ($qualityDaysAssigned === 0 && $d === 2) {
+                    $wData = $cooperWorkouts->get($primaryId);
+                    $type = $wData['type'] ?? 'interval';
+                    $dist = round($currentMileage * 0.2, 1);
+                    $desc = ($wData['name'] ?? '') . "\n" . ($wData['main_set'] ?? '') . "\n" . ($wData['intensity'] ?? '') . "\n" . ($wData['note'] ?? '');
+                    $wId = $primaryId;
+                    $qualityDaysAssigned++;
+                } elseif ($qualityDaysAssigned < $hardSessionsCount && $d === 4) {
+                    $secId = $secondaryWorkouts[array_rand($secondaryWorkouts)];
+                    $wData = $cooperWorkouts->get($secId);
+                    $type = $wData['type'] ?? 'interval';
+                    $dist = round($currentMileage * 0.2, 1);
+                    $desc = ($wData['name'] ?? '') . "\n" . ($wData['main_set'] ?? '') . "\n" . ($wData['intensity'] ?? '') . "\n" . ($wData['note'] ?? '');
+                    $wId = $secId;
+                    $qualityDaysAssigned++;
+                }
+
+                $sessions[] = [
+                    'day' => $dayCount,
+                    'date_offset' => $dayCount - 1,
+                    'type' => $type,
+                    'distance' => $dist,
+                    'duration' => null,
+                    'description' => $desc,
+                    'workout_id' => $wId,
+                    'target_pace' => null
+                ];
+
+                $totalDistance += (float) $dist;
+                $totalSessions++;
+                $dayCount++;
+            }
+        }
+
+        return [
+            'sessions' => $sessions,
+            'summary' => [
+                'total_weeks' => $weeks,
+                'total_distance' => round($totalDistance, 1),
+                'total_sessions' => $totalSessions,
+                'max_long_run' => round($maxLongRun, 1),
+                'peak_mileage' => round($peakMileage, 1)
+            ]
+        ];
     }
 
     private function generateUniqueSlug(string $title, ?int $excludeId = null): string

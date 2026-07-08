@@ -74,6 +74,7 @@ class DanielsRunningService
             '10k' => 0.915,   // ~91.5% of vVO2max
             '21k' => 0.865,   // ~86.5% of vVO2max
             '42k' => 0.815,   // ~81.5% of vVO2max
+            'cooper12' => 0.99, // ~99% of vVO2max for 12 mins
         ];
 
         // Normalize key
@@ -106,6 +107,7 @@ class DanielsRunningService
             '10k' => 10000,
             '21k' => 21097.5,
             '42k' => 42195,
+            'cooper12' => 3200,
         ];
 
         return $distances[$distance] ?? 5000;
