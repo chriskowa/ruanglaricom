@@ -1283,7 +1283,7 @@
         
         <!-- Tab Content Strava (Iframe loader) -->
         <div id="tab-content-strava" class="tab-content mt-6 hidden">
-            <iframe id="strava-iframe" src="/calendar?embed=1#strava" class="w-full min-h-[800px] border-0 bg-transparent" scrolling="no"></iframe>
+            <iframe id="strava-iframe" data-src="/calendar?embed=1#strava" src="" class="w-full min-h-[800px] border-0 bg-transparent" scrolling="no"></iframe>
         </div>
 
     </div> <!-- closes max-w-7xl mx-auto -->
@@ -1908,6 +1908,14 @@
             setTimeout(() => {
                 window.dispatchEvent(new Event('resize'));
             }, 100);
+        }
+
+        // Lazy load Strava iframe
+        if (tabName === 'strava') {
+            const iframe = document.getElementById('strava-iframe');
+            if (iframe && !iframe.getAttribute('src')) {
+                iframe.setAttribute('src', iframe.getAttribute('data-src'));
+            }
         }
     }
 

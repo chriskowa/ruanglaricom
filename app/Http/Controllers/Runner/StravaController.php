@@ -21,6 +21,11 @@ class StravaController extends Controller
 {
     public function connect()
     {
+        $user = auth()->user();
+        if ($user && $user->strava_access_token) {
+            return redirect()->route('runner.dashboard')->with('success', 'Akun Strava Anda sudah terhubung.');
+        }
+
         $config = StravaConfig::first();
         $clientId = $config->client_id ?? env('STRAVA_CLIENT_ID');
         if (! $clientId) {
@@ -32,7 +37,7 @@ class StravaController extends Controller
             'redirect_uri' => route('runner.strava.callback'),
             'response_type' => 'code',
             'scope' => 'activity:read_all,profile:read_all,activity:write',
-            'approval_prompt' => 'auto',
+            'approval_prompt' => 'force',
             'state' => Str::random(24),
         ]);
 
