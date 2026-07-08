@@ -66,6 +66,7 @@ class RunConnectController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Illuminate\Support\Facades\Log::error('RunConnect Validation Failed: ', $validator->errors()->toArray());
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -275,6 +276,7 @@ class RunConnectController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Illuminate\Support\Facades\Log::error('RunConnect Validation Failed: ', $validator->errors()->toArray());
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -502,6 +504,7 @@ class RunConnectController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Illuminate\Support\Facades\Log::error('RunConnect Validation Failed: ', $validator->errors()->toArray());
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -541,6 +544,7 @@ class RunConnectController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Illuminate\Support\Facades\Log::error('RunConnect Validation Failed: ', $validator->errors()->toArray());
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
@@ -913,6 +917,7 @@ class RunConnectController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Illuminate\Support\Facades\Log::error('RunConnect Validation Failed: ', $validator->errors()->toArray());
             return response()->json(['errors' => $validator->errors()], 422);
         }
 

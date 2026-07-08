@@ -298,6 +298,13 @@ const nextStep = () => {
         if (!form.start_latitude || !form.start_longitude) { errors.value.coordinates = "Koordinat latitude & longitude wajib terisi."; return; }
         if (!form.start_date) { errors.value.start_date = "Tanggal start wajib diisi."; return; }
         if (!form.start_time) { errors.value.start_time = "Jam start wajib diisi."; return; }
+        
+        const now = new Date();
+        const startDateTime = new Date(`${form.start_date}T${form.start_time}:00`);
+        if (startDateTime <= new Date(now.getTime() + 60000)) {
+            errors.value.start_time = "Waktu mulai harus di masa depan (minimal 1 menit dari sekarang).";
+            return;
+        }
     } else if (step.value === 3) {
         if (!form.run_distance_km || form.run_distance_km <= 0) { errors.value.run_distance_km = "Jarak lari minimal 0.5 km."; return; }
         if (!form.quota || form.quota < 2) { errors.value.quota = "Kuota minimal 2 peserta."; return; }
@@ -421,7 +428,13 @@ const typeColors = {
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Deskripsi Singkat (Opsional)</label>
+                        <div class="flex justify-between items-end mb-2">
+                            <label class="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Deskripsi Singkat (Opsional)</label>
+                            <button type="button" @click="generateDescription" :disabled="isGeneratingAi || !form.title" class="text-[10px] flex items-center gap-1 font-bold bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50 px-2 py-1 rounded-full transition-colors disabled:opacity-50">
+                                <svg v-if="isGeneratingAi" class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>                                
+                                Generate Deskripsi
+                            </button>
+                        </div>
                         <textarea 
                             v-model="form.description" 
                             rows="3"
