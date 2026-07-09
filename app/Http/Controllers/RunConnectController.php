@@ -721,7 +721,7 @@ class RunConnectController extends Controller
         if ($distance > 0) {
             $prompt .= "Jarak: {$distance} km. ";
         }
-        $prompt .= "Tuliskan dalam 2-3 paragraf pendek. Gunakan bahasa Indonesia kasual, semangat, mengundang orang untuk ikut, dan sebutkan bahwa ini terbuka untuk komunitas. Tidak perlu berlebihan, cukup padat dan jelas.";
+        $prompt .= "Tuliskan maksimal 300 karakter. Gunakan bahasa Indonesia kasual, semangat, mengundang orang ikut. Tidak perlu berlebihan, harus padat dan jelas.";
         
         $system = "Anda adalah asisten AI Ruang Lari yang bertugas menulis deskripsi acara lari yang asyik dan memotivasi. Dilarang menggunakan format markdown rumit, cukup teks biasa dengan enter/paragraf, dan gunakan emoji secukupnya.";
         

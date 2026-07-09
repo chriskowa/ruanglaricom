@@ -329,7 +329,7 @@ const submitForm = async () => {
                 if (form[key]) {
                     formData.append(key, form[key]);
                 }
-            } else if (form[key] !== null && form[key] !== undefined) {
+            } else if (form[key] !== null && form[key] !== undefined && form[key] !== '') {
                 formData.append(key, form[key]);
             }
         });
@@ -438,9 +438,11 @@ const typeColors = {
                         <textarea 
                             v-model="form.description" 
                             rows="3"
+                            maxlength="500"
                             placeholder="Jelaskan detail rute, meeting point spesifik, atau info penting lainnya..."
                             class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-sm text-slate-800 dark:text-slate-200 outline-none focus:ring-1 focus:ring-blue-600 dark:focus:ring-[#ccff00]"
                         ></textarea>
+                        <p v-if="errors.description" class="text-xs text-red-500 mt-1">{{ Array.isArray(errors.description) ? errors.description[0] : errors.description }}</p>
                     </div>
 
                     <div>
