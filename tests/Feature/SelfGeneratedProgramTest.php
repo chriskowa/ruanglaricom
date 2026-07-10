@@ -77,8 +77,8 @@ class SelfGeneratedProgramTest extends TestCase
         $data = $response->json('data');
         $this->assertNotNull($data);
         
-        // Target VDOT should be capped at currentVdot + 2.0 (e.g. 38.3 + 2.0 = 40.3), not 43.4
-        $this->assertEquals(40.3, $data['summary']['target_vdot']);
+        // Target VDOT should be capped at currentVdot * 1.06 (38.32 * 1.06 = 40.6)
+        $this->assertEquals(40.6, $data['summary']['target_vdot']);
 
         // Check if frequency is capped at max 4 days/week for beginners
         $sessions = $data['sessions'];
@@ -115,8 +115,8 @@ class SelfGeneratedProgramTest extends TestCase
 
         $data = $response->json('data');
         
-        // Advanced allows up to +4.0 VDOT points (52.9 + 4.0 = 56.9)
-        $this->assertEquals(56.9, $data['summary']['target_vdot']);
+        // Advanced allows up to +10% improvement (52.88 * 1.10 = 58.1)
+        $this->assertEquals(58.1, $data['summary']['target_vdot']);
 
         // Advanced allows up to 6 days/week frequency if requested
         $sessions = $data['sessions'];
@@ -152,8 +152,8 @@ class SelfGeneratedProgramTest extends TestCase
         $dataTropical = $response->json('data');
 
         $this->assertArrayHasKey('hr_zones', $dataTropical);
-        $this->assertEquals(114, $dataTropical['hr_zones']['E']['min']); // (220 - 30) * 0.60 = 114
-        $this->assertEquals(150, $dataTropical['hr_zones']['E']['max']); // (220 - 30) * 0.79 = 150
+        $this->assertEquals(112, $dataTropical['hr_zones']['E']['min']); // (208 - 0.7*30) * 0.60 = 112
+        $this->assertEquals(148, $dataTropical['hr_zones']['E']['max']); // (208 - 0.7*30) * 0.79 = 148
 
         // 2. Check with tropical = false
         $postData['is_tropical'] = false;
@@ -162,6 +162,44 @@ class SelfGeneratedProgramTest extends TestCase
         $dataStandard = $response->json('data');
 
         // Tropical Easy pace should be slower (greater float value) than Standard Easy pace by 0.25 min/km (15s)
-        $this->assertEquals($dataStandard['paces']['E'] + 0.25, $dataTropical['paces']['E']);
+        $this->assertEquals(round($dataStandard['paces']['E'] * 1.05, 4), round($dataTropical['paces']['E'], 4));
+    }
+
+    public function test_generator_with_cooper_and_balke_parameter_tests(): void
+    {
+        $user = User::factory()->create();
+
+        // 1. Test Cooper 12-minute test (2800 meters)
+        $postData = [
+            'pb_distance' => 'cooper12',
+            'pb_time' => '2800', // 2800 meters
+            'target_distance' => '10k',
+            'target_date' => now()->addWeeks(12)->toDateString(),
+            'goal_time' => '50:00',
+            'weekly_mileage' => 40,
+            'frequency' => 4,
+            'runner_level' => 'intermediate',
+            'long_run_day' => 'sunday',
+            'gender' => 'male',
+            'age' => 25,
+            'is_tropical' => false,
+            'use_ai' => false,
+        ];
+
+        $response = $this->actingAs($user)->postJson(route('generator.generate'), $postData);
+        $response->assertStatus(200);
+        $response->assertJsonPath('success', true);
+        $dataCooper = $response->json('data');
+        $this->assertNotNull($dataCooper['summary']['vdot']);
+
+        // 2. Test Balke 15-minute test (3200 meters)
+        $postData['pb_distance'] = 'balke15';
+        $postData['pb_time'] = '3200'; // 3200 meters
+
+        $response = $this->actingAs($user)->postJson(route('generator.generate'), $postData);
+        $response->assertStatus(200);
+        $response->assertJsonPath('success', true);
+        $dataBalke = $response->json('data');
+        $this->assertNotNull($dataBalke['summary']['vdot']);
     }
 }

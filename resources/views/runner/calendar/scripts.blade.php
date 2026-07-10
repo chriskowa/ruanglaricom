@@ -1865,10 +1865,10 @@ const runnerCalendarApp = createApp({
                 workout_date: form.workout_date,
                 type: form.type,
                 difficulty: form.difficulty,
-                distance: form.distance || null,
-                duration: form.duration || null,
+                distance: form.type === 'rest' ? null : (form.distance || null),
+                duration: form.type === 'rest' ? null : (form.duration || null),
                 description: form.description || null,
-                workout_structure: form.workout_structure.length > 0 ? form.workout_structure : null,
+                workout_structure: (form.type !== 'rest' && form.workout_structure.length > 0) ? form.workout_structure : null,
             };
             try {
                 const res = await fetch(`{{ route('runner.calendar.custom-workout.store') }}`, {

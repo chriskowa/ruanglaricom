@@ -697,6 +697,12 @@ class CalendarController extends Controller
 
         $user = auth()->user();
 
+        if ($validated['type'] === 'rest') {
+            $validated['distance'] = null;
+            $validated['duration'] = null;
+            $validated['workout_structure'] = null;
+        }
+
         // If workout_id exists, update; otherwise upsert by date
         if (isset($validated['workout_id'])) {
             $workout = CustomWorkout::where('id', $validated['workout_id'])

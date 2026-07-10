@@ -134,8 +134,23 @@ class SelfGeneratedProgramController extends Controller
     public function generate(Request $request)
     {
         $validated = $request->validate([
-            'pb_distance' => 'required|in:5k,10k,21k,42k',
-            'pb_time' => 'required|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
+            'pb_distance' => 'required|in:5k,10k,21k,42k,cooper12,balke15',
+            'pb_time' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) use ($request) {
+                    $dist = $request->input('pb_distance');
+                    if ($dist === 'cooper12' || $dist === 'balke15') {
+                        if (!is_numeric($value) || (float)$value <= 0) {
+                            $fail('Jarak hasil tes harus berupa angka positif (meter).');
+                        }
+                    } else {
+                        if (!preg_match('/^(\d{1,2}:)?\d{1,2}:\d{2}$/', $value)) {
+                            $fail('Format waktu PB harus HH:MM:SS atau MM:SS.');
+                        }
+                    }
+                }
+            ],
             'target_distance' => 'required|in:5k,10k,21k,42k,cooper12',
             'target_date' => 'required|date|after_or_equal:today',
             'goal_time' => 'required|string|regex:/^(\d{1,2}:)?\d{1,2}:\d{2}$/',
@@ -147,7 +162,6 @@ class SelfGeneratedProgramController extends Controller
             'age' => 'required|integer|min:10|max:100',
             'is_tropical' => 'nullable|boolean',
         ], [
-            'pb_time.regex' => 'Format waktu PB harus HH:MM:SS atau MM:SS.',
             'goal_time.regex' => 'Format waktu Goal harus HH:MM:SS atau MM:SS.',
             'target_date.after_or_equal' => 'Tanggal race harus hari ini atau di masa depan.',
         ]);

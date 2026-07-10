@@ -43,16 +43,16 @@
             colors: {
                 ...(tailwind.config.theme.extend.colors || {}),
                 brand: {
-                    50: '#f7fee7',
-                    100: '#ecfccb',
-                    200: '#d9f99d',
-                    300: '#649af2ff',
-                    400: '#3570e6ff',
-                    500: '#007bffff',
-                    600: '#0062f6ff',
-                    700: '#020202ff',
-                    800: '#3f6212',
-                    900: '#365314',
+                    50: '#fcfef0',
+                    100: '#f5facc',
+                    200: '#ebf699',
+                    300: '#def066',
+                    400: '#d1e833',
+                    500: '#ccff00',  // Neon Yellow/Green
+                    600: '#b8e600',
+                    700: '#94bf00',
+                    800: '#719900',
+                    900: '#4e7300',
                 }
             }
         }
@@ -78,10 +78,11 @@
 
         .input-field {
             width: 100%;
-            padding: 0.875rem 1rem;
-            border-radius: 0.75rem;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8125rem;
+            border-radius: 0.5rem;
             border: 1px solid #334155;
-            background-color: #0f172a !important;
+            background-color: #0b0f19 !important;
             color: #f8fafc !important;
             font-weight: 500;
             outline: none;
@@ -123,7 +124,7 @@
             top: 50%;
             transform: translateY(-50%);
             pointer-events: none;
-            font-size: 1rem;
+            font-size: 0.875rem;
         }
 
         .input-field:focus {
@@ -133,10 +134,10 @@
 
         .label-text {
             display: block;
-            font-size: 11px;
-            font-weight: 900;
+            font-size: 10px;
+            font-weight: 700;
             color: #94a3b8;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.375rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
@@ -187,7 +188,7 @@
                     </p>
                     
                     <div class="flex flex-col md:flex-row gap-4 justify-center">
-                        <button @click="step = 1" class="px-10 py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold text-lg rounded-xl transition-all shadow-xl shadow-brand-500/30 hover:scale-[1.02] active:scale-[0.98]">
+                        <button @click="step = 1" class="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-dark font-black text-sm rounded-xl transition-all shadow-lg shadow-brand-500/20 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider">
                             Buat Program Saya
                         </button>
                     </div>
@@ -195,19 +196,19 @@
             </div>
 
             <!-- Step 1: Input Form -->
-            <div v-else-if="step === 1" key="form" class="max-w-2xl mx-auto">
-                <div class="card-dark p-8 md:p-10 rounded-3xl">
-                    <div class="flex items-center justify-between mb-8">
-                        <h2 class="text-2xl font-black text-white uppercase italic tracking-tight">Parameter Latihan</h2>
-                        <button @click="step = 0" class="text-slate-500 hover:text-slate-300 text-sm font-bold flex items-center gap-1">
+            <div v-else-if="step === 1" key="form" class="max-w-xl mx-auto">
+                <div class="card-dark p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-black text-white uppercase italic tracking-tight">Parameter Latihan</h2>
+                        <button @click="step = 0" class="text-slate-500 hover:text-slate-300 text-xs font-bold flex items-center gap-1">
                             <span>←</span> Kembali
                         </button>
                     </div>
 
-                    <div class="flex flex-col gap-8">
+                    <div class="flex flex-col gap-5">
                         <!-- PB Section -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
                                 <label class="label-text">Parameter Test/PB</label>
                                 <div class="flex flex-col gap-1">
                                     <select v-model="form.pb_distance" class="input-field cursor-pointer">
@@ -215,13 +216,17 @@
                                         <option value="10k">10 Kilometer</option>
                                         <option value="21k">Half Marathon</option>
                                         <option value="42k">Full Marathon</option>
+                                        <option value="cooper12">Cooper Test (12 Menit)</option>
+                                        <option value="balke15">Balke Test (15 Menit)</option>
                                     </select>
                                     <span class="text-[9px] opacity-0 font-bold uppercase tracking-widest select-none">Spacer</span>
                                 </div>
                             </div>
-                            <div class="space-y-2">
-                                <label class="label-text">Waktu Parameter Test / PB</label>
-                                <div class="grid grid-cols-3 gap-3">
+                            <div class="space-y-1.5">
+                                <label class="label-text">@{{ (form.pb_distance === 'cooper12' || form.pb_distance === 'balke15') ? 'Jarak Parameter Test (Meter)' : 'Waktu Parameter Test / PB' }}</label>
+                                
+                                <!-- Standard Time Inputs -->
+                                <div v-if="form.pb_distance !== 'cooper12' && form.pb_distance !== 'balke15'" class="grid grid-cols-3 gap-2">
                                     <div class="flex flex-col items-center gap-1">
                                         <input v-model="pb_hours" type="number" min="0" max="99" class="input-field text-center font-bold" placeholder="HH">
                                         <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Jam</span>
@@ -235,27 +240,33 @@
                                         <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Detik</span>
                                     </div>
                                 </div>
+
+                                <!-- Cooper/Balke Distance Input -->
+                                <div v-else class="flex flex-col gap-1">
+                                    <input v-model="pb_distance_meters" type="number" min="100" max="9999" class="input-field font-bold" placeholder="Contoh: 2800">
+                                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest select-none">Meter</span>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Bio Section -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
                                 <label class="label-text">Jenis Kelamin</label>
-                                <div class="flex p-1 bg-slate-900 rounded-xl border border-slate-700">
-                                    <button @click="form.gender = 'male'" :class="form.gender === 'male' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500'" class="flex-1 py-2.5 rounded-lg font-bold text-[11px] transition-all uppercase tracking-wider">Laki-laki</button>
-                                    <button @click="form.gender = 'female'" :class="form.gender === 'female' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500'" class="flex-1 py-2.5 rounded-lg font-bold text-[11px] transition-all uppercase tracking-wider">Perempuan</button>
+                                <div class="flex p-0.5 bg-slate-900 rounded-lg border border-slate-700">
+                                    <button @click="form.gender = 'male'" :class="form.gender === 'male' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500'" class="flex-1 py-1.5 rounded-md font-bold text-[10px] transition-all uppercase tracking-wider">Laki-laki</button>
+                                    <button @click="form.gender = 'female'" :class="form.gender === 'female' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500'" class="flex-1 py-1.5 rounded-md font-bold text-[10px] transition-all uppercase tracking-wider">Perempuan</button>
                                 </div>
                             </div>
-                            <div class="space-y-2">
+                            <div class="space-y-1.5">
                                 <label class="label-text">Umur</label>
                                 <input v-model="form.age" type="number" min="15" max="90" class="input-field font-bold">
                             </div>
                         </div>
 
                         <!-- Target Section -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
                                 <label class="label-text">Target Jarak</label>
                                 <select v-model="form.target_distance" @change="recommendMileage" class="input-field cursor-pointer">
                                     <option value="5k">5K</option>
@@ -265,21 +276,21 @@
                                     <option value="cooper12">Cooper 12 Min</option>
                                 </select>
                             </div>
-                            <div class="space-y-2">
+                            <div class="space-y-1.5">
                                 <label class="label-text">Target Tanggal Lomba</label>
                                 <input v-model="form.target_date" type="date" class="input-field font-bold">
                             </div>
                         </div>
 
                         <!-- Goal Time Section -->
-                        <div class="space-y-3">
+                        <div class="space-y-2">
                             <div class="flex justify-between items-center">
                                 <label class="label-text mb-0">Target Waktu Lomba</label>
-                                <div v-if="realism" :class="realism.color" class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border">
+                                <div v-if="realism" :class="realism.color" class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border">
                                     @{{ realism.label }}
                                 </div>
                             </div>
-                            <div class="grid grid-cols-3 gap-3">
+                            <div class="grid grid-cols-3 gap-2">
                                 <div class="flex flex-col items-center gap-1">
                                     <input v-model="goal_hours" type="number" min="0" max="99" class="input-field text-center font-bold" placeholder="HH">
                                     <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Jam</span>
@@ -299,29 +310,29 @@
                         </div>
 
                         <!-- Training Load Section -->
-                        <div class="space-y-6">
+                        <div class="space-y-4">
                             <div>
-                                <div class="flex justify-between items-center mb-2">
+                                <div class="flex justify-between items-center mb-1.5">
                                     <label class="label-text">Mileage Mingguan (Km)</label>
-                                    <span class="text-[10px] font-bold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20">Rekomendasi: @{{ idealMileage }} Km</span>
+                                    <span class="text-[9px] font-bold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/20">Rekomendasi: @{{ idealMileage }} Km</span>
                                 </div>
-                                <div class="flex items-center gap-6">
-                                    <input v-model="form.weekly_mileage" type="range" min="15" max="120" step="5" class="flex-1 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-500">
-                                    <span class="w-12 text-center font-black text-white text-xl">@{{ form.weekly_mileage }}</span>
+                                <div class="flex items-center gap-4">
+                                    <input v-model="form.weekly_mileage" type="range" min="15" max="120" step="5" class="flex-1 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                                    <span class="w-10 text-center font-black text-white text-base">@{{ form.weekly_mileage }}</span>
                                 </div>
                             </div>
                             <div>
                                 <label class="label-text">Frekuensi Latihan (Hari/Minggu)</label>
-                                <div class="flex justify-between gap-3">
+                                <div class="flex justify-between gap-2">
                                     <button v-for="f in [3,4,5,6,7]" :key="f" @click="form.frequency = f" 
-                                            :class="form.frequency === f ? 'bg-brand-600 text-white shadow-lg border-brand-500' : 'bg-slate-900/50 text-slate-500 border border-slate-700 hover:border-slate-600'"
-                                            class="w-full py-3 rounded-xl font-bold text-sm transition-all border">
+                                             :class="form.frequency === f ? 'bg-brand-500 text-dark border-brand-500' : 'bg-slate-900/50 text-slate-500 border border-slate-700 hover:border-slate-600'"
+                                             class="w-full py-1.5 rounded-lg font-bold text-xs transition-all border">
                                         @{{ f }}
                                     </button>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
                                     <label class="label-text">Level Pelari</label>
                                     <select v-model="form.runner_level" class="input-field cursor-pointer">
                                         <option value="beginner">Pemula (Beginner)</option>
@@ -329,7 +340,7 @@
                                         <option value="advanced">Mahir / Elite (Advanced)</option>
                                     </select>
                                 </div>
-                                <div class="space-y-2">
+                                <div class="space-y-1.5">
                                     <label class="label-text">Hari Long Run</label>
                                     <select v-model="form.long_run_day" class="input-field cursor-pointer">
                                         <option value="saturday">Sabtu</option>
@@ -337,11 +348,11 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="space-y-2">
+                            <div class="space-y-1.5">
                                 <label class="label-text">Penyesuaian Suhu Tropis (Indonesia)</label>
-                                <div class="flex items-center gap-3 p-4 bg-slate-900/50 rounded-2xl border border-slate-700/50">
-                                    <input type="checkbox" v-model="form.is_tropical" id="is_tropical" class="w-5 h-5 accent-brand-500 cursor-pointer rounded border-slate-600 bg-slate-800">
-                                    <label for="is_tropical" class="text-xs text-slate-300 font-bold cursor-pointer select-none">
+                                <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                                    <input type="checkbox" v-model="form.is_tropical" id="is_tropical" class="w-4 h-4 accent-brand-500 cursor-pointer rounded border-slate-600 bg-slate-800">
+                                    <label for="is_tropical" class="text-[11px] text-slate-300 font-bold cursor-pointer select-none">
                                         Aktifkan penyesuaian pace untuk cuaca panas (+10-15s/km untuk menjaga beban kardio/HR stabil)
                                     </label>
                                 </div>
@@ -349,10 +360,10 @@
                         </div>
 
                         <button @click="generateProgram" :disabled="loading" 
-                                class="w-full py-5 bg-brand-600 hover:bg-brand-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-black text-lg rounded-2xl transition-all shadow-xl shadow-brand-500/10 flex items-center justify-center gap-3">
+                                class="w-full py-3 bg-brand-500 hover:bg-brand-600 disabled:bg-slate-700 disabled:text-slate-500 text-dark font-black text-sm rounded-xl transition-all shadow-md shadow-brand-500/10 flex items-center justify-center gap-3">
                             <span v-if="!loading">GENERATE PROGRAM</span>
                             <span v-else class="flex items-center gap-2">
-                                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg class="animate-spin h-4 w-5 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
@@ -368,43 +379,43 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
                     <!-- Left: Summary Sidebar -->
-                    <div class="lg:col-span-1 space-y-6">
-                        <div class="card-dark p-8 rounded-3xl border-t-4 border-t-brand-500">
-                            <div class="text-center mb-6">
-                                <div class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Estimated VDOT Score</div>
-                                <div class="text-6xl font-black text-white tracking-tighter">@{{ result?.vdot }}</div>
+                    <div class="lg:col-span-1 space-y-5">
+                        <div class="card-dark p-6 rounded-2xl border-t-4 border-t-brand-500">
+                            <div class="text-center mb-5">
+                                <div class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Estimated VDOT Score</div>
+                                <div class="text-5xl font-black text-white tracking-tighter">@{{ result?.vdot }}</div>
                             </div>
                             
-                            <div class="space-y-2 py-4 border-y border-slate-700/50 mb-6">
-                                <div class="flex justify-between text-sm">
+                            <div class="space-y-2 py-3 border-y border-slate-700/50 mb-5">
+                                <div class="flex justify-between text-xs">
                                     <span class="text-slate-400">Target Jarak</span>
                                     <span class="font-bold text-white uppercase">@{{ form.target_distance }}</span>
                                 </div>
-                                <div class="flex justify-between text-sm">
+                                <div class="flex justify-between text-xs">
                                     <span class="text-slate-400">Durasi Program</span>
                                     <span class="font-bold text-white">@{{ result?.weeks }} Minggu</span>
                                 </div>
                             </div>
 
-                            <button @click="saveAndOpenCalendar" :disabled="saving" class="w-full py-4 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mb-3">
+                            <button @click="saveAndOpenCalendar" :disabled="saving" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-dark font-black text-xs uppercase tracking-wider rounded-lg transition-all shadow-md flex items-center justify-center gap-2 mb-2">
                                 <span v-if="!saving">SIMPAN KE KALENDER</span>
-                                <span v-else class="animate-spin text-lg">⌛</span>
+                                <span v-else class="animate-spin text-sm">⌛</span>
                             </button>
-                            <button @click="step = 1" class="w-full py-3 bg-slate-800 border border-slate-700 text-slate-400 font-bold rounded-xl hover:bg-slate-700 hover:text-white transition-all text-sm">
+                            <button @click="step = 1" class="w-full py-2 bg-slate-800 border border-slate-700 text-slate-400 font-bold rounded-lg hover:bg-slate-700 hover:text-white transition-all text-xs">
                                 EDIT PARAMETER
                             </button>
                         </div>
 
                         <!-- Training Paces & Heart Rate Zones Card -->
-                        <div class="card-dark p-8 rounded-3xl">
-                            <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Training Paces & Heart Rate Zones</h3>
-                            <div class="space-y-4">
-                                <div v-for="(pace, type) in (result?.paces || {})" :key="type" class="p-3.5 rounded-xl bg-slate-900/50 border border-slate-700/50 space-y-1.5">
+                        <div class="card-dark p-6 rounded-2xl">
+                            <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-5">Training Paces & Heart Rate Zones</h3>
+                            <div class="space-y-3">
+                                <div v-for="(pace, type) in (result?.paces || {})" :key="type" class="p-3 rounded-xl bg-slate-900/50 border border-slate-700/50 space-y-1">
                                     <div class="flex justify-between items-center">
                                         <span class="font-bold text-xs uppercase" :class="getPaceColor(type)">@{{ getPaceLabel(type) }}</span>
-                                        <span class="font-mono font-bold text-white">@{{ formatPace(pace) }}</span>
+                                        <span class="font-mono font-bold text-xs text-white">@{{ formatPace(pace) }}</span>
                                     </div>
-                                    <div v-if="result?.hr_zones && result.hr_zones[type]" class="flex justify-between items-center text-[10px] text-slate-400">
+                                    <div v-if="result?.hr_zones && result.hr_zones[type]" class="flex justify-between items-center text-[9px] text-slate-400">
                                         <span>Target HR (Zone)</span>
                                         <span class="font-bold text-slate-300">@{{ result.hr_zones[type].min }}-@{{ result.hr_zones[type].max }} BPM (@{{ result.hr_zones[type].label }})</span>
                                     </div>
@@ -414,19 +425,19 @@
                     </div>
 
                     <!-- Program Preview (Free Weeks) -->
-                    <div class="lg:col-span-2 space-y-8">
-                        <div v-for="(weekSessions, weekNum) in sessionsByWeek" :key="weekNum" class="card-dark p-8 md:p-10 rounded-3xl">
-                            <div class="flex justify-between items-center mb-8">
-                                <div class="flex flex-wrap items-center gap-3">
-                                    <h3 class="text-2xl font-black text-white italic uppercase tracking-tight">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div v-for="(weekSessions, weekNum) in sessionsByWeek" :key="weekNum" class="card-dark p-6 rounded-2xl">
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="text-lg font-black text-white italic uppercase tracking-tight">
                                         Preview Minggu @{{ weekNum }}
                                     </h3>
                                     <span v-if="weekSessions && weekSessions.length > 0 && weekSessions[0].is_deload" 
-                                          class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[9px] font-black rounded-full border border-emerald-500/30 uppercase tracking-widest animate-pulse">
+                                          class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[8px] font-black rounded-full border border-emerald-500/30 uppercase tracking-widest animate-pulse">
                                         De-load / Recovery Week
                                     </span>
                                 </div>
-                                <span class="px-3 py-1 bg-brand-500/10 text-brand-400 text-[10px] font-black rounded-full border border-brand-500/20 uppercase tracking-wider">Akses Gratis</span>
+                                <span class="px-2 py-0.5 bg-brand-500/10 text-brand-500 text-[9px] font-black rounded-full border border-brand-500/20 uppercase tracking-wider">Akses Gratis</span>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-4">
@@ -473,6 +484,7 @@
             const pb_hours = ref(0);
             const pb_minutes = ref(0);
             const pb_seconds = ref(0);
+            const pb_distance_meters = ref(2800);
 
             const goal_hours = ref(0);
             const goal_minutes = ref(0);
@@ -690,10 +702,14 @@
                 errors.value = null;
                 
                 // Format PB time
-                const h = String(pb_hours.value || 0).padStart(2, '0');
-                const m = String(pb_minutes.value || 0).padStart(2, '0');
-                const s = String(pb_seconds.value || 0).padStart(2, '0');
-                form.pb_time = `${h}:${m}:${s}`;
+                if (form.pb_distance === 'cooper12' || form.pb_distance === 'balke15') {
+                    form.pb_time = String(pb_distance_meters.value || 0);
+                } else {
+                    const h = String(pb_hours.value || 0).padStart(2, '0');
+                    const m = String(pb_minutes.value || 0).padStart(2, '0');
+                    const s = String(pb_seconds.value || 0).padStart(2, '0');
+                    form.pb_time = `${h}:${m}:${s}`;
+                }
 
                 // Format Goal time
                 const gh = String(goal_hours.value || 0).padStart(2, '0');
@@ -701,9 +717,16 @@
                 const gs = String(goal_seconds.value || 0).padStart(2, '0');
                 form.goal_time = `${gh}:${gm}:${gs}`;
 
-                if (pb_hours.value === 0 && pb_minutes.value === 0 && pb_seconds.value === 0) {
-                    showNotification('Harap isi waktu parameter test/PB!', 'error');
-                    return;
+                if (form.pb_distance !== 'cooper12' && form.pb_distance !== 'balke15') {
+                    if (pb_hours.value === 0 && pb_minutes.value === 0 && pb_seconds.value === 0) {
+                        showNotification('Harap isi waktu parameter test/PB!', 'error');
+                        return;
+                    }
+                } else {
+                    if (!pb_distance_meters.value || pb_distance_meters.value <= 0) {
+                        showNotification('Harap isi jarak hasil tes parameter!', 'error');
+                        return;
+                    }
                 }
 
                 if (goal_hours.value === 0 && goal_minutes.value === 0 && goal_seconds.value === 0) {
@@ -859,7 +882,7 @@
                 step, form, loading, saving, result, freePreviewSessions, freeWeeksCount, sessionsByWeek, errors, notification,
                 generateProgram, saveAndOpenCalendar,
                 getPaceLabel, getPaceColor, formatPace, getSessionClass, getSessionIcon,
-                pb_hours, pb_minutes, pb_seconds, 
+                pb_hours, pb_minutes, pb_seconds, pb_distance_meters,
                 goal_hours, goal_minutes, goal_seconds,
                 idealMileage, recommendMileage, realism,
                 showNotification

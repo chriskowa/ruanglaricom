@@ -861,15 +861,15 @@
 
                     <!-- Vertically Aligned Metrics Table -->
                     <div class="space-y-1 mb-3.5 p-2.5 bg-slate-800/30 border border-slate-700/50 rounded-[6px]">
-                        <div v-if="detail.distance" class="flex items-center justify-between py-1 border-b border-slate-800/60">
+                        <div v-if="detail.distance && detail.type !== 'rest'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
                             <span class="text-[9px] text-slate-400 font-mono uppercase">Distance</span>
                             <span class="text-xs font-bold text-white">@{{ detail.distance }} km</span>
                         </div>
-                        <div class="flex items-center justify-between py-1 border-b border-slate-800/60">
+                        <div v-if="detail.type !== 'rest'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
                             <span class="text-[9px] text-slate-400 font-mono uppercase">Target Pace</span>
                             <span class="text-xs font-bold text-neon">@{{ displayPace || '-' }}</span>
                         </div>
-                        <div class="flex items-center justify-between py-1 border-b border-slate-800/60">
+                        <div v-if="detail.type !== 'rest'" class="flex items-center justify-between py-1 border-b border-slate-800/60">
                             <span class="text-[9px] text-slate-400 font-mono uppercase">Duration</span>
                             <span class="text-xs font-bold text-white">@{{ detail.duration || '-' }}</span>
                         </div>
@@ -2043,7 +2043,7 @@
                             <option value="hard">Sulit</option>
                         </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div v-if="form.type !== 'rest'" class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[10px] font-bold text-slate-400 uppercase">Distance (km)</label>
                             <input type="number" step="0.1" v-model="form.distance" class="w-full bg-slate-950 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs">
@@ -2055,7 +2055,7 @@
                     </div>
                     
                     <!-- Workout Builder -->
-                    <div class="border-t border-slate-700 pt-4 mt-4">
+                    <div v-if="form.type !== 'rest'" class="border-t border-slate-700 pt-4 mt-4">
                         <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2">Workout Builder</label>
                         
                         <div class="space-y-2 mb-3">

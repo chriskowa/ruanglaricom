@@ -12,20 +12,28 @@ class DanielsRunningService
      */
     public function calculateVDOT(string $raceTime, string $distance): float
     {
-        // Parse time (HH:MM:SS or MM:SS)
-        $timeParts = explode(':', $raceTime);
-        $totalSeconds = 0;
+        if ($distance === 'cooper12' || $distance === 'balke15') {
+            $totalSeconds = $distance === 'cooper12' ? 720 : 900;
+            $distanceInMeters = (float) $raceTime;
+            if ($distanceInMeters <= 0) {
+                $distanceInMeters = 1000;
+            }
+        } else {
+            // Parse time (HH:MM:SS or MM:SS)
+            $timeParts = explode(':', $raceTime);
+            $totalSeconds = 0;
 
-        if (count($timeParts) === 3) {
-            // HH:MM:SS
-            $totalSeconds = ((float)$timeParts[0] * 3600) + ((float)$timeParts[1] * 60) + (float)$timeParts[2];
-        } elseif (count($timeParts) === 2) {
-            // MM:SS
-            $totalSeconds = ((float)$timeParts[0] * 60) + (float)$timeParts[1];
+            if (count($timeParts) === 3) {
+                // HH:MM:SS
+                $totalSeconds = ((float)$timeParts[0] * 3600) + ((float)$timeParts[1] * 60) + (float)$timeParts[2];
+            } elseif (count($timeParts) === 2) {
+                // MM:SS
+                $totalSeconds = ((float)$timeParts[0] * 60) + (float)$timeParts[1];
+            }
+
+            // Convert distance to meters
+            $distanceInMeters = $this->distanceToMeters($distance);
         }
-
-        // Convert distance to meters
-        $distanceInMeters = $this->distanceToMeters($distance);
 
         // Calculate pace per kilometer
         $pacePerKm = $totalSeconds / ($distanceInMeters / 1000); // seconds per km
@@ -75,6 +83,7 @@ class DanielsRunningService
             '21k' => 0.865,   // ~86.5% of vVO2max
             '42k' => 0.815,   // ~81.5% of vVO2max
             'cooper12' => 0.99, // ~99% of vVO2max for 12 mins
+            'balke15' => 0.95,  // ~95% of vVO2max for 15 mins
         ];
 
         // Normalize key
@@ -87,6 +96,10 @@ class DanielsRunningService
             $key = '21k';
         } elseif (strpos($distance, 'fm') !== false || strpos($distance, '42k') !== false) {
             $key = '42k';
+        } elseif (strpos($distance, 'cooper12') !== false) {
+            $key = 'cooper12';
+        } elseif (strpos($distance, 'balke15') !== false) {
+            $key = 'balke15';
         }
 
         $ratio = $ratios[$key] ?? 0.957;
@@ -108,6 +121,7 @@ class DanielsRunningService
             '21k' => 21097.5,
             '42k' => 42195,
             'cooper12' => 3200,
+            'balke15' => 4000,
         ];
 
         return $distances[$distance] ?? 5000;
