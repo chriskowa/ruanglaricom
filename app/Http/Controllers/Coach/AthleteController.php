@@ -408,7 +408,6 @@ class AthleteController extends Controller
         $api = app(StravaApiService::class);
 
         $activity = StravaActivity::query()
-            ->where('user_id', $runner->id)
             ->where('strava_activity_id', $activityId)
             ->first();
 
@@ -418,9 +417,10 @@ class AthleteController extends Controller
                 return response()->json(['success' => false, 'message' => 'Gagal mengambil detail aktivitas Strava.'], 422);
             }
 
-            $activity = StravaActivity::create([
-                'user_id' => $runner->id,
+            $activity = StravaActivity::updateOrCreate([
                 'strava_activity_id' => $activityId,
+            ], [
+                'user_id' => $runner->id,
                 'name' => data_get($details, 'name'),
                 'type' => data_get($details, 'type'),
                 'start_date' => data_get($details, 'start_date_local') ?: data_get($details, 'start_date'),
@@ -1100,8 +1100,11 @@ class AthleteController extends Controller
                             $imported++;
                         }
                     } catch (\Illuminate\Database\QueryException $e) {
-                        $dup = (int) ($e->errorInfo[1] ?? 0) === 1062;
-                        if (! $dup) {
+                        $isDuplicate = (int) ($e->errorInfo[1] ?? 0) === 1062 
+                            || $e->getCode() === '23000' 
+                            || str_contains($e->getMessage(), 'Duplicate entry')
+                            || str_contains($e->getMessage(), '1062');
+                        if (! $isDuplicate) {
                             throw $e;
                         }
                         $row = StravaActivity::query()->where('strava_activity_id', $activityId)->first();

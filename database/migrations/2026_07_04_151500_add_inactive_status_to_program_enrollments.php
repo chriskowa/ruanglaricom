@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE program_enrollments MODIFY COLUMN status ENUM('purchased', 'active', 'completed', 'cancelled', 'inactive') DEFAULT 'purchased'");
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE program_enrollments MODIFY COLUMN status ENUM('purchased', 'active', 'completed', 'cancelled', 'inactive') DEFAULT 'purchased'");
+        }
     }
 
     /**

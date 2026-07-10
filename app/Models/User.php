@@ -80,6 +80,7 @@ class User extends Authenticatable
         'membership_status',
         'run_points',
         'buddy_rating',
+        'is_receive_wa',
     ];
 
     /**
@@ -158,6 +159,7 @@ class User extends Authenticatable
             'is_pacer' => 'boolean',
             'is_active' => 'boolean',
             'membership_expires_at' => 'datetime',
+            'is_receive_wa' => 'boolean',
         ];
     }
 
@@ -264,6 +266,27 @@ class User extends Authenticatable
     public function programEnrollments()
     {
         return $this->hasMany(ProgramEnrollment::class, 'runner_id');
+    }
+
+    // Running Analysis Sessions (as runner)
+    public function runningAnalysisSessions()
+    {
+        return $this->belongsToMany(\App\Models\RunningAnalysis\Session::class, 'running_analysis_session_runner', 'runner_id', 'session_id')
+            ->using(\App\Models\RunningAnalysis\SessionRunner::class)
+            ->withPivot(['id', 'sequence_no', 'status', 'notes', 'consent_pose', 'consent_video', 'consent_report', 'consent_ai'])
+            ->withTimestamps();
+    }
+
+    // Running Analysis Trials (as runner)
+    public function runningAnalysisTrials()
+    {
+        return $this->hasMany(\App\Models\RunningAnalysis\Trial::class, 'runner_id');
+    }
+
+    // Running Analysis Reports (as runner)
+    public function runningAnalysisReports()
+    {
+        return $this->hasMany(\App\Models\RunningAnalysis\Report::class, 'runner_id');
     }
 
     // Follow relationships

@@ -316,6 +316,7 @@ Route::get('/calendar/events-proxy', [App\Http\Controllers\CalendarController::c
 Route::middleware('auth')->group(function () {
     Route::get('/calendar/strava/connect', [App\Http\Controllers\CalendarController::class, 'stravaConnect'])->name('calendar.strava.connect');
     Route::get('/calendar/strava/callback', [App\Http\Controllers\CalendarController::class, 'stravaCallback'])->name('calendar.strava.callback');
+    Route::post('/calendar/strava/disconnect', [App\Http\Controllers\CalendarController::class, 'stravaDisconnect'])->name('calendar.strava.disconnect');
 });
 Route::post('/calendar/ai-analysis', [App\Http\Controllers\CalendarController::class, 'getAiAnalysis'])->name('calendar.ai.analysis');
 
@@ -812,6 +813,29 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
+        // Running Analysis (Admin)
+        Route::prefix('running-analysis')->name('running-analysis.')->group(function () {
+            // Sessions
+            Route::get('/sessions', [App\Http\Controllers\Admin\RunningAnalysis\SessionController::class, 'index'])->name('sessions.index');
+            Route::post('/sessions', [App\Http\Controllers\Admin\RunningAnalysis\SessionController::class, 'store'])->name('sessions.store');
+            Route::get('/sessions/{session}', [App\Http\Controllers\Admin\RunningAnalysis\SessionController::class, 'show'])->name('sessions.show');
+            Route::patch('/sessions/{session}', [App\Http\Controllers\Admin\RunningAnalysis\SessionController::class, 'update'])->name('sessions.update');
+            Route::post('/sessions/{session}/runners', [App\Http\Controllers\Admin\RunningAnalysis\SessionController::class, 'addRunners'])->name('sessions.runners.add');
+            Route::delete('/sessions/{session}/runners/{user}', [App\Http\Controllers\Admin\RunningAnalysis\SessionController::class, 'removeRunner'])->name('sessions.runners.remove');
+            Route::get('/sessions/{session}/search-runners', [App\Http\Controllers\Admin\RunningAnalysis\SessionController::class, 'searchRunners'])->name('sessions.runners.search');
+            
+            // Capture
+            Route::get('/capture/{session}', [App\Http\Controllers\Admin\RunningAnalysis\CaptureController::class, 'show'])->name('capture');
+            
+            // Trial API (used by Capture UI)
+            Route::post('/sessions/{session}/trials', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'store'])->name('trials.store');
+            Route::post('/trials/{trial}/artifacts', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'uploadArtifact'])->name('trials.artifacts.upload');
+            Route::post('/trials/{trial}/finalize', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'finalize'])->name('trials.finalize');
+            
+            // Trial Review placeholders
+            Route::get('/trials/{trial}/review', function() { return 'Review UI placeholder'; })->name('trials.review');
+        });
+
         // Event Calendar Management
         Route::get('events/import', [App\Http\Controllers\Admin\EventController::class, 'import'])->name('events.import');
         Route::post('events/import', [App\Http\Controllers\Admin\EventController::class, 'storeImport'])->name('events.import.store');
@@ -919,6 +943,7 @@ Route::middleware('auth')->group(function () {
     // Runner routes
     Route::middleware('role:runner')->prefix('runner')->name('runner.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/profile/toggle-wa', [DashboardController::class, 'toggleWaNotification'])->name('profile.toggle-wa');
         Route::get('/programs', [App\Http\Controllers\Runner\ProgramController::class, 'index'])->name('programs');
 
         Route::get('/strava/connect', [App\Http\Controllers\Runner\StravaController::class, 'connect'])->name('strava.connect');

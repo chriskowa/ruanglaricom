@@ -334,8 +334,8 @@
 </div>
 
 <!-- Activity Detail Modal -->
-<div v-if="showDetailModal" class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm" @click.self="showDetailModal = false">
-    <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col shadow-2xl relative">
+<div v-if="showDetailModal" id="strava-detail-modal-backdrop" class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm" @click.self="showDetailModal = false">
+    <div id="strava-detail-modal-wrapper" class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-2xl flex flex-col shadow-2xl relative">
         <!-- Header -->
         <div class="p-6 border-b border-slate-800 flex justify-between items-start shrink-0">
             <div>
@@ -440,9 +440,9 @@
 </div>
 
 <!-- Poster Modal -->
-<div v-if="showPosterModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm"
+<div v-if="showPosterModal" id="strava-poster-modal-backdrop" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm"
      :class="posterIsMobile && posterMobilePreviewFull ? 'p-0' : 'p-4'">
-    <div class="relative flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-6xl"
+    <div id="strava-poster-modal-wrapper" class="relative flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-6xl"
          :class="posterIsMobile && posterMobilePreviewFull ? 'h-full max-h-none' : 'h-full max-h-[90vh]'">
         
         <!-- Preview Area -->
@@ -1703,16 +1703,9 @@
                 window.addEventListener('resize', this.updatePosterIsMobile);
 
                 // Check Strava Token
-                if (this.isAuthenticated) {
-                    const serverToken = this.serverStravaToken;
-                    const token = serverToken || localStorage.getItem('strava_access_token');
-                    if (token) {
-                        this.isStravaConnected = true;
-                        this.apiConfig.stravaToken = token;
-                        if (serverToken) {
-                            localStorage.setItem('strava_access_token', serverToken);
-                        }
-                    }
+                if (this.isAuthenticated && this.serverStravaToken) {
+                    this.isStravaConnected = true;
+                    this.apiConfig.stravaToken = this.serverStravaToken;
                 } else {
                     this.isStravaConnected = false;
                     this.apiConfig.stravaToken = null;
@@ -1720,7 +1713,37 @@
                 
                 this.initData();
             },
-                methods: {
+            methods: {
+                    positionEmbeddedModal(backdropId, wrapperId) {
+                        if (window.parent && window.parent !== window) {
+                            try {
+                                const parentScrollY = window.parent.scrollY;
+                                const parentHeight = window.parent.innerHeight;
+                                const iframeOffset = window.frameElement ? window.frameElement.getBoundingClientRect().top + parentScrollY : 0;
+                                const modalTop = Math.max(40, (parentScrollY - iframeOffset) + 80);
+                                
+                                this.$nextTick(() => {
+                                    const modalWrapper = document.getElementById(wrapperId);
+                                    if (modalWrapper) {
+                                        modalWrapper.style.position = 'absolute';
+                                        modalWrapper.style.top = modalTop + 'px';
+                                        modalWrapper.style.bottom = 'auto';
+                                        modalWrapper.style.transform = 'translateX(-50%)';
+                                        modalWrapper.style.left = '50%';
+                                    }
+                                    
+                                    const backdrop = document.getElementById(backdropId);
+                                    if (backdrop) {
+                                        backdrop.style.position = 'absolute';
+                                        backdrop.style.height = document.documentElement.scrollHeight + 'px';
+                                    }
+                                });
+                            } catch (e) {
+                                console.warn("Failed to set embedded modal position:", e);
+                            }
+                        }
+                    },
+
                     showActivityDetail(activity) {
                         this.detail = {
                             id: activity.id,
@@ -1738,6 +1761,8 @@
                             suggestion: null
                         };
                         this.showDetailModal = true;
+                        this.positionEmbeddedModal('strava-detail-modal-backdrop', 'strava-detail-modal-wrapper');
+                        
                         if (activity.id) {
                             this.loadStravaDetails(activity.id);
                         }
@@ -2037,7 +2062,21 @@
                     });
                 },
 
-                disconnectStrava() {
+                async disconnectStrava() {
+                    try {
+                        if (this.isAuthenticated) {
+                            await fetch('{{ route("calendar.strava.disconnect") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                }
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Failed to disconnect Strava on server", e);
+                    }
+
                     localStorage.removeItem('strava_access_token');
                     localStorage.removeItem('strava_refresh_token');
                     localStorage.removeItem('strava_expires_at');
@@ -2464,6 +2503,7 @@
                         // Set style to modern or cyber for recap
                         this.posterStyle = 'modern';
                         this.showPosterModal = true;
+                        this.positionEmbeddedModal('strava-poster-modal-backdrop', 'strava-poster-modal-wrapper');
                         
                     } catch (e) {
                         console.error("Recap Error", e);
@@ -2636,6 +2676,7 @@
 
                         // Buka Modal
                         this.showPosterModal = true;
+                        this.positionEmbeddedModal('strava-poster-modal-backdrop', 'strava-poster-modal-wrapper');
                         
                         // Wait for image load
                         await this.$nextTick();

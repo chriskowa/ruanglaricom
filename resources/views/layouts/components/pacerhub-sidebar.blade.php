@@ -35,6 +35,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="{{ route('admin.running-analysis.sessions.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.running-analysis.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-person-running"></i></span>
+                                    <span>Analisis Lari</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a href="{{ route('admin.events.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.events.*') ? $activeClass : $inactiveClass }}">
                                     <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-calendar-check"></i></span>
                                     <span>Event Management</span>

@@ -462,4 +462,27 @@ class DashboardController extends Controller
 
         return null;
     }
+
+    /**
+     * Toggle WhatsApp Notification Setting
+     */
+    public function toggleWaNotification(\Illuminate\Http\Request $request)
+    {
+        $validated = $request->validate([
+            'is_receive_wa' => 'required|boolean',
+        ]);
+
+        $user = auth()->user();
+        $user->update([
+            'is_receive_wa' => $validated['is_receive_wa'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'is_receive_wa' => $user->is_receive_wa,
+            'message' => $user->is_receive_wa 
+                ? 'Notifikasi WhatsApp program harian berhasil diaktifkan.' 
+                : 'Notifikasi WhatsApp program harian berhasil dinonaktifkan.',
+        ]);
+    }
 }

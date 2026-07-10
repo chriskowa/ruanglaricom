@@ -6,7 +6,6 @@
 @section('title', 'Monitor Athlete')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css">
 <style>
 .glass-panel{background:rgba(15,23,42,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.05)}
 .fc .fc-toolbar-title{font-size: 1rem;font-weight:800;color:#e2e8f0}

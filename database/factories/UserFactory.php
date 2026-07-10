@@ -41,4 +41,32 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    public function runner(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'runner',
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    public function coach(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'coach',
+        ]);
+    }
+
+    public function eo(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'eo',
+        ]);
+    }
 }

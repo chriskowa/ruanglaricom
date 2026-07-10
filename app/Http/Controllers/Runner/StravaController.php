@@ -301,8 +301,11 @@ class StravaController extends Controller
                             $imported++;
                         }
                     } catch (QueryException $e) {
-                        $dup = (int) ($e->errorInfo[1] ?? 0) === 1062;
-                        if (! $dup) {
+                        $isDuplicate = (int) ($e->errorInfo[1] ?? 0) === 1062 
+                            || $e->getCode() === '23000' 
+                            || str_contains($e->getMessage(), 'Duplicate entry')
+                            || str_contains($e->getMessage(), '1062');
+                        if (! $isDuplicate) {
                             throw $e;
                         }
                         $row = StravaActivity::query()->where('strava_activity_id', $activityId)->first();
@@ -450,7 +453,6 @@ class StravaController extends Controller
     private function findOrFetchActivity($user, string $activityId): ?StravaActivity
     {
         $activity = StravaActivity::query()
-            ->where('user_id', $user->id)
             ->where('strava_activity_id', $activityId)
             ->first();
 
@@ -467,10 +469,10 @@ class StravaController extends Controller
 
         return StravaActivity::updateOrCreate(
             [
-                'user_id' => $user->id,
                 'strava_activity_id' => $activityId,
             ],
             [
+                'user_id' => $user->id,
                 'name' => data_get($details, 'name'),
                 'type' => data_get($details, 'sport_type') ?? data_get($details, 'type'),
                 'start_date' => data_get($details, 'start_date') ? \Carbon\Carbon::parse(data_get($details, 'start_date'))->format('Y-m-d H:i:s') : null,

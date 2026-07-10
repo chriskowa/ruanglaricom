@@ -104,31 +104,32 @@
         </div>
 
         <!-- Apply Program Modal -->
-        <div v-if="showApplyModal" class="fixed inset-0 z-[250] overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80"></div>
-            <div class="relative z-10 max-w-md mx-auto my-20 glass-panel rounded-2xl p-6 border-green-500/30 shadow-2xl shadow-green-500/10">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-white font-black text-xl flex items-center gap-2">
-                        <span class="text-2xl">🚀</span> Mulai Program
+        <div v-if="showApplyModal" class="fixed inset-0 z-[250] overflow-y-auto flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="showApplyModal = false"></div>
+            <div class="relative z-10 max-w-sm w-full glass-panel rounded-2xl p-5 border border-slate-800 shadow-2xl shadow-neon/5 bg-[#0a1020]/95 backdrop-blur-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-white font-black text-lg italic uppercase tracking-tight">
+                        Mulai Program
                     </h3>
-                    <button class="text-slate-400 hover:text-white" @click="showApplyModal = false">×</button>
+                    <button class="w-6 h-6 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-400 hover:text-white text-xs flex items-center justify-center transition" @click="showApplyModal = false">✕</button>
                 </div>
                 <div class="mb-4">
-                    <p class="text-slate-300 text-sm mb-2">Aktifkan program dari Program Bag dengan memilih tanggal mulai.</p>
-                    <div class="bg-green-900/20 border border-green-800 rounded-lg p-3" v-if="applyTarget">
-                        <p class="text-xs text-green-300">Program: <span class="font-bold text-white">@{{ applyTarget?.program?.title }}</span></p>
+                    <p class="text-slate-400 text-xs leading-relaxed mb-3 font-sans">Aktifkan program dari Program Bag dengan memilih tanggal mulai.</p>
+                    <div class="bg-[#ccff00]/5 border border-[#ccff00]/25 rounded-xl p-3" v-if="applyTarget">
+                        <div class="text-[9px] text-[#ccff00] font-bold uppercase tracking-wider font-mono">Program Pilihan</div>
+                        <div class="text-xs font-black text-white mt-0.5">@{{ applyTarget?.program?.title }}</div>
                     </div>
                 </div>
                 <form @submit.prevent="submitApply" class="space-y-4">
                     <div>
-                        <label class="text-xs font-bold text-green-400 uppercase">Start Date</label>
-                        <input type="date" v-model="applyForm.start_date" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-green-500 focus:outline-none">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5 font-mono">Start Date</label>
+                        <input type="date" v-model="applyForm.start_date" required class="w-full bg-slate-900/80 border border-slate-750 rounded-xl px-3 py-2 text-xs text-white focus:border-neon focus:outline-none transition">
                     </div>
                     
-                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-sm hover:text-white" @click="showApplyModal = false">Batal</button>
-                        <button type="submit" :disabled="applyLoading" class="px-6 py-2 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-400 shadow-lg shadow-green-500/20 flex items-center gap-2">
-                            <span v-if="applyLoading" class="animate-spin">⌛</span>
+                    <div class="flex justify-end gap-2 pt-3.5 border-t border-slate-800">
+                        <button type="button" class="px-4 py-2 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700/60 text-xs font-bold hover:text-white transition" @click="showApplyModal = false">Batal</button>
+                        <button type="submit" :disabled="applyLoading" class="px-5 py-2 rounded-xl bg-neon text-dark font-black text-xs uppercase italic tracking-wider hover:bg-white transition shadow-lg shadow-neon/10 flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-not-allowed">
+                            <span v-if="applyLoading" class="animate-spin text-[10px]">⟳</span>
                             <span>Aktifkan</span>
                         </button>
                     </div>

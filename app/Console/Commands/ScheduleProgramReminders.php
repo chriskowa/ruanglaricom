@@ -65,6 +65,9 @@ class ScheduleProgramReminders extends Command
         $tomorrow = Carbon::tomorrow();
         $enrollments = ProgramEnrollment::with(['program', 'runner'])
             ->where('status', 'active')
+            ->whereHas('runner', function ($query) {
+                $query->where('is_receive_wa', true);
+            })
             ->get();
 
         $jobsToDispatch = [];

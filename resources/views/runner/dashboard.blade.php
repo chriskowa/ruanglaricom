@@ -77,6 +77,13 @@
                             <span class="text-slate-200">{{ $nextWorkout['date_label'] ?? '' }}</span>
                         </button>
                     @endif
+
+                    <!-- WhatsApp Daily Program Toggle Switch -->
+                    <button @click="toggleReceiveWa" :class="isReceiveWa ? 'bg-green-500/10 border-green-500/30 text-green-300 hover:bg-green-500/15' : 'bg-slate-900/50 border-slate-700/60 text-slate-400 hover:bg-slate-800'" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition">
+                        <i class="fab fa-whatsapp text-sm" :class="isReceiveWa ? 'text-green-400' : 'text-slate-500'"></i>
+                        <span>Program Harian WA: </span>
+                        <span class="font-black uppercase text-[10px]" :class="isReceiveWa ? 'text-green-400' : 'text-slate-400'" x-text="isReceiveWa ? 'Aktif' : 'Nonaktif'"></span>
+                    </button>
                 </div>
 
         @if (session('success'))
@@ -170,70 +177,94 @@
                                 </a>
                             </div>
                         </div>
-                    @else
-                        @if(($activeEnrollments->count() ?? 0) <= 0)
-                            <!-- Gorgeous Bento Grid for Onboarding -->
-                            <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-3xl p-6 md:p-8">
-                                <div class="text-center max-w-xl mx-auto mb-8">
-                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon/10 border border-neon/30 text-neon font-black text-xs uppercase tracking-wider mb-3">
-                                        🚀 Mulai Latihan
+                                      @if(($activeEnrollments->count() ?? 0) <= 0)
+                            @if($programBag->count() > 0)
+                                @php($pendingProgram = $programBag->first())
+                                <div class="mt-5 bg-gradient-to-r from-green-950/40 to-[#ccff00]/5 border border-green-500/20 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_0_30px_rgba(204,255,0,0.05)] animate-pulse-slow">
+                                    <div class="flex items-start gap-4">
+                                        <div class="p-4 bg-green-500/10 rounded-2xl text-green-400 shrink-0">
+                                            <i class="fas fa-rocket text-3xl"></i>
+                                        </div>
+                                        <div>
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ccff00]/10 border border-[#ccff00]/20 text-[#ccff00] font-black text-[10px] uppercase tracking-wider mb-2">
+                                                Program Baru Dibeli
+                                            </span>
+                                            <h3 class="text-xl md:text-2xl font-black text-white italic tracking-tight uppercase">Program {{ $pendingProgram->program->title }} Siap Dimulai!</h3>
+                                            <p class="text-xs text-slate-400 mt-1 max-w-lg leading-relaxed font-sans">
+                                                Anda telah membeli program ini dari Coach {{ $pendingProgram->program->coach->name }}. Tentukan tanggal mulai latihan Anda sekarang untuk memasang jadwalnya ke kalender lari.
+                                            </p>
+                                        </div>
                                     </div>
-                                    <h3 class="text-2xl font-black text-white italic tracking-tight uppercase">Mulai Program Latihanmu</h3>
-                                    <p class="text-xs text-slate-400 mt-2">Pilih program terstruktur dari Coach atau buat secara instan menggunakan generator program berbasis AI.</p>
+                                    <div class="shrink-0 w-full md:w-auto">
+                                        <button onclick="triggerApplyProgram({{ $pendingProgram->id }})" class="w-full md:w-auto px-6 py-3.5 rounded-xl bg-[#ccff00] text-dark font-black hover:bg-white transition-all shadow-lg shadow-[#ccff00]/20 text-center text-sm uppercase italic tracking-wider flex items-center justify-center gap-2">
+                                            Aktifkan Sekarang <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
                                 </div>
+                            @else
+                                <!-- Gorgeous Bento Grid for Onboarding -->
+                                <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-3xl p-6 md:p-8">
+                                    <div class="text-center max-w-xl mx-auto mb-8">
+                                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon/10 border border-neon/30 text-neon font-black text-xs uppercase tracking-wider mb-3">
+                                            🚀 Mulai Latihan
+                                        </div>
+                                        <h3 class="text-2xl font-black text-white italic tracking-tight uppercase">Mulai Program Latihanmu</h3>
+                                        <p class="text-xs text-slate-400 mt-2">Pilih program terstruktur dari Coach atau buat secara instan menggunakan generator program berbasis AI.</p>
+                                    </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <!-- Card 1: AI VDOT Generator -->
-                                    <button @click="openGenerateModal = true" class="relative group overflow-hidden rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:border-neon/50 p-6 text-left transition-all hover:scale-[1.01] duration-300">
-                                        <div class="absolute -inset-px bg-gradient-to-r from-neon/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                                        <div class="flex items-start justify-between gap-4 relative z-10">
-                                            <div class="p-3 bg-neon/15 rounded-xl text-neon group-hover:scale-110 transition-transform">
-                                                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <!-- Card 1: AI VDOT Generator -->
+                                        <button @click="openGenerateModal = true" class="relative group overflow-hidden rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:border-neon/50 p-6 text-left transition-all hover:scale-[1.01] duration-300">
+                                            <div class="absolute -inset-px bg-gradient-to-r from-neon/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                                            <div class="flex items-start justify-between gap-4 relative z-10">
+                                                <div class="p-3 bg-neon/15 rounded-xl text-neon group-hover:scale-110 transition-transform">
+                                                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                    </svg>
+                                                </div>
+                                                <span class="px-2.5 py-1 rounded-full bg-neon text-dark text-[9px] font-black uppercase tracking-wider">AI VDOT</span>
+                                            </div>
+                                            <div class="mt-6 relative z-10">
+                                                <h4 class="text-lg font-black text-white uppercase italic tracking-tight group-hover:text-neon transition-colors">AI Program Generator</h4>
+                                                <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                                    Hasilkan program latihan periodisasi personal (5K - Full Marathon) secara instan menggunakan algoritma Jack Daniels' VDOT yang teruji secara ilmiah.
+                                                </p>
+                                            </div>
+                                            <div class="mt-6 flex items-center gap-1.5 text-xs text-neon font-bold relative z-10">
+                                                <span>Generate Sekarang</span>
+                                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7m0 0l-7 7m7-7H3" />
                                                 </svg>
                                             </div>
-                                            <span class="px-2.5 py-1 rounded-full bg-neon text-dark text-[9px] font-black uppercase tracking-wider">AI VDOT</span>
-                                        </div>
-                                        <div class="mt-6 relative z-10">
-                                            <h4 class="text-lg font-black text-white uppercase italic tracking-tight group-hover:text-neon transition-colors">AI Program Generator</h4>
-                                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                                Hasilkan program latihan periodisasi personal (5K - Full Marathon) secara instan menggunakan algoritma Jack Daniels' VDOT yang teruji secara ilmiah.
-                                            </p>
-                                        </div>
-                                        <div class="mt-6 flex items-center gap-1.5 text-xs text-neon font-bold relative z-10">
-                                            <span>Generate Sekarang</span>
-                                            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7m0 0l-7 7m7-7H3" />
-                                            </svg>
-                                        </div>
-                                    </button>
+                                        </button>
 
-                                    <!-- Card 2: Coach Programs -->
-                                    <a href="{{ route('runner.programs') }}" class="relative group overflow-hidden rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:border-neon/50 p-6 text-left transition-all hover:scale-[1.01] duration-300 font-bold">
-                                        <div class="absolute -inset-px bg-gradient-to-r from-neon/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                                        <div class="flex items-start justify-between gap-4 relative z-10">
-                                            <div class="p-3 bg-neon/15 rounded-xl text-neon group-hover:scale-110 transition-transform">
-                                                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        <!-- Card 2: Coach Programs -->
+                                        <a href="{{ route('runner.programs') }}" class="relative group overflow-hidden rounded-2xl bg-slate-800/80 border border-slate-700/80 hover:border-neon/50 p-6 text-left transition-all hover:scale-[1.01] duration-300 font-bold">
+                                            <div class="absolute -inset-px bg-gradient-to-r from-neon/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                                            <div class="flex items-start justify-between gap-4 relative z-10">
+                                                <div class="p-3 bg-neon/15 rounded-xl text-neon group-hover:scale-110 transition-transform">
+                                                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                                    </svg>
+                                                </div>
+                                                <span class="px-2.5 py-1 rounded-full bg-slate-700 text-white text-[9px] font-black uppercase tracking-wider">Coach</span>
+                                            </div>
+                                            <div class="mt-6 relative z-10">
+                                                <h4 class="text-lg font-black text-white uppercase italic tracking-tight group-hover:text-neon transition-colors">Program Latihan Coach</h4>
+                                                <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                                    Daftar program latihan lari terstruktur yang dibuat langsung oleh pelatih berlisensi. Dapatkan bimbingan dan feedback langsung dari Coach.
+                                                </p>
+                                            </div>
+                                            <div class="mt-6 flex items-center gap-1.5 text-xs text-neon font-bold relative z-10">
+                                                <span>Pilih Program Coach</span>
+                                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7m0 0l-7 7m7-7H3" />
                                                 </svg>
                                             </div>
-                                            <span class="px-2.5 py-1 rounded-full bg-slate-700 text-white text-[9px] font-black uppercase tracking-wider">Coach</span>
-                                        </div>
-                                        <div class="mt-6 relative z-10">
-                                            <h4 class="text-lg font-black text-white uppercase italic tracking-tight group-hover:text-neon transition-colors">Program Latihan Coach</h4>
-                                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-                                                Daftar program latihan lari terstruktur yang dibuat langsung oleh pelatih berlisensi. Dapatkan bimbingan dan feedback langsung dari Coach.
-                                            </p>
-                                        </div>
-                                        <div class="mt-6 flex items-center gap-1.5 text-xs text-neon font-bold relative z-10">
-                                            <span>Pilih Program Coach</span>
-                                            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7m0 0l-7 7m7-7H3" />
-                                            </svg>
-                                        </div>
-                                    </a>
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         @else
                             <div class="mt-5 bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5">
                                 <div class="text-sm font-bold text-white">Rest day / tidak ada jadwal hari ini.</div>
@@ -421,6 +452,33 @@
                         @endforelse
                     </div>
                 </div>
+
+                @if($programBag->count() > 0)
+                <!-- Program Bag Sidebar Widget -->
+                <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
+                    <div class="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest">Bag</div>
+                            <h3 class="text-lg font-black text-white italic tracking-tight mt-1">Program Bag</h3>
+                        </div>
+                        <button onclick="switchTab('calendar')" class="text-sm text-neon hover:underline font-bold">Lihat Semua</button>
+                    </div>
+                    <div class="space-y-3">
+                        @foreach($programBag as $bg)
+                            <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col gap-3">
+                                <div>
+                                    <div class="text-white font-bold text-sm">{{ $bg->program->title }}</div>
+                                    <div class="text-[10px] text-slate-400 mt-1 font-sans">Dibuat oleh: <span class="font-semibold text-slate-300">{{ $bg->program->coach->name }}</span></div>
+                                    <div class="text-[10px] text-slate-505 font-mono mt-0.5">Dibeli: {{ $bg->created_at->format('d M Y') }}</div>
+                                </div>
+                                <button onclick="triggerApplyProgram({{ $bg->id }})" class="w-full py-2.5 rounded-xl bg-neon text-dark font-black hover:bg-white text-center text-xs uppercase italic tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-neon/10">
+                                    Aktifkan <i class="fas fa-play text-[9px]"></i>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
                 <!-- Riwayat Run Connect Section -->
                 <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6">
@@ -1329,6 +1387,7 @@
             loading: false,
             saving: false,
             notification: null,
+            isReceiveWa: {{ auth()->user()->is_receive_wa ? 'true' : 'false' }},
 
             card_pb_distance: '5k',
             card_pb_hours: '',
@@ -1360,6 +1419,29 @@
                         this.card_pb_minutes = '';
                         this.card_pb_seconds = '';
                     }
+                }
+            },
+
+            async toggleReceiveWa() {
+                try {
+                    const response = await fetch('{{ route("runner.profile.toggle-wa") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ is_receive_wa: !this.isReceiveWa })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        this.isReceiveWa = data.is_receive_wa;
+                        this.showNotification(data.message || 'Pengaturan WhatsApp diperbarui.', 'success');
+                    } else {
+                        this.showNotification(data.message || 'Gagal mengubah pengaturan.', 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    this.showNotification('Terjadi kesalahan koneksi.', 'error');
                 }
             },
 
@@ -1889,6 +1971,18 @@
 </script>
 
 <script>
+    function triggerApplyProgram(enrollmentId) {
+        switchTab('calendar');
+        // Wait a brief moment for the tab to transition and Vue to render
+        setTimeout(() => {
+            if (window.runnerCalendarInstance && typeof window.runnerCalendarInstance.applyProgram === 'function') {
+                window.runnerCalendarInstance.applyProgram(enrollmentId);
+            } else {
+                console.error("Vue calendar instance not ready or applyProgram method not found.");
+            }
+        }, 300);
+    }
+
     function switchTab(tabName) {
         // Hide all tab contents
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));

@@ -8,7 +8,7 @@ const { createApp, ref, reactive, onMounted, computed, watch, nextTick } = Vue;
     const root = document.getElementById('runner-calendar-app');
     if (!root) { console.error('Runner calendar root not found'); return; }
 })();
-createApp({
+const runnerCalendarApp = createApp({
     setup() {
         // Define static assets/urls first (avoid TDZ/ReferenceError in helpers called early)
         const assetStorage = @json(asset('storage'));
@@ -3048,7 +3048,8 @@ createApp({
             ttsSupported, speakDetailDescription
         };
     }
+});
 
-}).mount('#runner-calendar-app');
+window.runnerCalendarInstance = runnerCalendarApp.mount('#runner-calendar-app');
 </script>
 @endpush

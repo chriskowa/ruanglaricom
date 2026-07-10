@@ -467,4 +467,17 @@ class CalendarController extends Controller
     {
         return number_format($v, 6, '.', '');
     }
+
+    public function stravaDisconnect(Request $request)
+    {
+        if (auth()->check()) {
+            auth()->user()->update([
+                'strava_id' => null,
+                'strava_access_token' => null,
+                'strava_refresh_token' => null,
+                'strava_expires_at' => null,
+            ]);
+        }
+        return response()->json(['success' => true]);
+    }
 }
